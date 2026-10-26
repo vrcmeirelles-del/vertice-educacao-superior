@@ -1,34 +1,35 @@
-# Acesso do proprietário — implantação pendente
+# Implantação Vértice — 26/10/2026
 
-E-mail indicado pelo proprietário: `vrcmeirelles@gmail.com`.
+## Arquitetura atual
+- Render Static Site: site público e demonstração, sem dados institucionais reais na demonstração.
+- Supabase: projeto `qvetbbmviatxxatzzuzc`, PostgreSQL e Auth, região East US (Ohio).
+- Login: `/entrar`, e-mail/senha, recuperação e segundo fator TOTP.
+- Área autenticada: `/master`. A autorização é aplicada por RLS no banco, não pelo caminho da página.
+- Chave do navegador: somente publishable. Nenhuma secret/service_role pertence ao frontend.
+- Sessão: sessionStorage por aba. Não é cookie HttpOnly; XSS continua sendo um risco a tratar com CSP, revisão de dependências e ausência de HTML não confiável.
 
-O painel `/master` consulta instituições, cursos e usuários reais do banco. Não altera a publicação estática existente e não cria uma conta fictícia. Não há senha padrão.
+## Banco
+Migração: `supabase/migrations/202610260001_access_foundation.sql`.
+Tabelas: vertice_institutions, vertice_courses, vertice_memberships, vertice_admins, vertice_audit.
+As tabelas têm RLS, leitura exige MFA nível aal2 e vínculo ou perfil master. O próprio usuário só pode ver sua existência na lista de administradores; não pode criar privilégios. Não há concessões de escrita pela API do navegador nesta versão.
+O cadastro de instituições, vínculos e administradores é feito por operação administrativa no banco, com identificação verificada. Nenhuma conta é promovida por e-mail ou por metadados editáveis do usuário.
+Auditoria registra operação, tabela, ator autenticado (quando disponível), referência e horário. Alterações diretas pelo administrador no painel podem aparecer com ator nulo; isso não substitui os logs administrativos do provedor.
 
-## Requisitos de ativação
+## Primeiro acesso do proprietário
+E-mail solicitado: vrcmeirelles@gmail.com. Criar convite somente após confirmação da operação de acesso. Após a confirmação do e-mail e validação da identidade/UUID, atribuir o UUID exato em vertice_admins por conexão administrativa. Nunca usar e-mail sozinho como autorização no frontend. O titular define sua senha e cadastra o autenticador; não há senha padrão.
 
-1. Servidor Node para executar `npm ci --legacy-peer-deps`, `npm run build` e `npm start` (não um Static Site).
-2. Banco MySQL compatível com `drizzle/schema.ts`, com migrações das quatro tabelas aplicadas. A migração SQL atualmente incluída cria somente `users`.
-3. Provedor OAuth do projeto configurado: `MANUS_PROJECT_ID`, `MANUS_OAUTH_API_URL`, configuração pública do portal e `MANUS_JWT_SECRET` seguro.
-4. Login real do proprietário pelo provedor. Configurar no servidor `OWNER_OPEN_ID` com a identidade retornada pelo provedor e `OWNER_EMAIL=vrcmeirelles@gmail.com`. Nunca usar o e-mail como substituto do identificador autenticado.
-5. A inicialização promove somente uma conta existente com identidade e e-mail correspondentes. O login também aplica essa correspondência ao criar/sincronizar a conta.
-6. Testar `/api/trpc/owner.overview` sem sessão, com conta comum e com proprietário antes de ligar o domínio ao servidor.
-
-O painel é de consulta. Gestão de permissões, diagnósticos compartilhados, documentos e auditoria de alterações ainda precisam de implementação. Não reutilizar bancos de outros produtos.
+## Limites
+- Cadastro público fechado. Confirmar controlador jurídico, CNPJ, canal dos titulares e retenção antes de abri-lo.
+- Documentos, diagnósticos e metas compartilhados ainda não estão implementados: a demonstração permanece separada.
+- Backup gerenciado e restauração não foram habilitados nem atestados. Os pacotes Git são cópias do código, não do banco.
+- O servidor MySQL/OAuth Manus permanece no pacote como código legado não implantado. Seus testes não comprovam o funcionamento do Supabase.
+- Não foi migrado nem apagado banco anterior. Não foi contratado serviço pago.
 
 ## Validação
+`npm ci --legacy-peer-deps`, `npm run check`, `npm test`, `npm run build:static`.
+`supabase/tests/access.sql` testa isolamento, bloqueio de autopromoção e de autovínculo, MFA e visão master com fixtures transacionais revertidas por rollback. Não executar testes de fixtures sem manter o rollback.
 
-`npm run check`, `npm test` e `npm run build`.
-
-Os testes verificam a recusa de visitantes, de outro administrador, de e-mail sem identidade correspondente, de identidade com outro e-mail e de configuração ausente.
-
-## Área de login
-
-`/entrar` e o botão Entrar no cabeçalho e rodapé estão incluídos na interface. `/gestor` usa a mesma tela, sem validação simulada de senha. O servidor fornece `/api/auth/status` e `/api/auth/logout`; sem configuração a interface informa indisponibilidade e não coleta senhas. A recuperação ocorre no provedor OAuth; não há recuperação local de senha. Após o login, o proprietário encontra seu painel em `/master`.
-
-## Reforço de proteção — 26/10/2026
-
-O código atualizado está em `vertice-servidor-source.zip`; extraia o pacote para compilar e implantar o servidor. O pacote estático contém apenas a interface e o aviso de privacidade; não executa proteções de servidor.
-
-Incluídos: cabeçalhos de segurança/CSP em produção, cookies SameSite=Lax, sessão emitida com oito horas, limite de corpo de 1 MB, limitação de API por processo e verificação de origem em escritas. Configure `PUBLIC_SITE_ORIGIN` com a origem HTTPS exata. A API recusa escritas sem essa configuração. Não habilitar confiança irrestrita em cabeçalhos de proxy; ajustar proxy e limite compartilhado conforme a hospedagem.
-
-Área de acesso: política vinculada e ciência de leitura sem autorização de marketing. O provedor externo controla seu próprio cadastro. Antes de abrir cadastros reais, confirmar razão social/CNPJ do controlador, canal dos titulares, fornecedores, retenção e transferências; essas informações não foram inventadas. MFA, backups/restauração, revogação individual de sessões e segregação multi-institucional completa continuam pendentes. Cabeçalhos do servidor não são aplicados por hospedagem estática.
+## Pacotes
+`vertice-servidor-source.zip`: fonte editável, com lockfile, migração e testes.
+`vertice-static.zip`: site compilado, usado pelos dois Static Sites existentes.
+`deployment-checksums.sha256`: integridade dos pacotes.
