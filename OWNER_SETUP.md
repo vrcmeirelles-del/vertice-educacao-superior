@@ -20,3 +20,7 @@ O painel é de consulta. Gestão de permissões, diagnósticos compartilhados, d
 `npm run check`, `npm test` e `npm run build`.
 
 Os testes verificam a recusa de visitantes, de outro administrador, de e-mail sem identidade correspondente, de identidade com outro e-mail e de configuração ausente.
+
+## Área de login
+
+`/entrar` e o botão Entrar no cabeçalho e rodapé estão incluídos na interface. `/gestor` usa a mesma tela, sem validação simulada de senha. O servidor fornece `/api/auth/status` e `/api/auth/logout`; sem configuração a interface informa indisponibilidade e não coleta senhas. A recuperação ocorre no provedor OAuth; não há recuperação local de senha. Após o login, o proprietário encontra seu painel em `/master`.

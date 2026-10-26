@@ -1,6 +1,6 @@
 --- /dev/null
 +++ b/OWNER_SETUP.md
-@@ -0,0 +1,22 @@
+@@ -0,0 +1,26 @@
 +# Acesso do proprietário — implantação pendente
 +
 +E-mail indicado pelo proprietário: `vrcmeirelles@gmail.com`.
@@ -23,6 +23,10 @@
 +`npm run check`, `npm test` e `npm run build`.
 +
 +Os testes verificam a recusa de visitantes, de outro administrador, de e-mail sem identidade correspondente, de identidade com outro e-mail e de configuração ausente.
++
++## Área de login
++
++`/entrar` e o botão Entrar no cabeçalho e rodapé estão incluídos na interface. `/gestor` usa a mesma tela, sem validação simulada de senha. O servidor fornece `/api/auth/status` e `/api/auth/logout`; sem configuração a interface informa indisponibilidade e não coleta senhas. A recuperação ocorre no provedor OAuth; não há recuperação local de senha. Após o login, o proprietário encontra seu painel em `/master`.
 --- a/client/src/App.tsx
 +++ b/client/src/App.tsx
 @@ -12,6 +12,7 @@
@@ -33,6 +37,24 @@
    "/matriz",
    "/metas",
    "/plano",
+@@ -26,7 +27,7 @@
+   useEffect(() => {
+     const page = publicPages.find(p => p.path === normalized);
+     document.title =
+-      page?.title ??
++      (normalized === "/entrar" ? "Entrar | Vértice Educação Superior" : page?.title) ??
+       (demoPaths.has(normalized)
+         ? "Demonstração de gestão | Vértice Educação Superior"
+         : "Página não encontrada | Vértice Educação Superior");
+@@ -36,7 +37,7 @@
+       robots.name = "robots";
+       document.head.appendChild(robots);
+     }
+-    robots.content = isPublic ? "index,follow" : "noindex,nofollow";
++    robots.content = isPublic && normalized !== "/entrar" ? "index,follow" : "noindex,nofollow";
+     if (page) {
+       const description = document.querySelector<HTMLMetaElement>(
+         'meta[name="description"]'
 --- a/client/src/DemoApp.tsx
 +++ b/client/src/DemoApp.tsx
 @@ -15,6 +15,7 @@
@@ -51,6 +73,22 @@
          <Route path="/matriz" component={Matrix} />
          <Route path="/metas" component={Goals} />
          <Route path="/plano" component={ActionPlan} />
+--- a/client/src/PublicApp.tsx
++++ b/client/src/PublicApp.tsx
+@@ -6,11 +6,13 @@
+ import About from "./pages/public/About";
+ import Founder from "./pages/public/Founder";
+ import Contact from "./pages/public/Contact";
++import Login from "./pages/public/Login";
+ import Privacy from "./pages/public/Privacy";
+ import { useLocation } from "wouter";
+ 
+ export const publicComponents: Record<string, React.ComponentType> = {
+   "/": Home,
++  "/entrar": Login,
+   "/servicos": Services,
+   "/metodo": Method,
+   "/sobre": About,
 --- a/client/src/components/PilotLayout.tsx
 +++ b/client/src/components/PilotLayout.tsx
 @@ -30,6 +30,7 @@
@@ -61,6 +99,155 @@
    { path: "/diagnostico", label: "Diagnóstico", icon: ClipboardCheck },
    { path: "/regulador", label: "Regulação", icon: ShieldCheck },
    { path: "/matriz", label: "Matriz de achados", icon: FileCheck2 },
+--- a/client/src/components/PublicLayout.tsx
++++ b/client/src/components/PublicLayout.tsx
+@@ -83,7 +83,10 @@
+             <Link href="/demonstracao" className="corp-demo-link">
+               Demonstração <ArrowUpRight size={15} />
+             </Link>
+-            <Link href="/contato.html" className="corp-button small">
++            <Link href="/entrar" className="corp-button small">
++              Entrar <ArrowUpRight size={15} />
++            </Link>
++            <Link href="/contato.html" className="corp-demo-link">
+               Vamos conversar <ArrowUpRight size={15} />
+             </Link>
+           </nav>
+@@ -105,6 +108,7 @@
+               </Link>
+             ))}
+             <Link href="/demonstracao">Demonstração</Link>
++            <Link href="/entrar">Entrar</Link>
+           </div>
+           <div className="footer-note">
+             <span>Uma atuação com responsabilidade</span>
+--- a/client/src/pages/GestorAccess.tsx
++++ b/client/src/pages/GestorAccess.tsx
+@@ -1,122 +1,2 @@
+-import React, { useState } from "react";
+-import { LockKeyhole, ShieldCheck, UsersRound } from "lucide-react";
+-import { Button } from "@/components/ui/button";
+-import { usePilot } from "@/contexts/PilotContext";
+-
+-const sectorLabels = [
+-  { id: "gestao", label: "Gestão institucional" },
+-  { id: "academico", label: "Coordenação acadêmica" },
+-  { id: "academico-colegiado", label: "Colegiado acadêmico" },
+-  { id: "evidencia", label: "Setor de evidências" },
+-  { id: "regulacao", label: "Setor regulatório" },
+-];
+-
+-export default function GestorAccess() {
+-  const { institution, setInstitution } = usePilot();
+-  const [email, setEmail] = useState("");
+-  const [password, setPassword] = useState("");
+-  const [authorized, setAuthorized] = useState<string[]>(["gestao"]);
+-  const [error, setError] = useState("");
+-
+-  const login = (e: React.FormEvent) => {
+-    e.preventDefault();
+-    const token = `${email.trim().toLowerCase()}|${password}`;
+-    if (!token.includes("@") || !password) {
+-      setError("Informe e-mail institucional e senha para continuar.");
+-      return;
+-    }
+-    setError("");
+-    setAuthorized(institution.sectors.map(s => s.sectorId).filter(id => id === "gestao" || true));
+-  };
+-
+-  const release = (sectorId: string, canAnswer: boolean) => {
+-    const next = institution.sectors.map(s =>
+-      s.sectorId === sectorId
+-        ? { ...s, canAnswer, canReview: canAnswer ? s.canReview : false }
+-        : s
+-    );
+-    setInstitution({ ...institution, sectors: next });
+-  };
+-
+-  return (
+-    <div className="gestor-composition">
+-      <div className="gestor-panel">
+-        <span className="corp-eyebrow">
+-          <span />
+-          ÁREA DE GESTOR
+-        </span>
+-        <h2>Cadastro institucional</h2>
+-        <p>
+-          O gestor da instituição entra com o e-mail institucional, cadastra a
+-          instituição e os cursos, e concede acesso aos setores que participam do
+-          diagnóstico.
+-        </p>
+-        <form onSubmit={login} className="gestor-form">
+-          <input
+-            className="text-input"
+-            type="email"
+-            value={email}
+-            onChange={e => setEmail(e.target.value)}
+-            placeholder="gestor@instituicao.br"
+-            aria-label="E-mail institucional"
+-          />
+-          <input
+-            className="text-input"
+-            type="password"
+-            value={password}
+-            onChange={e => setPassword(e.target.value)}
+-            placeholder="Senha"
+-            aria-label="Senha"
+-          />
+-          <button type="submit" className="corp-button">
+-            <LockKeyhole size={16} /> Entrar no diagnóstico
+-          </button>
+-          {error && <span className="muted-text">{error}</span>}
+-        </form>
+-      </div>
+-
+-      <div className="gestor-panel">
+-        <span className="corp-eyebrow">
+-          <span />
+-          SETORES AUTORIZADOS
+-        </span>
+-        <h2>Liberação por setor</h2>
+-        <p>
+-          Cada setor pode responder e/ou revisar o diagnóstico do curso em que
+-          foi habilitado.
+-        </p>
+-        <div className="gestor-list">
+-          {institution.sectors.map(s => (
+-            <div key={s.sectorId} className="gestor-row">
+-              <div>
+-                <strong>{s.label}</strong>
+-                <span className="muted-text">{s.sectorId}</span>
+-              </div>
+-              <div className="gestor-actions">
+-                <label className="admin-check">
+-                  <input
+-                    type="checkbox"
+-                    checked={s.canAnswer}
+-                    onChange={e => release(s.sectorId, e.target.checked)}
+-                  />
+-                  Responder
+-                </label>
+-                <label className="admin-check">
+-                  <input
+-                    type="checkbox"
+-                    checked={s.canReview}
+-                    onChange={e => release(s.sectorId, e.target.checked)}
+-                  />
+-                  Revisar
+-                </label>
+-              </div>
+-            </div>
+-          ))}
+-        </div>
+-        <div className="gestor-footnote">
+-          <ShieldCheck size={15} /> O acesso é por setor, no mesmo navegador local do gestor.
+-        </div>
+-      </div>
+-    </div>
+-  );
+-}
++import Login from "./public/Login";
++export default Login;
 --- /dev/null
 +++ b/client/src/pages/OwnerDashboard.tsx
 @@ -0,0 +1,26 @@
@@ -90,6 +277,91 @@
 +    <p>Os diagnósticos, metas e documentos da demonstração permanecem locais e não são apresentados como dados compartilhados neste painel.</p>
 +  </main>;
 +}
+--- /dev/null
++++ b/client/src/pages/public/Login.tsx
+@@ -0,0 +1,51 @@
++import { useEffect, useState } from "react";
++import { Link } from "wouter";
++import { ArrowUpRight, LockKeyhole, ShieldCheck } from "lucide-react";
++import { startLogin } from "@/const";
++
++type LoginStatus = { configured: boolean; authenticated: boolean; isOwner: boolean; email?: string | null };
++
++export default function Login() {
++  const [status, setStatus] = useState<LoginStatus | null>(null);
++  const [checking, setChecking] = useState(true);
++  const [message, setMessage] = useState("");
++  const [recovery, setRecovery] = useState(false);
++  useEffect(() => {
++    const controller = new AbortController();
++    const timeout = setTimeout(() => controller.abort(), 8000);
++    fetch("/api/auth/status", { signal: controller.signal, credentials: "same-origin", cache: "no-store" })
++      .then(async response => {
++        if (!response.ok || !response.headers.get("content-type")?.includes("application/json")) throw new Error("unavailable");
++        const value = await response.json();
++        if (typeof value.configured !== "boolean" || typeof value.authenticated !== "boolean" || typeof value.isOwner !== "boolean") throw new Error("invalid response");
++        setStatus(value);
++      }).catch(() => setStatus(null)).finally(() => { clearTimeout(timeout); setChecking(false); });
++    return () => { clearTimeout(timeout); controller.abort(); };
++  }, []);
++  const login = () => {
++    setMessage("");
++    try { startLogin(); } catch { setMessage("O serviço de login ainda não está disponível. Nenhuma sessão foi iniciada."); }
++  };
++  const logout = async () => {
++    try {
++      const response = await fetch("/api/auth/logout", { method: "POST", credentials: "same-origin" });
++      if (!response.ok) throw new Error("logout failed");
++      setStatus(previous => previous && { ...previous, authenticated: false, isOwner: false, email: null });
++      setMessage("Você saiu da sua conta.");
++    } catch { setMessage("Não foi possível encerrar a sessão. Tente novamente."); }
++  };
++  return <section className="corp-section corp-login-section">
++    <div className="corp-container corp-login-grid">
++      <div className="corp-login-intro"><span className="corp-eyebrow">ÁREA RESTRITA</span><h1>Seu espaço<br />de gestão.</h1><p>Acesse sua conta para acompanhar as instituições e atividades autorizadas para o seu perfil.</p><div className="corp-login-trust"><ShieldCheck size={22} /><p>O perfil de proprietário é validado no servidor. Cada conta acessa apenas os dados autorizados.</p></div><Link href="/demonstracao">Conhecer a demonstração <ArrowUpRight size={16} /></Link></div>
++      <div className="corp-login-card"><LockKeyhole size={30} aria-hidden="true" /><h2>Entrar no Vértice</h2><p>Use sua conta no provedor de autenticação. Sua senha é informada diretamente no provedor.</p>
++        {checking ? <p role="status">Verificando a disponibilidade do acesso…</p> : status?.authenticated ? <div><p>Sessão ativa: <strong>{status.email ?? "Conta autenticada"}</strong></p>{status.isOwner ? <Link href="/master" className="corp-button">Abrir painel do proprietário <ArrowUpRight size={16} /></Link> : <p>Sua conta está autenticada. O painel institucional compartilhado ainda está em implantação.</p>}<button className="corp-login-text-button" onClick={logout}>Sair da conta</button></div> : <>
++          {status?.configured ? <button className="corp-button corp-login-submit" onClick={login}>Entrar com minha conta <ArrowUpRight size={16} /></button> : <div className="corp-login-notice" role="status"><strong>Acesso em implantação</strong><p>A área de login está pronta para receber a autenticação. O servidor de acesso ainda não está ativo neste endereço.</p><button className="corp-button corp-login-submit" disabled>Login indisponível no momento</button></div>}
++          <button className="corp-login-text-button" onClick={() => setRecovery(value => !value)} aria-expanded={recovery}>Preciso recuperar meu acesso</button>
++          {recovery && <div className="corp-login-help"><p>A recuperação de senha será feita pelo provedor de autenticação. Quando o login estiver disponível, entre pelo botão acima e use a opção de recuperação do provedor.</p><p>Não envie sua senha por e-mail ou mensagem.</p></div>}
++        </>}
++        {message && <p role="status">{message}</p>}
++        <p className="corp-login-privacy">A demonstração continua disponível sem login. <Link href="/privacidade.html">Privacidade e uso dos dados</Link></p>
++      </div>
++    </div>
++  </section>;
++}
+--- a/client/src/styles/corporate.css
++++ b/client/src/styles/corporate.css
+@@ -1778,3 +1778,6 @@
+     animation: none !important;
+   }
+ }
++
++/* Account entry */
++.corp-login-section{background:#f4f6f8;min-height:70vh}.corp-login-grid{display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:center}.corp-login-intro h1{font-size:clamp(36px,5vw,60px);line-height:1.08;color:#243653;margin:22px 0}.corp-login-intro>p{font-size:18px;line-height:1.7;max-width:480px}.corp-login-trust{display:flex;gap:14px;align-items:flex-start;margin:28px 0;color:#48615b}.corp-login-trust svg{flex-shrink:0;margin-top:5px}.corp-login-trust p{margin:0;line-height:1.6}.corp-login-intro>a{display:inline-flex;align-items:center;gap:6px}.corp-login-card{background:white;border:1px solid #dde3e9;border-radius:16px;padding:38px;box-shadow:0 12px 40px #2436530d;color:#243653}.corp-login-card h2{font-size:28px;margin:18px 0 12px}.corp-login-card p{line-height:1.65}.corp-login-notice{background:#f8f5ec;border:1px solid #e6dcc3;border-radius:9px;padding:20px;margin:24px 0 12px}.corp-login-notice p{font-size:14px}.corp-login-submit{width:100%;justify-content:center}.corp-login-submit:disabled{opacity:.6;cursor:not-allowed}.corp-login-text-button{display:block;border:0;background:transparent;color:#243653;text-decoration:underline;font:inherit;padding:14px 0;cursor:pointer}.corp-login-help{border-left:3px solid #b99a67;padding-left:16px;font-size:14px}.corp-login-privacy{border-top:1px solid #dde3e9;padding-top:20px;margin-top:16px;font-size:12px;color:#5e6975}@media(max-width:800px){.corp-login-grid{grid-template-columns:1fr;gap:32px}.corp-login-card{padding:25px}}
+--- a/package.json
++++ b/package.json
+@@ -13,7 +13,7 @@
+     "db:push": "drizzle-kit generate && drizzle-kit migrate",
+     "db:migrate": "drizzle-kit migrate",
+     "dev:static": "vite --host 0.0.0.0 --port ${PORT:-3000} --strictPort",
+-    "build:static": "vite build && tsx scripts/prerender.tsx"
++    "build:static": "vite build && node --import tsx scripts/prerender.tsx"
+   },
+   "dependencies": {
+     "@aws-sdk/client-s3": "^3.693.0",
+--- a/scripts/prerender.tsx
++++ b/scripts/prerender.tsx
+@@ -93,6 +93,8 @@
+   "regulador",
+   "admin-ies",
+   "gestor",
++  "master",
++  "entrar",
+   "matriz",
+   "metas",
+   "plano",
 --- a/scripts/seed-admin.ts
 +++ b/scripts/seed-admin.ts
 @@ -1,45 +1,19 @@
@@ -148,7 +420,67 @@
 +  seedAdmin().catch(() => { console.error("Falha ao preparar proprietário."); process.exitCode = 1; });
  }
 -
--export { seedAdmin };--- /dev/null
+-export { seedAdmin };--- a/server/_core/index.ts
++++ b/server/_core/index.ts
+@@ -2,6 +2,7 @@
+ import express from "express";
+ import { createServer } from "http";
+ import { createExpressMiddleware } from "@trpc/server/adapters/express";
++import { registerLoginRoutes } from "./loginRoutes";
+ import { registerOAuthRoutes } from "./oauth";
+ import { publicPlatformScript } from "./publicConfig";
+ import { appRouter } from "../routers";
+@@ -21,6 +22,7 @@
+     res.set("Cache-Control", "no-store").type("application/javascript").send(publicPlatformScript());
+   });
+   registerOAuthRoutes(app);
++  registerLoginRoutes(app);
+   // tRPC API
+   app.use(
+     "/api/trpc",
+--- /dev/null
++++ b/server/_core/loginRoutes.ts
+@@ -0,0 +1,28 @@
++import type { Express } from "express";
++import { COOKIE_NAME } from "../../shared/const";
++import { getSessionCookieOptions } from "./cookies";
++import { sdk } from "./sdk";
++import { isOwner } from "./owner";
++
++export function loginConfigured(env: NodeJS.ProcessEnv = process.env) {
++  return ["DATABASE_URL", "MANUS_PROJECT_ID", "MANUS_OAUTH_API_URL", "MANUS_OAUTH_PORTAL_URL"].every(key => Boolean(env[key]?.trim())) && (env.MANUS_JWT_SECRET?.length ?? 0) >= 32;
++}
++
++export function registerLoginRoutes(app: Express) {
++  app.get("/api/auth/status", async (req, res) => {
++    res.set("Cache-Control", "no-store");
++    const configured = loginConfigured();
++    if (!configured) { res.json({ configured: false, authenticated: false, isOwner: false }); return; }
++    try {
++      const user = await sdk.authenticateRequest(req);
++      res.json({ configured: true, authenticated: true, isOwner: isOwner(user), email: user.email });
++    } catch { res.json({ configured: true, authenticated: false, isOwner: false }); }
++  });
++  app.post("/api/auth/logout", (req, res) => {
++    const expectedOrigin = process.env.PUBLIC_SITE_ORIGIN || `${req.protocol}://${req.get("host")}`;
++    if (req.headers.origin !== expectedOrigin.replace(/\/$/, "")) { res.status(403).json({ error: "Origem não autorizada" }); return; }
++    res.set("Cache-Control", "no-store");
++    res.clearCookie(COOKIE_NAME, { ...getSessionCookieOptions(req), maxAge: -1 });
++    res.json({ success: true });
++  });
++}
+--- a/server/_core/oauth.ts
++++ b/server/_core/oauth.ts
+@@ -56,7 +56,7 @@
+       const cookieOptions = getSessionCookieOptions(req);
+       res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
+ 
+-      res.redirect(302, "/");
++      res.redirect(302, "/entrar");
+     } catch (error) {
+       console.error("[OAuth] Callback failed", error instanceof Error ? error.message : "unknown error");
+       res.status(500).json({ error: "OAuth callback failed" });
+--- /dev/null
 +++ b/server/_core/owner.ts
 @@ -0,0 +1,12 @@
 +import type { User } from "../../drizzle/schema";
@@ -183,6 +515,17 @@
        values.role = 'admin';
        updateSet.role = 'admin';
      }
+--- /dev/null
++++ b/server/login.test.ts
+@@ -0,0 +1,8 @@
++import { describe, expect, it } from "vitest";
++import { loginConfigured } from "./_core/loginRoutes";
++const config = { DATABASE_URL: "mysql://test", MANUS_PROJECT_ID: "test", MANUS_OAUTH_API_URL: "https://auth.example.com", MANUS_OAUTH_PORTAL_URL: "https://login.example.com", MANUS_JWT_SECRET: "a".repeat(32) };
++describe("login configuration", () => {
++  it("requires the database, provider and a session secret", () => { expect(loginConfigured(config)).toBe(true); expect(loginConfigured({})).toBe(false); });
++  it.each(Object.keys(config))("rejects missing %s", key => { expect(loginConfigured({ ...config, [key]: "" })).toBe(false); });
++  it("rejects a short signing secret", () => { expect(loginConfigured({ ...config, MANUS_JWT_SECRET: "short" })).toBe(false); });
++});
 --- /dev/null
 +++ b/server/owner.test.ts
 @@ -0,0 +1,29 @@
