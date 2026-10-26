@@ -1,0 +1,270 @@
+--- /dev/null
++++ b/OWNER_SETUP.md
+@@ -0,0 +1,22 @@
++# Acesso do proprietário — implantação pendente
++
++E-mail indicado pelo proprietário: `vrcmeirelles@gmail.com`.
++
++O painel `/master` consulta instituições, cursos e usuários reais do banco. Não altera a publicação estática existente e não cria uma conta fictícia. Não há senha padrão.
++
++## Requisitos de ativação
++
++1. Servidor Node para executar `npm ci --legacy-peer-deps`, `npm run build` e `npm start` (não um Static Site).
++2. Banco MySQL compatível com `drizzle/schema.ts`, com migrações das quatro tabelas aplicadas. A migração SQL atualmente incluída cria somente `users`.
++3. Provedor OAuth do projeto configurado: `MANUS_PROJECT_ID`, `MANUS_OAUTH_API_URL`, configuração pública do portal e `MANUS_JWT_SECRET` seguro.
++4. Login real do proprietário pelo provedor. Configurar no servidor `OWNER_OPEN_ID` com a identidade retornada pelo provedor e `OWNER_EMAIL=vrcmeirelles@gmail.com`. Nunca usar o e-mail como substituto do identificador autenticado.
++5. A inicialização promove somente uma conta existente com identidade e e-mail correspondentes. O login também aplica essa correspondência ao criar/sincronizar a conta.
++6. Testar `/api/trpc/owner.overview` sem sessão, com conta comum e com proprietário antes de ligar o domínio ao servidor.
++
++O painel é de consulta. Gestão de permissões, diagnósticos compartilhados, documentos e auditoria de alterações ainda precisam de implementação. Não reutilizar bancos de outros produtos.
++
++## Validação
++
++`npm run check`, `npm test` e `npm run build`.
++
++Os testes verificam a recusa de visitantes, de outro administrador, de e-mail sem identidade correspondente, de identidade com outro e-mail e de configuração ausente.
+--- a/client/src/App.tsx
++++ b/client/src/App.tsx
+@@ -12,6 +12,7 @@
+   "/regulador",
+   "/admin-ies",
+   "/gestor",
++  "/master",
+   "/matriz",
+   "/metas",
+   "/plano",
+--- a/client/src/DemoApp.tsx
++++ b/client/src/DemoApp.tsx
+@@ -15,6 +15,7 @@
+ import Regulatory from "./pages/Regulatory";
+ import AdminInstitution from "./pages/AdminInstitution";
+ import GestorAccess from "./pages/GestorAccess";
++import OwnerDashboard from "./pages/OwnerDashboard";
+ import NotFound from "./pages/NotFound";
+ function ApplicationPages() {
+   return (
+@@ -26,6 +27,7 @@
+         <Route path="/regulador" component={Regulatory} />
+         <Route path="/admin-ies" component={AdminInstitution} />
+         <Route path="/gestor" component={GestorAccess} />
++        <Route path="/master" component={OwnerDashboard} />
+         <Route path="/matriz" component={Matrix} />
+         <Route path="/metas" component={Goals} />
+         <Route path="/plano" component={ActionPlan} />
+--- a/client/src/components/PilotLayout.tsx
++++ b/client/src/components/PilotLayout.tsx
+@@ -30,6 +30,7 @@
+   { path: "/painel", label: "Painel executivo", icon: BarChart3 },
+   { path: "/admin-ies", label: "Cadastro IES", icon: UsersRound },
+   { path: "/gestor", label: "Acesso gestor", icon: ShieldCheck },
++  { path: "/master", label: "Proprietário", icon: ShieldCheck },
+   { path: "/diagnostico", label: "Diagnóstico", icon: ClipboardCheck },
+   { path: "/regulador", label: "Regulação", icon: ShieldCheck },
+   { path: "/matriz", label: "Matriz de achados", icon: FileCheck2 },
+--- /dev/null
++++ b/client/src/pages/OwnerDashboard.tsx
+@@ -0,0 +1,26 @@
++import { trpc } from "@/lib/trpc";
++import { startLogin } from "@/const";
++import { useState } from "react";
++
++export default function OwnerDashboard() {
++  const [loginError, setLoginError] = useState("");
++  const me = trpc.auth.me.useQuery(undefined, { retry: false });
++  const access = trpc.owner.access.useQuery(undefined, { enabled: Boolean(me.data), retry: false });
++  const data = trpc.owner.overview.useQuery(undefined, { enabled: access.data?.isOwner === true, retry: false });
++  if (me.isLoading) return <main className="corp-container corp-section"><h1>Acesso do proprietário</h1><p>Verificando sua sessão…</p></main>;
++  if (me.isError) return <main className="corp-container corp-section"><h1>Acesso master indisponível</h1><p>Não foi possível consultar o servidor de autenticação. A demonstração estática não oferece acesso master.</p></main>;
++  if (!me.data) return <main className="corp-container corp-section"><h1>Acesso do proprietário</h1><p>Entre com sua identidade autenticada para consultar as instituições e os usuários da empresa.</p><button className="corp-button" onClick={() => { try { startLogin(); } catch { setLoginError("O provedor de autenticação ainda não foi configurado neste ambiente."); } }}>Entrar</button>{loginError && <p role="alert">{loginError}</p>}</main>;
++  if (access.isLoading) return <p>Verificando permissão de proprietário…</p>;
++  if (!access.data?.isOwner) return <main className="corp-container corp-section"><h1>Acesso restrito</h1><p>Esta conta não possui permissão de proprietário. A autorização é verificada no servidor.</p></main>;
++  if (data.isLoading) return <p>Carregando dados da empresa…</p>;
++  if (!data.data) return <main className="corp-container corp-section"><h1>Painel do proprietário</h1><p role="alert">Não foi possível carregar os dados institucionais. Tente novamente quando o banco estiver disponível.</p></main>;
++  const result = data.data;
++  return <main className="corp-container corp-section">
++    <h1>Painel do proprietário</h1><p>Conectado como {me.data.email}. Dados cadastrados no servidor.</p>
++    <div className="stats-row"><div className="stat-card">Instituições<strong className="stat-value">{result.institutions.length}</strong></div><div className="stat-card">Cursos<strong className="stat-value">{result.courses.length}</strong></div><div className="stat-card">Usuários<strong className="stat-value">{result.users.length}</strong></div></div>
++    <h2>Instituições e cursos</h2><div className="table-scroll"><table><thead><tr><th>Instituição</th><th>Curso</th><th>Código</th><th>Situação</th></tr></thead><tbody>{result.institutions.flatMap(institution => { const courses = result.courses.filter(c => c.institutionId === institution.id); return courses.length ? courses.map(course => <tr key={course.id}><td>{institution.name}</td><td>{course.name}</td><td>{course.code}</td><td>{course.active === "true" ? "Ativo" : "Inativo"}</td></tr>) : [<tr key={institution.id}><td>{institution.name}</td><td colSpan={3}>Nenhum curso cadastrado</td></tr>]; })}</tbody></table></div>
++    {!result.institutions.length && <p>Nenhuma instituição cadastrada no servidor.</p>}
++    <h2>Usuários e vínculos</h2><div className="table-scroll"><table><thead><tr><th>Nome</th><th>E-mail</th><th>Perfil do sistema</th><th>Vínculos institucionais</th></tr></thead><tbody>{result.users.map(user => <tr key={user.id}><td>{user.name ?? "—"}</td><td>{user.email ?? "—"}</td><td>{user.role === "admin" ? "Administrador" : "Usuário"}</td><td>{result.memberships.filter(m => m.userId === user.id).map(m => `${result.institutions.find(i => i.id === m.institutionId)?.name ?? m.institutionId}: ${m.role}${m.sector ? ` (${m.sector})` : ""}`).join("; ") || "Sem vínculo"}</td></tr>)}</tbody></table></div>
++    <p>Os diagnósticos, metas e documentos da demonstração permanecem locais e não são apresentados como dados compartilhados neste painel.</p>
++  </main>;
++}
+--- a/scripts/seed-admin.ts
++++ b/scripts/seed-admin.ts
+@@ -1,45 +1,19 @@
+ import { eq } from "drizzle-orm";
+ import { pathToFileURL } from "node:url";
+ import { getDb } from "../server/db";
+-import { users, type InsertUser } from "../drizzle/schema";
++import { users } from "../drizzle/schema";
++import { matchesOwnerIdentity } from "../server/_core/owner";
+ 
+-async function seedAdmin() {
++export async function seedAdmin() {
++  const id = process.env.OWNER_OPEN_ID?.trim();
++  if (!id || !process.env.OWNER_EMAIL?.trim()) return;
+   const db = await getDb();
+-  if (!db) {
+-    console.log("[Seed] Banco de dados não disponível. Pulei o seed.");
+-    return;
+-  }
+-
+-  const adminOpenId = process.env.ADMIN_OPEN_ID?.trim();
+-
+-  if (!adminOpenId) {
+-    console.log("[Seed] ADMIN_OPEN_ID não configurado; nenhum administrador criado.");
+-    return;
+-  }
+-
+-  // Verifica se o admin já existe
+-  const existing = await db.select().from(users).where(eq(users.openId, adminOpenId)).limit(1);
+-
+-  if (existing.length > 0) {
+-    console.log("[Seed] Usuário administrador já existe.");
+-    return;
+-  }
+-
+-  const newUser: InsertUser = {
+-    openId: adminOpenId,
+-    name: "Administrador Mestre",
+-    email: "admin@vertice.edu.br",
+-    role: "admin",
+-    loginMethod: "local",
+-  };
+-
+-  await db.insert(users).values(newUser);
+-  console.log(`[Seed] Usuário administrador criado com OpenID: ${adminOpenId}`);
++  if (!db) return;
++  const [existing] = await db.select().from(users).where(eq(users.openId, id)).limit(1);
++  // Promote only an existing, authenticated identity. Never fabricate an account.
++  if (!existing || !matchesOwnerIdentity(existing)) return;
++  if (existing.role !== "admin") await db.update(users).set({ role: "admin" }).where(eq(users.id, existing.id));
+ }
+-
+-// Executa apenas se chamado diretamente ou importado
+ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+-  seedAdmin().catch(console.error);
++  seedAdmin().catch(() => { console.error("Falha ao preparar proprietário."); process.exitCode = 1; });
+ }
+-
+-export { seedAdmin };--- /dev/null
++++ b/server/_core/owner.ts
+@@ -0,0 +1,12 @@
++import type { User } from "../../drizzle/schema";
++
++/** Both values come from server configuration; browser input never grants ownership. */
++export function matchesOwnerIdentity(user: Pick<User, "openId" | "email">): boolean {
++  const id = process.env.OWNER_OPEN_ID?.trim();
++  const email = process.env.OWNER_EMAIL?.trim().toLowerCase();
++  return Boolean(id && email && user.openId === id && user.email?.trim().toLowerCase() === email);
++}
++
++export function isOwner(user: User | null): boolean {
++  return Boolean(user && user.role === "admin" && matchesOwnerIdentity(user));
++}
+--- a/server/db.ts
++++ b/server/db.ts
+@@ -1,7 +1,7 @@
+ import { eq } from "drizzle-orm";
+ import { drizzle } from "drizzle-orm/mysql2";
+ import { InsertUser, users } from "../drizzle/schema";
+-import { ENV } from './_core/env';
++import { matchesOwnerIdentity } from "./_core/owner";
+ 
+ let _db: ReturnType<typeof drizzle> | null = null;
+ 
+@@ -54,7 +54,7 @@
+     if (user.role !== undefined) {
+       values.role = user.role;
+       updateSet.role = user.role;
+-    } else if (user.openId === ENV.ownerOpenId) {
++    } else if (matchesOwnerIdentity({ openId: user.openId, email: user.email ?? null })) {
+       values.role = 'admin';
+       updateSet.role = 'admin';
+     }
+--- /dev/null
++++ b/server/owner.test.ts
+@@ -0,0 +1,29 @@
++import { afterEach, describe, expect, it, vi } from "vitest";
++import { isOwner, matchesOwnerIdentity } from "./_core/owner";
++import { ownerRouter } from "./routers/owner";
++import type { User } from "../drizzle/schema";
++import type { TrpcContext } from "./_core/context";
++
++const user = { id: 1, openId: "verified-provider-id", email: "vrcmeirelles@gmail.com", role: "admin" } as User;
++afterEach(() => vi.unstubAllEnvs());
++function configure() {
++  vi.stubEnv("OWNER_OPEN_ID", user.openId);
++  vi.stubEnv("OWNER_EMAIL", user.email!);
++}
++describe("owner authorization", () => {
++  it("accepts the configured identity and administrator role", () => { configure(); expect(isOwner(user)).toBe(true); });
++  it("does not grant ownership to an email alone", () => { configure(); expect(isOwner({ ...user, openId: "attacker" })).toBe(false); });
++  it("does not grant ownership to a provider id with a different email", () => { configure(); expect(isOwner({ ...user, email: "other@example.com" })).toBe(false); });
++  it("does not grant ownership to another administrator", () => { configure(); expect(isOwner({ ...user, openId: "other-admin", email: "other@example.com" })).toBe(false); });
++  it("requires administrator role", () => { configure(); expect(isOwner({ ...user, role: "user" })).toBe(false); });
++  it("fails closed when configuration or session is missing", () => { vi.stubEnv("OWNER_OPEN_ID", ""); expect(isOwner(user)).toBe(false); expect(isOwner(null)).toBe(false); });
++  it("normalizes email case only, preserving provider identity", () => { configure(); expect(matchesOwnerIdentity({ ...user, email: " VRCMEIRELLES@GMAIL.COM " })).toBe(true); });
++  it("blocks anonymous API access before querying the database", async () => {
++    configure(); const caller = ownerRouter.createCaller({ user: null } as TrpcContext);
++    await expect(caller.overview()).rejects.toMatchObject({ code: "UNAUTHORIZED" });
++  });
++  it("blocks non-owner API access before querying the database", async () => {
++    configure(); const caller = ownerRouter.createCaller({ user: { ...user, openId: "other-admin" } } as TrpcContext);
++    await expect(caller.overview()).rejects.toMatchObject({ code: "FORBIDDEN" });
++  });
++});
+--- /dev/null
++++ b/server/routers/owner.ts
+@@ -0,0 +1,25 @@
++import { TRPCError } from "@trpc/server";
++import { router, protectedProcedure } from "../_core/trpc";
++import { isOwner } from "../_core/owner";
++import { getDb } from "../db";
++import { users, institutions, courses, userInstitutionRoles } from "../../drizzle/schema";
++
++const ownerProcedure = protectedProcedure.use(({ ctx, next }) => {
++  if (!isOwner(ctx.user)) throw new TRPCError({ code: "FORBIDDEN", message: "Acesso exclusivo do proprietário." });
++  return next({ ctx });
++});
++
++export const ownerRouter = router({
++  access: protectedProcedure.query(({ ctx }) => ({ isOwner: isOwner(ctx.user) })),
++  overview: ownerProcedure.query(async () => {
++    const db = await getDb();
++    if (!db) throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: "Banco institucional indisponível." });
++    const [allInstitutions, allCourses, allUsers, memberships] = await Promise.all([
++      db.select().from(institutions),
++      db.select().from(courses),
++      db.select({ id: users.id, name: users.name, email: users.email, role: users.role, lastSignedIn: users.lastSignedIn }).from(users),
++      db.select({ userId: userInstitutionRoles.userId, institutionId: userInstitutionRoles.institutionId, role: userInstitutionRoles.role, sector: userInstitutionRoles.sector }).from(userInstitutionRoles),
++    ]);
++    return { institutions: allInstitutions, courses: allCourses, users: allUsers, memberships };
++  }),
++});
+--- a/server/routers.ts
++++ b/server/routers.ts
+@@ -4,9 +4,12 @@
+ import { publicProcedure, router } from "./_core/trpc";
+ import { institutionRouter } from "./routers/institutions";
+ 
++import { ownerRouter } from "./routers/owner";
++
+ export const appRouter = router({
+     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
+   system: systemRouter,
++  owner: ownerRouter,
+   auth: router({
+     me: publicProcedure.query(opts => opts.ctx.user),
+     logout: publicProcedure.mutation(({ ctx }) => {
+--- /dev/null
++++ b/vitest.config.ts
+@@ -0,0 +1,7 @@
++import { defineConfig } from "vitest/config";
++import path from "node:path";
++
++export default defineConfig({
++  resolve: { alias: { "@shared": path.resolve(import.meta.dirname, "shared"), "@": path.resolve(import.meta.dirname, "client/src") } },
++  test: { environment: "node", include: ["server/**/*.test.ts"] },
++});
