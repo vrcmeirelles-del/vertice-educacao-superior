@@ -333,13 +333,15 @@
 +}
 --- a/client/src/styles/corporate.css
 +++ b/client/src/styles/corporate.css
-@@ -1778,3 +1778,6 @@
+@@ -1778,3 +1778,8 @@
      animation: none !important;
    }
  }
 +
 +/* Account entry */
 +.corp-login-section{background:#f4f6f8;min-height:70vh}.corp-login-grid{display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:center}.corp-login-intro h1{font-size:clamp(36px,5vw,60px);line-height:1.08;color:#243653;margin:22px 0}.corp-login-intro>p{font-size:18px;line-height:1.7;max-width:480px}.corp-login-trust{display:flex;gap:14px;align-items:flex-start;margin:28px 0;color:#48615b}.corp-login-trust svg{flex-shrink:0;margin-top:5px}.corp-login-trust p{margin:0;line-height:1.6}.corp-login-intro>a{display:inline-flex;align-items:center;gap:6px}.corp-login-card{background:white;border:1px solid #dde3e9;border-radius:16px;padding:38px;box-shadow:0 12px 40px #2436530d;color:#243653}.corp-login-card h2{font-size:28px;margin:18px 0 12px}.corp-login-card p{line-height:1.65}.corp-login-notice{background:#f8f5ec;border:1px solid #e6dcc3;border-radius:9px;padding:20px;margin:24px 0 12px}.corp-login-notice p{font-size:14px}.corp-login-submit{width:100%;justify-content:center}.corp-login-submit:disabled{opacity:.6;cursor:not-allowed}.corp-login-text-button{display:block;border:0;background:transparent;color:#243653;text-decoration:underline;font:inherit;padding:14px 0;cursor:pointer}.corp-login-help{border-left:3px solid #b99a67;padding-left:16px;font-size:14px}.corp-login-privacy{border-top:1px solid #dde3e9;padding-top:20px;margin-top:16px;font-size:12px;color:#5e6975}@media(max-width:800px){.corp-login-grid{grid-template-columns:1fr;gap:32px}.corp-login-card{padding:25px}}
++
++@media (min-width:951px) and (max-width:1280px){.corp-menu-toggle{display:flex;padding:10px}.corp-navigation{display:none;position:absolute;top:99px;left:0;right:0;background:white;padding:25px 32px;border-bottom:1px solid #dce5eb;box-shadow:0 12px 25px #2436530d}.corp-navigation.open{display:flex;align-items:stretch;flex-direction:column;gap:8px;font-size:16px}.corp-demo-link{border-left:0;padding-left:0!important}.corp-navigation .corp-button{margin-top:8px}}
 --- a/package.json
 +++ b/package.json
 @@ -13,7 +13,7 @@
@@ -362,6 +364,15 @@
    "matriz",
    "metas",
    "plano",
+@@ -103,7 +105,7 @@
+ for (const path of demos) {
+   const page = {
+     path: `/${path}`,
+-    title: "Demonstração de gestão | Vértice Educação Superior",
++    title: path === "entrar" ? "Entrar | Vértice Educação Superior" : "Demonstração de gestão | Vértice Educação Superior",
+     description:
+       "Cenário fictício de diagnóstico, metas e ações. Sem avaliação oficial. Alterações ficam somente neste navegador.",
+   };
 --- a/scripts/seed-admin.ts
 +++ b/scripts/seed-admin.ts
 @@ -1,45 +1,19 @@
