@@ -24,3 +24,11 @@ Os testes verificam a recusa de visitantes, de outro administrador, de e-mail se
 ## Área de login
 
 `/entrar` e o botão Entrar no cabeçalho e rodapé estão incluídos na interface. `/gestor` usa a mesma tela, sem validação simulada de senha. O servidor fornece `/api/auth/status` e `/api/auth/logout`; sem configuração a interface informa indisponibilidade e não coleta senhas. A recuperação ocorre no provedor OAuth; não há recuperação local de senha. Após o login, o proprietário encontra seu painel em `/master`.
+
+## Reforço de proteção — 26/10/2026
+
+O código atualizado está em `vertice-servidor-source.zip`; extraia o pacote para compilar e implantar o servidor. O pacote estático contém apenas a interface e o aviso de privacidade; não executa proteções de servidor.
+
+Incluídos: cabeçalhos de segurança/CSP em produção, cookies SameSite=Lax, sessão emitida com oito horas, limite de corpo de 1 MB, limitação de API por processo e verificação de origem em escritas. Configure `PUBLIC_SITE_ORIGIN` com a origem HTTPS exata. A API recusa escritas sem essa configuração. Não habilitar confiança irrestrita em cabeçalhos de proxy; ajustar proxy e limite compartilhado conforme a hospedagem.
+
+Área de acesso: política vinculada e ciência de leitura sem autorização de marketing. O provedor externo controla seu próprio cadastro. Antes de abrir cadastros reais, confirmar razão social/CNPJ do controlador, canal dos titulares, fornecedores, retenção e transferências; essas informações não foram inventadas. MFA, backups/restauração, revogação individual de sessões e segregação multi-institucional completa continuam pendentes. Cabeçalhos do servidor não são aplicados por hospedagem estática.
