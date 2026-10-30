@@ -210,6 +210,12 @@ export const publicPages = [
       "Como a experiência no contexto UNITOP/Direito fundamenta a lógica diagnóstica e as frentes de atuação da Vértice.",
   },
   {
+    path: "/guia",
+    title: "Guia e glossário do sistema | Vértice Educação Superior",
+    description:
+      "Termos, perguntas frequentes e orientações de preenchimento da área de gestão da Vértice: metas, indicadores, plano 5W2H, diagnóstico e perfis de acesso.",
+  },
+  {
     path: "/contato",
     title: "Prepare seu briefing | Vértice Educação Superior",
     description:
