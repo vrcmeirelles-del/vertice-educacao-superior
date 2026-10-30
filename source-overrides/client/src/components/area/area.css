@@ -1,0 +1,79 @@
+/* Área real (painel autenticado): cadastro, metas, plano 5W2H, diagnóstico e equipe. */
+.area-ws { --area-line: #dfe5ec; --area-soft: #f5f7fa; --area-ink: #243653; --area-muted: #627184; --area-warn: #a4462f; }
+.area-ws-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px; margin: 8px 0 18px; }
+.area-ws-head h2 small { font-size: .6em; color: var(--area-muted); font-weight: 500; }
+.area-muted { color: var(--area-muted); }
+.area-muted.small, .area-ws .small { font-size: .85rem; }
+.area-kpis { display: flex; flex-wrap: wrap; gap: 8px; }
+.area-kpis span { background: #fff; border: 1px solid var(--area-line); border-radius: 999px; padding: 6px 12px; font-size: .9rem; color: var(--area-muted); }
+.area-kpis b { color: var(--area-ink); margin-right: 4px; }
+.area-kpis .warn b, .area-block.warn { color: var(--area-warn); }
+.area-tabs { display: flex; gap: 4px; flex-wrap: wrap; border-bottom: 1px solid var(--area-line); margin-bottom: 20px; }
+.area-tabs button { background: none; border: 0; border-bottom: 3px solid transparent; padding: 10px 14px; font-weight: 600; color: var(--area-muted); cursor: pointer; }
+.area-tabs button.active { color: var(--area-ink); border-bottom-color: #328ea8; }
+.area-tabs button:hover { color: var(--area-ink); }
+.area-panel { background: #fff; border: 1px solid var(--area-line); border-radius: 10px; padding: 20px; margin-bottom: 20px; }
+.area-panel-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.area-panel-head h3 { margin: 0; }
+.area-inline { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.area-inline select, .area-search input, .area-inline-form input, .area-inline-form select, .area-table select {
+  padding: 8px 10px; border: 1px solid #b8c2ce; border-radius: 6px; background: #fff; font: inherit; color: var(--area-ink);
+}
+.corp-button.small { padding: 8px 14px; font-size: .9rem; }
+.area-form { background: var(--area-soft); border: 1px solid var(--area-line); border-radius: 10px; padding: 18px; margin: 0 0 18px; }
+.area-form h3 { margin: 0 0 14px; font-size: 1.05rem; }
+.area-form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px 16px; }
+.area-form-grid label { display: grid; gap: 6px; font-weight: 600; font-size: .92rem; color: var(--area-ink); }
+.area-form-grid label.wide { grid-column: 1 / -1; }
+.area-form-grid label em { color: var(--area-warn); font-style: normal; }
+.area-form-grid label small { font-weight: 400; color: var(--area-muted); }
+.area-form-grid input, .area-form-grid select, .area-form-grid textarea {
+  width: 100%; padding: 10px 11px; border: 1px solid #a9b4c2; border-radius: 6px; background: #fff; font: inherit; font-weight: 400; color: #18253b;
+}
+.area-form-grid input:focus-visible, .area-form-grid select:focus-visible, .area-form-grid textarea:focus-visible { outline: 3px solid #bd8b49; outline-offset: 1px; }
+.area-form-actions { display: flex; gap: 14px; align-items: center; margin-top: 16px; }
+.area-inline-form { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+.area-inline-form label { display: grid; gap: 6px; font-weight: 600; font-size: .92rem; }
+.area-inline-form input { min-width: 260px; }
+.area-error { color: var(--area-warn); font-weight: 600; margin: 10px 0; }
+.area-note { background: #eef5f8; border: 1px solid #c9dfe7; border-radius: 8px; padding: 10px 14px; }
+.area-search { display: inline-grid; gap: 6px; font-weight: 600; font-size: .92rem; margin-bottom: 12px; }
+.area-table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+.area-table th { text-align: left; font-weight: 600; color: var(--area-muted); background: var(--area-soft); padding: 10px 12px; border-bottom: 1px solid var(--area-line); white-space: nowrap; }
+.area-table td { padding: 10px 12px; border-bottom: 1px solid #edf1f5; vertical-align: top; }
+.area-table.compact td, .area-table.compact th { padding: 6px 10px; }
+.area-table tr.late td { background: #fdf5f2; }
+.area-table tr.pending td { color: var(--area-muted); }
+.area-block { display: block; color: var(--area-muted); margin-top: 3px; }
+.area-row-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; white-space: nowrap; }
+.area-danger { color: var(--area-warn) !important; }
+.area-dl { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px 20px; margin: 0; }
+.area-dl div.wide { grid-column: 1 / -1; }
+.area-dl dt { font-size: .82rem; color: var(--area-muted); }
+.area-dl dd { margin: 2px 0 0; font-weight: 600; }
+.area-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+.area-card { border: 1px solid var(--area-line); border-radius: 10px; padding: 16px; display: grid; gap: 8px; align-content: start; }
+.area-card h4 { margin: 0; font-size: 1.05rem; }
+.area-card-top { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.area-card-top small { color: var(--area-muted); text-align: right; }
+.area-goal-numbers { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.area-goal-numbers small { display: block; font-size: .75rem; color: var(--area-muted); }
+.area-goal-numbers b { font-size: 1rem; }
+.area-progress { height: 8px; background: #e7ecf1; border-radius: 99px; overflow: hidden; }
+.area-progress span { display: block; height: 100%; background: #328ea8; border-radius: 99px; }
+.area-dim { margin-top: 18px; }
+.area-dim h4 { margin: 0 0 8px; }
+.area-dim h4 small { font-weight: 500; color: var(--area-muted); margin-left: 6px; }
+.area-roles { display: grid; gap: 4px; margin: 14px 0; font-size: .88rem; color: var(--area-muted); }
+.area-roles div { display: flex; gap: 6px; }
+.area-roles dt { font-weight: 700; color: var(--area-ink); }
+.area-roles dd { margin: 0; }
+@media (max-width: 640px) {
+  .area-panel { padding: 14px; }
+  .area-goal-numbers { grid-template-columns: repeat(2, 1fr); }
+  .area-cards { grid-template-columns: 1fr; }
+  .area-inline-form input { min-width: 0; width: 100%; }
+}
+.area-list-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.area-card .area-row-actions { white-space: normal; gap: 6px 14px; }
+.area-table.compact td:last-child { white-space: nowrap; }
