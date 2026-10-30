@@ -3716,3 +3716,30 @@ h4 {
     font-size:8.5px;
   }
 }
+
+/* Guia e glossário (/guia) */
+.guide > * { max-width: 980px; }
+.guide-search { display: grid; gap: 8px; margin-bottom: 20px; }
+.guide-search label { font-weight: 700; }
+.guide-search input { padding: 12px 14px; border: 1px solid #a9b4c2; border-radius: 8px; font: inherit; width: 100%; max-width: 520px; }
+.guide-search input:focus-visible { outline: 3px solid #bd8b49; outline-offset: 2px; }
+.guide-index { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 32px; }
+.guide-index a { border: 1px solid #d5dde6; border-radius: 999px; padding: 6px 14px; font-size: .9rem; color: #2f4a66; background: #fff; }
+.guide-index a:hover { border-color: #328ea8; color: #1f5f75; }
+.guide-steps { background: #f3f7fa; border: 1px solid #dbe4ec; border-radius: 12px; padding: 20px 24px; margin-bottom: 36px; }
+.guide-steps h2 { font-size: 1.25rem; margin-bottom: 10px; }
+.guide-steps ol { margin: 0; padding-left: 20px; display: grid; gap: 6px; line-height: 1.55; }
+.guide-group { margin-bottom: 40px; scroll-margin-top: 110px; }
+.guide-group h2 { font-size: 1.5rem; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid #e1e7ee; }
+.guide-group dl { margin: 0; display: grid; gap: 14px; }
+.guide-group dl > div { display: grid; grid-template-columns: 220px 1fr; gap: 16px; scroll-margin-top: 110px; }
+.guide-group dt { font-weight: 700; color: #243653; }
+.guide-group dd { margin: 0; color: #46566a; line-height: 1.6; }
+.guide-faq { border-bottom: 1px solid #e6ebf0; padding: 14px 0; }
+.guide-faq summary { cursor: pointer; font-weight: 700; color: #243653; }
+.guide-faq p { margin: 10px 0 0; color: #46566a; line-height: 1.6; }
+.guide-foot { margin-top: 24px; }
+@media (max-width: 640px) {
+  .guide-group dl > div { grid-template-columns: 1fr; gap: 4px; }
+  .guide-steps { padding: 16px; }
+}
