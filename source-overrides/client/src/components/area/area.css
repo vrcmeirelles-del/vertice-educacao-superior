@@ -86,3 +86,9 @@
 .area-help summary::before { content: "?"; display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: #328ea8; color: #fff; font-size: .8rem; margin-right: 8px; }
 .area-help p { margin: 8px 0 0; color: #3f4f63; line-height: 1.55; font-size: .93rem; }
 .area-help a { color: #2f6f86; font-weight: 600; }
+.area-faq { margin-top: 8px; background: #fff; border: 1px solid var(--area-line); border-radius: 10px; padding: 18px 20px; }
+.area-faq h3 { margin: 0 0 8px; font-size: 1.05rem; }
+.area-faq details { border-bottom: 1px solid #edf1f5; padding: 10px 0; }
+.area-faq summary { cursor: pointer; font-weight: 600; color: var(--area-ink); }
+.area-faq details p { margin: 8px 0 0; color: #46566a; line-height: 1.55; font-size: .93rem; }
+.area-faq > p { margin-top: 12px; }

@@ -6,7 +6,7 @@ import {
   type Field, type Role, type Row,
 } from "@/lib/area";
 import RecordForm from "./RecordForm";
-import { FIELD_HELP, TAB_HELP, withHelp } from "@/lib/help";
+import { FIELD_HELP, TAB_FAQ, TAB_HELP, withHelp } from "@/lib/help";
 import "./area.css";
 
 type Tab = "visao" | "cadastro" | "metas" | "plano" | "diagnostico" | "equipe";
@@ -127,11 +127,29 @@ export default function Workspace({
       ) : (
         <TeamTab institutionId={id} role={role} />
       )}
+      {TAB_FAQ[tab] && <TabFaq id={tab} />}
     </section>
   );
 }
 
 // ================================================================ utilidades de UI
+function TabFaq({ id }: { id: string }) {
+  const f = TAB_FAQ[id];
+  return (
+    <section className="area-faq" aria-labelledby={`faq-${id}`}>
+      <h3 id={`faq-${id}`}>Perguntas frequentes · {f.label}</h3>
+      {f.items.map(i => (
+        <details key={i.q}>
+          <summary>{i.q}</summary>
+          <p>{i.a}</p>
+        </details>
+      ))}
+      <p className="area-muted small">
+        Não encontrou sua dúvida? <a href="/guia.html#perguntas-frequentes" target="_blank" rel="noopener">Veja o guia completo ↗</a>
+      </p>
+    </section>
+  );
+}
 function TabHelp({ id }: { id: string }) {
   const h = TAB_HELP[id];
   const key = `vertice-help-${id}`;
