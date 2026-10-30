@@ -198,3 +198,62 @@ export const FAQ: { q: string; a: string }[] = [
   { q: "Posso anexar documentos como evidência?", a: "Nesta versão, a evidência é descrita em texto: nome do documento, data, número ou link interno. Não envie documentos com dados pessoais pelo sistema." },
   { q: "Os números de matrícula são editáveis?", a: "Não. Os quantitativos da aba Matrículas vêm de relatórios importados dos sistemas acadêmicos e são preservados como na origem." },
 ];
+
+// Perguntas frequentes exibidas embaixo de cada aba do painel (e no guia).
+export const TAB_FAQ: Record<string, { label: string; items: { q: string; a: string }[] }> = {
+  visao: {
+    label: "Matrículas",
+    items: [
+      { q: "De onde vêm estes números?", a: "De relatórios importados do sistema acadêmico da instituição (no caso da UNITOP, o e-ORBIT). Eles não são digitados no painel e são preservados como na origem." },
+      { q: "Por que o total do relatório e a soma das turmas às vezes diferem?", a: "Porque a própria origem pode trazer divergências. O painel mostra os dois valores e sinaliza a diferença, para conferência com a secretaria." },
+      { q: "Matriculado é o mesmo que aluno único?", a: "Não necessariamente. Os quantitativos são por turma; um mesmo aluno pode aparecer em mais de uma. Retenção e evasão exigem cruzamento individual." },
+    ],
+  },
+  cadastro: {
+    label: "Cadastro e cursos",
+    items: [
+      { q: "Quem pode editar os dados da instituição?", a: "O gestor da instituição e a Vértice. Equipe e Leitura apenas consultam." },
+      { q: "Onde encontro o código e-MEC?", a: "No cadastro público do e-MEC (emec.mec.gov.br), buscando pelo nome da instituição ou do curso." },
+      { q: "Posso apagar um curso?", a: "Somente a Vértice, e apenas se o curso não tiver dados ligados a ele. Para cursos encerrados, use a situação “Em extinção” ou “Extinto”, que preserva o histórico." },
+      { q: "Preciso cadastrar todos os cursos?", a: "Cadastre ao menos os cursos que terão metas, ações ou diagnóstico. Os demais podem ser incluídos depois." },
+    ],
+  },
+  metas: {
+    label: "Metas e indicadores",
+    items: [
+      { q: "Qual a diferença entre meta e indicador?", a: "A meta é o resultado pretendido (reduzir a evasão). O indicador é o número que mostra se ele está acontecendo (taxa de evasão anual)." },
+      { q: "Não sei a linha de base. E agora?", a: "Deixe em branco e registre a primeira medição assim que tiver o dado. Sem linha de base, a barra indica apenas se o alvo foi atingido." },
+      { q: "Como a barra de progresso é calculada?", a: "Pela distância entre a linha de base e o alvo: se a evasão era 18%, o alvo é 12% e a última medição foi 15%, o caminho percorrido é 50%." },
+      { q: "Quem pode criar ou alterar metas?", a: "O gestor e a Vértice. A equipe registra as medições, mas não muda alvo nem prazo." },
+      { q: "Quantas metas devo cadastrar?", a: "Poucas e bem medidas. Três a cinco metas por instituição ou curso costumam bastar para orientar a gestão." },
+    ],
+  },
+  plano: {
+    label: "Plano de ação 5W2H",
+    items: [
+      { q: "O que significa 5W2H?", a: "Sete perguntas que descrevem cada ação: o quê, por quê, onde, quem, quando, como e quanto custa." },
+      { q: "Preciso ligar toda ação a uma meta?", a: "Não é obrigatório, mas é recomendado: ligar a ação a uma meta ou a um achado mostra por que ela existe e ajuda a priorizar." },
+      { q: "Quando uma ação aparece como atrasada?", a: "Quando o prazo já passou e a situação não é “Concluída” nem “Cancelada”." },
+      { q: "O que coloco em evidência?", a: "O registro que comprova a execução: nome e data da ata, número da portaria, relatório ou link interno. Não inclua dados pessoais." },
+      { q: "Quem pode excluir uma ação?", a: "O gestor e a Vértice. A equipe cria e atualiza ações, mas não exclui." },
+    ],
+  },
+  diagnostico: {
+    label: "Diagnóstico",
+    items: [
+      { q: "Que nota devo dar?", a: "De 1 (muito frágil) a 5 (excelente), na mesma lógica dos instrumentos de avaliação do INEP. Use meio ponto se necessário." },
+      { q: "O que diferencia achado de evidência?", a: "O achado é o que foi constatado. A evidência é o documento ou fonte que sustenta essa constatação." },
+      { q: "Como transformo um achado em ação?", a: "Clique em “Criar ação” na linha do critério. O plano 5W2H abre com o achado já vinculado." },
+      { q: "Quando marco um critério como resolvido?", a: "Quando a ação foi executada e há evidência de que a situação mudou, não apenas quando a ação foi planejada." },
+    ],
+  },
+  equipe: {
+    label: "Equipe",
+    items: [
+      { q: "A pessoa precisa ter conta antes?", a: "Não. Se não tiver, ela recebe um convite por e-mail para criar senha e segundo fator; o acesso é liberado no primeiro login." },
+      { q: "Quem pode dar acesso?", a: "A Vértice dá acesso com qualquer perfil, em qualquer instituição. O gestor dá acesso apenas à própria equipe, com os perfis Equipe ou Leitura." },
+      { q: "O convite não chegou. O que fazer?", a: "Peça para verificar a caixa de spam. Se não estiver lá, cancele o convite pendente e envie de novo, conferindo o e-mail digitado." },
+      { q: "Como retiro o acesso de alguém?", a: "Use “Retirar acesso” na linha da pessoa. A conta continua existindo, mas deixa de ver esta instituição." },
+    ],
+  },
+};
