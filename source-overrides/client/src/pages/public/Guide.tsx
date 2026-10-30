@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react";
 import { Link } from "wouter";
 import { ArrowUpRight } from "lucide-react";
 import { PublicHeading } from "@/components/PublicLayout";
-import { FAQ, GLOSSARY } from "@/lib/help";
+import { FAQ, GLOSSARY, TAB_FAQ } from "@/lib/help";
 
 const slug = (s: string) =>
   s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
@@ -18,7 +18,9 @@ export default function Guide() {
       })).filter(g => g.entries.length),
     [query]
   );
-  const faq = FAQ.filter(f => !query || `${f.q} ${f.a}`.toLowerCase().includes(query));
+  const match = (f: { q: string; a: string }) => !query || `${f.q} ${f.a}`.toLowerCase().includes(query);
+  const faq = FAQ.filter(match);
+  const tabFaq = Object.values(TAB_FAQ).map(t => ({ ...t, items: t.items.filter(match) })).filter(t => t.items.length);
 
   return (
     <>
@@ -64,19 +66,31 @@ export default function Guide() {
           </section>
         ))}
 
-        {faq.length > 0 && (
+        {(faq.length > 0 || tabFaq.length > 0) && (
           <section id="perguntas-frequentes" className="guide-group">
             <h2>Perguntas frequentes</h2>
+            {faq.length > 0 && <h3 className="guide-faq-group">Acesso e uso geral</h3>}
             {faq.map(f => (
               <details key={f.q} className="guide-faq">
                 <summary>{f.q}</summary>
                 <p>{f.a}</p>
               </details>
             ))}
+            {tabFaq.map(t => (
+              <div key={t.label}>
+                <h3 className="guide-faq-group">{t.label}</h3>
+                {t.items.map(f => (
+                  <details key={f.q} className="guide-faq">
+                    <summary>{f.q}</summary>
+                    <p>{f.a}</p>
+                  </details>
+                ))}
+              </div>
+            ))}
           </section>
         )}
 
-        {!groups.length && !faq.length && <p>Nenhum resultado para “{q}”.</p>}
+        {!groups.length && !faq.length && !tabFaq.length && <p>Nenhum resultado para “{q}”.</p>}
 
         <p className="guide-foot">
           Já tem acesso? <Link href="/entrar" className="corp-text-link">Entrar no painel <ArrowUpRight size={15} /></Link>
