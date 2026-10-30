@@ -3743,3 +3743,4 @@ h4 {
   .guide-group dl > div { grid-template-columns: 1fr; gap: 4px; }
   .guide-steps { padding: 16px; }
 }
+.guide-faq-group { font-size: 1.1rem; margin: 22px 0 4px; color: #2f4a66; }
