@@ -29,7 +29,7 @@ export function courseTotals(rows:Enrollment[]){
 
 type StatusSeries={semester:string;capacity:number|null;counts:Record<string,number>};
 
-export function InstitutionView({institution,courses,enrollments,onOpenCourse,onBack}:{institution:Institution;courses:Course[];enrollments:Enrollment[];onOpenCourse:(id:string)=>void;onBack:()=>void}){
+export function InstitutionView({institution,courses,enrollments,onOpenCourse,onBack,embedded}:{institution:Institution;courses:Course[];enrollments:Enrollment[];onOpenCourse:(id:string)=>void;onBack:()=>void;embedded?:boolean}){
  const own=courses.filter(c=>c.institution_id===institution.id);
  const ids=new Set(own.map(c=>c.id));
  const rows=enrollments.filter(r=>ids.has(r.course_id)&&r.student_status==='MATRICULADO');
@@ -48,9 +48,9 @@ export function InstitutionView({institution,courses,enrollments,onOpenCourse,on
  const modTotal=(m:Modality,s:string)=>own.filter(c=>modalityOf(c)===m).reduce((t,c)=>t+value(c.id,s),0);
  const total=mods.reduce((t,m)=>t+modTotal(m,sem),0);
  const active=own.filter(c=>value(c.id,sem)>0).length;
- return <section aria-labelledby="inst-title">
-  <p><button className="corp-login-text-button" onClick={onBack}>← Todas as instituições</button></p>
-  <h2 id="inst-title">{institution.name}</h2>
+ return <section aria-labelledby={embedded?undefined:"inst-title"}>
+  {!embedded&&<><p><button className="corp-login-text-button" onClick={onBack}>← Todas as instituições</button></p>
+  <h2 id="inst-title">{institution.name}</h2></>}
   {!semesters.length?<p>Nenhum quantitativo importado para esta instituição.</p>:<>
   <label>Semestre <select value={sem} onChange={e=>setSemester(e.target.value)}>{semesters.map(s=><option key={s} value={s}>{s}</option>)}</select></label>
   <div className="stats-row">
