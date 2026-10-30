@@ -6,6 +6,7 @@ import {
   type Field, type Role, type Row,
 } from "@/lib/area";
 import RecordForm from "./RecordForm";
+import { FIELD_HELP, TAB_HELP, withHelp } from "@/lib/help";
 import "./area.css";
 
 type Tab = "visao" | "cadastro" | "metas" | "plano" | "diagnostico" | "equipe";
@@ -94,6 +95,7 @@ export default function Workspace({
             {institution.status === "arquivada" && <span className="badge gray"> Arquivada</span>}
           </p>
         </div>
+        <a className="area-guide-link" href="/guia.html" target="_blank" rel="noopener">Guia e glossário ↗</a>
         <div className="area-kpis">
           <span><b>{data.courses.length}</b> cursos</span>
           <span><b>{activeGoals}</b> metas em curso</span>
@@ -109,6 +111,7 @@ export default function Workspace({
         ))}
       </div>
       {error && <p role="alert" className="area-error">{error}</p>}
+      {TAB_HELP[tab] && <TabHelp id={tab} />}
       {tab === "visao" ? (
         overview
       ) : loading ? (
@@ -129,17 +132,42 @@ export default function Workspace({
 }
 
 // ================================================================ utilidades de UI
+function TabHelp({ id }: { id: string }) {
+  const h = TAB_HELP[id];
+  const key = `vertice-help-${id}`;
+  const [open, setOpen] = useState(() => {
+    try { return localStorage.getItem(key) !== "fechado"; } catch { return true; }
+  });
+  return (
+    <details
+      className="area-help"
+      open={open}
+      onToggle={e => {
+        const o = (e.currentTarget as HTMLDetailsElement).open;
+        setOpen(o);
+        try { localStorage.setItem(key, o ? "aberto" : "fechado"); } catch { /* sem armazenamento */ }
+      }}
+    >
+      <summary>{h.title}</summary>
+      {h.text.map(t => <p key={t}>{t}</p>)}
+      <p><a href="/guia.html" target="_blank" rel="noopener">Ver o guia completo e o glossário ↗</a></p>
+    </details>
+  );
+}
+
 function useEditor<T = Row>() {
   const [editing, setEditing] = useState<T | "new" | null>(null);
   return { editing, open: (r: T | "new") => setEditing(r), close: () => setEditing(null) };
 }
 
-function RemoveButton({ onConfirm, label = "Remover" }: { onConfirm: () => Promise<void>; label?: string }) {
+function RemoveButton({ onConfirm, label = "Remover", title }: { onConfirm: () => Promise<void>; label?: string; title?: string }) {
   const [busy, setBusy] = useState(false);
   return (
     <button
       className="corp-login-text-button area-danger"
       disabled={busy}
+      title={title}
+      aria-label={title}
       onClick={async () => {
         if (!window.confirm("Remover este registro? A operação fica registrada na auditoria e não pode ser desfeita pela tela.")) return;
         setBusy(true);
@@ -161,7 +189,7 @@ const courseOptions = (courses: Row[]): [string, string][] =>
   courses.map(c => [c.id, `${c.code ? `${c.code} · ` : ""}${c.name}`]);
 
 // ================================================================ cadastro
-export const INSTITUTION_FIELDS: Field[] = [
+export const INSTITUTION_FIELDS: Field[] = withHelp([
   { name: "name", label: "Nome da instituição", required: true, wide: true },
   { name: "acronym", label: "Sigla" },
   { name: "cnpj", label: "CNPJ (somente números)", placeholder: "00000000000000" },
@@ -171,8 +199,8 @@ export const INSTITUTION_FIELDS: Field[] = [
   { name: "state", label: "UF", type: "select", options: UF },
   { name: "status", label: "Situação", type: "select", required: true, options: [["ativa", "Ativa"], ["arquivada", "Arquivada"]] },
   { name: "notes", label: "Observações", type: "textarea" },
-];
-const COURSE_FIELDS: Field[] = [
+], FIELD_HELP.institution);
+const COURSE_FIELDS: Field[] = withHelp([
   { name: "name", label: "Nome do curso", required: true, wide: true },
   { name: "code", label: "Código (e-MEC ou interno)" },
   { name: "degree", label: "Grau", type: "select", options: DEGREE },
@@ -180,7 +208,7 @@ const COURSE_FIELDS: Field[] = [
   { name: "status", label: "Situação", type: "select", required: true, options: COURSE_STATUS },
   { name: "vacancies", label: "Vagas autorizadas", type: "number", min: 0, step: "1" },
   { name: "coordinator", label: "Coordenação" },
-];
+], FIELD_HELP.course);
 
 function RegistryTab({ institution, role, courses, reload, onChanged }: { institution: Row; role: Role | null; courses: Row[]; reload: () => Promise<void>; onChanged: () => void }) {
   const [editInst, setEditInst] = useState(false);
@@ -274,7 +302,7 @@ function RegistryTab({ institution, role, courses, reload, onChanged }: { instit
 
 // ================================================================ metas
 function goalFields(courses: Row[]): Field[] {
-  return [
+  return withHelp([
     { name: "title", label: "Meta", required: true, wide: true, placeholder: "Ex.: Reduzir a evasão do 1º ano" },
     { name: "indicator", label: "Indicador", required: true, placeholder: "Ex.: Taxa de evasão anual" },
     { name: "course_id", label: "Curso (opcional)", type: "select", options: courseOptions(courses) },
@@ -290,14 +318,14 @@ function goalFields(courses: Row[]): Field[] {
     { name: "source", label: "Fonte do dado", wide: true, placeholder: "Ex.: relatório e-ORBIT, CPA, secretaria" },
     { name: "formula", label: "Regra de cálculo", type: "textarea", placeholder: "Ex.: evadidos no ano ÷ matriculados no início do ano × 100" },
     { name: "notes", label: "Observações", type: "textarea" },
-  ];
+  ], FIELD_HELP.goal);
 }
-const MEASUREMENT_FIELDS: Field[] = [
+const MEASUREMENT_FIELDS: Field[] = withHelp([
   { name: "measured_on", label: "Data da medição", type: "date", required: true },
   { name: "value", label: "Valor medido", type: "number", required: true },
   { name: "source", label: "Fonte" },
   { name: "note", label: "Observação", type: "textarea" },
-];
+], FIELD_HELP.measurement);
 
 function GoalsTab({ institutionId, role, data, reload }: { institutionId: string; role: Role | null; data: Data; reload: () => Promise<void> }) {
   const ed = useEditor();
@@ -399,7 +427,7 @@ function GoalsTab({ institutionId, role, data, reload }: { institutionId: string
                           {ms.slice().reverse().map(m => (
                             <tr key={m.id}>
                               <td>{fmtDate(m.measured_on)}</td><td>{fmtNum(m.value, g.unit)}</td><td>{String(m.source ?? "—")}</td><td>{String(m.note ?? "")}</td>
-                              <td>{can.remove(role) && <RemoveButton onConfirm={async () => { await deleteRow(TABLES.measurements, m.id); await reload(); }} />}</td>
+                              <td>{can.remove(role) && <RemoveButton label="✕" title="Remover medição" onConfirm={async () => { await deleteRow(TABLES.measurements, m.id); await reload(); }} />}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -419,7 +447,7 @@ function GoalsTab({ institutionId, role, data, reload }: { institutionId: string
 
 // ================================================================ plano 5W2H
 function actionFields(data: Data): Field[] {
-  return [
+  return withHelp([
     { name: "what", label: "O quê (ação)", required: true, wide: true },
     { name: "why", label: "Por quê", type: "textarea" },
     { name: "goal_id", label: "Meta relacionada", type: "select", options: data.goals.map(g => [g.id, String(g.title)]) },
@@ -434,7 +462,7 @@ function actionFields(data: Data): Field[] {
     { name: "status", label: "Situação", type: "select", required: true, options: ACTION_STATUS },
     { name: "progress", label: "Avanço (%)", type: "number", min: 0, max: 100, step: "5" },
     { name: "evidence", label: "Evidência de execução", type: "textarea", placeholder: "Ata, documento, link interno, registro…" },
-  ];
+  ], FIELD_HELP.action);
 }
 
 function ActionsTab({ institutionId, role, data, reload }: { institutionId: string; role: Role | null; data: Data; reload: () => Promise<void> }) {
@@ -515,7 +543,7 @@ function ActionsTab({ institutionId, role, data, reload }: { institutionId: stri
 
 // ================================================================ diagnóstico
 function diagnosisFields(courses: Row[]): Field[] {
-  return [
+  return withHelp([
     { name: "dimension", label: "Dimensão", type: "select", required: true, options: DIMENSIONS.map(d => [d, d] as [string, string]) },
     { name: "course_id", label: "Curso (opcional)", type: "select", options: courseOptions(courses) },
     { name: "criterion", label: "Critério avaliado", required: true, wide: true, placeholder: "Ex.: PPC atualizado às DCNs vigentes" },
@@ -526,7 +554,7 @@ function diagnosisFields(courses: Row[]): Field[] {
     { name: "assessed_on", label: "Data da avaliação", type: "date" },
     { name: "finding", label: "Achado", type: "textarea" },
     { name: "evidence", label: "Evidência consultada", type: "textarea" },
-  ];
+  ], FIELD_HELP.diagnosis);
 }
 
 function DiagnosisTab({ institutionId, role, data, reload, onPlan }: { institutionId: string; role: Role | null; data: Data; reload: () => Promise<void>; onPlan: () => void }) {
@@ -688,6 +716,7 @@ function TeamTab({ institutionId, role }: { institutionId: string; role: Role | 
         </label>
         <button className="corp-button small" disabled={busy}>{busy ? "Enviando…" : "Dar acesso"}</button>
       </form>
+      <p className="area-field-help">Use o e-mail institucional da pessoa. Se ela ainda não tiver conta, receberá um convite para criar senha e segundo fator.</p>
       {msg && <p role="status" className="area-note">{msg}</p>}
       <dl className="area-roles">
         <div><dt>Gestor</dt><dd>cadastra cursos, define metas, gere a equipe (equipe e leitura) e remove registros.</dd></div>
