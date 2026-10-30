@@ -108,6 +108,7 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
               </Link>
             ))}
             <Link href="/demonstracao">Demonstração</Link>
+            <Link href="/guia.html">Guia e glossário</Link>
             <Link href="/entrar">Entrar</Link>
           </div>
           <div className="footer-note">
