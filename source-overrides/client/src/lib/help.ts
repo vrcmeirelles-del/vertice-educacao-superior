@@ -83,6 +83,13 @@ export function withHelp(fields: Field[], help: HelpMap): Field[] {
 }
 
 export const TAB_HELP: Record<string, { title: string; text: string[] }> = {
+  geral: {
+    title: "O que esta visão mostra",
+    text: [
+      "Um retrato da instituição a partir dos dados lançados no painel: matrículas importadas, progresso das metas, situação do plano de ação e notas do diagnóstico.",
+      "Os números se atualizam assim que alguém registra uma medição, uma ação ou um critério. Use os atalhos de cada quadro para abrir a aba correspondente.",
+    ],
+  },
   cadastro: {
     title: "Para que serve esta aba",
     text: [
