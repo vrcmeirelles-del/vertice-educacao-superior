@@ -6,7 +6,7 @@ import type {AcademicReport} from '@/components/AcademicReports';
 import {CourseView, InstitutionView, courseTotals, type Course, type Enrollment, type Institution} from '@/components/InstitutionArea';
 import Workspace, {INSTITUTION_FIELDS} from '@/components/area/Workspace';
 import RecordForm from '@/components/area/RecordForm';
-import {TABLES, saveRow, type Role, type Row} from '@/lib/area';
+import {TABLES, isLate, saveRow, type Role, type Row} from '@/lib/area';
 
 type Membership={user_id:string;institution_id:string;role:string};
 const SNAPSHOT_COLUMNS='id,course_id,semester,class_label,enrolled,capacity,available,source_report_at,reported_total,student_status';
@@ -30,6 +30,7 @@ export default function OwnerDashboard(){
  const [reports,setReports]=useState<AcademicReport[]>([]);
  const [route,setRoute]=useState(readHash());
  const [creating,setCreating]=useState(false);
+ const [mgmt,setMgmt]=useState<{goals:Row[];actions:Row[];diagnosis:Row[]}>({goals:[],actions:[],diagnosis:[]});
  const roleIn=(id:string):Role|null=>master?'master':((members.find(m=>m.institution_id===id&&m.user_id===session?.user.id)?.role as Role)??null);
  useEffect(()=>{const f=()=>setRoute(readHash());window.addEventListener('hashchange',f);window.addEventListener('popstate',f);return()=>{window.removeEventListener('hashchange',f);window.removeEventListener('popstate',f);};},[]);
  const latestSemester=[...new Set(enrollments.filter(r=>r.student_status==='MATRICULADO').map(r=>r.semester))].sort().reverse()[0];
@@ -62,6 +63,12 @@ export default function OwnerDashboard(){
    for(const row of snapshots){const key=[row.course_id,row.semester,row.student_status,row.class_label].join('|');if(!latest.has(key))latest.set(key,row);}
    setEnrollments([...latest.values()]);
    setReports(results[4].data as AcademicReport[]);
+   const [g,a,d]=await Promise.all([
+    supabase.from('vertice_goals').select('id,institution_id,status'),
+    supabase.from('vertice_actions').select('id,institution_id,status,due_date'),
+    supabase.from('vertice_diagnosis_items').select('id,institution_id,status,priority')
+   ]);
+   setMgmt({goals:(g.data??[]) as Row[],actions:(a.data??[]) as Row[],diagnosis:(d.data??[]) as Row[]});
   }catch{setError('Não foi possível consultar os dados protegidos. Tente novamente.');}
   finally{setLoading(false);}
  }
@@ -75,7 +82,7 @@ export default function OwnerDashboard(){
  async function verify(e:FormEvent){e.preventDefault();setBusy(true);setError('');try{
   const {error}=await supabase.auth.mfa.challengeAndVerify({factorId:factor,code});if(error)throw error;setCode('');setQr('');await load();
  }catch{setError('Código não validado. Confira o autenticador e tente novamente.');}finally{setBusy(false);}}
- return <main className="corp-container corp-section"><h1>{master?'Painel do proprietário':'Minha área'}</h1>
+ return <main className="corp-container corp-section"><h1>{master?'Painel Vértice':'Painel de gestão'}</h1>
  {loading?<p role="status">Verificando acesso…</p>:!session?<><p>Entre para acessar sua conta.</p><Link className="corp-button" href="/entrar">Entrar</Link></>:<>
  <p>Conectado como <strong>{session.user.email}</strong>.</p>
  {aal!=='aal2'?<section className="corp-login-card"><h2>Proteja seu acesso</h2><p>O segundo fator é obrigatório para consultar os dados das instituições.</p>
@@ -86,10 +93,11 @@ export default function OwnerDashboard(){
  <div className="stats-row"><div className="stat-card">Instituições<strong className="stat-value">{institutions.length}</strong></div><div className="stat-card">Cursos<strong className="stat-value">{courses.length}</strong></div><div className="stat-card">Vínculos<strong className="stat-value">{members.length}</strong></div></div>
  {currentInst&&currentCourse?<CourseView key={currentCourse.id} course={currentCourse} institution={currentInst} enrollments={enrollments} reports={reports} onBack={()=>writeHash(currentInst.id,'')}/>
  :currentInst?<Workspace key={currentInst.id} institution={currentInst as unknown as Row} role={roleIn(currentInst.id)} onBack={()=>writeHash('','')} onChanged={load}
+   stats={{enrolled:instTotal(currentInst.id),semester:latestSemester}}
    overview={<InstitutionView institution={currentInst} courses={courses} enrollments={enrollments} embedded onOpenCourse={id=>writeHash(currentInst.id,id)} onBack={()=>writeHash('','')}/>}/>
  :<><div className="area-list-head"><h2>Instituições</h2>{master&&!creating&&<button className="corp-button small" onClick={()=>setCreating(true)}>Nova instituição</button>}</div>
  {creating&&<RecordForm title="Nova instituição" fields={INSTITUTION_FIELDS} initial={{status:'ativa'}} onCancel={()=>setCreating(false)} onSubmit={async v=>{const row=await saveRow(TABLES.institutions,v);setCreating(false);await load();writeHash(row.id,'');}}/>}
- {!institutions.length?<p>Nenhuma instituição disponível para esta conta. O vínculo deve ser autorizado pela administração.</p>:<div className="table-scroll"><table><thead><tr><th>Instituição</th><th>Seu perfil</th><th>Cursos cadastrados</th><th>Matriculados{latestSemester?` em ${latestSemester}`:''}</th><th></th></tr></thead><tbody>{institutions.map(i=><tr key={i.id}><td>{i.name}{(i as unknown as Row).acronym?` · ${String((i as unknown as Row).acronym)}`:''}{(i as unknown as Row).status==='arquivada'&&' (arquivada)'}</td><td>{{master:'Master',gestor:'Gestor',equipe:'Equipe',leitor:'Leitura'}[roleIn(i.id)??'leitor']}</td><td>{courses.filter(c=>c.institution_id===i.id).length||'Nenhum curso cadastrado'}</td><td>{instTotal(i.id).toLocaleString('pt-BR')}</td><td><button className="corp-button" onClick={()=>writeHash(i.id,'')}>Abrir área</button></td></tr>)}</tbody></table></div>}</>}
+ {!institutions.length?<p>Nenhuma instituição disponível para esta conta. O vínculo deve ser autorizado pela administração.</p>:<div className="table-scroll"><table><thead><tr><th>Instituição</th><th>Seu perfil</th><th>Cursos cadastrados</th><th>Matriculados{latestSemester?` em ${latestSemester}`:''}</th><th>Metas</th><th>Ações atrasadas</th><th>Achados abertos</th><th></th></tr></thead><tbody>{institutions.map(i=><tr key={i.id}><td>{i.name}{(i as unknown as Row).acronym?` · ${String((i as unknown as Row).acronym)}`:''}{(i as unknown as Row).status==='arquivada'&&' (arquivada)'}</td><td>{{master:'Master',gestor:'Gestor',equipe:'Equipe',leitor:'Leitura'}[roleIn(i.id)??'leitor']}</td><td>{courses.filter(c=>c.institution_id===i.id).length||'Nenhum curso cadastrado'}</td><td>{instTotal(i.id).toLocaleString('pt-BR')}</td><td>{mgmt.goals.filter(x=>x.institution_id===i.id&&x.status!=='cancelada').length}</td><td>{mgmt.actions.filter(x=>x.institution_id===i.id&&isLate(x.due_date,x.status)).length}</td><td>{mgmt.diagnosis.filter(x=>x.institution_id===i.id&&x.status!=='resolvido').length}</td><td><button className="corp-button" onClick={()=>writeHash(i.id,'')}>Abrir área</button></td></tr>)}</tbody></table></div>}</>}
  <p>Os dados desta área vêm do banco. Os exemplos da demonstração permanecem separados.</p><button className="corp-login-text-button" onClick={load}>Atualizar dados</button></>}
  <button className="corp-login-text-button" onClick={async()=>{const {error}=await supabase.auth.signOut();if(error)setError('Não foi possível encerrar a sessão.');}}>Sair da conta</button></>}
  {error&&<p role="alert">{error}</p>}<p><Link href="/privacidade.html">Privacidade</Link> · <Link href="/">Voltar ao site</Link></p></main>;
