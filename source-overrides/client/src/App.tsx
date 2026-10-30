@@ -51,7 +51,7 @@ export default function App() {
   }, [path, normalized, isPublic]);
   return (
     <ErrorBoundary>
-      {passwordCallback ? <PublicLayout><ResetPassword /></PublicLayout> : normalized === "/master" ? <PublicLayout><Suspense fallback={<p>Verificando acesso…</p>}><OwnerDashboard /></Suspense></PublicLayout> : isPublic ? (
+      {passwordCallback ? <PublicLayout><ResetPassword /></PublicLayout> : ["/master", "/gestor", "/admin-ies", "/painel-real"].includes(normalized) ? <PublicLayout><Suspense fallback={<p>Verificando acesso…</p>}><OwnerDashboard /></Suspense></PublicLayout> : isPublic ? (
         <PublicApp />
       ) : demoPaths.has(normalized) ? (
         <Suspense

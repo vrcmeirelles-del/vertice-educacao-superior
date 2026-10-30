@@ -14,9 +14,6 @@ import Methodology from "./pages/Methodology";
 import Assumptions from "./pages/Assumptions";
 import Presentation from "./pages/Presentation";
 import Regulatory from "./pages/Regulatory";
-import AdminInstitution from "./pages/AdminInstitution";
-import GestorAccess from "./pages/GestorAccess";
-import OwnerDashboard from "./pages/OwnerDashboard";
 import NotFound from "./pages/NotFound";
 function ApplicationPages() {
   return (
@@ -26,9 +23,6 @@ function ApplicationPages() {
         <Route path="/painel" component={Executive} />
         <Route path="/diagnostico" component={Diagnosis} />
         <Route path="/regulador" component={Regulatory} />
-        <Route path="/admin-ies" component={AdminInstitution} />
-        <Route path="/gestor" component={GestorAccess} />
-        <Route path="/master" component={OwnerDashboard} />
         <Route path="/matriz" component={Matrix} />
         <Route path="/metas" component={Goals} />
         <Route path="/plano" component={ActionPlan} />
