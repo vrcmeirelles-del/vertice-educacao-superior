@@ -4,9 +4,9 @@
 - Render Static Site: site público e demonstração, sem dados institucionais reais na demonstração.
 - Supabase: projeto `qvetbbmviatxxatzzuzc`, PostgreSQL e Auth, região East US (Ohio).
 - Login: `/entrar`, e-mail/senha, recuperação e segundo fator TOTP.
-- Área autenticada: `/master`. A autorização é aplicada por RLS no banco, não pelo caminho da página.
+- Área autenticada: `/master` (também `/gestor` e `/admin-ies`, unificadas no mesmo painel). A demonstração não tem mais links de cadastro ou acesso real. A autorização é aplicada por RLS no banco, não pelo caminho da página.
 - Chave do navegador: somente publishable. Nenhuma secret/service_role pertence ao frontend.
-- Sessão: sessionStorage por aba. Não é cookie HttpOnly; XSS continua sendo um risco a tratar com CSP, revisão de dependências e ausência de HTML não confiável.
+- Sessão: localStorage do navegador (login único para todas as abas desde 30/10/2026). Não é cookie HttpOnly; XSS continua sendo um risco a tratar com CSP, revisão de dependências e ausência de HTML não confiável.
 
 ## Banco
 Migração: `supabase/migrations/202610260001_access_foundation.sql`.
