@@ -9,8 +9,9 @@ import RecordForm from "./RecordForm";
 import { FIELD_HELP, TAB_FAQ, TAB_HELP, withHelp } from "@/lib/help";
 import "./area.css";
 
-type Tab = "visao" | "cadastro" | "metas" | "plano" | "diagnostico" | "equipe";
+type Tab = "geral" | "visao" | "cadastro" | "metas" | "plano" | "diagnostico" | "equipe";
 const TABS: [Tab, string][] = [
+  ["geral", "Visão geral"],
   ["visao", "Matrículas"],
   ["cadastro", "Cadastro e cursos"],
   ["metas", "Metas e indicadores"],
@@ -28,17 +29,19 @@ export default function Workspace({
   overview,
   onBack,
   onChanged,
+  stats,
 }: {
   institution: Row;
   role: Role | null;
   overview: ReactNode;
+  stats?: { enrolled: number; semester?: string };
   onBack: () => void;
   onChanged: () => void;
 }) {
   const id = institution.id;
   const [tab, setTab] = useState<Tab>(() => {
     const t = new URLSearchParams(window.location.hash.slice(1)).get("aba") as Tab | null;
-    return t && TABS.some(([k]) => k === t) ? t : "visao";
+    return t && TABS.some(([k]) => k === t) ? t : "geral";
   });
   const [data, setData] = useState<Data>(EMPTY);
   const [loading, setLoading] = useState(true);
@@ -116,6 +119,8 @@ export default function Workspace({
         overview
       ) : loading ? (
         <p role="status">Carregando…</p>
+      ) : tab === "geral" ? (
+        <OverviewTab data={data} stats={stats} onGo={choose} />
       ) : tab === "cadastro" ? (
         <RegistryTab institution={institution} role={role} courses={data.courses} reload={reload} onChanged={onChanged} />
       ) : tab === "metas" ? (
@@ -205,6 +210,101 @@ function RemoveButton({ onConfirm, label = "Remover", title }: { onConfirm: () =
 
 const courseOptions = (courses: Row[]): [string, string][] =>
   courses.map(c => [c.id, `${c.code ? `${c.code} · ` : ""}${c.name}`]);
+
+// ================================================================ visão geral (estatísticas)
+function Bar({ value, max = 100, tone = "" }: { value: number; max?: number; tone?: string }) {
+  const p = max ? Math.max(0, Math.min(100, (value / max) * 100)) : 0;
+  return <div className={`area-bar ${tone}`}><span style={{ width: `${p}%` }} /></div>;
+}
+
+function OverviewTab({ data, stats, onGo }: { data: Data; stats?: { enrolled: number; semester?: string }; onGo: (t: Tab) => void }) {
+  const lastByGoal = new Map<string, number>();
+  for (const m of data.measurements) lastByGoal.set(String(m.goal_id), Number(m.value));
+  const live = data.goals.filter(g => g.status !== "cancelada");
+  const progress = live.map(g => ({ g, p: goalProgress(g, lastByGoal.get(g.id)) }));
+  const measured = progress.filter(x => x.p !== null) as { g: Row; p: number }[];
+  const avgGoal = measured.length ? Math.round(measured.reduce((s, x) => s + x.p, 0) / measured.length) : null;
+  const acts = data.actions.filter(a => a.status !== "cancelada");
+  const done = acts.filter(a => a.status === "concluida").length;
+  const late = acts.filter(a => isLate(a.due_date, a.status));
+  const soon = acts
+    .filter(a => a.due_date && !isLate(a.due_date, a.status) && a.status !== "concluida")
+    .filter(a => String(a.due_date) <= new Date(Date.now() + 30 * 864e5).toISOString().slice(0, 10))
+    .sort((a, b) => String(a.due_date).localeCompare(String(b.due_date)));
+  const byStatus = ACTION_STATUS.map(([k, l]) => ({ k, l, n: data.actions.filter(a => a.status === k).length }));
+  const scored = data.diagnosis.filter(d => d.score !== null && d.score !== undefined);
+  const avgScore = scored.length ? scored.reduce((s, d) => s + Number(d.score), 0) / scored.length : null;
+  const dims = new Map<string, number[]>();
+  for (const d of scored) {
+    const k = String(d.dimension);
+    if (!dims.has(k)) dims.set(k, []);
+    dims.get(k)!.push(Number(d.score));
+  }
+  const highOpen = data.diagnosis.filter(d => d.priority === "alta" && d.status !== "resolvido").length;
+  const activeCourses = data.courses.filter(c => (c.status ?? "ativo") === "ativo").length;
+  const fmt1 = (n: number) => n.toLocaleString("pt-BR", { maximumFractionDigits: 1 });
+
+  return (
+    <>
+      <div className="area-stat-grid">
+        <article><small>Matriculados{stats?.semester ? ` em ${stats.semester}` : ""}</small><b>{(stats?.enrolled ?? 0).toLocaleString("pt-BR")}</b><span>{activeCourses} {activeCourses === 1 ? "curso ativo" : "cursos ativos"}</span></article>
+        <article><small>Metas em acompanhamento</small><b>{live.filter(g => g.status === "ativa").length}</b><span>{avgGoal === null ? "sem medições" : `progresso médio ${avgGoal}%`}</span></article>
+        <article><small>Ações concluídas</small><b>{acts.length ? Math.round((done / acts.length) * 100) : 0}%</b><span>{done} de {acts.length} ações</span></article>
+        <article className={late.length ? "warn" : ""}><small>Ações atrasadas</small><b>{late.length}</b><span>{soon.length} vencem em 30 dias</span></article>
+        <article><small>Nota média do diagnóstico</small><b>{avgScore === null ? "—" : fmt1(avgScore)}</b><span>{scored.length} critérios avaliados</span></article>
+        <article className={highOpen ? "warn" : ""}><small>Achados de prioridade alta</small><b>{highOpen}</b><span>em aberto ou em tratamento</span></article>
+      </div>
+
+      <div className="area-overview-grid">
+        <section className="area-panel">
+          <div className="area-panel-head"><h3>Progresso das metas</h3><button className="corp-login-text-button" onClick={() => onGo("metas")}>Abrir metas</button></div>
+          {!progress.length ? <p className="area-muted">Nenhuma meta cadastrada.</p> : progress.map(({ g, p }) => (
+            <div key={g.id} className="area-ov-row">
+              <div className="area-ov-label"><span>{String(g.title)}</span><b>{p === null ? "sem medição" : `${p}%`}</b></div>
+              <Bar value={p ?? 0} tone={isLate(g.due_date, g.status) ? "warn" : ""} />
+            </div>
+          ))}
+        </section>
+
+        <section className="area-panel">
+          <div className="area-panel-head"><h3>Ações por situação</h3><button className="corp-login-text-button" onClick={() => onGo("plano")}>Abrir plano</button></div>
+          {!data.actions.length ? <p className="area-muted">Nenhuma ação cadastrada.</p> : (
+            <>
+              <div className="area-stack" aria-label="Distribuição das ações por situação">
+                {byStatus.filter(s => s.n).map(s => <span key={s.k} className={`st-${s.k}`} style={{ flex: s.n }} title={`${s.l}: ${s.n}`} />)}
+              </div>
+              <ul className="area-legend">
+                {byStatus.map(s => <li key={s.k}><i className={`st-${s.k}`} />{s.l}<b>{s.n}</b></li>)}
+              </ul>
+            </>
+          )}
+          {(late.length > 0 || soon.length > 0) && (
+            <>
+              <h4 className="area-subhead">Prazos</h4>
+              <ul className="area-deadlines">
+                {late.slice(0, 5).map(a => <li key={a.id} className="warn"><span>{String(a.what)}</span><b>venceu {fmtDate(a.due_date)}</b></li>)}
+                {soon.slice(0, 5).map(a => <li key={a.id}><span>{String(a.what)}</span><b>{fmtDate(a.due_date)}</b></li>)}
+              </ul>
+            </>
+          )}
+        </section>
+
+        <section className="area-panel">
+          <div className="area-panel-head"><h3>Diagnóstico por dimensão</h3><button className="corp-login-text-button" onClick={() => onGo("diagnostico")}>Abrir diagnóstico</button></div>
+          {!dims.size ? <p className="area-muted">Nenhum critério com nota.</p> : [...dims.entries()].sort((a, b) => a[0].localeCompare(b[0], "pt-BR")).map(([k, v]) => {
+            const m = v.reduce((s, x) => s + x, 0) / v.length;
+            return (
+              <div key={k} className="area-ov-row">
+                <div className="area-ov-label"><span>{k}</span><b>{fmt1(m)} / 5</b></div>
+                <Bar value={m} max={5} tone={m < 3 ? "warn" : ""} />
+              </div>
+            );
+          })}
+        </section>
+      </div>
+    </>
+  );
+}
 
 // ================================================================ cadastro
 export const INSTITUTION_FIELDS: Field[] = withHelp([

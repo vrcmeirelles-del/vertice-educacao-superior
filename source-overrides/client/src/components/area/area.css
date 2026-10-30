@@ -92,3 +92,29 @@
 .area-faq summary { cursor: pointer; font-weight: 600; color: var(--area-ink); }
 .area-faq details p { margin: 8px 0 0; color: #46566a; line-height: 1.55; font-size: .93rem; }
 .area-faq > p { margin-top: 12px; }
+.area-stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; margin-bottom: 18px; }
+.area-stat-grid article { background: #fff; border: 1px solid var(--area-line); border-radius: 10px; padding: 14px 16px; display: grid; gap: 4px; }
+.area-stat-grid small { color: var(--area-muted); font-size: .82rem; }
+.area-stat-grid b { font-size: 1.9rem; letter-spacing: -.5px; color: var(--area-ink); line-height: 1.1; }
+.area-stat-grid span { color: var(--area-muted); font-size: .82rem; }
+.area-stat-grid article.warn b { color: var(--area-warn); }
+.area-overview-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+.area-overview-grid .area-panel { margin-bottom: 0; }
+.area-ov-row { margin: 10px 0; }
+.area-ov-label { display: flex; justify-content: space-between; gap: 10px; font-size: .9rem; margin-bottom: 5px; }
+.area-ov-label span { color: var(--area-ink); }
+.area-ov-label b { white-space: nowrap; color: var(--area-muted); font-weight: 600; }
+.area-bar { height: 8px; background: #e7ecf1; border-radius: 99px; overflow: hidden; }
+.area-bar span { display: block; height: 100%; background: #328ea8; border-radius: 99px; }
+.area-bar.warn span { background: #c0794f; }
+.area-stack { display: flex; height: 14px; border-radius: 99px; overflow: hidden; background: #e7ecf1; }
+.area-stack span { display: block; min-width: 4px; }
+.st-nao_iniciada { background: #a9b6c4; } .st-em_andamento { background: #d1a54a; } .st-concluida { background: #4f9a76; } .st-bloqueada { background: #c0594f; } .st-cancelada { background: #d5dbe2; }
+.area-legend { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 6px; font-size: .88rem; }
+.area-legend li { display: flex; align-items: center; gap: 8px; }
+.area-legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.area-legend b { margin-left: auto; }
+.area-subhead { margin: 18px 0 6px; font-size: .95rem; }
+.area-deadlines { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; font-size: .88rem; }
+.area-deadlines li { display: flex; justify-content: space-between; gap: 10px; border-bottom: 1px solid #edf1f5; padding-bottom: 6px; }
+.area-deadlines li.warn b { color: var(--area-warn); }
