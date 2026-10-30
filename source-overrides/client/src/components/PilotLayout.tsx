@@ -17,7 +17,6 @@ import {
   Search,
   ShieldCheck,
   Sparkles,
-  UsersRound,
   X,
 } from "lucide-react";
 import { downloadFile, usePilot } from "@/contexts/PilotContext";
@@ -29,9 +28,6 @@ export { Brand } from "./Brand";
 const navigation = [
   { path: "/demonstracao", label: "Visão geral", icon: LayoutDashboard },
   { path: "/painel", label: "Painel executivo", icon: BarChart3 },
-  { path: "/admin-ies", label: "Cadastro IES", icon: UsersRound },
-  { path: "/gestor", label: "Acesso gestor", icon: ShieldCheck },
-  { path: "/master", label: "Proprietário", icon: ShieldCheck },
   { path: "/diagnostico", label: "Diagnóstico", icon: ClipboardCheck },
   { path: "/regulador", label: "Regulação", icon: ShieldCheck },
   { path: "/matriz", label: "Matriz de achados", icon: FileCheck2 },
@@ -147,6 +143,10 @@ export function PilotLayout({ children }: { children: ReactNode }) {
             <span className="pending-count">
               {state.pending.filter(p => !p.done).length}
             </span>
+          </Link>
+          <Link href="/entrar" className="nav-item">
+            <ShieldCheck size={18} />
+            Entrar na área real
           </Link>
           <Link href="/" className="nav-item">
             <ArrowUpRight size={18} />

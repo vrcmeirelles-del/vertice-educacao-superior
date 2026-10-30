@@ -4,6 +4,7 @@ import { Link, useLocation } from "wouter";
 import { ArrowUpRight, Menu, X } from "lucide-react";
 import { Brand } from "./Brand";
 import { company, publicPages } from "@/lib/consultancy";
+import { supabase } from "@/lib/supabase";
 
 const links = [
   { href: "/servicos.html", label: "Soluções" },
@@ -14,6 +15,12 @@ const links = [
 export default function PublicLayout({ children }: { children: ReactNode }) {
   const [location] = useLocation();
   const [open, setOpen] = useState(false);
+  const [logged, setLogged] = useState(false);
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setLogged(Boolean(data.session)), () => undefined);
+    const { data } = supabase.auth.onAuthStateChange((_e, s) => setLogged(Boolean(s)));
+    return () => data.subscription.unsubscribe();
+  }, []);
   useEffect(() => {
     setOpen(false);
     const page = publicPages.find(
@@ -83,8 +90,8 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
             <Link href="/demonstracao" className="corp-demo-link">
               Demonstração <ArrowUpRight size={15} />
             </Link>
-            <Link href="/entrar" className="corp-button small">
-              Entrar <ArrowUpRight size={15} />
+            <Link href={logged ? "/master" : "/entrar"} className="corp-button small">
+              {logged ? "Meu painel" : "Entrar"} <ArrowUpRight size={15} />
             </Link>
             <Link href="/contato.html" className="corp-demo-link">
               Vamos conversar <ArrowUpRight size={15} />
@@ -109,7 +116,7 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
             ))}
             <Link href="/demonstracao">Demonstração</Link>
             <Link href="/guia.html">Guia e glossário</Link>
-            <Link href="/entrar">Entrar</Link>
+            <Link href={logged ? "/master" : "/entrar"}>{logged ? "Meu painel" : "Entrar"}</Link>
           </div>
           <div className="footer-note">
             <span>Uma atuação com responsabilidade</span>
