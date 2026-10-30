@@ -4,6 +4,9 @@ import {supabase} from '@/lib/supabase';
 import type {Session} from '@supabase/supabase-js';
 import type {AcademicReport} from '@/components/AcademicReports';
 import {CourseView, InstitutionView, courseTotals, type Course, type Enrollment, type Institution} from '@/components/InstitutionArea';
+import Workspace, {INSTITUTION_FIELDS} from '@/components/area/Workspace';
+import RecordForm from '@/components/area/RecordForm';
+import {TABLES, saveRow, type Role, type Row} from '@/lib/area';
 
 type Membership={user_id:string;institution_id:string;role:string};
 const SNAPSHOT_COLUMNS='id,course_id,semester,class_label,enrolled,capacity,available,source_report_at,reported_total,student_status';
@@ -26,6 +29,8 @@ export default function OwnerDashboard(){
  const [enrollments,setEnrollments]=useState<Enrollment[]>([]);
  const [reports,setReports]=useState<AcademicReport[]>([]);
  const [route,setRoute]=useState(readHash());
+ const [creating,setCreating]=useState(false);
+ const roleIn=(id:string):Role|null=>master?'master':((members.find(m=>m.institution_id===id&&m.user_id===session?.user.id)?.role as Role)??null);
  useEffect(()=>{const f=()=>setRoute(readHash());window.addEventListener('hashchange',f);window.addEventListener('popstate',f);return()=>{window.removeEventListener('hashchange',f);window.removeEventListener('popstate',f);};},[]);
  const latestSemester=[...new Set(enrollments.filter(r=>r.student_status==='MATRICULADO').map(r=>r.semester))].sort().reverse()[0];
  const instTotal=(id:string)=>{if(!latestSemester)return 0;const ids=new Set(courses.filter(c=>c.institution_id===id).map(c=>c.id));const per=new Map<string,Enrollment[]>();for(const r of enrollments)if(ids.has(r.course_id)&&r.semester===latestSemester&&r.student_status==='MATRICULADO'){if(!per.has(r.course_id))per.set(r.course_id,[]);per.get(r.course_id)!.push(r);}return [...per.values()].reduce((t,rows)=>t+courseTotals(rows).value,0);};
@@ -42,9 +47,10 @@ export default function OwnerDashboard(){
     const {data,error:fError}=await supabase.auth.mfa.listFactors();if(fError)throw fError;
     setFactor(data.totp[0]?.id??'');return;
    }
+   await supabase.rpc('vertice_accept_invites').then(()=>undefined,()=>undefined);
    const results=await Promise.all([
     supabase.from('vertice_admins').select('user_id').eq('user_id',current.user.id),
-    supabase.from('vertice_institutions').select('id,name').order('name'),
+    supabase.from('vertice_institutions').select('*').order('name'),
     supabase.from('vertice_courses').select('*').order('name'),
     supabase.from('vertice_memberships').select('user_id,institution_id,role'),
     supabase.from('vertice_academic_reports').select('id,course_id,kind,source_label,source_report_at,payload').order('source_report_at',{ascending:false})
@@ -79,8 +85,11 @@ export default function OwnerDashboard(){
  </section>:<><p>{master?'Visão das instituições da empresa.':'Você vê somente as instituições vinculadas à sua conta.'}</p>
  <div className="stats-row"><div className="stat-card">Instituições<strong className="stat-value">{institutions.length}</strong></div><div className="stat-card">Cursos<strong className="stat-value">{courses.length}</strong></div><div className="stat-card">Vínculos<strong className="stat-value">{members.length}</strong></div></div>
  {currentInst&&currentCourse?<CourseView key={currentCourse.id} course={currentCourse} institution={currentInst} enrollments={enrollments} reports={reports} onBack={()=>writeHash(currentInst.id,'')}/>
- :currentInst?<InstitutionView key={currentInst.id} institution={currentInst} courses={courses} enrollments={enrollments} onOpenCourse={id=>writeHash(currentInst.id,id)} onBack={()=>writeHash('','')}/>
- :<><h2>Instituições</h2>{!institutions.length?<p>Nenhuma instituição disponível para esta conta. O vínculo deve ser autorizado pela administração.</p>:<div className="table-scroll"><table><thead><tr><th>Instituição</th><th>Cursos cadastrados</th><th>Matriculados{latestSemester?` em ${latestSemester}`:''}</th><th></th></tr></thead><tbody>{institutions.map(i=><tr key={i.id}><td>{i.name}</td><td>{courses.filter(c=>c.institution_id===i.id).length||'Nenhum curso cadastrado'}</td><td>{instTotal(i.id).toLocaleString('pt-BR')}</td><td><button className="corp-button" onClick={()=>writeHash(i.id,'')}>Abrir área</button></td></tr>)}</tbody></table></div>}</>}
+ :currentInst?<Workspace key={currentInst.id} institution={currentInst as unknown as Row} role={roleIn(currentInst.id)} onBack={()=>writeHash('','')} onChanged={load}
+   overview={<InstitutionView institution={currentInst} courses={courses} enrollments={enrollments} embedded onOpenCourse={id=>writeHash(currentInst.id,id)} onBack={()=>writeHash('','')}/>}/>
+ :<><div className="area-list-head"><h2>Instituições</h2>{master&&!creating&&<button className="corp-button small" onClick={()=>setCreating(true)}>Nova instituição</button>}</div>
+ {creating&&<RecordForm title="Nova instituição" fields={INSTITUTION_FIELDS} initial={{status:'ativa'}} onCancel={()=>setCreating(false)} onSubmit={async v=>{const row=await saveRow(TABLES.institutions,v);setCreating(false);await load();writeHash(row.id,'');}}/>}
+ {!institutions.length?<p>Nenhuma instituição disponível para esta conta. O vínculo deve ser autorizado pela administração.</p>:<div className="table-scroll"><table><thead><tr><th>Instituição</th><th>Seu perfil</th><th>Cursos cadastrados</th><th>Matriculados{latestSemester?` em ${latestSemester}`:''}</th><th></th></tr></thead><tbody>{institutions.map(i=><tr key={i.id}><td>{i.name}{(i as unknown as Row).acronym?` · ${String((i as unknown as Row).acronym)}`:''}{(i as unknown as Row).status==='arquivada'&&' (arquivada)'}</td><td>{{master:'Master',gestor:'Gestor',equipe:'Equipe',leitor:'Leitura'}[roleIn(i.id)??'leitor']}</td><td>{courses.filter(c=>c.institution_id===i.id).length||'Nenhum curso cadastrado'}</td><td>{instTotal(i.id).toLocaleString('pt-BR')}</td><td><button className="corp-button" onClick={()=>writeHash(i.id,'')}>Abrir área</button></td></tr>)}</tbody></table></div>}</>}
  <p>Os dados desta área vêm do banco. Os exemplos da demonstração permanecem separados.</p><button className="corp-login-text-button" onClick={load}>Atualizar dados</button></>}
  <button className="corp-login-text-button" onClick={async()=>{const {error}=await supabase.auth.signOut();if(error)setError('Não foi possível encerrar a sessão.');}}>Sair da conta</button></>}
  {error&&<p role="alert">{error}</p>}<p><Link href="/privacidade.html">Privacidade</Link> · <Link href="/">Voltar ao site</Link></p></main>;
