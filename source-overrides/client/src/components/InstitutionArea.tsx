@@ -1,9 +1,10 @@
+import CourseIndicators, {type CourseIndicatorPayload} from "./CourseIndicators";
 import {useMemo, useState} from 'react';
 import AcademicReports, {type AcademicReport} from '@/components/AcademicReports';
 
 export type Institution={id:string;name:string};
 export type Course={id:string;institution_id:string;name:string;code:string|null;modality?:string|null};
-export type Enrollment={id:string;course_id:string;semester:string;class_label:string;enrolled:number;capacity:number;available:number;source_report_at:string;reported_total:number|null;student_status:string};
+export type Enrollment={id:string;course_id:string;semester:string;class_label:string;enrolled:number;capacity:number|null;available:number|null;source_report_at:string;reported_total:number|null;student_status:string};
 export type Modality='presencial'|'semipresencial'|'ead';
 
 const LABEL:Record<Modality,string>={presencial:'Presencial',semipresencial:'Semipresencial',ead:'EAD'};
@@ -19,6 +20,15 @@ export function modalityOf(c:Course):Modality{
 }
 const sortSem=(a:string,b:string)=>b.localeCompare(a);
 const fmt=(n:number)=>n.toLocaleString('pt-BR');
+
+/** A edição mais recente substitui o relatório inteiro do curso/semestre/status. */
+export function latestEnrollmentSnapshots(rows: Enrollment[]) {
+ const latest=new Map<string,number>();
+ const key=(r:Enrollment)=>[r.course_id,r.semester,r.student_status].join("|");
+ const at=(r:Enrollment)=>Date.parse(r.source_report_at)||0;
+ for(const r of rows) latest.set(key(r),Math.max(latest.get(key(r))??-Infinity,at(r)));
+ return rows.filter(r=>at(r)===latest.get(key(r)));
+}
 
 /** Matriculados de um curso num semestre: soma das turmas e total informado na origem. */
 export function courseTotals(rows:Enrollment[]){
@@ -42,7 +52,7 @@ export function InstitutionView({institution,courses,enrollments,onOpenCourse,on
  const byCourse=useMemo(()=>{const m=new Map<string,Map<string,Enrollment[]>>();for(const r of rows){if(!m.has(r.course_id))m.set(r.course_id,new Map());const s=m.get(r.course_id)!;if(!s.has(r.semester))s.set(r.semester,[]);s.get(r.semester)!.push(r);}return m;},[rows]);
  const value=(id:string,s?:string)=>s?courseTotals(byCourse.get(id)?.get(s)??[]).value:0;
  const list=own.filter(c=>(tab==='todas'||modalityOf(c)===tab)&&(`${c.code??''} ${c.name}`.toLowerCase().includes(query.toLowerCase())))
-  .map(c=>({c,now:value(c.id,sem),before:value(c.id,prev),turmas:(byCourse.get(c.id)?.get(sem)??[]).filter(r=>r.enrolled>0).length,hasData:byCourse.has(c.id)}))
+  .map(c=>({c,now:value(c.id,sem),before:value(c.id,prev),turmas:(byCourse.get(c.id)?.get(sem)??[]).filter(r=>r.enrolled>0&&r.class_label!=="__TOTAL_CURSO__").length,hasData:byCourse.has(c.id),hasCurrent:byCourse.get(c.id)?.has(sem)??false,hasPrevious:prev?byCourse.get(c.id)?.has(prev)??false:false}))
   .sort((a,b)=>b.now-a.now||a.c.name.localeCompare(b.c.name,'pt-BR'));
  const mods:Modality[]=['presencial','semipresencial','ead'];
  const modTotal=(m:Modality,s:string)=>own.filter(c=>modalityOf(c)===m).reduce((t,c)=>t+value(c.id,s),0);
@@ -67,8 +77,8 @@ export function InstitutionView({institution,courses,enrollments,onOpenCourse,on
   </div>
   <label>Buscar curso <input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Nome ou código"/></label>
   <div className="table-scroll"><table><thead><tr><th>Código</th><th>Curso</th><th>Modalidade</th><th>Matriculados {sem}</th><th>{prev?`Em ${prev}`:'Semestre anterior'}</th><th>Variação</th><th>Turmas com alunos</th><th></th></tr></thead>
-  <tbody>{list.map(({c,now,before,turmas,hasData})=><tr key={c.id}><td>{c.code??'—'}</td><td>{c.name}</td><td>{LABEL[modalityOf(c)]}</td><td>{fmt(now)}</td><td>{prev?fmt(before):'—'}</td><td>{prev&&before?`${now>=before?'+':''}${Math.round((now-before)/before*100)}%`:'—'}</td><td>{turmas}</td><td>{hasData?<button className="corp-login-text-button" onClick={()=>onOpenCourse(c.id)}>Abrir</button>:'Sem dados'}</td></tr>)}</tbody></table></div>
-  <p>Fonte: relatório estatístico de alunos do e-ORBIT, status MATRICULADO. Modalidade pelo cadastro do curso no e-ORBIT, não pelo ato regulatório no e-MEC. Quantitativos não comprovam alunos únicos, retenção ou evasão.</p>
+  <tbody>{list.map(({c,now,before,turmas,hasCurrent,hasPrevious})=><tr key={c.id}><td>{c.code??'—'}</td><td>{c.name}</td><td>{LABEL[modalityOf(c)]}</td><td>{hasCurrent?fmt(now):"Não informado"}</td><td>{prev&&hasPrevious?fmt(before):'—'}</td><td>{prev&&hasCurrent&&hasPrevious&&before?`${now>=before?'+':''}${Math.round((now-before)/before*100)}%`:'—'}</td><td>{hasCurrent?turmas:"—"}</td><td>{<button className="corp-login-text-button" onClick={()=>onOpenCourse(c.id)}>Abrir</button>}</td></tr>)}</tbody></table></div>
+  <p>Fonte: relatório estatístico de alunos do e-ORBIT, status MATRICULADO. Modalidade pelo cadastro do curso no e-ORBIT, não pelo ato regulatório no e-MEC. Quantitativos não comprovam alunos únicos, retenção ou evasão. “Não informado” indica ausência de relatório localizado para o curso e semestre; não foi substituído por zero.</p>
   </>}
  </section>;
 }
@@ -81,6 +91,8 @@ export function CourseView({course,institution,enrollments,reports,onBack}:{cour
  const selected=rows.filter(r=>r.semester===sem);
  const {sum:rowTotal,reported:reportedTotal}=courseTotals(selected);
  const own=reports.filter(r=>r.course_id===course.id);
+ const metrics=own.find(r=>r.kind==='course_indicators');
+ const displayRows=selected.filter(r=>r.class_label!=="__TOTAL_CURSO__");
  const series=own.find(r=>(r.kind as string)==='status_series');
  const statusRows=((series?.payload.series??[]) as StatusSeries[]).slice().sort((a,b)=>a.semester.localeCompare(b.semester));
  return <section aria-labelledby="course-title">
@@ -91,16 +103,17 @@ export function CourseView({course,institution,enrollments,reports,onBack}:{cour
   {!semesters.length?<p>Nenhum relatório importado para este curso.</p>:<>
   <label>Semestre <select value={sem} onChange={e=>setSemester(e.target.value)}>{semesters.map(s=><option key={s} value={s}>{s}</option>)}</select></label>
   {selected[0]&&<p>Fonte: relatório estatístico do e-ORBIT, status MATRICULADO. Consulta em {new Date(selected[0].source_report_at).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'})}.</p>}
-  <div className="stats-row"><div className="stat-card">Total informado no relatório<strong className="stat-value">{reportedTotal??'Não informado'}</strong></div><div className="stat-card">Soma das turmas<strong className="stat-value">{rowTotal}</strong></div><div className="stat-card">Turmas<strong className="stat-value">{selected.length}</strong></div></div>
+  <div className="stats-row"><div className="stat-card">Total informado no relatório<strong className="stat-value">{reportedTotal??'Não informado'}</strong></div><div className="stat-card">Soma das turmas<strong className="stat-value">{rowTotal}</strong></div><div className="stat-card">Turmas / linhas na origem<strong className="stat-value">{displayRows.length}</strong></div></div>
   {reportedTotal!==null&&reportedTotal!==rowTotal&&<p role="alert">Conferência pendente: o total informado ({reportedTotal}) difere da soma das turmas ({rowTotal}). Os valores da origem foram preservados.</p>}
-  <div className="table-scroll"><table><thead><tr><th>Série / turma na origem</th><th>Matrículas</th><th>Vagas</th><th>Disponíveis</th></tr></thead><tbody>{selected.slice().sort((a,b)=>a.class_label.localeCompare(b.class_label,'pt-BR',{numeric:true})).map(r=><tr key={r.id}><td>{r.class_label}</td><td>{r.enrolled}</td><td>{r.capacity}</td><td>{r.available}</td></tr>)}</tbody></table></div>
+  <div className="table-scroll"><table><thead><tr><th>Série / turma na origem</th><th>Matrículas</th><th>Vagas</th><th>Disponíveis</th></tr></thead><tbody>{displayRows.slice().sort((a,b)=>a.class_label.localeCompare(b.class_label,'pt-BR',{numeric:true})).map(r=><tr key={r.id}><td>{r.class_label}</td><td>{r.enrolled}</td><td>{r.capacity??"Não informado"}</td><td>{r.available??"Não informado"}</td></tr>)}</tbody></table></div>
   {course.code==='027'&&sem==='2026/02'&&<p>Conferir na secretaria: DIR-5A2026/02 aparece como 6ª série no relatório.</p>}
   <p>Quantitativos por turma não comprovam alunos únicos, retenção, captação efetiva ou participação na AV1. Esses indicadores dependem do cruzamento individual.</p>
   </>}
+  {metrics&&<CourseIndicators payload={metrics.payload as CourseIndicatorPayload} semester={sem}/> }
   {statusRows.length>0&&<><h3>Situação dos registros por semestre</h3><p>{series?.source_label}</p>
   <div className="table-scroll"><table><thead><tr><th>Semestre</th><th>Vagas</th>{STATUS.map(([k,l])=><th key={k}>{l}</th>)}<th>Total de registros</th></tr></thead>
   <tbody>{statusRows.map(s=><tr key={s.semester}><td>{s.semester}</td><td>{s.capacity??'—'}</td>{STATUS.map(([k])=><td key={k}>{s.counts[k]??0}</td>)}<td>{STATUS.reduce((t,[k])=>t+(s.counts[k]??0),0)}</td></tr>)}</tbody></table></div>
   <p>O status é o registrado hoje para a matrícula daquele semestre. Semestres antigos tendem a aparecer como concluídos ou trancados porque o registro foi fechado depois; para comparar anos, use o total de registros.</p></>}
-  {own.some(r=>(r.kind as string)!=='status_series')&&<AcademicReports reports={own.filter(r=>(r.kind as string)!=='status_series')}/>}
+  {own.some(r=>['cohorts','enrollment_continuity'].includes(r.kind))&&<AcademicReports reports={own.filter(r=>['cohorts','enrollment_continuity'].includes(r.kind))}/>}
  </section>;
 }

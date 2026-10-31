@@ -3,7 +3,7 @@ import {Link} from 'wouter';
 import {supabase} from '@/lib/supabase';
 import type {Session} from '@supabase/supabase-js';
 import type {AcademicReport} from '@/components/AcademicReports';
-import {CourseView, InstitutionView, courseTotals, type Course, type Enrollment, type Institution} from '@/components/InstitutionArea';
+import {CourseView, InstitutionView, courseTotals, latestEnrollmentSnapshots, type Course, type Enrollment, type Institution} from '@/components/InstitutionArea';
 import Workspace, {INSTITUTION_FIELDS} from '@/components/area/Workspace';
 import RecordForm from '@/components/area/RecordForm';
 import {TABLES, isLate, saveRow, type Role, type Row} from '@/lib/area';
@@ -19,9 +19,9 @@ async function fetchAllSnapshots(){
  }
  return all;
 }
-async function fetchDashboardRows(table:string,order:string){
+async function fetchDashboardRows(table:string,order:string,ascending=true){
  const rows:Row[]=[];
- for(let from=0;;from+=1000){const {data,error}=await supabase.from(table).select('*').order(order).order('id').range(from,from+999);if(error)throw error;rows.push(...((data??[]) as Row[]));if(!data||data.length<1000)break;}
+ for(let from=0;;from+=1000){const {data,error}=await supabase.from(table).select('*').order(order,{ascending}).order('id').range(from,from+999);if(error)throw error;rows.push(...((data??[]) as Row[]));if(!data||data.length<1000)break;}
  return {data:rows,error:null};
 }
 function readHash(){const p=new URLSearchParams(typeof window==='undefined'?'':window.location.hash.slice(1));return {inst:p.get('instituicao')??'',course:p.get('curso')??'',repositories:p.get('repositorios')==='1'};}
@@ -60,14 +60,12 @@ export default function OwnerDashboard(){
     fetchDashboardRows('vertice_institutions','name'),
     fetchDashboardRows('vertice_courses','name'),
     supabase.from('vertice_memberships').select('user_id,institution_id,role'),
-    supabase.from('vertice_academic_reports').select('id,course_id,kind,source_label,source_report_at,payload').order('source_report_at',{ascending:false})
+    fetchDashboardRows('vertice_academic_reports','source_report_at',false)
    ]);
    if(results.some(r=>r.error))throw new Error('data unavailable');
    const snapshots=await fetchAllSnapshots();
    setMaster(Boolean(results[0].data?.length));setInstitutions(results[1].data as Institution[]);setCourses(results[2].data as Course[]);setMembers(results[3].data as Membership[]);
-   const latest=new Map<string,Enrollment>();
-   for(const row of snapshots){const key=[row.course_id,row.semester,row.student_status,row.class_label].join('|');if(!latest.has(key))latest.set(key,row);}
-   setEnrollments([...latest.values()]);
+   setEnrollments(latestEnrollmentSnapshots(snapshots));
    setReports(results[4].data as AcademicReport[]);
    const [g,a,d]=await Promise.all([
     supabase.from('vertice_goals').select('id,institution_id,status'),
