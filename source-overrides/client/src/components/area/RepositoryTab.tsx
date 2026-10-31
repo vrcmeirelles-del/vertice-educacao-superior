@@ -20,6 +20,14 @@ import {
 } from "@/lib/repository";
 import RecordForm from "./RecordForm";
 import catalog from "@/lib/repository-catalog.json";
+import {
+  RepositoryCourseHome,
+  RepositoryCoverage,
+  RepositoryNumbers,
+} from "./RepositoryHome";
+import RepositoryChecklist from "./RepositoryChecklist";
+import { requestsInSemester, repositorySemester } from "@/lib/repository";
+import "./repository.css";
 const REQUESTS = "vertice_repository_requests",
   FILES = "vertice_repository_files";
 type Member = { user_id: string; email: string; role: string };
@@ -33,8 +41,10 @@ type Props = {
   goalFilter: string;
   setGoalFilter: (id: string) => void;
   reload: () => Promise<void>;
+  initialCourseId?: string;
+  requestFocus?: string;
 };
-export default function RepositoryTab({
+function RepositoryDocuments({
   institutionId,
   role,
   courses,
@@ -44,12 +54,14 @@ export default function RepositoryTab({
   goalFilter,
   setGoalFilter,
   reload,
+  initialCourseId = "",
+  requestFocus = "",
 }: Props) {
   const [userId, setUserId] = useState(""),
     [members, setMembers] = useState<Member[]>([]),
     [editing, setEditing] = useState<Row | "new" | null>(null);
   const [query, setQuery] = useState(""),
-    [course, setCourse] = useState(""),
+    [course, setCourse] = useState(initialCourseId),
     [status, setStatus] = useState(""),
     [showArchived, setShowArchived] = useState(false);
   const [busy, setBusy] = useState(""),
@@ -86,6 +98,7 @@ export default function RepositoryTab({
   const summary = repositorySummary(ownRequests, files);
   const shown = ownRequests.filter(
     (r) =>
+      (!requestFocus || r.id === requestFocus) &&
       (!query ||
         `${r.title} ${r.document_code ?? ""} ${r.assignee_email ?? ""}`
           .toLowerCase()
@@ -236,7 +249,7 @@ export default function RepositoryTab({
   return (
     <div className="area-panel">
       <div className="area-panel-head">
-        <h3>Repositório de documentos</h3>
+        <h3>Documentos exigidos e entregas</h3>
         {manager && (
           <button
             className="corp-button small"
@@ -245,7 +258,7 @@ export default function RepositoryTab({
               setEditing("new");
             }}
           >
-            Exigir documento
+            Adicionar documento
           </button>
         )}
       </div>
@@ -484,7 +497,7 @@ export default function RepositoryTab({
         <p className="area-muted">
           Nenhuma exigência documental encontrada.
           {manager
-            ? " Use “Exigir documento” para definir a entrega e atribuir o responsável."
+            ? " Use “Adicionar documento” para definir a entrega e atribuir o responsável."
             : ""}
         </p>
       ) : (
@@ -682,5 +695,439 @@ export default function RepositoryTab({
         Vértice. Postar um documento não conclui automaticamente a meta.
       </p>
     </div>
+  );
+}
+
+type RepositoryView = "cobertura" | "arquivos" | "historico" | "documentos";
+export default function RepositoryTab(props: Props) {
+  const { courses, requests, files, role, goalFilter, setGoalFilter } = props;
+  const [selectedCourse, setSelectedCourse] = useState<string | null>(() =>
+    goalFilter
+      ? String(
+          props.goals.find((g) => g.id === goalFilter)?.course_id ??
+            "institucional",
+        )
+      : null,
+  );
+  const [semester, setSemester] = useState("");
+  const [view, setView] = useState<RepositoryView>(
+    goalFilter ? "documentos" : "cobertura",
+  );
+  const [configuring, setConfiguring] = useState(false),
+    [focus, setFocus] = useState(""),
+    [downloadError, setDownloadError] = useState("");
+  useEffect(() => {
+    if (goalFilter) {
+      setSelectedCourse(
+        String(
+          props.goals.find((g) => g.id === goalFilter)?.course_id ??
+            "institucional",
+        ),
+      );
+      setView("documentos");
+      setFocus("");
+    }
+  }, [goalFilter]);
+  const selected = courses.find((c) => c.id === selectedCourse);
+  const isInstitutional = selectedCourse === "institucional";
+  const scoped = requestsInSemester(
+    requests.filter(
+      (r) =>
+        (!goalFilter || r.goal_id === goalFilter) &&
+        (selectedCourse === null ||
+          (!r.course_id ? isInstitutional : r.course_id === selectedCourse)),
+    ),
+    semester,
+  );
+  const ownIds = new Set(scoped.map((r) => r.id));
+  const ownFiles = files.filter((f) => ownIds.has(String(f.request_id)));
+  const semesters = [
+    ...new Set(
+      requests.map((r) => repositorySemester(r.semester)).filter(Boolean),
+    ),
+  ]
+    .sort()
+    .reverse();
+  const courseTitle = String(selected?.name ?? "Documentos institucionais");
+  const back = () => {
+    setSelectedCourse(null);
+    setFocus("");
+    setConfiguring(false);
+    setGoalFilter("");
+  };
+  const selectCourse = (id: string) => {
+    setSelectedCourse(id);
+    setView("cobertura");
+    setFocus("");
+    setConfiguring(false);
+    setDownloadError("");
+  };
+  async function download(f: Row) {
+    try {
+      setDownloadError("");
+      const { data, error } = await supabase.storage
+        .from(REPOSITORY_BUCKET)
+        .download(String(f.storage_path));
+      if (error) throw error;
+      const url = URL.createObjectURL(data),
+        a = document.createElement("a");
+      a.href = url;
+      a.download = String(f.file_name);
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 30000);
+    } catch {
+      setDownloadError(
+        "Não foi possível baixar o arquivo. Confira sua sessão e tente novamente.",
+      );
+    }
+  }
+  return (
+    <section
+      className="repository-shell"
+      aria-label="Repositório documental da IES"
+    >
+      <header className="repo-header">
+        <div>
+          <small>
+            REPOSITÓRIO DOCUMENTAL ·{" "}
+            {role === "master"
+              ? "VISÃO MASTER"
+              : role === "gestor"
+                ? "GESTÃO DA IES"
+                : "ACERVO DA IES"}
+          </small>
+          <h2>
+            {selectedCourse === null ? "Painel do repositório" : courseTitle}
+          </h2>
+          <p>
+            {selectedCourse === null
+              ? "Todos os cursos e documentos desta instituição em um só lugar."
+              : "Cobertura documental, entregas e validação das evidências."}
+          </p>
+        </div>
+        <div className="repo-header-actions">
+          {selectedCourse !== null && (
+            <button className="repo-secondary" onClick={back}>
+              ← Todos os cursos
+            </button>
+          )}
+          <button className="repo-secondary" onClick={props.reload}>
+            Atualizar acervo
+          </button>
+        </div>
+      </header>
+      <div className="repo-toolbar">
+        <label>
+          Período de referência
+          <select
+            value={semester}
+            onChange={(e) => {
+              setSemester(e.target.value);
+              setFocus("");
+            }}
+          >
+            <option value="">Todos os semestres</option>
+            {semesters.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
+        </label>
+        {goalFilter && (
+          <span className="repo-goal-context">
+            Meta:{" "}
+            {String(
+              props.goals.find((g) => g.id === goalFilter)?.title ??
+                "Selecionada",
+            )}{" "}
+            <button
+              className="corp-login-text-button"
+              onClick={() => setGoalFilter("")}
+            >
+              Limpar filtro
+            </button>
+          </span>
+        )}
+      </div>
+      <RepositoryNumbers
+        courses={selectedCourse === null ? courses.length : undefined}
+        requests={scoped}
+        files={ownFiles}
+      />
+      {selectedCourse === null ? (
+        <RepositoryCourseHome
+          courses={courses}
+          requests={scoped}
+          files={ownFiles}
+          onCourse={selectCourse}
+        />
+      ) : (
+        <>
+          <div className="repo-course-heading">
+            <div>
+              <strong>
+                {[selected?.code, selected?.degree, selected?.modality]
+                  .filter(Boolean)
+                  .map(String)
+                  .join(" · ") || "Acervo institucional"}
+              </strong>
+              {selected && (
+                <p>
+                  Coordenação:{" "}
+                  {String(selected.coordinator ?? "Não informada no cadastro")}
+                </p>
+              )}
+            </div>
+            <div className="repo-header-actions">
+              {can.manageGoals(role) && (
+                <button
+                  className="repo-secondary"
+                  onClick={() => setConfiguring((v) => !v)}
+                >
+                  Configurar checklist
+                </button>
+              )}
+              <button
+                className="corp-button"
+                onClick={() => {
+                  setView("documentos");
+                  setFocus("");
+                }}
+              >
+                Enviar / consultar documento
+              </button>
+            </div>
+          </div>
+          {configuring && can.manageGoals(role) && (
+            <RepositoryChecklist
+              institutionId={props.institutionId}
+              course={selected ?? null}
+              goals={props.goals}
+              requests={requests}
+              semester={semester}
+              onClose={() => setConfiguring(false)}
+              onSaved={props.reload}
+            />
+          )}
+          <nav
+            className="repo-subtabs"
+            aria-label="Seções do repositório do curso"
+          >
+            {(
+              [
+                ["cobertura", "Cobertura documental"],
+                ["arquivos", "Arquivos enviados"],
+                ["historico", "Histórico por semestre"],
+                ["documentos", "Documentos exigidos"],
+              ] as [RepositoryView, string][]
+            ).map(([k, label]) => (
+              <button
+                key={k}
+                aria-current={view === k ? "page" : undefined}
+                className={view === k ? "active" : ""}
+                onClick={() => {
+                  setView(k);
+                  setFocus("");
+                }}
+              >
+                {label}
+                {k === "arquivos" ? ` (${ownFiles.length})` : ""}
+              </button>
+            ))}
+          </nav>
+          {downloadError && (
+            <p role="alert" className="area-error">
+              {downloadError}
+            </p>
+          )}
+          {view === "cobertura" ? (
+            <RepositoryCoverage
+              requests={scoped}
+              files={ownFiles}
+              onDocument={(id) => {
+                setFocus(id);
+                setView("documentos");
+              }}
+            />
+          ) : view === "arquivos" ? (
+            <div className="repo-dimension">
+              <div className="repo-dimension-title">
+                <h3>Arquivos enviados</h3>
+                <span>{ownFiles.length} versões registradas</span>
+              </div>
+              {!ownFiles.length ? (
+                <p className="repo-empty">
+                  Nenhum arquivo enviado para este curso no período selecionado.
+                </p>
+              ) : (
+                <div className="table-scroll">
+                  <table className="repo-table">
+                    <thead>
+                      <tr>
+                        <th>Arquivo e documento</th>
+                        <th>Enviado por</th>
+                        <th>Data</th>
+                        <th>Situação</th>
+                        <th />
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {ownFiles
+                        .slice()
+                        .sort((a, b) =>
+                          String(b.created_at).localeCompare(
+                            String(a.created_at),
+                          ),
+                        )
+                        .map((f) => (
+                          <tr key={f.id}>
+                            <td>
+                              <strong>{String(f.file_name)}</strong>
+                              <small>
+                                {String(
+                                  scoped.find((r) => r.id === f.request_id)
+                                    ?.title ?? "Documento",
+                                )}
+                              </small>
+                            </td>
+                            <td>{String(f.uploaded_email ?? "—")}</td>
+                            <td>{fmtDate(f.created_at)}</td>
+                            <td>
+                              {DOCUMENT_STATUS[f.status as DocumentStatus]}
+                            </td>
+                            <td>
+                              <button
+                                className="repo-open"
+                                onClick={() => download(f)}
+                              >
+                                Baixar arquivo
+                              </button>
+                              <button
+                                className="repo-secondary"
+                                onClick={() => {
+                                  setFocus(String(f.request_id));
+                                  setView("documentos");
+                                }}
+                              >
+                                Abrir entrega
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          ) : view === "historico" ? (
+            <div className="repo-dimension">
+              <div className="repo-dimension-title">
+                <h3>Histórico por semestre</h3>
+              </div>
+              <div className="table-scroll">
+                <table className="repo-table">
+                  <thead>
+                    <tr>
+                      <th>Referência</th>
+                      <th>Exigidos</th>
+                      <th>Com envio</th>
+                      <th>Validados</th>
+                      <th>Sem envio</th>
+                      <th />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      ...new Set(
+                        requests
+                          .filter((r) =>
+                            !r.course_id
+                              ? isInstitutional
+                              : r.course_id === selectedCourse,
+                          )
+                          .map(
+                            (r) =>
+                              repositorySemester(r.semester) ||
+                              "Sem período definido",
+                          ),
+                      ),
+                    ]
+                      .sort()
+                      .reverse()
+                      .map((s) => {
+                        const rows = requests.filter(
+                          (r) =>
+                            (!r.course_id
+                              ? isInstitutional
+                              : r.course_id === selectedCourse) &&
+                            (repositorySemester(r.semester) ||
+                              "Sem período definido") === s,
+                        );
+                        const summary = repositorySummary(rows, files);
+                        return (
+                          <tr key={s}>
+                            <td>{s}</td>
+                            <td>{summary.total}</td>
+                            <td>{summary.sent}</td>
+                            <td>{summary.validated}</td>
+                            <td>{summary.pending}</td>
+                            <td>
+                              <button
+                                className="repo-open"
+                                onClick={() => {
+                                  setSemester(
+                                    s === "Sem período definido" ? "" : s,
+                                  );
+                                  setView("cobertura");
+                                }}
+                              >
+                                Abrir período
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                  </tbody>
+                </table>
+              </div>
+              {!requests.some((r) =>
+                !r.course_id ? isInstitutional : r.course_id === selectedCourse,
+              ) && (
+                <p className="repo-empty">
+                  O histórico aparece após a configuração das primeiras
+                  exigências.
+                </p>
+              )}
+            </div>
+          ) : (
+            <>
+              {focus && (
+                <div className="repo-toolbar">
+                  <button
+                    className="repo-secondary"
+                    onClick={() => setFocus("")}
+                  >
+                    ← Todos os documentos do curso
+                  </button>
+                </div>
+              )}
+              <RepositoryDocuments
+                key={`${selectedCourse}:${focus}`}
+                {...props}
+                courses={selected ? [selected] : []}
+                goals={props.goals.filter(
+                  (g) => !g.course_id || g.course_id === selected?.id,
+                )}
+                requests={scoped}
+                files={ownFiles}
+                initialCourseId={selected?.id ?? ""}
+                requestFocus={focus}
+              />
+            </>
+          )}
+        </>
+      )}
+    </section>
   );
 }

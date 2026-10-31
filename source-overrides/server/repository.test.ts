@@ -76,3 +76,60 @@ describe("repositório ligado às metas", () => {
     );
   });
 });
+
+// A apresentação deve respeitar o período e separar acervo não configurado de pendência.
+import {
+  requestsInSemester,
+  repositoryDimension,
+  courseRepositoryStatus,
+  catalogForProfile,
+} from "../client/src/lib/repository";
+describe("navegação e cobertura do repositório", () => {
+  it("normaliza o período e mantém documentos sem semestre no acervo", () => {
+    expect(
+      requestsInSemester(
+        [
+          { id: "a", semester: "2026/2" },
+          { id: "b", semester: "2026-1" },
+          { id: "c", semester: null },
+        ],
+        "2026-2",
+      ).map((r) => r.id),
+    ).toEqual(["a", "c"]);
+  });
+  it("organiza as dimensões sem inventar referência para documento personalizado", () => {
+    expect(repositoryDimension("1.2, 2.3")).toBe("1");
+    expect(repositoryDimension("3.15")).toBe("3");
+    expect(repositoryDimension("")).toBe("outros");
+  });
+  it("um curso sem checklist não aparece como validado nem como pendente", () => {
+    expect(courseRepositoryStatus([], [])).toMatchObject({
+      label: "Sem checklist",
+      total: 0,
+      pending: 0,
+      percent: 0,
+    });
+  });
+  it("o catálogo respeita perfil, grau e oferta a distância do curso", () => {
+    const catalog = [
+      { aplicabilidade: ["todos"] },
+      { aplicabilidade: ["juridica"] },
+      { aplicabilidade: ["licenciatura"] },
+      { aplicabilidade: ["ead"] },
+    ];
+    expect(
+      catalogForProfile(
+        catalog,
+        { id: "a", degree: "bacharelado", modality: "presencial" },
+        "juridica",
+      ),
+    ).toHaveLength(2);
+    expect(
+      catalogForProfile(
+        catalog,
+        { id: "b", degree: "licenciatura", modality: "semipresencial" },
+        "geral",
+      ),
+    ).toHaveLength(3);
+  });
+});

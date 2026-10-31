@@ -75,3 +75,68 @@ export function documentFile(file: { name: string; size: number }) {
     throw new Error("O arquivo deve ter conteúdo e no máximo 20 MB.");
   return { ext, mime: FILE_TYPES[ext] };
 }
+
+export const REPOSITORY_DIMENSIONS: Record<string, string> = {
+  "1": "Organização didático-pedagógica",
+  "2": "Corpo docente e tutorial",
+  "3": "Infraestrutura",
+  outros: "Documentos complementares",
+};
+export function repositorySemester(value: unknown) {
+  return String(value ?? "").replace("/", "-");
+}
+export function requestsInSemester(requests: Row[], semester: string) {
+  return requests.filter(
+    (r) =>
+      !semester ||
+      !r.semester ||
+      repositorySemester(r.semester) === repositorySemester(semester),
+  );
+}
+export function repositoryDimension(indicator: unknown) {
+  const match = String(indicator ?? "").match(/(?:^|[,;\s])([123])\.[0-9]+/);
+  return match?.[1] ?? "outros";
+}
+export function courseRepositoryStatus(
+  requests: Row[],
+  files: Row[],
+  date?: string,
+) {
+  const s = repositorySummary(requests, files, date);
+  return {
+    ...s,
+    label: !s.total
+      ? "Sem checklist"
+      : s.returned
+        ? "Correções solicitadas"
+        : s.late
+          ? "Entregas em atraso"
+          : s.validated === s.total
+            ? "Documentação validada"
+            : s.pending
+              ? "Documentos pendentes"
+              : "Aguardando análise",
+  };
+}
+export function catalogForProfile<T extends { aplicabilidade: unknown }>(
+  items: T[],
+  course: Row,
+  area: string,
+) {
+  const degree = String(course.degree ?? "");
+  const modality = String(course.modality ?? "").toLowerCase();
+  return items.filter((t) => {
+    const p = Array.isArray(t.aplicabilidade)
+      ? (t.aplicabilidade as string[])
+      : [];
+    return (
+      p.includes("todos") ||
+      (p.includes("licenciatura") && degree === "licenciatura") ||
+      (p.includes("tecnologia") &&
+        ["tecnologia", "tecnologo"].includes(degree)) ||
+      (p.includes("ead") && ["ead", "semipresencial"].includes(modality)) ||
+      (p.includes("saude") && area === "saude") ||
+      (p.includes("juridica") && area === "juridica")
+    );
+  });
+}

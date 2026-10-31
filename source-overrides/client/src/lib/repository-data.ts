@@ -19,3 +19,21 @@ export async function listRepository(
   }
   return all;
 }
+
+export async function listAllRepository(
+  table: "vertice_repository_requests" | "vertice_repository_files",
+) {
+  const all: Row[] = [];
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await supabase
+      .from(table)
+      .select("*")
+      .order("created_at")
+      .order("id")
+      .range(from, from + 999);
+    if (error) throw error;
+    all.push(...((data ?? []) as Row[]));
+    if (!data || data.length < 1000) break;
+  }
+  return all;
+}

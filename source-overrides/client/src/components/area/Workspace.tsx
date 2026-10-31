@@ -126,7 +126,7 @@ export default function Workspace({
         ))}
       </div>
       {error && <p role="alert" className="area-error">{error}</p>}
-      {TAB_HELP[tab] && <TabHelp id={tab} />}
+      {TAB_HELP[tab] && tab!=="repositorio" && <TabHelp id={tab} />}
       {tab === "visao" ? (
         overview
       ) : loading ? (
