@@ -142,13 +142,15 @@ export function clean(values: Record<string, unknown>, fields: Field[]) {
 }
 
 export async function listByInstitution(table: string, institutionId: string, order = "created_at") {
-  const { data, error } = await supabase
-    .from(table)
-    .select("*")
-    .eq("institution_id", institutionId)
-    .order(order, { ascending: true });
-  if (error) throw error;
-  return (data ?? []) as Row[];
+  const all: Row[] = [];
+  for (let from = 0; ; from += 1000) {
+    let query = supabase.from(table).select("*").eq("institution_id", institutionId).order(order, { ascending: true });
+    if (order !== "id") query = query.order("id", { ascending: true });
+    const { data, error } = await query.range(from, from + 999);
+    if (error) throw error;
+    all.push(...((data ?? []) as Row[]));
+    if (!data || data.length < 1000) return all;
+  }
 }
 
 export async function saveRow(table: string, values: Record<string, unknown>, id?: string) {

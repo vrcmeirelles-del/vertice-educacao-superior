@@ -469,6 +469,9 @@ function GoalsTab({ institutionId, role, data, reload, onRepository }: { institu
   const [measuring, setMeasuring] = useState<Row | null>(null);
   const [open, setOpen] = useState<string | null>(null);
   const [course, setCourse] = useState("");
+  const [courseSearch,setCourseSearch]=useState("");
+  const [coursePage,setCoursePage]=useState(0);
+  useEffect(()=>setCoursePage(0),[courseSearch]);
   const byGoal = useMemo(() => {
     const m = new Map<string, Row[]>();
     for (const r of data.measurements) {
@@ -480,6 +483,10 @@ function GoalsTab({ institutionId, role, data, reload, onRepository }: { institu
   }, [data.measurements]);
   const goals = data.goals.filter(g => !course || g.course_id === course);
   const courseName = (cid: unknown) => data.courses.find(c => c.id === cid)?.name as string | undefined;
+  const courseRows=data.courses.filter(c=>`${c.name} ${c.code??""} ${c.modality??""}`.toLowerCase().includes(courseSearch.toLowerCase()));
+  const pageCount=Math.max(1,Math.ceil(courseRows.length/20));
+  const currentPage=Math.min(coursePage,pageCount-1);
+
   return (
     <div className="area-panel">
       <div className="area-panel-head">
@@ -520,7 +527,17 @@ function GoalsTab({ institutionId, role, data, reload, onRepository }: { institu
           }}
         />
       )}
-      {!goals.length ? (
+      {!course && data.goals.length>0 ? <>
+        <p className="area-muted">Plano por curso. Abra um curso para conferir metas, indicadores e entregas. “Planejada” indica proposta ainda sujeita à pactuação com a gestão; não significa atividade iniciada ou resultado alcançado.</p>
+        <label className="area-search">Buscar curso<input value={courseSearch} onChange={e=>setCourseSearch(e.target.value)} placeholder="Nome, código ou modalidade"/></label>
+        <div className="table-scroll"><table className="area-table"><thead><tr><th>Curso</th><th>Metas</th><th>Planejadas</th><th>Em acompanhamento</th><th>Responsável a designar</th><th/></tr></thead><tbody>
+          {courseRows.slice(currentPage*20,currentPage*20+20).map(c=>{
+            const rows=data.goals.filter(g=>g.course_id===c.id);
+            return <tr key={c.id}><td><strong>{String(c.name)}</strong><small>{String(c.code??"—")} · {label(MODALITY,c.modality)}</small></td><td>{rows.length}</td><td>{rows.filter(g=>g.status==="planejada").length}</td><td>{rows.filter(g=>g.status==="ativa").length}</td><td>{rows.filter(g=>!g.owner_user_id).length}</td><td><button className="corp-login-text-button" onClick={()=>setCourse(c.id)}>Ver metas</button></td></tr>;
+          })}
+        </tbody></table></div>
+        {pageCount>1&&<div className="area-inline"><button className="corp-login-text-button" disabled={!currentPage} onClick={()=>setCoursePage(currentPage-1)}>Anterior</button><span>Página {currentPage+1} de {pageCount} · {courseRows.length} cursos</span><button className="corp-login-text-button" disabled={currentPage>=pageCount-1} onClick={()=>setCoursePage(currentPage+1)}>Próxima</button></div>}
+      </> : !goals.length ? (
         <p className="area-muted">Nenhuma meta cadastrada{course ? " para este curso" : ""}.{can.manageGoals(role) ? " Comece pela que mais pesa na decisão da gestão." : ""}</p>
       ) : (
         <div className="area-cards">
@@ -541,6 +558,7 @@ function GoalsTab({ institutionId, role, data, reload, onRepository }: { institu
                 <h4>{String(g.title)}</h4>
                 <p className="area-muted">Documentos: {docs.sent}/{docs.total} com envio · {docs.validated} validados · {docs.pending} pendentes · {docs.late} em atraso · {docs.nsa} NSA</p>
                 <p className="area-muted">{String(g.indicator)}{g.owner_name||g.owner_email ? ` · ${String(g.owner_name||g.owner_email)}` : ""}</p>
+                {(Boolean(g.formula)||Boolean(g.source)||Boolean(g.notes))&&<details className="area-goal-details"><summary>Plano e critérios da meta</summary>{Boolean(g.formula)&&<p><strong>Cálculo:</strong> {String(g.formula)}</p>}{Boolean(g.source)&&<p><strong>Fonte:</strong> {String(g.source)}</p>}{Boolean(g.notes)&&<p style={{whiteSpace:"pre-wrap"}}>{String(g.notes)}</p>}</details>}
                 <div className="area-goal-numbers">
                   <div><small>Linha de base</small><b>{fmtNum(g.baseline, g.unit)}</b></div>
                   <div><small>Última medição</small><b>{fmtNum(last, g.unit)}</b></div>
