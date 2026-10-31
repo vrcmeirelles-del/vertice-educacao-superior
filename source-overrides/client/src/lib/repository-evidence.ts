@@ -4,7 +4,7 @@ import {
 } from "./repository-codes";
 import type { Row } from "./area";
 import {
-  latestDocuments,
+  latestInstrumentDocuments,
   isInstrumentFile,
   isInstrumentRequest,
   repositorySemester,
@@ -34,7 +34,7 @@ export function evidenceSeries(
   periods: string[],
   course?: Row | null,
 ) {
-  const latest = latestDocuments(files.filter(isInstrumentFile));
+  const latest = latestInstrumentDocuments(files);
   const groups = new Map<string, Row[]>();
   for (const r of requests.filter((r) => r.active !== false && isInstrumentRequest(r))) {
     const key = String(
@@ -77,7 +77,7 @@ export function coverageCsv(
   files: Row[],
   course?: Row | null,
 ) {
-  const latest = latestDocuments(files.filter(isInstrumentFile));
+  const latest = latestInstrumentDocuments(files);
   const safe = (value: unknown) => {
     const text = String(value ?? "");
     return `"${(/^[\s]*[=+@-]|^[\t\r]/.test(text) ? "'" + text : text).replace(/"/g, '""')}"`;

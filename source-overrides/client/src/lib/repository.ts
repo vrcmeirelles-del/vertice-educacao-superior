@@ -42,7 +42,7 @@ export function repositorySummary(
     timeZone: "America/Sao_Paulo",
   }),
 ) {
-  const latest = latestDocuments(files.filter(isInstrumentFile));
+  const latest = latestInstrumentDocuments(files);
   let total = 0,
     sent = 0,
     validated = 0,
@@ -185,4 +185,9 @@ export function instrumentIndicators(value: unknown): string[] {
     const [d, n] = code.split(".").map(Number);
     return n >= 1 && n <= ({1: 24, 2: 16, 3: 18}[d] ?? 0);
   });
+}
+
+/** Classification is checked after version selection; old evidence never revives. */
+export function latestInstrumentDocuments(files: Row[]) {
+  return new Map([...latestDocuments(files)].filter(([, file]) => isInstrumentFile(file)));
 }

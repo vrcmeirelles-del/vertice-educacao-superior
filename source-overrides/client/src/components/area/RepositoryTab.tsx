@@ -25,7 +25,7 @@ import {
   catalogForProfile,
   documentFile,
   FILE_TYPES,
-  latestDocuments,
+  latestInstrumentDocuments,
   repositoryDimension,
   REPOSITORY_DIMENSIONS,
   repositorySemester,
@@ -220,9 +220,8 @@ export default function RepositoryTab(props: RepositoryProps) {
   );
   const semesterRequests = requestsInSemester(courseRequests, semester).filter(r => r.active !== false);
   const scoped = semesterRequests.filter(isInstrumentRequest);
-  const evidenceFiles = files.filter(isInstrumentFile);
   const applicable = scoped.filter((r) => r.not_applicable !== true);
-  const latest = latestDocuments(evidenceFiles);
+  const latest = latestInstrumentDocuments(files);
   const summary = repositorySummary(scoped, files);
   const seriesSummary = repositorySummary(courseRequests, files);
   const presence = summary.total
@@ -816,7 +815,7 @@ export default function RepositoryTab(props: RepositoryProps) {
                       <tbody>
                         {evidenceSeries(
                           courseRequests.filter(isInstrumentRequest),
-                          evidenceFiles,
+                          files,
                           periods,
                           course,
                         ).map((row) => (

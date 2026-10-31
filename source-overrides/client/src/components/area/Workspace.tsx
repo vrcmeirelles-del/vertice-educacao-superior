@@ -7,14 +7,16 @@ import {
 } from "@/lib/area";
 import RecordForm from "./RecordForm";
 import RepositoryTab from "./RepositoryTab";
+import ManagementReview from "./ManagementReview";
 import {repositorySummary} from "@/lib/repository";
 import {listRepository} from "@/lib/repository-data";
 import { FIELD_HELP, TAB_FAQ, TAB_HELP, withHelp } from "@/lib/help";
 import "./area.css";
 
-type Tab = "geral" | "visao" | "cadastro" | "metas" | "plano" | "diagnostico" | "equipe" | "repositorio";
+type Tab = "analise" | "geral" | "visao" | "cadastro" | "metas" | "plano" | "diagnostico" | "equipe" | "repositorio";
 const TABS: [Tab, string][] = [
   ["geral", "Visão geral"],
+  ["analise", "Análise gerencial"],
   ["visao", "Matrículas"],
   ["cadastro", "Cadastro e cursos"],
   ["metas", "Metas e indicadores"],
@@ -131,6 +133,8 @@ export default function Workspace({
         overview
       ) : loading ? (
         <p role="status">Carregando…</p>
+      ) : tab === "analise" ? (
+        error ? <p role="alert">Análise indisponível enquanto houver falha no carregamento. Atualize a página.</p> : <ManagementReview key={id} data={data} courses={data.courses} institutionId={id} />
       ) : tab === "geral" ? (
         <OverviewTab data={data} stats={stats} onGo={choose} />
       ) : tab === "cadastro" ? (
