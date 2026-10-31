@@ -133,3 +133,78 @@ describe("navegação e cobertura do repositório", () => {
     ).toHaveLength(3);
   });
 });
+
+import {
+  coverageCsv,
+  evidenceSemesters,
+  evidenceSeries,
+} from "../client/src/lib/repository-evidence";
+describe("experiência do repositório original integrada", () => {
+  it("monta três semestres atravessando a virada do ano", () => {
+    expect(evidenceSemesters("2026-1")).toEqual(["2025-1", "2025-2", "2026-1"]);
+    expect(evidenceSemesters("2026")).toEqual([]);
+  });
+  it("distingue semestre não configurado de pendência e usa a última versão", () => {
+    const requests = [
+      { id: "a", document_code: "ATA", title: "Atas", semester: "2026/1" },
+      { id: "b", document_code: "ATA", title: "Atas", semester: "2026-2" },
+      {
+        id: "c",
+        document_code: "ATA",
+        title: "Atas",
+        semester: "2025-2",
+        active: false,
+      },
+    ];
+    const files = [
+      {
+        id: "1",
+        request_id: "a",
+        status: "validado",
+        created_at: "2026-01-01",
+      },
+      {
+        id: "2",
+        request_id: "a",
+        status: "devolvido",
+        created_at: "2026-01-02",
+      },
+    ];
+    const row = evidenceSeries(requests, files, [
+      "2025-2",
+      "2026-1",
+      "2026-2",
+    ])[0];
+    expect(row.cells.map((c) => c.status)).toEqual([
+      "nao_configurado",
+      "devolvido",
+      "pendente",
+    ]);
+  });
+  it("não projeta documento sem semestre como três entregas históricas", () => {
+    const rows = evidenceSeries(
+      [{ id: "a", title: "Regulamento", semester: null }],
+      [{ id: "f", request_id: "a", status: "validado" }],
+      ["2026-1", "2026-2"],
+    );
+    expect(rows[0].cells.every((c) => c.status === "nao_configurado")).toBe(
+      true,
+    );
+  });
+  it("exporta CSV com escape de aspas e de fórmulas de planilha", () => {
+    const csv = coverageCsv(
+      [
+        {
+          id: "a",
+          title: '=HYPERLINK("teste")',
+          document_code: "ATA",
+          semester: "2026-2",
+        },
+      ],
+      [],
+    );
+    expect(csv).toContain('"\'=HYPERLINK(""teste"")"');
+    expect(csv).toContain('"pendente"');
+    expect(csv.startsWith("\uFEFF")).toBe(true);
+  });
+});
