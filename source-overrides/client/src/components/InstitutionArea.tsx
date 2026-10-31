@@ -1,3 +1,4 @@
+import "./academic-data.css";
 import CourseIndicators, {type CourseIndicatorPayload} from "./CourseIndicators";
 import {useMemo, useState} from 'react';
 import AcademicReports, {type AcademicReport} from '@/components/AcademicReports';
@@ -58,7 +59,7 @@ export function InstitutionView({institution,courses,enrollments,onOpenCourse,on
  const modTotal=(m:Modality,s:string)=>own.filter(c=>modalityOf(c)===m).reduce((t,c)=>t+value(c.id,s),0);
  const total=mods.reduce((t,m)=>t+modTotal(m,sem),0);
  const active=own.filter(c=>value(c.id,sem)>0).length;
- return <section aria-labelledby={embedded?undefined:"inst-title"}>
+ return <section className="academic-data" aria-labelledby={embedded?undefined:"inst-title"}>
   {!embedded&&<><p><button className="corp-login-text-button" onClick={onBack}>← Todas as instituições</button></p>
   <h2 id="inst-title">{institution.name}</h2></>}
   {!semesters.length?<p>Nenhum quantitativo importado para esta instituição.</p>:<>
@@ -68,15 +69,15 @@ export function InstitutionView({institution,courses,enrollments,onOpenCourse,on
    <div className="stat-card">Cursos com matriculados<strong className="stat-value">{active} de {own.length}</strong></div>
    {mods.map(m=><div key={m} className="stat-card">{LABEL[m]}<strong className="stat-value">{fmt(modTotal(m,sem))}</strong></div>)}
   </div>
-  <h3>Série histórica por modalidade (matriculados)</h3>
-  <div className="table-scroll"><table><thead><tr><th>Modalidade</th>{semesters.slice().reverse().map(s=><th key={s}>{s}</th>)}</tr></thead>
-  <tbody>{mods.map(m=><tr key={m}><td>{LABEL[m]}</td>{semesters.slice().reverse().map(s=><td key={s}>{fmt(modTotal(m,s))}</td>)}</tr>)}</tbody></table></div>
+  <h3>Série histórica por modalidade (matriculados)</h3><p className="table-hint">Compare os semestres por modalidade. Role a tabela para ver todos os períodos.</p>
+  <div className="table-scroll" tabIndex={0} role="region" aria-label="Tabela de dados acadêmicos; role horizontalmente para ver todas as colunas"><table><thead><tr><th scope="col">Modalidade</th>{semesters.slice().reverse().map(s=><th scope="col" key={s} className={s===sem?"current-semester":undefined}>{s}</th>)}</tr></thead>
+  <tbody>{mods.map(m=><tr key={m}><td>{LABEL[m]}</td>{semesters.slice().reverse().map(s=><td key={s} className={s===sem?"current-semester":undefined}>{fmt(modTotal(m,s))}</td>)}</tr>)}</tbody></table></div>
   <h3>Cursos</h3>
-  <div role="tablist" aria-label="Modalidade" style={{display:'flex',gap:'.5rem',flexWrap:'wrap',margin:'.5rem 0'}}>
-   {(['todas',...mods] as const).map(t=><button key={t} role="tab" aria-selected={tab===t} className={tab===t?'corp-button':'corp-login-text-button'} onClick={()=>setTab(t)}>{t==='todas'?'Todas':LABEL[t]} ({t==='todas'?own.length:own.filter(c=>modalityOf(c)===t).length})</button>)}
+  <div className="modality-filters" role="group" aria-label="Filtrar cursos por modalidade">
+   {(['todas',...mods] as const).map(t=><button key={t} aria-pressed={tab===t} className={tab===t?'corp-button':'corp-login-text-button'} onClick={()=>setTab(t)}>{t==='todas'?'Todas':LABEL[t]} ({t==='todas'?own.length:own.filter(c=>modalityOf(c)===t).length})</button>)}
   </div>
   <label>Buscar curso <input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Nome ou código"/></label>
-  <div className="table-scroll"><table><thead><tr><th>Código</th><th>Curso</th><th>Modalidade</th><th>Matriculados {sem}</th><th>{prev?`Em ${prev}`:'Semestre anterior'}</th><th>Variação</th><th>Turmas com alunos</th><th></th></tr></thead>
+  <div className="table-scroll" tabIndex={0} role="region" aria-label="Tabela de dados acadêmicos; role horizontalmente para ver todas as colunas"><table className="course-list"><thead><tr><th scope="col">Código</th><th scope="col">Curso</th><th scope="col">Modalidade</th><th scope="col">Matriculados {sem}</th><th scope="col">{prev?`Em ${prev}`:'Semestre anterior'}</th><th scope="col">Variação</th><th scope="col">Turmas com alunos</th><th scope="col"></th></tr></thead>
   <tbody>{list.map(({c,now,before,turmas,hasCurrent,hasPrevious})=><tr key={c.id}><td>{c.code??'—'}</td><td>{c.name}</td><td>{LABEL[modalityOf(c)]}</td><td>{hasCurrent?fmt(now):"Não informado"}</td><td>{prev&&hasPrevious?fmt(before):'—'}</td><td>{prev&&hasCurrent&&hasPrevious&&before?`${now>=before?'+':''}${Math.round((now-before)/before*100)}%`:'—'}</td><td>{hasCurrent?turmas:"—"}</td><td>{<button className="corp-login-text-button" onClick={()=>onOpenCourse(c.id)}>Abrir</button>}</td></tr>)}</tbody></table></div>
   <p>Fonte: relatório estatístico de alunos do e-ORBIT, status MATRICULADO. Modalidade pelo cadastro do curso no e-ORBIT, não pelo ato regulatório no e-MEC. Quantitativos não comprovam alunos únicos, retenção ou evasão. “Não informado” indica ausência de relatório localizado para o curso e semestre; não foi substituído por zero.</p>
   </>}
@@ -95,7 +96,7 @@ export function CourseView({course,institution,enrollments,reports,onBack}:{cour
  const displayRows=selected.filter(r=>r.class_label!=="__TOTAL_CURSO__");
  const series=own.find(r=>(r.kind as string)==='status_series');
  const statusRows=((series?.payload.series??[]) as StatusSeries[]).slice().sort((a,b)=>a.semester.localeCompare(b.semester));
- return <section aria-labelledby="course-title">
+ return <section className="academic-data" aria-labelledby="course-title">
   <p><button className="corp-login-text-button" onClick={onBack}>← {institution.name}</button></p>
   <h2 id="course-title">{course.name}{course.code?` · código ${course.code}`:''}</h2>
   <p>Modalidade: {LABEL[modalityOf(course)]}</p>
@@ -105,13 +106,13 @@ export function CourseView({course,institution,enrollments,reports,onBack}:{cour
   {selected[0]&&<p>Fonte: relatório estatístico do e-ORBIT, status MATRICULADO. Consulta em {new Date(selected[0].source_report_at).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'})}.</p>}
   <div className="stats-row"><div className="stat-card">Total informado no relatório<strong className="stat-value">{reportedTotal??'Não informado'}</strong></div><div className="stat-card">Soma das turmas<strong className="stat-value">{rowTotal}</strong></div><div className="stat-card">Turmas / linhas na origem<strong className="stat-value">{displayRows.length}</strong></div></div>
   {reportedTotal!==null&&reportedTotal!==rowTotal&&<p role="alert">Conferência pendente: o total informado ({reportedTotal}) difere da soma das turmas ({rowTotal}). Os valores da origem foram preservados.</p>}
-  <div className="table-scroll"><table><thead><tr><th>Série / turma na origem</th><th>Matrículas</th><th>Vagas</th><th>Disponíveis</th></tr></thead><tbody>{displayRows.slice().sort((a,b)=>a.class_label.localeCompare(b.class_label,'pt-BR',{numeric:true})).map(r=><tr key={r.id}><td>{r.class_label}</td><td>{r.enrolled}</td><td>{r.capacity??"Não informado"}</td><td>{r.available??"Não informado"}</td></tr>)}</tbody></table></div>
+  <div className="table-scroll" tabIndex={0} role="region" aria-label="Tabela de dados acadêmicos; role horizontalmente para ver todas as colunas"><table><thead><tr><th scope="col">Série / turma na origem</th><th scope="col">Matrículas</th><th scope="col">Vagas</th><th scope="col">Disponíveis</th></tr></thead><tbody>{displayRows.slice().sort((a,b)=>a.class_label.localeCompare(b.class_label,'pt-BR',{numeric:true})).map(r=><tr key={r.id}><td>{r.class_label}</td><td>{r.enrolled}</td><td>{r.capacity??"Não informado"}</td><td>{r.available??"Não informado"}</td></tr>)}</tbody></table></div>
   {course.code==='027'&&sem==='2026/02'&&<p>Conferir na secretaria: DIR-5A2026/02 aparece como 6ª série no relatório.</p>}
   <p>Quantitativos por turma não comprovam alunos únicos, retenção, captação efetiva ou participação na AV1. Esses indicadores dependem do cruzamento individual.</p>
   </>}
   {metrics&&<CourseIndicators payload={metrics.payload as CourseIndicatorPayload} semester={sem}/> }
-  {statusRows.length>0&&<><h3>Situação dos registros por semestre</h3><p>{series?.source_label}</p>
-  <div className="table-scroll"><table><thead><tr><th>Semestre</th><th>Vagas</th>{STATUS.map(([k,l])=><th key={k}>{l}</th>)}<th>Total de registros</th></tr></thead>
+  {statusRows.length>0&&<><h3>Situação dos registros por semestre</h3><p className="table-hint">Role a tabela para consultar todos os status. Para comparar anos, use o total de registros.</p><p>{series?.source_label}</p>
+  <div className="table-scroll" tabIndex={0} role="region" aria-label="Tabela de dados acadêmicos; role horizontalmente para ver todas as colunas"><table className="status-series"><thead><tr><th scope="col">Semestre</th><th scope="col">Vagas</th>{STATUS.map(([k,l])=><th scope="col" key={k}>{l}</th>)}<th scope="col">Total de registros</th></tr></thead>
   <tbody>{statusRows.map(s=><tr key={s.semester}><td>{s.semester}</td><td>{s.capacity??'—'}</td>{STATUS.map(([k])=><td key={k}>{s.counts[k]??0}</td>)}<td>{STATUS.reduce((t,[k])=>t+(s.counts[k]??0),0)}</td></tr>)}</tbody></table></div>
   <p>O status é o registrado hoje para a matrícula daquele semestre. Semestres antigos tendem a aparecer como concluídos ou trancados porque o registro foi fechado depois; para comparar anos, use o total de registros.</p></>}
   {own.some(r=>['cohorts','enrollment_continuity'].includes(r.kind))&&<AcademicReports reports={own.filter(r=>['cohorts','enrollment_continuity'].includes(r.kind))}/>}
