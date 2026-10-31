@@ -57,6 +57,9 @@ function RepositoryDocuments({
   initialCourseId = "",
   requestFocus = "",
 }: Props) {
+  const [uploadTarget, setUploadTarget] = useState("");
+  const [uploadTitle, setUploadTitle] = useState("");
+  const [quickError, setQuickError] = useState("");
   const [userId, setUserId] = useState(""),
     [members, setMembers] = useState<Member[]>([]),
     [editing, setEditing] = useState<Row | "new" | null>(null);
@@ -266,6 +269,43 @@ function RepositoryDocuments({
         Organize as evidências desta IES por curso, meta, responsável e prazo. O
         envio fica separado da validação pela gestão.
       </p>
+      <section className="repo-checklist" aria-label="Upload de arquivos">
+        <h3>Enviar arquivo ao repositório</h3>
+        <p>Escolha o documento e selecione o arquivo no seu computador. PDF, imagens e documentos Office, até 20 MB.</p>
+        <div className="repo-form-grid">
+          <label>Vincular o arquivo a
+            <select value={uploadTarget} onChange={e => setUploadTarget(e.target.value)}>
+              <option value="">{manager ? "Novo documento neste curso" : "Selecione uma entrega atribuída a você"}</option>
+              {requests.filter(r => r.active !== false && (manager || r.assigned_to === userId)).map(r => <option key={r.id} value={r.id}>{String(r.title)}</option>)}
+            </select>
+          </label>
+          {manager && !uploadTarget && <label>Nome do documento (opcional)<input value={uploadTitle} onChange={e => setUploadTitle(e.target.value)} placeholder="Ex.: Ata do NDE — 2026/2" /></label>}
+        </div>
+        {(manager || uploadTarget) && <label className="repo-upload-button">
+          {busy ? "Enviando arquivo…" : "Selecionar arquivo e enviar"}
+          <input type="file" aria-label="Selecionar arquivo e enviar ao repositório" accept={Object.keys(FILE_TYPES).map(x => "." + x).join(",")} disabled={Boolean(busy) || Boolean(pending)} onChange={async e => {
+            const file = e.target.files?.[0]; e.target.value = ""; if (!file) return;
+            setQuickError("");
+            try {
+              documentFile(file);
+              let target = requests.find(r => r.id === uploadTarget);
+              if (!target) {
+                if (!manager) throw new Error("Selecione uma entrega atribuída a você.");
+                setBusy("novo-documento");
+                const { data, error } = await supabase.from(REQUESTS).insert({institution_id: institutionId, course_id: initialCourseId || null, goal_id: goalFilter || null, title: uploadTitle.trim() || file.name, active: true}).select().single();
+                if (error) throw error;
+                target = data as Row;
+                setUploadTarget(target.id);
+                await reload();
+              }
+              await upload(target, file);
+            } catch (error) { setQuickError(error instanceof Error ? error.message : explain(error)); }
+            finally { setBusy(""); }
+          }} />
+        </label>}
+        {!manager && !uploadTarget && <p>Selecione uma entrega acima. Se nenhuma aparecer, a gestão precisa atribuir o documento à sua conta.</p>}
+        {quickError && <p role="alert" className="area-error">{quickError}</p>}
+      </section>
       <div className="area-stat-grid">
         <article>
           <small>Exigências ativas</small>
@@ -895,7 +935,7 @@ export default function RepositoryTab(props: Props) {
                   setFocus("");
                 }}
               >
-                Enviar / consultar documento
+                Enviar arquivos
               </button>
             </div>
           </div>
