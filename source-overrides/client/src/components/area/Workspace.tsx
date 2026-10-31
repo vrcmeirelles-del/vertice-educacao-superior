@@ -6,22 +6,26 @@ import {
   type Field, type Role, type Row,
 } from "@/lib/area";
 import RecordForm from "./RecordForm";
+import RepositoryTab from "./RepositoryTab";
+import {repositorySummary} from "@/lib/repository";
+import {listRepository} from "@/lib/repository-data";
 import { FIELD_HELP, TAB_FAQ, TAB_HELP, withHelp } from "@/lib/help";
 import "./area.css";
 
-type Tab = "geral" | "visao" | "cadastro" | "metas" | "plano" | "diagnostico" | "equipe";
+type Tab = "geral" | "visao" | "cadastro" | "metas" | "plano" | "diagnostico" | "equipe" | "repositorio";
 const TABS: [Tab, string][] = [
   ["geral", "Visão geral"],
   ["visao", "Matrículas"],
   ["cadastro", "Cadastro e cursos"],
   ["metas", "Metas e indicadores"],
+  ["repositorio", "Repositório"],
   ["plano", "Plano de ação 5W2H"],
   ["diagnostico", "Diagnóstico"],
   ["equipe", "Equipe"],
 ];
 
-type Data = { courses: Row[]; goals: Row[]; measurements: Row[]; actions: Row[]; diagnosis: Row[] };
-const EMPTY: Data = { courses: [], goals: [], measurements: [], actions: [], diagnosis: [] };
+type Data = { courses: Row[]; goals: Row[]; measurements: Row[]; actions: Row[]; diagnosis: Row[]; requests:Row[]; files:Row[] };
+const EMPTY: Data = { courses: [], goals: [], measurements: [], actions: [], diagnosis: [], requests:[], files:[] };
 
 export default function Workspace({
   institution,
@@ -44,20 +48,23 @@ export default function Workspace({
     return t && TABS.some(([k]) => k === t) ? t : "geral";
   });
   const [data, setData] = useState<Data>(EMPTY);
+  const [repositoryGoal,setRepositoryGoal]=useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   const reload = useCallback(async () => {
     setError("");
     try {
-      const [courses, goals, measurements, actions, diagnosis] = await Promise.all([
+      const [courses, goals, measurements, actions, diagnosis, requests, files] = await Promise.all([
         listByInstitution(TABLES.courses, id, "name"),
         listByInstitution(TABLES.goals, id),
         listByInstitution(TABLES.measurements, id, "measured_on"),
         listByInstitution(TABLES.actions, id, "due_date"),
         listByInstitution(TABLES.diagnosis, id),
+        listRepository("vertice_repository_requests",id),
+        listRepository("vertice_repository_files",id),
       ]);
-      setData({ courses, goals, measurements, actions, diagnosis });
+      setData({ courses, goals, measurements, actions, diagnosis, requests, files });
     } catch {
       setError("Não foi possível carregar os dados de gestão. Atualize a página.");
     } finally {
@@ -66,6 +73,9 @@ export default function Workspace({
   }, [id]);
   useEffect(() => {
     reload();
+    const timer=window.setInterval(()=>void reload(),30000);
+    const focus=()=>void reload();window.addEventListener("focus",focus);
+    return()=>{window.clearInterval(timer);window.removeEventListener("focus",focus);};
   }, [reload]);
 
   const choose = (t: Tab) => {
@@ -75,6 +85,7 @@ export default function Workspace({
     window.history.replaceState(null, "", `#${p.toString()}`);
   };
 
+  const documents=repositorySummary(data.requests,data.files);
   const late = data.actions.filter(a => isLate(a.due_date, a.status)).length;
   const openFindings = data.diagnosis.filter(d => d.status !== "resolvido").length;
   const activeGoals = data.goals.filter(g => g.status === "ativa" || g.status === "planejada").length;
@@ -102,6 +113,7 @@ export default function Workspace({
         <div className="area-kpis">
           <span><b>{data.courses.length}</b> cursos</span>
           <span><b>{activeGoals}</b> metas em curso</span>
+          <span><b>{documents.validated}/{documents.total}</b> documentos validados</span>
           <span className={late ? "warn" : ""}><b>{late}</b> ações atrasadas</span>
           <span><b>{openFindings}</b> achados abertos</span>
         </div>
@@ -124,7 +136,9 @@ export default function Workspace({
       ) : tab === "cadastro" ? (
         <RegistryTab institution={institution} role={role} courses={data.courses} reload={reload} onChanged={onChanged} />
       ) : tab === "metas" ? (
-        <GoalsTab institutionId={id} role={role} data={data} reload={reload} />
+        <GoalsTab institutionId={id} role={role} data={data} reload={reload} onRepository={goal=>{setRepositoryGoal(goal);choose("repositorio");}} />
+      ) : tab === "repositorio" ? (
+        <RepositoryTab institutionId={id} role={role} courses={data.courses} goals={data.goals} requests={data.requests} files={data.files} reload={reload} goalFilter={repositoryGoal} setGoalFilter={setRepositoryGoal}/>
       ) : tab === "plano" ? (
         <ActionsTab institutionId={id} role={role} data={data} reload={reload} />
       ) : tab === "diagnostico" ? (
@@ -241,12 +255,14 @@ function OverviewTab({ data, stats, onGo }: { data: Data; stats?: { enrolled: nu
     dims.get(k)!.push(Number(d.score));
   }
   const highOpen = data.diagnosis.filter(d => d.priority === "alta" && d.status !== "resolvido").length;
+  const docs=repositorySummary(data.requests,data.files);
   const activeCourses = data.courses.filter(c => (c.status ?? "ativo") === "ativo").length;
   const fmt1 = (n: number) => n.toLocaleString("pt-BR", { maximumFractionDigits: 1 });
 
   return (
     <>
       <div className="area-stat-grid">
+        <article className={docs.late?"warn":""}><small>Repositório documental</small><b>{docs.validated}/{docs.total}</b><span>{docs.pending} sem envio · {docs.late} em atraso</span><button className="corp-login-text-button" onClick={()=>onGo("repositorio")}>Abrir repositório</button></article>
         <article><small>Matriculados{stats?.semester ? ` em ${stats.semester}` : ""}</small><b>{(stats?.enrolled ?? 0).toLocaleString("pt-BR")}</b><span>{activeCourses} {activeCourses === 1 ? "curso ativo" : "cursos ativos"}</span></article>
         <article><small>Metas em acompanhamento</small><b>{live.filter(g => g.status === "ativa").length}</b><span>{avgGoal === null ? "sem medições" : `progresso médio ${avgGoal}%`}</span></article>
         <article><small>Ações concluídas</small><b>{acts.length ? Math.round((done / acts.length) * 100) : 0}%</b><span>{done} de {acts.length} ações</span></article>
@@ -419,7 +435,7 @@ function RegistryTab({ institution, role, courses, reload, onChanged }: { instit
 }
 
 // ================================================================ metas
-function goalFields(courses: Row[]): Field[] {
+function goalFields(courses: Row[],members:{user_id:string;email:string}[]): Field[] {
   return withHelp([
     { name: "title", label: "Meta", required: true, wide: true, placeholder: "Ex.: Reduzir a evasão do 1º ano" },
     { name: "indicator", label: "Indicador", required: true, placeholder: "Ex.: Taxa de evasão anual" },
@@ -431,7 +447,8 @@ function goalFields(courses: Row[]): Field[] {
     { name: "target", label: "Alvo", type: "number", required: true },
     { name: "due_date", label: "Prazo", type: "date" },
     { name: "frequency", label: "Periodicidade de medição", type: "select", options: FREQUENCY },
-    { name: "owner_name", label: "Responsável" },
+    { name: "owner_user_id", label: "Conta do coordenador / responsável", type:"select", options:members.map(m=>[m.user_id,m.email]) },
+    { name: "owner_name", label: "Nome do responsável (opcional)" },
     { name: "status", label: "Situação", type: "select", required: true, options: GOAL_STATUS },
     { name: "source", label: "Fonte do dado", wide: true, placeholder: "Ex.: relatório e-ORBIT, CPA, secretaria" },
     { name: "formula", label: "Regra de cálculo", type: "textarea", placeholder: "Ex.: evadidos no ano ÷ matriculados no início do ano × 100" },
@@ -445,7 +462,9 @@ const MEASUREMENT_FIELDS: Field[] = withHelp([
   { name: "note", label: "Observação", type: "textarea" },
 ], FIELD_HELP.measurement);
 
-function GoalsTab({ institutionId, role, data, reload }: { institutionId: string; role: Role | null; data: Data; reload: () => Promise<void> }) {
+function GoalsTab({ institutionId, role, data, reload, onRepository }: { institutionId: string; role: Role | null; data: Data; reload: () => Promise<void>; onRepository:(goalId:string)=>void }) {
+  const [goalMembers,setGoalMembers]=useState<{user_id:string;email:string}[]>([]);
+  useEffect(()=>{let active=true;if(can.manageGoals(role))Promise.all([supabase.rpc("vertice_team",{target:institutionId}),supabase.auth.getUser()]).then(([team,user])=>{if(!active)return;const rows=(team.data??[]) as {user_id:string;email:string;role:string}[];const allowed=rows.filter(m=>["gestor","equipe"].includes(m.role));if(user.data.user&&!allowed.some(m=>m.user_id===user.data.user!.id))allowed.unshift({user_id:user.data.user.id,email:user.data.user.email??"Minha conta",role:"master"});setGoalMembers(allowed);});return()=>{active=false;};},[institutionId,role]);
   const ed = useEditor();
   const [measuring, setMeasuring] = useState<Row | null>(null);
   const [open, setOpen] = useState<string | null>(null);
@@ -476,7 +495,7 @@ function GoalsTab({ institutionId, role, data, reload }: { institutionId: string
       {ed.editing && (
         <RecordForm
           title={ed.editing === "new" ? "Nova meta" : "Editar meta"}
-          fields={goalFields(data.courses)}
+          fields={goalFields(data.courses,goalMembers)}
           initial={ed.editing === "new" ? { direction: "aumentar", status: "ativa", course_id: course } : ed.editing}
           onCancel={ed.close}
           onSubmit={async v => {
@@ -510,6 +529,7 @@ function GoalsTab({ institutionId, role, data, reload }: { institutionId: string
             const last = ms.length ? Number(ms[ms.length - 1].value) : null;
             const p = goalProgress(g, last);
             const late = isLate(g.due_date, g.status);
+            const docs=repositorySummary(data.requests.filter(r=>r.goal_id===g.id),data.files);
             return (
               <article key={g.id} className="area-card">
                 <div className="area-card-top">
@@ -519,7 +539,8 @@ function GoalsTab({ institutionId, role, data, reload }: { institutionId: string
                   {courseName(g.course_id) && <small>{courseName(g.course_id)}</small>}
                 </div>
                 <h4>{String(g.title)}</h4>
-                <p className="area-muted">{String(g.indicator)}{g.owner_name ? ` · ${String(g.owner_name)}` : ""}</p>
+                <p className="area-muted">Documentos: {docs.sent}/{docs.total} com envio · {docs.validated} validados · {docs.pending} pendentes · {docs.late} em atraso</p>
+                <p className="area-muted">{String(g.indicator)}{g.owner_name||g.owner_email ? ` · ${String(g.owner_name||g.owner_email)}` : ""}</p>
                 <div className="area-goal-numbers">
                   <div><small>Linha de base</small><b>{fmtNum(g.baseline, g.unit)}</b></div>
                   <div><small>Última medição</small><b>{fmtNum(last, g.unit)}</b></div>
@@ -531,6 +552,7 @@ function GoalsTab({ institutionId, role, data, reload }: { institutionId: string
                 </div>
                 <p className="area-muted small">{p === null ? "Sem medição registrada." : `${p}% do caminho entre a linha de base e o alvo.`}</p>
                 <div className="area-row-actions">
+                  <button className="corp-login-text-button" onClick={()=>onRepository(g.id)}>Documentos da meta ({docs.total})</button>
                   {can.record(role) && <button className="corp-login-text-button" onClick={() => setMeasuring(g)}>Registrar medição</button>}
                   <button className="corp-login-text-button" onClick={() => setOpen(open === g.id ? null : g.id)}>Histórico ({ms.length})</button>
                   {can.manageGoals(role) && <button className="corp-login-text-button" onClick={() => ed.open(g)}>Editar</button>}

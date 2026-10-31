@@ -1,0 +1,1249 @@
+[
+  {
+    "codigo": "DIR-APD-01",
+    "nome": "Acolhimento de ingressantes, nivelamento e atendimento psicopedagógico",
+    "finalidade": "Demonstrar ações de apoio e permanência",
+    "indicadores": [
+      "1.12"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "DIR-ATV-00",
+    "nome": "Regulamento de atividades complementares",
+    "finalidade": "Normatizar as 180 h",
+    "indicadores": [
+      "1.10"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "eventual"
+  },
+  {
+    "codigo": "DIR-ATV-01",
+    "nome": "Planejamento das atividades do semestre",
+    "finalidade": "Programar eventos e atividades",
+    "indicadores": [
+      "1.10",
+      "1.13"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "DIR-AUD-01",
+    "nome": "Relatório de auditoria interna do curso",
+    "finalidade": "Autoavaliação documental e plano de ação",
+    "indicadores": [
+      "1.13",
+      "2.3"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "DIR-AVA-01",
+    "nome": "Regulamento, portarias e modelo padrão de avaliação",
+    "finalidade": "Normatizar a avaliação",
+    "indicadores": [
+      "1.19"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "eventual"
+  },
+  {
+    "codigo": "DIR-AVI-00",
+    "nome": "Avaliação de professores (instrumento e resultados CPA)",
+    "finalidade": "Registrar a avaliação docente pelos discentes",
+    "indicadores": [
+      "1.13",
+      "2.3"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "DIR-AVI-01",
+    "nome": "Tabulação da avaliação docente",
+    "finalidade": "Consolidar médias e evolução",
+    "indicadores": [
+      "1.13",
+      "2.3"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "DIR-AVI-02",
+    "nome": "Plano de melhoria docente",
+    "finalidade": "Pactuar ações com docentes em faixa de atenção",
+    "indicadores": [
+      "1.13",
+      "2.3"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "DIR-AVI-03",
+    "nome": "Lista de devolutiva da avaliação institucional",
+    "finalidade": "Comprovar a devolutiva à comunidade",
+    "indicadores": [
+      "1.13"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "DIR-BIB-01",
+    "nome": "Bibliografia do curso × acervo (exemplares e acesso virtual)",
+    "finalidade": "Comprovar adequação da bibliografia",
+    "indicadores": [
+      "3.6",
+      "3.7"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "DIR-BIB-02",
+    "nome": "Relatório de referendamento da bibliografia e solicitações de aquisição",
+    "finalidade": "Registrar a análise do NDE",
+    "indicadores": [
+      "3.6",
+      "3.7"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "DIR-BIB-03",
+    "nome": "Relação de periódicos e bases",
+    "finalidade": "Complementar a bibliografia",
+    "indicadores": [
+      "3.7"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "anual"
+  },
+  {
+    "codigo": "DIR-COL-01",
+    "nome": "Portaria do colegiado",
+    "finalidade": "Formalizar composição",
+    "indicadores": [
+      "2.12"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "eventual"
+  },
+  {
+    "codigo": "DIR-COL-02",
+    "nome": "Convocações, pautas e atas do colegiado",
+    "finalidade": "Registrar atuação e encaminhamentos",
+    "indicadores": [
+      "2.12"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "DIR-COO-01",
+    "nome": "Portaria de designação do coordenador",
+    "finalidade": "Formalizar a função e o regime",
+    "indicadores": [
+      "2.3",
+      "2.4"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "eventual"
+  },
+  {
+    "codigo": "DIR-COO-02",
+    "nome": "Atas de reunião com representantes de turma e com docentes",
+    "finalidade": "Registrar gestão participativa",
+    "indicadores": [
+      "2.3",
+      "1.12"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "DIR-COO-03",
+    "nome": "Plano de ação da coordenação e relatório de cumprimento",
+    "finalidade": "Planejar e prestar contas",
+    "indicadores": [
+      "2.3"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "DIR-COO-04",
+    "nome": "Controle de ofícios e comunicações da coordenação",
+    "finalidade": "Evidenciar a gestão cotidiana",
+    "indicadores": [
+      "2.3"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "continuo"
+  },
+  {
+    "codigo": "DIR-CPA-01",
+    "nome": "Portfólio de integração CPA × curso (plano de devolutiva)",
+    "finalidade": "Demonstrar uso dos resultados da CPA",
+    "indicadores": [
+      "1.13"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "DIR-DOC-00",
+    "nome": "Planilha de atributos docentes",
+    "finalidade": "Titulação, regime, experiência e produção",
+    "indicadores": [
+      "2.5",
+      "2.6",
+      "2.7",
+      "2.8",
+      "2.9",
+      "2.16"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "DIR-DOC-01",
+    "nome": "Relação docentes × estudantes",
+    "finalidade": "Dimensionar o corpo docente",
+    "indicadores": [
+      "2.5",
+      "2.6"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "DIR-DOC-02",
+    "nome": "Ficha de adequação docente e relatório de adequação (NDE)",
+    "finalidade": "Justificar a aderência docente × componente",
+    "indicadores": [
+      "2.5",
+      "2.7",
+      "2.9"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "DIR-DOC-03",
+    "nome": "Carga horária e regime de trabalho docente",
+    "finalidade": "Comprovar regime",
+    "indicadores": [
+      "2.6"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "DIR-DOC-04",
+    "nome": "Plano de capacitação docente e registros",
+    "finalidade": "Formação continuada (inclusive IA)",
+    "indicadores": [
+      "2.6",
+      "1.6"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "DIR-ENA-00",
+    "nome": "Plano de ação ENADE e registros das ações",
+    "finalidade": "Planejar e comprovar preparação",
+    "indicadores": [
+      "1.13"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "anual"
+  },
+  {
+    "codigo": "DIR-ENA-01",
+    "nome": "Portaria da comissão de acompanhamento do ENADE",
+    "finalidade": "Formalizar a comissão",
+    "indicadores": [
+      "1.13"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "anual"
+  },
+  {
+    "codigo": "DIR-ENA-02",
+    "nome": "Ata da comissão ENADE",
+    "finalidade": "Registrar reuniões",
+    "indicadores": [
+      "1.13"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "por_reuniao"
+  },
+  {
+    "codigo": "DIR-ENA-03",
+    "nome": "Análise dos resultados de avaliações externas (INEP/OAB)",
+    "finalidade": "Transformar resultados em ações",
+    "indicadores": [
+      "1.13"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "anual"
+  },
+  {
+    "codigo": "DIR-EST-00",
+    "nome": "Regulamento do NPJ e dos estágios",
+    "finalidade": "Normatizar a prática jurídica",
+    "indicadores": [
+      "1.7",
+      "3.15"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "eventual"
+  },
+  {
+    "codigo": "DIR-EST-01",
+    "nome": "Portaria de designação da coordenação do NPJ/estágio",
+    "finalidade": "Formalizar o responsável",
+    "indicadores": [
+      "1.7",
+      "3.15"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "eventual"
+  },
+  {
+    "codigo": "DIR-EST-02",
+    "nome": "Relação de convênios e campos de estágio",
+    "finalidade": "Demonstrar campos e vagas",
+    "indicadores": [
+      "1.7"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "DIR-EST-03",
+    "nome": "Controle de estágio",
+    "finalidade": "Acompanhar CH e desempenho dos estagiários",
+    "indicadores": [
+      "1.7"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "DIR-EST-04",
+    "nome": "Portfólios e relatórios de estágio (amostra)",
+    "finalidade": "Comprovar a prática realizada",
+    "indicadores": [
+      "1.7"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "DIR-EXT-01",
+    "nome": "Acompanhamento da extensão curricularizada",
+    "finalidade": "Controlar as 390 h extensionistas",
+    "indicadores": [
+      "1.4",
+      "1.1"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "DIR-EXT-02",
+    "nome": "Projeto de atividade de extensão/ensino",
+    "finalidade": "Planejar a atividade",
+    "indicadores": [
+      "1.10",
+      "1.1"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "por_atividade"
+  },
+  {
+    "codigo": "DIR-EXT-03",
+    "nome": "Relatório de atividade e lista de presença",
+    "finalidade": "Comprovar execução e participação",
+    "indicadores": [
+      "1.10",
+      "1.1"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "por_atividade"
+  },
+  {
+    "codigo": "DIR-EXT-04",
+    "nome": "Projeto de ação de responsabilidade social",
+    "finalidade": "Planejar ação social com participação discente",
+    "indicadores": [
+      "1.1",
+      "1.10"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "DIR-EXT-05",
+    "nome": "Relatório de ação de responsabilidade social",
+    "finalidade": "Comprovar execução",
+    "indicadores": [
+      "1.1",
+      "1.10"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "DIR-GES-01",
+    "nome": "Apresentação do curso",
+    "finalidade": "Síntese institucional do curso",
+    "indicadores": [
+      "1.13",
+      "1.1"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "anual"
+  },
+  {
+    "codigo": "DIR-GES-02",
+    "nome": "Horário de aulas e de avaliações (com comprovante de divulgação)",
+    "finalidade": "Evidenciar planejamento e divulgação",
+    "indicadores": [
+      "1.13",
+      "1.19",
+      "2.6"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "DIR-GES-03",
+    "nome": "Calendário acadêmico e calendário de ações da coordenação",
+    "finalidade": "Planejamento do semestre",
+    "indicadores": [
+      "1.13",
+      "2.3"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "DIR-INF-01",
+    "nome": "Monitoramento de uso de laboratórios e ambientes de prática",
+    "finalidade": "Comprovar uso e manutenção",
+    "indicadores": [
+      "3.5",
+      "3.9",
+      "3.15"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "continuo"
+  },
+  {
+    "codigo": "DIR-INF-02",
+    "nome": "Registros de salas, gabinetes e sala da coordenação (fotos, logística, manutenção)",
+    "finalidade": "Evidenciar adequação dos espaços",
+    "indicadores": [
+      "3.1",
+      "3.2",
+      "3.3",
+      "3.4"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "anual"
+  },
+  {
+    "codigo": "DIR-MET-01",
+    "nome": "Plano de metodologias ativas e registros (júris, simulações, visitas, casos)",
+    "finalidade": "Evidenciar metodologia inovadora",
+    "indicadores": [
+      "1.6"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "DIR-MON-00",
+    "nome": "Regulamento e edital de monitoria",
+    "finalidade": "Normatizar e divulgar a seleção de monitores",
+    "indicadores": [
+      "1.12"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "DIR-MON-01",
+    "nome": "Solicitação de monitores",
+    "finalidade": "Justificar a demanda pedagógica por monitoria",
+    "indicadores": [
+      "1.12"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "DIR-MON-02",
+    "nome": "Edital de resultado da seleção de monitoria",
+    "finalidade": "Publicizar o resultado",
+    "indicadores": [
+      "1.12"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "DIR-MON-03",
+    "nome": "Relação de monitores",
+    "finalidade": "Consolidar monitores do semestre",
+    "indicadores": [
+      "1.12"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "DIR-MON-04",
+    "nome": "Frequência do monitor",
+    "finalidade": "Comprovar execução",
+    "indicadores": [
+      "1.12"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "mensal"
+  },
+  {
+    "codigo": "DIR-MON-05",
+    "nome": "Avaliação do monitor pelo orientador",
+    "finalidade": "Avaliar desempenho",
+    "indicadores": [
+      "1.12"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "DIR-MON-06",
+    "nome": "Relatório final do monitor",
+    "finalidade": "Registrar resultados",
+    "indicadores": [
+      "1.12"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "DIR-NDE-01",
+    "nome": "Portaria do NDE",
+    "finalidade": "Formalizar composição",
+    "indicadores": [
+      "2.1"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "eventual"
+  },
+  {
+    "codigo": "DIR-NDE-02",
+    "nome": "Convocações e atas do NDE",
+    "finalidade": "Registrar atuação",
+    "indicadores": [
+      "2.1"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "DIR-NDE-03",
+    "nome": "Quadro de atributos do NDE",
+    "finalidade": "Demonstrar titulação e regime (CONAES 1/2010)",
+    "indicadores": [
+      "2.1"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "DIR-NPJ-01",
+    "nome": "Quadro de atributos do NPJ",
+    "finalidade": "Demonstrar equipe, titulação e carga horária",
+    "indicadores": [
+      "3.15"
+    ],
+    "aplicabilidade": [
+      "juridica"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "DIR-NPJ-02",
+    "nome": "Apresentação do NPJ",
+    "finalidade": "Apresentar estrutura, serviços e indicadores",
+    "indicadores": [
+      "3.15",
+      "1.7"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "anual"
+  },
+  {
+    "codigo": "DIR-NPJ-03",
+    "nome": "Controles de atendimento (fichas, plantões, sigilo, autos findos)",
+    "finalidade": "Comprovar atendimento real",
+    "indicadores": [
+      "3.15"
+    ],
+    "aplicabilidade": [
+      "juridica"
+    ],
+    "periodicidade": "continuo"
+  },
+  {
+    "codigo": "DIR-PIC-01",
+    "nome": "Edital de iniciação científica (com comprovante de divulgação)",
+    "finalidade": "Chamar projetos e estudantes",
+    "indicadores": [
+      "2.16",
+      "1.1"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "anual"
+  },
+  {
+    "codigo": "DIR-PIC-02",
+    "nome": "Projeto de IC (docente)",
+    "finalidade": "Registrar projeto",
+    "indicadores": [
+      "2.16"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "anual"
+  },
+  {
+    "codigo": "DIR-PIC-03",
+    "nome": "Plano de trabalho do estudante de IC",
+    "finalidade": "Registrar atividades do estudante",
+    "indicadores": [
+      "2.16"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "anual"
+  },
+  {
+    "codigo": "DIR-PIC-04",
+    "nome": "Relatório final de IC",
+    "finalidade": "Comprovar resultados",
+    "indicadores": [
+      "2.16"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "anual"
+  },
+  {
+    "codigo": "DIR-PIC-05",
+    "nome": "Controle de projetos de IC e produção resultante",
+    "finalidade": "Consolidar a produção",
+    "indicadores": [
+      "2.16",
+      "2.4"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "anual"
+  },
+  {
+    "codigo": "DIR-PPC-00",
+    "nome": "Projeto Pedagógico do Curso (PPC) vigente",
+    "finalidade": "Documento-base do curso; referência para todos os indicadores da Dimensão 1",
+    "indicadores": [
+      "1.1",
+      "1.2",
+      "1.3",
+      "1.4",
+      "1.5",
+      "1.6",
+      "1.7",
+      "1.8",
+      "1.9",
+      "1.10",
+      "1.11",
+      "1.12",
+      "1.13",
+      "1.14",
+      "1.15",
+      "1.16",
+      "1.17",
+      "1.18",
+      "1.19",
+      "1.20"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "anual"
+  },
+  {
+    "codigo": "DIR-PPC-01",
+    "nome": "Portfólio de Objetivos do Curso",
+    "finalidade": "Demonstrar como cada objetivo é implementado e evidenciado",
+    "indicadores": [
+      "1.2",
+      "1.3"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "DIR-PPC-02",
+    "nome": "Portfólio de Conteúdos Curriculares e requisitos legais",
+    "finalidade": "Evidenciar atualização, CH, bibliografia e requisitos transversais",
+    "indicadores": [
+      "1.5",
+      "1.4"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "DIR-PPC-03",
+    "nome": "Matriz curricular, equivalências e aproveitamentos",
+    "finalidade": "Registrar a matriz vigente e as regras de transição",
+    "indicadores": [
+      "1.4"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "eventual"
+  },
+  {
+    "codigo": "DIR-PPC-04",
+    "nome": "Parecer do NDE de atualização do PPC",
+    "finalidade": "Registrar a revisão periódica do PPC",
+    "indicadores": [
+      "1.1",
+      "1.2",
+      "1.3",
+      "1.4",
+      "1.5",
+      "2.1"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "anual"
+  },
+  {
+    "codigo": "DIR-PPC-05",
+    "nome": "Planos de ensino validados",
+    "finalidade": "Comprovar coerência plano × ementa × bibliografia",
+    "indicadores": [
+      "1.5",
+      "1.6",
+      "2.3"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "DIR-REQ-01",
+    "nome": "Portfólio de disciplinas e ações dos requisitos legais (DH, ERER, ambiental)",
+    "finalidade": "Evidenciar requisitos transversais",
+    "indicadores": [
+      "1.5"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "DIR-TCC-00",
+    "nome": "Regulamento e cronograma de TC",
+    "finalidade": "Normatizar e programar o TC",
+    "indicadores": [
+      "1.11"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "DIR-TCC-01",
+    "nome": "Controle de TCC",
+    "finalidade": "Acompanhar orientação, defesa e depósito",
+    "indicadores": [
+      "1.11"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "DIR-TCC-02",
+    "nome": "Aceite, aprovação de projeto, ata de defesa e autorização de publicação",
+    "finalidade": "Formalizar cada etapa",
+    "indicadores": [
+      "1.11"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "por_estudante"
+  },
+  {
+    "codigo": "DIR-TIC-01",
+    "nome": "Diretrizes de uso de IA e registros de práticas digitais",
+    "finalidade": "Evidenciar TIC e IA no ensino",
+    "indicadores": [
+      "1.16",
+      "1.6"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "DIR-VAG-01",
+    "nome": "Estudo e relatório de vagas; evolução de matrículas",
+    "finalidade": "Justificar as 75 vagas (noturno)",
+    "indicadores": [
+      "1.20"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "anual"
+  },
+  {
+    "codigo": "LIC-EST-01",
+    "nome": "Convênios e termos de cooperação com a rede de escolas da educação básica",
+    "finalidade": "Comprovar a relação institucionalizada do estágio com a rede pública de educação básica",
+    "indicadores": [
+      "1.8",
+      "1.21"
+    ],
+    "aplicabilidade": [
+      "licenciatura"
+    ],
+    "periodicidade": "eventual"
+  },
+  {
+    "codigo": "LIC-EST-02",
+    "nome": "Relatórios de estágio supervisionado e acompanhamento pelo docente orientador",
+    "finalidade": "Demonstrar a vivência da realidade escolar e a relação teoria e prática",
+    "indicadores": [
+      "1.8",
+      "1.9"
+    ],
+    "aplicabilidade": [
+      "licenciatura"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "LIC-PRA-01",
+    "nome": "Registro das atividades práticas de ensino e das práticas pedagógicas",
+    "finalidade": "Comprovar as atividades práticas previstas nas DCN das licenciaturas",
+    "indicadores": [
+      "1.24",
+      "1.9"
+    ],
+    "aplicabilidade": [
+      "licenciatura"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "LIC-RED-01",
+    "nome": "Ações de integração do curso com as redes públicas de ensino",
+    "finalidade": "Demonstrar parceria efetiva com a rede pública, quando prevista no PPC",
+    "indicadores": [
+      "1.21"
+    ],
+    "aplicabilidade": [
+      "licenciatura"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "EAD-TUT-01",
+    "nome": "Plano de tutoria por disciplina e escala de atendimento",
+    "finalidade": "Demonstrar a organização das atividades de tutoria",
+    "indicadores": [
+      "1.14",
+      "2.2"
+    ],
+    "aplicabilidade": [
+      "ead"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "EAD-TUT-02",
+    "nome": "Registro de qualificação e formação continuada dos tutores",
+    "finalidade": "Comprovar conhecimentos, habilidades e atitudes necessárias à tutoria",
+    "indicadores": [
+      "1.15",
+      "2.11"
+    ],
+    "aplicabilidade": [
+      "ead"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "EAD-TUT-03",
+    "nome": "Relação do corpo de tutores com titulação e regime de trabalho",
+    "finalidade": "Comprovar titulação e formação do corpo de tutores",
+    "indicadores": [
+      "2.13"
+    ],
+    "aplicabilidade": [
+      "ead"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "EAD-TUT-04",
+    "nome": "Comprovação da experiência dos tutores em educação a distância",
+    "finalidade": "Demonstrar experiência do corpo de tutores na modalidade",
+    "indicadores": [
+      "2.14"
+    ],
+    "aplicabilidade": [
+      "ead"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "EAD-TUT-05",
+    "nome": "Registros de interação entre tutores, docentes e coordenação",
+    "finalidade": "Demonstrar a articulação entre tutoria, docência e coordenação",
+    "indicadores": [
+      "2.15"
+    ],
+    "aplicabilidade": [
+      "ead"
+    ],
+    "periodicidade": "mensal"
+  },
+  {
+    "codigo": "EAD-DOC-01",
+    "nome": "Comprovação da experiência docente em educação a distância",
+    "finalidade": "Demonstrar experiência do corpo docente na modalidade a distância",
+    "indicadores": [
+      "2.10"
+    ],
+    "aplicabilidade": [
+      "ead"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "EAD-AVA-01",
+    "nome": "Relatório de uso e configuração do Ambiente Virtual de Aprendizagem",
+    "finalidade": "Comprovar recursos do AVA e sua utilização efetiva",
+    "indicadores": [
+      "1.17"
+    ],
+    "aplicabilidade": [
+      "ead"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "EAD-MAT-01",
+    "nome": "Amostra do material didático de cada unidade curricular",
+    "finalidade": "Comprovar existência, pertinência e atualidade do material didático",
+    "indicadores": [
+      "1.18"
+    ],
+    "aplicabilidade": [
+      "ead"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "EAD-MAT-02",
+    "nome": "Controle de produção, revisão e distribuição do material didático",
+    "finalidade": "Demonstrar o processo logístico de produção e distribuição",
+    "indicadores": [
+      "3.14"
+    ],
+    "aplicabilidade": [
+      "ead"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "EAD-EQP-01",
+    "nome": "Composição e atribuições da equipe multidisciplinar",
+    "finalidade": "Comprovar a equipe multidisciplinar e seu regime de trabalho",
+    "indicadores": [
+      "2.2"
+    ],
+    "aplicabilidade": [
+      "ead"
+    ],
+    "periodicidade": "eventual"
+  },
+  {
+    "codigo": "EAD-AMB-01",
+    "nome": "Relação dos ambientes profissionais previstos no PPC",
+    "finalidade": "Comprovar os ambientes profissionais utilizados pelo curso a distância",
+    "indicadores": [
+      "3.18"
+    ],
+    "aplicabilidade": [
+      "ead"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "SAU-SUS-01",
+    "nome": "Convênio e registros de integração com o SUS",
+    "finalidade": "Comprovar a integração com o sistema local e regional de saúde",
+    "indicadores": [
+      "1.22"
+    ],
+    "aplicabilidade": [
+      "saude"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "SAU-PRA-01",
+    "nome": "Registro das atividades práticas de ensino da área da saúde",
+    "finalidade": "Comprovar as atividades práticas previstas no PPC e nas DCN",
+    "indicadores": [
+      "1.23"
+    ],
+    "aplicabilidade": [
+      "saude"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "SAU-LAB-01",
+    "nome": "Relação e descrição dos laboratórios de ensino da área de saúde",
+    "finalidade": "Comprovar laboratórios de ensino e sua utilização",
+    "indicadores": [
+      "3.10"
+    ],
+    "aplicabilidade": [
+      "saude"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "SAU-LAB-02",
+    "nome": "Relação e descrição dos laboratórios de habilidades",
+    "finalidade": "Comprovar laboratórios de habilidades e sua utilização",
+    "indicadores": [
+      "3.11"
+    ],
+    "aplicabilidade": [
+      "saude"
+    ],
+    "periodicidade": "semestral"
+  },
+  {
+    "codigo": "SAU-HOS-01",
+    "nome": "Convênios com unidades hospitalares e complexo assistencial",
+    "finalidade": "Comprovar as unidades conveniadas para o estágio da saúde",
+    "indicadores": [
+      "3.12"
+    ],
+    "aplicabilidade": [
+      "saude"
+    ],
+    "periodicidade": "eventual"
+  },
+  {
+    "codigo": "SAU-BIO-01",
+    "nome": "Licença, estrutura e protocolos do biotério",
+    "finalidade": "Comprovar o biotério e os protocolos de experimento, quando previsto no PPC",
+    "indicadores": [
+      "3.13"
+    ],
+    "aplicabilidade": [
+      "saude"
+    ],
+    "periodicidade": "anual"
+  },
+  {
+    "codigo": "GES-CEP-01",
+    "nome": "Parecer do Comitê de Ética em Pesquisa e registros dos projetos aprovados",
+    "finalidade": "Comprovar a submissão e a aprovação de pesquisa envolvendo seres humanos",
+    "indicadores": [
+      "3.16"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "eventual"
+  },
+  {
+    "codigo": "GES-CEUA-01",
+    "nome": "Parecer da Comissão de Ética no Uso de Animais e protocolos",
+    "finalidade": "Comprovar a submissão e a aprovação de pesquisa com animais",
+    "indicadores": [
+      "3.17"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "eventual"
+  },
+  {
+    "codigo": "GES-LAB-01",
+    "nome": "Relação e descrição dos laboratórios didáticos de formação básica",
+    "finalidade": "Comprovar laboratórios de formação básica, quando previstos no PPC",
+    "indicadores": [
+      "3.8"
+    ],
+    "aplicabilidade": [
+      "todos"
+    ],
+    "periodicidade": "semestral"
+  }
+]

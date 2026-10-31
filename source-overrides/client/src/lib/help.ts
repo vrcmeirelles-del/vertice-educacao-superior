@@ -36,6 +36,7 @@ export const FIELD_HELP: Record<"institution" | "course" | "goal" | "measurement
     target: "O valor que se quer atingir até o prazo. Ex.: 12.",
     due_date: "Até quando a meta deve ser alcançada.",
     frequency: "De quanto em quanto tempo o indicador será medido de novo.",
+    owner_user_id: "Conta já vinculada à IES como Equipe ou Gestor. O repositório usa esta atribuição como responsável inicial pelas entregas da meta.",
     owner_name: "Quem responde pela meta. Pode ser cargo ou nome. Ex.: Coordenação do curso de Direito.",
     status: "“Planejada” ainda não começou; “Em acompanhamento” está valendo e recebe medições.",
     source: "De onde sai o número. Ex.: relatório de matrículas do sistema acadêmico, CPA, secretaria.",
@@ -83,6 +84,7 @@ export function withHelp(fields: Field[], help: HelpMap): Field[] {
 }
 
 export const TAB_HELP: Record<string, { title: string; text: string[] }> = {
+ repositorio:{title:"Da meta à evidência documental",text:["A gestão define o documento, a meta, o curso, o responsável e o prazo. Use um dos modelos do catálogo ou uma exigência personalizada.","O responsável envia a evidência e a gestão valida ou devolve com parecer. Cada nova versão preserva as anteriores. A IES tem seu próprio repositório, acessível somente às contas vinculadas e à administração Vértice.","Nas metas, use Documentos da meta para acompanhar as entregas. Documento enviado não significa meta cumprida; as medições da meta continuam separadas."]},
   geral: {
     title: "O que esta visão mostra",
     text: [
