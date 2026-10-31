@@ -154,6 +154,7 @@ export default function RepositoryDocuments({
     },
     { name: "document_code", label: "Código do documento (opcional)" },
     { name: "indicator", label: "Indicador / referência (opcional)" },
+    { name: "repository_section", label: "Área do repositório", type: "select", required: true, options: [["instrumento","Instrumento de avaliação"],["apoio","Modelos e apoio"],["diversos","Documentos diversos"],["nao_classificado","Não classificados"]] },
     {
       name: "instructions",
       label: "Orientação para a entrega",

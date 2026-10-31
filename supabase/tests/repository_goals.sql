@@ -92,5 +92,23 @@ select set_config('request.jwt.claims','{"role":"service_role"}',true);
 insert into storage.objects(bucket_id,name,owner_id,metadata) values('vertice-repositorios','22000000-0000-4000-8000-000000000001/52000000-0000-4000-8000-000000000001/62000000-0000-4000-8000-000000000099.pdf',null,'{"size":10,"mimetype":"application/pdf"}');
 insert into public.vertice_repository_files(id,institution_id,request_id,storage_path,file_name,size_bytes,mime_type,uploaded_by,status) values('62000000-0000-4000-8000-000000000099','22000000-0000-4000-8000-000000000001','52000000-0000-4000-8000-000000000001','22000000-0000-4000-8000-000000000001/52000000-0000-4000-8000-000000000001/62000000-0000-4000-8000-000000000099.pdf','Importado.pdf',10,'application/pdf','12000000-0000-4000-8000-000000000001','validado');
 do $$begin if not exists(select 1 from public.vertice_repository_files where id='62000000-0000-4000-8000-000000000099' and status='enviado' and uploaded_by='12000000-0000-4000-8000-000000000001') then raise exception 'FAIL atribuição da importação';end if;end$$;
+
+set local role authenticated;
+select pg_temp.repo_user('12000000-0000-4000-8000-000000000001');
+update public.vertice_repository_files set document_category='apoio',classification_note='Modelo sem comprovação de execução' where id='62000000-0000-4000-8000-000000000099';
+do $$begin
+ if not exists(select 1 from public.vertice_repository_files where id='62000000-0000-4000-8000-000000000099' and document_category='apoio' and status='enviado' and reviewed_at is null and classified_by='12000000-0000-4000-8000-000000000001') then raise exception 'FAIL classificação alterou validação/autoria';end if;
+end$$;
+select pg_temp.repo_denied($$update public.vertice_repository_files set document_category='instrumento',instrument_indicators=array['3.19'] where id='62000000-0000-4000-8000-000000000099'$$,'indicador inexistente');
+select pg_temp.repo_denied($$update public.vertice_repository_files set storage_path='outro/caminho.pdf' where id='62000000-0000-4000-8000-000000000099'$$,'classificação não altera objeto');
+select pg_temp.repo_user('12000000-0000-4000-8000-000000000003');
+select pg_temp.repo_denied($$update public.vertice_repository_files set document_category='diversos' where id='62000000-0000-4000-8000-000000000099'$$,'equipe não reclassifica');
+select pg_temp.repo_user('12000000-0000-4000-8000-000000000005');
+select pg_temp.repo_denied($$update public.vertice_repository_files set document_category='diversos' where id='62000000-0000-4000-8000-000000000099'$$,'outra IES não reclassifica');
+select pg_temp.repo_user('12000000-0000-4000-8000-000000000001');
+update public.vertice_repository_files set document_category='instrumento',instrument_indicators=array['2.1'],classification_note='Ata NDE conferida para classificação' where id='62000000-0000-4000-8000-000000000099';
+do $$begin
+ if not exists(select 1 from public.vertice_repository_requests where id='52000000-0000-4000-8000-000000000001' and repository_section='instrumento' and indicator='2.1') then raise exception 'FAIL sincronização do indicador';end if;
+end$$;
 select 'Repositório: isolamento, MFA, atribuição, envio, validação e histórico verificados; fixtures revertidas.' as resultado;
 rollback;

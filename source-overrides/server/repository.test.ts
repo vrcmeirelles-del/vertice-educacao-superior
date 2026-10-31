@@ -358,3 +358,17 @@ describe("semestres e não aplicabilidade documental", () => {
     ).toMatchObject({ total: 1, validated: 0, pending: 1 });
   });
 });
+
+import { isInstrumentFile, instrumentIndicators } from "../client/src/lib/repository";
+describe("classificação e cobertura do instrumento", () => {
+ it("apoio, diversos e não classificados não contam como evidência enviada", () => {
+  const requests=[{id:"a",repository_section:"instrumento"},{id:"b",repository_section:"apoio"},{id:"c",repository_section:"diversos"}];
+  const files=[{id:"1",request_id:"a",document_category:"apoio",status:"validado"},{id:"2",request_id:"b",document_category:"apoio",status:"enviado"}];
+  expect(repositorySummary(requests,files)).toMatchObject({total:1,sent:0,validated:0,pending:1});
+  expect(files.filter(isInstrumentFile)).toHaveLength(0);
+ });
+ it("uma evidência com vários indicadores não duplica a contagem documental",()=>{
+  expect(repositorySummary([{id:"a",repository_section:"instrumento",indicator:"1.5, 3.6"}],[{id:"1",request_id:"a",document_category:"instrumento",status:"enviado"}])).toMatchObject({total:1,sent:1,validated:0});
+  expect(instrumentIndicators("1.5, 3.6, 3.6; 3.19; 2.17; 11.2")).toEqual(["1.5","3.6"]);
+ });
+});

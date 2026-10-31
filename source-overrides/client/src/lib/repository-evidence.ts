@@ -5,6 +5,8 @@ import {
 import type { Row } from "./area";
 import {
   latestDocuments,
+  isInstrumentFile,
+  isInstrumentRequest,
   repositorySemester,
   requestDocumentStatus,
 } from "./repository";
@@ -32,9 +34,9 @@ export function evidenceSeries(
   periods: string[],
   course?: Row | null,
 ) {
-  const latest = latestDocuments(files);
+  const latest = latestDocuments(files.filter(isInstrumentFile));
   const groups = new Map<string, Row[]>();
-  for (const r of requests.filter((r) => r.active !== false)) {
+  for (const r of requests.filter((r) => r.active !== false && isInstrumentRequest(r))) {
     const key = String(
       repositoryTemplateCode(r.document_code) || `custom:${r.title}`,
     );
@@ -75,7 +77,7 @@ export function coverageCsv(
   files: Row[],
   course?: Row | null,
 ) {
-  const latest = latestDocuments(files);
+  const latest = latestDocuments(files.filter(isInstrumentFile));
   const safe = (value: unknown) => {
     const text = String(value ?? "");
     return `"${(/^[\s]*[=+@-]|^[\t\r]/.test(text) ? "'" + text : text).replace(/"/g, '""')}"`;
@@ -93,7 +95,7 @@ export function coverageCsv(
       "Justificativa NSA",
     ],
   ];
-  for (const r of requests.filter((r) => r.active !== false)) {
+  for (const r of requests.filter((r) => r.active !== false && isInstrumentRequest(r))) {
     const f = latest.get(r.id);
     rows.push([
       repositoryDocumentCode(r.document_code, course),

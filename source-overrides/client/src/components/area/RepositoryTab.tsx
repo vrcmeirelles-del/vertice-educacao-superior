@@ -1,3 +1,6 @@
+import indicatorNames from "@/lib/repository-indicators.json";
+import RepositoryFiles from "./RepositoryFiles";
+import { isInstrumentFile, isInstrumentRequest, instrumentIndicators } from "@/lib/repository";
 import {
   REPOSITORY_PERIODS,
   semesterLabel,
@@ -44,7 +47,7 @@ import "./repository-evidence.css";
 
 const indicatorList = (value: unknown): string[] =>
   Array.from(String(value ?? "").match(/[123]\.\d+/g) ?? []);
-type View = "cobertura" | "arquivos" | "serie" | "catalogo";
+type View = "cobertura" | "arquivos" | "outros" | "serie" | "catalogo";
 const stateLabel: Record<string, string> = {
   pendente: "Sem arquivo",
   enviado: "Em análise",
@@ -213,11 +216,11 @@ export default function RepositoryTab(props: RepositoryProps) {
           : r.course_id === courseId)) &&
       (!goalFilter || r.goal_id === goalFilter),
   );
-  const scoped = requestsInSemester(courseRequests, semester).filter(
-    (r) => r.active !== false,
-  );
+  const semesterRequests = requestsInSemester(courseRequests, semester).filter(r => r.active !== false);
+  const scoped = semesterRequests.filter(isInstrumentRequest);
+  const evidenceFiles = files.filter(isInstrumentFile);
   const applicable = scoped.filter((r) => r.not_applicable !== true);
-  const latest = latestDocuments(files);
+  const latest = latestDocuments(evidenceFiles);
   const summary = repositorySummary(scoped, files);
   const seriesSummary = repositorySummary(courseRequests, files);
   const presence = summary.total
@@ -232,7 +235,7 @@ export default function RepositoryTab(props: RepositoryProps) {
         .filter(Boolean),
     ]),
   ].sort();
-  const ownIds = new Set(scoped.map((r) => r.id));
+  const ownIds = new Set(semesterRequests.map((r) => r.id));
   const ownFiles = files
     .filter((f) => ownIds.has(String(f.request_id)))
     .sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
@@ -326,9 +329,7 @@ export default function RepositoryTab(props: RepositoryProps) {
                 </td>
                 <td>
                   <strong>{String(r.title)}</strong>
-                  {Boolean(r.instructions) && (
-                    <small>{String(r.instructions)}</small>
-                  )}
+                  {Boolean(r.instructions) && <details className="er-file-details"><summary>Orientações</summary><p>{String(r.instructions)}</p></details>}
                   {Boolean(r.goal_id) && (
                     <small>
                       Meta:{" "}
@@ -547,14 +548,9 @@ export default function RepositoryTab(props: RepositoryProps) {
                 percent={presence}
               />
               <Kpi
-                title="Indicadores cobertos"
-                value={`${indicatorsCovered}/${indicators.length}`}
-                detail="referências cadastradas com evidência"
-                percent={
-                  indicators.length
-                    ? Math.round((indicatorsCovered * 100) / indicators.length)
-                    : 0
-                }
+                title="Indicadores com evidência"
+                value={indicatorsCovered}
+                detail={`dos ${Object.keys(indicatorNames).length} indicadores do instrumento; aplicabilidade a conferir`}
               />
               <Kpi
                 title="Validado"
@@ -716,7 +712,8 @@ export default function RepositoryTab(props: RepositoryProps) {
               {(
                 [
                   ["cobertura", "Cobertura do semestre"],
-                  ["arquivos", "Arquivos enviados"],
+                  ["arquivos", "Evidências enviadas"],
+                  ["outros", "Outros documentos"],
                   ["serie", "Série histórica"],
                   ["catalogo", "Documentos exigidos"],
                 ] as [View, string][]
@@ -768,214 +765,24 @@ export default function RepositoryTab(props: RepositoryProps) {
                   </div>
                 ) : (
                   <>
-                    <div className="er-grid er-grid-3">
-                      <Kpi
-                        title="Exigidos no semestre"
-                        value={summary.total}
-                        detail="documentos ativos"
-                      />
-                      <Kpi
-                        title="Com documento"
-                        value={summary.sent}
-                        detail={`${summary.validated} validados`}
-                      />
-                      <Kpi
-                        title="Pendentes"
-                        value={summary.pending + summary.returned}
-                        detail="faltas e devoluções"
-                      />
-                    </div>
-                    {applicable.some(
-                      (r) =>
-                        !latest.has(r.id) ||
-                        latest.get(r.id)?.status === "devolvido",
-                    ) ? (
-                      <Card
-                        title="Pendências do semestre"
-                        detail={
-                          <Pill state="pendente">
-                            {summary.pending + summary.returned} a resolver
-                          </Pill>
-                        }
-                      >
-                        {documentTable(
-                          applicable.filter(
-                            (r) =>
-                              !latest.has(r.id) ||
-                              latest.get(r.id)?.status === "devolvido",
-                          ),
-                        )}
-                      </Card>
-                    ) : (
-                      <p className="er-alert success">
-                        {summary.total
-                          ? "Todas as exigências aplicáveis deste semestre possuem envio. A validação é feita pela gestão."
-                          : "Não há exigências aplicáveis neste semestre. Os itens NSA não entram nas pendências."}
-                      </p>
-                    )}
-                    <Card
-                      title="Documentos com material no semestre"
-                      detail="Validado é o que já passou pela conferência"
-                    >
-                      {applicable.some(
-                        (r) =>
-                          latest.has(r.id) &&
-                          latest.get(r.id)?.status !== "devolvido",
-                      ) ? (
-                        documentTable(
-                          applicable.filter(
-                            (r) =>
-                              latest.has(r.id) &&
-                              latest.get(r.id)?.status !== "devolvido",
-                          ),
-                        )
-                      ) : (
-                        <div className="er-empty">
-                          Nenhum documento com material neste semestre ainda.
-                        </div>
-                      )}
-                    </Card>
-                    {summary.nsa > 0 && (
-                      <Card
-                        title="NSA — Não se aplica"
-                        detail={`${summary.nsa} itens fora das pendências`}
-                      >
-                        {documentTable(
-                          scoped.filter((r) => r.not_applicable === true),
-                        )}
-                      </Card>
-                    )}
+                    <p className="er-card-note">Abra uma dimensão e um indicador para consultar seus documentos. Modelos, apoio e diversos ficam em “Outros documentos”. A presença de arquivo não equivale à validação.</p>
+                    {["1", "2", "3"].map(dim => {
+                      const rows = scoped.filter(r => instrumentIndicators(r.indicator).some(i => i.startsWith(dim + ".")));
+                      const codes = [...new Set(rows.flatMap(r => instrumentIndicators(r.indicator).filter(i => i.startsWith(dim + "."))))].sort((a,b) => Number(a.split(".")[1])-Number(b.split(".")[1]));
+                      return <details className="er-dimension" key={dim}><summary><strong>Dimensão {dim} — {REPOSITORY_DIMENSIONS[dim]}</strong><span>{codes.length} indicadores · {rows.length} documentos</span></summary>
+                        {!codes.length ? <p className="er-empty">Nenhum documento classificado nesta dimensão no semestre.</p> : codes.map(code => {
+                          const items=rows.filter(r => instrumentIndicators(r.indicator).includes(code));
+                          const pending=items.filter(r => r.not_applicable!==true && (!latest.has(r.id)||latest.get(r.id)?.status==="devolvido")).length;
+                          return <details className="er-indicator" key={code}><summary><strong>{code} — {indicatorNames[code as keyof typeof indicatorNames] ?? "Indicador"}</strong><span>{items.length} documentos{pending ? ` · ${pending} pendências` : ""}</span></summary>{documentTable(items)}</details>;
+                        })}
+                      </details>;
+                    })}
+
                   </>
                 )}
               </>
-            ) : view === "arquivos" ? (
-              <Card
-                title={`Arquivos enviados em ${semesterLabel(semester)}`}
-                detail={`${ownFiles.length} arquivos`}
-              >
-                {!ownFiles.length ? (
-                  <div className="er-empty">
-                    <h3>Nenhum arquivo neste semestre</h3>
-                    <p>Comece enviando os documentos do ciclo selecionado.</p>
-                    {(manager || role === "equipe") && (
-                      <button
-                        className="er-btn er-primary"
-                        onClick={() => openSend()}
-                      >
-                        Enviar documento
-                      </button>
-                    )}
-                  </div>
-                ) : (
-                  <div className="er-table-scroll">
-                    <table className="er-table">
-                      <thead>
-                        <tr>
-                          <th>Documento</th>
-                          <th>Arquivo</th>
-                          <th>Versão</th>
-                          <th>Enviado em</th>
-                          <th>Situação</th>
-                          <th />
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {ownFiles.map((f) => {
-                          const r = courseRequests.find(
-                            (r) => r.id === f.request_id,
-                          );
-                          const versions = files
-                            .filter((x) => x.request_id === f.request_id)
-                            .sort(
-                              (a, b) =>
-                                String(a.created_at).localeCompare(
-                                  String(b.created_at),
-                                ) || a.id.localeCompare(b.id),
-                            );
-                          return (
-                            <tr key={f.id}>
-                              <td>
-                                <span className="er-code">
-                                  {repositoryDocumentCode(
-                                    r?.document_code,
-                                    course,
-                                  ) || "—"}
-                                </span>
-                                <small>{String(r?.title ?? "Documento")}</small>
-                                {Boolean(f.reference) && (
-                                  <small>{String(f.reference)}</small>
-                                )}
-                              </td>
-                              <td>
-                                <strong>{String(f.file_name)}</strong>
-                                <small>
-                                  {(Number(f.size_bytes) / 1024 / 1024).toFixed(
-                                    2,
-                                  )}{" "}
-                                  MB
-                                </small>
-                                {Boolean(f.upload_note) && (
-                                  <small>{String(f.upload_note)}</small>
-                                )}
-                              </td>
-                              <td>
-                                v{versions.findIndex((x) => x.id === f.id) + 1}
-                              </td>
-                              <td>
-                                {fmtDate(f.created_at)}
-                                <small>
-                                  {String(
-                                    f.uploaded_email ?? "Conta vinculada",
-                                  )}
-                                </small>
-                              </td>
-                              <td>
-                                <Pill
-                                  state={
-                                    r
-                                      ? requestDocumentStatus(r, f)
-                                      : String(f.status)
-                                  }
-                                />
-                                {Boolean(f.review_note) && (
-                                  <small>{String(f?.review_note)}</small>
-                                )}
-                              </td>
-                              <td>
-                                <div className="er-actions">
-                                  <button
-                                    className="er-btn er-small"
-                                    disabled={Boolean(working)}
-                                    onClick={() => void download(f)}
-                                  >
-                                    Baixar
-                                  </button>
-                                  {manager && (
-                                    <button
-                                      className="er-btn er-small er-soft"
-                                      onClick={() => setReviewing(f)}
-                                    >
-                                      Analisar
-                                    </button>
-                                  )}
-                                  {r && canSend(r) && (
-                                    <button
-                                      className="er-btn er-small"
-                                      onClick={() => openSend(r.id)}
-                                    >
-                                      Nova versão
-                                    </button>
-                                  )}
-                                </div>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </Card>
+            ) : view === "arquivos" || view === "outros" ? (
+              <RepositoryFiles files={ownFiles} requests={courseRequests} other={view==="outros"} manager={manager} download={download} reload={reload} review={setReviewing} />
             ) : view === "serie" ? (
               <Card
                 title="Série histórica"
@@ -986,7 +793,7 @@ export default function RepositoryTab(props: RepositoryProps) {
                   envio na série cadastrada. “Não configurado” indica ausência
                   de exigência cadastrada, não uma entrega pendente.
                 </p>
-                {!courseRequests.some((r) => r.active !== false) ? (
+                {!courseRequests.some((r) => r.active !== false && isInstrumentRequest(r)) ? (
                   <div className="er-empty">
                     A série aparece após cadastrar as primeiras exigências.
                   </div>
@@ -1006,8 +813,8 @@ export default function RepositoryTab(props: RepositoryProps) {
                       </thead>
                       <tbody>
                         {evidenceSeries(
-                          courseRequests,
-                          files,
+                          courseRequests.filter(isInstrumentRequest),
+                          evidenceFiles,
                           periods,
                           course,
                         ).map((row) => (
@@ -1098,11 +905,11 @@ export default function RepositoryTab(props: RepositoryProps) {
           onSent={(period, nsa) => {
             setSemester(period);
             setUpload(null);
-            setView(nsa ? "catalogo" : "arquivos");
+            setView(nsa ? "catalogo" : "outros");
             setNotice(
               nsa
                 ? "NSA registrado. O item não entra nas pendências deste semestre."
-                : "Documento enviado no semestre selecionado. A entrega aguarda conferência da gestão.",
+                : "Documento recebido em Outros documentos → Não classificados. A gestão confere a classificação e a evidência.",
             );
           }}
         />

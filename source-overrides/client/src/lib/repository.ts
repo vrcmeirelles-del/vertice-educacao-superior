@@ -42,14 +42,14 @@ export function repositorySummary(
     timeZone: "America/Sao_Paulo",
   }),
 ) {
-  const latest = latestDocuments(files);
+  const latest = latestDocuments(files.filter(isInstrumentFile));
   let total = 0,
     sent = 0,
     validated = 0,
     returned = 0,
     late = 0,
     nsa = 0;
-  for (const r of requests.filter((r) => r.active !== false)) {
+  for (const r of requests.filter((r) => r.active !== false && isInstrumentRequest(r))) {
     if (r.not_applicable === true) {
       nsa++;
       continue;
@@ -88,7 +88,7 @@ export const REPOSITORY_DIMENSIONS: Record<string, string> = {
   "1": "Organização didático-pedagógica",
   "2": "Corpo docente e tutorial",
   "3": "Infraestrutura",
-  outros: "Documentos complementares",
+  outros: "Documentos diversos / não classificados",
 };
 export function repositorySemester(value: unknown) {
   return String(value ?? "").replace("/", "-");
@@ -166,4 +166,23 @@ export function requestDocumentStatus(request: Row, file?: Row) {
   return request.not_applicable === true
     ? "nsa"
     : String(file?.status ?? "pendente");
+}
+
+export const REPOSITORY_CATEGORIES: Record<string, string> = {
+  instrumento: "Evidência do instrumento",
+  apoio: "Modelos e apoio à preparação",
+  diversos: "Documentos diversos",
+  nao_classificado: "Não classificados",
+};
+export function isInstrumentFile(file: Row) {
+  return !file.document_category || file.document_category === "instrumento";
+}
+export function isInstrumentRequest(request: Row) {
+  return !request.repository_section || request.repository_section === "instrumento";
+}
+export function instrumentIndicators(value: unknown): string[] {
+  return [...new Set(String(value ?? "").match(/(?<![\d.])[123]\.\d+(?![\d.])/g) ?? [])].filter(code => {
+    const [d, n] = code.split(".").map(Number);
+    return n >= 1 && n <= ({1: 24, 2: 16, 3: 18}[d] ?? 0);
+  });
 }
