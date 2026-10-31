@@ -1,0 +1,41 @@
+/* Shared presentation for every institution and course; no data transformations. */
+.academic-data { min-width: 0; color: #243653; }
+.academic-data h2 { margin: 24px 0 12px; line-height: 1.3; }
+.academic-data h3 { margin: 32px 0 16px; font-size: 19px; font-weight: 700; line-height: 1.4; }
+.academic-data p { margin: 14px 0; max-width: 100ch; line-height: 1.7; color: #526277; font-size: 14px; }
+.academic-data > label { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin: 20px 0; font-size: 14px; font-weight: 600; }
+.academic-data input, .academic-data select { font: inherit; color: #243653; padding: 10px 14px; border: 1px solid #bac8d5; border-radius: 8px; background: white; max-width: 100%; }
+.academic-data .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: 14px; margin: 20px 0 24px; }
+.academic-data .stat-card { display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; gap: 14px; padding: 20px; min-height: 128px; border: 1px solid #dce4ec; border-top: 3px solid #328ea8; border-radius: 12px; background: #fff; color: #526277; font-size: 14px; line-height: 1.5; }
+.academic-data .stat-value { display: block; margin: 0; color: #243653; font-size: clamp(24px, 2.6vw, 32px); line-height: 1.2; font-variant-numeric: tabular-nums; letter-spacing: -.5px; overflow-wrap: anywhere; }
+.academic-data .table-scroll { max-width: 100%; margin: 16px 0; border: 1px solid #dce4ec; border-radius: 12px; overflow: auto; background: #fff; scrollbar-color: #9caebf #f0f4f8; }
+.academic-data table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 14px; line-height: 1.5; font-variant-numeric: tabular-nums; }
+.academic-data th, .academic-data td { padding: 14px 18px; min-width: 106px; text-align: right; border-bottom: 1px solid #e6ecf1; white-space: nowrap; }
+.academic-data th { background: #eef3f8; color: #40536c; font-size: 12px; font-weight: 700; }
+.academic-data th:first-child, .academic-data td:first-child { position: sticky; left: 0; z-index: 1; text-align: left; background: #fff; border-right: 1px solid #e6ecf1; font-weight: 600; }
+.academic-data th:first-child { background: #eef3f8; z-index: 2; }
+.academic-data tbody tr:nth-child(even) td { background: #f8fafc; }
+.academic-data tbody tr:hover td { background: #edf6fa; }
+.academic-data tbody tr:last-child td { border-bottom: 0; }
+.academic-data .current-semester { color: #185c74; background: #eaf5f9; font-weight: 700; }
+.academic-data .course-list th:nth-child(2), .academic-data .course-list td:nth-child(2) { white-space: normal; min-width: 240px; text-align: left; }
+.academic-data .course-list th:nth-child(3), .academic-data .course-list td:nth-child(3) { text-align: left; }
+.academic-data .modality-filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 20px; }
+.academic-data .modality-filters button { padding: 10px 16px; border: 1px solid #cdd8e3; border-radius: 8px; background: #fff; color: #40536c; font: inherit; font-size: 14px; text-decoration: none; cursor: pointer; }
+.academic-data .modality-filters button[aria-pressed="true"] { background: #243653; border-color: #243653; color: white; font-weight: 600; }
+.academic-data details { margin: 12px 0; border: 1px solid #dce4ec; border-radius: 10px; background: #fff; padding: 0 18px; }
+.academic-data summary { padding: 16px 0; font-size: 14px; font-weight: 600; cursor: pointer; line-height: 1.5; }
+.academic-data details[open] summary { border-bottom: 1px solid #e6ecf1; margin-bottom: 14px; }
+.academic-data :is(button, input, select, summary, .table-scroll):focus-visible { outline: 3px solid #328ea8; outline-offset: 3px; }
+.academic-data .table-hint { font-size: 12px; color: #61738a; margin: 0 0 8px; }
+.academic-data p[role="alert"] { padding: 16px; border-left: 3px solid #bb8540; background: #fff8ed; border-radius: 6px; }
+@media (max-width: 640px) {
+  .academic-data h3 { margin-top: 26px; font-size: 17px; }
+  .academic-data .stats-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .academic-data .stat-card { padding: 14px; min-height: 120px; font-size: 13px; }
+  .academic-data th, .academic-data td { padding: 12px 14px; }
+  .academic-data th:first-child, .academic-data td:first-child { max-width: 150px; white-space: normal; overflow-wrap: anywhere; }
+}
+
+.academic-data .status-series :is(th, td):last-child { font-weight: 700; color: #185c74; border-left: 1px solid #dce4ec; background: #eaf5f9; }
+.academic-data tbody tr td.current-semester { background: #eaf5f9; }
