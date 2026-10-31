@@ -204,6 +204,8 @@ export default function RepositoryTab(props: RepositoryProps) {
           goals.find((g) => g.id === goalFilter)?.course_id ?? "institucional",
         ),
       );
+      const goalPeriods = [...new Set(requests.filter(r => r.goal_id === goalFilter && r.active !== false).map(r => repositorySemester(r.semester)).filter(Boolean))].sort().reverse();
+      if (goalPeriods.length && !goalPeriods.includes(semester)) setSemester(goalPeriods[0]);
       setView("cobertura");
     }
   }, [goalFilter]);
