@@ -292,7 +292,7 @@ export default function RepositoryDocuments({
         <h3>Enviar arquivo ao repositório</h3>
         <p>
           Escolha o documento e selecione o arquivo no seu computador. PDF,
-          imagens e documentos Office, até 20 MB.
+          imagens e documentos Office, até 30 MB.
         </p>
         <div className="repo-form-grid">
           <label>
@@ -834,7 +834,7 @@ export default function RepositoryDocuments({
         </div>
       )}
       <p className="area-muted small">
-        Arquivos privados de até 20 MB. Cada reenvio preserva as versões
+        Arquivos privados de até 30 MB. Cada reenvio preserva as versões
         anteriores. Os acessos seguem o vínculo com a IES e o segundo fator da
         Vértice. Postar um documento não conclui automaticamente a meta.
       </p>

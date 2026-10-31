@@ -70,8 +70,8 @@ describe("repositório ligado às metas", () => {
       /conteúdo/,
     );
     expect(() =>
-      documentFile({ name: "teste.pdf", size: 20 * 1024 * 1024 + 1 }),
-    ).toThrow(/20 MB/);
+      documentFile({ name: "teste.pdf", size: 30 * 1024 * 1024 + 1 }),
+    ).toThrow(/30 MB/);
     expect(documentFile({ name: "Ata.PDF", size: 100 }).mime).toBe(
       "application/pdf",
     );

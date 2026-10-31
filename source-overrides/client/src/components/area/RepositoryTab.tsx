@@ -1610,7 +1610,7 @@ function UploadDialog(
                 <strong>Clique para escolher o arquivo</strong>
                 <span>
                   ou arraste para esta área · PDF, Word, Excel, PowerPoint ou
-                  imagem · até 20 MB
+                  imagem · até 30 MB
                 </span>
               </button>
               <input

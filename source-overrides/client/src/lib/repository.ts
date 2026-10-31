@@ -1,6 +1,6 @@
 import type { Row } from "./area";
 export const REPOSITORY_BUCKET = "vertice-repositorios";
-export const MAX_DOCUMENT_SIZE = 20 * 1024 * 1024;
+export const MAX_DOCUMENT_SIZE = 30 * 1024 * 1024;
 export const FILE_TYPES: Record<string, string> = {
   pdf: "application/pdf",
   png: "image/png",
@@ -80,7 +80,7 @@ export function documentFile(file: { name: string; size: number }) {
       "Formato não aceito. Use PDF, imagem, DOCX, XLSX, PPTX, TXT ou CSV.",
     );
   if (!file.size || file.size > MAX_DOCUMENT_SIZE)
-    throw new Error("O arquivo deve ter conteúdo e no máximo 20 MB.");
+    throw new Error("O arquivo deve ter conteúdo e no máximo 30 MB.");
   return { ext, mime: FILE_TYPES[ext] };
 }
 

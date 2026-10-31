@@ -86,5 +86,11 @@ select pg_temp.repo_denied($$select public.vertice_repository_period_target('520
 select pg_temp.repo_user('12000000-0000-4000-8000-000000000003','aal1');
 select pg_temp.repo_denied($$select public.vertice_repository_set_nsa('52000000-0000-4000-8000-000000000001',true,'Teste')$$,'NSA exige MFA');
 select pg_temp.repo_denied($$select public.vertice_repository_period_target('52000000-0000-4000-8000-000000000001','2027-1')$$,'período exige MFA');
+-- Importação de backend: aceita Storage real do serviço, atribui a um master e mantém análise pendente.
+reset role;
+select set_config('request.jwt.claims','{"role":"service_role"}',true);
+insert into storage.objects(bucket_id,name,owner_id,metadata) values('vertice-repositorios','22000000-0000-4000-8000-000000000001/52000000-0000-4000-8000-000000000001/62000000-0000-4000-8000-000000000099.pdf',null,'{"size":10,"mimetype":"application/pdf"}');
+insert into public.vertice_repository_files(id,institution_id,request_id,storage_path,file_name,size_bytes,mime_type,uploaded_by,status) values('62000000-0000-4000-8000-000000000099','22000000-0000-4000-8000-000000000001','52000000-0000-4000-8000-000000000001','22000000-0000-4000-8000-000000000001/52000000-0000-4000-8000-000000000001/62000000-0000-4000-8000-000000000099.pdf','Importado.pdf',10,'application/pdf','12000000-0000-4000-8000-000000000001','validado');
+do $$begin if not exists(select 1 from public.vertice_repository_files where id='62000000-0000-4000-8000-000000000099' and status='enviado' and uploaded_by='12000000-0000-4000-8000-000000000001') then raise exception 'FAIL atribuição da importação';end if;end$$;
 select 'Repositório: isolamento, MFA, atribuição, envio, validação e histórico verificados; fixtures revertidas.' as resultado;
 rollback;
