@@ -208,3 +208,74 @@ describe("experiência do repositório original integrada", () => {
     expect(csv.startsWith("\uFEFF")).toBe(true);
   });
 });
+
+import {
+  repositoryCoursePrefix,
+  repositoryDocumentCode,
+  repositoryTemplateCode,
+} from "../client/src/lib/repository-codes";
+import repositoryCatalog from "../client/src/lib/repository-catalog.json";
+describe("códigos documentais por curso", () => {
+  it("prioriza o código cadastrado e preserva os zeros iniciais", () => {
+    const course = {
+      id: "direito",
+      name: "Direito – Bacharelado",
+      code: "027",
+    };
+    expect(repositoryCoursePrefix(course)).toBe("027");
+    expect(repositoryDocumentCode("DIR-NDE-01", course)).toBe("027-NDE-01");
+    expect(repositoryDocumentCode("027-NDE-01", course)).toBe("027-NDE-01");
+  });
+  it("usa uma abreviatura estável quando o curso não tem código", () => {
+    expect(
+      repositoryCoursePrefix({ id: "a", name: "Administração – Bacharelado" }),
+    ).toBe("ADM");
+    expect(
+      repositoryCoursePrefix({ id: "b", name: "Sistemas de Informação" }),
+    ).toBe("SI");
+    expect(repositoryCoursePrefix(null)).toBe("IES");
+  });
+  it("identifica o mesmo modelo sem sobrescrever códigos personalizados", () => {
+    expect(repositoryTemplateCode("027-NDE-01")).toBe("DIR-NDE-01");
+    expect(repositoryTemplateCode("ADM-NDE-01")).toBe("DIR-NDE-01");
+    expect(
+      repositoryDocumentCode("PROTOCOLO-EXTERNO", { id: "a", code: "027" }),
+    ).toBe("PROTOCOLO-EXTERNO");
+    expect(
+      new Set(repositoryCatalog.map((t) => t.codigo.replace(/^DIR-/, ""))).size,
+    ).toBe(repositoryCatalog.length);
+  });
+  it("reúne o código antigo e o novo na mesma linha histórica", () => {
+    const rows = evidenceSeries(
+      [
+        {
+          id: "a",
+          title: "Atas NDE",
+          document_code: "DIR-NDE-01",
+          semester: "2026-1",
+        },
+        {
+          id: "b",
+          title: "Atas NDE",
+          document_code: "027-NDE-01",
+          semester: "2026-2",
+        },
+      ],
+      [],
+      ["2026-1", "2026-2"],
+      { id: "direito", code: "027" },
+    );
+    expect(rows).toHaveLength(1);
+    expect(rows[0].code).toBe("027-NDE-01");
+    expect(rows[0].cells.map((c) => c.required)).toEqual([1, 1]);
+  });
+  it("exporta o código do curso em vez do prefixo legado", () => {
+    const csv = coverageCsv(
+      [{ id: "a", title: "Atas", document_code: "DIR-NDE-01" }],
+      [],
+      { id: "direito", code: "027" },
+    );
+    expect(csv).toContain("027-NDE-01");
+    expect(csv).not.toContain("DIR-NDE-01");
+  });
+});

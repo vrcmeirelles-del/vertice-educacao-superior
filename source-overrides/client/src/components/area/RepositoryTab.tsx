@@ -1,3 +1,7 @@
+import {
+  repositoryDocumentCode,
+  repositoryTemplateCode,
+} from "@/lib/repository-codes";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { supabase } from "@/lib/supabase";
 import {
@@ -273,7 +277,7 @@ export default function RepositoryTab(props: RepositoryProps) {
   }
   function exportCsv() {
     const url = URL.createObjectURL(
-      new Blob([coverageCsv(scoped, files)], {
+      new Blob([coverageCsv(scoped, files, course)], {
         type: "text/csv;charset=utf-8",
       }),
     );
@@ -299,12 +303,16 @@ export default function RepositoryTab(props: RepositoryProps) {
         </thead>
         <tbody>
           {rows.map((r) => {
-            const template = catalog.find((t) => t.codigo === r.document_code);
+            const template = catalog.find(
+              (t) => t.codigo === repositoryTemplateCode(r.document_code),
+            );
             const f = latest.get(r.id);
             const state = String(f?.status ?? "pendente");
             return (
               <tr key={r.id}>
-                <td className="er-code">{String(r.document_code ?? "—")}</td>
+                <td className="er-code">
+                  {repositoryDocumentCode(r.document_code, course) || "—"}
+                </td>
                 <td>
                   <strong>{String(r.title)}</strong>
                   {Boolean(r.instructions) && (
@@ -838,7 +846,10 @@ export default function RepositoryTab(props: RepositoryProps) {
                             <tr key={f.id}>
                               <td>
                                 <span className="er-code">
-                                  {String(r?.document_code ?? "—")}
+                                  {repositoryDocumentCode(
+                                    r?.document_code,
+                                    course,
+                                  ) || "—"}
                                 </span>
                                 <small>{String(r?.title ?? "Documento")}</small>
                                 {Boolean(f.reference) && (
@@ -938,43 +949,46 @@ export default function RepositoryTab(props: RepositoryProps) {
                         </tr>
                       </thead>
                       <tbody>
-                        {evidenceSeries(courseRequests, files, periods).map(
-                          (row) => (
-                            <tr key={row.key}>
-                              <td>
-                                <span className="er-code">{row.code}</span>
-                                <small>{row.title}</small>
+                        {evidenceSeries(
+                          courseRequests,
+                          files,
+                          periods,
+                          course,
+                        ).map((row) => (
+                          <tr key={row.key}>
+                            <td>
+                              <span className="er-code">{row.code}</span>
+                              <small>{row.title}</small>
+                            </td>
+                            {row.cells.map((cell) => (
+                              <td key={cell.period}>
+                                <Pill state={cell.status} />
                               </td>
-                              {row.cells.map((cell) => (
-                                <td key={cell.period}>
-                                  <Pill state={cell.status} />
-                                </td>
-                              ))}
-                              {courseRequests.some((r) => !r.semester) && (
-                                <td>
-                                  {courseRequests
-                                    .filter(
-                                      (r) =>
-                                        !r.semester &&
-                                        String(
-                                          r.document_code ||
-                                            `custom:${r.title}`,
-                                        ) === row.key,
-                                    )
-                                    .map((r) => (
-                                      <Pill
-                                        key={r.id}
-                                        state={String(
-                                          latest.get(r.id)?.status ??
-                                            "pendente",
-                                        )}
-                                      />
-                                    ))}
-                                </td>
-                              )}
-                            </tr>
-                          ),
-                        )}
+                            ))}
+                            {courseRequests.some((r) => !r.semester) && (
+                              <td>
+                                {courseRequests
+                                  .filter(
+                                    (r) =>
+                                      !r.semester &&
+                                      String(
+                                        repositoryTemplateCode(
+                                          r.document_code,
+                                        ) || `custom:${r.title}`,
+                                      ) === row.key,
+                                  )
+                                  .map((r) => (
+                                    <Pill
+                                      key={r.id}
+                                      state={String(
+                                        latest.get(r.id)?.status ?? "pendente",
+                                      )}
+                                    />
+                                  ))}
+                              </td>
+                            )}
+                          </tr>
+                        ))}
                       </tbody>
                     </table>
                   </div>
@@ -1103,7 +1117,12 @@ function CatalogPreview({
     catalog,
     course ?? { id: "", degree: "", modality: "" },
     area,
-  ).filter((t) => !configured.some((r) => r.document_code === t.codigo));
+  ).filter(
+    (t) =>
+      !configured.some(
+        (r) => repositoryTemplateCode(r.document_code) === t.codigo,
+      ),
+  );
   return (
     <div className="er-catalog">
       <div className="er-toolbar">
@@ -1151,7 +1170,9 @@ function CatalogPreview({
                 <tbody>
                   {rows.map((t) => (
                     <tr key={t.codigo}>
-                      <td className="er-code">{t.codigo}</td>
+                      <td className="er-code">
+                        {repositoryDocumentCode(t.codigo, course)}
+                      </td>
                       <td>
                         <strong>{t.nome}</strong>
                         <small>{t.finalidade}</small>
@@ -1287,7 +1308,9 @@ function UploadDialog(
             course_id: props.course?.id ?? null,
             semester: props.semester,
             title,
-            document_code: template?.codigo ?? null,
+            document_code: template
+              ? repositoryDocumentCode(template.codigo, props.course)
+              : null,
             indicator: template?.indicadores.join(", ") ?? null,
             instructions: template?.finalidade ?? null,
             goal_id: goal?.id ?? null,
@@ -1359,7 +1382,8 @@ function UploadDialog(
                 <optgroup label="Exigências deste curso e semestre">
                   {scoped.map((r) => (
                     <option key={r.id} value={r.id}>
-                      {String(r.document_code ?? "")} · {String(r.title)}
+                      {repositoryDocumentCode(r.document_code, props.course)} ·{" "}
+                      {String(r.title)}
                     </option>
                   ))}
                 </optgroup>
@@ -1373,11 +1397,16 @@ function UploadDialog(
                     {catalog
                       .filter(
                         (t) =>
-                          !scoped.some((r) => r.document_code === t.codigo),
+                          !scoped.some(
+                            (r) =>
+                              repositoryTemplateCode(r.document_code) ===
+                              t.codigo,
+                          ),
                       )
                       .map((t) => (
                         <option key={t.codigo} value={`modelo:${t.codigo}`}>
-                          {t.codigo} · {t.nome}
+                          {repositoryDocumentCode(t.codigo, props.course)} ·{" "}
+                          {t.nome}
                         </option>
                       ))}
                   </optgroup>

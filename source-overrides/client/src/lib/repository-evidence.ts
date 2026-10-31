@@ -1,3 +1,7 @@
+import {
+  repositoryDocumentCode,
+  repositoryTemplateCode,
+} from "./repository-codes";
 import type { Row } from "./area";
 import { latestDocuments, repositorySemester } from "./repository";
 
@@ -22,17 +26,20 @@ export function evidenceSeries(
   requests: Row[],
   files: Row[],
   periods: string[],
+  course?: Row | null,
 ) {
   const latest = latestDocuments(files);
   const groups = new Map<string, Row[]>();
   for (const r of requests.filter((r) => r.active !== false)) {
-    const key = String(r.document_code || `custom:${r.title}`);
+    const key = String(
+      repositoryTemplateCode(r.document_code) || `custom:${r.title}`,
+    );
     groups.set(key, [...(groups.get(key) ?? []), r]);
   }
   return [...groups.entries()].map(([key, rows]) => ({
     key,
     title: String(rows[0].title),
-    code: String(rows[0].document_code ?? "—"),
+    code: repositoryDocumentCode(rows[0].document_code, course) || "—",
     cells: periods.map((period) => {
       const required = rows.filter(
         (r) => repositorySemester(r.semester) === period,
@@ -57,7 +64,11 @@ export function evidenceSeries(
   }));
 }
 
-export function coverageCsv(requests: Row[], files: Row[]) {
+export function coverageCsv(
+  requests: Row[],
+  files: Row[],
+  course?: Row | null,
+) {
   const latest = latestDocuments(files);
   const safe = (value: unknown) => {
     const text = String(value ?? "");
@@ -78,7 +89,7 @@ export function coverageCsv(requests: Row[], files: Row[]) {
   for (const r of requests.filter((r) => r.active !== false)) {
     const f = latest.get(r.id);
     rows.push([
-      r.document_code,
+      repositoryDocumentCode(r.document_code, course),
       r.title,
       r.semester,
       r.indicator,

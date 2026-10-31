@@ -1,3 +1,7 @@
+import {
+  repositoryDocumentCode,
+  repositoryTemplateCode,
+} from "@/lib/repository-codes";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { explain, type Row } from "@/lib/area";
@@ -70,12 +74,15 @@ export default function RepositoryChecklist({
     requests.some(
       (r) =>
         (r.course_id ?? null) === (course?.id ?? null) &&
-        r.document_code === code &&
+        repositoryTemplateCode(r.document_code) ===
+          repositoryTemplateCode(code) &&
         repositorySemester(r.semester) === repositorySemester(sem),
     );
   const available = templates.filter((t) => !exists(t.codigo));
   const visible = templates.filter((t) =>
-    `${t.nome} ${t.codigo}`.toLowerCase().includes(query.toLowerCase()),
+    `${t.nome} ${t.codigo} ${repositoryDocumentCode(t.codigo, course)}`
+      .toLowerCase()
+      .includes(query.toLowerCase()),
   );
   const choice = available.filter((t) => selected.includes(t.codigo));
   return (
@@ -96,7 +103,7 @@ export default function RepositoryChecklist({
             course_id: course?.id ?? null,
             goal_id: goal || null,
             title: t.nome,
-            document_code: t.codigo,
+            document_code: repositoryDocumentCode(t.codigo, course),
             indicator: t.indicadores.join(", "),
             instructions: t.finalidade,
             semester: repositorySemester(sem),
@@ -241,8 +248,8 @@ export default function RepositoryChecklist({
             <span>
               <strong>{t.nome}</strong>
               <small>
-                {t.codigo} · Referências {t.indicadores.join(", ")} ·{" "}
-                {t.periodicidade}
+                {repositoryDocumentCode(t.codigo, course)} · Referências{" "}
+                {t.indicadores.join(", ")} · {t.periodicidade}
                 {exists(t.codigo) ? " · Já configurado neste semestre" : ""}
               </small>
             </span>

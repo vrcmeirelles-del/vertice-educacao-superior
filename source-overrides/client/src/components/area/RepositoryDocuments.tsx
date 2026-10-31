@@ -1,3 +1,7 @@
+import {
+  repositoryDocumentCode,
+  repositoryTemplateCode,
+} from "@/lib/repository-codes";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import {
@@ -103,7 +107,10 @@ export default function RepositoryDocuments({
     (r) =>
       (!requestFocus || r.id === requestFocus) &&
       (!query ||
-        `${r.title} ${r.document_code ?? ""} ${r.assignee_email ?? ""}`
+        `${r.title} ${r.document_code ?? ""} ${repositoryDocumentCode(
+          r.document_code,
+          courses.find((c) => c.id === r.course_id),
+        )} ${r.assignee_email ?? ""}`
           .toLowerCase()
           .includes(query.toLowerCase())) &&
       (!status || (latest.get(r.id)?.status ?? "pendente") === status),
@@ -158,7 +165,10 @@ export default function RepositoryDocuments({
   const templateValues = selectedTemplate
     ? {
         title: selectedTemplate.nome,
-        document_code: selectedTemplate.codigo,
+        document_code: repositoryDocumentCode(
+          selectedTemplate.codigo,
+          courses.find((c) => c.id === course),
+        ),
         indicator: selectedTemplate.indicadores.join(", "),
         instructions: selectedTemplate.finalidade,
       }
@@ -172,7 +182,15 @@ export default function RepositoryDocuments({
           assigned_to: baseGoal?.owner_user_id ?? "",
           ...templateValues,
         }
-      : editing;
+      : editing
+        ? {
+            ...editing,
+            document_code: repositoryDocumentCode(
+              editing.document_code,
+              courses.find((c) => c.id === editing.course_id),
+            ),
+          }
+        : editing;
   async function register(values: Row) {
     const { error } = await supabase.from(FILES).insert(values);
     if (error) {
@@ -413,7 +431,11 @@ export default function RepositoryDocuments({
                 <option value="">Documento personalizado</option>
                 {catalog.map((t) => (
                   <option key={t.codigo} value={t.codigo}>
-                    {t.codigo} · {t.nome}
+                    {repositoryDocumentCode(
+                      t.codigo,
+                      courses.find((c) => c.id === course),
+                    )}{" "}
+                    · {t.nome}
                   </option>
                 ))}
               </select>
@@ -441,6 +463,13 @@ export default function RepositoryDocuments({
                 REQUESTS,
                 {
                   ...v,
+                  document_code:
+                    repositoryDocumentCode(
+                      v.document_code,
+                      courses.find(
+                        (c) => c.id === (g?.course_id ?? v.course_id),
+                      ),
+                    ) || null,
                   assigned_to: v.assigned_to ?? g?.owner_user_id ?? null,
                   course_id: g?.course_id ?? v.course_id ?? null,
                   ...(editing === "new"
@@ -637,7 +666,12 @@ export default function RepositoryDocuments({
                 <p className="area-muted">
                   {String(courseName(r.course_id) ?? "Institucional")}
                   {r.semester ? ` · ${r.semester}` : ""}
-                  {r.document_code ? ` · ${r.document_code}` : ""}
+                  {r.document_code
+                    ? ` · ${repositoryDocumentCode(
+                        r.document_code,
+                        courses.find((c) => c.id === r.course_id),
+                      )}`
+                    : ""}
                 </p>
                 <p>
                   Meta:{" "}
