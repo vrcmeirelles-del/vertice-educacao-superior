@@ -262,7 +262,7 @@ function OverviewTab({ data, stats, onGo }: { data: Data; stats?: { enrolled: nu
   return (
     <>
       <div className="area-stat-grid">
-        <article className={docs.late?"warn":""}><small>Repositório documental</small><b>{docs.validated}/{docs.total}</b><span>{docs.pending} sem envio · {docs.late} em atraso</span><button className="corp-login-text-button" onClick={()=>onGo("repositorio")}>Abrir repositório</button></article>
+        <article className={docs.late?"warn":""}><small>Repositório documental</small><b>{docs.validated}/{docs.total}</b><span>{docs.pending} sem envio · {docs.late} em atraso · {docs.nsa} NSA</span><button className="corp-login-text-button" onClick={()=>onGo("repositorio")}>Abrir repositório</button></article>
         <article><small>Matriculados{stats?.semester ? ` em ${stats.semester}` : ""}</small><b>{(stats?.enrolled ?? 0).toLocaleString("pt-BR")}</b><span>{activeCourses} {activeCourses === 1 ? "curso ativo" : "cursos ativos"}</span></article>
         <article><small>Metas em acompanhamento</small><b>{live.filter(g => g.status === "ativa").length}</b><span>{avgGoal === null ? "sem medições" : `progresso médio ${avgGoal}%`}</span></article>
         <article><small>Ações concluídas</small><b>{acts.length ? Math.round((done / acts.length) * 100) : 0}%</b><span>{done} de {acts.length} ações</span></article>
@@ -539,7 +539,7 @@ function GoalsTab({ institutionId, role, data, reload, onRepository }: { institu
                   {courseName(g.course_id) && <small>{courseName(g.course_id)}</small>}
                 </div>
                 <h4>{String(g.title)}</h4>
-                <p className="area-muted">Documentos: {docs.sent}/{docs.total} com envio · {docs.validated} validados · {docs.pending} pendentes · {docs.late} em atraso</p>
+                <p className="area-muted">Documentos: {docs.sent}/{docs.total} com envio · {docs.validated} validados · {docs.pending} pendentes · {docs.late} em atraso · {docs.nsa} NSA</p>
                 <p className="area-muted">{String(g.indicator)}{g.owner_name||g.owner_email ? ` · ${String(g.owner_name||g.owner_email)}` : ""}</p>
                 <div className="area-goal-numbers">
                   <div><small>Linha de base</small><b>{fmtNum(g.baseline, g.unit)}</b></div>

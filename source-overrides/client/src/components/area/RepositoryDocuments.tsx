@@ -1,3 +1,4 @@
+import { requestDocumentStatus } from "@/lib/repository";
 import {
   repositoryDocumentCode,
   repositoryTemplateCode,
@@ -113,7 +114,7 @@ export default function RepositoryDocuments({
         )} ${r.assignee_email ?? ""}`
           .toLowerCase()
           .includes(query.toLowerCase())) &&
-      (!status || (latest.get(r.id)?.status ?? "pendente") === status),
+      (!status || requestDocumentStatus(r, latest.get(r.id)) === status),
   );
   const goalName = (id: unknown) => goals.find((g) => g.id === id)?.title;
   const courseName = (id: unknown) => courses.find((c) => c.id === id)?.name;
@@ -641,13 +642,14 @@ export default function RepositoryDocuments({
         <div className="area-cards">
           {shown.map((r) => {
             const f = latest.get(r.id),
-              state = (f?.status ?? "pendente") as DocumentStatus,
+              state = requestDocumentStatus(r, f) as DocumentStatus,
               versions = files
                 .filter((x) => x.request_id === r.id)
                 .sort((a, b) =>
                   String(b.created_at).localeCompare(String(a.created_at)),
                 );
             const mayUpload =
+              r.not_applicable !== true &&
               r.active !== false &&
               (manager || (role === "equipe" && r.assigned_to === userId));
             return (

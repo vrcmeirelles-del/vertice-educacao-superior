@@ -1,4 +1,9 @@
 import {
+  REPOSITORY_PERIODS,
+  semesterLabel,
+  requestDocumentStatus,
+} from "@/lib/repository";
+import {
   repositoryDocumentCode,
   repositoryTemplateCode,
 } from "@/lib/repository-codes";
@@ -46,6 +51,7 @@ const stateLabel: Record<string, string> = {
   validado: "Validado",
   devolvido: "Devolvido",
   nao_configurado: "Não configurado",
+  nsa: "NSA — Não se aplica",
 };
 const stateTone: Record<string, string> = {
   pendente: "falta",
@@ -53,6 +59,7 @@ const stateTone: Record<string, string> = {
   validado: "ok",
   devolvido: "devolvido",
   nao_configurado: "neutro",
+  nsa: "neutro",
 };
 function Pill({ state, children }: { state: string; children?: ReactNode }) {
   return (
@@ -177,6 +184,7 @@ export default function RepositoryTab(props: RepositoryProps) {
   const [configuring, setConfiguring] = useState(false);
   const [managing, setManaging] = useState(false);
   const [upload, setUpload] = useState<string | null>(null);
+  const [nsaRequest, setNsaRequest] = useState<Row | null>(null);
   const [reviewing, setReviewing] = useState<Row | null>(null);
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
@@ -208,6 +216,7 @@ export default function RepositoryTab(props: RepositoryProps) {
   const scoped = requestsInSemester(courseRequests, semester).filter(
     (r) => r.active !== false,
   );
+  const applicable = scoped.filter((r) => r.not_applicable !== true);
   const latest = latestDocuments(files);
   const summary = repositorySummary(scoped, files);
   const seriesSummary = repositorySummary(courseRequests, files);
@@ -216,6 +225,7 @@ export default function RepositoryTab(props: RepositoryProps) {
     : 0;
   const periods = [
     ...new Set([
+      ...REPOSITORY_PERIODS,
       ...evidenceSemesters(semester),
       ...courseRequests
         .map((r) => repositorySemester(r.semester))
@@ -227,16 +237,17 @@ export default function RepositoryTab(props: RepositoryProps) {
     .filter((f) => ownIds.has(String(f.request_id)))
     .sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
   const indicators = [
-    ...new Set(scoped.flatMap((r) => indicatorList(r.indicator))),
+    ...new Set(applicable.flatMap((r) => indicatorList(r.indicator))),
   ];
   const indicatorsCovered = indicators.filter((i) =>
-    scoped.some(
+    applicable.some(
       (r) => indicatorList(r.indicator).includes(i) && latest.has(r.id),
     ),
   ).length;
-  const canSend = (r: Row) =>
+  const canDecide = (r: Row) =>
     r.active !== false &&
     (manager || (role === "equipe" && r.assigned_to === userId));
+  const canSend = (r: Row) => canDecide(r) && r.not_applicable !== true;
   const courseName = String(course?.name ?? "Documentos institucionais");
   const goCourse = (id: string) => {
     setCourseId(id);
@@ -307,7 +318,7 @@ export default function RepositoryTab(props: RepositoryProps) {
               (t) => t.codigo === repositoryTemplateCode(r.document_code),
             );
             const f = latest.get(r.id);
-            const state = String(f?.status ?? "pendente");
+            const state = requestDocumentStatus(r, f);
             return (
               <tr key={r.id}>
                 <td className="er-code">
@@ -340,12 +351,25 @@ export default function RepositoryTab(props: RepositoryProps) {
                 )}
                 <td>
                   <Pill state={state} />
+                  {r.not_applicable === true && (
+                    <small>{String(r.nsa_reason ?? "")}</small>
+                  )}
                   {Boolean(f?.review_note) && (
                     <small>{String(f?.review_note)}</small>
                   )}
                 </td>
                 <td>
                   <div className="er-actions">
+                    {canDecide(r) && (
+                      <button
+                        className="er-btn er-small"
+                        onClick={() => setNsaRequest(r)}
+                      >
+                        {r.not_applicable === true
+                          ? "Tornar aplicável"
+                          : "NSA — Não se aplica"}
+                      </button>
+                    )}
                     {canSend(r) && (
                       <button
                         className="er-btn er-small"
@@ -400,7 +424,7 @@ export default function RepositoryTab(props: RepositoryProps) {
               {courseId === null
                 ? "Situação por curso e acompanhamento das entregas"
                 : "Cobertura de evidências"}{" "}
-              · {semester}
+              · {semesterLabel(semester)}
             </p>
           </div>
           <div className="er-actions">
@@ -444,24 +468,21 @@ export default function RepositoryTab(props: RepositoryProps) {
         <div className="er-toolbar">
           <label>
             Semestre de referência
-            <input
+            <select
               aria-label="Semestre de referência"
-              type="text"
-              pattern="[0-9]{4}-[12]"
               value={semester}
-              onChange={(e) => {
-                if (/^\d{0,4}(-[12]?)?$/.test(e.target.value))
-                  setSemester(e.target.value);
-              }}
-              placeholder="2026-2"
-              list="er-periods"
-            />
+              onChange={(e) => setSemester(e.target.value)}
+            >
+              {[...new Set([...REPOSITORY_PERIODS, ...periods])]
+                .sort()
+                .reverse()
+                .map((p) => (
+                  <option key={p} value={p}>
+                    {semesterLabel(p)}
+                  </option>
+                ))}
+            </select>
           </label>
-          <datalist id="er-periods">
-            {periods.map((p) => (
-              <option key={p} value={p} />
-            ))}
-          </datalist>
           {goalFilter && (
             <span className="er-notice">
               Meta:{" "}
@@ -494,7 +515,9 @@ export default function RepositoryTab(props: RepositoryProps) {
               />
               <Kpi
                 title="Cobertura documental"
-                value={summary.total ? `${presence}%` : "—"}
+                value={
+                  summary.total ? `${presence}%` : summary.nsa ? "NSA" : "—"
+                }
                 detail={
                   summary.total
                     ? `${summary.sent} de ${summary.total} exigências com documento`
@@ -517,7 +540,9 @@ export default function RepositoryTab(props: RepositoryProps) {
             <>
               <Kpi
                 title="Presença no semestre"
-                value={summary.total ? `${presence}%` : "—"}
+                value={
+                  summary.total ? `${presence}%` : summary.nsa ? "NSA" : "—"
+                }
                 detail={`${summary.sent} de ${summary.total} exigências com documento`}
                 percent={presence}
               />
@@ -533,14 +558,20 @@ export default function RepositoryTab(props: RepositoryProps) {
               />
               <Kpi
                 title="Validado"
-                value={summary.total ? `${summary.percent}%` : "—"}
+                value={
+                  summary.total
+                    ? `${summary.percent}%`
+                    : summary.nsa
+                      ? "NSA"
+                      : "—"
+                }
                 detail={`${summary.validated} conferidos de ${summary.total}`}
                 percent={summary.percent}
               />
               <Kpi
                 title="Pendências"
                 value={summary.pending + summary.returned}
-                detail={`${summary.pending} sem arquivo · ${summary.returned} devolvidos`}
+                detail={`${summary.pending} sem arquivo · ${summary.returned} devolvidos · ${summary.nsa} NSA`}
               />
             </>
           )}
@@ -590,7 +621,7 @@ export default function RepositoryTab(props: RepositoryProps) {
                       .includes(search.toLowerCase()) &&
                     (filter === "todos" ||
                       (filter === "pendentes" && s.pending + s.returned > 0) ||
-                      (filter === "configurar" && !s.total)),
+                      (filter === "configurar" && !s.total && !s.nsa)),
                 )
                 .sort(
                   (a, b) =>
@@ -628,7 +659,13 @@ export default function RepositoryTab(props: RepositoryProps) {
                       <div className="er-progress">
                         <div>
                           <span>
-                            <b>{s.total ? `${pc}%` : "Sem checklist"}</b>{" "}
+                            <b>
+                              {s.total
+                                ? `${pc}%`
+                                : s.nsa
+                                  ? "NSA"
+                                  : "Sem checklist"}
+                            </b>{" "}
                             {s.total ? "com documento" : ""}
                           </span>
                           <span>{s.pending + s.returned} pendências</span>
@@ -639,7 +676,9 @@ export default function RepositoryTab(props: RepositoryProps) {
                       </div>
                       <Pill state={state}>
                         {!s.total
-                          ? "Configurar exigências"
+                          ? s.nsa
+                            ? "NSA — Não se aplica"
+                            : "Configurar exigências"
                           : s.late
                             ? `${s.late} em atraso`
                             : s.pending + s.returned
@@ -746,7 +785,7 @@ export default function RepositoryTab(props: RepositoryProps) {
                         detail="faltas e devoluções"
                       />
                     </div>
-                    {scoped.some(
+                    {applicable.some(
                       (r) =>
                         !latest.has(r.id) ||
                         latest.get(r.id)?.status === "devolvido",
@@ -760,7 +799,7 @@ export default function RepositoryTab(props: RepositoryProps) {
                         }
                       >
                         {documentTable(
-                          scoped.filter(
+                          applicable.filter(
                             (r) =>
                               !latest.has(r.id) ||
                               latest.get(r.id)?.status === "devolvido",
@@ -769,21 +808,22 @@ export default function RepositoryTab(props: RepositoryProps) {
                       </Card>
                     ) : (
                       <p className="er-alert success">
-                        Todas as exigências deste semestre possuem envio. A
-                        validação é feita pela gestão.
+                        {summary.total
+                          ? "Todas as exigências aplicáveis deste semestre possuem envio. A validação é feita pela gestão."
+                          : "Não há exigências aplicáveis neste semestre. Os itens NSA não entram nas pendências."}
                       </p>
                     )}
                     <Card
                       title="Documentos com material no semestre"
                       detail="Validado é o que já passou pela conferência"
                     >
-                      {scoped.some(
+                      {applicable.some(
                         (r) =>
                           latest.has(r.id) &&
                           latest.get(r.id)?.status !== "devolvido",
                       ) ? (
                         documentTable(
-                          scoped.filter(
+                          applicable.filter(
                             (r) =>
                               latest.has(r.id) &&
                               latest.get(r.id)?.status !== "devolvido",
@@ -795,12 +835,22 @@ export default function RepositoryTab(props: RepositoryProps) {
                         </div>
                       )}
                     </Card>
+                    {summary.nsa > 0 && (
+                      <Card
+                        title="NSA — Não se aplica"
+                        detail={`${summary.nsa} itens fora das pendências`}
+                      >
+                        {documentTable(
+                          scoped.filter((r) => r.not_applicable === true),
+                        )}
+                      </Card>
+                    )}
                   </>
                 )}
               </>
             ) : view === "arquivos" ? (
               <Card
-                title={`Arquivos enviados em ${semester}`}
+                title={`Arquivos enviados em ${semesterLabel(semester)}`}
                 detail={`${ownFiles.length} arquivos`}
               >
                 {!ownFiles.length ? (
@@ -880,7 +930,13 @@ export default function RepositoryTab(props: RepositoryProps) {
                                 </small>
                               </td>
                               <td>
-                                <Pill state={String(f.status)} />
+                                <Pill
+                                  state={
+                                    r
+                                      ? requestDocumentStatus(r, f)
+                                      : String(f.status)
+                                  }
+                                />
                                 {Boolean(f.review_note) && (
                                   <small>{String(f?.review_note)}</small>
                                 )}
@@ -941,7 +997,7 @@ export default function RepositoryTab(props: RepositoryProps) {
                         <tr>
                           <th>Documento</th>
                           {periods.map((p) => (
-                            <th key={p}>{p}</th>
+                            <th key={p}>{semesterLabel(p)}</th>
                           ))}
                           {courseRequests.some((r) => !r.semester) && (
                             <th>Sem período definido</th>
@@ -1039,11 +1095,14 @@ export default function RepositoryTab(props: RepositoryProps) {
           initialTarget={upload}
           userId={userId}
           onClose={() => setUpload(null)}
-          onSent={() => {
+          onSent={(period, nsa) => {
+            setSemester(period);
             setUpload(null);
-            setView("arquivos");
+            setView(nsa ? "catalogo" : "arquivos");
             setNotice(
-              "Documento enviado. A entrega aguarda conferência da gestão.",
+              nsa
+                ? "NSA registrado. O item não entra nas pendências deste semestre."
+                : "Documento enviado no semestre selecionado. A entrega aguarda conferência da gestão.",
             );
           }}
         />
@@ -1082,6 +1141,19 @@ export default function RepositoryTab(props: RepositoryProps) {
             />
           </div>
         </Modal>
+      )}
+      {nsaRequest && (
+        <NsaDialog
+          request={nsaRequest}
+          onClose={() => setNsaRequest(null)}
+          onSaved={async () => {
+            await reload();
+            setNsaRequest(null);
+            setNotice(
+              "Aplicabilidade atualizada. As pendências foram recalculadas.",
+            );
+          }}
+        />
       )}
       {reviewing && (
         <ReviewDialog
@@ -1212,10 +1284,15 @@ function UploadDialog(
     initialTarget: string;
     userId: string;
     onClose: () => void;
-    onSent: () => void;
+    onSent: (semester: string, nsa?: boolean) => void;
   },
 ) {
   const manager = can.manageGoals(props.role);
+  const [uploadSemester, setUploadSemester] = useState(
+    repositorySemester(props.semester) || "2026-2",
+  );
+  const [isNsa, setIsNsa] = useState(false);
+  const [nsaReason, setNsaReason] = useState("");
   const [target, setTarget] = useState(props.initialTarget);
   const [file, setFile] = useState<File | null>(null);
   const [reference, setReference] = useState("");
@@ -1235,10 +1312,11 @@ function UploadDialog(
           ? !r.course_id
           : r.course_id === props.course?.id) &&
         r.active !== false &&
+        r.not_applicable !== true &&
         (manager ||
           (props.role === "equipe" && r.assigned_to === props.userId)),
     ),
-    props.semester,
+    "",
   );
   const selected = scoped.find((r) => r.id === target);
   const courseGoals = props.goals.filter(
@@ -1270,15 +1348,15 @@ function UploadDialog(
     }
     setPending(null);
     await props.reload();
-    props.onSent();
+    props.onSent(uploadSemester);
   }
   async function send() {
     setError("");
-    if (!/^\d{4}-[12]$/.test(props.semester)) {
+    if (!/^\d{4}-[12]$/.test(uploadSemester)) {
       setError("Escolha um semestre válido (ex.: 2026-2).");
       return;
     }
-    if (!file) {
+    if (!file && !isNsa) {
       setError("Escolha o arquivo a enviar.");
       return;
     }
@@ -1286,9 +1364,13 @@ function UploadDialog(
       setError("Escolha o documento a que se refere o arquivo.");
       return;
     }
+    if (isNsa && !nsaReason.trim()) {
+      setError("Informe por que este documento não se aplica.");
+      return;
+    }
     setBusy(true);
     try {
-      const { ext, mime } = documentFile(file);
+      const verifiedFile = file ? documentFile(file) : null;
       let request = selected ?? created;
       if (!request) {
         if (!manager)
@@ -1306,7 +1388,7 @@ function UploadDialog(
           .insert({
             institution_id: props.institutionId,
             course_id: props.course?.id ?? null,
-            semester: props.semester,
+            semester: uploadSemester,
             title,
             document_code: template
               ? repositoryDocumentCode(template.codigo, props.course)
@@ -1323,6 +1405,32 @@ function UploadDialog(
         request = data as Row;
         setCreated(request);
       }
+      if (
+        selected &&
+        (!selected.semester ||
+          repositorySemester(selected.semester) !== uploadSemester)
+      ) {
+        const { data, error } = await supabase.rpc(
+          "vertice_repository_period_target",
+          { source_request: selected.id, target_semester: uploadSemester },
+        );
+        if (error) throw error;
+        request = { ...selected, id: String(data), semester: uploadSemester };
+        setCreated(request);
+      }
+      if (isNsa) {
+        const { error } = await supabase.rpc("vertice_repository_set_nsa", {
+          target: request.id,
+          marked: true,
+          note: nsaReason.trim(),
+        });
+        if (error) throw error;
+        await props.reload();
+        props.onSent(uploadSemester, true);
+        return;
+      }
+      if (!file || !verifiedFile) throw new Error("Escolha o arquivo.");
+      const { ext, mime } = verifiedFile;
       const id = crypto.randomUUID();
       const path = `${props.institutionId}/${request.id}/${id}.${ext}`;
       const { error } = await supabase.storage
@@ -1367,8 +1475,28 @@ function UploadDialog(
           </p>
           <p className="er-muted">
             {String(props.course?.name ?? "Acervo institucional")} · semestre{" "}
-            {props.semester}
+            {semesterLabel(uploadSemester)}
           </p>
+          <label className="er-field">
+            Semestre em que o documento foi criado
+            <select
+              value={uploadSemester}
+              disabled={busy || Boolean(pending) || Boolean(created)}
+              onChange={(e) => setUploadSemester(e.target.value)}
+            >
+              {[...new Set([...REPOSITORY_PERIODS, uploadSemester])]
+                .sort()
+                .reverse()
+                .map((p) => (
+                  <option key={p} value={p}>
+                    {semesterLabel(p)}
+                  </option>
+                ))}
+            </select>
+            <small>
+              A evidência será registrada neste semestre do histórico.
+            </small>
+          </label>
           <label className="er-field">
             Documento
             <select
@@ -1383,7 +1511,8 @@ function UploadDialog(
                   {scoped.map((r) => (
                     <option key={r.id} value={r.id}>
                       {repositoryDocumentCode(r.document_code, props.course)} ·{" "}
-                      {String(r.title)}
+                      {String(r.title)} ·{" "}
+                      {semesterLabel(r.semester) || "Sem período"}
                     </option>
                   ))}
                 </optgroup>
@@ -1433,78 +1562,108 @@ function UploadDialog(
               />
             </label>
           )}
-          <label className="er-field">Arquivo</label>
-          <button
-            type="button"
-            className={`er-drop ${drag ? "active" : ""}`}
-            disabled={busy || Boolean(pending)}
-            onClick={() => picker.current?.click()}
-            onDragOver={(e) => {
-              e.preventDefault();
-              setDrag(true);
-            }}
-            onDragLeave={() => setDrag(false)}
-            onDrop={(e) => {
-              e.preventDefault();
-              setDrag(false);
-              if (!busy && !pending) choose(e.dataTransfer.files[0]);
-            }}
-          >
-            <strong>Clique para escolher o arquivo</strong>
-            <span>
-              ou arraste para esta área · PDF, Word, Excel, PowerPoint ou imagem
-              · até 20 MB
-            </span>
-          </button>
-          <input
-            ref={picker}
-            aria-label="Escolher arquivo de evidência"
-            type="file"
-            className="er-file-input"
-            accept={Object.keys(FILE_TYPES)
-              .map((x) => `.${x}`)
-              .join(",")}
-            disabled={busy || Boolean(pending)}
-            onChange={(e) => {
-              choose(e.target.files?.[0]);
-              e.target.value = "";
-            }}
-          />
-          {file && (
-            <div className="er-chosen">
-              <strong>{file.name}</strong>
-              <span>{(file.size / 1024 / 1024).toFixed(2)} MB</span>
+          <label className="er-field">
+            Tipo de registro
+            <select
+              value={isNsa ? "nsa" : "arquivo"}
+              disabled={busy || Boolean(pending)}
+              onChange={(e) => setIsNsa(e.target.value === "nsa")}
+            >
+              <option value="arquivo">Enviar arquivo de evidência</option>
+              <option value="nsa">NSA — Não se aplica</option>
+            </select>
+          </label>
+          {isNsa ? (
+            <label className="er-field">
+              Justificativa de não aplicabilidade
+              <textarea
+                required
+                maxLength={4000}
+                value={nsaReason}
+                onChange={(e) => setNsaReason(e.target.value)}
+                placeholder="Explique por que este documento não se aplica ao curso neste semestre"
+              />
+              <small>
+                O item fica registrado como NSA e sai das pendências e da base
+                de cobertura.
+              </small>
+            </label>
+          ) : (
+            <>
+              <label className="er-field">Arquivo</label>
               <button
                 type="button"
-                className="er-btn er-small"
+                className={`er-drop ${drag ? "active" : ""}`}
                 disabled={busy || Boolean(pending)}
-                onClick={() => setFile(null)}
+                onClick={() => picker.current?.click()}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setDrag(true);
+                }}
+                onDragLeave={() => setDrag(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setDrag(false);
+                  if (!busy && !pending) choose(e.dataTransfer.files[0]);
+                }}
               >
-                Remover
+                <strong>Clique para escolher o arquivo</strong>
+                <span>
+                  ou arraste para esta área · PDF, Word, Excel, PowerPoint ou
+                  imagem · até 20 MB
+                </span>
               </button>
-            </div>
+              <input
+                ref={picker}
+                aria-label="Escolher arquivo de evidência"
+                type="file"
+                className="er-file-input"
+                accept={Object.keys(FILE_TYPES)
+                  .map((x) => `.${x}`)
+                  .join(",")}
+                disabled={busy || Boolean(pending)}
+                onChange={(e) => {
+                  choose(e.target.files?.[0]);
+                  e.target.value = "";
+                }}
+              />
+              {file && (
+                <div className="er-chosen">
+                  <strong>{file.name}</strong>
+                  <span>{(file.size / 1024 / 1024).toFixed(2)} MB</span>
+                  <button
+                    type="button"
+                    className="er-btn er-small"
+                    disabled={busy || Boolean(pending)}
+                    onClick={() => setFile(null)}
+                  >
+                    Remover
+                  </button>
+                </div>
+              )}
+              <label className="er-field">
+                Referência
+                <input
+                  maxLength={250}
+                  disabled={busy || Boolean(pending)}
+                  value={reference}
+                  onChange={(e) => setReference(e.target.value)}
+                  placeholder="Ex.: Ata NDE 05 — 2026-2"
+                />
+                <small>Identifica este arquivo dentro do semestre.</small>
+              </label>
+              <label className="er-field">
+                Observação
+                <textarea
+                  maxLength={4000}
+                  disabled={busy || Boolean(pending)}
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  placeholder="Observações para a gestão (opcional)"
+                />
+              </label>
+            </>
           )}
-          <label className="er-field">
-            Referência
-            <input
-              maxLength={250}
-              disabled={busy || Boolean(pending)}
-              value={reference}
-              onChange={(e) => setReference(e.target.value)}
-              placeholder="Ex.: Ata NDE 05 — 2026-2"
-            />
-            <small>Identifica este arquivo dentro do semestre.</small>
-          </label>
-          <label className="er-field">
-            Observação
-            <textarea
-              maxLength={4000}
-              disabled={busy || Boolean(pending)}
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder="Observações para a gestão (opcional)"
-            />
-          </label>
           {manager && !selected && (
             <label className="er-field">
               Vincular à meta (opcional)
@@ -1578,9 +1737,18 @@ function UploadDialog(
           ) : (
             <button
               className="er-btn er-primary"
-              disabled={busy || !file || !target}
+              disabled={
+                busy ||
+                (!isNsa && !file) ||
+                !target ||
+                (isNsa && !nsaReason.trim())
+              }
             >
-              {busy ? "Enviando…" : "Enviar documento"}
+              {busy
+                ? "Registrando…"
+                : isNsa
+                  ? "Registrar NSA"
+                  : "Enviar documento"}
             </button>
           )}
         </div>
@@ -1663,6 +1831,100 @@ function ReviewDialog({
           </button>
           <button className="er-btn er-primary" disabled={busy}>
             {busy ? "Registrando…" : "Registrar análise"}
+          </button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function NsaDialog({
+  request,
+  onClose,
+  onSaved,
+}: {
+  request: Row;
+  onClose: () => void;
+  onSaved: () => Promise<void>;
+}) {
+  const [reason, setReason] = useState(String(request.nsa_reason ?? ""));
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const restoring = request.not_applicable === true;
+  return (
+    <Modal
+      title={restoring ? "Tornar documento aplicável" : "NSA — Não se aplica"}
+      busy={busy}
+      onClose={onClose}
+    >
+      <form
+        onSubmit={async (e) => {
+          e.preventDefault();
+          setBusy(true);
+          setError("");
+          try {
+            const { error } = await supabase.rpc("vertice_repository_set_nsa", {
+              target: request.id,
+              marked: !restoring,
+              note: restoring ? null : reason.trim(),
+            });
+            if (error) throw error;
+            await onSaved();
+          } catch (e) {
+            setError(explain(e));
+          } finally {
+            setBusy(false);
+          }
+        }}
+      >
+        <div className="er-modal-body">
+          <strong>{String(request.title)}</strong>
+          <p>
+            Semestre:{" "}
+            {semesterLabel(request.semester) || "Sem período definido"}
+          </p>
+          {restoring ? (
+            <p>
+              Este item volta a ser exigido. As evidências e versões anteriores
+              são preservadas.
+            </p>
+          ) : (
+            <label className="er-field">
+              Justificativa
+              <textarea
+                required
+                maxLength={4000}
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                placeholder="Por que este documento não se aplica ao curso?"
+              />
+              <small>
+                O item sai das pendências e do cálculo da cobertura. A decisão
+                fica registrada para a gestão.
+              </small>
+            </label>
+          )}
+          {error && (
+            <p role="alert" className="er-alert error">
+              {error}
+            </p>
+          )}
+        </div>
+        <div className="er-modal-foot">
+          <button
+            type="button"
+            className="er-btn"
+            disabled={busy}
+            onClick={onClose}
+          >
+            Cancelar
+          </button>
+          <button className="er-btn er-primary" disabled={busy}>
+            {busy
+              ? "Registrando…"
+              : restoring
+                ? "Tornar aplicável"
+                : "Registrar NSA"}
           </button>
         </div>
       </form>

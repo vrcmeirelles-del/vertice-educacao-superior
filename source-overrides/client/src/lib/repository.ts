@@ -12,8 +12,10 @@ export const FILE_TYPES: Record<string, string> = {
   txt: "text/plain",
   csv: "text/csv",
 };
-export type DocumentStatus = "pendente" | "enviado" | "validado" | "devolvido";
+export type DocumentStatus =
+  "pendente" | "enviado" | "validado" | "devolvido" | "nsa";
 export const DOCUMENT_STATUS: Record<DocumentStatus, string> = {
+  nsa: "NSA — Não se aplica",
   pendente: "Pendente",
   enviado: "Enviado · aguardando análise",
   validado: "Validado",
@@ -45,8 +47,13 @@ export function repositorySummary(
     sent = 0,
     validated = 0,
     returned = 0,
-    late = 0;
+    late = 0,
+    nsa = 0;
   for (const r of requests.filter((r) => r.active !== false)) {
+    if (r.not_applicable === true) {
+      nsa++;
+      continue;
+    }
     total++;
     const f = latest.get(r.id);
     if (f) sent++;
@@ -57,6 +64,7 @@ export function repositorySummary(
   }
   return {
     total,
+    nsa,
     sent,
     validated,
     returned,
@@ -106,7 +114,9 @@ export function courseRepositoryStatus(
   return {
     ...s,
     label: !s.total
-      ? "Sem checklist"
+      ? s.nsa
+        ? "NSA — Não se aplica"
+        : "Sem checklist"
       : s.returned
         ? "Correções solicitadas"
         : s.late
@@ -139,4 +149,21 @@ export function catalogForProfile<T extends { aplicabilidade: unknown }>(
       (p.includes("juridica") && area === "juridica")
     );
   });
+}
+
+export const REPOSITORY_PERIODS = [
+  "2027-1",
+  "2026-2",
+  "2026-1",
+  "2025-2",
+  "2025-1",
+  "2024-2",
+  "2024-1",
+];
+export const semesterLabel = (value: unknown) =>
+  repositorySemester(value).replace("-", "/");
+export function requestDocumentStatus(request: Row, file?: Row) {
+  return request.not_applicable === true
+    ? "nsa"
+    : String(file?.status ?? "pendente");
 }

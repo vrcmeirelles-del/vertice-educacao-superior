@@ -34,6 +34,7 @@ describe("repositório ligado às metas", () => {
     expect(latestDocuments(files).get("a")?.id).toBe("2");
     expect(repositorySummary(requests, files, "2026-10-31")).toEqual({
       total: 2,
+      nsa: 0,
       sent: 1,
       validated: 0,
       returned: 1,
@@ -277,5 +278,83 @@ describe("códigos documentais por curso", () => {
     );
     expect(csv).toContain("027-NDE-01");
     expect(csv).not.toContain("DIR-NDE-01");
+  });
+});
+
+import {
+  REPOSITORY_PERIODS,
+  semesterLabel,
+  requestDocumentStatus,
+} from "../client/src/lib/repository";
+describe("semestres e não aplicabilidade documental", () => {
+  it("oferece os sete semestres solicitados e exibe ano/semestre", () => {
+    expect(REPOSITORY_PERIODS.map(semesterLabel)).toEqual([
+      "2027/1",
+      "2026/2",
+      "2026/1",
+      "2025/2",
+      "2025/1",
+      "2024/2",
+      "2024/1",
+    ]);
+  });
+  it("exclui NSA das pendências, devoluções, atrasos e do denominador", () => {
+    const requests = [
+      { id: "a", not_applicable: true, due_date: "2020-01-01" },
+      { id: "b", not_applicable: true },
+      { id: "c" },
+    ];
+    const files = [{ id: "f", request_id: "a", status: "devolvido" }];
+    expect(repositorySummary(requests, files, "2026-10-31")).toMatchObject({
+      total: 1,
+      nsa: 2,
+      pending: 1,
+      returned: 0,
+      late: 0,
+      sent: 0,
+      validated: 0,
+      percent: 0,
+    });
+  });
+  it("não apresenta todos os itens NSA como checklist ausente ou 100% validado", () => {
+    const summary = courseRepositoryStatus(
+      [{ id: "a", not_applicable: true }],
+      [],
+    );
+    expect(summary.label).toBe("NSA — Não se aplica");
+    expect(summary.percent).toBe(0);
+    expect(summary.pending).toBe(0);
+  });
+  it("recalcula as pendências quando o item volta a ser aplicável", () => {
+    expect(
+      repositorySummary([{ id: "a", not_applicable: false }], []).pending,
+    ).toBe(1);
+  });
+  it("mostra NSA no histórico e na exportação mesmo se havia arquivo anterior", () => {
+    const request = {
+      id: "a",
+      title: "Documento",
+      document_code: "027-NDE-01",
+      semester: "2026-2",
+      not_applicable: true,
+      nsa_reason: "Fora do PPC",
+    };
+    const files = [{ id: "f", request_id: "a", status: "devolvido" }];
+    expect(requestDocumentStatus(request, files[0])).toBe("nsa");
+    expect(
+      evidenceSeries([request], files, ["2026-2"])[0].cells[0].status,
+    ).toBe("nsa");
+    expect(coverageCsv([request], files)).toContain("Fora do PPC");
+    expect(coverageCsv([request], files)).toContain('"nsa"');
+  });
+  it("um documento antigo não cumpre a exigência do semestre atual", () => {
+    const requests = [
+      { id: "old", semester: "2024-1" },
+      { id: "now", semester: "2026-2" },
+    ];
+    const files = [{ id: "f", request_id: "old", status: "validado" }];
+    expect(
+      repositorySummary(requestsInSemester(requests, "2026-2"), files),
+    ).toMatchObject({ total: 1, validated: 0, pending: 1 });
   });
 });

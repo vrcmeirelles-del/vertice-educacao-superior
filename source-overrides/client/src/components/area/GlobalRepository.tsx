@@ -131,7 +131,9 @@ export default function GlobalRepository({
                           <small>
                             {s.total
                               ? `${s.percent}% validado`
-                              : "Sem checklist configurado"}
+                              : s.nsa
+                                ? `${s.nsa} itens NSA`
+                                : "Sem checklist configurado"}
                           </small>
                         </td>
                         <td>{s.pending + s.returned}</td>

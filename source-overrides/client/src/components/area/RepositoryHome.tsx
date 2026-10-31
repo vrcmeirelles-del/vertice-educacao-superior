@@ -45,7 +45,9 @@ export function RepositoryNumbers({
         <small>
           {s.total
             ? `${s.percent}% do checklist`
-            : "Checklist ainda não configurado"}
+            : s.nsa
+              ? `${s.nsa} itens NSA`
+              : "Checklist ainda não configurado"}
         </small>
       </article>
       <article className={s.pending || s.returned ? "attention" : ""}>
@@ -196,7 +198,9 @@ export function RepositoryCourseHome({
                   <small>
                     {s.total
                       ? `${s.percent}% · ${s.validated} validados`
-                      : "A definir pela gestão"}
+                      : s.nsa
+                        ? "NSA — Não se aplica"
+                        : "A definir pela gestão"}
                   </small>
                 </td>
                 <td>

@@ -3,7 +3,11 @@ import {
   repositoryTemplateCode,
 } from "./repository-codes";
 import type { Row } from "./area";
-import { latestDocuments, repositorySemester } from "./repository";
+import {
+  latestDocuments,
+  repositorySemester,
+  requestDocumentStatus,
+} from "./repository";
 
 export function evidenceSemesters(current: string, count = 3) {
   const match = current.match(/^(\d{4})-([12])$/);
@@ -45,20 +49,22 @@ export function evidenceSeries(
         (r) => repositorySemester(r.semester) === period,
       );
       const states = required.map((r) =>
-        String(latest.get(r.id)?.status ?? "pendente"),
+        requestDocumentStatus(r, latest.get(r.id)),
       );
       return {
         period,
         required: required.length,
         status: !states.length
           ? "nao_configurado"
-          : states.every((s) => s === "validado")
-            ? "validado"
-            : states.includes("devolvido")
-              ? "devolvido"
-              : states.includes("pendente")
-                ? "pendente"
-                : "enviado",
+          : states.every((s) => s === "nsa")
+            ? "nsa"
+            : states.filter((s) => s !== "nsa").every((s) => s === "validado")
+              ? "validado"
+              : states.includes("devolvido")
+                ? "devolvido"
+                : states.includes("pendente")
+                  ? "pendente"
+                  : "enviado",
       };
     }),
   }));
@@ -84,6 +90,7 @@ export function coverageCsv(
       "Prazo",
       "Situação",
       "Arquivo",
+      "Justificativa NSA",
     ],
   ];
   for (const r of requests.filter((r) => r.active !== false)) {
@@ -95,8 +102,9 @@ export function coverageCsv(
       r.indicator,
       r.assignee_email,
       r.due_date,
-      f?.status ?? "pendente",
+      requestDocumentStatus(r, f),
       f?.file_name,
+      r.nsa_reason,
     ]);
   }
   return "\uFEFF" + rows.map((row) => row.map(safe).join(";")).join("\r\n");

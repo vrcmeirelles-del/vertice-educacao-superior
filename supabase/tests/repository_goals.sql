@@ -58,5 +58,33 @@ do $$begin if exists(select 1 from public.vertice_repository_requests) or exists
 select pg_temp.repo_user('12000000-0000-4000-8000-000000000001');
 insert into public.vertice_repository_requests(institution_id,title,assigned_to) values('22000000-0000-4000-8000-000000000002','Exigência B','12000000-0000-4000-8000-000000000005');
 do $$begin if (select count(*) from public.vertice_repository_requests where institution_id in('22000000-0000-4000-8000-000000000001','22000000-0000-4000-8000-000000000002'))<>2 then raise exception 'FAIL master multi-IES';end if;end$$;
+-- NSA: o responsável atribuído pode decidir, com justificativa e autoria do servidor.
+select pg_temp.repo_user('12000000-0000-4000-8000-000000000003');
+select pg_temp.repo_denied($$select public.vertice_repository_set_nsa('52000000-0000-4000-8000-000000000001',true,'')$$,'NSA exige justificativa');
+select public.vertice_repository_set_nsa('52000000-0000-4000-8000-000000000001',true,'Documento não se aplica ao PPC deste curso');
+do $$begin if not exists(select 1 from public.vertice_repository_requests where id='52000000-0000-4000-8000-000000000001' and not_applicable and nsa_by='12000000-0000-4000-8000-000000000003' and nsa_at is not null) then raise exception 'FAIL NSA/autoria'; end if;end$$;
+select pg_temp.repo_denied($$select public.vertice_repository_period_target('52000000-0000-4000-8000-000000000001','2024-1')$$,'NSA não recebe envio em outro semestre sem reativação');
+select public.vertice_repository_set_nsa('52000000-0000-4000-8000-000000000001',false,null);
+-- Resolver período é idempotente, mantém a atribuição e não move os arquivos anteriores.
+do $$declare a uuid;b uuid;begin
+ a:=public.vertice_repository_period_target('52000000-0000-4000-8000-000000000001','2024/1');
+ b:=public.vertice_repository_period_target('52000000-0000-4000-8000-000000000001','2024-1');
+ if a<>b or not exists(select 1 from public.vertice_repository_requests where id=a and semester='2024-1' and assigned_to='12000000-0000-4000-8000-000000000003') then raise exception 'FAIL período/atribuição/idempotência'; end if;
+ if not exists(select 1 from public.vertice_repository_files where id='62000000-0000-4000-8000-000000000001' and request_id='52000000-0000-4000-8000-000000000001') then raise exception 'FAIL arquivo movido';end if;
+end$$;
+select pg_temp.repo_denied($$select public.vertice_repository_period_target('52000000-0000-4000-8000-000000000001','2024-3')$$,'semestre inválido');
+select pg_temp.repo_user('12000000-0000-4000-8000-000000000001');
+insert into public.vertice_repository_requests(id,institution_id,title) values('52000000-0000-4000-8000-000000000099','22000000-0000-4000-8000-000000000001','Documento sem responsável');
+select pg_temp.repo_user('12000000-0000-4000-8000-000000000003');
+select pg_temp.repo_denied($$select public.vertice_repository_set_nsa('52000000-0000-4000-8000-000000000099',true,'Teste')$$,'equipe não marca NSA em item sem atribuição');
+select pg_temp.repo_denied($$select public.vertice_repository_period_target('52000000-0000-4000-8000-000000000099','2027-1')$$,'equipe não replica item sem atribuição');
+select pg_temp.repo_user('12000000-0000-4000-8000-000000000004');
+select pg_temp.repo_denied($$select public.vertice_repository_set_nsa('52000000-0000-4000-8000-000000000001',true,'Teste')$$,'leitor não decide NSA');
+select pg_temp.repo_user('12000000-0000-4000-8000-000000000005');
+select pg_temp.repo_denied($$select public.vertice_repository_set_nsa('52000000-0000-4000-8000-000000000001',true,'Teste')$$,'outra IES não decide NSA');
+select pg_temp.repo_denied($$select public.vertice_repository_period_target('52000000-0000-4000-8000-000000000001','2027-1')$$,'outra IES não replica requisito');
+select pg_temp.repo_user('12000000-0000-4000-8000-000000000003','aal1');
+select pg_temp.repo_denied($$select public.vertice_repository_set_nsa('52000000-0000-4000-8000-000000000001',true,'Teste')$$,'NSA exige MFA');
+select pg_temp.repo_denied($$select public.vertice_repository_period_target('52000000-0000-4000-8000-000000000001','2027-1')$$,'período exige MFA');
 select 'Repositório: isolamento, MFA, atribuição, envio, validação e histórico verificados; fixtures revertidas.' as resultado;
 rollback;
