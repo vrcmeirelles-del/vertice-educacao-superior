@@ -7,13 +7,14 @@ import {
 } from "@/lib/area";
 import RecordForm from "./RecordForm";
 import RepositoryTab from "./RepositoryTab";
+import InepLibrary from "./InepLibrary";
 import ManagementReview from "./ManagementReview";
 import {repositorySummary} from "@/lib/repository";
 import {listRepository} from "@/lib/repository-data";
 import { FIELD_HELP, TAB_FAQ, TAB_HELP, withHelp } from "@/lib/help";
 import "./area.css";
 
-type Tab = "analise" | "geral" | "visao" | "cadastro" | "metas" | "plano" | "diagnostico" | "equipe" | "repositorio";
+type Tab = "analise" | "geral" | "visao" | "cadastro" | "metas" | "plano" | "diagnostico" | "equipe" | "repositorio" | "biblioteca";
 const TABS: [Tab, string][] = [
   ["geral", "Visão geral"],
   ["analise", "Análise gerencial"],
@@ -21,6 +22,7 @@ const TABS: [Tab, string][] = [
   ["cadastro", "Cadastro e cursos"],
   ["metas", "Metas e indicadores"],
   ["repositorio", "Repositório"],
+  ["biblioteca", "Biblioteca INEP"],
   ["plano", "Plano de ação 5W2H"],
   ["diagnostico", "Diagnóstico"],
   ["equipe", "Equipe"],
@@ -143,6 +145,8 @@ export default function Workspace({
         <GoalsTab institutionId={id} role={role} data={data} reload={reload} onRepository={goal=>{setRepositoryGoal(goal);choose("repositorio");}} />
       ) : tab === "repositorio" ? (
         <RepositoryTab institutionId={id} role={role} courses={data.courses} goals={data.goals} requests={data.requests} files={data.files} reload={reload} goalFilter={repositoryGoal} setGoalFilter={setRepositoryGoal}/>
+      ) : tab === "biblioteca" ? (
+        <InepLibrary institutionId={id} />
       ) : tab === "plano" ? (
         <ActionsTab institutionId={id} role={role} data={data} reload={reload} />
       ) : tab === "diagnostico" ? (

@@ -1,0 +1,358 @@
+{
+  "indicadores": [
+    {
+      "codigo": "0.0",
+      "nome": "Apoio e controle",
+      "dimensao": "0",
+      "pasta": "D0-Apoio/0.0-apoio"
+    },
+    {
+      "codigo": "1.1",
+      "nome": "Politicas institucionais no ambito do curso",
+      "dimensao": "1",
+      "pasta": "D1-Didatico/1.1-politicas"
+    },
+    {
+      "codigo": "1.2",
+      "nome": "Objetivos do curso",
+      "dimensao": "1",
+      "pasta": "D1-Didatico/1.2-objetivos"
+    },
+    {
+      "codigo": "1.3",
+      "nome": "Perfil profissional do egresso",
+      "dimensao": "1",
+      "pasta": "D1-Didatico/1.3-egresso"
+    },
+    {
+      "codigo": "1.4",
+      "nome": "Estrutura curricular",
+      "dimensao": "1",
+      "pasta": "D1-Didatico/1.4-curriculo"
+    },
+    {
+      "codigo": "1.5",
+      "nome": "Conteudos curriculares",
+      "dimensao": "1",
+      "pasta": "D1-Didatico/1.5-conteudos"
+    },
+    {
+      "codigo": "1.6",
+      "nome": "Metodologia",
+      "dimensao": "1",
+      "pasta": "D1-Didatico/1.6-metodologia"
+    },
+    {
+      "codigo": "1.7",
+      "nome": "Estagio curricular supervisionado",
+      "dimensao": "1",
+      "pasta": "D1-Didatico/1.7-estagio"
+    },
+    {
+      "codigo": "1.8",
+      "nome": "Estagio curricular supervisionado: relacao com a rede de escolas da educacao basica",
+      "dimensao": "1",
+      "pasta": "D1-Didatico/1.8-estagio-eb"
+    },
+    {
+      "codigo": "1.9",
+      "nome": "Estagio curricular supervisionado: relacao teoria e pratica",
+      "dimensao": "1",
+      "pasta": "D1-Didatico/1.9-estagio-teoria"
+    },
+    {
+      "codigo": "1.10",
+      "nome": "Atividades complementares",
+      "dimensao": "1",
+      "pasta": "D1-Didatico/1.10-compl"
+    },
+    {
+      "codigo": "1.11",
+      "nome": "Trabalhos de Conclusao de Curso (TCC)",
+      "dimensao": "1",
+      "pasta": "D1-Didatico/1.11-TCC"
+    },
+    {
+      "codigo": "1.12",
+      "nome": "Apoio ao discente",
+      "dimensao": "1",
+      "pasta": "D1-Didatico/1.12-apoio"
+    },
+    {
+      "codigo": "1.13",
+      "nome": "Gestao do curso e os processos de avaliacao interna e externa",
+      "dimensao": "1",
+      "pasta": "D1-Didatico/1.13-gestao"
+    },
+    {
+      "codigo": "1.14",
+      "nome": "Atividades de tutoria",
+      "dimensao": "1",
+      "pasta": "D1-Didatico/1.14-tutoria"
+    },
+    {
+      "codigo": "1.15",
+      "nome": "Conhecimentos, habilidades e atitudes necessarias as atividades de tutoria",
+      "dimensao": "1",
+      "pasta": "D1-Didatico/1.15-tutoria-hab"
+    },
+    {
+      "codigo": "1.16",
+      "nome": "Tecnologias de Informacao e Comunicacao (TIC) no processo ensino-aprendizagem",
+      "dimensao": "1",
+      "pasta": "D1-Didatico/1.16-TIC"
+    },
+    {
+      "codigo": "1.17",
+      "nome": "Ambiente Virtual de Aprendizagem (AVA)",
+      "dimensao": "1",
+      "pasta": "D1-Didatico/1.17-AVA"
+    },
+    {
+      "codigo": "1.18",
+      "nome": "Material didatico",
+      "dimensao": "1",
+      "pasta": "D1-Didatico/1.18-material"
+    },
+    {
+      "codigo": "1.19",
+      "nome": "Procedimentos de acompanhamento e de avaliacao dos processos de ensino-aprendizagem",
+      "dimensao": "1",
+      "pasta": "D1-Didatico/1.19-avaliacao"
+    },
+    {
+      "codigo": "1.20",
+      "nome": "Numero de vagas",
+      "dimensao": "1",
+      "pasta": "D1-Didatico/1.20-vagas"
+    },
+    {
+      "codigo": "1.21",
+      "nome": "Integracao com as redes publicas de ensino",
+      "dimensao": "1",
+      "pasta": "D1-Didatico/1.21-redes"
+    },
+    {
+      "codigo": "1.22",
+      "nome": "Integracao do curso com o sistema local e regional de saude (SUS)",
+      "dimensao": "1",
+      "pasta": "D1-Didatico/1.22-SUS"
+    },
+    {
+      "codigo": "1.23",
+      "nome": "Atividades praticas de ensino para areas da saude",
+      "dimensao": "1",
+      "pasta": "D1-Didatico/1.23-saude"
+    },
+    {
+      "codigo": "1.24",
+      "nome": "Atividades praticas de ensino para licenciaturas",
+      "dimensao": "1",
+      "pasta": "D1-Didatico/1.24-licenciatura"
+    },
+    {
+      "codigo": "2.1",
+      "nome": "Nucleo Docente Estruturante - NDE",
+      "dimensao": "2",
+      "pasta": "D2-Docente/2.1-NDE"
+    },
+    {
+      "codigo": "2.2",
+      "nome": "Equipe multidisciplinar",
+      "dimensao": "2",
+      "pasta": "D2-Docente/2.2-equipe"
+    },
+    {
+      "codigo": "2.3",
+      "nome": "Atuacao do coordenador",
+      "dimensao": "2",
+      "pasta": "D2-Docente/2.3-coordenacao"
+    },
+    {
+      "codigo": "2.4",
+      "nome": "Regime de trabalho do coordenador de curso",
+      "dimensao": "2",
+      "pasta": "D2-Docente/2.4-coord-regime"
+    },
+    {
+      "codigo": "2.5",
+      "nome": "Corpo docente: titulacao",
+      "dimensao": "2",
+      "pasta": "D2-Docente/2.5-titulacao"
+    },
+    {
+      "codigo": "2.6",
+      "nome": "Regime de trabalho do corpo docente do curso",
+      "dimensao": "2",
+      "pasta": "D2-Docente/2.6-regime"
+    },
+    {
+      "codigo": "2.7",
+      "nome": "Experiencia profissional do docente",
+      "dimensao": "2",
+      "pasta": "D2-Docente/2.7-exp-prof"
+    },
+    {
+      "codigo": "2.8",
+      "nome": "Experiencia no exercicio da docencia na educacao basica",
+      "dimensao": "2",
+      "pasta": "D2-Docente/2.8-exp-eb"
+    },
+    {
+      "codigo": "2.9",
+      "nome": "Experiencia no exercicio da docencia superior",
+      "dimensao": "2",
+      "pasta": "D2-Docente/2.9-exp-superior"
+    },
+    {
+      "codigo": "2.10",
+      "nome": "Experiencia no exercicio da docencia na educacao a distancia",
+      "dimensao": "2",
+      "pasta": "D2-Docente/2.10-exp-ead"
+    },
+    {
+      "codigo": "2.11",
+      "nome": "Experiencia no exercicio da tutoria na educacao a distancia",
+      "dimensao": "2",
+      "pasta": "D2-Docente/2.11-tutoria-ead"
+    },
+    {
+      "codigo": "2.12",
+      "nome": "Atuacao do colegiado de curso ou equivalente",
+      "dimensao": "2",
+      "pasta": "D2-Docente/2.12-colegiado"
+    },
+    {
+      "codigo": "2.13",
+      "nome": "Titulacao e formacao do corpo de tutores do curso",
+      "dimensao": "2",
+      "pasta": "D2-Docente/2.13-tutores-tit"
+    },
+    {
+      "codigo": "2.14",
+      "nome": "Experiencia do corpo de tutores em educacao a distancia",
+      "dimensao": "2",
+      "pasta": "D2-Docente/2.14-tutores-exp"
+    },
+    {
+      "codigo": "2.15",
+      "nome": "Interacao entre tutores, docentes e coordenacao",
+      "dimensao": "2",
+      "pasta": "D2-Docente/2.15-tutores-int"
+    },
+    {
+      "codigo": "2.16",
+      "nome": "Producao cientifica, cultural, artistica ou tecnologica",
+      "dimensao": "2",
+      "pasta": "D2-Docente/2.16-producao"
+    },
+    {
+      "codigo": "3.1",
+      "nome": "Espaco de trabalho para docentes em tempo integral",
+      "dimensao": "3",
+      "pasta": "D3-Infra/3.1-docentes"
+    },
+    {
+      "codigo": "3.2",
+      "nome": "Espaco de trabalho para o coordenador",
+      "dimensao": "3",
+      "pasta": "D3-Infra/3.2-coord"
+    },
+    {
+      "codigo": "3.3",
+      "nome": "Sala coletiva de professores",
+      "dimensao": "3",
+      "pasta": "D3-Infra/3.3-professores"
+    },
+    {
+      "codigo": "3.4",
+      "nome": "Salas de aula",
+      "dimensao": "3",
+      "pasta": "D3-Infra/3.4-salas"
+    },
+    {
+      "codigo": "3.5",
+      "nome": "Acesso dos alunos a equipamentos de informatica",
+      "dimensao": "3",
+      "pasta": "D3-Infra/3.5-informatica"
+    },
+    {
+      "codigo": "3.6",
+      "nome": "Bibliografia basica por Unidade Curricular (UC)",
+      "dimensao": "3",
+      "pasta": "D3-Infra/3.6-bib-basica"
+    },
+    {
+      "codigo": "3.7",
+      "nome": "Bibliografia complementar por Unidade Curricular (UC)",
+      "dimensao": "3",
+      "pasta": "D3-Infra/3.7-bib-compl"
+    },
+    {
+      "codigo": "3.8",
+      "nome": "Laboratorios didaticos de formacao basica",
+      "dimensao": "3",
+      "pasta": "D3-Infra/3.8-labs-basicos"
+    },
+    {
+      "codigo": "3.9",
+      "nome": "Laboratorios didaticos de formacao especifica",
+      "dimensao": "3",
+      "pasta": "D3-Infra/3.9-labs-esp"
+    },
+    {
+      "codigo": "3.10",
+      "nome": "Laboratorios de ensino para a area de saude",
+      "dimensao": "3",
+      "pasta": "D3-Infra/3.10-labs-saude"
+    },
+    {
+      "codigo": "3.11",
+      "nome": "Laboratorios de habilidades",
+      "dimensao": "3",
+      "pasta": "D3-Infra/3.11-labs-hab"
+    },
+    {
+      "codigo": "3.12",
+      "nome": "Unidades hospitalares e complexo assistencial conveniados",
+      "dimensao": "3",
+      "pasta": "D3-Infra/3.12-hospitais"
+    },
+    {
+      "codigo": "3.13",
+      "nome": "Bioterios",
+      "dimensao": "3",
+      "pasta": "D3-Infra/3.13-bioterios"
+    },
+    {
+      "codigo": "3.14",
+      "nome": "Processo de controle de producao ou distribuicao de material didatico (logistica)",
+      "dimensao": "3",
+      "pasta": "D3-Infra/3.14-logistica"
+    },
+    {
+      "codigo": "3.15",
+      "nome": "Nucleo de praticas juridicas: atividades basicas e arbitragem, negociacao, mediacao e conciliacao",
+      "dimensao": "3",
+      "pasta": "D3-Infra/3.15-NPJ"
+    },
+    {
+      "codigo": "3.16",
+      "nome": "Comite de Etica em Pesquisa (CEP)",
+      "dimensao": "3",
+      "pasta": "D3-Infra/3.16-CEP"
+    },
+    {
+      "codigo": "3.17",
+      "nome": "Comite de Etica na Utilizacao de Animais (CEUA)",
+      "dimensao": "3",
+      "pasta": "D3-Infra/3.17-CEUA"
+    },
+    {
+      "codigo": "3.18",
+      "nome": "Ambientes profissionais vinculados ao curso",
+      "dimensao": "3",
+      "pasta": "D3-Infra/3.18-ambientes"
+    }
+  ]
+}

@@ -2,6 +2,10 @@
 
 Produção: https://www.verticesuperior.com.br
 
+Biblioteca INEP: em `/master`, abrir a instituição e a aba **Biblioteca INEP**.
+Há também um atalho na lista inicial. Usa o mesmo login e MFA do portal.
+Documentação da integração: [UPDATE_LIBRARY_INEP_20261101.md](UPDATE_LIBRARY_INEP_20261101.md).
+
 A implantação usa Render Static Sites para a interface e Supabase Auth/PostgreSQL para identidade e acesso aos dados. Veja [OWNER_SETUP.md](OWNER_SETUP.md) para os requisitos, limites e primeiro acesso.
 
 - `vertice-static.zip`: interface compilada publicada pelos serviços existentes.
