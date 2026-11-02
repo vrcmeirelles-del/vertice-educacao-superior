@@ -32,7 +32,7 @@ export default function App() {
   useEffect(() => {
     const page = publicPages.find(p => p.path === normalized);
     document.title =
-      (normalized === "/redefinir-senha" || passwordCallback ? "Definir nova senha | Vértice Educação Superior" : normalized === "/reitor/reservado" ? "Área reservada do reitor | Vértice Educação Superior" : normalized === "/entrar" ? "Entrar | Vértice Educação Superior" : page?.title) ??
+      (normalized === "/master/aquisicoes" ? "Aquisições e incorporações | Vértice" : normalized === "/redefinir-senha" || passwordCallback ? "Definir nova senha | Vértice Educação Superior" : normalized === "/reitor/reservado" ? "Área reservada do reitor | Vértice Educação Superior" : normalized === "/entrar" ? "Entrar | Vértice Educação Superior" : page?.title) ??
       (demoPaths.has(normalized)
         ? "Demonstração de gestão | Vértice Educação Superior"
         : "Página não encontrada | Vértice Educação Superior");
@@ -52,7 +52,7 @@ export default function App() {
   }, [path, normalized, isPublic]);
   return (
     <ErrorBoundary>
-      {passwordCallback ? <PublicLayout><ResetPassword /></PublicLayout> : ["/master", "/gestor", "/admin-ies", "/painel-real", "/reitor/reservado"].includes(normalized) ? <PublicLayout><Suspense fallback={<p>Verificando acesso…</p>}><OwnerDashboard /></Suspense></PublicLayout> : isPublic ? (
+      {passwordCallback ? <PublicLayout><ResetPassword /></PublicLayout> : ["/master/aquisicoes", "/master", "/gestor", "/admin-ies", "/painel-real", "/reitor/reservado"].includes(normalized) ? <PublicLayout><Suspense fallback={<p>Verificando acesso…</p>}><OwnerDashboard /></Suspense></PublicLayout> : isPublic ? (
         <PublicApp />
       ) : demoPaths.has(normalized) ? (
         <Suspense

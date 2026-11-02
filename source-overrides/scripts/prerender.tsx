@@ -87,6 +87,7 @@ for (const page of publicPages) {
   }
 }
 const demos = [
+  "master/aquisicoes",
   "reitor/reservado",
   "demonstracao",
   "painel",
@@ -113,6 +114,7 @@ for (const path of demos) {
       "Cenário fictício de diagnóstico, metas e ações. Sem avaliação oficial. Alterações ficam somente neste navegador.",
   };
   const html = document(page, "", true);
+  mkdirSync(resolve(dir,path).replace(/[^/\\]+$/, ""), {recursive:true});
   writeFileSync(resolve(dir, `${path}.html`), html);
   const folder = resolve(dir, path);
   mkdirSync(folder, { recursive: true });

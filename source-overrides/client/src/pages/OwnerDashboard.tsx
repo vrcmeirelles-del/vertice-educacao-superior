@@ -8,6 +8,7 @@ import Workspace, {INSTITUTION_FIELDS} from '@/components/area/Workspace';
 import RecordForm from '@/components/area/RecordForm';
 import {TABLES, isLate, saveRow, type Role, type Row} from '@/lib/area';
 import GlobalRepository from '@/components/area/GlobalRepository';
+import Acquisitions from '@/components/acquisitions/Acquisitions';
 
 type Membership={user_id:string;institution_id:string;role:string};
 const SNAPSHOT_COLUMNS='id,course_id,semester,class_label,enrolled,capacity,available,source_report_at,reported_total,student_status';
@@ -94,9 +95,9 @@ export default function OwnerDashboard(){
  {qr&&<><p>Leia o QR code no seu aplicativo autenticador. Não compartilhe esta imagem.</p><img alt="QR code para configurar seu autenticador" src={qr} width={200} height={200}/></>}
  <form className="access-form" onSubmit={verify}><label>Código do autenticador<input autoComplete="one-time-code" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} required value={code} onChange={e=>setCode(e.target.value)}/></label><button className="corp-button" disabled={busy}>Validar segundo fator</button></form></>}
  </section>:<><p>{master?'Visão das instituições da empresa.':'Você vê somente as instituições vinculadas à sua conta.'}</p>
- {master&&<nav className="repo-global-nav" aria-label="Visões do master"><button className={`repo-secondary ${!route.repositories&&!currentInst?'active':''}`} onClick={()=>writeHash('','')}>Gestão das instituições</button><button className={`repo-secondary ${route.repositories||new URLSearchParams(window.location.hash.slice(1)).get('aba')==='repositorio'?'active':''}`} onClick={()=>writeHash('','',true)}>Repositórios de todas as IES</button></nav>}
+ {master&&<nav className="repo-global-nav" aria-label="Visões do master"><Link className="repo-secondary" href="/master/aquisicoes">Aquisições e incorporações</Link><button className={`repo-secondary ${!route.repositories&&!currentInst?'active':''}`} onClick={()=>writeHash('','')}>Gestão das instituições</button><button className={`repo-secondary ${route.repositories||new URLSearchParams(window.location.hash.slice(1)).get('aba')==='repositorio'?'active':''}`} onClick={()=>writeHash('','',true)}>Repositórios de todas as IES</button></nav>}
  {!currentInst&&!route.repositories&&<div className="stats-row"><div className="stat-card">Instituições<strong className="stat-value">{institutions.length}</strong></div><div className="stat-card">Cursos<strong className="stat-value">{courses.length}</strong></div><div className="stat-card">Vínculos<strong className="stat-value">{members.length}</strong></div></div>}
- {currentInst&&currentCourse?<CourseView key={currentCourse.id} course={currentCourse} institution={currentInst} enrollments={enrollments} reports={reports} onBack={()=>writeHash(currentInst.id,'')}/>
+ {window.location.pathname==='/master/aquisicoes'?<Acquisitions/>:currentInst&&currentCourse?<CourseView key={currentCourse.id} course={currentCourse} institution={currentInst} enrollments={enrollments} reports={reports} onBack={()=>writeHash(currentInst.id,'')}/>
  :currentInst?<Workspace key={currentInst.id} institution={currentInst as unknown as Row} role={roleIn(currentInst.id)} onBack={()=>writeHash('','')} onChanged={load}
    stats={{enrolled:instTotal(currentInst.id),semester:latestSemester}}
    overview={<InstitutionView institution={currentInst} courses={courses} enrollments={enrollments} embedded onOpenCourse={id=>writeHash(currentInst.id,id)} onBack={()=>writeHash('','')}/>}/>

@@ -1,6 +1,7 @@
 import React from "react";
 import PublicLayout from "./components/PublicLayout";
 import Home from "./pages/public/Home";
+import Aquisicoes from "./pages/public/Aquisicoes";
 import Services from "./pages/public/Services";
 import Method from "./pages/public/Method";
 import About from "./pages/public/About";
@@ -16,6 +17,7 @@ import { useLocation } from "wouter";
 
 export const publicComponents: Record<string, React.ComponentType> = {
   "/": Home,
+  "/aquisicoes": Aquisicoes,
   "/entrar": Login,
   "/redefinir-senha": ResetPassword,
   "/servicos": Services,

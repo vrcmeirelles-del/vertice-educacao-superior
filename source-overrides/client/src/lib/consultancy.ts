@@ -173,6 +173,11 @@ export const faqs = [
 ];
 
 export const publicPages = [
+  {
+    path: "/aquisicoes",
+    title: "Aquisições e incorporações | Vértice Educação Superior",
+    description: "Due diligence de instituições de ensino: evidências, riscos regulatórios, análise econômico-financeira e acompanhamento da operação de compra ou venda.",
+  },
   {path:"/reitor", title:"Calculadora de EBITDA para o reitor | Vértice Educação Superior", description:"Calcule EBITDA e margem da instituição, detalhe receitas e custos e registre a DRE em área reservada, sem IA paga."},
   {
     path: "/",
