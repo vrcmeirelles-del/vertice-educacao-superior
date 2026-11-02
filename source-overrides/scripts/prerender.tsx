@@ -108,9 +108,9 @@ const demos = [
 for (const path of demos) {
   const page = {
     path: `/${path}`,
-    title: path === "redefinir-senha" ? "Definir nova senha | Vértice Educação Superior" : path === "entrar" ? "Entrar | Vértice Educação Superior" : "Demonstração de gestão | Vértice Educação Superior",
+    title: ["master","gestor","admin-ies","painel-real"].includes(path) ? "Painel institucional | Vértice Educação Superior" : path === "master/aquisicoes" ? "Aquisições e incorporações | Vértice" : path === "reitor/reservado" ? "Área reservada do reitor | Vértice Educação Superior" : path === "redefinir-senha" ? "Definir nova senha | Vértice Educação Superior" : path === "entrar" ? "Entrar | Vértice Educação Superior" : "Demonstração de gestão | Vértice Educação Superior",
     description:
-      "Cenário fictício de diagnóstico, metas e ações. Sem avaliação oficial. Alterações ficam somente neste navegador.",
+      ["master","gestor","admin-ies","painel-real","master/aquisicoes","reitor/reservado"].includes(path) ? "Área institucional reservada. Acesso por perfil e segundo fator." : "Cenário fictício de diagnóstico, metas e ações. Sem avaliação oficial. Alterações ficam somente neste navegador.",
   };
   // Somente Aquisições incorpora a aplicação aprovada do mesmo domínio.
   // As demais páginas continuam sem permissão de incorporar frames.

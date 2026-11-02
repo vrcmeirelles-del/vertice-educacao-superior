@@ -640,7 +640,7 @@ export default function RepositoryTab(props: RepositoryProps) {
                   return (
                     <div className="er-course" key={c.id}>
                       <div className="er-course-info">
-                        <strong>{String(c.name)}</strong>
+                        <strong>{String(c.display_name??c.name)}</strong>
                         <small>
                           {label(DEGREE, c.degree)} ·{" "}
                           {label(MODALITY, c.modality)}

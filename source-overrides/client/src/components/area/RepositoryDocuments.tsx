@@ -130,7 +130,7 @@ export default function RepositoryDocuments({
       name: "course_id",
       label: "Curso (opcional)",
       type: "select",
-      options: courses.map((c) => [c.id, String(c.name)]),
+      options: courses.map((c) => [c.id, String(c.display_name??c.name)]),
     },
     {
       name: "assigned_to",
@@ -512,7 +512,7 @@ export default function RepositoryDocuments({
             <option value="">Todos os cursos</option>
             {courses.map((c) => (
               <option key={c.id} value={c.id}>
-                {String(c.name)}
+                {String(c.display_name??c.name)}
               </option>
             ))}
           </select>

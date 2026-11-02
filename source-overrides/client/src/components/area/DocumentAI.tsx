@@ -19,7 +19,7 @@ export default function DocumentAI({institutionId,courses,requests,files}:{insti
   const [course,setCourse]=useState('');
   return <section className="area-panel doc-analysis" aria-label="Análise Documental">
     <header className="doc-hero"><span className="doc-eyebrow">Acompanhamento dos cursos · Alta gestão</span><h3>Análise Documental</h3><p>Transforme metas e evidências em uma leitura clara do andamento do curso, com prioridades para orientar as próximas decisões.</p><p>A IA apoia a análise. Você revisa as fontes, interpreta o relatório e decide os próximos passos.</p><ol className="doc-steps"><li><b>1</b>Escolha o curso</li><li><b>2</b>Revise as informações</li><li><b>3</b>Leia o relatório</li></ol></header>
-    <label className="doc-course">Curso para análise <select value={course} onChange={e=>setCourse(e.target.value)}><option value="">Selecione um curso</option>{courses.map(c=><option key={c.id} value={c.id}>{String(c.name)}{c.code?` · ${c.code}`:''}</option>)}</select></label>
+    <label className="doc-course">Curso para análise <select value={course} onChange={e=>setCourse(e.target.value)}><option value="">Selecione um curso</option>{courses.map(c=><option key={c.id} value={c.id}>{String(c.display_name??c.name)}{c.code?` · ${c.code}`:''}</option>)}</select></label>
     {!course&&<div className="doc-empty"><strong>Comece pelo curso que deseja acompanhar</strong><p>Você poderá revisar metas, medições, prazos e evidências dos indicadores INEP/MEC antes de solicitar a análise.</p></div>}
     {course&&<Review key={`${institutionId}:${course}`} institutionId={institutionId} courseId={course} courseName={String(courses.find(c=>c.id===course)?.name??'Curso')} requests={requests} files={files}/>}
   </section>;

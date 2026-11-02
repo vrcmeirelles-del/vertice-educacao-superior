@@ -1,0 +1,10 @@
+{
+  "service": "srv-dbdrnl3ncjis73d9dtq0",
+  "configured_via": "Render dashboard / Headers",
+  "rules": [
+    {"path":"/*","name":"Content-Security-Policy","value":"frame-ancestors 'self'"},
+    {"path":"/*","name":"X-Frame-Options","value":"SAMEORIGIN"},
+    {"path":"/*","name":"Strict-Transport-Security","value":"max-age=31536000"}
+  ],
+  "note": "Registro da configuração aplicada no serviço. Este JSON não é um mecanismo automático de deploy de cabeçalhos. O CSP em HTML continua restringindo fontes; a regra HTTP de ancestrais preserva o iframe do mesmo domínio."
+}

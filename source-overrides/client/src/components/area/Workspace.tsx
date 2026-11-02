@@ -1,3 +1,4 @@
+import {displayCourseRows} from '@/lib/course-labels';
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { supabase } from "@/lib/supabase";
 import {
@@ -72,7 +73,7 @@ export default function Workspace({
         listRepository("vertice_repository_requests",id),
         listRepository("vertice_repository_files",id),
       ]);
-      setData({ courses, goals, measurements, actions, diagnosis, requests, files });
+      setData({ courses:displayCourseRows(courses,requests,goals), goals, measurements, actions, diagnosis, requests, files });
     } catch {
       setError("Não foi possível carregar os dados de gestão. Atualize a página.");
     } finally {
@@ -126,6 +127,7 @@ export default function Workspace({
           <span><b>{openFindings}</b> achados abertos</span>
         </div>
       </div>
+      {data.courses.some(c=>c.registration_note)&&<p className="area-note">Há cadastros com o mesmo nome e código, mas com históricos próprios. Eles aparecem como Base 1 e Base 2, com suas quantidades de exigências e metas, para você escolher o acervo correto. Nenhum documento ou vínculo foi descartado.</p>}
       <div role="tablist" aria-label="Áreas da instituição" className="area-tabs">
         {visible.map(([k, l]) => (
           <button key={k} role="tab" aria-selected={tab === k} className={tab === k ? "active" : ""} onClick={() => choose(k)}>
@@ -239,7 +241,7 @@ function RemoveButton({ onConfirm, label = "Remover", title }: { onConfirm: () =
 }
 
 const courseOptions = (courses: Row[]): [string, string][] =>
-  courses.map(c => [c.id, `${c.code ? `${c.code} · ` : ""}${c.name}`]);
+  courses.map(c => [c.id, `${c.code ? `${c.code} · ` : ""}${c.display_name??c.name}`]);
 
 // ================================================================ visão geral (estatísticas)
 function Bar({ value, max = 100, tone = "" }: { value: number; max?: number; tone?: string }) {
@@ -364,7 +366,7 @@ function RegistryTab({ institution, role, courses, reload, onChanged }: { instit
   const [editInst, setEditInst] = useState(false);
   const ed = useEditor();
   const [q, setQ] = useState("");
-  const list = courses.filter(c => `${c.code ?? ""} ${c.name}`.toLowerCase().includes(q.toLowerCase()));
+  const list = courses.filter(c => `${c.code ?? ""} ${c.display_name??c.name}`.toLowerCase().includes(q.toLowerCase()));
   const cnpj = institution.cnpj ? String(institution.cnpj).replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5") : "—";
   return (
     <>
@@ -428,7 +430,7 @@ function RegistryTab({ institution, role, courses, reload, onChanged }: { instit
                 {list.map(c => (
                   <tr key={c.id}>
                     <td>{String(c.code ?? "—")}</td>
-                    <td>{String(c.name)}</td>
+                    <td>{String(c.display_name??c.name)}</td>
                     <td>{label(DEGREE, c.degree)}</td>
                     <td>{label(MODALITY, c.modality)}</td>
                     <td>{label(COURSE_STATUS, c.status ?? "ativo")}</td>
@@ -549,7 +551,7 @@ function GoalsTab({ institutionId, role, data, reload, onRepository }: { institu
         <div className="table-scroll"><table className="area-table"><thead><tr><th>Curso</th><th>Metas</th><th>Planejadas</th><th>Em acompanhamento</th><th>Responsável a designar</th><th/></tr></thead><tbody>
           {courseRows.slice(currentPage*20,currentPage*20+20).map(c=>{
             const rows=data.goals.filter(g=>g.course_id===c.id);
-            return <tr key={c.id}><td><strong>{String(c.name)}</strong><small>{String(c.code??"—")} · {label(MODALITY,c.modality)}</small></td><td>{rows.length}</td><td>{rows.filter(g=>g.status==="planejada").length}</td><td>{rows.filter(g=>g.status==="ativa").length}</td><td>{rows.filter(g=>!g.owner_user_id).length}</td><td><button className="corp-login-text-button" onClick={()=>setCourse(c.id)}>Ver metas</button></td></tr>;
+            return <tr key={c.id}><td><strong>{String(c.display_name??c.name)}</strong><small>{String(c.code??"—")} · {label(MODALITY,c.modality)}</small></td><td>{rows.length}</td><td>{rows.filter(g=>g.status==="planejada").length}</td><td>{rows.filter(g=>g.status==="ativa").length}</td><td>{rows.filter(g=>!g.owner_user_id).length}</td><td><button className="corp-login-text-button" onClick={()=>setCourse(c.id)}>Ver metas</button></td></tr>;
           })}
         </tbody></table></div>
         {pageCount>1&&<div className="area-inline"><button className="corp-login-text-button" disabled={!currentPage} onClick={()=>setCoursePage(currentPage-1)}>Anterior</button><span>Página {currentPage+1} de {pageCount} · {courseRows.length} cursos</span><button className="corp-login-text-button" disabled={currentPage>=pageCount-1} onClick={()=>setCoursePage(currentPage+1)}>Próxima</button></div>}

@@ -162,7 +162,7 @@ export function RepositoryCourseHome({
             {rows.map(({ course: c, summary: s }) => (
               <tr key={c.id}>
                 <td>
-                  <strong>{String(c.name)}</strong>
+                  <strong>{String(c.display_name??c.name)}</strong>
                   <small>
                     {[
                       c.code,
