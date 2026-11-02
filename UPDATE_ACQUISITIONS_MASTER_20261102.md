@@ -1,69 +1,56 @@
-# Aquisições no portal master
+# Correção do modelo aprovado — 02/11/2026
 
-Atualização: 02/11/2026. Decisão expressa do titular: utilizar o projeto Supabase
-existente da Vértice, com estruturas e cofre exclusivos, sem novo projeto pago.
-Esta decisão substitui a orientação anterior de manter o módulo apenas local.
+O módulo simplificado foi substituído pela aplicação verde original, na rota
+`https://www.verticesuperior.com.br/master/aquisicoes`. O acesso usa a sessão
+e o segundo fator do master. A divulgação pública continua em `/aquisicoes`
+e no destaque da página inicial.
 
-## Acessos
+## Fidelidade ao original
 
-- Divulgação: `/aquisicoes`, também destacada na página inicial e em Soluções.
-- Operação: `/master/aquisicoes`, com o mesmo login e segundo fator do master.
-- Supabase: `qvetbbmviatxxatzzuzc`.
-- Cofre: `vertice-aquisicoes-cofre`, sempre privado, sem policies de acesso direto.
-- Arquivos: função autenticada `vertice-aquisicoes-files`; download de 300 segundos.
+O CSS e a calculadora EBITDA são cópias integrais dos arquivos aprovados em
+`web/`. A adaptação do JavaScript limita-se à sessão compartilhada, transporte,
+URLs do cofre, vínculo institucional e abertura de equipe separada. As dez abas,
+305 requisitos, 32 modelos Word, tabelas CSV, conferência das evidências,
+cruzamentos entre frentes, eventos e providências, EBITDA, preço, pareceres e
+aprovação permanecem no fluxo original. O motor de análise e os cálculos são
+os originais, executados na função `vertice-aquisicoes-green`.
 
-## Operação
+## Preservação
 
-1. Cadastre a instituição contratante no master e abra um novo mandato.
-2. Identifique alvo, lado da operação e checagem de conflitos.
-3. Registre o escopo e utilize os 305 requisitos do instrumento fixado ao mandato.
-4. Envie evidências ao cofre e vincule-as aos requisitos com indicação de página/aba.
-5. Registre respostas, análise, achados, mecanismo contratual e providências.
-6. A análise financeira usa fonte do cofre e premissas explícitas. O banco
-   recalcula EBITDA, ajustes, valor da operação e patrimônio indicativo.
-7. Redija a conclusão; a aprovação exige conclusão explícita dos requisitos.
-   Alterações posteriores da base tornam a aprovação anterior desatualizada.
-8. Exporte tracker, matriz de risco e relatório. O navegador permite salvar em PDF.
+- Dois mandatos locais incorporados, sem substituir o mandato anterior do portal.
+- 610 respostas locais, 24 documentos e 341 vínculos contextuais.
+- 341 conferências documentais, 305 revisões, 17 eventos e uma avaliação econômica.
+- Dois pareceres preservados como versões originais; não se criaram aprovações.
+- 1.338 registros de histórico preservados com identificador de origem.
+- Hashes de base, contexto econômico e textos dos pareceres comparados entre o
+  original e o Supabase, inclusive a indicação de versão atual ou desatualizada.
+- O mandato anterior e suas 305 respostas conferidos contra o backup privado.
 
-O master pode abrir mandatos; só acessa o conteúdo dos mandatos em que possui
-participação válida. O segundo mandato para o mesmo alvo exige referência
-documental, equipe separada e responsável diferente. A parede impede participação
-com acesso a conteúdo nos dois lados, mesmo com consentimento. O responsável de
-cada mandato concede, renova e revoga participações; pode restringir por frente.
+A cópia local continua intacta. Hash SHA-256 do snapshot original:
+`8173c0c42d5ddfca32eefb3503f8c7257217b5e0e2de2d0936d68fb0ab867918`.
+O ambiente local não é um espelho sincronizado: novas alterações devem ocorrer
+no portal. Uma edição posterior feita apenas no local exige migração adicional.
 
-## Limites observáveis
+## Acesso e arquivos
 
-- O hash é calculado no recebimento; isso não valida o conteúdo jurídico nem
-  equivale a antivírus. Arquivos entram como aguardando conferência.
-- Há registro imutável de mudanças e de solicitações autorizadas de download.
-  Uma URL já emitida permanece válida até expirar, por no máximo 300 segundos.
-- A data de retenção é contratual e acompanhada no painel. Não existe eliminação
-  automática de cofre nesta versão; apagar definitivamente exige procedimento
-  próprio e decisão do titular, preservando a auditoria necessária.
-- Os registros locais anteriores foram preservados e não foram enviados ao
-  Supabase. Os 305 requisitos são catálogo, não dados de cliente.
-- Os campos de resposta destinam-se à análise institucional. Não cadastrar CPF,
-  identificação de aluno, senhas, justificativas individuais ou dados pessoais
-  desnecessários. O escopo e o contrato devem delimitar finalidade, documentos
-  necessários, acesso e retenção antes do recebimento de um acervo real.
-- Declarações e referências da publicidade descrevem o serviço de consultoria;
-  a ferramenta não decide viabilidade jurídica nem garante aprovação regulatória.
+As tabelas têm isolamento por instituição e mandato. O master não recebe leitura
+automática de mandatos de outra equipe. A parede de atuação mantém a proibição
+de participação com acesso aos dois lados. A função valida login e segundo fator
+antes das operações e executa as leituras sob as permissões do participante.
 
-## Fontes de implantação
+Evidências: `vertice-aquisicoes-cofre`; modelos: `vertice-aquisicoes-modelos`.
+Ambos são privados, sem acesso direto do navegador. Downloads de evidências usam
+URLs de 300 segundos. Não há credencial administrativa em arquivos públicos.
+A autorização temporária da migração é encerrada após a conferência; as rotas
+temporárias são removidas da função final.
 
-Fonte/release desta integração em `.local/integracao-master-work` e
-`.local/integracao-master-release`, dentro deste diretório. O repositório publicado
-é `vrcmeirelles-del/vertice-educacao-superior`; o módulo está em
-`source-overrides/client/src/components/acquisitions/`.
+## Validação
 
-Migração aplicada: `acquisitions_master_portal`. Os dados institucionais
-existentes, biblioteca e cálculos anteriores não são alterados pelo módulo.
+Passaram os testes completos de evidência/revisão/parecer, aprovação e alteração
+da base, avaliação de preço e EBITDA com DRE. Passaram os testes de equivalência
+do motor, isolamento do schema e dez abas do modelo no modo portal. O transporte
+usa Authorization sem cookies entre domínios. A build do portal e a checagem
+TypeScript passaram, preservando as melhorias concorrentes do site.
 
-## Verificações
-
-`node --test tests/master-portal.test.mjs`: PostgreSQL embarcado real, checando
-MFA, gravação, 305 requisitos, isolamento de equipe, frente, privilégio documental,
-parede, expiração/revogação, imutabilidade, recálculo e aprovação/desatualização.
-
-A validação remota de abertura e edição é transacional e termina com rollback;
-não cria instituição nem deixa mandato de teste no banco de produção.
+O hash assegura integridade, não autenticidade jurídica nem análise antivírus.
+Os pareceres continuam dependendo de análise e aprovação do responsável.

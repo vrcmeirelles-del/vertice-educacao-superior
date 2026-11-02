@@ -17,4 +17,4 @@ A implantação usa Render Static Sites para a interface e Supabase Auth/Postgre
 
 A branch `main` é a referência de produção. `feat/owner-master-access` e `OWNER_CHANGES.patch` são históricos anteriores à integração Supabase. O servidor MySQL/OAuth Manus incluído no pacote é legado e não está ativo nos Static Sites. Não confundir testes do legado com validação do Supabase.
 
-Nenhum banco anterior foi importado ou apagado. A demonstração continua separada dos registros autenticados. Backup do código não é backup do banco.
+Aquisições: o modelo verde original e seus dois mandatos foram incorporados ao Supabase, sem apagar dados anteriores. Ver [correção do modelo aprovado](UPDATE_ACQUISITIONS_MASTER_20261102.md). A demonstração continua separada dos registros autenticados. Backup do código não é backup do banco.
