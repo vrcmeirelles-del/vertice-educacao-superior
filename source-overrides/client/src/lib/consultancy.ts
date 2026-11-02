@@ -173,6 +173,7 @@ export const faqs = [
 ];
 
 export const publicPages = [
+  {path:"/reitor", title:"Calculadora de EBITDA para o reitor | Vértice Educação Superior", description:"Calcule EBITDA e margem da instituição, detalhe receitas e custos e registre a DRE em área reservada, sem IA paga."},
   {
     path: "/",
     title: "Vértice Educação Superior | Estratégia e Regulação",

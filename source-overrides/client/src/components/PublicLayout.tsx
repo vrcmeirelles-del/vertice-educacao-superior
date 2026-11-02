@@ -7,6 +7,7 @@ import { company, publicPages } from "@/lib/consultancy";
 import { supabase } from "@/lib/supabase";
 
 const links = [
+  { href: "/reitor", label: "Área do reitor" },
   { href: "/servicos.html", label: "Soluções" },
   { href: "/metodo.html", label: "Nosso método" },
   { href: "/caso-real.html", label: "Caso real" },

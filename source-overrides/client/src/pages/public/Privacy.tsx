@@ -6,9 +6,10 @@ export default function Privacy() {
       <PublicHeading
         eyebrow="PRIVACIDADE E LIMITES"
         title="Informação protegida começa por limites claros."
-        text="Esta página descreve o funcionamento desta versão do site público e da demonstração Vértice. Atualizada em 30 de outubro de 2026."
+        text="Esta página descreve o funcionamento desta versão do site público e da demonstração Vértice. Atualizada em 1º de novembro de 2026."
       />
       <article className="corp-container corp-section legal-copy">
+        <section><h2>Calculadora de EBITDA e DRE reservada</h2><p>Na área pública do reitor, os valores digitados são calculados no navegador e não são enviados nem guardados pela calculadora. O download da memória é feito no próprio dispositivo. Ao sair da página, o preenchimento público não é preservado.</p><p>Na área reservada, Gestores vinculados à instituição e o Master, autenticados com segundo fator, podem registrar valores e anexar a DRE. Os cálculos, versões, identificação da conta, data, nome, tamanho e hash do arquivo ficam no Supabase. A DRE é armazenada em bucket privado; downloads temporários exigem autorização e são registrados. Os dados não são enviados a IA. O Render hospeda a interface e o Supabase processa autenticação, registros e arquivos.</p><p>As versões anteriores são preservadas para rastreabilidade. A gestão de retenção ou exclusão deve ser tratada com a administração no contexto do serviço contratado. Envie apenas a documentação necessária ao cálculo. O anexo não é lido automaticamente e não certifica os valores.</p></section>
         <section>
           <h2>Criação de conta e acesso autenticado</h2>
           <p>O acesso utiliza Supabase Auth para validar e-mail, senha e segundo fator. A senha digitada nesta página é transmitida por HTTPS ao Supabase para autenticação e não é gravada no código do site. A aplicação recebe o identificador da conta, e-mail e tokens de sessão. O cadastro público está fechado; a ativação de contas depende da administração. Não envie dados de estudantes durante a ativação.</p>

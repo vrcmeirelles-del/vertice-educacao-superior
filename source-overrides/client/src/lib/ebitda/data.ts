@@ -1,0 +1,15 @@
+import {supabase} from '@/lib/supabase';
+import type {EbitdaBody,EbitdaResult} from './engine.js';
+export const DRE_BUCKET='vertice-dre';
+export type EbitdaRecord={id:string;institution_id:string;body:EbitdaBody;result:EbitdaResult;file_name:string;object_path:string;sha256:string;size_bytes:number;created_at:string;created_by:string};
+const MIME:Record<string,string>={pdf:'application/pdf',xlsx:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',docx:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',csv:'text/csv'};
+export function validateDre(file:File){const ext=file.name.split('.').pop()?.toLowerCase()||'';if(!MIME[ext]||file.size<1||file.size>15*1024*1024)throw new Error('Use uma DRE em PDF, XLSX, DOCX ou CSV, de até 15 MB.');return MIME[ext];}
+async function invoke(body:Record<string,unknown>){const {data,error}=await supabase.functions.invoke('vertice-ebitda',{body});if(error){let message='Não foi possível concluir. Confirme seu acesso e tente novamente.';try{const response=await (error as any).context?.json();if(typeof response?.error==='string')message=response.error;}catch{}throw new Error(message);}return data;}
+export async function listCalculations(institutionId:string){const {data,error}=await supabase.from('vertice_ebitda_calculations').select('*').eq('institution_id',institutionId).order('created_at',{ascending:false}).order('id').limit(50);if(error)throw new Error('Não foi possível consultar os cálculos reservados.');return (data||[]) as EbitdaRecord[];}
+export async function saveCalculation(institutionId:string,body:EbitdaBody,file:File|null,source:EbitdaRecord|null,requestId:string){
+ let upload:Record<string,unknown>|undefined;
+ if(file){const mime=validateDre(file);const {data:{user},error}=await supabase.auth.getUser();if(error||!user)throw new Error('Entre novamente para enviar a DRE.');const path=`${institutionId}/${user.id}/${crypto.randomUUID()}/${file.name.replace(/[^a-zA-Z0-9._-]/g,'_').slice(-150)}`;const sha256=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',await file.arrayBuffer()))).map(b=>b.toString(16).padStart(2,'0')).join('');const {error:uploadError}=await supabase.storage.from(DRE_BUCKET).upload(path,file,{contentType:mime,cacheControl:'0',upsert:false});if(uploadError)throw new Error('A DRE não foi enviada. Confira seu vínculo de Gestor e o segundo fator.');upload={object_path:path,file_name:file.name.slice(0,200),sha256,size_bytes:file.size};}
+ if(!upload&&!source)throw new Error('Anexe a DRE ou carregue um cálculo anterior com sua evidência.');
+ return await invoke({operation:'save',institutionId,body,upload,sourceId:!upload?source?.id:undefined,requestId}) as EbitdaRecord;
+}
+export async function downloadDre(institutionId:string,id:string){const data=await invoke({operation:'download',institutionId,id});if(!data?.url)throw new Error('Download indisponível.');const a=document.createElement('a');a.href=data.url;a.rel='noopener noreferrer';a.target='_blank';a.click();}
