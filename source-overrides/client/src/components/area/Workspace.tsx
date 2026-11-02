@@ -18,7 +18,7 @@ import "./area.css";
 
 type Tab = "ia" | "analise" | "geral" | "visao" | "cadastro" | "metas" | "plano" | "diagnostico" | "equipe" | "repositorio" | "biblioteca" | "reitor";
 const TABS: [Tab, string][] = [
-  ["ia", "Análise documental · IA"],
+  ["ia", "Análise Documental"],
   ["geral", "Visão geral"],
   ["analise", "Análise gerencial"],
   ["visao", "Matrículas"],
