@@ -12,13 +12,15 @@ import EbitdaCalculator from "../EbitdaCalculator";
 import InepLibrary from "./InepLibrary";
 import ManagementReview from "./ManagementReview";
 import DocumentAI from "./DocumentAI";
+import OrganizationBase from "./OrganizationBase";
 import {repositorySummary} from "@/lib/repository";
 import {listRepository} from "@/lib/repository-data";
 import { FIELD_HELP, TAB_FAQ, TAB_HELP, withHelp } from "@/lib/help";
 import "./area.css";
 
-type Tab = "ia" | "analise" | "geral" | "visao" | "cadastro" | "metas" | "plano" | "diagnostico" | "equipe" | "repositorio" | "biblioteca" | "reitor";
+type Tab = "base" | "ia" | "analise" | "geral" | "visao" | "cadastro" | "metas" | "plano" | "diagnostico" | "equipe" | "repositorio" | "biblioteca" | "reitor";
 const TABS: [Tab, string][] = [
+  ["base", "Base da organização · IA"],
   ["ia", "Análise Documental"],
   ["geral", "Visão geral"],
   ["analise", "Análise gerencial"],
@@ -54,7 +56,7 @@ export default function Workspace({
   const id = institution.id;
   const [tab, setTab] = useState<Tab>(() => {
     const t = new URLSearchParams(window.location.hash.slice(1)).get("aba") as Tab | null;
-    return t && TABS.some(([k]) => k === t) ? t : "geral";
+    return t && TABS.some(([k]) => k === t) ? t : role === 'master' || role === 'gestor' ? 'base' : 'geral';
   });
   const [data, setData] = useState<Data>(EMPTY);
   const [repositoryGoal,setRepositoryGoal]=useState("");
@@ -98,7 +100,7 @@ export default function Workspace({
   const late = data.actions.filter(a => isLate(a.due_date, a.status)).length;
   const openFindings = data.diagnosis.filter(d => d.status !== "resolvido").length;
   const activeGoals = data.goals.filter(g => g.status === "ativa" || g.status === "planejada").length;
-  const visible = TABS.filter(([k]) => (k !== "equipe" || can.manageTeam(role)) && (k !== "reitor" || role === "gestor" || role === "master") && (k !== "ia" || role === "gestor" || role === "master"));
+  const visible = TABS.filter(([k]) => (k !== "equipe" || can.manageTeam(role)) && (k !== "reitor" || role === "gestor" || role === "master") && (!['ia','base'].includes(k) || role === "gestor" || role === "master"));
 
   return (
     <section aria-labelledby="ws-title" className="area-ws">
@@ -141,6 +143,8 @@ export default function Workspace({
         overview
       ) : loading ? (
         <p role="status">Carregando…</p>
+      ) : tab === "base" ? (
+        role === 'master' || role === 'gestor' ? <OrganizationBase key={id} institution={institution} onGo={choose}/> : <p>A Base da organização é reservada ao Master e ao Gestor.</p>
       ) : tab === "ia" ? (
         role !== "master" && role !== "gestor" ? <p role="alert">A análise por IA é restrita à alta gestão da instituição.</p> : error ? <p role="alert">Atualize os dados antes de iniciar uma análise.</p> : <DocumentAI key={id} institutionId={id} courses={data.courses} requests={data.requests} files={data.files}/>
       ) : tab === "analise" ? (
@@ -344,7 +348,7 @@ function OverviewTab({ data, stats, onGo }: { data: Data; stats?: { enrolled: nu
 export const INSTITUTION_FIELDS: Field[] = withHelp([
   { name: "name", label: "Nome da instituição", required: true, wide: true },
   { name: "acronym", label: "Sigla" },
-  { name: "cnpj", label: "CNPJ (somente números)", placeholder: "00000000000000" },
+  { name: "cnpj", label: "CNPJ completo (numérico ou alfanumérico)", placeholder: "00.000.000/0001-00" },
   { name: "emec_code", label: "Código e-MEC" },
   { name: "maintainer", label: "Mantenedora", wide: true },
   { name: "city", label: "Município" },

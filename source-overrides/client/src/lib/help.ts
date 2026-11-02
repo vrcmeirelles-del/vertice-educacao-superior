@@ -8,7 +8,7 @@ export const FIELD_HELP: Record<"institution" | "course" | "goal" | "measurement
   institution: {
     name: "Nome oficial, exatamente como aparece no cadastro e-MEC.",
     acronym: "Como a instituição é conhecida no dia a dia. Ex.: UNITOP.",
-    cnpj: "Apenas os 14 números, sem pontos, barra ou traço. Ex.: 12345678000199.",
+    cnpj: "Informe o CNPJ completo, com ou sem pontuação. Novos CNPJs também podem conter letras. O cadastro abre a Base da organização; não concede acesso a outros clientes ou mandatos.",
     emec_code: "Código da instituição no cadastro e-MEC. Consulte em emec.mec.gov.br.",
     maintainer: "Pessoa jurídica responsável pela instituição (a mantenedora), quando houver.",
     city: "Município da sede.",

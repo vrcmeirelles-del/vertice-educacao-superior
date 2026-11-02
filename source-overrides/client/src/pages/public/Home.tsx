@@ -316,6 +316,13 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="corp-container corp-section" id="gestao-de-valor">
+        <span className="corp-eyebrow">GESTÃO DE VALOR · ACOMPANHAMENTO CONTÍNUO</span>
+        <h2>Uma base para organizar a instituição e acompanhar sua evolução.</h2>
+        <p>A Base da organização reúne documentos, ciclos anuais, obrigações e decisões, conectados à biblioteca INEP, ao EBITDA e aos cenários de valuation. A preparação institucional pode começar mesmo sem intenção de venda.</p>
+        <p>Converse com o assistente de IA para organizar o trabalho e preparar minutas. As fontes, premissas e conclusões permanecem sujeitas à conferência do responsável. Aquisições mantém equipes e informações reservadas por mandato.</p>
+        <div className="corp-actions"><Link className="corp-button" href="/master">Acessar minha organização <ArrowRight size={17}/></Link><Link className="corp-text-link" href="/demonstracao">Explorar a demonstração</Link></div>
+      </section>
       <ConsultCTA />
     </>
   );
