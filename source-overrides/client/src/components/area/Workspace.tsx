@@ -97,7 +97,7 @@ export default function Workspace({
   const late = data.actions.filter(a => isLate(a.due_date, a.status)).length;
   const openFindings = data.diagnosis.filter(d => d.status !== "resolvido").length;
   const activeGoals = data.goals.filter(g => g.status === "ativa" || g.status === "planejada").length;
-  const visible = TABS.filter(([k]) => (k !== "equipe" || can.manageTeam(role)) && (k !== "reitor" || role === "gestor" || role === "master"));
+  const visible = TABS.filter(([k]) => (k !== "equipe" || can.manageTeam(role)) && (k !== "reitor" || role === "gestor" || role === "master") && (k !== "ia" || role === "gestor" || role === "master"));
 
   return (
     <section aria-labelledby="ws-title" className="area-ws">
@@ -140,7 +140,7 @@ export default function Workspace({
       ) : loading ? (
         <p role="status">Carregando…</p>
       ) : tab === "ia" ? (
-        error ? <p role="alert">Atualize os dados antes de iniciar uma análise.</p> : <DocumentAI key={id} institutionId={id} courses={data.courses} requests={data.requests} files={data.files}/>
+        role !== "master" && role !== "gestor" ? <p role="alert">A análise por IA é restrita à alta gestão da instituição.</p> : error ? <p role="alert">Atualize os dados antes de iniciar uma análise.</p> : <DocumentAI key={id} institutionId={id} courses={data.courses} requests={data.requests} files={data.files}/>
       ) : tab === "analise" ? (
         error ? <p role="alert">Análise indisponível enquanto houver falha no carregamento. Atualize a página.</p> : <ManagementReview key={id} data={data} courses={data.courses} institutionId={id} />
       ) : tab === "geral" ? (
