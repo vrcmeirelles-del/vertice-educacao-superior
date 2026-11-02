@@ -10,13 +10,15 @@ import RepositoryTab from "./RepositoryTab";
 import EbitdaCalculator from "../EbitdaCalculator";
 import InepLibrary from "./InepLibrary";
 import ManagementReview from "./ManagementReview";
+import DocumentAI from "./DocumentAI";
 import {repositorySummary} from "@/lib/repository";
 import {listRepository} from "@/lib/repository-data";
 import { FIELD_HELP, TAB_FAQ, TAB_HELP, withHelp } from "@/lib/help";
 import "./area.css";
 
-type Tab = "analise" | "geral" | "visao" | "cadastro" | "metas" | "plano" | "diagnostico" | "equipe" | "repositorio" | "biblioteca" | "reitor";
+type Tab = "ia" | "analise" | "geral" | "visao" | "cadastro" | "metas" | "plano" | "diagnostico" | "equipe" | "repositorio" | "biblioteca" | "reitor";
 const TABS: [Tab, string][] = [
+  ["ia", "Análise documental · IA"],
   ["geral", "Visão geral"],
   ["analise", "Análise gerencial"],
   ["visao", "Matrículas"],
@@ -137,6 +139,8 @@ export default function Workspace({
         overview
       ) : loading ? (
         <p role="status">Carregando…</p>
+      ) : tab === "ia" ? (
+        error ? <p role="alert">Atualize os dados antes de iniciar uma análise.</p> : <DocumentAI key={id} institutionId={id} courses={data.courses} requests={data.requests} files={data.files}/>
       ) : tab === "analise" ? (
         error ? <p role="alert">Análise indisponível enquanto houver falha no carregamento. Atualize a página.</p> : <ManagementReview key={id} data={data} courses={data.courses} institutionId={id} />
       ) : tab === "geral" ? (
