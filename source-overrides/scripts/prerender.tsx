@@ -90,6 +90,7 @@ const demos = [
   "master/aquisicoes",
   "reitor/reservado",
   "painel",
+  "painel-real",
   "diagnostico",
   "regulador",
   "admin-ies",
