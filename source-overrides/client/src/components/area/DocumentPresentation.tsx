@@ -3,7 +3,7 @@ const values:Record<string,string>={planejada:'Planejada',ativa:'Em andamento',c
 function textValue(v:unknown):string{if(v===null||v===undefined)return 'Não informado';if(typeof v==='number')return v.toLocaleString('pt-BR');const s=String(v);if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s.split('-').reverse().join('/');return values[s]??s;}
 function Fields({data}:{data:unknown}){
  if(Array.isArray(data))return <ul className="doc-values">{data.map((v,i)=><li key={i}>{v&&typeof v==='object'?<Fields data={v}/>:textValue(v)}</li>)}</ul>;
- if(data&&typeof data==='object')return <dl className="doc-fields">{Object.entries(data).map(([k,v])=><div key={k} className={v&&typeof v==='object'?'doc-field-wide':''}><dt>{labels[k]??k.replace(/_/g,' ')}</dt><dd>{v&&typeof v==='object'?<Fields data={v}/>:textValue(v)}</dd></div>)}</dl>;
+ if(data&&typeof data==='object')return <dl className="doc-fields">{Object.entries(data).map(([k,v])=><div key={k} className={(v&&typeof v==='object')||(typeof v==='string'&&v.length>55)?'doc-field-wide':''}><dt>{labels[k]??k.replace(/_/g,' ')}</dt><dd>{v&&typeof v==='object'?<Fields data={v}/>:textValue(v)}</dd></div>)}</dl>;
  return <p>{textValue(data)}</p>;
 }
 export function SourcePreview({text,management}:{text:string;management:boolean}){if(management){try{return <Fields data={JSON.parse(text)}/>;}catch{/* edited excerpts remain plain text */}}return <p className="doc-source-text">{text}</p>;}
