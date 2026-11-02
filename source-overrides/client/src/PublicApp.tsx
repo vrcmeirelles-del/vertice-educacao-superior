@@ -6,6 +6,7 @@ import Method from "./pages/public/Method";
 import About from "./pages/public/About";
 import Founder from "./pages/public/Founder";
 import CaseStudy from "./pages/public/CaseStudy";
+import Reitor from "./pages/public/Reitor";
 import Guide from "./pages/public/Guide";
 import Contact from "./pages/public/Contact";
 import Login from "./pages/public/Login";
@@ -23,6 +24,7 @@ export const publicComponents: Record<string, React.ComponentType> = {
   "/fundador": Founder,
   "/caso-real": CaseStudy,
   "/guia": Guide,
+  "/reitor": Reitor,
   "/contato": Contact,
   "/privacidade": Privacy,
 };

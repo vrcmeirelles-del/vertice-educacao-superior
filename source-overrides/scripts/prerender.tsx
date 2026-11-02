@@ -87,6 +87,7 @@ for (const page of publicPages) {
   }
 }
 const demos = [
+  "reitor/reservado",
   "demonstracao",
   "painel",
   "diagnostico",

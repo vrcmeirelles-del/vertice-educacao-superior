@@ -7,6 +7,7 @@ import {
 } from "@/lib/area";
 import RecordForm from "./RecordForm";
 import RepositoryTab from "./RepositoryTab";
+import EbitdaCalculator from "../EbitdaCalculator";
 import InepLibrary from "./InepLibrary";
 import ManagementReview from "./ManagementReview";
 import {repositorySummary} from "@/lib/repository";
@@ -14,7 +15,7 @@ import {listRepository} from "@/lib/repository-data";
 import { FIELD_HELP, TAB_FAQ, TAB_HELP, withHelp } from "@/lib/help";
 import "./area.css";
 
-type Tab = "analise" | "geral" | "visao" | "cadastro" | "metas" | "plano" | "diagnostico" | "equipe" | "repositorio" | "biblioteca";
+type Tab = "analise" | "geral" | "visao" | "cadastro" | "metas" | "plano" | "diagnostico" | "equipe" | "repositorio" | "biblioteca" | "reitor";
 const TABS: [Tab, string][] = [
   ["geral", "Visão geral"],
   ["analise", "Análise gerencial"],
@@ -23,6 +24,7 @@ const TABS: [Tab, string][] = [
   ["metas", "Metas e indicadores"],
   ["repositorio", "Repositório"],
   ["biblioteca", "Biblioteca INEP"],
+  ["reitor", "Área do reitor · EBITDA"],
   ["plano", "Plano de ação 5W2H"],
   ["diagnostico", "Diagnóstico"],
   ["equipe", "Equipe"],
@@ -93,7 +95,7 @@ export default function Workspace({
   const late = data.actions.filter(a => isLate(a.due_date, a.status)).length;
   const openFindings = data.diagnosis.filter(d => d.status !== "resolvido").length;
   const activeGoals = data.goals.filter(g => g.status === "ativa" || g.status === "planejada").length;
-  const visible = TABS.filter(([k]) => k !== "equipe" || can.manageTeam(role));
+  const visible = TABS.filter(([k]) => (k !== "equipe" || can.manageTeam(role)) && (k !== "reitor" || role === "gestor" || role === "master"));
 
   return (
     <section aria-labelledby="ws-title" className="area-ws">
@@ -145,6 +147,8 @@ export default function Workspace({
         <GoalsTab institutionId={id} role={role} data={data} reload={reload} onRepository={goal=>{setRepositoryGoal(goal);choose("repositorio");}} />
       ) : tab === "repositorio" ? (
         <RepositoryTab institutionId={id} role={role} courses={data.courses} goals={data.goals} requests={data.requests} files={data.files} reload={reload} goalFilter={repositoryGoal} setGoalFilter={setRepositoryGoal}/>
+      ) : tab === "reitor" ? (
+        role === "master" || role === "gestor" ? <EbitdaCalculator reserved={{institutionId:id,name:String(institution.name)}}/> : <p>Os dados financeiros são reservados ao Gestor da instituição e ao Master.</p>
       ) : tab === "biblioteca" ? (
         <InepLibrary institutionId={id} />
       ) : tab === "plano" ? (

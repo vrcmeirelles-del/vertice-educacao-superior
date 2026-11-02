@@ -2,6 +2,8 @@
 
 Produção: https://www.verticesuperior.com.br
 
+Área do reitor: `/reitor` para cálculo público e `/reitor/reservado` para cálculo e DRE privados. Ver [UPDATE_REITOR_EBITDA_20261101.md](UPDATE_REITOR_EBITDA_20261101.md). Para reproduzir a versão atual, extraia o ZIP de fonte e sobreponha `source-overrides/` antes dos comandos de validação/build. Os ZIPs permanecem como pacotes-base anteriores.
+
 Biblioteca INEP: em `/master`, abrir a instituição e a aba **Biblioteca INEP**.
 Há também um atalho na lista inicial. Usa o mesmo login e MFA do portal.
 Documentação da integração: [UPDATE_LIBRARY_INEP_20261101.md](UPDATE_LIBRARY_INEP_20261101.md).
