@@ -1,3 +1,5 @@
+import {formCatalog} from './forms-catalog.ts';
+import {formBasis,operationFormsText} from './forms-service.ts';
 import {createHash,randomUUID} from 'node:crypto';
 import {normalizeValuation,calculateValuation,valuationText} from './valuation.ts';
 import {normalizeEbitda,calculateEbitda,ebitdaText} from './ebitda.ts';
@@ -15,7 +17,7 @@ export const comparisonRules=[{id:'docentes',label:'Docentes: lista acadêmica �
 export function reviewBasis(data,state){
  const {comparisons,...scope}=data.profile?.body||{};
  const linked=data.links.filter(l=>l.state_id===state.id).map(l=>({id:l.id,document_id:l.document_id,location:l.evidence_location,template:l.template_id,document:data.documents.find(d=>d.id===l.document_id),quality:data.checks.find(c=>c.link_id===l.id)?.body||null}));
- return digest({instrument:data.revision.sha256,profile:scope,state:{id:state.id,answer:state.answer,note:state.note,rows:state.structured_rows},linked});
+ return digest({...formBasis(data,state,formCatalog),instrument:data.revision.sha256,profile:scope,state:{id:state.id,answer:state.answer,note:state.note,rows:state.structured_rows},linked});
 }
 function compute(data){
  data.effective=data.states.map(s=>{const review=data.reviews.find(r=>r.state_id===s.id),basis=reviewBasis(data,s);return {state_id:s.id,requirement_id:s.requirement_id,basis_hash:basis,valid:!!review&&review.basis_hash===basis,review:review&&review.basis_hash===basis?review:null,previous_review:review||null};});
@@ -34,7 +36,7 @@ function compute(data){
  if(data.valuation){data.valuation.result=calculateValuation(data.valuation.body,data);data.valuation.citations=[...data.valuation.body.sources,...data.valuation.body.adjustments.map(a=>({kind:'adjustment',link_id:a.link_id,note:a.reason}))].map(s=>{const l=data.links.find(l=>l.id===s.link_id),d=data.documents.find(d=>d.id===l?.document_id),c=data.checks.find(c=>c.link_id===s.link_id),state=data.states.find(st=>st.id===l?.state_id);return {...s,code:data.requirements.find(r=>r.id===state?.requirement_id)?.code||'Indisponível',file_name:d?.file_name||'Indisponível',sha256:d?.sha256||'',location:c?.body.location||l?.evidence_location||''};});}
  if(data.ebitda){data.ebitda.result=calculateEbitda(data.ebitda.body);const d=data.documents.find(d=>d.id===data.ebitda.body.evidence_document_id);data.ebitda.evidence=d?{id:d.id,file_name:d.file_name,sha256:d.sha256}:null;data.ebitda.calculation_hash=digest(data.ebitda.body);data.ebitda.link_id=data.links.find(l=>l.document_id===d?.id&&data.states.some(s=>s.id===l.state_id&&data.requirements.some(r=>r.id===s.requirement_id&&r.code==='FIN-01')))?.id||null;}
  if(data.valuation?.body.ebitda_calculation_hash&&data.ebitda){const gaps=data.valuation.result.gaps;if(data.valuation.body.ebitda_calculation_hash!==data.ebitda.calculation_hash)gaps.push('O EBITDA da calculadora foi alterado: atualize a análise do preço.');if(data.ebitda.result.education&&!data.ebitda.result.education.reconciled)gaps.push('O detalhamento da IES ainda não fecha com a DRE.');if(data.ebitda.body.lease_basis==='unknown')gaps.push('Confirme o tratamento contábil dos aluguéis antes de comparar o preço.');if(gaps.length){data.valuation.result.status='conditional';data.valuation.result.conclusion='Compatibilidade do preço condicionada à conferência das fontes e do cálculo de EBITDA.';}}
- const context={revision:data.revision.sha256,profile:data.profile?.body||null,states:data.states,documents:data.documents,links:data.links,checks:data.checks,reviews:data.reviews,events:data.events,legacy:data.legacy,...(data.ebitda?{ebitda:{body:data.ebitda.body,updated_at:data.ebitda.updated_at}}:{})};
+ const context={...((data.form_answers?.length||data.shared_data?.length)?{operation_forms:{answers:data.form_answers||[],shared:data.shared_data||[]}}:{}),revision:data.revision.sha256,profile:data.profile?.body||null,states:data.states,documents:data.documents,links:data.links,checks:data.checks,reviews:data.reviews,events:data.events,legacy:data.legacy,...(data.ebitda?{ebitda:{body:data.ebitda.body,updated_at:data.ebitda.updated_at}}:{})};
  data.economic_context_hash=digest(context);
  if(data.valuation&&data.valuation.body.context_hash!==data.economic_context_hash){data.valuation.result.gaps.push('A base da DD mudou após a conferência econômica. Reabra e confira a análise de preço.');data.valuation.result.status='conditional';data.valuation.result.conclusion+=' Base alterada: revisão econômica pendente.';}
  const input=data.valuation?{...context,valuation:{body:data.valuation.body,updated_at:data.valuation.updated_at}}:context;
@@ -55,7 +57,7 @@ function compute(data){
  return data;
 }
 function eventComplete(b){return text(b.title).length>=3&&text(b.issue).length>=15&&text(b.consequence).length>=15&&text(b.risk_reason).length>=15&&b.requirement_ids?.length>0&&b.proofs?.length>0&&text(b.action).length>=10&&text(b.mechanism).length>=10&&text(b.owner).length>=3&&validDate(b.due_date||'')&&text(b.closure_criteria).length>=10&&!b.migration_pending;}
-export async function createWorkflow({local,asUser,directory,revision,verifyRemote}){
+export async function createWorkflow({local,asUser,directory,revision,verifyRemote,loadFormData}){
 
  async function load(user,m){
   if(!uuid(m))fail('Mandato inválido.');
@@ -66,6 +68,7 @@ export async function createWorkflow({local,asUser,directory,revision,verifyRemo
    const data={matter,...rights,revision,profile:(await tx.query('select * from dd_case_profiles where matter_id=$1',[m])).rows[0]||null,valuation:(await tx.query('select * from dd_valuations where matter_id=$1',[m])).rows[0]||null,ebitda:(await tx.query('select * from dd_ebitda_calculations where matter_id=$1',[m])).rows[0]||null};
    for(const [key,table] of Object.entries(tables))data[key]=(await tx.query(`select * from public.${table} where matter_id=$1 order by id`,[m])).rows;
    data.requirements=(await tx.query('select r.* from public.dd_requirements r join public.dd_requirement_state s on s.requirement_id=r.id where s.matter_id=$1 order by r.code',[m])).rows.map(r=>({...r,...revision.requirements.find(q=>q.code===r.code),id:r.id}));
+   if(loadFormData)Object.assign(data,await loadFormData(tx,m));
    return data;
   });
   return compute(result);
@@ -182,5 +185,5 @@ export function buildReport(s){
  for(const state of s.states){const req=s.requirements.find(r=>r.id===state.requirement_id),effective=s.effective.find(r=>r.state_id===state.id),r=effective?.valid?effective.review:null;lines.push('',req.code+' — '+req.question,'Resposta declarada: '+(state.answer||'Não fornecida'),'Registros estruturados: '+((state.structured_rows||[]).map((row,i)=>(i+1)+'. '+row.map((cell,j)=>(req.columns?.[j]||'Campo '+(j+1))+': '+cell).join(' | ')).join(' / ')||'Sem tabela'),'Conclusão: '+(r?labels[r.body.decision]:'Sem revisão atual válida'),'Análise: '+(r?.body.analysis||'Pendente'),'Critério: '+(r?.body.rule||'Não informado'),'Limitações: '+(r?.body.limitations||'Não informadas'),'Analista e data: '+(r?.body.reviewer_label?r.body.reviewer_label+' (ID '+r.reviewed_by+')':r?.reviewed_by||'—')+' — '+(r?.reviewed_at||'—'));
   for(const l of s.links.filter(l=>l.state_id===state.id)){const d=s.documents.find(d=>d.id===l.document_id),c=s.checks.find(c=>c.link_id===l.id);lines.push('Evidência: '+d.file_name+'; ID '+d.id+'; SHA256 '+d.sha256+'; localização '+(c?.body.location||l.evidence_location||'Não informada')+'; conferência '+(c?.body.result||'Não verificada')+'; origem/período/unidade '+[c?.body.origin,c?.body.period,c?.body.unit].filter(Boolean).join(' / '));}
  }
- lines.push('','APROVAÇÃO','Esta versão só é final quando existir registro de aprovação vinculado ao seu hash e à base documental. Alterações posteriores exigem nova versão e nova aprovação. Aprovação interna autenticada não equivale a assinatura digital qualificada.');return lines.join('\n');
+ lines.push('','APROVAÇÃO','Esta versão só é final quando existir registro de aprovação vinculado ao seu hash e à base documental. Alterações posteriores exigem nova versão e nova aprovação. Aprovação interna autenticada não equivale a assinatura digital qualificada.');if(s.form_answers?.length||s.shared_data?.length){lines.push('','FORMULÁRIOS E BASE COMPARTILHADA (DECLARAÇÕES, SUJEITAS À REVISÃO)',...operationFormsText(s,formCatalog));}lines.push('','CONFIDENCIAL — circulação limitada à equipe autorizada do mandato.','Proteção de dados: finalidade específica de diligência institucional; acesso restrito, minimização, guarda conforme obrigações e contrato. Não redistribuir nem incluir dados pessoais desnecessários. Lei 13.709/2018.');return lines.join('\n');
 }

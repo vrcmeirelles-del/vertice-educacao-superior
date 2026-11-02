@@ -3,6 +3,10 @@ import {createClient} from 'npm:@supabase/supabase-js@2.118.0';
 import {createHash} from 'node:crypto';
 import {createWorkflow} from './workflow.ts';
 import {buildAudit} from './audit.ts';
+import {formCatalog} from './forms-catalog.ts';
+import {formsLoad,saveOperationForm} from './forms-service.ts';
+import {brandWord} from './document-branding.ts';
+import {documentNotice} from './branding-data.ts';
 import {prompt} from './prompt.ts';
 import {unzipSync} from 'npm:fflate@0.8.2';
 import {DOMParser} from 'npm:@xmldom/xmldom@0.8.11';
@@ -36,7 +40,7 @@ Deno.serve(async req=>{
  if(req.method==='OPTIONS')return new Response('ok',{headers:cors});
  const u=new URL(req.url),path=u.pathname.replace(/^.*?\/vertice-aquisicoes-green/,'')||'/';
  try{
-  if(path==='/health'){await sql`select 1`;return send({status:'ok',model:'green-original',workflow:'2.1'});}
+  if(path==='/health'){await sql`select 1`;return send({status:'ok',model:'green-original',workflow:'2.1',forms_version:'3.0'});}
   const authorization=req.headers.get('authorization')||'';
   const client=createClient(origin,anon,{global:{headers:{Authorization:authorization}},auth:{persistSession:false}});
   const {data:{user},error}=await client.auth.getUser();if(error||!user)return send({message:'Entre pelo painel master.'},401);
@@ -46,10 +50,12 @@ Deno.serve(async req=>{
   if(path.startsWith('/templates/')){
    const {data:p,error:profileError}=await client.rpc('dd_portal',{op:'profile'});if(profileError)throw profileError;
    if(!p.master){const {data:ms}=await client.rpc('dd_portal',{op:'list'});if(!ms?.length)fail('Sem autorização para a biblioteca.',403);}
-   let name=path==='/templates/catalogo'?'catalogo.json':path==='/templates/biblioteca.zip'?'biblioteca-modelos.zip':null;
+   let name=path==='/templates/catalogo'?'catalogo.json':path==='/templates/biblioteca.zip'?'biblioteca-modelos-v3.zip':null;
    if(!name){const id=path.match(/^\/templates\/(M\d{2})\.docx$/)?.[1];if(!id)fail('Modelo não encontrado.',404);const {data}=await admin.storage.from('vertice-aquisicoes-modelos').download('catalogo.json');if(!data)fail('Catálogo indisponível.');const c=JSON.parse(await data.text());name=c.models.find((x:any)=>x.id===id)?.filename;if(!name)fail('Modelo não encontrado.',404);}
    const {data,error}=await admin.storage.from('vertice-aquisicoes-modelos').download(name);if(error||!data)throw error;
-   return new Response(data,{headers:{...cors,'Cache-Control':'no-store','Content-Type':name.endsWith('.json')?'application/json':name.endsWith('.zip')?'application/zip':'application/vnd.openxmlformats-officedocument.wordprocessingml.document','Content-Disposition':`attachment; filename*=UTF-8''${encodeURIComponent(name)}`}});
+   if(name.endsWith('.json')){const c=JSON.parse(await data.text());return send({...c,document_notice:documentNotice,models:c.models.map(({sha256,size,...m}:any)=>({...m,source_sha256:sha256,source_size:size,download_presentation:'Cópia de preenchimento com identidade Vértice e aviso de confidencialidade/LGPD; o hash da fonte se refere ao modelo original.'}))});}
+   const bytes=new Uint8Array(await data.arrayBuffer()),branded=name.endsWith('.zip')?bytes:brandWord(bytes);
+   return new Response(branded,{headers:{...cors,'Cache-Control':'no-store','Content-Type':name.endsWith('.zip')?'application/zip':'application/vnd.openxmlformats-officedocument.wordprocessingml.document','Content-Disposition':`attachment; filename*=UTF-8''${encodeURIComponent(name)}`}});
   }
   if(path==='/auth/v1/logout')return send({}); // O host encerra a sessão única.
   if(path.startsWith('/auth/'))fail('Use o login do portal.',400);
@@ -59,7 +65,16 @@ Deno.serve(async req=>{
    const asUser=async(_user:any,fn:any)=>{await s.unsafe('set local role authenticated');const result=await fn(txAPI(s));await s.unsafe('reset role');return result;};
    const [rev]=await s`select body from public.dd_requirement_revisions order by created_at desc limit 1`;if(!rev)fail('Instrumento em implantação.',503);
    const verifyRemote=async(data:any)=>{for(const d of data.documents.filter((d:any)=>data.links.some((l:any)=>l.document_id===d.id))){if(!d.storage_key.startsWith(data.matter.id+'/'))fail('Arquivo fora do mandato.',403);if(hash(await bytesOf(d.storage_key))!==d.sha256)fail('Integridade divergente: '+d.file_name);}};
-   const workflow=await createWorkflow({local:{db,persist:async()=>{}},asUser,directory:'',revision:rev.body,verifyRemote});
+   const workflow=await createWorkflow({local:{db,persist:async()=>{}},asUser,directory:'',revision:rev.body,verifyRemote,loadFormData:formsLoad});
+   if(path==='/forms/catalog')return send(formCatalog);
+   if(path.startsWith('/forms/')){
+    const parts=path.split('/').filter(Boolean),m=parts[1];if(!/^[0-9a-f-]{36}$/.test(m))fail('Mandato inválido.');
+    await s`select pg_advisory_xact_lock(hashtext(${m}))`;
+    const allowed=await asUser(user,async tx=>(await tx.query('select id from dd_matters where id=$1',[m])).rows[0]);if(!allowed)fail('Mandato indisponível.',403);
+    if(req.method==='GET'&&parts.length===2)return send(await asUser(user,tx=>formsLoad(tx,m)));
+    if(req.method==='POST'&&['shared','answer'].includes(parts[2]))return send(await saveOperationForm({s,asUser,user,m,p:await payload(),catalog:formCatalog,kind:parts[2]==='shared'?'shared':'answer'}));
+    fail('Operação de formulário não encontrada.',404);
+   }
    if(path==='/workflow/instrument')return send(workflow.revision);
    const parts=path.split('/').filter(Boolean);
    if(parts[0]==='workflow'){
@@ -76,11 +91,13 @@ Deno.serve(async req=>{
    if(path==='/agent/run'&&req.method==='POST'){
     const p=await payload(),w=await workflow.load(user,p.matter_id),decoded=[];
     for(const d of w.documents.filter((d:any)=>/\.docx$/i.test(d.file_name))){const raw=await bytesOf(d.storage_key);if(hash(raw)!==d.sha256)fail('Integridade divergente: '+d.file_name);decoded.push(decodeDoc(raw,d.id));}
-    const report=buildAudit(w.requirements,w.documents,decoded,{responses:w.states,links:w.links});return send({...report,matter_id:p.matter_id,limits:report.limits.map((v:string)=>v==='Sem modelo de IA e sem chamadas externas.'?'Sem modelo de IA nem envio de documentos a provedores de IA. Leitura no ambiente reservado da Vértice.':v)});
+    const responses=w.states.map((state:any)=>{const f=w.form_answers?.find((f:any)=>f.state_id===state.id);if(!f)return state;const code=w.requirements.find((r:any)=>r.id===state.requirement_id)?.code,schema=formCatalog.requirements[code];return {...state,answer:[state.answer||'',...schema.fields.filter((s:any)=>f.body.fields[s.key]).map((s:any)=>s.label+': '+f.body.fields[s.key]),...f.body.rows.map((r:any)=>r.join(' | '))].join('\n')};});
+    const report=buildAudit(w.requirements,w.documents,decoded,{responses,links:w.links});return send({...report,matter_id:p.matter_id,limits:report.limits.map((v:string)=>v==='Sem modelo de IA e sem chamadas externas.'?'Sem modelo de IA nem envio de documentos a provedores de IA. Leitura no ambiente reservado da Vértice.':v)});
    }
    if(path==='/agent/prompt')return send({mode:'document_check',prompt});
    if(path.startsWith('/rest/v1/rpc/')&&req.method==='POST'){
     const name=parts.at(-1),p=await payload();
+    if(p.m){if(!/^[0-9a-f-]{36}$/.test(p.m))fail('Mandato inválido.');await s`select pg_advisory_xact_lock(hashtext(${p.m}))`;}
     if(name==='dd_profile')return send(await asUser(user,async tx=>{const r=(await tx.query("select public.dd_portal('profile') profile")).rows[0].profile;return {admin:r.master,user_id:r.user_id,institutions:r.institutions};}));
     if(name==='dd_create_matter')return send((await asUser(user,tx=>tx.query('select public.dd_green_create($1) result',[JSON.stringify(p.payload)]))).rows[0].result);
     if(name==='dd_save_response'){await asUser(user,tx=>tx.query('select public.dd_green_response($1,$2,$3,$4)',[p.m,p.r,p.a,JSON.stringify(p.attachments)]));return send(null);}
