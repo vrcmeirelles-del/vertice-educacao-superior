@@ -1,3 +1,4 @@
+import {validateControl,validateFormMetadata} from './form-controls.ts';
 // Catálogo autoritativo no servidor. Nenhuma conclusão de conformidade é gerada.
 const fail=(message,status=400)=>{throw Object.assign(new Error(message),{status});};
 const text=(v,max=6000)=>{if(typeof v!=='string'||v.length>max)fail('Confira o texto e o limite dos campos.');return v.trim();};
@@ -18,7 +19,7 @@ export async function saveOperationForm({s,asUser,user,m,p,catalog,kind}){
  // Chamada sob a mesma trava de mandato utilizada pela revisão e aprovação.
  if(!Number.isInteger(p.version)||p.version<0)fail('Reabra o formulário para confirmar a versão.');
  const schema=kind==='shared'?catalog.groups.find(g=>g.key===p.key):catalog.requirements[p.code];if(!schema)fail('Formulário inexistente.');
- const fields=validateFields(p.fields,schema.fields),rows=validateRows(p.rows||[],schema.columns||[]);
+ let fields,rows;
  const table=kind==='shared'?'dd_shared_data':'dd_form_answers',idField=kind==='shared'?'key':'state_id';
  let id=p.key,fronts,state;
  if(kind==='shared'){
@@ -35,10 +36,15 @@ export async function saveOperationForm({s,asUser,user,m,p,catalog,kind}){
  const existing=(await s.unsafe(`select * from ${table} where matter_id=$1 and institution_id=(select institution_id from dd_matters where id=$1) and ${idField}=$2 for update`,[m,id]))[0];
  if(existing&&!visible)fail('Seção indisponível para esta equipe.',403);
  if(existing&&kind==='shared')for(const f of existing.front_scope){const ok=await asUser(user,async tx=>(await tx.query('select dd_private.can_access($1,true,$2) ok',[m,f])).rows[0].ok);if(!ok)fail('Somente responsável com acesso a todas as frentes desta seção pode alterá-la.',403);}
+ if(schema.leadOnly){const lead=await asUser(user,async tx=>(await tx.query('select public.dd_is_matter_lead($1) ok',[m])).rows[0].ok);if(!lead)fail('Esta seção exige o responsável pelo mandato.',403);}
+ fields=validateFields(p.fields,schema.fields);rows=validateRows(p.rows||[],schema.columns||[]);
+ for(const f of schema.fields)validateControl(f,fields[f.key]||'',existing?.body.fields?.[f.key]);
+ const metadata=validateFormMetadata({...p,rows},schema,existing?.body||{});
+ for(const list of Object.values(metadata.row_attachments))for(const file of list){const doc=await asUser(user,async tx=>(await tx.query('select id,classification,file_name from dd_documents where id=$1 and matter_id=$2 and institution_id=(select institution_id from dd_matters where id=$2)',[file.document_id,m])).rows[0]);if(!doc||schema.requiresPrivileged&&doc.classification!=='privileged'||schema.key==='legal_cases'&&!/\.pdf$/i.test(doc.file_name))fail('Documento indisponível, fora do mandato ou sem classificação exigida.',403);}
  if((existing?.version||0)!==p.version)fail('Outra pessoa alterou estes dados. Reabra para conferir a versão atual; seu preenchimento não foi salvo.',409);
  if(!Object.entries(fields).some(([k,v])=>k!=='declaration'&&v)&&!rows.some(row=>row.some(Boolean)))fail('Informe ao menos um dado ou uma limitação antes de salvar.');
  if(kind!=='shared'&&!fields.declaration)fail('Selecione a situação da informação.');
- const body={schema_version:catalog.version,fields,rows},version=p.version+1;
+ const body={schema_version:catalog.version,fields,rows,...metadata},version=p.version+1;
  if(JSON.stringify(body).length>700000)fail('A lista excede o limite. Divida o levantamento em grupos menores.');
  if(kind!=='shared'&&p.attachments!==undefined&&(!Array.isArray(p.attachments)||p.attachments.length>50))fail('Use até 50 anexos complementares.');
  if(kind==='shared')await s.unsafe('insert into dd_shared_data(matter_id,key,front_scope,body,version,updated_by) values($1,$2,$3,$4::jsonb,$5,$6) on conflict(matter_id,key) do update set front_scope=excluded.front_scope,body=excluded.body,version=excluded.version,updated_by=excluded.updated_by,updated_at=now()',[m,id,fronts,JSON.stringify(body),version,user.id]);
@@ -55,8 +61,8 @@ export function formBasis(data,state,catalog){
  return {...(own?{form:{body:own.body,version:own.version}}:{}),...(shared.length?{shared:shared.map(r=>({key:r.key,body:r.body,version:r.version}))}:{})};
 }
 export function operationFormsText(data,catalog){
- const lines=[],table=(columns,rows)=>rows.map((row,i)=>(i+1)+'. '+row.map((v,j)=>(columns[j]||'Campo '+(j+1))+': '+v).join(' | '));
- for(const record of data.form_answers||[]){const state=data.states.find(s=>s.id===record.state_id),req=data.requirements.find(r=>r.id===state?.requirement_id),schema=catalog.requirements[req?.code];if(!schema)continue;lines.push('',req.code+' — Formulário declarado, versão '+record.version,...schema.fields.filter(f=>record.body.fields[f.key]).map(f=>f.label+': '+record.body.fields[f.key]),...table(schema.columns,record.body.rows));}
- for(const record of data.shared_data||[]){const group=catalog.groups.find(g=>g.key===record.key);if(!group)continue;lines.push('','BASE COMPARTILHADA — '+group.title+' — versão '+record.version,'Frentes autorizadas: '+record.front_scope.join(', '),...group.fields.filter(f=>record.body.fields[f.key]).map(f=>f.label+': '+record.body.fields[f.key]),...table(group.columns,record.body.rows));}
+ const lines=[],notes=body=>Object.entries(body.comments||{}).map(([k,v])=>'Comentário ['+k+']: '+v).concat(Object.entries(body.row_attachments||{}).flatMap(([k,list])=>list.map(f=>'Anexo do registro '+k+': '+f.document_id+' — '+f.location))),table=(columns,rows)=>rows.map((row,i)=>(i+1)+'. '+row.map((v,j)=>(columns[j]||'Campo '+(j+1))+': '+v).join(' | '));
+ for(const record of data.form_answers||[]){const state=data.states.find(s=>s.id===record.state_id),req=data.requirements.find(r=>r.id===state?.requirement_id),schema=catalog.requirements[req?.code];if(!schema)continue;lines.push('',req.code+' — Formulário declarado, versão '+record.version,...schema.fields.filter(f=>record.body.fields[f.key]).map(f=>f.label+': '+record.body.fields[f.key]),...table(schema.columns,record.body.rows),...notes(record.body));}
+ for(const record of data.shared_data||[]){const group=catalog.groups.find(g=>g.key===record.key);if(!group)continue;lines.push('','BASE COMPARTILHADA — '+group.title+' — versão '+record.version,'Frentes autorizadas: '+record.front_scope.join(', '),...group.fields.filter(f=>record.body.fields[f.key]).map(f=>f.label+': '+record.body.fields[f.key]),...table(group.columns,record.body.rows),...notes(record.body));}
  return lines;
 }

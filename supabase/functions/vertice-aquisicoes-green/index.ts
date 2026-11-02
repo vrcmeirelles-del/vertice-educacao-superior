@@ -40,7 +40,7 @@ Deno.serve(async req=>{
  if(req.method==='OPTIONS')return new Response('ok',{headers:cors});
  const u=new URL(req.url),path=u.pathname.replace(/^.*?\/vertice-aquisicoes-green/,'')||'/';
  try{
-  if(path==='/health'){await sql`select 1`;return send({status:'ok',model:'green-original',workflow:'2.1',forms_version:'3.0'});}
+  if(path==='/health'){await sql`select 1`;return send({status:'ok',model:'green-original',workflow:'2.1',forms_version:'4.0'});}
   const authorization=req.headers.get('authorization')||'';
   const client=createClient(origin,anon,{global:{headers:{Authorization:authorization}},auth:{persistSession:false}});
   const {data:{user},error}=await client.auth.getUser();if(error||!user)return send({message:'Entre pelo painel master.'},401);
@@ -121,7 +121,7 @@ Deno.serve(async req=>{
     const signing=path.startsWith('/storage/v1/object/sign/'),prefix=signing?'/storage/v1/object/sign/dd-acervo/':'/storage/v1/object/dd-acervo/';
     if(!path.startsWith(prefix))fail('Caminho inválido.');const object=decodeURIComponent(path.slice(prefix.length)),m=object.split('/')[0];if(!/^[0-9a-f-]{36}\/[0-9a-f-]{36}\/[a-zA-Z0-9._-]+$/.test(object))fail('Caminho inválido.');
     if(signing){const d=(await asUser(user,tx=>tx.query('select id from public.dd_documents where matter_id=$1 and storage_key=$2',[m,object]))).rows[0];if(!d)fail('Sem acesso ao arquivo.',403);await asUser(user,tx=>tx.query("select public.dd_portal('download_authorize',$1,$2)",[m,JSON.stringify({id:d.id})]));const {data,error}=await bucket.createSignedUrl(object,300,{download:true});if(error)throw error;return send({signedURL:data.signedUrl,absolute:true});}
-    const front=u.searchParams.get('front')||'SOC';await asUser(user,tx=>tx.query("select public.dd_portal('upload_authorize',$1,$2)",[m,JSON.stringify({front,classification:'restricted'})]));
+    const front=u.searchParams.get('front')||'SOC';await asUser(user,tx=>tx.query("select public.dd_portal('upload_authorize',$1,$2)",[m,JSON.stringify({front,classification:u.searchParams.get('classification')||'restricted'})]));
     const ext=object.split('.').at(-1)!.toLowerCase();if(!mime[ext])fail('Formato não permitido.');const raw=new Uint8Array(await req.arrayBuffer());if(!raw.length||raw.length>15728640)fail('Limite de 15 MB.');
     const {error}=await bucket.upload(object,raw,{contentType:mime[ext],upsert:false});if(error)throw error;return send({Key:'dd-acervo/'+object});
    }

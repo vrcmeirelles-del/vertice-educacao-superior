@@ -1,0 +1,15 @@
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+export function optionLabel(def,value){return def.options?.[value]||value||'Selecione';}
+export function valueControl(def,value,attrs,editable,locator){
+ const disabled=editable?'':'disabled',known=def.options&&Object.hasOwn(def.options,value),legacy=value&&!known&&def.options?`<option value="${esc(value)}" selected>Valor anterior: ${esc(value)} — conferir padronização</option>`:'';
+ if(def.type==='tree'){
+  const tree=def.tree||[{label:'Opções',values:Object.keys(def.options||{})}];
+  return `<div class="choice-control"><input type="hidden" ${attrs} data-control-id="${esc(locator)}" value="${esc(value||'')}"><details class="option-tree"><summary data-choice-summary>${esc(optionLabel(def,value))}${value&&!known?' · valor anterior':''}</summary><p class="fine">Selecione uma opção. A escolha é uma declaração, sujeita à análise.</p>${tree.map(branch=>`<details open><summary>${esc(branch.label)}</summary>${branch.values.map(key=>`<label class="check"><input type="radio" name="tree_${esc(locator)}" data-tree-target="${esc(locator)}" value="${esc(key)}" ${value===key?'checked':''} ${disabled}><span>${esc(def.options[key])}</span></label>`).join('')}</details>`).join('')}</details></div>`;
+ }
+ if(def.type==='choice'||def.type==='select')return `<select ${attrs} ${disabled}><option value="">Selecione</option>${legacy}${Object.entries(def.options||{}).map(([key,label])=>`<option value="${esc(key)}" ${value===key?'selected':''}>${esc(label)}</option>`).join('')}</select>`;
+ if(def.type==='textarea')return `<textarea ${attrs} rows="3" maxlength="6000" ${disabled}>${esc(value||'')}</textarea>`;
+ return `<input ${attrs} type="${['date','url'].includes(def.type)?def.type:'text'}" ${def.type==='amount'?'inputmode="decimal"':''} maxlength="6000" value="${esc(value||'')}" ${disabled}>`;
+}
+export function commentControl(locator,value,editable){return `<details class="field-comment"><summary>Comentário / dúvida${value?' · preenchido':''}</summary><textarea data-comment="${esc(locator)}" aria-label="Comentário ou dúvida sobre este campo" maxlength="2000" rows="3" ${editable?'':'readonly'} placeholder="Explique contexto, exceção ou dúvida institucional. Não inclua dados de estudantes, dados sensíveis, senhas ou chaves restritas.">${esc(value||'')}</textarea></details>`;}
+const wired=new WeakSet();
+export function wireChoices(root){if(wired.has(root))return;wired.add(root);root.addEventListener('change',e=>{const target=e.target.dataset.treeTarget;if(!target)return;const control=Array.from(root.querySelectorAll('[data-control-id]')).find(el=>el.dataset.controlId===target);if(!control)return;control.value=e.target.value;const wrapper=control.closest('.choice-control');wrapper.querySelector('[data-choice-summary]').textContent=e.target.nextElementSibling?.textContent||e.target.value;wrapper.querySelector('.option-tree').open=false;control.dispatchEvent(new Event('input',{bubbles:true}));});}
