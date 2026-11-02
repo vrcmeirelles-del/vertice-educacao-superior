@@ -113,7 +113,12 @@ for (const path of demos) {
     description:
       "Cenário fictício de diagnóstico, metas e ações. Sem avaliação oficial. Alterações ficam somente neste navegador.",
   };
-  const html = document(page, "", true);
+  // Somente Aquisições incorpora a aplicação aprovada do mesmo domínio.
+  // As demais páginas continuam sem permissão de incorporar frames.
+  const html = document(page, "", true).replace(
+    "frame-src 'none'",
+    path === "master/aquisicoes" ? "frame-src 'self'" : "frame-src 'none'"
+  );
   mkdirSync(resolve(dir,path).replace(/[^/\\]+$/, ""), {recursive:true});
   writeFileSync(resolve(dir, `${path}.html`), html);
   const folder = resolve(dir, path);

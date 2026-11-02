@@ -28,6 +28,7 @@ async function fetchDashboardRows(table:string,order:string,ascending=true){
 function readHash(){const p=new URLSearchParams(typeof window==='undefined'?'':window.location.hash.slice(1));return {inst:p.get('instituicao')??'',course:p.get('curso')??'',repositories:p.get('repositorios')==='1'};}
 function writeHash(inst:string,course:string,repositories=false,library=false,reitor=false){const p=new URLSearchParams();if(inst)p.set('instituicao',inst);if(course)p.set('curso',course);if(repositories){if(inst)p.set('aba','repositorio');else p.set('repositorios','1');}if(library)p.set('aba','biblioteca');if(reitor)p.set('aba','reitor');const h=p.toString();window.history.pushState(null,'',h?`#${h}`:window.location.pathname);window.dispatchEvent(new HashChangeEvent('hashchange'));window.scrollTo({top:0});}
 export default function OwnerDashboard(){
+ const acquisitionsRoute=/^\/master\/aquisicoes(?:\/|\.html)?$/.test(window.location.pathname);
  const [session,setSession]=useState<Session|null>(null);
  const [loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[error,setError]=useState('');
  const [aal,setAal]=useState(''),[master,setMaster]=useState(false);
@@ -55,6 +56,8 @@ export default function OwnerDashboard(){
     const {data,error:fError}=await supabase.auth.mfa.listFactors();if(fError)throw fError;
     setFactor(data.totp[0]?.id??'');return;
    }
+   // Aquisições depende apenas da sessão e do MFA; seu backend aplica as permissões.
+   if(acquisitionsRoute)return;
    await supabase.rpc('vertice_accept_invites').then(()=>undefined,()=>undefined);
    const results=await Promise.all([
     supabase.from('vertice_admins').select('user_id').eq('user_id',current.user.id),
@@ -87,7 +90,7 @@ export default function OwnerDashboard(){
  async function verify(e:FormEvent){e.preventDefault();setBusy(true);setError('');try{
   const {error}=await supabase.auth.mfa.challengeAndVerify({factorId:factor,code});if(error)throw error;setCode('');setQr('');await load();
  }catch{setError('Código não validado. Confira o autenticador e tente novamente.');}finally{setBusy(false);}}
- if(window.location.pathname==='/master/aquisicoes'&&!loading&&session&&aal==='aal2')return <GreenHost/>;
+ if(acquisitionsRoute&&!loading&&session&&aal==='aal2')return <GreenHost/>;
  return <main className="corp-container corp-section"><h1>{window.location.pathname.startsWith('/reitor')?'Área reservada do reitor':master&&route.repositories?'Repositórios · visão master':master?'Painel Vértice':'Painel de gestão'}</h1>
  {loading?<p role="status">Verificando acesso…</p>:!session?<><p>Entre para acessar sua conta.</p><Link className="corp-button" href={window.location.pathname.startsWith('/reitor')?'/entrar?destino=reitor':'/entrar'}>Entrar</Link></>:<>
  <p>Conectado como <strong>{session.user.email}</strong>.</p>
@@ -96,7 +99,7 @@ export default function OwnerDashboard(){
  {qr&&<><p>Leia o QR code no seu aplicativo autenticador. Não compartilhe esta imagem.</p><img alt="QR code para configurar seu autenticador" src={qr} width={200} height={200}/></>}
  <form className="access-form" onSubmit={verify}><label>Código do autenticador<input autoComplete="one-time-code" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} required value={code} onChange={e=>setCode(e.target.value)}/></label><button className="corp-button" disabled={busy}>Validar segundo fator</button></form></>}
  </section>:<><p>{master?'Visão das instituições da empresa.':'Você vê somente as instituições vinculadas à sua conta.'}</p>
- {master&&<nav className="repo-global-nav" aria-label="Visões do master"><Link className="repo-secondary" href="/master/aquisicoes">Aquisições e incorporações</Link><button className={`repo-secondary ${!route.repositories&&!currentInst?'active':''}`} onClick={()=>writeHash('','')}>Gestão das instituições</button><button className={`repo-secondary ${route.repositories||new URLSearchParams(window.location.hash.slice(1)).get('aba')==='repositorio'?'active':''}`} onClick={()=>writeHash('','',true)}>Repositórios de todas as IES</button></nav>}
+ {master&&<nav className="repo-global-nav" aria-label="Visões do master"><a className="repo-secondary" href="/master/aquisicoes">Aquisições e incorporações</a><button className={`repo-secondary ${!route.repositories&&!currentInst?'active':''}`} onClick={()=>writeHash('','')}>Gestão das instituições</button><button className={`repo-secondary ${route.repositories||new URLSearchParams(window.location.hash.slice(1)).get('aba')==='repositorio'?'active':''}`} onClick={()=>writeHash('','',true)}>Repositórios de todas as IES</button></nav>}
  {!currentInst&&!route.repositories&&<div className="stats-row"><div className="stat-card">Instituições<strong className="stat-value">{institutions.length}</strong></div><div className="stat-card">Cursos<strong className="stat-value">{courses.length}</strong></div><div className="stat-card">Vínculos<strong className="stat-value">{members.length}</strong></div></div>}
  {currentInst&&currentCourse?<CourseView key={currentCourse.id} course={currentCourse} institution={currentInst} enrollments={enrollments} reports={reports} onBack={()=>writeHash(currentInst.id,'')}/>
  :currentInst?<Workspace key={currentInst.id} institution={currentInst as unknown as Row} role={roleIn(currentInst.id)} onBack={()=>writeHash('','')} onChanged={load}
