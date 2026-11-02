@@ -10,6 +10,7 @@ import "./styles/fonts.css";
 import "./index.css";
 import "./styles/corporate.css";
 import "./styles/management.css";
+import "./components/demo-showroom.css";
 
 const queryClient = new QueryClient();
 const trpcClient = trpc.createClient({
