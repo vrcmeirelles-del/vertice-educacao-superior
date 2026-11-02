@@ -45,7 +45,7 @@ export function createReviewHandler(options:HandlerOptions){return async(req:Req
   if(!policy.enabled||!options.configured()||!policy.model)throw new BoundaryError('analysis_not_configured',503);
   const snippets:VerifiedSnippet[]=validateSnippets(body.selections);for(const snippet of snippets){const source=chunks.find(c=>c.id===snippet.id);if(!source||!source.text.includes(snippet.text))throw new BoundaryError('unverified_excerpt',400)}
   const criteria=files.length?await backend.criteria(scope,files):[];
-  const requestHash=await hashValue({scope,digest,snippets,criteria});
+  const requestHash=await hashValue({version:'management-4',scope,digest,snippets,criteria});
   reservation=await backend.reserve(scope,files,requestHash);await backend.claim(reservation.reservation_id,actorId,requestHash);
   const completion:ReviewCompletion=await (options.review??runDocumentReview)({snippets,model:reservation.model,criteria},{apiKey:options.apiKey(),maxOutputTokens:reservation.max_output_tokens,timeoutMs:20000});
   await backend.finalize(reservation.reservation_id,actorId,'succeeded',await hashValue(completion.result),completion.usage,null);
