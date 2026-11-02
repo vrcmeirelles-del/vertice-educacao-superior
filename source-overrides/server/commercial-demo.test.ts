@@ -1,0 +1,20 @@
+import {beforeEach,describe,expect,it,vi} from 'vitest';
+import {buildDemoBrief} from '../client/src/lib/commercial-demo';
+vi.stubGlobal('Deno',{env:{get:(key:string)=>key==='OPENAI_API_KEY'?'test-server-secret':key==='SUPABASE_SERVICE_ROLE_KEY'?'test-service-key':key==='SUPABASE_URL'?'https://backend.test':undefined},serve:vi.fn()});
+const {handler}=await import('../supabase/functions/vertice-demo/index');
+const origin='https://verticesuperior.com.br',token='a'.repeat(64);
+function request(body:any,source=origin){return new Request('https://demo.test',{method:'POST',headers:{origin:source,'Content-Type':'application/json'},body:JSON.stringify(body)});}
+describe('commercial demo privacy and capability boundaries',()=>{
+ beforeEach(()=>vi.stubGlobal('fetch',vi.fn()));
+ it('rejects other origins before any database or provider call',async()=>{const r=await handler(request({action:'start',remember:true,notice_version:'demo-2026-11-02'},'https://other.test'));expect(r.status).toBe(403);expect(fetch).not.toHaveBeenCalled();});
+ it('requires an explicit notice decision and a capability',async()=>{expect((await handler(request({action:'start'}))).status).toBe(400);expect((await handler(request({action:'read'}))).status).toBe(401);expect(fetch).not.toHaveBeenCalled();});
+ it('requires separate AI consent and blocks sensitive strings',async()=>{expect((await handler(request({action:'chat',token,message:'Olá'}))).status).toBe(400);expect((await handler(request({action:'chat',token,message:'senha: teste-confidencial',ai_confirmed:true}))).status).toBe(400);expect(fetch).not.toHaveBeenCalled();});
+ it('requires contact confirmation before storing contact information',async()=>{expect((await handler(request({action:'contact',token,contact:{name:'Teste',email:'demo@example.test',institution:'Fictícia'},brief:'Resumo fictício para testar o contato.'}))).status).toBe(400);expect(fetch).not.toHaveBeenCalled();});
+ it('rejects tracking arbitrary paths and names',async()=>{expect((await handler(request({action:'update',token,events:[{type:'page',value:'/master?email=private@example.test'}]}))).status).toBe(400);expect(fetch).not.toHaveBeenCalled();});
+ it('sends provider only after reserving quota and gives it catalog and current screen, not contact data',async()=>{
+  const calls:any[]=[];vi.stubGlobal('fetch',vi.fn(async(url:string,init:any)=>{const b=JSON.parse(init.body);calls.push({url,b});if(url.includes('/rpc/'))return Response.json({id:'test',profile:{pain:'Organizar evidências'},events:[],conversation:[],contact:{email:'never-send@example.test'}});return Response.json({status:'completed',output:[{type:'message',content:[{type:'output_text',text:'Qual curso você quer priorizar?'}]}]});}));
+  const r=await handler(request({action:'chat',token,message:'Quero entender as evidências.',ai_confirmed:true,track:'regulacao',module:'evidencias'}));
+  expect(r.status).toBe(200);expect(calls[0].b.op).toBe('chat_reserve');const provider=calls.find(x=>x.url.includes('api.openai.com'));expect(provider.b.store).toBe(false);expect(provider.b.instructions).toContain('evidencias');expect(JSON.stringify(provider.b)).not.toContain('never-send@example.test');expect(calls.at(-1).b.op).toBe('update');
+ });
+ it('a navigation-derived interest is never presented as a declared institutional pain',()=>{const brief=buildDemoBrief({track:'aquisicoes'},[{type:'module',value:'ebitda',at:new Date().toISOString()}]);expect(brief).toContain('Desafio: Ainda não declarado');expect(brief).toContain('não comprovam um problema institucional');expect(brief).toContain('Aquisições de instituições');});
+});

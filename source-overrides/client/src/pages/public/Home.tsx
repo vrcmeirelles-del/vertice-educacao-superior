@@ -239,14 +239,14 @@ export default function Home() {
             ganhar estrutura.
           </h2>
           <p>
-            Explore um cenário fictício. Edite critérios e metas, acompanhe o
-            painel e conecte prioridades a planos de ação.
+            Escolha seu desafio: regulação e gestão, aquisições de instituições
+            ou captação e permanência. Experimente cenários e prepare uma conversa com contexto.
           </p>
           <Link href="/demonstracao" className="corp-button">
-            Abrir demonstração <ArrowUpRight size={18} />
+            Experimente a Vértice <ArrowUpRight size={18} />
           </Link>
           <small>
-            Sem cadastro. Dados fictícios. Alterações somente no seu navegador.
+            Sem cadastro para explorar. Dados fictícios. IA e memória do percurso opcionais.
           </small>
         </div>
         <div className="demo-feature-list">

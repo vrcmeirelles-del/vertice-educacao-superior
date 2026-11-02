@@ -1,4 +1,5 @@
 import React from "react";
+import CommercialDemo from "./pages/public/CommercialDemo";
 import PublicLayout from "./components/PublicLayout";
 import Home from "./pages/public/Home";
 import Aquisicoes from "./pages/public/Aquisicoes";
@@ -16,6 +17,7 @@ import ResetPassword from "./pages/public/ResetPassword";
 import { useLocation } from "wouter";
 
 export const publicComponents: Record<string, React.ComponentType> = {
+  "/demonstracao": CommercialDemo,
   "/": Home,
   "/aquisicoes": Aquisicoes,
   "/entrar": Login,

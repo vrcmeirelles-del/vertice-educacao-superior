@@ -2,6 +2,7 @@ import "./components/ebitda.css";
 import { lazy, Suspense, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
+import DemoTelemetry from "./components/DemoTelemetry";
 import PublicApp, { normalizePublicPath, publicComponents } from "./PublicApp";
 import PublicLayout from "./components/PublicLayout";
 import { publicPages } from "./lib/consultancy";
@@ -52,6 +53,7 @@ export default function App() {
   }, [path, normalized, isPublic]);
   return (
     <ErrorBoundary>
+      <DemoTelemetry />
       {passwordCallback ? <PublicLayout><ResetPassword /></PublicLayout> : normalized === "/master/aquisicoes" ? <Suspense fallback={<p>Verificando acesso…</p>}><OwnerDashboard /></Suspense> : ["/master", "/gestor", "/admin-ies", "/painel-real", "/reitor/reservado"].includes(normalized) ? <PublicLayout><Suspense fallback={<p>Verificando acesso…</p>}><OwnerDashboard /></Suspense></PublicLayout> : isPublic ? (
         <PublicApp />
       ) : demoPaths.has(normalized) ? (

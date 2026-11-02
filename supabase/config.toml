@@ -1,2 +1,6 @@
 [functions.vertice-inep-library]
 verify_jwt = false
+
+# Visitor demo uses random capability tokens, consent gates and server quotas.
+[functions.vertice-demo]
+verify_jwt = false

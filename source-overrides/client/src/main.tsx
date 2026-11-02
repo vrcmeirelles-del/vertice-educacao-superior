@@ -1,3 +1,4 @@
+import './pages/public/commercial-demo.css';
 import "./styles/aquisicoes.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { httpBatchLink } from "@trpc/client";

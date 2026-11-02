@@ -90,7 +90,7 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
               </Link>
             ))}
             <Link href="/demonstracao" className="corp-demo-link">
-              Demonstração <ArrowUpRight size={15} />
+              Experimente a Vértice <ArrowUpRight size={15} />
             </Link>
             <Link href={logged ? "/master" : "/entrar"} className="corp-button small">
               {logged ? "Meu painel" : "Entrar"} <ArrowUpRight size={15} />
@@ -116,7 +116,7 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
                 {l.label}
               </Link>
             ))}
-            <Link href="/demonstracao">Demonstração</Link>
+            <Link href="/demonstracao">Experimente a Vértice</Link>
             <Link href="/guia.html">Guia e glossário</Link>
             <Link href={logged ? "/master" : "/entrar"}>{logged ? "Meu painel" : "Entrar"}</Link>
           </div>

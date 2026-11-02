@@ -3,7 +3,7 @@ export const company = {
   descriptor: "Consultoria Estratégica e Regulatória",
   slogan: "Clareza regulatória, solidez institucional.",
   founder: "Professor Virgílio Meirelles",
-  email: "",
+  email: "vertice@verticesuperior.com.br",
   whatsapp: "",
   requestedDomain: "www.verticesuperior.com.br",
 };
@@ -168,11 +168,12 @@ export const faqs = [
   {
     question: "O que posso testar na demonstração?",
     answer:
-      "Você pode editar critérios, metas e ações fictícias. As alterações ficam somente no seu navegador e podem ser exportadas. Não há conta, colaboração entre pessoas, anexos nem integração com sistemas nesta versão.",
+      "Você pode explorar cenários fictícios de regulação, aquisições de instituições e captação. A conversa por IA é opcional. A memória do percurso depende da sua escolha; o briefing só é compartilhado para contato após sua confirmação. O painel demonstrativo completo continua disponível.",
   },
 ];
 
 export const publicPages = [
+  {path:"/demonstracao",title:"Experimente a Vértice | Demonstração guiada",description:"Explore cenários fictícios de regulação, gestão, aquisições de instituições e captação. Converse sobre sua demanda e prepare seu briefing para a Vértice."},
   {
     path: "/aquisicoes",
     title: "Aquisições e incorporações | Vértice Educação Superior",

@@ -9,6 +9,7 @@ import RecordForm from '@/components/area/RecordForm';
 import {TABLES, isLate, saveRow, type Role, type Row} from '@/lib/area';
 import GlobalRepository from '@/components/area/GlobalRepository';
 import GreenHost from '@/components/acquisitions/GreenHost';
+import DemoLeads from '@/components/DemoLeads';
 
 type Membership={user_id:string;institution_id:string;role:string};
 const SNAPSHOT_COLUMNS='id,course_id,semester,class_label,enrolled,capacity,available,source_report_at,reported_total,student_status';
@@ -38,6 +39,7 @@ export default function OwnerDashboard(){
  const [reports,setReports]=useState<AcademicReport[]>([]);
  const [route,setRoute]=useState(readHash());
  const [creating,setCreating]=useState(false);
+ const [commercial,setCommercial]=useState(false);
  const [mgmt,setMgmt]=useState<{goals:Row[];actions:Row[];diagnosis:Row[]}>({goals:[],actions:[],diagnosis:[]});
  const roleIn=(id:string):Role|null=>master?'master':((members.find(m=>m.institution_id===id&&m.user_id===session?.user.id)?.role as Role)??null);
  useEffect(()=>{const f=()=>setRoute(readHash());window.addEventListener('hashchange',f);window.addEventListener('popstate',f);return()=>{window.removeEventListener('hashchange',f);window.removeEventListener('popstate',f);};},[]);
@@ -99,7 +101,8 @@ export default function OwnerDashboard(){
  {qr&&<><p>Leia o QR code no seu aplicativo autenticador. Não compartilhe esta imagem.</p><img alt="QR code para configurar seu autenticador" src={qr} width={200} height={200}/></>}
  <form className="access-form" onSubmit={verify}><label>Código do autenticador<input autoComplete="one-time-code" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} required value={code} onChange={e=>setCode(e.target.value)}/></label><button className="corp-button" disabled={busy}>Validar segundo fator</button></form></>}
  </section>:<><p>{master?'Visão das instituições da empresa.':'Você vê somente as instituições vinculadas à sua conta.'}</p>
- {master&&<nav className="repo-global-nav" aria-label="Visões do master"><a className="repo-secondary" href="/master/aquisicoes">Aquisições e incorporações</a><button className={`repo-secondary ${!route.repositories&&!currentInst?'active':''}`} onClick={()=>writeHash('','')}>Gestão das instituições</button><button className={`repo-secondary ${route.repositories||new URLSearchParams(window.location.hash.slice(1)).get('aba')==='repositorio'?'active':''}`} onClick={()=>writeHash('','',true)}>Repositórios de todas as IES</button></nav>}
+ {master&&<nav className="repo-global-nav" aria-label="Visões do master"><a className="repo-secondary" href="/master/aquisicoes">Aquisições e incorporações</a><button className={`repo-secondary ${!commercial&&!route.repositories&&!currentInst?'active':''}`} onClick={()=>{setCommercial(false);writeHash('','');}}>Gestão das instituições</button><button className={`repo-secondary ${!commercial&&route.repositories?'active':''}`} onClick={()=>{setCommercial(false);writeHash('','',true);}}>Repositórios de todas as IES</button><button className={`repo-secondary ${commercial?'active':''}`} onClick={()=>setCommercial(true)}>Demonstração · inteligência comercial</button></nav>}
+ {master&&commercial?<DemoLeads/>:<>
  {!currentInst&&!route.repositories&&<div className="stats-row"><div className="stat-card">Instituições<strong className="stat-value">{institutions.length}</strong></div><div className="stat-card">Cursos<strong className="stat-value">{courses.length}</strong></div><div className="stat-card">Vínculos<strong className="stat-value">{members.length}</strong></div></div>}
  {currentInst&&currentCourse?<CourseView key={currentCourse.id} course={currentCourse} institution={currentInst} enrollments={enrollments} reports={reports} onBack={()=>writeHash(currentInst.id,'')}/>
  :currentInst?<Workspace key={currentInst.id} institution={currentInst as unknown as Row} role={roleIn(currentInst.id)} onBack={()=>writeHash('','')} onChanged={load}
@@ -110,6 +113,7 @@ export default function OwnerDashboard(){
  {creating&&<RecordForm title="Nova instituição" fields={INSTITUTION_FIELDS} initial={{status:'ativa'}} onCancel={()=>setCreating(false)} onSubmit={async v=>{const row=await saveRow(TABLES.institutions,v);setCreating(false);await load();writeHash(row.id,'');}}/>}
  {!institutions.length?<p>Nenhuma instituição disponível para esta conta. O vínculo deve ser autorizado pela administração.</p>:<div className="table-scroll"><table><thead><tr><th>Instituição</th><th>Seu perfil</th><th>Cursos cadastrados</th><th>Matriculados{latestSemester?` em ${latestSemester}`:''}</th><th>Metas</th><th>Ações atrasadas</th><th>Achados abertos</th><th></th></tr></thead><tbody>{institutions.map(i=><tr key={i.id}><td>{i.name}{(i as unknown as Row).acronym?` · ${String((i as unknown as Row).acronym)}`:''}{(i as unknown as Row).status==='arquivada'&&' (arquivada)'}</td><td>{{master:'Master',gestor:'Gestor',equipe:'Equipe',leitor:'Leitura'}[roleIn(i.id)??'leitor']}</td><td>{courses.filter(c=>c.institution_id===i.id).length||'Nenhum curso cadastrado'}</td><td>{instTotal(i.id).toLocaleString('pt-BR')}</td><td>{mgmt.goals.filter(x=>x.institution_id===i.id&&x.status!=='cancelada').length}</td><td>{mgmt.actions.filter(x=>x.institution_id===i.id&&isLate(x.due_date,x.status)).length}</td><td>{mgmt.diagnosis.filter(x=>x.institution_id===i.id&&x.status!=='resolvido').length}</td><td><button className="corp-button" onClick={()=>writeHash(i.id,'')}>Abrir área</button> <button className="corp-login-text-button" onClick={()=>writeHash(i.id,'',true)}>Repositório →</button> <button className="corp-login-text-button" onClick={()=>writeHash(i.id,'',false,true)}>Biblioteca INEP →</button> {['master','gestor'].includes(roleIn(i.id)??'')&&<button className="corp-login-text-button" onClick={()=>writeHash(i.id,'',false,false,true)}>Calcular EBITDA →</button>}</td></tr>)}</tbody></table></div>}</>}
  <p>Os dados desta área vêm do banco. Os exemplos da demonstração permanecem separados.</p><button className="corp-login-text-button" onClick={load}>Atualizar dados</button></>}
+ </>}
  <button className="corp-login-text-button" onClick={async()=>{const {error}=await supabase.auth.signOut();if(error)setError('Não foi possível encerrar a sessão.');}}>Sair da conta</button></>}
  {error&&<p role="alert">{error}</p>}<p><Link href="/privacidade.html">Privacidade</Link> · <Link href="/">Voltar ao site</Link></p></main>;
 }
