@@ -1,6 +1,6 @@
 import { courseClassification, useCourseFilters } from "./CourseFilters";
 import {displayCourseRows} from '@/lib/course-labels';
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { supabase } from "@/lib/supabase";
 import {
   ACTION_STATUS, COURSE_STATUS, DEGREE, DIMENSIONS, DIRECTION, FINDING_STATUS, FREQUENCY, GOAL_STATUS, MODALITY, PRIORITY, ROLE_LABEL, TABLES, UF,
@@ -8,6 +8,8 @@ import {
   type Field, type Role, type Row,
 } from "@/lib/area";
 import RecordForm from "./RecordForm";
+import GoalsDashboard, { GoalSignalBadge, GoalSignalBar } from "./GoalsDashboard";
+import { goalSignals, summarizeGoalSignals, goalSignalDate, GOAL_SIGNALS, type GoalSignal } from "@/lib/goal-signals";
 import RepositoryTab from "./RepositoryTab";
 import EbitdaCalculator from "../EbitdaCalculator";
 import InepLibrary from "./InepLibrary";
@@ -159,7 +161,7 @@ export default function Workspace({
       ) : tab === "cadastro" ? (
         <RegistryTab institution={institution} role={role} courses={data.courses} reload={reload} onChanged={onChanged} />
       ) : tab === "metas" ? (
-        <GoalsTab institutionId={id} role={role} data={data} reload={reload} onRepository={goal=>{setRepositoryGoal(goal);choose("repositorio");}} />
+        error ? <p role="alert">Painel de metas indisponível enquanto houver falha no carregamento. Atualize os dados.</p> : <GoalsTab key={id} institutionId={id} role={role} data={data} reload={reload} onRepository={goal=>{setRepositoryGoal(goal);choose("repositorio");}} />
       ) : tab === "repositorio" ? (
         <RepositoryTab institutionId={id} role={role} courses={data.courses} goals={data.goals} requests={data.requests} files={data.files} reload={reload} goalFilter={repositoryGoal} setGoalFilter={setRepositoryGoal}/>
       ) : tab === "reitor" ? (
@@ -502,40 +504,65 @@ function GoalsTab({ institutionId, role, data, reload, onRepository }: { institu
   const [course, setCourse] = useState("");
   const [courseSearch,setCourseSearch]=useState("");
   const [coursePage,setCoursePage]=useState(0);
-  useEffect(()=>setCoursePage(0),[courseSearch]);
-  const byGoal = useMemo(() => {
-    const m = new Map<string, Row[]>();
-    for (const r of data.measurements) {
-      const k = String(r.goal_id);
-      if (!m.has(k)) m.set(k, []);
-      m.get(k)!.push(r);
-    }
-    return m;
-  }, [data.measurements]);
-  const goals = data.goals.filter(g => !course || g.course_id === course);
-  const courseName = (cid: unknown) => data.courses.find(c => c.id === cid)?.name as string | undefined;
+  const [signalFilter, setSignalFilter] = useState<GoalSignal | "">("");
+  const [goalSearch, setGoalSearch] = useState("");
+  const formRef = useRef<HTMLDivElement>(null);
+  useEffect(() => { if (ed.editing || measuring) formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); }, [ed.editing, measuring]);
+  const referenceDate = goalSignalDate();
+  useEffect(()=>setCoursePage(0),[courseSearch, course, signalFilter, goalSearch]);
+  const entries = useMemo(() => goalSignals(data.goals, data.measurements, referenceDate), [data.goals, data.measurements, referenceDate]);
+  const courseName = (cid: unknown) => data.courses.find(c => c.id === cid)?.display_name ?? data.courses.find(c => c.id === cid)?.name;
   const classification = useCourseFilters(data.courses, () => setCoursePage(0));
-  const courseRows=data.courses.filter(classification.matches).filter(c=>`${c.name} ${c.code??""} ${c.modality??""}`.toLowerCase().includes(courseSearch.toLowerCase()));
-  const pageCount=Math.max(1,Math.ceil(courseRows.length/20));
+  const courseRows=data.courses.filter(classification.matches).filter(c=>`${c.display_name??c.name} ${c.code??""} ${c.modality??""}`.toLocaleLowerCase("pt-BR").includes(courseSearch.toLocaleLowerCase("pt-BR")));
+  const selectedCourseIds = new Set(courseRows.map(c => c.id));
+  const institutionIncluded = !courseSearch && !classification.active;
+  const scopeEntries = entries.filter(e => course === "institution" ? !e.goal.course_id : course ? e.goal.course_id === course : e.goal.course_id ? selectedCourseIds.has(String(e.goal.course_id)) : institutionIncluded);
+  const filteredEntries = scopeEntries.filter(e => (!signalFilter || e.signal === signalFilter) && (!course || `${e.goal.title} ${e.goal.indicator}`.toLocaleLowerCase("pt-BR").includes(goalSearch.toLocaleLowerCase("pt-BR"))));
+  const entryMap = new Map(entries.map(e => [e.goal.id, e]));
+  const groupedEntries = new Map<string, typeof entries>();
+  for (const entry of scopeEntries) {
+    const id = String(entry.goal.course_id || "institution");
+    if (!groupedEntries.has(id)) groupedEntries.set(id, []);
+    groupedEntries.get(id)!.push(entry);
+  }
+  const groups = [
+    ...(institutionIncluded && groupedEntries.has("institution") ? [{ id: "institution", name: "Metas institucionais", code: "IES", modality: "" } as Row] : []),
+    ...courseRows,
+  ].map(c => {
+    const rows = groupedEntries.get(c.id) ?? [];
+    const stats = summarizeGoalSignals(rows);
+    const signal: GoalSignal = stats.counts.red ? "red" : stats.counts.amber ? "amber" : stats.counts.green ? "green" : "gray";
+    return { course: c, rows, stats, signal };
+  }).filter(g => !signalFilter || g.stats.counts[signalFilter] > 0)
+    .sort((a,b) => GOAL_SIGNALS.findIndex(s=>s.key===a.signal)-GOAL_SIGNALS.findIndex(s=>s.key===b.signal) || String(a.course.display_name??a.course.name).localeCompare(String(b.course.display_name??b.course.name),"pt-BR"));
+  const goals = filteredEntries.slice().sort((a,b) => GOAL_SIGNALS.findIndex(s=>s.key===a.signal)-GOAL_SIGNALS.findIndex(s=>s.key===b.signal) || (a.daysLeft??Infinity)-(b.daysLeft??Infinity)).map(e => e.goal);
+  const pageCount=Math.max(1,Math.ceil((course ? goals.length : groups.length)/12));
   const currentPage=Math.min(coursePage,pageCount-1);
+  const chooseCourse = (id: string) => { setCourse(id); setGoalSearch(""); ed.close(); setMeasuring(null); setOpen(null); };
 
   return (
-    <div className="area-panel">
+    <div className="area-panel goals-panel">
       <div className="area-panel-head">
-        <h3>Metas e indicadores ({data.goals.length})</h3>
+        <div><p className="goals-eyebrow">PAINEL DE ACOMPANHAMENTO</p><h3>Metas e indicadores</h3></div>
         <div className="area-inline">
-          <select aria-label="Filtrar por curso" value={course} onChange={e => setCourse(e.target.value)}>
+          <select aria-label="Filtrar por curso" value={course} onChange={e => chooseCourse(e.target.value)}>
             <option value="">Toda a instituição</option>
+            <option value="institution">Somente metas institucionais</option>
             {courseOptions(data.courses).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
           </select>
           {can.manageGoals(role) && <button className="corp-button small" onClick={() => ed.open("new")}>Nova meta</button>}
         </div>
       </div>
+      {!course && <div className="goals-toolbar"><div className="area-inline">{classification.controls}<label className="area-search">Buscar curso<input value={courseSearch} onChange={e=>setCourseSearch(e.target.value)} placeholder="Nome, código ou modalidade"/></label></div></div>}
+      {course && <p className="goals-back"><button className="corp-login-text-button" onClick={()=>{chooseCourse("");setSignalFilter("");}}>← Visão de todos os cursos</button></p>}
+      <GoalsDashboard entries={scopeEntries} filter={signalFilter} onFilter={setSignalFilter} referenceDate={referenceDate} onOpen={entry=>{chooseCourse(String(entry.goal.course_id||"institution"));setSignalFilter("");setGoalSearch(String(entry.goal.title));}} />
+      <div ref={formRef}>
       {ed.editing && (
         <RecordForm
+          key={ed.editing === "new" ? `new-${course}` : ed.editing.id}
           title={ed.editing === "new" ? "Nova meta" : "Editar meta"}
           fields={goalFields(data.courses,goalMembers)}
-          initial={ed.editing === "new" ? { direction: "aumentar", status: "ativa", course_id: course } : ed.editing}
+          initial={ed.editing === "new" ? { direction: "aumentar", status: "ativa", course_id: course === "institution" ? "" : course } : ed.editing}
           onCancel={ed.close}
           onSubmit={async v => {
             await saveRow(TABLES.goals, ed.editing === "new" ? { ...v, institution_id: institutionId } : v, ed.editing === "new" ? undefined : (ed.editing as Row).id);
@@ -546,6 +573,7 @@ function GoalsTab({ institutionId, role, data, reload, onRepository }: { institu
       )}
       {measuring && (
         <RecordForm
+          key={measuring.id}
           title={`Registrar medição · ${String(measuring.indicator)}`}
           fields={MEASUREMENT_FIELDS}
           initial={{ measured_on: today(), source: measuring.source ?? "" }}
@@ -559,37 +587,41 @@ function GoalsTab({ institutionId, role, data, reload, onRepository }: { institu
           }}
         />
       )}
-      {!course && data.goals.length>0 ? <>
-        <p className="area-muted">Plano por curso. Abra um curso para conferir metas, indicadores e entregas. “Planejada” indica proposta ainda sujeita à pactuação com a gestão; não significa atividade iniciada ou resultado alcançado.</p>
-        <div className="area-inline">{classification.controls}</div>
-        <p className="area-muted">{courseRows.length} de {data.courses.length} cursos</p>
-        <label className="area-search">Buscar curso<input value={courseSearch} onChange={e=>setCourseSearch(e.target.value)} placeholder="Nome, código ou modalidade"/></label>
-        <div className="table-scroll"><table className="area-table"><thead><tr><th>Curso</th><th>Metas</th><th>Planejadas</th><th>Em acompanhamento</th><th>Responsável a designar</th><th/></tr></thead><tbody>
-          {courseRows.slice(currentPage*20,currentPage*20+20).map(c=>{
-            const rows=data.goals.filter(g=>g.course_id===c.id);
-            return <tr key={c.id}><td><strong>{String(c.display_name??c.name)}</strong><small>{String(c.code??"—")} · {label(MODALITY,c.modality)}</small></td><td>{rows.length}</td><td>{rows.filter(g=>g.status==="planejada").length}</td><td>{rows.filter(g=>g.status==="ativa").length}</td><td>{rows.filter(g=>!g.owner_user_id).length}</td><td><button className="corp-login-text-button" onClick={()=>setCourse(c.id)}>Ver metas</button></td></tr>;
-          })}
-        </tbody></table></div>
-        {pageCount>1&&<div className="area-inline"><button className="corp-login-text-button" disabled={!currentPage} onClick={()=>setCoursePage(currentPage-1)}>Anterior</button><span>Página {currentPage+1} de {pageCount} · {courseRows.length} cursos</span><button className="corp-login-text-button" disabled={currentPage>=pageCount-1} onClick={()=>setCoursePage(currentPage+1)}>Próxima</button></div>}
+      </div>
+      <div className="goals-list-heading"><h4>{course ? (course === "institution" ? "Metas institucionais" : String(courseName(course) || "Metas do curso")) : "Acompanhamento por curso"}</h4><span className="area-muted small">{course ? `${goals.length} meta(s)` : `${groups.length} grupo(s)`}{signalFilter ? ` · ${GOAL_SIGNALS.find(s=>s.key===signalFilter)!.label}` : ""}</span>{signalFilter && <button className="corp-login-text-button" onClick={()=>setSignalFilter("")}>Limpar filtro de alerta</button>}</div>
+      {course && <label className="area-search">Buscar meta ou indicador<input value={goalSearch} onChange={e=>setGoalSearch(e.target.value)} placeholder="Título ou indicador"/></label>}
+      {!course ? <>
+        <p className="area-muted small">Cursos com alertas aparecem primeiro. “Planejada” indica proposta sujeita à pactuação; não significa atividade iniciada.</p>
+        {!groups.length && <p className="goals-empty">Nenhum curso ou meta corresponde aos filtros.</p>}
+        <div className="goals-course-grid">
+          {groups.slice(currentPage*12,currentPage*12+12).map(({course:c,rows,stats,signal})=><article key={c.id} className={`goals-course-card ${signal}`}>
+            <GoalSignalBadge signal={signal} label={stats.total ? undefined : "Sem metas"}/>
+            <div><h4>{String(c.display_name??c.name)}</h4><small>{String(c.code??"Sem código")}{c.modality ? ` · ${label(MODALITY,c.modality)}` : ""}</small></div>
+            <div className="goals-course-count"><strong>{stats.total}</strong><span>meta(s) cadastrada(s)</span></div>
+            <GoalSignalBar entries={rows}/>
+            <div className="goals-course-metrics"><span>{stats.counts.red} vencida(s)</span><span>{stats.counts.amber} em atenção</span><span>{stats.counts.green} em dia / concluída(s)</span>{stats.counts.gray>0&&<span>{stats.counts.gray} cancelada(s)</span>}</div>
+            <div className="goals-course-meta"><span>{stats.measured}/{stats.active} abertas com medição</span><span>{stats.active-stats.owners} sem responsável</span></div>
+            <button className="corp-login-text-button" onClick={()=>chooseCourse(c.id)} aria-label={`Ver metas de ${String(c.display_name??c.name)}`}>Ver metas →</button>
+          </article>)}
+        </div>
       </> : !goals.length ? (
-        <p className="area-muted">Nenhuma meta cadastrada{course ? " para este curso" : ""}.{can.manageGoals(role) ? " Comece pela que mais pesa na decisão da gestão." : ""}</p>
+        <p className="goals-empty">Nenhuma meta corresponde a este recorte.{can.manageGoals(role) && !scopeEntries.length ? " Cadastre uma meta para iniciar o acompanhamento." : ""}</p>
       ) : (
         <div className="area-cards">
-          {goals.map(g => {
-            const ms = byGoal.get(g.id) ?? [];
-            const last = ms.length ? Number(ms[ms.length - 1].value) : null;
-            const p = goalProgress(g, last);
-            const late = isLate(g.due_date, g.status);
+          {goals.slice(currentPage*12,currentPage*12+12).map(g => {
+            const entry = entryMap.get(g.id)!;
+            const ms = entry.history;
+            const last = entry.value;
+            const p = entry.progress;
             const docs=repositorySummary(data.requests.filter(r=>r.goal_id===g.id),data.files);
             return (
-              <article key={g.id} className="area-card">
+              <article key={g.id} className={`area-card goals-goal-card ${entry.signal}`}>
                 <div className="area-card-top">
-                  <span className={`badge ${g.status === "concluida" ? "green" : g.status === "cancelada" ? "gray" : late ? "red" : "amber"}`}>
-                    {late ? "Prazo vencido" : label(GOAL_STATUS, g.status)}
-                  </span>
-                  {courseName(g.course_id) && <small>{courseName(g.course_id)}</small>}
+                  <GoalSignalBadge signal={entry.signal}/>
+                  <small>{label(GOAL_STATUS,g.status)}{g.course_id ? ` · ${String(courseName(g.course_id)||"Curso vinculado")}` : " · Institucional"}</small>
                 </div>
                 <h4>{String(g.title)}</h4>
+                <p className="goals-alert-reason">{entry.reasons.join(" ")}</p>
                 <p className="area-muted">Documentos: {docs.sent}/{docs.total} com envio · {docs.validated} validados · {docs.pending} pendentes · {docs.late} em atraso · {docs.nsa} NSA</p>
                 <p className="area-muted">{String(g.indicator)}{g.owner_name||g.owner_email ? ` · ${String(g.owner_name||g.owner_email)}` : ""}</p>
                 {(Boolean(g.formula)||Boolean(g.source)||Boolean(g.notes))&&<details className="area-goal-details"><summary>Plano e critérios da meta</summary>{Boolean(g.formula)&&<p><strong>Cálculo:</strong> {String(g.formula)}</p>}{Boolean(g.source)&&<p><strong>Fonte:</strong> {String(g.source)}</p>}{Boolean(g.notes)&&<p style={{whiteSpace:"pre-wrap"}}>{String(g.notes)}</p>}</details>}
@@ -599,10 +631,10 @@ function GoalsTab({ institutionId, role, data, reload, onRepository }: { institu
                   <div><small>Alvo ({label(DIRECTION, g.direction).toLowerCase()})</small><b>{fmtNum(g.target, g.unit)}</b></div>
                   <div><small>Prazo</small><b>{fmtDate(g.due_date)}</b></div>
                 </div>
-                <div className="area-progress" aria-label={p === null ? "Sem medição" : `Progresso ${p}%`}>
+                <div className="area-progress" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={p ?? undefined} aria-label={p === null ? "Progresso indisponível" : `Progresso ${p}%`}>
                   <span style={{ width: `${p ?? 0}%` }} />
                 </div>
-                <p className="area-muted small">{p === null ? "Sem medição registrada." : `${p}% do caminho entre a linha de base e o alvo.`}</p>
+                <p className="area-muted small">{p === null ? "Progresso indisponível: confira medição, alvo e sentido." : g.direction === "manter" ? `${p}% · manutenção na faixa de ±5% do alvo (±0,5 para alvo zero).` : `${p}% do caminho entre a linha de base e o alvo.`}</p>
                 <div className="area-row-actions">
                   <button className="corp-login-text-button" onClick={()=>onRepository(g.id)}>Documentos da meta ({docs.total})</button>
                   {can.record(role) && <button className="corp-login-text-button" onClick={() => setMeasuring(g)}>Registrar medição</button>}
@@ -633,6 +665,7 @@ function GoalsTab({ institutionId, role, data, reload, onRepository }: { institu
           })}
         </div>
       )}
+      {pageCount>1&&<div className="area-inline goals-pagination"><button className="corp-login-text-button" disabled={!currentPage} onClick={()=>setCoursePage(currentPage-1)}>Anterior</button><span>Página {currentPage+1} de {pageCount}</span><button className="corp-login-text-button" disabled={currentPage>=pageCount-1} onClick={()=>setCoursePage(currentPage+1)}>Próxima</button></div>}
     </div>
   );
 }
