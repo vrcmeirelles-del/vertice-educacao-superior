@@ -118,8 +118,8 @@ export const TAB_HELP: Record<string, { title: string; text: string[] }> = {
   diagnostico: {
     title: "Como funciona o diagnóstico",
     text: [
-      "Registre cada critério verificado com uma nota de 1 a 5, o achado e a evidência consultada. Os critérios são agrupados por dimensão, com a média de cada uma.",
-      "Use “Criar ação” para levar um achado direto ao plano 5W2H.",
+      "Comece pelo fechamento de cada dimensão: nota consolidada, situação e síntese das avaliações registradas. Abra a dimensão para ver os indicadores com nota baixa e as sugestões de melhoria.",
+      "Dentro da dimensão, use “Avaliar indicador nesta dimensão” para registrar uma avaliação e “Criar ação” para levar o achado e a sugestão ao plano 5W2H.",
     ],
   },
   equipe: {
@@ -250,9 +250,10 @@ export const TAB_FAQ: Record<string, { label: string; items: { q: string; a: str
   diagnostico: {
     label: "Diagnóstico",
     items: [
+      { q: "Como é feito o fechamento da dimensão?", a: "Pela média simples das notas válidas dos registros selecionados. Notas abaixo de 3 ficam destacadas dentro da dimensão. Registros sem nota não entram na média; ausência de avaliação não equivale a nota zero. É uma síntese gerencial, não um conceito oficial do INEP." },
       { q: "Que nota devo dar?", a: "De 1 (muito frágil) a 5 (excelente), na mesma lógica dos instrumentos de avaliação do INEP. Use meio ponto se necessário." },
       { q: "O que diferencia achado de evidência?", a: "O achado é o que foi constatado. A evidência é o documento ou fonte que sustenta essa constatação." },
-      { q: "Como transformo um achado em ação?", a: "Clique em “Criar ação” na linha do critério. O plano 5W2H abre com o achado já vinculado." },
+      { q: "Como transformo um achado em ação?", a: "Abra a dimensão e clique em “Criar ação” no indicador. O plano 5W2H abre com o achado vinculado e uma sugestão de melhoria para ajustar." },
       { q: "Quando marco um critério como resolvido?", a: "Quando a ação foi executada e há evidência de que a situação mudou, não apenas quando a ação foi planejada." },
     ],
   },
