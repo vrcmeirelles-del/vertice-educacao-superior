@@ -46,6 +46,11 @@ describe('semáforo das metas', () => {
     expect(signal({}, [measurement({ measured_on: '2026-10-03' })]).stale).toBe(false);
     expect(signal({ frequency: 'trimestral' }, [measurement({ measured_on: '2026-10-02' })]).stale).toBe(false);
   });
+  it('não conta designação pendente como responsável definido', () => {
+    expect(signal({ owner_name: 'Coordenação do curso — designação pendente' }).hasOwner).toBe(false);
+    expect(signal({ owner_name: 'A definir' }).hasOwner).toBe(false);
+    expect(signal({ owner_name: 'Coordenação do curso — designação pendente', owner_user_id: 'account-1' }).hasOwner).toBe(true);
+  });
   it('calcula o progresso para aumentar e reduzir sem misturar unidades', () => {
     expect(signal().progress).toBe(50);
     expect(signal({ baseline: 100, target: 0, direction: 'reduzir' }, [measurement({ value: 25 })]).progress).toBe(75);

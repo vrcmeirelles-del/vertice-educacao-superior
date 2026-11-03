@@ -12,9 +12,9 @@ export function GoalSignalBar({ entries }: { entries: GoalSignalEntry[] }) {
   </div>;
 }
 
-export default function GoalsDashboard({ entries, filter, onFilter, onOpen, referenceDate }: {
+export default function GoalsDashboard({ entries, filter, onFilter, onOpen, referenceDate, courseLabel }: {
   entries: GoalSignalEntry[]; filter: GoalSignal | ''; onFilter: (signal: GoalSignal | '') => void;
-  onOpen: (entry: GoalSignalEntry) => void; referenceDate: string;
+  onOpen: (entry: GoalSignalEntry) => void; referenceDate: string; courseLabel: (id: unknown) => string;
 }) {
   const stats = summarizeGoalSignals(entries);
   let angle = 0;
@@ -54,7 +54,7 @@ export default function GoalsDashboard({ entries, filter, onFilter, onOpen, refe
     </div>
     <section className="goals-priorities" aria-labelledby="goals-priorities-title">
       <div className="goals-summary-heading"><div><p className="goals-eyebrow">PAUTA DA GESTÃO</p><h4 id="goals-priorities-title">Prioridades para acompanhar</h4></div><span>{priorities.length ? `Exibindo ${Math.min(5, priorities.length)} de ${priorities.length} metas com alerta` : 'Sem alertas neste recorte'}</span></div>
-      {priorities.length ? <ol>{priorities.slice(0, 5).map(e => <li key={e.goal.id}><GoalSignalBadge signal={e.signal} /><div><strong>{String(e.goal.title)}</strong><p>{e.reasons.slice(0, 2).join(' ')}</p></div><button type="button" className="corp-login-text-button" onClick={() => onOpen(e)}>Abrir meta →</button></li>)}</ol> : <p className="goals-empty">{entries.length ? 'Continue atualizando medições, prazos e evidências.' : 'Cadastre metas para iniciar o acompanhamento visual.'}</p>}
+      {priorities.length ? <ol>{priorities.slice(0, 5).map(e => <li key={e.goal.id}><GoalSignalBadge signal={e.signal} /><div><small className="goals-priority-course">{courseLabel(e.goal.course_id)}</small><strong>{String(e.goal.title)}</strong><p>{e.reasons.slice(0, 2).join(' ')}</p></div><button type="button" className="corp-login-text-button" onClick={() => onOpen(e)}>Abrir meta →</button></li>)}</ol> : <p className="goals-empty">{entries.length ? 'Continue atualizando medições, prazos e evidências.' : 'Cadastre metas para iniciar o acompanhamento visual.'}</p>}
     </section>
     <details className="goals-rules"><summary>Como funcionam os sinais e os gráficos?</summary><p><strong>Vermelho:</strong> prazo vencido em meta não concluída nem cancelada. <strong>Amarelo:</strong> prazo vence em até 14 dias, meta planejada, responsável ou medição ausente, medição desatualizada, prazo ou alvo inválido, ou indicador de manutenção fora da faixa. <strong>Verde:</strong> nenhum desses alertas ou conclusão registrada no cadastro. <strong>Cinza:</strong> meta cancelada.</p><p>Verde não certifica resultado ou validação documental. A conclusão é informada pela equipe. A atualidade da medição usa intervalos de 31, 62, 93, 186 e 366 dias para as periodicidades mensal, bimestral, trimestral, semestral e anual. Medições futuras não compõem os alertas. Referência: {referenceDate.split('-').reverse().join('/')} (horário de Brasília).</p><p>Os gráficos seguem o curso e os filtros de classificação e busca. O filtro de cor atua na lista abaixo; os totais do resumo continuam mostrando o recorte completo.</p></details>
   </section>;
