@@ -1,3 +1,5 @@
+import {courseTotals} from "@/lib/enrollment-summary";
+export {courseTotals} from "@/lib/enrollment-summary";
 import "./academic-data.css";
 import CourseIndicators, {type CourseIndicatorPayload} from "./CourseIndicators";
 import {useMemo, useState} from 'react';
@@ -29,13 +31,6 @@ export function latestEnrollmentSnapshots(rows: Enrollment[]) {
  const at=(r:Enrollment)=>Date.parse(r.source_report_at)||0;
  for(const r of rows) latest.set(key(r),Math.max(latest.get(key(r))??-Infinity,at(r)));
  return rows.filter(r=>at(r)===latest.get(key(r)));
-}
-
-/** Matriculados de um curso num semestre: soma das turmas e total informado na origem. */
-export function courseTotals(rows:Enrollment[]){
- const sum=rows.reduce((s,r)=>s+r.enrolled,0);
- const reported=rows.find(r=>r.reported_total!==null&&r.reported_total!==undefined)?.reported_total??null;
- return {sum,reported,value:reported??sum};
 }
 
 type StatusSeries={semester:string;capacity:number|null;counts:Record<string,number>};
