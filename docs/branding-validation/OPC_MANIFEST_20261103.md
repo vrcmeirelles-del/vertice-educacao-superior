@@ -27,3 +27,5 @@ python scripts/branding/check-manifest-opc.py /tmp/vertice-opc-after/normal.docx
 Limites: esta verificação é do grafo OPC/manifesto e renderização, não validação integral de schemas OOXML. O validador externo usado no desktop não estava disponível aqui. A ata real não foi recebida nem alterada neste teste. A fonte SHA b7aaa2b46590245667c92badfe3bb10ba469131566d03fc8afaf6ce1171e74cb deve ser preparada novamente com o mesmo manifesto revisado em nova pasta exclusiva; o SHA 5605b4ba534c1433a5e131865adff2d224083a76bdc8a6c8082b02ee3b405ef7 será substituído por um novo hash, que precisa de novo registro e validação externa antes de qualquer upload/habilitação.
 
 O patch não foi implantado na Edge, não altera banco e não realiza merge. Edge live permanece v4; smoke hospedado continua pendente separadamente. Solicitar revisão independente do novo commit, então publicar a Edge corrigida antes de habilitar templates.
+
+Atualização 15:39 UTC: reteste independente aprovado e patch publicado na Edge v5 ACTIVE. Código relido pelo provedor; ver ROLLOUT_20261103.md. Sem merge; smoke hospedado ainda pendente.
