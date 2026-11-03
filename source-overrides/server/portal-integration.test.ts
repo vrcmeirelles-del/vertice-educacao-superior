@@ -1,6 +1,6 @@
 import {describe,it,expect,vi} from 'vitest';
 vi.mock('../client/src/lib/supabase',()=>({supabase:{}}));
-import {parseActionDraft,validateActionLinks,integratedSummary,documentActionSuggestions,type PortalData} from '../client/src/lib/portal-integration';
+import {parseActionDraft,validateActionLinks,integratedSummary,documentActionSuggestions,mergeActionSuggestions,type PortalData} from '../client/src/lib/portal-integration';
 import {courseTotals,institutionEnrollmentSummary} from '../client/src/lib/enrollment-summary';
 import {acquisitionSummary} from '../client/public/aquisicoes-app/management-summary.js';
 
@@ -31,8 +31,14 @@ describe('vínculos e consolidação institucional',()=>{
   data.requests=[{id:'r1',course_id:'c1'},{id:'r2',course_id:'c1',not_applicable:true},{id:'r3',course_id:'c2'},{id:'r4',course_id:'c1',active:false}];
   data.files=[{id:'f1',request_id:'r1',status:'validado',created_at:'2026-01-01'},{id:'f2',request_id:'r1',status:'devolvido',created_at:'2026-02-01'}];
   const result=documentActionSuggestions(data,'c1');expect(result).toHaveLength(1);expect(result[0].why).toContain('1 exigência(s)');expect(result[0].why).toContain('1 devolvida');
-  data.actions=[{id:'a1',status:'em_andamento',why:result[0].why}];expect(documentActionSuggestions(data,'c1')).toHaveLength(0);
+  data.actions=[{id:'a1',status:'em_andamento',what:result[0].title,course_id:'c1',why:result[0].why}];expect(documentActionSuggestions(data,'c1')).toHaveLength(0);
   data.actions[0].status='concluida';expect(documentActionSuggestions(data,'c1')).toHaveLength(1);
+ });
+ it('consolida uma meta e suas evidências em uma única sugestão sem misturar cursos',()=>{
+  const primary={key:'g',title:'Meta',goal_id:'g1',course_id:'c1',why:'Prazo',how:'Etapas',evidence:'Medição'};
+  const docs={...primary,key:'d',why:'Documento pendente',how:'Conferir arquivo',evidence:'Validação'};
+  const merged=mergeActionSuggestions([primary],[docs]);expect(merged).toHaveLength(1);expect(merged[0].why).toContain('Documento pendente');expect(merged[0].evidence).toContain('Medição Validação');
+  expect(mergeActionSuggestions([primary],[{...docs,course_id:'c2'}])).toHaveLength(2);
  });
 });
 describe('referências de matrícula',()=>{

@@ -1,4 +1,4 @@
-import {activeAction,documentActionSuggestions} from "@/lib/portal-integration";
+import {activeAction,documentActionSuggestions,mergeActionSuggestions} from "@/lib/portal-integration";
 import {ACTION_STATUS,label as statusLabel} from "@/lib/area";
 import {useEffect,useState} from "react";
 import {supabase} from "@/lib/supabase";
@@ -27,7 +27,7 @@ export default function ActionCockpit({data,institutionId,onDraft}:{data:Data;in
   ...signals.map(e=>({key:"goal-"+e.goal.id,title:String(e.goal.title),why:e.reasons.join(" "),goal_id:e.goal.id,course_id:e.goal.course_id,how:"Conferir a situação e a medição da meta, definir etapas e acompanhar o resultado.",evidence:"Sugestão de evidência: medição datada, relatório de acompanhamento e documento validado."})),
   ...findings.map(f=>({key:"finding-"+f.id,title:String(f.criterion),why:String(f.finding??"Tratar o achado registrado no diagnóstico."),finding_id:f.id,course_id:f.course_id,how:"Conferir o achado, pactuar a correção e registrar a verificação do resultado.",evidence:"Sugestão de evidência: registro da correção, ata de validação e documento revisado."}))
  ].filter(s=>!actions.some(a=>activeAction(a)&&(("goal_id" in s&&a.goal_id===s.goal_id)||("finding_id" in s&&a.finding_id===s.finding_id))));
- const priorities=[...suggestions,...documentActionSuggestions(data,course)];
+ const priorities=mergeActionSuggestions(suggestions,documentActionSuggestions(data,course));
  function draft(s:typeof priorities[number]){
   const {key,title,evidence,...rest}=s;
   onDraft?.({...rest,what:title,who:selected&&(!selected.course_id||selected.course_id===s.course_id)?String(selected.name):"",where_at:data.courses.find(c=>c.id===s.course_id)?.name??"Instituição",how:rest.how+" "+evidence,how_much:"A estimar e aprovar",status:"nao_iniciada",progress:0});
