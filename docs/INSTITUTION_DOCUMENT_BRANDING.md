@@ -1,4 +1,6 @@
-# Identidade institucional — entrega para revisão
+# Identidade institucional — implementação e rollout
+
+Estado operacional atualizado: ver [ROLLOUT_20261103.md](branding-validation/ROLLOUT_20261103.md). Banco e Edge publicados após autorização; frontend segue pendente no registro atual. As seções de entrega abaixo documentam os gates e resultados da revisão.
 
 Base: `79f42f112350a5375ff3b66e6e556fcfe264ac13`, main revalidada em 03/11/2026.
 Branch: `feature/institution-template-branding-cloud`.
