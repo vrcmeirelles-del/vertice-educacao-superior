@@ -1,3 +1,4 @@
+import RegistryContacts from "./RegistryContacts";
 import { courseClassification, useCourseFilters } from "./CourseFilters";
 import {displayCourseRows} from '@/lib/course-labels';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
@@ -371,6 +372,7 @@ function RegistryTab({ institution, role, courses, reload, onChanged }: { instit
   const cnpj = institution.cnpj ? String(institution.cnpj).replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5") : "—";
   return (
     <>
+      <RegistryContacts institutionId={institution.id} courses={courses} manage={role==="master"||role==="gestor"}/>
       <div className="area-panel">
         <div className="area-panel-head">
           <h3>Dados da instituição</h3>
