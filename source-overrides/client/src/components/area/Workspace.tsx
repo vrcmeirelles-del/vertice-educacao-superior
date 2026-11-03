@@ -1,3 +1,4 @@
+import InstitutionBranding from "./InstitutionBranding";
 import { courseClassification, useCourseFilters } from "./CourseFilters";
 import {displayCourseRows} from '@/lib/course-labels';
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
@@ -410,6 +411,7 @@ function RegistryTab({ institution, role, courses, reload, onChanged }: { instit
         )}
       </div>
 
+      <InstitutionBranding institutionId={institution.id} editable={can.editInstitution(role)} />
       <div className="area-panel">
         <div className="area-panel-head">
           <h3>Cursos ({list.length} de {courses.length})</h3>

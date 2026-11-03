@@ -1,0 +1,7 @@
+BEGIN
+DO
+ROLLBACK
+                        validation
+----------------------------------------------------------
+ PASS: normalized PNG, CRC corruption, invalid dimensions
+(1 row)

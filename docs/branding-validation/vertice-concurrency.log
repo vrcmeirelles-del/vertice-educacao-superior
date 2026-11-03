@@ -1,0 +1,1 @@
+PASS: two concurrent writers; exactly one succeeds, one gets stale-version error
