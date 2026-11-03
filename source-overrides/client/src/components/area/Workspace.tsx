@@ -261,12 +261,8 @@ function Bar({ value, max = 100, tone = "" }: { value: number; max?: number; ton
 }
 
 function OverviewTab({ data, stats, onGo }: { data: Data; stats?: { enrolled: number; semester?: string }; onGo: (t: Tab) => void }) {
-  const lastByGoal = new Map<string, number>();
-  for (const m of data.measurements) lastByGoal.set(String(m.goal_id), Number(m.value));
-  const live = data.goals.filter(g => g.status !== "cancelada");
-  const progress = live.map(g => ({ g, p: goalProgress(g, lastByGoal.get(g.id)) }));
-  const measured = progress.filter(x => x.p !== null) as { g: Row; p: number }[];
-  const avgGoal = measured.length ? Math.round(measured.reduce((s, x) => s + x.p, 0) / measured.length) : null;
+  const entries = goalSignals(data.goals, data.measurements);
+  const live = entries.filter(e => e.goal.status !== "cancelada");
   const acts = data.actions.filter(a => a.status !== "cancelada");
   const done = acts.filter(a => a.status === "concluida").length;
   const late = acts.filter(a => isLate(a.due_date, a.status));
@@ -289,26 +285,19 @@ function OverviewTab({ data, stats, onGo }: { data: Data; stats?: { enrolled: nu
   const fmt1 = (n: number) => n.toLocaleString("pt-BR", { maximumFractionDigits: 1 });
 
   return (
-    <>
+    <div className="area-executive">
+      <header><small>ACOMPANHAMENTO INSTITUCIONAL</small><h3>Visão geral da gestão</h3><p>Acompanhe os resultados e abra cada área para tratar as pendências.</p></header>
       <div className="area-stat-grid">
-        <article className={docs.late?"warn":""}><small>Repositório documental</small><b>{docs.validated}/{docs.total}</b><span>{docs.pending} sem envio · {docs.late} em atraso · {docs.nsa} NSA</span><button className="corp-login-text-button" onClick={()=>onGo("repositorio")}>Abrir repositório</button></article>
-        <article><small>Matriculados{stats?.semester ? ` em ${stats.semester}` : ""}</small><b>{(stats?.enrolled ?? 0).toLocaleString("pt-BR")}</b><span>{activeCourses} {activeCourses === 1 ? "curso ativo" : "cursos ativos"}</span></article>
-        <article><small>Metas em acompanhamento</small><b>{live.filter(g => g.status === "ativa").length}</b><span>{avgGoal === null ? "sem medições" : `progresso médio ${avgGoal}%`}</span></article>
-        <article><small>Ações concluídas</small><b>{acts.length ? Math.round((done / acts.length) * 100) : 0}%</b><span>{done} de {acts.length} ações</span></article>
-        <article className={late.length ? "warn" : ""}><small>Ações atrasadas</small><b>{late.length}</b><span>{soon.length} vencem em 30 dias</span></article>
-        <article><small>Nota média do diagnóstico</small><b>{avgScore === null ? "—" : fmt1(avgScore)}</b><span>{scored.length} critérios avaliados</span></article>
-        <article className={highOpen ? "warn" : ""}><small>Achados de prioridade alta</small><b>{highOpen}</b><span>em aberto ou em tratamento</span></article>
+        <article><small>Vida acadêmica</small><b>{stats ? stats.enrolled.toLocaleString("pt-BR") : "—"}</b><span>Matriculados{stats?.semester ? ` em ${stats.semester}` : ""} · {activeCourses} cursos ativos</span><button className="corp-login-text-button" onClick={() => onGo("visao")}>Ver matrículas →</button></article>
+        <article className={docs.late ? "warn" : ""}><small>Evidências validadas</small><b>{docs.validated} / {docs.total}</b><span>{docs.pending} sem envio · {docs.late} em atraso · {docs.nsa} NSA</span><button className="corp-login-text-button" onClick={() => onGo("repositorio")}>Abrir repositório →</button></article>
+        <article className={late.length ? "warn" : ""}><small>Execução do plano</small><b>{done} / {acts.length}</b><span>Ações concluídas · {late.length} atrasadas · {soon.length} a vencer em 30 dias</span><button className="corp-login-text-button" onClick={() => onGo("plano")}>Abrir plano →</button></article>
+        <article className={highOpen ? "warn" : ""}><small>Diagnóstico institucional</small><b>{avgScore === null ? "—" : `${fmt1(avgScore)} / 5`}</b><span>{scored.length} critérios com nota · {highOpen} achados prioritários em aberto</span><button className="corp-login-text-button" onClick={() => onGo("diagnostico")}>Abrir diagnóstico →</button></article>
       </div>
-
       <div className="area-overview-grid">
         <section className="area-panel">
-          <div className="area-panel-head"><h3>Progresso das metas</h3><button className="corp-login-text-button" onClick={() => onGo("metas")}>Abrir metas</button></div>
-          {!progress.length ? <p className="area-muted">Nenhuma meta cadastrada.</p> : progress.map(({ g, p }) => (
-            <div key={g.id} className="area-ov-row">
-              <div className="area-ov-label"><span>{String(g.title)}</span><b>{p === null ? "sem medição" : `${p}%`}</b></div>
-              <Bar value={p ?? 0} tone={isLate(g.due_date, g.status) ? "warn" : ""} />
-            </div>
-          ))}
+          <div className="area-panel-head"><h3>Semáforo das metas</h3><button className="corp-login-text-button" onClick={() => onGo("metas")}>Abrir metas →</button></div>
+          <p>{live.length} metas em acompanhamento</p>
+          <div className="area-executive-signals">{(["red", "amber", "green"] as const).map(signal => <div key={signal} data-tone={signal}><b>{entries.filter(e => e.signal === signal).length}</b><span>{GOAL_SIGNALS.find(item => item.key === signal)?.label}</span></div>)}</div>
         </section>
 
         <section className="area-panel">
@@ -347,7 +336,7 @@ function OverviewTab({ data, stats, onGo }: { data: Data; stats?: { enrolled: nu
           })}
         </section>
       </div>
-    </>
+    </div>
   );
 }
 
