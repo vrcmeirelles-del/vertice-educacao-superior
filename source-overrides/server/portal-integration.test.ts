@@ -1,6 +1,6 @@
 import {describe,it,expect,vi} from 'vitest';
 vi.mock('../client/src/lib/supabase',()=>({supabase:{}}));
-import {parseActionDraft,validateActionLinks,integratedSummary,documentActionSuggestions,mergeActionSuggestions,type PortalData} from '../client/src/lib/portal-integration';
+import {parseActionDraft,validateActionLinks,integratedSummary,documentActionSuggestions,mergeActionSuggestions,changeActionScope,type PortalData} from '../client/src/lib/portal-integration';
 import {courseTotals,institutionEnrollmentSummary} from '../client/src/lib/enrollment-summary';
 import {acquisitionSummary} from '../client/public/aquisicoes-app/management-summary.js';
 
@@ -18,6 +18,11 @@ describe('vínculos e consolidação institucional',()=>{
   expect(()=>validateActionLinks({goal_id:'g1',course_id:'c2'},data)).toThrow('mesmo curso');
   expect(()=>validateActionLinks({goal_id:'g1',finding_id:'f2'},data)).toThrow('mesmo curso');
   expect(()=>validateActionLinks({goal_id:'externa'},data)).toThrow('não está disponível');
+ });
+ it('troca o curso sem manter metas incompatíveis e preserva o texto da ação',()=>{
+  const data={goals:[{id:'g1',course_id:'c1'},{id:'g2',course_id:'c2'}],diagnosis:[{id:'f1',course_id:'c1'}]};
+  expect(changeActionScope({what:'Preservar',course_id:'c2',goal_id:'g1',finding_id:'f1'},'course_id',data)).toEqual({what:'Preservar',course_id:'c2',goal_id:'',finding_id:''});
+  expect(changeActionScope({course_id:'',goal_id:'g2'},'goal_id',data).course_id).toBe('c2');
  });
  it('uma ação concluída não esconde um achado ainda aberto',()=>{
   const data=empty();data.diagnosis=[{id:'f1',status:'aberto',course_id:'c1'}];data.actions=[{id:'a1',finding_id:'f1',course_id:'c1',status:'concluida'}];

@@ -58,3 +58,15 @@ export function validateActionLinks(values:Record<string,unknown>,data:Pick<Port
  if(v.course_id&&!data.courses.some(c=>c.id===v.course_id))throw new Error('O curso de origem não está disponível.');
  return v;
 }
+
+export function changeActionScope(values:Record<string,unknown>,changed:string,data:Pick<PortalData,'goals'|'diagnosis'>){
+ const next={...values};
+ if(changed==='goal_id'||changed==='finding_id'){
+  const linked=(changed==='goal_id'?data.goals:data.diagnosis).find(r=>r.id===next[changed]);
+  if(linked?.course_id)next.course_id=linked.course_id;
+ }
+ if(['course_id','goal_id','finding_id'].includes(changed)&&next.course_id){
+  for(const [key,rows] of [['goal_id',data.goals],['finding_id',data.diagnosis]] as const){const linked=rows.find(r=>r.id===next[key]);if(linked?.course_id&&linked.course_id!==next.course_id)next[key]='';}
+ }
+ return next;
+}
