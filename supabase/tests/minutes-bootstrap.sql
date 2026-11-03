@@ -1,7 +1,12 @@
 -- ONLY in a new disposable local PostgreSQL database. Never run against Supabase.
-create role anon;
-create role authenticated;
-create role service_role;
+do $$begin
+ if not exists(select from pg_roles where rolname='anon') then create role anon; end if;
+ if not exists(select from pg_roles where rolname='authenticated') then create role authenticated; end if;
+ if not exists(select from pg_roles where rolname='service_role') then create role service_role; end if;
+ if exists(select from pg_roles where rolname in ('anon','authenticated') and (rolsuper or rolbypassrls)) then
+  raise exception 'test API roles must not bypass RLS';
+ end if;
+end$$;
 create schema auth;
 create table auth.users(id uuid primary key,email text);
 create function auth.jwt() returns jsonb language sql stable as $$select coalesce(nullif(current_setting('request.jwt.claims',true),''),'{}')::jsonb$$;

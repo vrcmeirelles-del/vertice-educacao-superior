@@ -114,7 +114,7 @@ language plpgsql security invoker set search_path='' as $$
 declare current_row public.vertice_minutes_drafts; prior jsonb;
 begin
  if auth.uid() is null or not vertice_private.has_role(p_institution,array['gestor','equipe']) then raise exception 'permission denied' using errcode='42501'; end if;
- if p_id is null or p_mutation is null or p_expected is null or p_expected<0 then raise exception 'invalid request' using errcode='22023'; end if;
+ if p_id is null or p_institution is null or p_course is null or p_source is null or p_title is null or p_body is null or p_mutation is null or p_expected is null or p_expected<0 then raise exception 'invalid request' using errcode='22023'; end if;
  perform pg_advisory_xact_lock(hashtextextended(p_id::text,0));
  select * into current_row from public.vertice_minutes_drafts where id=p_id and institution_id=p_institution;
  if found and not (vertice_private.has_role(p_institution,array['gestor']) or current_row.created_by=auth.uid()) then raise exception 'permission denied' using errcode='42501'; end if;
@@ -129,7 +129,7 @@ begin
    values(p_id,p_institution,p_course,p_source,p_title,p_body,1,p_mutation,auth.uid(),auth.uid()) returning * into current_row;
  else
   if current_row.version<>p_expected then raise exception 'version conflict' using errcode='40001'; end if;
-  if current_row.course_id<>p_course or current_row.source_library_id<>p_source then raise exception 'immutable scope' using errcode='23514'; end if;
+  if current_row.course_id is distinct from p_course or current_row.source_library_id is distinct from p_source then raise exception 'immutable scope' using errcode='23514'; end if;
   update public.vertice_minutes_drafts set title=p_title,body=p_body,version=p_expected+1,mutation_id=p_mutation
    where id=p_id and institution_id=p_institution returning * into current_row;
   if not found then raise exception 'permission denied' using errcode='42501'; end if;
