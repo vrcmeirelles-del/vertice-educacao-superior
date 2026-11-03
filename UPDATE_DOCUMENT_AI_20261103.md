@@ -1,0 +1,13 @@
+# Análise documental integrada
+
+O módulo compartilhado de todas as instituições apresenta panorama cadastral do curso, cobertura documental por dimensão e pendências com providências. Cruza o repositório ativo, metas não canceladas, última medição até a data de referência, ações 5W2H e achados do diagnóstico. Documentos de apoio, NSA e achados institucionais têm contagens separadas. Registros sem dimensão identificada não desaparecem do painel.
+
+A prévia sugere fontes em ordem: panorama, dimensões, limites do recorte, anexos e detalhes intercalados. Cada grupo informa selecionados/disponíveis; o usuário pode revisar e reduzir trechos. Somente o clique de geração, após confirmação, transmite a seleção à OpenAI. As citações preservam campo e valor ou frase completa, em vez de palavras isoladas. Relatórios mantêm fontes e alcance; ficam disponíveis em memória ao alternar cursos, com exportação por impressão. Não há novo armazenamento permanente do texto do relatório.
+
+Publicação: aplicar a migração `20261103180034_integrated_documentary_overview.sql`, publicar os seis arquivos de `source-overrides/ai-backend/` em `vertice-ai-review` com verificação JWT mantida e publicar a interface. As políticas de habilitação e limites por instituição permanecem inalteradas. A função de escopo autenticado permanece obrigatória; não há acesso direto autenticado ou anônimo ao resumo privado.
+
+Limites mantidos: conteúdo TXT/CSV UTF-8 de versões atuais validadas, até 3 arquivos de 5 MiB; 12 trechos de até 4.000 caracteres, 24.000 no total. PDF, Word e planilhas entram somente no acompanhamento cadastral, não na leitura textual. O painel e a IA não produzem avaliação oficial ou conceito INEP/MEC.
+
+Validação: TypeScript e build estático passaram. 147 testes passaram, incluindo os novos cenários de dimensão vazia, alertas, isolamento por instituição/curso, versões atuais, seleção equilibrada e citações literais. A suíte geral encontrou uma falha de carregamento preexistente: `commercial-demo.test.ts` importa `supabase/functions/vertice-demo/index`, ausente no repositório/base. Nenhum código de demonstração foi alterado. Totais do panorama foram comparados com consultas independentes ao cadastro, e permissões privadas/anônimas permaneceram negadas. Nenhuma análise real foi enviada ao provedor durante a validação.
+
+Reversão: restaurar os arquivos de interface e a função Edge da revisão anterior; restaurar a definição anterior de `vertice_private.ai_management_snapshot` a partir de `source-overrides/ai-backend/management-snapshot.sql`. Não reverter dados de usuários, auditoria ou políticas.
