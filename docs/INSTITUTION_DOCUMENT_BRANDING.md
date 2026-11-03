@@ -13,6 +13,19 @@ Reconstrução a partir do remoto, sem arquivos do desktop e sem acesso a docume
 - DOCX preparado exige caminho separado `<institution_id>/templates/<template_sha256>.docx`, hash do template, hash da fonte igual ao cadastro e referência editorial. A fonte atual também é baixada e verificada antes da personalização. Falha de hash/revisão/auditoria impede a entrega. Nenhuma cópia personalizada é salva no Storage.
 - Cor somente nos estilos enumerados; cores semânticas, formatação direta, corpo, fontes, gráficos, imagens e rodapés não aprovados permanecem preservados. Todas as cópias partem do template imutável, evitando cabeçalhos acumulados.
 
+## Alcance exato das cores
+
+| Elemento | Suporte neste patch |
+| --- | --- |
+| Texto do cabeçalho gerado | Cor institucional ajustada para contraste sobre branco |
+| Faixa/fundo do cabeçalho | Não é criada nem colorida automaticamente |
+| Estilo de parágrafo/caractere listado | Cor de texto e sombreamentos `w:shd` daquele estilo |
+| Estilo de tabela listado | Preenchimento de célula definido no estilo (`w:tcPr/w:shd`) e cor de texto herdada, sem alterar o corpo |
+| Preenchimento direto de célula/trecho no corpo | Preservado; não há seletor de células nem substituição global |
+| Alerta/estilo não marcado | Preservado |
+
+A fixture inclui uma tabela `InstitutionTable` aprovada com uma célula temática e outra célula com alerta vermelho direto não marcado. Os testes confirmam corpo byte a byte e cor vermelha intactos; a renderização confirma célula temática laranja/amarela, conforme HEX, ao lado do alerta vermelho. A variante sem cor conserva o preenchimento azul original do estilo. Na revisão, migrar editorialmente campos que precisem de tema para estilos apropriados; este mecanismo não promete colorir toda formatação direta existente. A ordenação XML de `w:rPr` foi validada antes de `w:tcPr`/propriedades de tabela.
+
 ## Segurança e integração pendentes
 
 **Não aplicar nem publicar automaticamente.** `supabase/review/institution_document_branding.sql` é SQL de revisão, intencionalmente fora de `migrations/`. Após a revisão e conciliação, gerar a migração pela CLI, revisar os grants e aplicar na ordem coordenada: banco, função, frontend. Não houve deploy, merge, alteração de dados reais, habilitação de arquivo ou política de Storage nova.
@@ -94,7 +107,7 @@ PostgreSQL 17 descartável em Docker, com `scripts/branding/bootstrap-test-db.sq
 - `supabase/tests/inep_library.sql`: aprovado; tenant/inativos/MFA/externo/anon/Storage/escrita no catálogo.
 - `python3 scripts/branding/test-concurrency.py`: dois escritores simultâneos com a mesma versão; exatamente um grava, o outro recebe conflito. Script aponta exclusivamente ao container descartável `vertice-branding-postgres`.
 
-Fixtures visuais geradas por `scripts/branding/render-fixtures.ts`; convertidas em PDF pelo LibreOffice headless e rasterizadas pelo `pdftoppm`. Inspeção visual confirmou cabeçalho, texto longo, ausência de logo, alerta vermelho preservado e rodapé substantivo preservado. Não representam validação de todos os arquivos reais.
+Fixtures visuais geradas por `scripts/branding/render-fixtures.ts`; convertidas em PDF pelo LibreOffice headless e rasterizadas pelo `pdftoppm`. Inspeção visual confirmou cabeçalho, texto longo, ausência de logo, célula temática colorida ao lado de alerta vermelho preservado e rodapé substantivo preservado. Não representam validação de todos os arquivos reais.
 
 ![Cabeçalho normal e alerta semântico preservado](branding-validation/normal.png)
 ![Sem logo nem texto de cabeçalho](branding-validation/absent.png)

@@ -151,7 +151,11 @@ export async function personalizeTemplate(template: Uint8Array, b: Branding, exp
       const style = Array.from(doc.getElementsByTagNameNS(W, 'style')).find(e => e.getAttributeNS(W, 'styleId') === id);
       if (!style) throw new Error('Missing approved style');
       let rPr = Array.from(style.childNodes).find(e => e.nodeType === 1 && e.localName === 'rPr');
-      if (!rPr) { rPr = doc.createElementNS(W, 'w:rPr'); style.appendChild(rPr); }
+      if (!rPr) {
+        rPr = doc.createElementNS(W, 'w:rPr');
+        const next = Array.from(style.childNodes).find(e => e.nodeType === 1 && ['tblPr','trPr','tcPr','tblStylePr'].includes(e.localName ?? ''));
+        style.insertBefore(rPr, next ?? null);
+      }
       const oldColors = Array.from(rPr.childNodes).filter(e => e.nodeType === 1 && e.localName === 'color');
       oldColors.forEach(e => rPr!.removeChild(e));
       const shading = Array.from(style.getElementsByTagNameNS(W, 'shd'));
