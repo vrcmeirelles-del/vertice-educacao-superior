@@ -102,9 +102,9 @@ export const TAB_HELP: Record<string, { title: string; text: string[] }> = {
   metas: {
     title: "Como funcionam as metas",
     text: [
-      "Cada meta tem um indicador (o número acompanhado), uma linha de base (o valor de partida), um alvo e um prazo.",
+      "Comece pelo resumo da alta gestão: cartões com semáforo, distribuição dos alertas e cobertura de medições, responsáveis e prazos. Clique em uma cor para filtrar os cursos e as metas.",
       "Sempre que houver um novo número, use “Registrar medição”. A barra mostra quanto do caminho entre a linha de base e o alvo já foi percorrido.",
-      "Prefira poucas metas bem medidas a muitas metas sem dado.",
+      "Abra um curso para consultar o motivo de cada alerta. O verde indica ausência dos alertas definidos ou conclusão registrada; não comprova validação documental nem resultado por si só.",
     ],
   },
   plano: {
@@ -230,6 +230,7 @@ export const TAB_FAQ: Record<string, { label: string; items: { q: string; a: str
   metas: {
     label: "Metas e indicadores",
     items: [
+      { q: "O que significam as cores do semáforo?", a: "Vermelho: prazo vencido. Amarelo: prazo em até 14 dias, meta planejada ou pendências de dados. Verde: ausência desses alertas ou conclusão registrada no cadastro. Cinza: cancelada. A regra completa e o motivo de cada alerta aparecem no painel." },
       { q: "Qual a diferença entre meta e indicador?", a: "A meta é o resultado pretendido (reduzir a evasão). O indicador é o número que mostra se ele está acontecendo (taxa de evasão anual)." },
       { q: "Não sei a linha de base. E agora?", a: "Deixe em branco e registre a primeira medição assim que tiver o dado. Sem linha de base, a barra indica apenas se o alvo foi atingido." },
       { q: "Como a barra de progresso é calculada?", a: "Pela distância entre a linha de base e o alvo: se a evasão era 18%, o alvo é 12% e a última medição foi 15%, o caminho percorrido é 50%." },

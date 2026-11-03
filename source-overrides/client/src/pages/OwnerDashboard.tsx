@@ -1,3 +1,4 @@
+import {can} from "@/lib/area";
 import {useEffect, useState, type FormEvent} from 'react';
 import {Link} from 'wouter';
 import {supabase} from '@/lib/supabase';
@@ -104,7 +105,7 @@ export default function OwnerDashboard(){
  {master&&<nav className="repo-global-nav" aria-label="Visões do master"><a className="repo-secondary" href="/master/aquisicoes">Aquisições e incorporações</a><button className={`repo-secondary ${!commercial&&!route.repositories&&!currentInst?'active':''}`} onClick={()=>{setCommercial(false);writeHash('','');}}>Gestão das instituições</button><button className={`repo-secondary ${!commercial&&route.repositories?'active':''}`} onClick={()=>{setCommercial(false);writeHash('','',true);}}>Repositórios de todas as IES</button><button className={`repo-secondary ${commercial?'active':''}`} onClick={()=>setCommercial(true)}>Demonstração · inteligência comercial</button></nav>}
  {master&&commercial?<DemoLeads/>:<>
  {!currentInst&&!route.repositories&&<div className="stats-row"><div className="stat-card">Instituições<strong className="stat-value">{institutions.length}</strong></div><div className="stat-card">Cursos<strong className="stat-value">{courses.length}</strong></div><div className="stat-card">Vínculos<strong className="stat-value">{members.length}</strong></div></div>}
- {currentInst&&currentCourse?<CourseView key={currentCourse.id} course={currentCourse} institution={currentInst} enrollments={enrollments} reports={reports} onBack={()=>writeHash(currentInst.id,'')}/>
+ {currentInst&&currentCourse?<CourseView key={currentCourse.id} course={currentCourse} institution={currentInst} enrollments={enrollments.filter(row => courses.some(course => course.id === row.course_id && course.institution_id === currentInst.id))} reports={reports} onBack={()=>writeHash(currentInst.id,'')} onPlan={can.record(roleIn(currentInst.id)) ? draft => { sessionStorage.setItem('vertice-action-prefill',JSON.stringify(draft)); window.location.hash = new URLSearchParams({instituicao:currentInst.id,aba:'plano'}).toString(); } : undefined}/>
  :currentInst?<Workspace key={currentInst.id} institution={currentInst as unknown as Row} role={roleIn(currentInst.id)} onBack={()=>writeHash('','')} onChanged={load}
    stats={{enrolled:instTotal(currentInst.id),semester:latestSemester}}
    overview={<InstitutionView institution={currentInst} courses={courses} enrollments={enrollments} embedded onOpenCourse={id=>writeHash(currentInst.id,id)} onBack={()=>writeHash('','')}/>}/>

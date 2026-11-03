@@ -39,3 +39,29 @@
 
 .academic-data .status-series :is(th, td):last-child { font-weight: 700; color: #185c74; border-left: 1px solid #dce4ec; background: #eaf5f9; }
 .academic-data tbody tr td.current-semester { background: #eaf5f9; }
+
+.enrollment-insight { margin: 20px 0; padding: 18px; border: 1px solid #d6e8e3; border-radius: 16px; background: #f4faf8; }
+.enrollment-insight header { padding: 16px; border-radius: 10px; background: #20584c; color: white; }
+.enrollment-insight header h3 { color: inherit; margin: 6px 0; }
+.enrollment-comparison { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,220px),1fr)); gap: 12px; margin: 12px 0; }
+.enrollment-comparison article { padding: 14px; border-radius: 10px; background: #e8f1fa; }
+.enrollment-comparison article:last-child { background: #e2f3e9; }
+.enrollment-comparison progress { width: 100%; accent-color: #286a9b; }
+.enrollment-comparison article:last-child progress { accent-color: #247951; }
+.enrollment-insight aside { background: #fff4db; padding: 14px; border-radius: 10px; }
+.academic-data .enrollment-down { background: #fce9e8; color: #912e38; font-weight: 700; }
+.academic-data .enrollment-up { background: #e5f4eb; color: #236347; font-weight: 700; }
+
+.enrollment-chart { margin: 0; padding: 14px; background: #f0f6fb; border-radius: 10px; color: #193d50; }
+.enrollment-chart figcaption { font-weight: 700; margin-bottom: 10px; }
+.enrollment-chart > div { display: grid; grid-template-columns: 5rem minmax(2rem,1fr) auto; gap: 8px; align-items: center; margin: 8px 0; }
+.enrollment-chart progress { width: 100%; accent-color: #267c71; }
+.enrollment-chart strong { grid-column: 3; }
+.enrollment-donut { width: 112px; aspect-ratio: 1; border-radius: 50%; margin: 12px auto; display: grid; place-items: center; }
+.enrollment-donut::after { content: ""; width: 55%; aspect-ratio: 1; border-radius: 50%; background: #e8f1fa; }
+.enrollment-preview { position: relative; }
+.enrollment-popover { display: none; position: absolute; z-index: 5; right: 0; bottom: 100%; width: min(270px,70vw); box-shadow: 0 5px 20px #172e3b33; border-radius: 10px; white-space: normal; }
+.enrollment-preview:hover .enrollment-popover, .enrollment-preview:focus-within .enrollment-popover { display: block; }
+.enrollment-insight > .enrollment-chart { margin-bottom: 12px; }
+.course-list td:last-child { vertical-align: top; }
+.enrollment-popover { position: static; width: min(220px, 48vw); margin-top: 6px; box-shadow: none; }
