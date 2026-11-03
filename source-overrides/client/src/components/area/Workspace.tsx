@@ -8,6 +8,7 @@ import {
   type Field, type Role, type Row,
 } from "@/lib/area";
 import RecordForm from "./RecordForm";
+import { diagnosisScore, summarizeDiagnosis, diagnosisRecommendation } from "@/lib/diagnosis-summary";
 import RepositoryTab from "./RepositoryTab";
 import EbitdaCalculator from "../EbitdaCalculator";
 import InepLibrary from "./InepLibrary";
@@ -169,7 +170,7 @@ export default function Workspace({
       ) : tab === "plano" ? (
         <ActionsTab institutionId={id} role={role} data={data} reload={reload} />
       ) : tab === "diagnostico" ? (
-        <DiagnosisTab institutionId={id} role={role} data={data} reload={reload} onPlan={() => choose("plano")} />
+        error ? <p role="alert">Diagnóstico indisponível enquanto houver falha no carregamento. Atualize os dados.</p> : <DiagnosisTab key={id} institutionId={id} role={role} data={data} reload={reload} onPlan={() => choose("plano")} />
       ) : (
         <TeamTab institutionId={id} role={role} />
       )}
@@ -738,7 +739,7 @@ function diagnosisFields(courses: Row[]): Field[] {
   return withHelp([
     { name: "dimension", label: "Dimensão", type: "select", required: true, options: DIMENSIONS.map(d => [d, d] as [string, string]) },
     { name: "course_id", label: "Curso (opcional)", type: "select", options: courseOptions(courses) },
-    { name: "criterion", label: "Critério avaliado", required: true, wide: true, placeholder: "Ex.: PPC atualizado às DCNs vigentes" },
+    { name: "criterion", label: "Indicador / critério avaliado", required: true, wide: true, placeholder: "Ex.: PPC atualizado às DCNs vigentes" },
     { name: "reference", label: "Referência", placeholder: "Ex.: Instrumento INEP 1.1" },
     { name: "score", label: "Nota (1 a 5)", type: "number", min: 1, max: 5, step: "0.5" },
     { name: "priority", label: "Prioridade", type: "select", required: true, options: PRIORITY },
@@ -751,31 +752,70 @@ function diagnosisFields(courses: Row[]): Field[] {
 
 function DiagnosisTab({ institutionId, role, data, reload, onPlan }: { institutionId: string; role: Role | null; data: Data; reload: () => Promise<void>; onPlan: () => void }) {
   const ed = useEditor();
-  const groups = useMemo(() => {
-    const m = new Map<string, Row[]>();
-    for (const d of data.diagnosis) {
-      const k = String(d.dimension);
-      if (!m.has(k)) m.set(k, []);
-      m.get(k)!.push(d);
-    }
-    return [...m.entries()].sort((a, b) => a[0].localeCompare(b[0], "pt-BR"));
-  }, [data.diagnosis]);
-  const avg = (rows: Row[]) => {
-    const s = rows.map(r => r.score).filter(v => v !== null && v !== undefined).map(Number);
-    return s.length ? s.reduce((a, b) => a + b, 0) / s.length : null;
+  const [course, setCourse] = useState("");
+  const [newDimension, setNewDimension] = useState(DIMENSIONS[0]);
+  const rows = useMemo(() => data.diagnosis.filter(d => !course || (course === "institution" ? !d.course_id : d.course_id === course)), [data.diagnosis, course]);
+  const groups = useMemo(() => summarizeDiagnosis(rows, DIMENSIONS), [rows]);
+  const scoreText = (value: unknown) => {
+    const score = diagnosisScore(value);
+    return score === null ? "Sem nota" : score.toLocaleString("pt-BR", { maximumFractionDigits: 2 });
   };
-  const actionsFor = (fid: string) => data.actions.filter(a => a.finding_id === fid).length;
+  const courseName = (id: unknown) => !id ? "Institucional" : String(data.courses.find(c => c.id === id)?.name ?? "Curso vinculado");
+  const createAction = (d: Row) => {
+    sessionStorage.setItem("vertice-action-prefill", JSON.stringify({
+      finding_id: d.id, course_id: d.course_id ?? "", what: `Melhorar: ${String(d.criterion)}`,
+      why: d.finding || `Indicador com nota ${scoreText(d.score)} na dimensão ${String(d.dimension)}.`,
+      how: diagnosisRecommendation(d),
+    }));
+    onPlan();
+  };
+  const record = (dimension: string) => { setNewDimension(dimension); ed.open("new"); };
+  const indicatorTable = (items: Row[], recommendations: boolean) => (
+    <div className="table-scroll">
+      <table className="area-table">
+        <thead><tr><th>Indicador / critério</th><th>Nota</th><th>Achado e evidência</th>{recommendations && <th>O que pode ser feito para melhorar</th>}<th>Situação</th><th>Ações</th></tr></thead>
+        <tbody>{items.map(d => {
+          const actions = data.actions.filter(a => a.finding_id === d.id);
+          const activeActions = actions.filter(a => !["concluida", "cancelada"].includes(String(a.status)));
+          return <tr key={d.id}>
+            <td><strong>{String(d.criterion)}</strong>{d.reference ? <small className="area-block">{String(d.reference)}</small> : null}<small className="area-block area-muted">{courseName(d.course_id)}</small></td>
+            <td><strong>{scoreText(d.score)}</strong>{diagnosisScore(d.score) !== null && diagnosisScore(d.score)! < 3 && <span className="badge red area-block">Nota baixa</span>}</td>
+            <td><small>{String(d.finding || "Achado não registrado.")}</small><small className="area-block area-muted">Evidência: {String(d.evidence || "não registrada")}</small></td>
+            {recommendations && <td className="area-diagnosis-guidance">
+              {activeActions.length > 0 && <><strong>Ações em andamento ou planejadas</strong><ul>{activeActions.map(a => <li key={a.id}>{String(a.what)}{a.how ? ` — ${String(a.how)}` : ""}</li>)}</ul></>}
+              <strong>Sugestão de melhoria</strong><p>{diagnosisRecommendation(d)}</p>
+              <small className="area-muted">Ajuste a proposta ao achado e defina responsável e prazo no plano 5W2H.</small>
+            </td>}
+            <td>{label(FINDING_STATUS, d.status)}<span className={`badge area-block ${d.priority === "alta" ? "red" : d.priority === "media" ? "amber" : "gray"}`}>Prioridade {label(PRIORITY, d.priority).toLocaleLowerCase("pt-BR")}</span>{d.status === "resolvido" && diagnosisScore(d.score) !== null && diagnosisScore(d.score)! < 3 && <small className="area-block">Nota baixa registrada: reavaliar após a melhoria.</small>}</td>
+            <td><small className="area-block">{actions.length} ação(ões) vinculada(s)</small><div className="area-row-actions">
+              {can.record(role) && <button className="corp-login-text-button" onClick={() => createAction(d)}>Criar ação</button>}
+              {can.record(role) && <button className="corp-login-text-button" onClick={() => ed.open(d)}>Editar</button>}
+              {can.remove(role) && <RemoveButton onConfirm={async () => { await deleteRow(TABLES.diagnosis, d.id); await reload(); }} />}
+            </div></td>
+          </tr>;
+        })}</tbody>
+      </table>
+    </div>
+  );
   return (
     <div className="area-panel">
       <div className="area-panel-head">
-        <h3>Diagnóstico ({data.diagnosis.length} critérios)</h3>
-        {can.record(role) && <button className="corp-button small" onClick={() => ed.open("new")}>Novo critério</button>}
+        <div><h3>Fechamento do diagnóstico por dimensão</h3><p className="area-muted">Primeiro a síntese da dimensão. Abra cada uma para consultar os indicadores e as melhorias.</p></div>
+        <label className="area-diagnosis-filter">Recorte do diagnóstico
+          <select value={course} onChange={e => { setCourse(e.target.value); ed.close(); }}>
+            <option value="">Instituição e todos os cursos</option>
+            <option value="institution">Somente registros institucionais</option>
+            {data.courses.map(c => <option key={c.id} value={c.id}>{String(c.name)}{c.code ? ` · ${String(c.code)}` : ""}</option>)}
+          </select>
+        </label>
       </div>
+      <p className="area-note">Síntese gerencial dos registros selecionados. A nota de cada dimensão é a média simples das notas válidas (1 a 5); indicadores sem nota não entram na média. Nota baixa: abaixo de 3. Oportunidade de melhoria: de 3 a menos de 4. Este fechamento não é um conceito oficial do INEP nem comprova a avaliação de todos os requisitos.</p>
       {ed.editing && (
         <RecordForm
-          title={ed.editing === "new" ? "Novo critério avaliado" : "Editar critério"}
+          key={ed.editing === "new" ? `new-${newDimension}` : ed.editing.id}
+          title={ed.editing === "new" ? "Avaliar indicador da dimensão" : "Editar avaliação do indicador"}
           fields={diagnosisFields(data.courses)}
-          initial={ed.editing === "new" ? { priority: "media", status: "aberto", assessed_on: today() } : ed.editing}
+          initial={ed.editing === "new" ? { dimension: newDimension, course_id: course && course !== "institution" ? course : "", priority: "media", status: "aberto", assessed_on: today() } : ed.editing}
           onCancel={ed.close}
           onSubmit={async v => {
             await saveRow(TABLES.diagnosis, ed.editing === "new" ? { ...v, institution_id: institutionId } : v, ed.editing === "new" ? undefined : (ed.editing as Row).id);
@@ -784,50 +824,26 @@ function DiagnosisTab({ institutionId, role, data, reload, onPlan }: { instituti
           }}
         />
       )}
-      {!groups.length ? (
-        <p className="area-muted">Nenhum critério avaliado. Registre cada critério com nota, achado e evidência; os achados podem gerar ações no plano 5W2H.</p>
-      ) : (
-        groups.map(([dim, rows]) => {
-          const a = avg(rows);
-          return (
-            <section key={dim} className="area-dim">
-              <h4>{dim} <small>{a === null ? "sem nota" : `média ${a.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}`} · {rows.length} critério(s)</small></h4>
-              <div className="table-scroll">
-                <table className="area-table">
-                  <thead><tr><th>Critério</th><th>Nota</th><th>Achado</th><th>Prioridade</th><th>Situação</th><th>Ações</th><th /></tr></thead>
-                  <tbody>
-                    {rows.map(d => (
-                      <tr key={d.id}>
-                        <td><strong>{String(d.criterion)}</strong>{d.reference ? <small className="area-block">{String(d.reference)}</small> : null}</td>
-                        <td>{d.score === null || d.score === undefined ? "—" : Number(d.score).toLocaleString("pt-BR")}</td>
-                        <td><small>{String(d.finding ?? "—")}</small></td>
-                        <td><span className={`badge ${d.priority === "alta" ? "red" : d.priority === "media" ? "amber" : "gray"}`}>{label(PRIORITY, d.priority)}</span></td>
-                        <td>{label(FINDING_STATUS, d.status)}</td>
-                        <td>{actionsFor(d.id)}</td>
-                        <td className="area-row-actions">
-                          {can.record(role) && (
-                            <button
-                              className="corp-login-text-button"
-                              onClick={() => {
-                                sessionStorage.setItem("vertice-action-prefill", JSON.stringify({ finding_id: d.id, course_id: d.course_id ?? "", why: d.finding ?? "" }));
-                                onPlan();
-                              }}
-                            >
-                              Criar ação
-                            </button>
-                          )}
-                          {can.record(role) && <button className="corp-login-text-button" onClick={() => ed.open(d)}>Editar</button>}
-                          {can.remove(role) && <RemoveButton onConfirm={async () => { await deleteRow(TABLES.diagnosis, d.id); await reload(); }} />}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </section>
-          );
-        })
-      )}
+      <div className="area-diagnosis-dimensions" key={course}>
+        {groups.map(group => (
+          <details key={group.dimension} className={`area-diagnosis-dimension ${group.tone}`}>
+            <summary>
+              <div className="area-diagnosis-heading"><h4>{group.dimension}</h4><span className={`badge ${group.tone}`}>{group.status}</span></div>
+              <div className="area-diagnosis-score"><strong>{group.average === null ? "—" : scoreText(group.average)}</strong><span>{group.average === null ? "Sem nota consolidada" : "/ 5 · nota consolidada"}</span></div>
+              <p>{group.conclusion}</p>
+              <div className="area-diagnosis-counts"><span>{group.assessed.length} de {group.items.length} registro(s) com nota</span><span>{group.low.length} com nota baixa</span>{group.missing > 0 && <span>{group.missing} sem nota válida</span>}</div>
+              <span className="area-diagnosis-toggle">Ver indicadores e melhorias</span>
+            </summary>
+            <div className="area-diagnosis-detail">
+              <div className="area-panel-head"><h5>Indicadores de {group.dimension}</h5>{can.record(role) && <button className="corp-button small" onClick={() => record(group.dimension)}>Avaliar indicador nesta dimensão</button>}</div>
+              <h5>Indicadores com nota baixa · abaixo de 3</h5>
+              {group.low.length ? indicatorTable(group.low, true) : <p className="area-muted">{group.assessed.length ? "Nenhum dos indicadores avaliados tem nota abaixo de 3." : "Ainda não há notas para identificar indicadores com desempenho baixo."}</p>}
+              {group.improvement.length > 0 && <><h5>Oportunidades de melhoria · de 3 a menos de 4</h5>{indicatorTable(group.improvement, true)}</>}
+              {group.items.some(d => diagnosisScore(d.score) === null || diagnosisScore(d.score)! >= 4) && <details className="area-diagnosis-others"><summary>Demais indicadores e avaliações sem nota</summary>{indicatorTable(group.items.filter(d => diagnosisScore(d.score) === null || diagnosisScore(d.score)! >= 4), false)}</details>}
+            </div>
+          </details>
+        ))}
+      </div>
     </div>
   );
 }
