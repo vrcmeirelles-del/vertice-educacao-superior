@@ -1,4 +1,4 @@
-.goals-panel { background:#f6f8fa; border-color:#dae4e7; }
+.area-panel.goals-panel { background:#f6f8fa; border-color:#dae4e7; }
 .goals-panel > .area-panel-head { margin-bottom:20px; }
 .goals-panel h3 { font-size:1.35rem; }
 .goals-eyebrow { margin:0 0 6px; font-size:.7rem; letter-spacing:.12em; font-weight:800; color:#4c6d78; }
@@ -46,6 +46,7 @@
 .goals-priorities ol { list-style:none; margin:0; padding:0; }
 .goals-priorities li { display:grid; grid-template-columns:85px 1fr auto; align-items:center; gap:14px; padding:14px 0; border-top:1px solid #edf1f3; }
 .goals-priorities li strong { font-size:.9rem; }
+.goals-priority-course { display:block; color:#516672; font-size:.74rem; margin-bottom:4px; }
 .goals-priorities li p { font-size:.8rem; color:#63717c; margin:4px 0 0; }
 .goals-rules { margin:16px 0 24px; color:#516672; font-size:.82rem; }
 .goals-rules summary { cursor:pointer; font-weight:650; }
@@ -64,7 +65,7 @@
 .goals-list-heading h4 { margin:0; font-size:1.1rem; }
 .goals-empty { background:#fff; padding:18px; border-radius:10px; color:#63717c; }
 .goals-pagination { justify-content:center; margin-top:20px; }
-.goals-goal-card { background:#fff; border-top:3px solid var(--signal-color); }
+.area-card.goals-goal-card { background:#fff; border-top:3px solid var(--signal-color); }
 .goals-goal-card .area-card-top { align-items:flex-start; }
 .goals-alert-reason { background:#f5f8fa; padding:10px 12px; border-radius:8px; margin:0; font-size:.82rem; line-height:1.5; }
 .goals-goal-card .area-progress > span { background:var(--signal-color); }

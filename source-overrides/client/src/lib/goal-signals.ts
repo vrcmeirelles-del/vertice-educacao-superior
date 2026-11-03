@@ -44,7 +44,10 @@ export function goalSignals(goals: Row[], measurements: Row[], date = goalSignal
     const baseline = finiteGoalValue(goal.baseline);
     const due = day(goal.due_date);
     const daysLeft = due === null ? null : due - now;
-    const hasOwner = [goal.owner_user_id, goal.owner_name, goal.owner_email].some(v => String(v ?? '').trim());
+    const ownerName = String(goal.owner_name ?? '').trim();
+    const normalizedOwner = ownerName.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    const ownerPending = /designacao pendente|a (definir|designar|pactuar)|nao (definido|designado|informado)|sem responsavel/.test(normalizedOwner);
+    const hasOwner = Boolean(String(goal.owner_user_id ?? '').trim() || String(goal.owner_email ?? '').trim() || (ownerName && !ownerPending));
     const hasMeasurement = value !== null;
     const knownDirection = ['aumentar', 'reduzir', 'manter'].includes(String(goal.direction));
     const hit = value !== null && target !== null && knownDirection && (goal.direction === 'reduzir' ? value <= target : goal.direction === 'manter' ? Math.abs(value - target) <= (Math.abs(target) * .05 || .5) : value >= target);

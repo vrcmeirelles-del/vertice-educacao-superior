@@ -555,7 +555,7 @@ function GoalsTab({ institutionId, role, data, reload, onRepository }: { institu
       </div>
       {!course && <div className="goals-toolbar"><div className="area-inline">{classification.controls}<label className="area-search">Buscar curso<input value={courseSearch} onChange={e=>setCourseSearch(e.target.value)} placeholder="Nome, código ou modalidade"/></label></div></div>}
       {course && <p className="goals-back"><button className="corp-login-text-button" onClick={()=>{chooseCourse("");setSignalFilter("");}}>← Visão de todos os cursos</button></p>}
-      <GoalsDashboard entries={scopeEntries} filter={signalFilter} onFilter={setSignalFilter} referenceDate={referenceDate} onOpen={entry=>{chooseCourse(String(entry.goal.course_id||"institution"));setSignalFilter("");setGoalSearch(String(entry.goal.title));}} />
+      <GoalsDashboard entries={scopeEntries} filter={signalFilter} onFilter={setSignalFilter} referenceDate={referenceDate} courseLabel={id=>id ? String(courseName(id)||"Curso vinculado") : "Institucional"} onOpen={entry=>{chooseCourse(String(entry.goal.course_id||"institution"));setSignalFilter("");setGoalSearch(String(entry.goal.title));}} />
       <div ref={formRef}>
       {ed.editing && (
         <RecordForm
