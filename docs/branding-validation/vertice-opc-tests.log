@@ -12,4 +12,3 @@ rejects renamed active content by MIME/relationship and scans XML-typed renamed 
 manifest is an internal OPC package part; rejects orphaned or ambiguous metadata ... ok (33ms)
 
 ok | 10 passed | 0 failed (527ms)
-
