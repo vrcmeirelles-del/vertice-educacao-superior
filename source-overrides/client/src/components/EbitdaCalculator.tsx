@@ -4,6 +4,29 @@ import {ebitdaFields,educationGroups,normalizeEbitda,calculateEbitda,ebitdaText,
 import {listCalculations,saveCalculation,downloadDre,type EbitdaRecord} from '@/lib/ebitda/data';
 const money=(n:number)=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(n);
 const pct=(n:number|null)=>n===null?'Não calculável':n.toLocaleString('pt-BR')+'%';
+function Help({text}:{text:string}) {
+ return <details className="reitor-help"><summary aria-label="Ver explicação">❔ Entenda</summary><p>{text}</p></details>;
+}
+function RectorDemo() {
+ const [scenario,setScenario]=useState("base");
+ const revenue=1200000;
+ const costs=scenario==="pressao"?1080000:960000;
+ const result=revenue-costs;
+ return <details style={{marginBlock:20,padding:20,background:"#eef7ff",borderRadius:16}}>
+  <summary style={{fontWeight:700,cursor:"pointer",color:"#184b75"}}>▶ Abrir demonstração do reitor</summary>
+  <p><strong>Exemplo fictício</strong> · Veja como a pressão de custos afeta o resultado no mesmo período.</p>
+  <label>Cenário <select value={scenario} onChange={event=>setScenario(event.target.value)}><option value="base">Operação de referência</option><option value="pressao">Custos operacionais maiores</option></select></label>
+  <div className="reitor-grid">
+   {[{label:"Receita líquida",value:revenue,color:"#245eb3",bg:"#deecff",help:"Receita reconhecida após as deduções registradas na DRE."},{label:"Custos e despesas operacionais do exemplo",value:costs,color:"#a04d13",bg:"#ffeddb",help:"Neste exemplo simplificado, exclui juros, tributos sobre o lucro, depreciação e amortização."},{label:"EBITDA ilustrativo",value:result,color:"#146749",bg:"#dcf5e8",help:"Neste cenário simplificado, é a diferença entre a receita líquida e os custos e despesas considerados."}].map(item=>
+    <article key={item.label} style={{padding:16,borderRadius:12,background:item.bg,color:item.color}}>
+     <h4>{item.label}</h4><strong>{money(item.value)}</strong>
+     <progress aria-label={item.label} max={revenue} value={item.value} style={{width:"100%",accentColor:item.color}}/>
+     <Help text={item.help}/>
+    </article>)}
+  </div>
+  <p aria-live="polite"><strong>Margem EBITDA de {pct(result/revenue*100)}</strong>. A cada R$ 100 de receita líquida, o cenário apresenta {money(result/revenue*100)} de EBITDA.</p>
+ </details>;
+}
 export default function EbitdaCalculator({reserved}:{reserved?:{institutionId:string;name:string}}){
  const [draft,setDraft]=useState<EbitdaBody>({scope:reserved?.name||''}),[detail,setDetail]=useState(false),[key,setKey]=useState(0),[preview,setPreview]=useState<{body:EbitdaBody;result:EbitdaResult}|null>(null);
  const [records,setRecords]=useState<EbitdaRecord[]>([]),[source,setSource]=useState<EbitdaRecord|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
@@ -15,7 +38,8 @@ export default function EbitdaCalculator({reserved}:{reserved?:{institutionId:st
  function load(row:EbitdaRecord){setSource(row);setDraft(row.body);setDetail(row.body.education_enabled);setPreview({body:row.body,result:row.result});setKey(k=>k+1);requestId.current='';setError('');setNotice('Versão anterior carregada como base. Salvar criará uma nova versão, sem alterar a anterior.');}
  function memory(){if(!preview)return;const text=ebitdaText({...preview,evidence:{file_name:source?.file_name||'Não anexada — cálculo local',sha256:source?.sha256||'Não registrado'}}),url=URL.createObjectURL(new Blob([text],{type:'text/plain;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download='memoria-ebitda.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
  const field=(name:string,label:string,help='',signed=false,value=draft[name])=><label key={name}>{label} (R$)<input name={name} type="number" step="0.01" min={signed?undefined:0} defaultValue={value??''} required/><small>{help||'Use zero quando não houver valor.'}</small></label>;
- return <section className="reitor-calculator" aria-label="Calculadora de EBITDA"><div className="reitor-explanation"><h2>Entenda o resultado da sua instituição.</h2><p><strong>EBITDA, ou LAJIDA,</strong> é o resultado antes dos juros, dos tributos sobre o lucro, da depreciação e da amortização. Ajuda a comparar o desempenho econômico; não é o dinheiro disponível no banco nem o preço de venda da instituição.</p><p>Copie os números da <strong>DRE — Demonstração do Resultado do Exercício</strong>, todos do mesmo período. O detalhamento da IES é opcional.</p><p className="reitor-formula">Lucro/prejuízo líquido + IRPJ/CSLL + despesas financeiras − receitas financeiras + depreciação + amortização + exaustão.</p></div>
+ return <section className="reitor-calculator" aria-label="Calculadora de EBITDA"><div className="reitor-explanation"><h2>Entenda o resultado da sua instituição.</h2><p><strong>EBITDA, ou LAJIDA,</strong> é o resultado antes dos juros, dos tributos sobre o lucro, da depreciação e da amortização. Ajuda a comparar o desempenho econômico; não é o dinheiro disponível no banco nem o preço de venda da instituição.</p><p>Copie os números da <strong>DRE — Demonstração do Resultado do Exercício</strong>, todos do mesmo período. O detalhamento da IES é opcional.</p><Help text="A margem divide o EBITDA pela receita líquida do mesmo período. Confira o período e a abrangência antes de comparar instituições."/><p className="reitor-formula">Lucro/prejuízo líquido + IRPJ/CSLL + despesas financeiras − receitas financeiras + depreciação + amortização + exaustão.</p></div>
+ <RectorDemo/>
  {!reserved&&<div className="reitor-private-note"><strong>Seus números ficam neste navegador durante o preenchimento.</strong><p>Este cálculo público não é salvo nem enviado. Para registrar versões e anexar a DRE, use a área reservada com login, segundo fator e vínculo de Gestor da instituição.</p><Link href="/reitor/reservado" className="corp-button">Entrar na área reservada do reitor →</Link></div>}
  <form ref={form} key={key} onSubmit={submit} onInput={()=>{requestId.current='';calculate();}}><fieldset disabled={busy}><legend>1. Instituição e período</legend><label>Instituição, unidade ou conjunto de cursos<input name="scope" defaultValue={draft.scope||reserved?.name||''} required placeholder="Ex.: Faculdade e campus incluídos"/></label><div className="reitor-grid"><label>De<input type="date" name="start" defaultValue={draft.start||''} required/></label><label>Até<input type="date" name="end" defaultValue={draft.end||''} required/></label><label>Natureza dos números<select name="basis" defaultValue={draft.basis||'historical'}><option value="historical">Realizados na DRE</option><option value="projection">Projeção, ainda não realizada</option></select></label></div></fieldset>
  <fieldset disabled={busy}><legend>2. Cálculo rápido pela DRE</legend><div className="reitor-grid">{ebitdaFields.map(([k,l,h,s])=>field(k,l,h,s))}</div><label>Como os aluguéis foram contabilizados?<select name="lease_basis" defaultValue={draft.lease_basis||'unknown'}><option value="unknown">Ainda não sei — confirmar com o contador</option><option value="expense">Aluguel como despesa operacional</option><option value="ifrs16">CPC 06/IFRS 16: depreciação e juros de arrendamento</option></select></label><p className="reitor-help">A base de arrendamento afeta a comparação. Não acrescente aluguéis nem retire parcelas automaticamente. Em IRPJ/CSLL, use apenas os tributos sobre o lucro.</p></fieldset>
