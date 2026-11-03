@@ -26,7 +26,7 @@ import "./area.css";
 
 type Tab = "emec" | "base" | "ia" | "analise" | "geral" | "visao" | "cadastro" | "metas" | "plano" | "diagnostico" | "equipe" | "repositorio" | "biblioteca" | "reitor";
 const TABS: [Tab, string][] = [
-  ["base", "Base da organização · IA"],
+  ["base", "Base da organização"],
   ["ia", "Análise Documental"],
   ["geral", "Visão geral"],
   ["analise", "Análise gerencial"],
