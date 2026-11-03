@@ -14,10 +14,17 @@ export function canonicalMasterEmail(value: unknown): string | null {
 export function validMasterCredential(value: MasterCredential): boolean {
   return masterInvitationId(value?.invitation) && typeof value?.rawToken === 'string' && TOKEN.test(value.rawToken);
 }
-export function parseMasterFragment(hash: string): MasterCredential | null {
+function otherCredentialKey(key: string): boolean {
+  return key.startsWith('academic_') || key.startsWith('ies_') || ['access_token', 'refresh_token', 'code', 'token_hash'].includes(key);
+}
+function masterCredentialKey(key: string): boolean {
+  return key === 'master_invitation' || key === 'master_token';
+}
+export function parseMasterFragment(hash: string, search = ''): MasterCredential | null {
   const p = new URLSearchParams(hash.replace(/^#/, ''));
+  const query = new URLSearchParams(search);
   // Ambiguous invitation/auth flows fail closed, rather than partially accepting a credential.
-  if (p.has('academic_invitation') || p.has('academic_token') || p.has('ies_invitation') || p.has('ies_token') || p.has('access_token') || p.has('refresh_token')) return null;
+  if ([...p.keys()].some(otherCredentialKey) || [...query.keys()].some(key => masterCredentialKey(key) || otherCredentialKey(key))) return null;
   const invitation = p.get('master_invitation'), rawToken = p.get('master_token');
   if (p.getAll('master_invitation').length !== 1 || p.getAll('master_token').length !== 1 || !invitation || !rawToken) return null;
   const credential = { invitation, rawToken };
@@ -25,9 +32,14 @@ export function parseMasterFragment(hash: string): MasterCredential | null {
 }
 export function consumeMasterFragment(location: { hash: string; pathname: string; search: string }, history: { replaceState(data: unknown, unused: string, url: string): void }): MasterCredential | null {
   const p = new URLSearchParams(location.hash.replace(/^#/, ''));
-  if (!p.has('master_invitation') && !p.has('master_token')) return null;
-  const credential = parseMasterFragment(location.hash);
-  history.replaceState(null, '', location.pathname + location.search);
+  const query = new URLSearchParams(location.search);
+  if (![p, query].some(params => [...params.keys()].some(masterCredentialKey))) return null;
+  const credential = parseMasterFragment(location.hash, location.search);
+  // Reject URL-query credentials and scrub mixed secrets without losing ordinary query/navigation data.
+  const sensitiveKeys = [...query.keys()].filter(key => masterCredentialKey(key) || otherCredentialKey(key));
+  for (const key of sensitiveKeys) query.delete(key);
+  const search = sensitiveKeys.length ? (query.size ? `?${query.toString()}` : '') : location.search;
+  history.replaceState(null, '', location.pathname + search);
   return credential;
 }
 export async function generateMasterSecret(cryptoApi: Crypto = globalThis.crypto): Promise<{ rawToken: string; digest: string }> {
