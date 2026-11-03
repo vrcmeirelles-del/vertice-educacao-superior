@@ -23,10 +23,15 @@ export function documentActionSuggestions(data:PortalData,course=''){
  }
  return [...groups].map(([key,rows])=>{
   const first=rows[0],goal=data.goals.find(g=>g.id===first.goal_id),courseName=data.courses.find(c=>c.id===first.course_id)?.name??'Instituição';
-  const origin='Origem: Repositório · grupo '+key;
   const summary=repositorySummary(rows,data.files);
-  return {key:'documents-'+key,title:'Regularizar evidências · '+String(goal?.title??courseName),course_id:first.course_id,goal_id:goal?.id,why:`${origin}. ${rows.length} exigência(s) sem validação: ${summary.pending} sem envio, ${summary.returned} devolvida(s), ${summary.sent-summary.validated-summary.returned} aguardando análise. ${summary.late} com prazo vencido.`,how:'Abrir o repositório do curso, conferir cada exigência aplicável, providenciar documentos faltantes, corrigir devoluções e solicitar validação. Não considerar o envio como aprovação.',evidence:'Sugestão de evidência: documentos validados e respectivos registros de revisão no repositório.',origin};
- }).filter(s=>!data.actions.some(a=>activeAction(a)&&String(a.why??'').includes(s.origin)));
+  return {key:'documents-'+key,title:'Regularizar evidências · '+String(goal?.title??courseName),course_id:first.course_id,goal_id:goal?.id,why:`Origem: Repositório · ${courseName}. ${rows.length} exigência(s) sem validação: ${summary.pending} sem envio, ${summary.returned} devolvida(s), ${summary.sent-summary.validated-summary.returned} aguardando análise. ${summary.late} com prazo vencido.`,how:'Abrir o repositório do curso, conferir cada exigência aplicável, providenciar documentos faltantes, corrigir devoluções e solicitar validação. Não considerar o envio como aprovação.',evidence:'Sugestão de evidência: documentos validados e respectivos registros de revisão no repositório.'};
+ }).filter(s=>!data.actions.some(a=>activeAction(a)&&((s.goal_id&&a.goal_id===s.goal_id)||(a.what===s.title&&String(a.course_id??'')===String(s.course_id??'')))));
+}
+
+type ActionSuggestion={key:string;title:string;why:string;how:string;evidence:string;goal_id?:unknown;course_id?:unknown;finding_id?:unknown};
+export function mergeActionSuggestions(primary:ActionSuggestion[],documents:ActionSuggestion[]):ActionSuggestion[]{
+ const matches=(a:ActionSuggestion,b:ActionSuggestion)=>Boolean(a.goal_id&&a.goal_id===b.goal_id&&String(a.course_id??'')===String(b.course_id??''));
+ return [...primary.map(s=>{const doc=documents.find(d=>matches(s,d));return doc?{...s,why:s.why+' '+doc.why,how:s.how+' '+doc.how,evidence:s.evidence+' '+doc.evidence}:s;}),...documents.filter(d=>!primary.some(s=>matches(s,d)))];
 }
 
 // Only an explicitly scoped draft is reusable. Legacy unscoped drafts are ignored.
