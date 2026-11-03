@@ -78,13 +78,13 @@ export function InstitutionView({institution,courses,enrollments,onOpenCourse,on
   </div>
   <label>Buscar curso <input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Nome ou código"/></label>
   <div className="table-scroll" tabIndex={0} role="region" aria-label="Tabela de dados acadêmicos; role horizontalmente para ver todas as colunas"><table className="course-list"><thead><tr><th scope="col">Código</th><th scope="col">Curso</th><th scope="col">Modalidade</th><th scope="col">Matriculados {sem}</th><th scope="col">{prev?`Em ${prev}`:'Semestre anterior'}</th><th scope="col">Variação</th><th scope="col">Turmas com alunos</th><th scope="col"></th></tr></thead>
-  <tbody>{list.map(({c,now,before,turmas,hasCurrent,hasPrevious})=><tr key={c.id}><td>{c.code??'—'}</td><td>{c.name}</td><td>{LABEL[modalityOf(c)]}</td><td>{hasCurrent?fmt(now):"Não informado"}</td><td>{prev&&hasPrevious?fmt(before):'—'}</td><td>{prev&&hasCurrent&&hasPrevious&&before?`${now>=before?'+':''}${Math.round((now-before)/before*100)}%`:'—'}</td><td>{hasCurrent?turmas:"—"}</td><td>{<button className="corp-login-text-button" onClick={()=>onOpenCourse(c.id)}>Abrir</button>}</td></tr>)}</tbody></table></div>
+  <tbody>{list.map(({c,now,before,turmas,hasCurrent,hasPrevious})=><tr key={c.id}><td>{c.code??'—'}</td><td>{c.name}</td><td>{LABEL[modalityOf(c)]}</td><td>{hasCurrent?fmt(now):"Não informado"}</td><td>{prev&&hasPrevious?fmt(before):'—'}</td><td className={prev&&hasCurrent&&hasPrevious ? now < before ? "enrollment-down" : "enrollment-up" : undefined}>{prev&&hasCurrent&&hasPrevious&&before?`${now>=before?'+':''}${Math.round((now-before)/before*100)}%`:'—'}</td><td>{hasCurrent?turmas:"—"}</td><td>{<button className="corp-login-text-button" onClick={()=>onOpenCourse(c.id)}>Abrir</button>}</td></tr>)}</tbody></table></div>
   <p>Fonte: relatório estatístico de alunos do e-ORBIT, status MATRICULADO. Modalidade pelo cadastro do curso no e-ORBIT, não pelo ato regulatório no e-MEC. Quantitativos não comprovam alunos únicos, retenção ou evasão. “Não informado” indica ausência de relatório localizado para o curso e semestre; não foi substituído por zero.</p>
   </>}
  </section>;
 }
 
-export function CourseView({course,institution,enrollments,reports,onBack}:{course:Course;institution:Institution;enrollments:Enrollment[];reports:(AcademicReport&{course_id?:string})[];onBack:()=>void}){
+export function CourseView({course,institution,enrollments,reports,onBack,onPlan}:{course:Course;institution:Institution;enrollments:Enrollment[];reports:(AcademicReport&{course_id?:string})[];onBack:()=>void;onPlan?:(draft:{course_id:string;what:string;why:string;how:string})=>void}){
  const rows=enrollments.filter(r=>r.course_id===course.id&&r.student_status==='MATRICULADO');
  const semesters=[...new Set(rows.map(r=>r.semester))].sort(sortSem);
  const [semester,setSemester]=useState(semesters[0]??'');
@@ -96,10 +96,29 @@ export function CourseView({course,institution,enrollments,reports,onBack}:{cour
  const displayRows=selected.filter(r=>r.class_label!=="__TOTAL_CURSO__");
  const series=own.find(r=>(r.kind as string)==='status_series');
  const statusRows=((series?.payload.series??[]) as StatusSeries[]).slice().sort((a,b)=>a.semester.localeCompare(b.semester));
+ const periods=[...new Set(enrollments.filter(r=>r.student_status==='MATRICULADO').map(r=>r.semester))].sort(sortSem);
+ const previous=periods[periods.indexOf(sem)+1];
+ const baseline=rows.filter(r=>r.semester===previous);
+ const current=courseTotals(selected).value;
+ const prior=baseline.length ? courseTotals(baseline).value : null;
+ const delta=prior!==null&&selected.length ? current-prior : null;
+ const change=delta===null ? 'Sem base comparável' : `${delta>0?'+':''}${fmt(delta)} matrículas${prior ? ` (${(delta/prior*100).toLocaleString('pt-BR',{maximumFractionDigits:1,signDisplay:'exceptZero'})}%)` : ''}`;
+ const guidance=delta===null ? 'Completar os dados dos dois semestres antes de propor expansão.' : delta<0 ? 'Cruzar as rematrículas por aluno e identificar as causas da queda. Priorizar contato com quem ainda não renovou.' : 'Conferir ocupação, demanda e capacidade docente antes de ampliar vagas ou abrir turmas.';
+ const comparison=[{period:previous,value:prior,classes:baseline},{period:sem,value:current,classes:selected}];
  return <section className="academic-data" aria-labelledby="course-title">
   <p><button className="corp-login-text-button" onClick={onBack}>← {institution.name}</button></p>
   <h2 id="course-title">{course.name}{course.code?` · código ${course.code}`:''}</h2>
   <p>Modalidade: {LABEL[modalityOf(course)]}</p>
+  {selected.length>0&&<section className="enrollment-insight">
+   <header><small>ACOMPANHAMENTO DO CURSO</small><h3>Matrículas em perspectiva</h3><strong>{change}</strong></header>
+   <div className="enrollment-comparison">{comparison.map(({period,value,classes},i)=><article key={i}>
+    <strong>{period||'Semestre anterior'}</strong><p>{value===null?'Não informado':`${fmt(value)} matriculados`}</p>
+    {value!==null&&<progress aria-label={`Matrículas em ${period}`} value={value} max={Math.max(1,current,prior??0)}/>}
+    <p>{classes.some(r=>r.class_label!=="__TOTAL_CURSO__")?`${classes.filter(r=>r.enrolled>0&&r.class_label!=="__TOTAL_CURSO__").length} turmas com alunos`:'Turmas sem detalhamento'}</p>
+   </article>)}</div>
+   <aside><h4>{delta!==null&&delta<0?'Atenção à continuidade':'Próxima decisão'}</h4><p>{guidance}</p><p>A variação compara totais. A evasão depende do acompanhamento individual.</p>
+   {onPlan&&<button className="corp-button" onClick={()=>onPlan({course_id:course.id,what:delta===null?'Completar a base de matrículas':delta<0?'Investigar queda e acompanhar rematrículas':'Avaliar potencial de expansão do curso',why:`Matrículas em ${previous??'semestre anterior'} e ${sem}: ${change}.`,how:guidance})}>Preparar ação 5W2H</button>}</aside>
+  </section>}
   <h3>Matrículas por turma</h3>
   {!semesters.length?<p>Nenhum relatório importado para este curso.</p>:<>
   <label>Semestre <select value={sem} onChange={e=>setSemester(e.target.value)}>{semesters.map(s=><option key={s} value={s}>{s}</option>)}</select></label>
