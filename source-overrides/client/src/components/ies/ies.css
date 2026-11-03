@@ -1,0 +1,205 @@
+.ies-shell {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: clamp(18px, 4vw, 48px);
+  color: #243653;
+  font-family: Inter, system-ui, sans-serif;
+  line-height: 1.6;
+}
+.ies-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+.ies-header h1 {
+  font-size: clamp(1.7rem, 4vw, 2.7rem);
+  line-height: 1.15;
+  margin: 8px 0 16px;
+}
+.ies-eyebrow {
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  font-weight: 700;
+  color: #556b59;
+}
+.ies-shell button {
+  min-height: 44px;
+  border: 1px solid #526b60;
+  border-radius: 8px;
+  padding: 10px 16px;
+  background: #fff;
+  color: #243653;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: normal;
+}
+.ies-shell button:hover:not(:disabled) {
+  background: #edf3ef;
+}
+.ies-shell button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.ies-shell :focus-visible {
+  outline: 3px solid #9d6a16;
+  outline-offset: 3px;
+}
+.ies-nav,
+.ies-actions,
+.ies-account {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin: 20px 0;
+}
+.ies-account {
+  justify-content: space-between;
+  overflow-wrap: anywhere;
+}
+.ies-nav button[aria-current="page"] {
+  background: #243653;
+  color: #fff;
+}
+.ies-card {
+  border: 1px solid #d5ded7;
+  border-radius: 16px;
+  padding: clamp(18px, 3vw, 32px);
+  background: #fff;
+  margin: 20px 0;
+}
+.ies-card h2 {
+  font-size: 1.5rem;
+  margin: 0 0 16px;
+}
+.ies-card h3 {
+  font-size: 1.1rem;
+  margin: 16px 0 8px;
+}
+.ies-note {
+  background: #f4f1e9;
+  border-left: 4px solid #9d7f42;
+  padding: 16px;
+  border-radius: 6px;
+}
+.ies-shell form {
+  max-width: 700px;
+  display: grid;
+  gap: 18px;
+  margin-top: 20px;
+}
+.ies-shell label {
+  display: grid;
+  gap: 6px;
+  font-weight: 600;
+}
+.ies-shell input:not([type="checkbox"]),
+.ies-shell select,
+.ies-shell textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 46px;
+  border: 1px solid #84938a;
+  border-radius: 6px;
+  padding: 10px;
+  color: #243653;
+  background: white;
+  font: inherit;
+}
+.ies-shell .ies-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-weight: 400;
+  margin: 16px 0;
+}
+.ies-check input {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  margin-top: 3px;
+  accent-color: #315746;
+}
+.ies-shell fieldset {
+  border: 1px solid #d5ded7;
+  padding: 16px;
+  border-radius: 8px;
+}
+.ies-shell dl {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) 3fr;
+  gap: 12px;
+  margin: 24px 0;
+}
+.ies-shell dt {
+  font-weight: 700;
+}
+.ies-shell dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.ies-list {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 16px;
+}
+.ies-list li {
+  border: 1px solid #d5ded7;
+  border-radius: 10px;
+  padding: 18px;
+  overflow-wrap: anywhere;
+}
+.ies-list p {
+  margin: 8px 0;
+}
+.ies-share {
+  margin: 24px 0;
+  padding: 18px;
+  background: #edf3ef;
+  border-radius: 10px;
+}
+.ies-shell [role="alert"] {
+  border-left: 4px solid #a02d2d;
+  background: #fcf0ef;
+  padding: 14px;
+  color: #732626;
+}
+.ies-shell [role="status"] {
+  padding: 8px 0;
+}
+.ies-unavailable {
+  background: #f7f8f6;
+}
+.ies-shell small {
+  display: block;
+  margin: 12px 0;
+  color: #526359;
+}
+@media (max-width: 600px) {
+  .ies-header {
+    display: block;
+  }
+  .ies-header > button {
+    margin-top: 16px;
+  }
+  .ies-shell dl {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+  .ies-shell dd {
+    margin-bottom: 14px;
+  }
+  .ies-actions > button,
+  .ies-nav > button {
+    flex: 1 1 100%;
+  }
+  .ies-shell .corp-login-grid {
+    display: block;
+  }
+  .ies-shell .corp-container {
+    padding: 0;
+  }
+}
