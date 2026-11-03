@@ -1,3 +1,4 @@
+import { courseClassification, useCourseFilters } from "./CourseFilters";
 import {displayCourseRows} from '@/lib/course-labels';
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { supabase } from "@/lib/supabase";
@@ -374,7 +375,8 @@ function RegistryTab({ institution, role, courses, reload, onChanged }: { instit
   const [editInst, setEditInst] = useState(false);
   const ed = useEditor();
   const [q, setQ] = useState("");
-  const list = courses.filter(c => `${c.code ?? ""} ${c.display_name??c.name}`.toLowerCase().includes(q.toLowerCase()));
+  const classification = useCourseFilters(courses);
+  const list = courses.filter(classification.matches).filter(c => `${c.code ?? ""} ${c.display_name??c.name}`.toLowerCase().includes(q.toLowerCase()));
   const cnpj = institution.cnpj ? String(institution.cnpj).replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5") : "—";
   return (
     <>
@@ -410,7 +412,7 @@ function RegistryTab({ institution, role, courses, reload, onChanged }: { instit
 
       <div className="area-panel">
         <div className="area-panel-head">
-          <h3>Cursos ({courses.length})</h3>
+          <h3>Cursos ({list.length} de {courses.length})</h3>
           {can.manageCourses(role) && <button className="corp-button small" onClick={() => ed.open("new")}>Novo curso</button>}
         </div>
         {ed.editing && (
@@ -427,9 +429,12 @@ function RegistryTab({ institution, role, courses, reload, onChanged }: { instit
             }}
           />
         )}
+        <div className="area-inline">{classification.controls}</div>
         <label className="area-search">Buscar curso <input value={q} onChange={e => setQ(e.target.value)} placeholder="Nome ou código" /></label>
         {!courses.length ? (
           <p className="area-muted">Nenhum curso cadastrado.</p>
+        ) : !list.length ? (
+          <p className="area-muted">Nenhum curso corresponde aos filtros.</p>
         ) : (
           <div className="table-scroll">
             <table className="area-table">
@@ -439,9 +444,9 @@ function RegistryTab({ institution, role, courses, reload, onChanged }: { instit
                   <tr key={c.id}>
                     <td>{String(c.code ?? "—")}</td>
                     <td>{String(c.display_name??c.name)}</td>
-                    <td>{label(DEGREE, c.degree)}</td>
-                    <td>{label(MODALITY, c.modality)}</td>
-                    <td>{label(COURSE_STATUS, c.status ?? "ativo")}</td>
+                    <td>{courseClassification(c, "degree")}</td>
+                    <td>{courseClassification(c, "modality")}</td>
+                    <td>{courseClassification(c, "status")}</td>
                     <td>{fmtNum(c.vacancies)}</td>
                     <td>{String(c.coordinator ?? "—")}</td>
                     <td className="area-row-actions">
@@ -509,7 +514,8 @@ function GoalsTab({ institutionId, role, data, reload, onRepository }: { institu
   }, [data.measurements]);
   const goals = data.goals.filter(g => !course || g.course_id === course);
   const courseName = (cid: unknown) => data.courses.find(c => c.id === cid)?.name as string | undefined;
-  const courseRows=data.courses.filter(c=>`${c.name} ${c.code??""} ${c.modality??""}`.toLowerCase().includes(courseSearch.toLowerCase()));
+  const classification = useCourseFilters(data.courses, () => setCoursePage(0));
+  const courseRows=data.courses.filter(classification.matches).filter(c=>`${c.name} ${c.code??""} ${c.modality??""}`.toLowerCase().includes(courseSearch.toLowerCase()));
   const pageCount=Math.max(1,Math.ceil(courseRows.length/20));
   const currentPage=Math.min(coursePage,pageCount-1);
 
@@ -555,6 +561,8 @@ function GoalsTab({ institutionId, role, data, reload, onRepository }: { institu
       )}
       {!course && data.goals.length>0 ? <>
         <p className="area-muted">Plano por curso. Abra um curso para conferir metas, indicadores e entregas. “Planejada” indica proposta ainda sujeita à pactuação com a gestão; não significa atividade iniciada ou resultado alcançado.</p>
+        <div className="area-inline">{classification.controls}</div>
+        <p className="area-muted">{courseRows.length} de {data.courses.length} cursos</p>
         <label className="area-search">Buscar curso<input value={courseSearch} onChange={e=>setCourseSearch(e.target.value)} placeholder="Nome, código ou modalidade"/></label>
         <div className="table-scroll"><table className="area-table"><thead><tr><th>Curso</th><th>Metas</th><th>Planejadas</th><th>Em acompanhamento</th><th>Responsável a designar</th><th/></tr></thead><tbody>
           {courseRows.slice(currentPage*20,currentPage*20+20).map(c=>{

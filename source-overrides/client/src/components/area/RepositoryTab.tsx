@@ -1,3 +1,4 @@
+import { useCourseFilters } from "./CourseFilters";
 import indicatorNames from "@/lib/repository-indicators.json";
 import RepositoryFiles from "./RepositoryFiles";
 import { isInstrumentFile, isInstrumentRequest, instrumentIndicators } from "@/lib/repository";
@@ -182,6 +183,7 @@ export default function RepositoryTab(props: RepositoryProps) {
     return `${now.getFullYear()}-${now.getMonth() < 6 ? 1 : 2}`;
   });
   const [view, setView] = useState<View>("cobertura");
+  const classification = useCourseFilters(courses);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("todos");
   const [configuring, setConfiguring] = useState(false);
@@ -576,6 +578,7 @@ export default function RepositoryTab(props: RepositoryProps) {
         {courseId === null ? (
           <>
             <div className="er-toolbar">
+              {classification.controls}
               <label>
                 Buscar curso
                 <input
@@ -585,7 +588,7 @@ export default function RepositoryTab(props: RepositoryProps) {
                 />
               </label>
               <label>
-                Situação
+                Situação documental
                 <select
                   value={filter}
                   onChange={(e) => setFilter(e.target.value)}
@@ -601,6 +604,7 @@ export default function RepositoryTab(props: RepositoryProps) {
               detail="Cursos com pendências aparecem primeiro"
             >
               {courses
+                .filter(classification.matches)
                 .map((c) => ({
                   c,
                   s: repositorySummary(
