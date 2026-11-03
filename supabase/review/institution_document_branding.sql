@@ -19,6 +19,8 @@ begin
   if octet_length(image) < 57 or octet_length(image) > 2097152
     or substring(image from 1 for 16) <> decode('89504e470d0a1a0a0000000d49484452','hex')
     or substring(image from 17 for 8) <> decode('0000012c00000078','hex')
+    or get_byte(image,24) <> 8 or get_byte(image,25) not in (2,6)
+    or get_byte(image,26) <> 0 or get_byte(image,27) <> 0 or get_byte(image,28) <> 0
     or substring(image from octet_length(image)-11 for 12) <> decode('0000000049454e44ae426082','hex') then return false; end if;
   pos := 8;
   while pos < octet_length(image) loop
@@ -51,12 +53,35 @@ end; $$;
 revoke all on function vertice_private.valid_document_branding(jsonb) from public, anon;
 grant execute on function vertice_private.valid_document_branding(jsonb) to authenticated;
 alter table public.vertice_institutions add constraint vertice_document_branding_valid check (vertice_private.valid_document_branding(document_branding));
--- Keep existing non-branding update permissions. Branding is changed only by the CAS RPC.
-revoke update on public.vertice_institutions from authenticated;
-do $$ declare columns text; begin
- select string_agg(quote_ident(attname), ',') into columns from pg_attribute
- where attrelid='public.vertice_institutions'::regclass and attnum>0 and not attisdropped and attname <> 'document_branding';
- execute 'grant update (' || columns || ') on public.vertice_institutions to authenticated';
+-- Preserve CURRENT ACLs, including restrictions introduced by other branches.
+-- Only a direct table UPDATE grant is converted to the corresponding existing columns.
+-- Column-only grants stay untouched; no guessed/static column list is restored.
+do $$ declare columns text; grantable_columns text; table_update boolean; begin
+ select coalesce(bool_or(a.privilege_type='UPDATE'),false) into table_update
+ from pg_class c cross join lateral aclexplode(coalesce(c.relacl,acldefault('r',c.relowner))) a
+ where c.oid='public.vertice_institutions'::regclass and a.grantee='authenticated'::regrole;
+ if table_update then
+  select string_agg(quote_ident(attname), ',' order by attnum),
+         string_agg(quote_ident(attname), ',' order by attnum) filter (where has_column_privilege('authenticated',attrelid,attnum,'UPDATE WITH GRANT OPTION'))
+  into columns,grantable_columns from pg_attribute
+  where attrelid='public.vertice_institutions'::regclass and attnum>0 and not attisdropped
+    and attname <> 'document_branding'
+    and has_column_privilege('authenticated',attrelid,attnum,'UPDATE');
+ end if;
+ if table_update then
+  revoke update on public.vertice_institutions from authenticated;
+ end if;
+ revoke update (document_branding) on public.vertice_institutions from authenticated;
+ if columns is not null then
+  execute 'grant update (' || columns || ') on public.vertice_institutions to authenticated';
+ end if;
+ if grantable_columns is not null then
+  execute 'grant update (' || grantable_columns || ') on public.vertice_institutions to authenticated with grant option';
+ end if;
+ -- Do not silently change PUBLIC or inherited-role permissions; stop for reconciliation.
+ if has_column_privilege('authenticated','public.vertice_institutions','document_branding','UPDATE') then
+  raise exception 'Inherited branding UPDATE permission requires explicit ACL reconciliation';
+ end if;
 end $$;
 create function vertice_private.branding_version() returns trigger language plpgsql set search_path = '' as $$
 begin new.updated_at := greatest(clock_timestamp(), old.updated_at + interval '1 microsecond'); return new; end; $$;

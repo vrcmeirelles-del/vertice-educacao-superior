@@ -33,6 +33,7 @@ export function unpack(bytes: Uint8Array) {
     if (/vbaProject|activeX|customUI|_xmlsignatures/i.test(name)) throw new Error('Active content is unsupported');
     if (name.endsWith('.xml') || name.endsWith('.rels')) {
       const doc = parse(data);
+      validateWordFields(doc);
       if (name.endsWith('.rels')) for (const rel of Array.from(doc.getElementsByTagNameNS(R, 'Relationship'))) {
         const type = rel.getAttribute('Type') ?? '';
         if (/attachedTemplate|aFChunk|oleObject/i.test(type)) throw new Error('Embedded/linked active objects unsupported');
@@ -46,6 +47,52 @@ function parse(bytes: Uint8Array) {
   const xml = strFromU8(bytes);
   if (/<!DOCTYPE|<!ENTITY/i.test(xml)) throw new Error('DTD is not permitted');
   return new DOMParser({ onError: (level, message) => { if (level !== 'warning') throw new Error(message); } }).parseFromString(xml, 'application/xml');
+}
+/** Fail-closed Word field grammar. Only non-nested pagination with known format switches.
+ * Called for every XML part on BOTH preparation and download; never rewrites field/body bytes.
+ */
+function validateWordFields(doc: ReturnType<typeof parse>) {
+  const passive = /^\s*(?:PAGE|NUMPAGES|SECTION|SECTIONPAGES)(?:\s+\\\*\s+(?:ARABIC|ROMAN|ALPHABETIC|MERGEFORMAT|CHARFORMAT))*\s*$/i;
+  const validate = (instruction: string) => {
+    if (instruction.length > 512 || !passive.test(instruction)) throw new Error('Unsupported Word field instruction');
+  };
+  let field: { instruction: string; code: boolean } | null = null;
+  const tokens = new Set(['fldSimple','fldChar','instrText','delInstrText','fldData','ffData']);
+  const visit = (node: ReturnType<typeof parse>['documentElement'], inSimple = false): void => {
+    if (!node) return;
+    const kind = node.localName ?? '';
+    if (tokens.has(kind)) {
+      if (![W, 'http://purl.oclc.org/ooxml/wordprocessingml/main'].includes(node.namespaceURI ?? '')) throw new Error('Unsupported field namespace');
+      const ns = node.namespaceURI!;
+      if (kind === 'fldSimple') {
+        if (field || inSimple) throw new Error('Nested Word fields are unsupported');
+        validate(node.getAttributeNS(ns, 'instr') ?? '');
+        for (const child of Array.from(node.childNodes)) if (child.nodeType === 1) visit(child as typeof node, true);
+        return;
+      }
+      if (kind === 'instrText') {
+        if (inSimple || !field || !field.code) throw new Error('Orphan or result-phase Word instruction');
+        field.instruction += node.textContent ?? '';
+        if (field.instruction.length > 512) throw new Error('Word instruction exceeds limit');
+      } else if (kind === 'fldChar') {
+        if (inSimple) throw new Error('Nested Word fields are unsupported');
+        const type = node.getAttributeNS(ns, 'fldCharType');
+        if (type === 'begin') {
+          if (field) throw new Error('Nested Word fields are unsupported');
+          field = { instruction: '', code: true };
+        } else if (type === 'separate') {
+          if (!field || !field.code) throw new Error('Unbalanced Word field');
+          validate(field.instruction); field.code = false;
+        } else if (type === 'end') {
+          if (!field) throw new Error('Unbalanced Word field');
+          validate(field.instruction); field = null;
+        } else throw new Error('Unknown Word field marker');
+      } else throw new Error('Deleted instructions and embedded field data are unsupported');
+    }
+    for (const child of Array.from(node.childNodes)) if (child.nodeType === 1) visit(child as typeof node, inSimple);
+  };
+  visit(doc.documentElement);
+  if (field) throw new Error('Unclosed Word field');
 }
 function serialize(doc: ReturnType<typeof parse>) { return strToU8(new XMLSerializer().serializeToString(doc)); }
 function relPath(part: string) { const slash = part.lastIndexOf('/'); return part.slice(0, slash) + '/_rels/' + part.slice(slash + 1) + '.rels'; }
@@ -63,6 +110,9 @@ export function validateBranding(b: Branding) {
     if (typeof b.logo_data !== 'string' || b.logo_data.length > 2800000 || !/^data:image\/png;base64,[A-Za-z0-9+/]+={0,2}$/.test(b.logo_data)) throw new Error('Invalid PNG');
     const bytes = Uint8Array.from(atob(b.logo_data.split(',')[1]), c => c.charCodeAt(0));
     if (bytes.length < 33 || new DataView(bytes.buffer).getUint32(16) !== 300 || new DataView(bytes.buffer).getUint32(20) !== 120) throw new Error('Logo must be 300x120');
+    // Canvas output: only 8-bit truecolor RGB/RGBA, standard compression/filter, no Adam7.
+    // Reject before pngjs: its interlaced path inflates without a hard output bound.
+    if (bytes[24] !== 8 || ![2, 6].includes(bytes[25]) || bytes[26] !== 0 || bytes[27] !== 0 || bytes[28] !== 0) throw new Error('Unsupported normalized PNG encoding');
     const png = PNG.sync.read(Buffer.from(bytes), { checkCRC: true });
     if (png.width !== 300 || png.height !== 120) throw new Error('Invalid PNG dimensions');
     // Decode/re-encode removes ancillary metadata from every returned logo.

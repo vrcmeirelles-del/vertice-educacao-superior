@@ -4,54 +4,54 @@
 
  RUN  v2.1.9 /workspace/vertice-branding-build
 
- ✓ server/commercial-demo.test.ts (9 tests) 30ms
- ✓ server/repository.test.ts (25 tests) 60ms
- ✓ server/reitor-ebitda.test.ts (8 tests) 51ms
- ✓ server/pilot.test.ts (7 tests) 9ms
- ✓ server/management.test.ts (9 tests) 7ms
- ✓ server/course-ai.test.ts (7 tests) 39ms
- ✓ server/organization-assistant.test.ts (6 tests) 56ms
- ✓ server/management-review.test.ts (8 tests) 33ms
- ✓ server/institution-branding.test.ts (7 tests) 17ms
- ✓ server/demo-showroom.test.ts (4 tests) 95ms
- ✓ server/emec.test.ts (11 tests) 14ms
- ✓ server/passwordMfa.test.ts (5 tests) 9ms
+ ✓ server/commercial-demo.test.ts (9 tests) 32ms
+ ✓ server/repository.test.ts (25 tests) 41ms
+ ✓ server/reitor-ebitda.test.ts (8 tests) 61ms
+ ✓ server/pilot.test.ts (7 tests) 13ms
+ ✓ server/management.test.ts (9 tests) 8ms
+ ✓ server/course-ai.test.ts (7 tests) 41ms
+ ✓ server/organization-assistant.test.ts (6 tests) 40ms
+ ✓ server/management-review.test.ts (8 tests) 35ms
+ ✓ server/institution-branding.test.ts (7 tests) 11ms
+ ✓ server/demo-showroom.test.ts (4 tests) 79ms
+ ✓ server/emec.test.ts (11 tests) 12ms
+ ✓ server/passwordMfa.test.ts (5 tests) 10ms
 stdout | server/platform.test.ts
 [OAuth] Initialized with baseURL:
 
 stderr | server/platform.test.ts
 [OAuth] ERROR: MANUS_OAUTH_API_URL is not configured! Set MANUS_OAUTH_API_URL environment variable.
 
- ✓ server/owner.test.ts (9 tests) 11ms
 stderr | server/platform.test.ts > current platform integration > binds signed app sessions to this project and accepts an empty display name
 [Auth] Session payload missing required fields
 
- ✓ server/platform.test.ts (5 tests) 23ms
- ✓ server/inep-library.test.ts (4 tests) 22ms
+ ✓ server/platform.test.ts (5 tests) 20ms
+ ✓ server/owner.test.ts (9 tests) 12ms
+ ✓ server/inep-library.test.ts (4 tests) 36ms
  ✓ server/security.test.ts (3 tests) 6ms
- ✓ server/management-metrics.test.ts (3 tests) 5ms
+ ✓ server/management-metrics.test.ts (3 tests) 6ms
  ✓ server/institution-pagination.test.ts (2 tests) 11ms
- ✓ server/course-spreadsheets.test.ts (3 tests) 5ms
- ✓ server/course-labels.test.ts (2 tests) 13ms
+ ✓ server/course-spreadsheets.test.ts (3 tests) 7ms
+ ✓ server/course-labels.test.ts (2 tests) 19ms
+ ✓ server/auth.logout.test.ts (1 test) 5ms
 stderr | server/course-ai-citations.test.ts > limits quotations to safe literal source excerpts and rejects invented quotations
 review_validation:quote_mismatch
 
- ✓ server/course-ai-citations.test.ts (1 test) 5ms
- ✓ server/auth.logout.test.ts (1 test) 8ms
- ✓ server/institution-branding-ui.test.ts (2 tests) 86ms
- ✓ server/institution-library-race.test.ts (1 test) 157ms
+ ✓ server/course-ai-citations.test.ts (1 test) 11ms
+ ✓ server/institution-library-race.test.ts (1 test) 167ms
+ ✓ server/institution-branding-ui.test.ts (2 tests) 161ms
 stdout | server/login.test.ts
 [OAuth] Initialized with baseURL:
 
 stderr | server/login.test.ts
 [OAuth] ERROR: MANUS_OAUTH_API_URL is not configured! Set MANUS_OAUTH_API_URL environment variable.
 
- ✓ server/login.test.ts (7 tests) 3ms
+ ✓ server/login.test.ts (7 tests) 4ms
 
  Test Files  25 passed (25)
       Tests  149 passed (149)
-   Start at  12:37:07
-   Duration  4.82s (transform 1.28s, setup 0ms, collect 6.01s, tests 774ms, environment 824ms, prepare 1.87s)
+   Start at  13:00:26
+   Duration  5.53s (transform 1.30s, setup 0ms, collect 6.56s, tests 847ms, environment 1.08s, prepare 2.11s)
 
 npm notice
 npm notice New major version of npm available! 11.9.0 -> 12.2.1

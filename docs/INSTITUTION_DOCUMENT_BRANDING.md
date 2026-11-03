@@ -30,9 +30,9 @@ A fixture inclui uma tabela `InstitutionTable` aprovada com uma célula temátic
 
 **Não aplicar nem publicar automaticamente.** `supabase/review/institution_document_branding.sql` é SQL de revisão, intencionalmente fora de `migrations/`. Após a revisão e conciliação, gerar a migração pela CLI, revisar os grants e aplicar na ordem coordenada: banco, função, frontend. Não houve deploy, merge, alteração de dados reais, habilitação de arquivo ou política de Storage nova.
 
-O RPC público é SECURITY INVOKER e chama uma função privada SECURITY DEFINER com UID/MFA/papel explícitos, search_path vazio e controle de versão. A revogação de UPDATE da tabela é seguida de grants por coluna para manter as permissões anteriores, exceto `document_branding`; revisar esta lista com quaisquer colunas novas das outras frentes. INSERT de IES permanece sujeito à política master existente. A auditoria não armazena logo/texto.
+O RPC público é SECURITY INVOKER e chama uma função privada SECURITY DEFINER com UID/MFA/papel explícitos, search_path vazio e controle de versão. O SQL calcula os ACLs atuais durante a execução. Converte apenas um grant direto de UPDATE da tabela em grants das colunas que já eram editáveis, preservando opções de concessão; grants que já são por coluna ficam intactos. Não restaura acesso removido por outra frente nem usa lista histórica de colunas. Acesso herdado/PUBLIC que ainda permita UPDATE de `document_branding` provoca erro e rollback, exigindo conciliação explícita. INSERT de IES permanece sujeito à política master existente. A auditoria não armazena logo/texto.
 
-O banco valida estrutura JSON, tamanho, assinatura/dimensões/chunks/CRC PNG; a decodificação integral do fluxo PNG e sua regravação sem metadados ocorrem no download, antes da entrega. Um PNG malformado forjado diretamente no RPC que passe as verificações estruturais falha fechado no decodificador. Não afirmar que PostgreSQL faz decodificação raster completa.
+O banco valida estrutura JSON, tamanho, assinatura/dimensões/chunks/CRC PNG e IHDR limitado a RGB/RGBA de 8 bits, compressão/filtro padrão e sem interlace; a decodificação integral do fluxo PNG e sua regravação sem metadados ocorrem no download, antes da entrega. Um PNG malformado forjado diretamente no RPC que passe as verificações estruturais falha fechado no decodificador. Não afirmar que PostgreSQL faz decodificação raster completa.
 
 `NewInstitutionForm` pertence **somente ao cadastro legado**. A frente IES usa rascunho privado por `vertice_ies_register(name, emec, source_reference)` e aprovação por `vertice_ies_review_registration(uuid, approve)`. Se essa jornada estiver ativa, preservar suas RPCs: não usar `saveRow` direto nem adicionar branding ao rascunho. Após aprovação, o editor independente atende a IES criada. Não foram implementadas/ativadas flags de IES, Masters, convites ou e-MEC.
 
@@ -98,7 +98,7 @@ deno check --lock=supabase/functions/vertice-inep-library/deno.lock supabase/fun
 deno test --lock=supabase/functions/vertice-inep-library/deno.lock scripts/branding/document-template.test.ts
 ```
 
-Deno: **5 testes de cenários aprovados**, incluindo manifesto/hash, preservação de bytes, estilos/fills explícitos, mídia referenciada, XML/ZIP não seguros, PNG inválido, ausência de logo, repetição, permissões negativas e auditoria. Nenhum acesso de rede/Storage real nesses testes.
+Deno: **8 testes de cenários aprovados**, incluindo manifesto/hash, preservação de bytes, estilos/fills explícitos, mídia referenciada, XML/ZIP não seguros, PNG inválido, ausência de logo, repetição, permissões negativas e auditoria. Nenhum acesso de rede/Storage real nesses testes.
 
 PostgreSQL 17 descartável em Docker, com `scripts/branding/bootstrap-test-db.sql`, migrações existentes `202610260001_access_foundation`, `202610300001_area_real`, `20261101224102_institutional_inep_library` e SQL de revisão:
 
@@ -114,3 +114,15 @@ Fixtures visuais geradas por `scripts/branding/render-fixtures.ts`; convertidas 
 ![Texto longo, com cor de texto contrastante](branding-validation/long.png)
 
 A leitura do changelog Supabase foi tentada mas recebeu 403; a documentação oficial de RLS foi consultada: https://supabase.com/docs/guides/database/postgres/row-level-security. A CLI local não ficou utilizável (v3 tentou escrever em diretório de configuração somente leitura; instalação v2 falhou no download DNS). Isso não foi contornado com credenciais ou acesso remoto; o SQL ficou como artefato de revisão, testado diretamente no PostgreSQL descartável.
+
+## Correções após revisão independente — campos Word e PNG
+
+A reprodução negativa de INCLUDEPICTURE falhava no commit anterior ("Missing expected rejection"); está registrada em `branding-validation/vertice-fields-before.log`. A validação agora percorre **todos os XML parts**, tanto ao preparar a fonte quanto ao abrir o template revisado no download. Analisa `fldSimple` e reconstrói instruções complexas pela sequência begin/instrText/separate/end, concatenando runs antes de validar. Variações de caixa e espaços não contornam a regra.
+
+A lista permitida é restrita a **PAGE, NUMPAGES, SECTION e SECTIONPAGES**, com switches de formato `\* Arabic`, `Roman`, `Alphabetic`, `MERGEFORMAT` e `CHARFORMAT` (caixa indiferente). São rejeitados todos os demais comandos, campos aninhados, instruções órfãs/deletadas, dados de formulário, marcadores malformados e campos sem fechamento. Isso inclui DDE/DDEAUTO/INCLUDETEXT/INCLUDEPICTURE sem relacionamento externo. A regra é intencionalmente conservadora: DATE, REF, IF, TOC etc. também exigem futura análise explícita; não são removidos nem convertidos silenciosamente. Campos passivos aceitos no corpo/rodapé são preservados byte a byte.
+
+PNG: antes de `PNG.sync.read`, a Edge rejeita bit depth diferente de 8, color type diferente de RGB/RGBA (2/6), compressão/filtro não padrão e interlace diferente de zero. O SQL aplica o mesmo perfil IHDR. Isso impede entrada no caminho Adam7 de pngjs 7 que infla sem limite. A fixture usa 200 KB de dados comprimidos controlados, dimensões 300×120 e CRCs válidos; o teste substitui o decoder por um observador e confirma **zero chamadas** para interlace e demais codificações recusadas. RGB/RGBA normalizados seguem aceitos. Nenhum payload foi enviado ao Supabase.
+
+`python3 scripts/branding/test-review-acls.py` executa seis bancos novos descartáveis: grant amplo, amplo com grant option de coluna, amplo com grant option de tabela, somente colunas restritas, nenhum UPDATE e UPDATE herdado de PUBLIC. Compara permissões e opções de concessão antes/depois; a última variante exige rollback. A variante ampla também repete os testes SQL de identidade, logo e biblioteca. Todos aprovados.
+
+Após as correções: Deno check, 8 conjuntos Deno, TypeScript, 149 testes da aplicação e build estático passaram novamente. O rollout continua **banco revisado → Edge → frontend**; não publicar frontend/Edge antecipadamente sem uma feature flag coordenada. PR continua bloqueado pela negativa anterior; nenhuma nova tentativa, merge ou deploy foi feita. A revisão independente final ainda é necessária antes de habilitar modelos reais.

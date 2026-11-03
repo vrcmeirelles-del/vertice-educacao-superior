@@ -100,3 +100,69 @@ Deno.test('rejects unsafe archives/external images and removal of referenced sem
  assert(strFromU8(result['word/styles.xml']).includes('w:fill="FF8800"'));assert(!strFromU8(result['word/styles.xml']).includes('themeFill'));
  assert(strFromU8(result['word/styles.xml']).includes('w:val="FF0000"'));
 });
+Deno.test('rejects active simple/complex Word fields without external relationships',async()=>{
+ const f=await fixture();
+ const escape=(s:string)=>s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+ const complex=(pieces:string[])=>'<w:r><w:fldChar w:fldCharType="begin"/></w:r>'+pieces.map(s=>`<w:r><w:instrText xml:space="preserve">${escape(s)}</w:instrText></w:r>`).join('')+'<w:r><w:fldChar w:fldCharType="separate"/></w:r><w:r><w:t>cached result</w:t></w:r><w:r><w:fldChar w:fldCharType="end"/></w:r>';
+ const cases=[
+  '<w:fldSimple w:instr="INCLUDEPICTURE &quot;https://example.invalid/tracker.png&quot;"><w:r><w:t>x</w:t></w:r></w:fldSimple>',
+  ...['DDE','ddeauto',' IncludeText ','\tincludePICTURE\n'].map(s=>`<w:fldSimple w:instr="${escape(s+' '+ 'https://example.invalid/x')}"><w:r><w:t>x</w:t></w:r></w:fldSimple>`),
+  complex([' IN','CLUDE','PICTURE ', '"https://example.invalid/x"']),complex([' d','De','AuTo ', 'app topic item']),complex([' INCLUDE','TEXT ', '"file:///tmp/private"']),
+  '<w:fldSimple w:instr="DATE"/>',
+  '<w:fldSimple w:instr="PAGE"><w:fldSimple w:instr="SECTION"/></w:fldSimple>',
+  complex(['PAGE ', 'INCLUDEPICTURE "https://example.invalid/x"']),
+  '<w:r><w:instrText>DDEAUTO app topic item</w:instrText></w:r>',
+  '<w:r><w:delInstrText>INCLUDETEXT x</w:delInstrText></w:r>',
+  '<w:r><w:fldChar w:fldCharType="end"/></w:r>',
+  complex([' PAGE ']).replace('w:fldCharType="end"','w:fldCharType="begin"'),
+  '<w:fldSimple w:instr="PAGE"><w:fldSimple w:instr="DDE x"/></w:fldSimple>',
+  complex([' PAGE ']).replace('<w:t>cached result</w:t>','<w:instrText>DDE x</w:instrText>'),
+ ];
+ for(const field of cases) {
+  const document=strToU8(strFromU8(f.files['word/document.xml']).replace('<w:body>','<w:body><w:p>'+field+'</w:p>'));
+  const source=zipSync({...f.files,'word/document.xml':document});
+  await assert.rejects(async()=>prepareTemplate(source,{...f.manifest,source_sha256:await sha256(source)}));
+  // A previously approved template cannot bypass the same validation at download time.
+  const prepared=zipSync({...unpack(f.template),'word/document.xml':document});
+  await assert.rejects(async()=>personalizeTemplate(prepared,empty,{...f.expected,template_sha256:await sha256(prepared)}));
+ }
+ for(const part of ['word/header1.xml','word/footer1.xml','word/footnotes.xml']) {
+  const source=zipSync({...f.files,[part]:strToU8(`<w:hdr xmlns:w="${W}"><w:p>${cases[0]}</w:p></w:hdr>`)});
+  await assert.rejects(async()=>prepareTemplate(source,{...f.manifest,source_sha256:await sha256(source)}));
+ }
+});
+Deno.test('preserves allowlisted passive pagination fields byte-for-byte',async()=>{
+ const f=await fixture();
+ const fields='<w:fldSimple w:instr=" pAgE \\* MERGEFORMAT "><w:r><w:t>1</w:t></w:r></w:fldSimple><w:r><w:fldChar w:fldCharType="begin"/></w:r><w:r><w:instrText> NUM</w:instrText></w:r><w:r><w:instrText>PAGES \\* Arabic </w:instrText></w:r><w:r><w:fldChar w:fldCharType="separate"/></w:r><w:r><w:t>3</w:t></w:r><w:r><w:fldChar w:fldCharType="end"/></w:r><w:fldSimple w:instr="SECTION"/><w:fldSimple w:instr="SECTIONPAGES \\* ROMAN"/>';
+ const body=strToU8(strFromU8(f.files['word/document.xml']).replace('<w:body>','<w:body><w:p>'+fields+'</w:p>'));
+ const footer=strToU8(`<w:ftr xmlns:w="${W}"><w:p>${fields}</w:p></w:ftr>`);
+ const source=zipSync({...f.files,'word/document.xml':body,'word/footer1.xml':footer});
+ const manifest={...f.manifest,source_sha256:await sha256(source)};
+ const template=await prepareTemplate(source,manifest);
+ const result=unpack(await personalizeTemplate(template,empty,{...f.expected,template_sha256:await sha256(template),template_source_sha256:manifest.source_sha256}));
+ assert.deepEqual(result['word/document.xml'],body);assert.deepEqual(result['word/footer1.xml'],footer);
+});
+Deno.test('rejects CRC-valid interlaced PNG before decoder; accepts normalized RGB/RGBA', async()=>{
+ const { deflateSync } = await import('node:zlib');
+ const { Buffer } = await import('node:buffer');
+ const crc32=(data:Uint8Array)=>{let c=0xffffffff;for(const byte of data){c^=byte;for(let bit=0;bit<8;bit++) c=(c>>>1)^((c&1)?0xedb88320:0);}return (c^0xffffffff)>>>0;};
+ const chunk=(name:string,data:Uint8Array)=>{const type=Buffer.from(name);const out=Buffer.alloc(data.length+12);out.writeUInt32BE(data.length);out.set(type,4);out.set(data,8);out.writeUInt32BE(crc32(Buffer.concat([type,data])),data.length+8);return out;};
+ const header=Buffer.alloc(13);header.writeUInt32BE(300);header.writeUInt32BE(120,4);header[8]=8;header[9]=6;header[12]=1;
+ // 200 KB controlled expansion; never inflate the payload in the validator test.
+ const interlaced=Buffer.concat([Buffer.from([137,80,78,71,13,10,26,10]),chunk('IHDR',header),chunk('IDAT',deflateSync(Buffer.alloc(200000))),chunk('IEND',Buffer.alloc(0))]);
+ const read=PNG.sync.read;let calls=0;
+ PNG.sync.read=()=>{calls++;throw new Error('decoder must not be reached');};
+ try {
+  assert.throws(()=>validateBranding({...empty,logo_data:'data:image/png;base64,'+interlaced.toString('base64')}),/Unsupported normalized PNG encoding/);
+  assert.equal(calls,0);
+  for(const [offset,value] of [[24,16],[25,0],[25,3],[25,4],[26,1],[27,1]]) {
+   const bytes=Buffer.from(interlaced);bytes[28]=0;bytes[offset]=value;bytes.writeUInt32BE(crc32(bytes.subarray(12,29)),29);
+   assert.throws(()=>validateBranding({...empty,logo_data:'data:image/png;base64,'+bytes.toString('base64')}),/Unsupported normalized PNG encoding/);
+  }
+  assert.equal(calls,0);
+ } finally { PNG.sync.read=read; }
+ assert(validateBranding({...empty,logo_data:logoData()}));
+ const rgb=new PNG({width:300,height:120});rgb.data.fill(255);
+ const bytes=PNG.sync.write(rgb,{colorType:2});assert.equal(bytes[25],2);
+ assert(validateBranding({...empty,logo_data:'data:image/png;base64,'+bytes.toString('base64')}));
+});

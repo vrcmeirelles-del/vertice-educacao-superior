@@ -19,7 +19,7 @@ computing gzip size...
 - Using dynamic import() to code-split the application
 - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
 - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
-✓ built in 6.65s
+✓ built in 10.34s
 HTML inicial criado para 12 páginas públicas; 18 áreas demonstrativas com noindex.
 npm notice
 npm notice New major version of npm available! 11.9.0 -> 12.2.1
