@@ -2,6 +2,21 @@ import {useEffect,useState,type FormEvent} from "react";
 import {supabase} from "@/lib/supabase";
 import type {Row} from "@/lib/area";
 
+const coursePositions = ["coordenador", "nde", "colegiado"];
+const labels: Record<string, string> = {
+ gestor: "Gestor institucional",
+ reitor: "Reitor",
+ vice_reitor: "Vice-reitor",
+ pro_reitor: "Pró-reitor",
+ diretor: "Diretor",
+ procurador: "Procurador institucional",
+ secretaria: "Secretaria acadêmica",
+ cpa: "Membro da CPA",
+ coordenador: "Coordenador de curso",
+ nde: "Membro do NDE",
+ colegiado: "Membro do colegiado",
+};
+
 export default function RegistryContacts({institutionId,courses,manage,firstVisit=false}:{institutionId:string;courses:Row[];manage:boolean;firstVisit?:boolean}) {
  const [contacts,setContacts]=useState<Row[]>([]);
  const [position,setPosition]=useState("gestor");
@@ -35,7 +50,7 @@ export default function RegistryContacts({institutionId,courses,manage,firstVisi
   event.preventDefault();
   const form=event.currentTarget;
   const fields=new FormData(form);
-  const values={institution_id:institutionId,course_id:position==="gestor"?null:course,position,name:String(fields.get("name")).trim(),email:String(fields.get("email")).trim().toLowerCase(),phone:phones(String(fields.get("phone")))};
+  const values={institution_id:institutionId,course_id:coursePositions.includes(position)?course:null,position,name:String(fields.get("name")).trim(),email:String(fields.get("email")).trim().toLowerCase(),phone:phones(String(fields.get("phone")))};
   setBusy(true);
   try{
    const table=supabase.from("vertice_registry_contacts");
@@ -56,23 +71,23 @@ export default function RegistryContacts({institutionId,courses,manage,firstVisi
   setMessage(error?"Não foi possível salvar suas preferências. Confira os dados e a sessão.":"Preferências registradas.");
   setBusy(false);
  }
- const labels:Record<string,string>={gestor:"Gestor",coordenador:"Coordenador",nde:"Membro do NDE"};
+
  if(firstVisit && (!ready || hasChoice)) return null;
  return <section className="area-panel">
-  <h3>{firstVisit?"Escolha como receber avisos":"Contatos e comunicações"}</h3>
+  <h3>{firstVisit?"Escolha como receber avisos":"Organograma e contatos"}</h3>
   {message&&<p role="status">{message}</p>}
-  {manage&&<details><summary>Gerenciar gestores, coordenação e NDE</summary>
-   <p>Cadastre os contatos aqui. Para conceder acesso, use o convite na aba Equipe.</p>
+  {manage&&<details><summary>Gerenciar funções e contatos</summary>
+   <p>Registre a função, o vínculo e o contato de cada pessoa. O perfil de acesso é escolhido separadamente no convite da Equipe.</p>
    <form className="area-form" key={editing?.id??"new"} onSubmit={saveContact}>
     <label>Função <select value={position} onChange={e=>setPosition(e.target.value)}>{Object.entries(labels).map(([id,label])=><option key={id} value={id}>{label}</option>)}</select></label>
-    {position!=="gestor"&&<label>Curso <select required value={course} onChange={e=>setCourse(e.target.value)}><option value="">Selecione</option>{courses.map(c=><option key={c.id} value={c.id}>{String(c.display_name??c.name)}</option>)}</select></label>}
+    {coursePositions.includes(position)&&<label>Curso <select required value={course} onChange={e=>setCourse(e.target.value)}><option value="">Selecione</option>{courses.map(c=><option key={c.id} value={c.id}>{String(c.display_name??c.name)}</option>)}</select></label>}
     <label>Nome <input name="name" required maxLength={160} defaultValue={String(editing?.name??"")}/></label>
     <label>E-mail <input name="email" type="email" required maxLength={254} defaultValue={String(editing?.email??"")}/></label>
     <label>Telefone com código do país <input name="phone" type="tel" required placeholder="+5563999999999" defaultValue={String(editing?.phone??"")}/></label>
     <button className="corp-button small" disabled={busy}>Salvar contato</button>
     {editing&&<button type="button" onClick={()=>setEditing(null)}>Cancelar edição</button>}
    </form>
-   <ul>{contacts.map(c=><li key={c.id}>{String(c.name)} · {labels[String(c.position)]}{c.course_id? ` · ${String(courses.find(item=>item.id===c.course_id)?.display_name??courses.find(item=>item.id===c.course_id)?.name??"Curso")}`:""} · {String(c.email)} · {String(c.phone)} <button className="corp-login-text-button" type="button" onClick={()=>{setPosition(String(c.position));setCourse(String(c.course_id??""));setEditing(c);}}>Editar</button></li>)}</ul>
+   <ul>{contacts.slice().sort((a,b)=>Object.keys(labels).indexOf(String(a.position))-Object.keys(labels).indexOf(String(b.position))).map(c=><li key={c.id}>{String(c.name)} · {labels[String(c.position)]}{c.course_id? ` · ${String(courses.find(item=>item.id===c.course_id)?.display_name??courses.find(item=>item.id===c.course_id)?.name??"Curso")}`:""} · {String(c.email)} · {String(c.phone)} <button className="corp-login-text-button" type="button" onClick={()=>{setPosition(String(c.position));setCourse(String(c.course_id??""));setEditing(c);}}>Editar</button></li>)}</ul>
   </details>}
   <details open={firstVisit || undefined}><summary>Minhas preferências de comunicação</summary>
    <p>Escolha como receber avisos de gestão acadêmica desta instituição. A escolha é opcional e pode ser alterada aqui a qualquer momento.</p>

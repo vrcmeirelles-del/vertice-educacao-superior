@@ -175,7 +175,7 @@ export default function Workspace({
       ) : tab === "diagnostico" ? (
         <DiagnosisTab institutionId={id} role={role} data={data} reload={reload} onPlan={() => choose("plano")} />
       ) : (
-        <TeamTab institutionId={id} role={role} />
+        <><RegistryContacts institutionId={id} courses={data.courses} manage={can.manageTeam(role)}/><TeamTab institutionId={id} role={role} /></>
       )}
       {TAB_FAQ[tab] && <TabFaq id={tab} />}
     </section>
