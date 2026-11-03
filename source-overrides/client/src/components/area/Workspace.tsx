@@ -1,3 +1,4 @@
+import ActionCockpit from "./ActionCockpit";
 import RegistryContacts from "./RegistryContacts";
 import { courseClassification, useCourseFilters } from "./CourseFilters";
 import {displayCourseRows} from '@/lib/course-labels';
@@ -692,7 +693,7 @@ function ActionsTab({ institutionId, role, data, reload }: { institutionId: stri
       ed.open("new");
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
-  const [prefill] = useState<Record<string, unknown>>(() => (pre ? JSON.parse(pre) : {}));
+  const [prefill,setPrefill] = useState<Record<string, unknown>>(() => (pre ? JSON.parse(pre) : {}));
   const rows = data.actions.filter(a =>
     filter === "todas" ? true : filter === "atrasadas" ? isLate(a.due_date, a.status) : filter === "abertas" ? !["concluida", "cancelada"].includes(String(a.status)) : a.status === filter
   );
@@ -700,6 +701,7 @@ function ActionsTab({ institutionId, role, data, reload }: { institutionId: stri
   const counts = Object.fromEntries(ACTION_STATUS.map(([k]) => [k, data.actions.filter(a => a.status === k).length]));
   return (
     <div className="area-panel">
+      <ActionCockpit data={data} institutionId={institutionId} onDraft={can.record(role)?draft=>{setPrefill(draft);ed.open("new");}:undefined}/>
       <div className="area-panel-head">
         <h3>Plano de ação 5W2H ({data.actions.length})</h3>
         <div className="area-inline">
@@ -713,7 +715,7 @@ function ActionsTab({ institutionId, role, data, reload }: { institutionId: stri
         </div>
       </div>
       {ed.editing && (
-        <RecordForm
+        <RecordForm key={JSON.stringify(prefill)}
           title={ed.editing === "new" ? "Nova ação" : "Editar ação"}
           fields={actionFields(data)}
           initial={ed.editing === "new" ? { status: "nao_iniciada", progress: 0, ...prefill } : ed.editing}
