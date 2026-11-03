@@ -15,6 +15,7 @@ const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
 const R = 'http://schemas.openxmlformats.org/package/2006/relationships';
 const CT = 'http://schemas.openxmlformats.org/package/2006/content-types';
 const META = 'vertice/template.json';
+const META_REL = 'https://verticesuperior.com.br/relationships/document-template';
 const LOGO = 'word/media/vertice-branding-logo.png';
 const SHA = /^[a-f0-9]{64}$/;
 export async function sha256(bytes: Uint8Array) { return [...new Uint8Array(await crypto.subtle.digest('SHA-256', new Uint8Array(bytes)))].map(v => v.toString(16).padStart(2, '0')).join(''); }
@@ -57,6 +58,19 @@ export function unpack(bytes: Uint8Array) {
         } else if (/^[a-z][a-z0-9+.-]*:|^\/\/|\\/i.test(target)) throw new Error('Non-package internal target');
       }
     }
+  }
+  if (files[META]) {
+    if (!files['_rels/.rels']) throw new Error('Missing template package relationship');
+    const root = parse(files['_rels/.rels']);
+    const matches = Array.from(root.getElementsByTagNameNS(R, 'Relationship')).filter(e => e.getAttribute('Type') === META_REL);
+    if (matches.length !== 1 || matches[0].getAttribute('Target') !== META
+      || ![null, '', 'Internal'].includes(matches[0].getAttribute('TargetMode')))
+      throw new Error('Invalid template package relationship');
+    const ids = Array.from(root.getElementsByTagNameNS(R, 'Relationship')).map(e => e.getAttribute('Id'));
+    if (new Set(ids).size !== ids.length || !matches[0].getAttribute('Id')) throw new Error('Duplicate or missing package relationship ID');
+    const declarations = Array.from(contentTypes.getElementsByTagNameNS(CT, 'Override')).filter(e => e.getAttribute('PartName') === '/' + META);
+    if (declarations.length !== 1 || declarations[0].getAttribute('ContentType') !== 'application/json')
+      throw new Error('Invalid template content type');
   }
   return files;
 }
@@ -194,9 +208,24 @@ export async function prepareTemplate(source: Uint8Array, m: Manifest) {
     const styles = parse(files['word/styles.xml']);
     for (const id of m.theme_style_ids) if (!Array.from(styles.getElementsByTagNameNS(W, 'style')).some(e => e.getAttributeNS(W, 'styleId') === id)) throw new Error('Unknown theme style: ' + id);
   }
+  // Package-level custom relationship makes metadata discoverable through the OPC graph.
+  // Do not use customXml: this part is JSON, not an OOXML custom XML data store.
+  if (!files['_rels/.rels']) throw new Error('Missing package relationships');
+  const root = parse(files['_rels/.rels']);
+  const rels = Array.from(root.getElementsByTagNameNS(R, 'Relationship'));
+  if (rels.some(e => e.getAttribute('Type') === META_REL || e.getAttribute('Target') === META)) throw new Error('Reserved template relationship already exists');
+  const ids = new Set(rels.map(e => e.getAttribute('Id')));
+  let id = 'rIdVerticeTemplate';
+  for (let suffix = 1; ids.has(id); suffix++) id = 'rIdVerticeTemplate' + suffix;
+  const rel = root.createElementNS(R, 'Relationship');
+  rel.setAttribute('Id', id); rel.setAttribute('Type', META_REL); rel.setAttribute('Target', META);
+  root.documentElement!.appendChild(rel);
+  files['_rels/.rels'] = serialize(root);
   files[META] = strToU8(JSON.stringify(m));
   ensureContentType(files, META, 'application/json');
-  return zipSync(files, { level: 6, mtime: new Date('2000-01-01T00:00:00Z') });
+  const result = zipSync(files, { level: 6, mtime: new Date('2000-01-01T00:00:00Z') });
+  unpack(result); // Enforce the same metadata contract before release and download.
+  return result;
 }
 export async function personalizeTemplate(template: Uint8Array, b: Branding, expected: { template_sha256: string; template_source_sha256: string; template_review_ref: string }) {
   if (!SHA.test(expected.template_sha256) || await sha256(template) !== expected.template_sha256) throw new Error('Template hash mismatch');

@@ -191,3 +191,30 @@ Deno.test('rejects renamed active content by MIME/relationship and scans XML-typ
   await rejectBoth({'word/hidden.dat':payload,'[Content_Types].xml':strToU8(types.replace('</Types>',entry+'</Types>'))});
  }
 });
+Deno.test('manifest is an internal OPC package part; rejects orphaned or ambiguous metadata',async()=>{
+ const f=await fixture(), prepared=unpack(f.template);
+ const root=strFromU8(prepared['_rels/.rels']);
+ const relation=root.match(/<Relationship[^>]+Type="https:\/\/verticesuperior.com.br\/relationships\/document-template"[^>]*\/>/)![0];
+ assert(relation.includes('Target="vertice/template.json"'));
+ const result=unpack(await personalizeTemplate(f.template,empty,f.expected));
+ assert.deepEqual(result['_rels/.rels'],prepared['_rels/.rels']);
+ assert.deepEqual(result['vertice/template.json'],prepared['vertice/template.json']);
+ assert.deepEqual(result['word/document.xml'],f.files['word/document.xml']);
+ const malformed=[
+  root.replace(relation,''), root.replace(relation,relation+relation),
+  root.replace('Target="vertice/template.json"','Target="https://example.invalid/template.json" TargetMode="External"'),
+  root.replace('Target="vertice/template.json"','Target="word/document.xml"'),
+  root.replace('Id="rIdVerticeTemplate"','Id="rId1"'),
+ ];
+ for(const rels of malformed) {
+  const bytes=zipSync({...prepared,'_rels/.rels':strToU8(rels)});
+  await assert.rejects(async()=>personalizeTemplate(bytes,empty,{...f.expected,template_sha256:await sha256(bytes)}));
+ }
+ const wrongType=zipSync({...prepared,'[Content_Types].xml':strToU8(strFromU8(prepared['[Content_Types].xml']).replace('ContentType="application/json"','ContentType="text/plain"'))});
+ await assert.rejects(async()=>personalizeTemplate(wrongType,empty,{...f.expected,template_sha256:await sha256(wrongType)}));
+ // A pre-existing, unrelated relationship ID is retained; the new ID is unique.
+ const originalRoot=strFromU8(f.files['_rels/.rels']).replace('Id="rId1"','Id="rIdVerticeTemplate"');
+ const source=zipSync({...f.files,'_rels/.rels':strToU8(originalRoot)});
+ const template=unpack(await prepareTemplate(source,{...f.manifest,source_sha256:await sha256(source)}));
+ assert(strFromU8(template['_rels/.rels']).includes('Id="rIdVerticeTemplate1"'));
+});
