@@ -40,6 +40,11 @@ export function courseTotals(rows:Enrollment[]){
 
 type StatusSeries={semester:string;capacity:number|null;counts:Record<string,number>};
 
+function EnrollmentChart({title,items}:{title:string;items:{label:string;value:number|null}[]}){
+ const max=Math.max(1,...items.map(item=>item.value??0));
+ return <figure className="enrollment-chart"><figcaption>{title}</figcaption>{items.map(item=><div key={item.label}><span>{item.label}</span>{item.value!==null&&<progress aria-label={item.label} value={item.value} max={max}/>}<strong>{item.value===null?'Sem dados':fmt(item.value)}</strong></div>)}</figure>;
+}
+
 export function InstitutionView({institution,courses,enrollments,onOpenCourse,onBack,embedded}:{institution:Institution;courses:Course[];enrollments:Enrollment[];onOpenCourse:(id:string)=>void;onBack:()=>void;embedded?:boolean}){
  const own=courses.filter(c=>c.institution_id===institution.id);
  const ids=new Set(own.map(c=>c.id));
@@ -58,6 +63,8 @@ export function InstitutionView({institution,courses,enrollments,onOpenCourse,on
  const mods:Modality[]=['presencial','semipresencial','ead'];
  const modTotal=(m:Modality,s:string)=>own.filter(c=>modalityOf(c)===m).reduce((t,c)=>t+value(c.id,s),0);
  const total=mods.reduce((t,m)=>t+modTotal(m,sem),0);
+ const presencial=total?modTotal('presencial',sem)/total*100:0;
+ const semipresencial=presencial+(total?modTotal('semipresencial',sem)/total*100:0);
  const active=own.filter(c=>value(c.id,sem)>0).length;
  return <section className="academic-data" aria-labelledby={embedded?undefined:"inst-title"}>
   {!embedded&&<><p><button className="corp-login-text-button" onClick={onBack}>← Todas as instituições</button></p>
@@ -69,6 +76,11 @@ export function InstitutionView({institution,courses,enrollments,onOpenCourse,on
    <div className="stat-card">Cursos com matriculados<strong className="stat-value">{active} de {own.length}</strong></div>
    {mods.map(m=><div key={m} className="stat-card">{LABEL[m]}<strong className="stat-value">{fmt(modTotal(m,sem))}</strong></div>)}
   </div>
+  <div className="enrollment-comparison">
+   <article><h3>Distribuição por modalidade</h3>{total>0&&<div className="enrollment-donut" aria-hidden="true" style={{background:`conic-gradient(#247951 0% ${presencial}%, #3279b0 ${presencial}% ${semipresencial}%, #a77421 ${semipresencial}% 100%)`}}/>}
+   <ul>{mods.map(m=><li key={m}>{LABEL[m]} · {fmt(modTotal(m,sem))}{total>0?` (${Math.round(modTotal(m,sem)/total*100)}%)`:''}</li>)}</ul></article>
+   <EnrollmentChart title="Evolução das matrículas na instituição" items={semesters.slice(0,6).reverse().map(label=>({label,value:mods.reduce((n,m)=>n+modTotal(m,label),0)}))}/>
+  </div>
   <h3>Série histórica por modalidade (matriculados)</h3><p className="table-hint">Compare os semestres por modalidade. Role a tabela para ver todos os períodos.</p>
   <div className="table-scroll" tabIndex={0} role="region" aria-label="Tabela de dados acadêmicos; role horizontalmente para ver todas as colunas"><table><thead><tr><th scope="col">Modalidade</th>{semesters.slice().reverse().map(s=><th scope="col" key={s} className={s===sem?"current-semester":undefined}>{s}</th>)}</tr></thead>
   <tbody>{mods.map(m=><tr key={m}><td>{LABEL[m]}</td>{semesters.slice().reverse().map(s=><td key={s} className={s===sem?"current-semester":undefined}>{fmt(modTotal(m,s))}</td>)}</tr>)}</tbody></table></div>
@@ -78,7 +90,7 @@ export function InstitutionView({institution,courses,enrollments,onOpenCourse,on
   </div>
   <label>Buscar curso <input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Nome ou código"/></label>
   <div className="table-scroll" tabIndex={0} role="region" aria-label="Tabela de dados acadêmicos; role horizontalmente para ver todas as colunas"><table className="course-list"><thead><tr><th scope="col">Código</th><th scope="col">Curso</th><th scope="col">Modalidade</th><th scope="col">Matriculados {sem}</th><th scope="col">{prev?`Em ${prev}`:'Semestre anterior'}</th><th scope="col">Variação</th><th scope="col">Turmas com alunos</th><th scope="col"></th></tr></thead>
-  <tbody>{list.map(({c,now,before,turmas,hasCurrent,hasPrevious})=><tr key={c.id}><td>{c.code??'—'}</td><td>{c.name}</td><td>{LABEL[modalityOf(c)]}</td><td>{hasCurrent?fmt(now):"Não informado"}</td><td>{prev&&hasPrevious?fmt(before):'—'}</td><td className={prev&&hasCurrent&&hasPrevious ? now < before ? "enrollment-down" : "enrollment-up" : undefined}>{prev&&hasCurrent&&hasPrevious&&before?`${now>=before?'+':''}${Math.round((now-before)/before*100)}%`:'—'}</td><td>{hasCurrent?turmas:"—"}</td><td>{<button className="corp-login-text-button" onClick={()=>onOpenCourse(c.id)}>Abrir</button>}</td></tr>)}</tbody></table></div>
+  <tbody>{list.map(({c,now,before,turmas,hasCurrent,hasPrevious})=><tr key={c.id}><td>{c.code??'—'}</td><td>{c.name}</td><td>{LABEL[modalityOf(c)]}</td><td>{hasCurrent?fmt(now):"Não informado"}</td><td>{prev&&hasPrevious?fmt(before):'—'}</td><td className={prev&&hasCurrent&&hasPrevious ? now < before ? "enrollment-down" : "enrollment-up" : undefined}>{prev&&hasCurrent&&hasPrevious&&before?`${now>=before?'+':''}${Math.round((now-before)/before*100)}%`:'—'}</td><td>{hasCurrent?turmas:"—"}</td><td><div className="enrollment-preview"><button className="corp-login-text-button" aria-describedby={`enrollment-preview-${c.id}`} onClick={()=>onOpenCourse(c.id)}>Abrir</button><div className="enrollment-popover" id={`enrollment-preview-${c.id}`}><EnrollmentChart title={c.name} items={[...(prev?[{label:prev,value:hasPrevious?before:null}]:[]),{label:sem,value:hasCurrent?now:null}]}/></div></div></td></tr>)}</tbody></table></div>
   <p>Fonte: relatório estatístico de alunos do e-ORBIT, status MATRICULADO. Modalidade pelo cadastro do curso no e-ORBIT, não pelo ato regulatório no e-MEC. Quantitativos não comprovam alunos únicos, retenção ou evasão. “Não informado” indica ausência de relatório localizado para o curso e semestre; não foi substituído por zero.</p>
   </>}
  </section>;
@@ -104,21 +116,22 @@ export function CourseView({course,institution,enrollments,reports,onBack,onPlan
  const delta=prior!==null&&selected.length ? current-prior : null;
  const change=delta===null ? 'Sem base comparável' : `${delta>0?'+':''}${fmt(delta)} matrículas${prior ? ` (${(delta/prior*100).toLocaleString('pt-BR',{maximumFractionDigits:1,signDisplay:'exceptZero'})}%)` : ''}`;
  const guidance=delta===null ? 'Completar os dados dos dois semestres antes de propor expansão.' : delta<0 ? 'Cruzar as rematrículas por aluno e identificar as causas da queda. Priorizar contato com quem ainda não renovou.' : 'Conferir ocupação, demanda e capacidade docente antes de ampliar vagas ou abrir turmas.';
- const comparison=[{period:previous,value:prior,classes:baseline},{period:sem,value:current,classes:selected}];
+ const comparison=[{period:previous,value:prior,classes:baseline},{period:sem,value:selected.length?current:null,classes:selected}];
  return <section className="academic-data" aria-labelledby="course-title">
   <p><button className="corp-login-text-button" onClick={onBack}>← {institution.name}</button></p>
   <h2 id="course-title">{course.name}{course.code?` · código ${course.code}`:''}</h2>
   <p>Modalidade: {LABEL[modalityOf(course)]}</p>
-  {selected.length>0&&<section className="enrollment-insight">
+  <section className="enrollment-insight">
    <header><small>ACOMPANHAMENTO DO CURSO</small><h3>Matrículas em perspectiva</h3><strong>{change}</strong></header>
    <div className="enrollment-comparison">{comparison.map(({period,value,classes},i)=><article key={i}>
     <strong>{period||'Semestre anterior'}</strong><p>{value===null?'Não informado':`${fmt(value)} matriculados`}</p>
     {value!==null&&<progress aria-label={`Matrículas em ${period}`} value={value} max={Math.max(1,current,prior??0)}/>}
     <p>{classes.some(r=>r.class_label!=="__TOTAL_CURSO__")?`${classes.filter(r=>r.enrolled>0&&r.class_label!=="__TOTAL_CURSO__").length} turmas com alunos`:'Turmas sem detalhamento'}</p>
    </article>)}</div>
+   {semesters.length>0&&<EnrollmentChart title="Histórico de matrículas do curso" items={periods.slice(0,8).reverse().map(label=>{const records=rows.filter(r=>r.semester===label);return {label,value:records.length?courseTotals(records).value:null};})}/>}
    <aside><h4>{delta!==null&&delta<0?'Atenção à continuidade':'Próxima decisão'}</h4><p>{guidance}</p><p>A variação compara totais. A evasão depende do acompanhamento individual.</p>
    {onPlan&&<button className="corp-button" onClick={()=>onPlan({course_id:course.id,what:delta===null?'Completar a base de matrículas':delta<0?'Investigar queda e acompanhar rematrículas':'Avaliar potencial de expansão do curso',why:`Matrículas em ${previous??'semestre anterior'} e ${sem}: ${change}.`,how:guidance})}>Preparar ação 5W2H</button>}</aside>
-  </section>}
+  </section>
   <h3>Matrículas por turma</h3>
   {!semesters.length?<p>Nenhum relatório importado para este curso.</p>:<>
   <label>Semestre <select value={sem} onChange={e=>setSemester(e.target.value)}>{semesters.map(s=><option key={s} value={s}>{s}</option>)}</select></label>
