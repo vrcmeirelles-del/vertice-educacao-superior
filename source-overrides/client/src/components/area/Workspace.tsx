@@ -110,6 +110,7 @@ export default function Workspace({
 
   return (
     <section aria-labelledby="ws-title" className="area-ws">
+      {role && tab !== "cadastro" && <RegistryContacts institutionId={id} courses={[]} manage={false} firstVisit/>}
       <p>
         <button className="corp-login-text-button" onClick={onBack}>
           ← Todas as instituições

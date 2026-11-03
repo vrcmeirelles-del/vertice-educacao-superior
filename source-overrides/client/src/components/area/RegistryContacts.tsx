@@ -2,7 +2,7 @@ import {useEffect,useState,type FormEvent} from "react";
 import {supabase} from "@/lib/supabase";
 import type {Row} from "@/lib/area";
 
-export default function RegistryContacts({institutionId,courses,manage}:{institutionId:string;courses:Row[];manage:boolean}) {
+export default function RegistryContacts({institutionId,courses,manage,firstVisit=false}:{institutionId:string;courses:Row[];manage:boolean;firstVisit?:boolean}) {
  const [contacts,setContacts]=useState<Row[]>([]);
  const [position,setPosition]=useState("gestor");
  const [course,setCourse]=useState("");
@@ -11,6 +11,7 @@ export default function RegistryContacts({institutionId,courses,manage}:{institu
  const [whatsapp,setWhatsapp]=useState(false);
  const [number,setNumber]=useState("");
  const [ready,setReady]=useState(false);
+ const [hasChoice,setHasChoice]=useState(false);
  const [busy,setBusy]=useState(false);
  const [message,setMessage]=useState("");
  const phones=(value:string)=>value.replace(/[\s().-]/g,"");
@@ -26,6 +27,7 @@ export default function RegistryContacts({institutionId,courses,manage}:{institu
    setEmail(data?.[0]?.email_enabled??false);
    setWhatsapp(Boolean(data?.[0]?.whatsapp_phone));
    setNumber(data?.[0]?.whatsapp_phone??"");
+   setHasChoice(Boolean(data?.length));
    setReady(true);
   });
  },[institutionId,manage]);
@@ -50,12 +52,14 @@ export default function RegistryContacts({institutionId,courses,manage}:{institu
   event.preventDefault();
   setBusy(true);
   const {error}=await supabase.rpc("vertice_record_channel_choices",{target:institutionId,allow_email:email,whatsapp:whatsapp?phones(number):null});
+  if(!error && firstVisit) setHasChoice(true);
   setMessage(error?"Não foi possível salvar suas preferências. Confira os dados e a sessão.":"Preferências registradas.");
   setBusy(false);
  }
  const labels:Record<string,string>={gestor:"Gestor",coordenador:"Coordenador",nde:"Membro do NDE"};
+ if(firstVisit && (!ready || hasChoice)) return null;
  return <section className="area-panel">
-  <h3>Contatos e comunicações</h3>
+  <h3>{firstVisit?"Escolha como receber avisos":"Contatos e comunicações"}</h3>
   {message&&<p role="status">{message}</p>}
   {manage&&<details><summary>Gerenciar gestores, coordenação e NDE</summary>
    <p>Cadastre os contatos aqui. Para conceder acesso, use o convite na aba Equipe.</p>
@@ -70,13 +74,13 @@ export default function RegistryContacts({institutionId,courses,manage}:{institu
    </form>
    <ul>{contacts.map(c=><li key={c.id}>{String(c.name)} · {labels[String(c.position)]}{c.course_id? ` · ${String(courses.find(item=>item.id===c.course_id)?.display_name??courses.find(item=>item.id===c.course_id)?.name??"Curso")}`:""} · {String(c.email)} · {String(c.phone)} <button className="corp-login-text-button" type="button" onClick={()=>{setPosition(String(c.position));setCourse(String(c.course_id??""));setEditing(c);}}>Editar</button></li>)}</ul>
   </details>}
-  <details><summary>Minhas preferências de comunicação</summary>
+  <details open={firstVisit || undefined}><summary>Minhas preferências de comunicação</summary>
    <p>Escolha como receber avisos de gestão acadêmica desta instituição. A escolha é opcional e pode ser alterada aqui a qualquer momento.</p>
    <form className="area-form" onSubmit={saveChoices}>
     <label><input type="checkbox" checked={email} onChange={e=>setEmail(e.target.checked)}/> Aceito receber avisos por e-mail na minha conta</label>
     <label><input type="checkbox" checked={whatsapp} onChange={e=>setWhatsapp(e.target.checked)}/> Aceito receber avisos pelo WhatsApp</label>
     {whatsapp&&<label>Meu número de WhatsApp <input type="tel" required value={number} onChange={e=>setNumber(e.target.value)} placeholder="+5563999999999"/></label>}
-    <button className="corp-button small" disabled={!ready||busy}>Salvar preferências</button>
+    <button className="corp-button small" disabled={!ready||busy}>{firstVisit && !email && !whatsapp ? "Continuar sem avisos" : "Salvar preferências"}</button>
    </form>
   </details>
  </section>;
