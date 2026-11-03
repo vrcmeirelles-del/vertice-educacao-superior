@@ -57,7 +57,7 @@ function compute(data){
  return data;
 }
 function eventComplete(b){return text(b.title).length>=3&&text(b.issue).length>=15&&text(b.consequence).length>=15&&text(b.risk_reason).length>=15&&b.requirement_ids?.length>0&&b.proofs?.length>0&&text(b.action).length>=10&&text(b.mechanism).length>=10&&text(b.owner).length>=3&&validDate(b.due_date||'')&&text(b.closure_criteria).length>=10&&!b.migration_pending;}
-export async function createWorkflow({local,asUser,directory,revision,verifyRemote,loadFormData}){
+export async function createWorkflow({local,asUser,directory,revision,verifyRemote,loadFormData,loadRegulatory}){
 
  async function load(user,m){
   if(!uuid(m))fail('Mandato inválido.');
@@ -69,6 +69,7 @@ export async function createWorkflow({local,asUser,directory,revision,verifyRemo
    for(const [key,table] of Object.entries(tables))data[key]=(await tx.query(`select * from public.${table} where matter_id=$1 order by id`,[m])).rows;
    data.requirements=(await tx.query('select r.* from public.dd_requirements r join public.dd_requirement_state s on s.requirement_id=r.id where s.matter_id=$1 order by r.code',[m])).rows.map(r=>({...r,...revision.requirements.find(q=>q.code===r.code),id:r.id}));
    if(loadFormData)Object.assign(data,await loadFormData(tx,m));
+   if(loadRegulatory)data.regulatory=await loadRegulatory(tx,m);
    return data;
   });
   return compute(result);

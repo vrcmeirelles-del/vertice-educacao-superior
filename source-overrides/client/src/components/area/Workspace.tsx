@@ -13,12 +13,13 @@ import InepLibrary from "./InepLibrary";
 import ManagementReview from "./ManagementReview";
 import DocumentAI from "./DocumentAI";
 import OrganizationBase from "./OrganizationBase";
+import EmecPanel from "./EmecPanel";
 import {repositorySummary} from "@/lib/repository";
 import {listRepository} from "@/lib/repository-data";
 import { FIELD_HELP, TAB_FAQ, TAB_HELP, withHelp } from "@/lib/help";
 import "./area.css";
 
-type Tab = "base" | "ia" | "analise" | "geral" | "visao" | "cadastro" | "metas" | "plano" | "diagnostico" | "equipe" | "repositorio" | "biblioteca" | "reitor";
+type Tab = "emec" | "base" | "ia" | "analise" | "geral" | "visao" | "cadastro" | "metas" | "plano" | "diagnostico" | "equipe" | "repositorio" | "biblioteca" | "reitor";
 const TABS: [Tab, string][] = [
   ["base", "Base da organização · IA"],
   ["ia", "Análise Documental"],
@@ -26,6 +27,7 @@ const TABS: [Tab, string][] = [
   ["analise", "Análise gerencial"],
   ["visao", "Matrículas"],
   ["cadastro", "Cadastro e cursos"],
+  ["emec", "e-MEC · Regulação"],
   ["metas", "Metas e indicadores"],
   ["repositorio", "Repositório"],
   ["biblioteca", "Biblioteca INEP"],
@@ -151,6 +153,8 @@ export default function Workspace({
         error ? <p role="alert">Análise indisponível enquanto houver falha no carregamento. Atualize a página.</p> : <ManagementReview key={id} data={data} courses={data.courses} institutionId={id} />
       ) : tab === "geral" ? (
         <OverviewTab data={data} stats={stats} onGo={choose} />
+      ) : tab === "emec" ? (
+        <EmecPanel key={id} institution={institution} role={role}/>
       ) : tab === "cadastro" ? (
         <RegistryTab institution={institution} role={role} courses={data.courses} reload={reload} onChanged={onChanged} />
       ) : tab === "metas" ? (

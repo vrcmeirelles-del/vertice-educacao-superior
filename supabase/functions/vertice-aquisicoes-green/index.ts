@@ -65,7 +65,7 @@ Deno.serve(async req=>{
    const asUser=async(_user:any,fn:any)=>{await s.unsafe('set local role authenticated');const result=await fn(txAPI(s));await s.unsafe('reset role');return result;};
    const [rev]=await s`select body from public.dd_requirement_revisions order by created_at desc limit 1`;if(!rev)fail('Instrumento em implantação.',503);
    const verifyRemote=async(data:any)=>{for(const d of data.documents.filter((d:any)=>data.links.some((l:any)=>l.document_id===d.id))){if(!d.storage_key.startsWith(data.matter.id+'/'))fail('Arquivo fora do mandato.',403);if(hash(await bytesOf(d.storage_key))!==d.sha256)fail('Integridade divergente: '+d.file_name);}};
-   const workflow=await createWorkflow({local:{db,persist:async()=>{}},asUser,directory:'',revision:rev.body,verifyRemote,loadFormData:formsLoad});
+   const workflow=await createWorkflow({local:{db,persist:async()=>{}},asUser,directory:'',revision:rev.body,verifyRemote,loadFormData:formsLoad,loadRegulatory:async(tx:any,m:string)=>(await tx.query(`select e.id,e.revision,e.created_at,e.body from public.vertice_emec_snapshots e join public.dd_matters m on (m.institution_id=e.institution_id or exists(select 1 from public.vertice_base_matter_links l where l.matter_id=m.id and l.institution_id=e.institution_id)) where m.id=$1 order by e.created_at desc,e.revision desc limit 1`,[m])).rows[0]||null});
    if(path==='/forms/catalog')return send(formCatalog);
    if(path.startsWith('/forms/')){
     const parts=path.split('/').filter(Boolean),m=parts[1];if(!/^[0-9a-f-]{36}$/.test(m))fail('Mandato inválido.');
