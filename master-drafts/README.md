@@ -2,6 +2,12 @@
 
 **Não implantado nem ativado.** `proposal.sql` não é uma migração ativa. Não houve acesso de escrita à produção, envio de convites ou promoção de contas reais. A fonte de autoridade permanece `public.vertice_admins`; convites institucionais legados não são alterados. Não há endpoint de remoção de Masters.
 
+## Trava desta publicação da interface
+
+`MASTER_INVITATIONS_RELEASE_AVAILABLE = false` bloqueia a disponibilidade no código. A flag efetiva combina essa constante com `VITE_MASTER_INVITATIONS_ENABLED === 'true'`; portanto, nem mesmo uma variável de ambiente configurada como `true` ativa esta release. Não é necessário ler nem alterar variáveis do Render para assegurar essa condição.
+
+A ativação futura exige revisão e alteração explícita dessa constante, além do opt-in de ambiente, backend aprovado, staging de segurança comprovado e autorização específica para ampliação de acesso. Esta publicação não aplica SQL nem concede permissões. A trava da interface não substitui os controles e ACLs do banco.
+
 ## Arquivos e reprodução
 
 - `proposal.sql`: tabelas privadas, seis RPCs, validações e auditoria.

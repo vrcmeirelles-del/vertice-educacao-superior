@@ -1,8 +1,11 @@
 import { supabase } from './supabase';
 import { canonicalMasterEmail, generateMasterSecret, masterInvitationId, masterInvitationLink, validMasterCredential, type MasterCredential } from './master-invitation-token';
 
-// Opt-in only after reviewed database rollout. This flag never grants server authority.
-export const MASTER_INVITATIONS_ENABLED = import.meta.env.VITE_MASTER_INVITATIONS_ENABLED === 'true';
+// Release lock: environment configuration alone must not activate this UI.
+// Enabling a future release requires a reviewed code change AND approved backend rollout.
+// Neither gate grants server authority.
+export const MASTER_INVITATIONS_RELEASE_AVAILABLE = false;
+export const MASTER_INVITATIONS_ENABLED = MASTER_INVITATIONS_RELEASE_AVAILABLE && import.meta.env.VITE_MASTER_INVITATIONS_ENABLED === 'true';
 export const MASTER_PAGE_SIZE = 50;
 export type MasterCursor = { createdAt: string; id: string };
 export type MasterProfile = { userId: string; email: string; createdAt: string };
