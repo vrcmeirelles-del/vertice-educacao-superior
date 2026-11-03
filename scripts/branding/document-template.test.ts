@@ -69,17 +69,18 @@ Deno.test('rejects invalid logo, dimensions, color and long text; absent logo al
 const iid='92000000-0000-4000-8000-000000000001', did='93000000-0000-4000-8000-000000000001';
 Deno.test('download authorizes before storage; denies negatives; audits before delivering',async()=>{
  const f=await fixture();
- for(const scenario of ['ok','auth','rls','institution','source','template','audit','pdf','xlsx','unreviewed','cross-path']) {
+ for(const scenario of ['ok','auth','rls','institution','source','template','audit','pdf','xlsx','unreviewed','legacy','legacy-template','cross-path']) {
   const events:string[]=[];
-  const doc={id:did,institution_id:iid,file_name:'synthetic.docx',object_path:iid+'/source.docx',format:['pdf','xlsx'].includes(scenario)?scenario:'docx',sha256:f.manifest.source_sha256,...f.expected,template_object_path:['pdf','xlsx','unreviewed'].includes(scenario)?null:(scenario==='cross-path'?'another/templates/x.docx':iid+'/templates/'+f.expected.template_sha256+'.docx')};
+  const doc={id:did,institution_id:iid,file_name:'synthetic.docx',object_path:iid+'/source.docx',format:['pdf','xlsx'].includes(scenario)?scenario:'docx',sha256:f.manifest.source_sha256,...f.expected,template_object_path:['pdf','xlsx','unreviewed','legacy'].includes(scenario)?null:(scenario==='cross-path'?'another/templates/x.docx':iid+'/templates/'+f.expected.template_sha256+'.docx')};
   const user={auth:{getUser:async()=>{events.push('auth');return {data:{user:scenario==='auth'?null:{id:'user'}},error:null};}},from:(table:string)=>{events.push(table);const q:any={select:()=>q,eq:()=>q,maybeSingle:async()=>({data:scenario==='rls'?null:doc}),single:async()=>({data:scenario==='institution'?null:{document_branding:{...empty,header_text:'IES test'}}})};return q;}};
   const admin={storage:{from:()=>({download:async(path:string)=>{events.push('storage');return {data:new Blob([scenario=== 'source'?new Uint8Array([0]):path===doc.object_path?f.source:scenario==='template'?f.source:f.template])};},createSignedUrl:async()=>{events.push('signed');return {data:{signedUrl:'https://example.invalid/signed'}};}})},from:()=>({insert:async()=>{events.push('audit');return {error:scenario==='audit'?new Error('audit'):null};}})};
   let calls=0;const handler=libraryHandler(()=>++calls===1?user:admin,()=> 'synthetic');
-  const response=await handler(new Request('https://example.invalid',{method:'POST',headers:{authorization:'Bearer test','content-type':'application/json'},body:JSON.stringify({institutionId:iid,id:did})}));
-  if(['ok','pdf','xlsx','unreviewed'].includes(scenario)) {assert.equal(response.status,200);assert(events.includes('audit'));}
+  const response=await handler(new Request('https://example.invalid',{method:'POST',headers:{authorization:'Bearer test','content-type':'application/json'},body:JSON.stringify({institutionId:iid,id:did,...(scenario.startsWith('legacy')?{}:{responseVersion:2})})}));
+  if(['ok','pdf','xlsx','unreviewed','legacy'].includes(scenario)) {assert.equal(response.status,200);assert(events.includes('audit'));}
   else assert(response.status>=400,scenario);
-  if(['auth','rls','institution','cross-path'].includes(scenario)) assert(!events.includes('storage'),scenario);
+  if(['auth','rls','institution','cross-path','legacy-template'].includes(scenario)) assert(!events.includes('storage'),scenario);
   if(['pdf','xlsx','unreviewed'].includes(scenario)) assert.deepEqual(new Uint8Array(await response.arrayBuffer()),f.source);
+  if(scenario==='legacy') {assert.equal((await response.json()).url,'https://example.invalid/signed');assert(events.includes('audit'));}
   if(scenario==='ok') {assert(events.indexOf('vertice_institutions')<events.indexOf('storage'));assert.equal(response.headers.get('cache-control'),'no-store');assert(strFromU8(unpack(new Uint8Array(await response.arrayBuffer()))['word/header1.xml']).includes('IES test'));}
  }
 });
@@ -165,4 +166,28 @@ Deno.test('rejects CRC-valid interlaced PNG before decoder; accepts normalized R
  const rgb=new PNG({width:300,height:120});rgb.data.fill(255);
  const bytes=PNG.sync.write(rgb,{colorType:2});assert.equal(bytes[25],2);
  assert(validateBranding({...empty,logo_data:'data:image/png;base64,'+bytes.toString('base64')}));
+});
+Deno.test('rejects renamed active content by MIME/relationship and scans XML-typed renamed parts',async()=>{
+ const f=await fixture();
+ const types=strFromU8(f.files['[Content_Types].xml']);
+ const rejectBoth=async(changes:Record<string,Uint8Array>)=>{
+  const source=zipSync({...f.files,...changes});
+  await assert.rejects(async()=>prepareTemplate(source,{...f.manifest,source_sha256:await sha256(source)}));
+  const prepared=zipSync({...unpack(f.template),...changes});
+  await assert.rejects(async()=>personalizeTemplate(prepared,empty,{...f.expected,template_sha256:await sha256(prepared)}));
+ };
+ for(const mime of ['application/vnd.ms-office.vbaProject','application/vnd.ms-office.activeX+xml','application/vnd.ms-word.document.macroEnabled.main+xml']) {
+  await rejectBoth({'word/neutral.bin':new Uint8Array([1,2,3]),'[Content_Types].xml':strToU8(types.replace('</Types>',`<Override PartName="/word/neutral.bin" ContentType="${mime}"/></Types>`))});
+ }
+ for(const main of ['application/vnd.ms-word.document.macroEnabled.main+xml','application/xml']) {
+  await rejectBoth({'[Content_Types].xml':strToU8(types.replace('application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml',main))});
+ }
+ for(const type of ['vbaProject','control','activeXControlBinary','package']) {
+  const relationships=strFromU8(f.files['word/_rels/document.xml.rels']).replace('</Relationships>',`<Relationship Id="hidden" Type="http://schemas.microsoft.com/office/2006/relationships/${type}" Target="neutral.bin"/></Relationships>`);
+  await rejectBoth({'word/neutral.bin':new Uint8Array([1,2,3]),'word/_rels/document.xml.rels':strToU8(relationships)});
+ }
+ const payload=strToU8(`<w:ftr xmlns:w="${W}"><w:fldSimple w:instr="INCLUDETEXT &quot;https://example.invalid/x&quot;"/></w:ftr>`);
+ for(const entry of ['<Override PartName="/word/hidden.dat" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml"/>','<Default Extension="dat" ContentType="application/xml"/>']) {
+  await rejectBoth({'word/hidden.dat':payload,'[Content_Types].xml':strToU8(types.replace('</Types>',entry+'</Types>'))});
+ }
 });

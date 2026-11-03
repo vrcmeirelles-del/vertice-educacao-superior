@@ -35,7 +35,7 @@ function LibraryPanel({ institutionId }: { institutionId: string }) {
     setDownloading(doc.id); setError('');
     try {
       const { data, error: failure } = await supabase.functions.invoke('vertice-inep-library', {
-        body: { institutionId, id: doc.id },
+        body: { institutionId, id: doc.id, responseVersion: 2 },
       });
       if (!current()) return;
       if (failure) throw new Error('download');

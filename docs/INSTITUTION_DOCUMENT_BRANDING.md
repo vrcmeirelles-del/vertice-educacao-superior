@@ -98,7 +98,7 @@ deno check --lock=supabase/functions/vertice-inep-library/deno.lock supabase/fun
 deno test --lock=supabase/functions/vertice-inep-library/deno.lock scripts/branding/document-template.test.ts
 ```
 
-Deno: **8 testes de cenários aprovados**, incluindo manifesto/hash, preservação de bytes, estilos/fills explícitos, mídia referenciada, XML/ZIP não seguros, PNG inválido, ausência de logo, repetição, permissões negativas e auditoria. Nenhum acesso de rede/Storage real nesses testes.
+Deno: **9 testes de cenários aprovados**, incluindo manifesto/hash, preservação de bytes, estilos/fills explícitos, mídia referenciada, XML/ZIP não seguros, PNG inválido, ausência de logo, repetição, permissões negativas e auditoria. Nenhum acesso de rede/Storage real nesses testes.
 
 PostgreSQL 17 descartável em Docker, com `scripts/branding/bootstrap-test-db.sql`, migrações existentes `202610260001_access_foundation`, `202610300001_area_real`, `20261101224102_institutional_inep_library` e SQL de revisão:
 
@@ -126,3 +126,11 @@ PNG: antes de `PNG.sync.read`, a Edge rejeita bit depth diferente de 8, color ty
 `python3 scripts/branding/test-review-acls.py` executa seis bancos novos descartáveis: grant amplo, amplo com grant option de coluna, amplo com grant option de tabela, somente colunas restritas, nenhum UPDATE e UPDATE herdado de PUBLIC. Compara permissões e opções de concessão antes/depois; a última variante exige rollback. A variante ampla também repete os testes SQL de identidade, logo e biblioteca. Todos aprovados.
 
 Após as correções: Deno check, 8 conjuntos Deno, TypeScript, 149 testes da aplicação e build estático passaram novamente. O rollout continua **banco revisado → Edge → frontend**; não publicar frontend/Edge antecipadamente sem uma feature flag coordenada. PR continua bloqueado pela negativa anterior; nenhuma nova tentativa, merge ou deploy foi feita. A revisão independente final ainda é necessária antes de habilitar modelos reais.
+
+## Conciliação live e reteste de conteúdo ativo — 03/11/2026
+
+Leitura do Supabase confirmou projeto Vértice `qvetbbmviatxxatzzuzc` ACTIVE_HEALTHY, Edge `vertice-inep-library` ainda v3, sem colunas de branding/template. A migração `20261103133845_ies_onboarding_disabled_reviewed` já está no banco; as políticas de instituições/biblioteca e funções de papel/MFA permanecem compatíveis com a base testada. Nenhum dado ou arquivo real foi alterado por esta inspeção. O Render expôs dois workspaces e aguarda confirmação do workspace correto; não houve seleção presumida nem deploy.
+
+A nova regressão de tipos ativos falhava antes desta correção (`vertice-renamed-before.log`). A validação agora exige o ContentType principal DOCX não macroEnabled, recusa ContentTypes de VBA/ActiveX/OLE/macros independentemente do nome, bloqueia relações ativas (inclusive vbaProject/control/activeXControlBinary/package) e inspeciona XML declarado por Default/Override mesmo quando renomeado `.dat`. Payloads usam somente bytes sintéticos inertes, sem macro real. Testes negativos cobrem preparação e personalização. Pacotes embutidos e tipos ativos não suportados são recusados por inteiro; não são apagados silenciosamente.
+
+Compatibilidade do rollout: o cliente novo envia `responseVersion: 2` para receber bytes. A Edge nova mantém JSON/URL assinada para clientes antigos ao baixar originais, após hash/auditoria. Um modelo preparado exige o cliente novo e retorna pedido de atualização ao antigo. Assim a ordem banco → Edge → frontend não interrompe os downloads antigos enquanto a interface atualiza. Nenhum modelo será ativado automaticamente. Reteste independente do próximo commit é pré-requisito para publicação.

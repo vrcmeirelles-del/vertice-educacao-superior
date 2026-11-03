@@ -11,15 +11,15 @@ computing gzip size...
 ../dist/public/assets/OwnerDashboard-BuPB3X5n.css            48.15 kB │ gzip:  10.27 kB
 ../dist/public/assets/index-CB_wxB7U.css                    227.14 kB │ gzip:  42.15 kB
 ../dist/public/assets/demo-acquisition-catalog-MYHJyusI.js   84.47 kB │ gzip:  19.61 kB
-../dist/public/assets/OwnerDashboard-CIGvhczA.js            435.34 kB │ gzip: 131.13 kB
-../dist/public/assets/DemoApp-DFfq9ZiQ.js                   576.04 kB │ gzip: 153.36 kB
-../dist/public/assets/index-BC3BbcoO.js                     845.07 kB │ gzip: 236.19 kB
+../dist/public/assets/OwnerDashboard-C7uLPrBT.js            435.36 kB │ gzip: 131.14 kB
+../dist/public/assets/DemoApp-4d9Su-aQ.js                   576.04 kB │ gzip: 153.36 kB
+../dist/public/assets/index-DknnNVzh.js                     845.07 kB │ gzip: 236.20 kB
 
 (!) Some chunks are larger than 500 kB after minification. Consider:
 - Using dynamic import() to code-split the application
 - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
 - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
-✓ built in 10.34s
+✓ built in 7.26s
 HTML inicial criado para 12 páginas públicas; 18 áreas demonstrativas com noindex.
 npm notice
 npm notice New major version of npm available! 11.9.0 -> 12.2.1

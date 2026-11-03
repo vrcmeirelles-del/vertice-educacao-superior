@@ -29,15 +29,32 @@ export function unpack(bytes: Uint8Array) {
     return true;
   } });
   for (const required of ['word/document.xml', '[Content_Types].xml', 'word/_rels/document.xml.rels']) if (!files[required]) throw new Error('Not a supported DOCX');
+  // Content types and relationship types, not filenames, define executable OOXML parts.
+  const contentTypes = parse(files['[Content_Types].xml']);
+  const overrides = new Map<string,string>(), defaults = new Map<string,string>();
+  for (const entry of Array.from(contentTypes.documentElement!.childNodes)) {
+    if (entry.nodeType !== 1) continue;
+    const element = entry as NonNullable<typeof contentTypes.documentElement>;
+    const type = element.getAttribute('ContentType') ?? '';
+    if (/macroenabled|vbaproject|vbadata|activex|oleobject|x-msdownload/i.test(type)) throw new Error('Active content type is unsupported');
+    if (element.localName === 'Override') overrides.set(decodeURIComponent(element.getAttribute('PartName') ?? '').replace(/^\//,''),type);
+    if (element.localName === 'Default') defaults.set((element.getAttribute('Extension') ?? '').toLowerCase(),type);
+  }
+  if (overrides.get('word/document.xml') !== 'application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml') throw new Error('Main part must be non-macro DOCX');
   for (const [name, data] of Object.entries(files)) {
     if (/vbaProject|activeX|customUI|_xmlsignatures/i.test(name)) throw new Error('Active content is unsupported');
-    if (name.endsWith('.xml') || name.endsWith('.rels')) {
+    const type = overrides.get(name) ?? defaults.get(name.split('.').pop()!.toLowerCase()) ?? '';
+    if (name.endsWith('.xml') || name.endsWith('.rels') || /(?:\+xml|\/xml)$/i.test(type)) {
       const doc = parse(data);
       validateWordFields(doc);
       if (name.endsWith('.rels')) for (const rel of Array.from(doc.getElementsByTagNameNS(R, 'Relationship'))) {
         const type = rel.getAttribute('Type') ?? '';
-        if (/attachedTemplate|aFChunk|oleObject/i.test(type)) throw new Error('Embedded/linked active objects unsupported');
-        if (rel.getAttribute('TargetMode') === 'External' && !type.endsWith('/hyperlink')) throw new Error('External resource unsupported');
+        if (/\/(?:attachedTemplate|aFChunk|oleObject|vbaProject(?:Signature)?|vbaData|control|ctrlProp|activeX(?:Control(?:Binary)?)?|package|externalLink|externalLinkPath)$/i.test(type)) throw new Error('Embedded/linked active objects unsupported');
+        const target = rel.getAttribute('Target') ?? '';
+        const external = (rel.getAttribute('TargetMode') ?? '').toLowerCase() === 'external';
+        if (external) {
+          if (type !== 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink' || !/^(https?:|mailto:)/i.test(target)) throw new Error('External resource unsupported');
+        } else if (/^[a-z][a-z0-9+.-]*:|^\/\/|\\/i.test(target)) throw new Error('Non-package internal target');
       }
     }
   }
