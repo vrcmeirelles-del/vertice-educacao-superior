@@ -1,0 +1,6 @@
+PASS ACL broad: existing column rights/grant options preserved; direct branding UPDATE denied
+PASS ACL broad_column_grant: existing column rights/grant options preserved; direct branding UPDATE denied
+PASS ACL broad_grant: existing column rights/grant options preserved; direct branding UPDATE denied
+PASS ACL columns: existing column rights/grant options preserved; direct branding UPDATE denied
+PASS ACL none: existing column rights/grant options preserved; direct branding UPDATE denied
+PASS ACL inherited: existing column rights/grant options preserved; unsafe inheritance rejected with rollback

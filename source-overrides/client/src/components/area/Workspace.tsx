@@ -1,3 +1,4 @@
+import InstitutionBranding from "./InstitutionBranding";
 import {actionDraftKey,parseActionDraft,storeActionDraft,validateActionLinks,changeActionScope} from "@/lib/portal-integration";
 import ActionCockpit from "./ActionCockpit";
 import RegistryContacts from "./RegistryContacts";
@@ -407,6 +408,7 @@ function RegistryTab({ institution, role, courses, reload, onChanged }: { instit
         )}
       </div>
 
+      <InstitutionBranding institutionId={institution.id} editable={can.editInstitution(role)} />
       <div className="area-panel">
         <div className="area-panel-head">
           <h3>Cursos ({list.length} de {courses.length})</h3>

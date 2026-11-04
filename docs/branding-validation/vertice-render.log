@@ -1,0 +1,7 @@
+Warning: failed to launch javaldx - java may not function correctly
+convert /tmp/fixtures/normal.docx -> /tmp/rendered/normal.pdf using filter : writer_pdf_Export
+Overwriting: /tmp/rendered/normal.pdf
+convert /tmp/fixtures/absent.docx -> /tmp/rendered/absent.pdf using filter : writer_pdf_Export
+Overwriting: /tmp/rendered/absent.pdf
+convert /tmp/fixtures/long.docx -> /tmp/rendered/long.pdf using filter : writer_pdf_Export
+Overwriting: /tmp/rendered/long.pdf

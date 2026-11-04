@@ -1,0 +1,29 @@
+BEGIN
+INSERT 0 5
+INSERT 0 2
+INSERT 0 3
+INSERT 0 1
+SET
+                         set_config
+-------------------------------------------------------------
+ {"sub":"91000000-0000-4000-8000-000000000001","aal":"aal2"}
+(1 row)
+
+DO
+DO
+                         set_config
+-------------------------------------------------------------
+ {"sub":"91000000-0000-4000-8000-000000000004","aal":"aal2"}
+(1 row)
+
+DO
+RESET
+SET
+DO
+RESET
+DO
+ROLLBACK
+                                           validation
+------------------------------------------------------------------------------------------------
+ PASS branding: tenant, roles, MFA, CAS, direct-write denial, validation, audit, template gates
+(1 row)

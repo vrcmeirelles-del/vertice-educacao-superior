@@ -1,0 +1,60 @@
+> vertice@1.0.0 test
+> vitest run
+
+
+ RUN  v2.1.9 /workspace/vertice-branding-build
+
+ ✓ server/commercial-demo.test.ts (9 tests) 36ms
+ ✓ server/repository.test.ts (25 tests) 65ms
+ ✓ server/reitor-ebitda.test.ts (8 tests) 57ms
+ ✓ server/pilot.test.ts (7 tests) 9ms
+ ✓ server/management.test.ts (9 tests) 9ms
+ ✓ server/course-ai.test.ts (7 tests) 58ms
+ ✓ server/organization-assistant.test.ts (6 tests) 42ms
+ ✓ server/management-review.test.ts (8 tests) 45ms
+ ✓ server/institution-branding.test.ts (7 tests) 16ms
+ ✓ server/demo-showroom.test.ts (4 tests) 87ms
+ ✓ server/emec.test.ts (11 tests) 14ms
+stdout | server/platform.test.ts
+[OAuth] Initialized with baseURL:
+
+stderr | server/platform.test.ts
+[OAuth] ERROR: MANUS_OAUTH_API_URL is not configured! Set MANUS_OAUTH_API_URL environment variable.
+
+ ✓ server/passwordMfa.test.ts (5 tests) 9ms
+stderr | server/platform.test.ts > current platform integration > binds signed app sessions to this project and accepts an empty display name
+[Auth] Session payload missing required fields
+
+ ✓ server/platform.test.ts (5 tests) 24ms
+ ✓ server/inep-library.test.ts (4 tests) 16ms
+ ✓ server/owner.test.ts (9 tests) 13ms
+ ✓ server/security.test.ts (3 tests) 6ms
+ ✓ server/management-metrics.test.ts (3 tests) 8ms
+ ✓ server/institution-pagination.test.ts (2 tests) 11ms
+ ✓ server/course-spreadsheets.test.ts (3 tests) 7ms
+ ✓ server/course-labels.test.ts (2 tests) 19ms
+stderr | server/course-ai-citations.test.ts > limits quotations to safe literal source excerpts and rejects invented quotations
+review_validation:quote_mismatch
+
+ ✓ server/course-ai-citations.test.ts (1 test) 11ms
+ ✓ server/auth.logout.test.ts (1 test) 6ms
+stdout | server/login.test.ts
+[OAuth] Initialized with baseURL:
+
+stderr | server/login.test.ts
+[OAuth] ERROR: MANUS_OAUTH_API_URL is not configured! Set MANUS_OAUTH_API_URL environment variable.
+
+ ✓ server/login.test.ts (7 tests) 3ms
+ ✓ server/institution-branding-ui.test.ts (2 tests) 142ms
+ ✓ server/institution-library-race.test.ts (1 test) 168ms
+
+ Test Files  25 passed (25)
+      Tests  149 passed (149)
+   Start at  15:13:58
+   Duration  5.11s (transform 1.22s, setup 0ms, collect 5.81s, tests 883ms, environment 1.14s, prepare 2.05s)
+
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.1
+npm notice To update run: npm install -g npm@12.2.1
+npm notice

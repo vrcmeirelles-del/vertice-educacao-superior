@@ -1,0 +1,19 @@
+Check scripts/branding/document-template.test.ts
+running 1 test from ./scripts/branding/document-template.test.ts
+rejects renamed active content by MIME/relationship and scans XML-typed renamed parts ... FAILED (76ms)
+
+ ERRORS
+
+rejects renamed active content by MIME/relationship and scans XML-typed renamed parts => ./scripts/branding/document-template.test.ts:169:6
+error: AssertionError: Missing expected rejection.
+  await assert.rejects(async()=>prepareTemplate(source,{...f.manifest,source_sha256:await sha256(source)}));
+  ^
+    at async file:///workspace/vertice-branding/scripts/branding/document-template.test.ts:174:3
+
+ FAILURES
+
+rejects renamed active content by MIME/relationship and scans XML-typed renamed parts => ./scripts/branding/document-template.test.ts:169:6
+
+FAILED | 0 passed | 1 failed | 8 filtered out (85ms)
+
+error: Test failed

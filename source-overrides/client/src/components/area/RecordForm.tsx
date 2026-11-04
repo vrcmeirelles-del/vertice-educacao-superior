@@ -1,8 +1,9 @@
-import { useState, type FormEvent } from "react";
+import { useState, type ReactNode, type FormEvent } from "react";
 import { clean, explain, type Field, type Row } from "@/lib/area";
 
 /** Formulário genérico de cadastro/edição. Valida no navegador e deixa a regra final ao banco. */
 export default function RecordForm({
+  children, submitDisabled = false,
   title,
   fields,
   initial,
@@ -12,6 +13,8 @@ export default function RecordForm({
   optionsFor,
   onValueChange,
 }: {
+  children?: ReactNode;
+  submitDisabled?: boolean;
   title: string;
   fields: Field[];
   initial?: Partial<Row> | Record<string, unknown>;
@@ -32,6 +35,7 @@ export default function RecordForm({
 
   async function submit(e: FormEvent) {
     e.preventDefault();
+    if (busy || submitDisabled) return;
     setBusy(true);
     setError("");
     try {
@@ -86,16 +90,17 @@ export default function RecordForm({
           );
         })}
       </div>
+      {children}
       {error && (
         <p role="alert" className="area-error">
           {error}
         </p>
       )}
       <div className="area-form-actions">
-        <button className="corp-button" disabled={busy}>
+        <button className="corp-button" disabled={busy || submitDisabled}>
           {busy ? "Salvando…" : submitLabel}
         </button>
-        <button type="button" className="corp-login-text-button" onClick={onCancel} disabled={busy}>
+        <button type="button" className="corp-login-text-button" onClick={onCancel} disabled={busy || submitDisabled}>
           Cancelar
         </button>
       </div>

@@ -1,0 +1,19 @@
+Check scripts/branding/document-template.test.ts
+running 1 test from ./scripts/branding/document-template.test.ts
+rejects active simple/complex Word fields without external relationships ... FAILED (70ms)
+
+ ERRORS
+
+rejects active simple/complex Word fields without external relationships => ./scripts/branding/document-template.test.ts:103:6
+error: AssertionError: Missing expected rejection.
+  await assert.rejects(async()=>prepareTemplate(source,{...f.manifest,source_sha256:await sha256(source)}));
+  ^
+    at async file:///workspace/vertice-branding/scripts/branding/document-template.test.ts:122:3
+
+ FAILURES
+
+rejects active simple/complex Word fields without external relationships => ./scripts/branding/document-template.test.ts:103:6
+
+FAILED | 0 passed | 1 failed | 6 filtered out (75ms)
+
+error: Test failed

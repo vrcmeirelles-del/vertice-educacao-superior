@@ -1,0 +1,13 @@
+Check scripts/branding/document-template.test.ts
+running 9 tests from ./scripts/branding/document-template.test.ts
+neutralization is explicit and hash-bound; preserves body, footer and font bytes ... ok (77ms)
+personalization is repeatable, XML-safe and changes only reviewed styles ... ok (48ms)
+rejects invalid logo, dimensions, color and long text; absent logo allowed ... ok (11ms)
+download authorizes before storage; denies negatives; audits before delivering ... ok (29ms)
+rejects unsafe archives/external images and removal of referenced semantic assets; scopes fills ... ok (28ms)
+rejects active simple/complex Word fields without external relationships ... ok (127ms)
+preserves allowlisted passive pagination fields byte-for-byte ... ok (14ms)
+rejects CRC-valid interlaced PNG before decoder; accepts normalized RGB/RGBA ... ok (18ms)
+rejects renamed active content by MIME/relationship and scans XML-typed renamed parts ... ok (54ms)
+
+ok | 9 passed | 0 failed (420ms)

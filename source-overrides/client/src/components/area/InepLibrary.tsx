@@ -1,10 +1,12 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { responseGate } from '@/lib/institution-branding';
 import { supabase } from '@/lib/supabase';
 import { LIBRARY_DIMENSIONS, filterLibrary, type LibraryDocument } from '@/lib/inep-library';
 import structure from '@/lib/inep-library-structure.json';
 import './inep-library.css';
 
-export default function InepLibrary({ institutionId }: { institutionId: string }) {
+function LibraryPanel({ institutionId }: { institutionId: string }) {
+  const downloads = useRef(responseGate());
   const [documents, setDocuments] = useState<LibraryDocument[]>([]);
   const [loading, setLoading] = useState(true), [loadError, setLoadError] = useState('');
   const [downloadError, setDownloadError] = useState('');
@@ -14,6 +16,8 @@ export default function InepLibrary({ institutionId }: { institutionId: string }
   const [references, setReferences] = useState(false), [downloading, setDownloading] = useState('');
   useEffect(() => {
     let current = true;
+    downloads.current.invalidate(); setDownloading('');
+    setQuery(''); setDimension(''); setIndicator(''); setFormat(''); setReferences(false);
     setDocuments([]); setLoadError(''); setDownloadError(''); setLoading(true);
     Promise.resolve(supabase.from('vertice_inep_library')
       .select('id,institution_id,library_key,version,code,dimension,indicator,file_name,title,original_path,format,size_bytes,is_placeholder')
@@ -25,28 +29,36 @@ export default function InepLibrary({ institutionId }: { institutionId: string }
       })
       .catch(() => { if (current) setLoadError('Não foi possível consultar a biblioteca. Os documentos não foram verificados.'); })
       .finally(() => { if (current) setLoading(false); });
-    return () => { current = false; };
+    return () => { current = false; downloads.current.invalidate(); };
   }, [institutionId, loadAttempt]);
   const results = useMemo(() => filterLibrary(documents, { query, dimension, indicator, format, references }),
     [documents, query, dimension, indicator, format, references]);
   async function download(doc: LibraryDocument) {
+    const current = downloads.current.ticket();
     setDownloading(doc.id); setDownloadError('');
     try {
       const { data, error: failure } = await supabase.functions.invoke('vertice-inep-library', {
-        body: { institutionId, id: doc.id },
+        body: { institutionId, id: doc.id, responseVersion: 2 },
       });
-      if (failure || !data?.url) throw new Error('download');
+      if (!current()) return;
+      if (failure) throw new Error('download');
+      let blob: Blob;
+      if (data instanceof Blob) blob = data;
+      else {
+      if (!data?.url) throw new Error('download');
       const signed = new URL(data.url);
       if (signed.origin !== 'https://qvetbbmviatxxatzzuzc.supabase.co' || signed.protocol !== 'https:') throw new Error('origin');
       const response = await fetch(signed.toString(), { cache: 'no-store', credentials: 'omit' });
       if (!response.ok) throw new Error('arquivo');
-      const blob = await response.blob();
+      blob = await response.blob();
+      }
+      if (!current()) return;
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url; link.download = doc.file_name; document.body.append(link); link.click(); link.remove();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
-    } catch { setDownloadError('Não foi possível baixar o documento. Confira sua sessão e tente novamente.'); }
-    finally { setDownloading(''); }
+    } catch { if (current()) setDownloadError('Não foi possível baixar o documento. Confira sua sessão e tente novamente.'); }
+    finally { if (current()) setDownloading(''); }
   }
   return <section className="inep-library" aria-labelledby="inep-library-title">
     <header><div><p className="inep-library-kicker">Base documental da instituição</p>
@@ -74,3 +86,4 @@ export default function InepLibrary({ institutionId }: { institutionId: string }
   </section>;
 }
 
+export default function InepLibrary(props: { institutionId: string }) { return <LibraryPanel key={props.institutionId} {...props} />; }
