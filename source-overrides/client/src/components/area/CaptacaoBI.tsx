@@ -36,9 +36,9 @@ function KPITiles({ kpis, snapshots }: { kpis: KPIs; snapshots: CaptacaoSnapshot
   const sparkCac = snapshots.map(s => s.total_matriculas > 0 ? Number(s.investimento_total) / s.total_matriculas : 0);
   const tiles = [
     { label: 'Total de Leads', value: fmt.format(kpis.totalLeads), spark: sparkLeads, color: COLORS[0] },
-    { label: 'MatrÃ­culas Captadas', value: fmt.format(kpis.totalMat), spark: sparkMat, color: COLORS[2] },
+    { label: 'Matrículas Captadas', value: fmt.format(kpis.totalMat), spark: sparkMat, color: COLORS[2] },
     { label: 'Investimento Total', value: fmtMoney.format(kpis.totalInvest), spark: sparkInvest, color: COLORS[1] },
-    { label: 'CAC MÃ©dio', value: kpis.cac > 0 ? fmtMoney.format(kpis.cac) : 'â', spark: sparkCac, color: COLORS[3] },
+    { label: 'CAC Médio', value: kpis.cac > 0 ? fmtMoney.format(kpis.cac) : '—', spark: sparkCac, color: COLORS[3] },
   ];
   return <div className="cbi-kpis">{tiles.map(t => (
     <article className="cbi-kpi" key={t.label}>
@@ -53,7 +53,7 @@ function KPITiles({ kpis, snapshots }: { kpis: KPIs; snapshots: CaptacaoSnapshot
 function FunnelChart({ data }: { data: FunnelStage[] }) {
   const max = Math.max(...data.map(d => d.count), 1);
   return <article className="cbi-card">
-    <h3>Funil de CaptaÃ§Ã£o</h3>
+    <h3>Funil de Captação</h3>
     <div className="cbi-funnel">{data.map((d, i) => (
       <div className="cbi-funnel-row" key={d.stage}>
         <span className="cbi-funnel-label">{d.stage}</span>
@@ -89,7 +89,7 @@ function HBarChart({ title, data, valueKey, labelKey, formatValue, subtitle }: {
   </article>;
 }
 
-/* ---------- EvoluÃ§Ã£o Mensal (dual line SVG) ---------- */
+/* ---------- Evolução Mensal (dual line SVG) ---------- */
 function EvolucaoChart({ data }: { data: EvolucaoMensal[] }) {
   if (!data.length) return null;
   const w = 560, h = 200, px = 40, py = 20;
@@ -104,10 +104,10 @@ function EvolucaoChart({ data }: { data: EvolucaoMensal[] }) {
   const [hover, setHover] = useState<number | null>(null);
 
   return <article className="cbi-card cbi-card-wide">
-    <h3>EvoluÃ§Ã£o Mensal</h3>
+    <h3>Evolução Mensal</h3>
     <div className="cbi-legend-row">
       <span className="cbi-legend-item"><i style={{ background: COLORS[0] }} />Leads</span>
-      <span className="cbi-legend-item"><i style={{ background: COLORS[2] }} />MatrÃ­culas</span>
+      <span className="cbi-legend-item"><i style={{ background: COLORS[2] }} />Matrículas</span>
     </div>
     <svg viewBox={`0 0 ${w} ${h}`} className="cbi-line-chart" onMouseLeave={() => setHover(null)}>
       {/* Grid */}
@@ -135,7 +135,7 @@ function EvolucaoChart({ data }: { data: EvolucaoMensal[] }) {
           <line x1={toX(hover)} y1={py} x2={toX(hover)} y2={h - py} stroke="#243653" strokeWidth="1" strokeDasharray="3 3" />
           <rect x={toX(hover) - 48} y={toY(data[hover].leads) - 28} width={96} height={22} rx={4} fill="#243653" />
           <text x={toX(hover)} y={toY(data[hover].leads) - 13} textAnchor="middle" fontSize="11" fill="white">
-            L: {fmt.format(data[hover].leads)} Â· M: {fmt.format(data[hover].mat)}
+            L: {fmt.format(data[hover].leads)} · M: {fmt.format(data[hover].mat)}
           </text>
         </g>
       )}
@@ -161,7 +161,7 @@ function DonutChart({ title, data, valueKey, labelKey }: {
           stroke={COLORS[i % COLORS.length]} strokeWidth="24"
           strokeDasharray={`${pct} ${100 - pct}`} strokeDashoffset={-start}
           transform="rotate(-90 90 90)">
-          <title>{d[labelKey]} Â· {fmt.format(Number(d[valueKey]))}</title>
+          <title>{d[labelKey]} · {fmt.format(Number(d[valueKey]))}</title>
         </circle>;
       })}
       <text x="90" y="90" textAnchor="middle" dominantBaseline="middle" fontSize="24" fontWeight="700" fill="#243653">
@@ -180,7 +180,7 @@ function DonutChart({ title, data, valueKey, labelKey }: {
 function ConversaoChart({ data }: { data: ConversaoOrigem[] }) {
   const max = Math.max(...data.map(d => d.rate), 1);
   return <article className="cbi-card">
-    <h3>Taxa de ConversÃ£o por Origem</h3>
+    <h3>Taxa de Conversão por Origem</h3>
     <div className="cbi-hbars">{data.map((d, i) => (
       <div className="cbi-hbar-row" key={d.canal}>
         <span className="cbi-hbar-label">{d.canal}</span>
@@ -204,21 +204,21 @@ function ImportDialog({ institutionId, onImported, dialogRef }: {
 
   async function handleImport() {
     if (!csv.trim()) return;
-    setStatus('Importandoâ¦');
+    setStatus('Importando…');
     try {
       const lines = csv.trim().split('\n');
       const header = lines[0].split(',').map(h => h.trim().toLowerCase());
       const idxOrigem = header.indexOf('origem');
       const idxCurso = header.indexOf('curso');
       const idxEtapa = header.indexOf('etapa');
-      if (idxOrigem < 0) throw new Error('Coluna "origem" obrigatÃ³ria');
+      if (idxOrigem < 0) throw new Error('Coluna "origem" obrigatória');
 
       const { supabase: sb } = await import('@/lib/supabase');
       const batch = lines.slice(1).filter(l => l.trim()).map(line => {
         const cols = line.split(',').map(c => c.trim());
         return {
           institution_id: institutionId,
-          origem: cols[idxOrigem] || 'NÃ£o informado',
+          origem: cols[idxOrigem] || 'Não informado',
           curso: idxCurso >= 0 ? cols[idxCurso] || null : null,
           etapa_funil: idxEtapa >= 0 ? cols[idxEtapa] || 'lead' : 'lead',
           periodo: null,
@@ -233,14 +233,14 @@ function ImportDialog({ institutionId, onImported, dialogRef }: {
       setCsv('');
       onImported();
     } catch (e: any) {
-      setStatus('Erro: ' + (e.message ?? 'falha na importaÃ§Ã£o'));
+      setStatus('Erro: ' + (e.message ?? 'falha na importação'));
     }
   }
 
   return <dialog ref={dialogRef} className="cbi-dialog" onClose={() => setStatus('')}>
     <h3>Importar Leads (CSV)</h3>
-    <p>Colunas: <code>origem</code> (obrigatÃ³ria), <code>curso</code>, <code>etapa</code> (lead/contato/visita/inscricao/matricula)</p>
-    <textarea rows={8} value={csv} onChange={e => setCsv(e.target.value)} placeholder="origem,curso,etapa&#10;Google Ads,Direito,lead&#10;Instagram,AdministraÃ§Ã£o,contato" />
+    <p>Colunas: <code>origem</code> (obrigatória), <code>curso</code>, <code>etapa</code> (lead/contato/visita/inscricao/matricula)</p>
+    <textarea rows={8} value={csv} onChange={e => setCsv(e.target.value)} placeholder="origem,curso,etapa&#10;Google Ads,Direito,lead&#10;Instagram,Administração,contato" />
     <div className="cbi-dialog-actions">
       <button type="button" onClick={handleImport}>Importar</button>
       <form method="dialog"><button>Fechar</button></form>
@@ -314,12 +314,12 @@ export default function CaptacaoBI({ institutionId, institutionName }: { institu
   const bi = aggregateBI(leads, custos, snapshots);
   const noData = leads.length === 0 && custos.length === 0 && snapshots.length === 0;
 
-  if (loading) return <section className="cbi-root"><p role="status">Carregando BI de captaÃ§Ã£oâ¦</p></section>;
+  if (loading) return <section className="cbi-root"><p role="status">Carregando BI de captação…</p></section>;
 
   return <section ref={panelRef} className={`cbi-root ${tv ? 'cbi-tv' : ''}`}>
     <div className="cbi-header">
       <div>
-        <h2>BI de CaptaÃ§Ã£o</h2>
+        <h2>BI de Captação</h2>
         <p>{institutionName}</p>
       </div>
       <div className="cbi-actions">
