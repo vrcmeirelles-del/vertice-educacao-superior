@@ -60,13 +60,24 @@ function showRectorDashboard() {
  ];
  const money = new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:2});
  const percent = new Intl.NumberFormat('pt-BR',{style:'percent',maximumFractionDigits:1});
- const titles = ['Aquisições','Matrículas','Reprovações','Resultado por curso'];
+ const titles = ['Aquisições','Matrículas','Reprovações','Resultado por curso','Captação e permanência'];
  shell('<section id="rector-bi" class="empty"><p class="eyebrow">BI DA REITORIA</p><div id="bi-tabs" class="toolbar"></div><div id="bi-controls" class="toolbar"><button class="secondary" id="bi-tv">Iniciar modo TV</button><button class="secondary" id="bi-cost">Captação e permanência</button><button class="secondary" id="bi-back">Voltar a Aquisições</button></div><div id="bi-slide"></div><dialog id="bi-detail"><div id="bi-records"></div><form method="dialog"><button class="secondary">Fechar detalhes</button></form></dialog></section>');
  const panel = document.getElementById('rector-bi');
  const slide = panel.querySelector('#bi-slide');
  const detail = panel.querySelector('#bi-detail');
  const tvButton = panel.querySelector('#bi-tv');
  let current = 0, tv = false, timer, refreshError = false, updated, acquisitionRecords = [];
+ let costDraft = {};
+ const costMetrics = [
+  {cost:'spend',count:'confirmed',id:'bi-cac',label:'Captação por matrícula confirmada'},
+  {cost:'retention',count:'students',id:'bi-retention',label:'Permanência por aluno acompanhado'}
+ ];
+ function costValue(metric) {
+  const cost = costDraft[metric.cost];
+  const count = Number(costDraft[metric.count]);
+  return cost != null && cost !== '' && Number.isFinite(Number(cost)) && Number(cost) >= 0 && Number.isInteger(count) && count > 0
+   ? money.format(Number(cost)/count) : '—';
+ }
  const liveRows = () => [...new Set(acquisitionRecords.map(m => m.status))].map(status => {
   const records = acquisitionRecords.filter(m => m.status === status);
   return {label:statuses[status] || status,value:records.length,display:records.length,records};
@@ -82,9 +93,13 @@ function showRectorDashboard() {
   }).sort((a,b) => b.value-a.value);
  }
  function render() {
-  const data = rows();
+  if (current === 4) {
+   slide.innerHTML = `<p class="eyebrow">ENTRADA MANUAL · INTEGRAÇÃO PENDENTE</p><h1>${titles[current]}</h1><p>${costDraft.scope ? esc(costDraft.scope) : 'Informe o período, o curso e a campanha para contextualizar a apuração.'}</p><div class="stats">${costMetrics.map(metric => `<article><span>${metric.label}</span><strong>${costValue(metric)}</strong></article>`).join('')}</div><button class="primary" id="bi-edit-cost">Preencher ou revisar valores</button>`;
+   slide.querySelector('#bi-edit-cost').onclick = editCosts;
+  }
+  const data = current === 4 ? [] : rows();
   const max = Math.max(1e-9,...data.map(row => Math.abs(row.value)));
-  slide.innerHTML = `<p class="eyebrow">${current ? 'DEMONSTRAÇÃO · DADOS FICTÍCIOS' : 'MANDATOS AUTORIZADOS'}</p><h1>${titles[current]}</h1><p>${current ? 'Clique em uma barra para ver o cálculo ou a contagem.' : refreshError ? 'Falha na consulta de Aquisições. Tente novamente.' : updated ? 'Consultado às '+updated : 'Consultando Aquisições…'}</p>${data.map((row,index) => `<button class="matter-card" style="display:block;width:100%;margin:12px 0;text-align:left" data-bi-row="${index}"><strong>${esc(row.label)} · ${esc(String(row.display))}</strong><span aria-hidden="true" style="display:block;margin-top:8px;height:14px;border-radius:6px;width:${Math.abs(row.value)/max*100}%;background:${row.value<0?'#b42318':['#087f5b','#3159ba','#a43e10','#7235a0'][current]}"></span></button>`).join('') || (updated && !refreshError ? '<p>Nenhum mandato autorizado.</p>' : '')}`;
+  if (current !== 4) slide.innerHTML = `<p class="eyebrow">${current ? 'DEMONSTRAÇÃO · DADOS FICTÍCIOS' : 'MANDATOS AUTORIZADOS'}</p><h1>${titles[current]}</h1><p>${current ? 'Clique em uma barra para ver o cálculo ou a contagem.' : refreshError ? 'Falha na consulta de Aquisições. Tente novamente.' : updated ? 'Consultado às '+updated : 'Consultando Aquisições…'}</p>${data.map((row,index) => `<button class="matter-card" style="display:block;width:100%;margin:12px 0;text-align:left" data-bi-row="${index}"><strong>${esc(row.label)} · ${esc(String(row.display))}</strong><span aria-hidden="true" style="display:block;margin-top:8px;height:14px;border-radius:6px;width:${Math.abs(row.value)/max*100}%;background:${row.value<0?'#b42318':['#087f5b','#3159ba','#a43e10','#7235a0'][current]}"></span></button>`).join('') || (updated && !refreshError ? '<p>Nenhum mandato autorizado.</p>' : '')}`;
   panel.querySelectorAll('[data-bi-tab]').forEach(button => button.setAttribute('aria-pressed',String(Number(button.dataset.biTab) === current)));
   slide.querySelectorAll('[data-bi-row]').forEach(button => button.onclick = () => {
    clearTimeout(timer);
@@ -141,11 +156,17 @@ function showRectorDashboard() {
   schedule();
  };
  panel.querySelector('#bi-cost').onclick = () => {
+  current = 4;
+  render();
+  editCosts();
+ };
+ function editCosts() {
   clearTimeout(timer);
   const content = panel.querySelector('#bi-records');
   content.innerHTML = `<h2>Captação e permanência</h2>
-   <p>Informe dados do mesmo período, curso e campanha. Os valores são calculados ao preencher os campos.</p>
+   <p>Preenchimento manual. Os valores ficam nesta sessão do painel. Use o mesmo período e curso em cada cálculo.</p>
    <form id="bi-cost-inputs">
+    <label>Período, curso e campanha<input name="scope" maxlength="160" placeholder="Ex.: novembro, Direito, vestibular"></label>
     <label>Investimento em captação (R$)<input name="spend" type="number" min="0" step="0.01"></label>
     <label>Matrículas confirmadas atribuídas à campanha<input name="confirmed" type="number" min="0" step="1"></label>
     <label>Despesas de permanência no período (R$)<input name="retention" type="number" min="0" step="0.01"></label>
@@ -155,16 +176,22 @@ function showRectorDashboard() {
    </form>`;
   const form = content.querySelector('form');
   form.addEventListener('submit',event => event.preventDefault());
-  form.addEventListener('input',() => {
+  for (const input of form.querySelectorAll('input')) input.value = costDraft[input.name] ?? '';
+  function updateCosts() {
    for (const [costName,countName,resultId] of [['spend','confirmed','bi-cac'],['retention','students','bi-retention']]) {
     const cost = form.elements.namedItem(costName);
     const count = form.elements.namedItem(countName);
-    content.querySelector('#'+resultId).textContent = cost.validity.valid && count.validity.valid &&
-     cost.value !== '' && count.valueAsNumber > 0 ? money.format(cost.valueAsNumber/count.valueAsNumber) : '—';
+    costDraft[costName] = cost.validity.valid ? cost.value : '';
+    costDraft[countName] = count.validity.valid ? count.value : '';
+    content.querySelector('#'+resultId).textContent = costValue({cost:costName,count:countName});
    }
-  });
+   costDraft.scope = form.elements.namedItem('scope').value.trim();
+   if (current === 4) render();
+  }
+  form.addEventListener('input',updateCosts);
+  updateCosts();
   detail.showModal();
- };
+ }
  panel.querySelector('#bi-back').onclick = () => { clearTimeout(timer); void home(); };
  render();
  void refresh();
