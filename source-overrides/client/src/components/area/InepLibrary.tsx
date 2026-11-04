@@ -32,15 +32,29 @@ export default function InepLibrary({ institutionId }: { institutionId: string }
   async function download(doc: LibraryDocument) {
     setDownloading(doc.id); setDownloadError('');
     try {
+      // responseType 'blob' so binary .docx comes back as a Blob
       const { data, error: failure } = await supabase.functions.invoke('vertice-inep-library', {
         body: { institutionId, id: doc.id },
+        responseType: 'blob',
       });
-      if (failure || !data?.url) throw new Error('download');
-      const signed = new URL(data.url);
-      if (signed.origin !== 'https://qvetbbmviatxxatzzuzc.supabase.co' || signed.protocol !== 'https:') throw new Error('origin');
-      const response = await fetch(signed.toString(), { cache: 'no-store', credentials: 'omit' });
-      if (!response.ok) throw new Error('arquivo');
-      const blob = await response.blob();
+      if (failure) throw new Error('download');
+
+      let blob: Blob;
+
+      if (data instanceof Blob && data.type && !data.type.includes('application/json')) {
+        // Processed .docx returned directly as binary
+        blob = data;
+      } else {
+        // JSON response (signed URL fallback for non-docx / no branding)
+        const json = data instanceof Blob ? JSON.parse(await data.text()) : data;
+        if (!json?.url) throw new Error('download');
+        const signed = new URL(json.url);
+        if (signed.origin !== 'https://qvetbbmviatxxatzzuzc.supabase.co' || signed.protocol !== 'https:') throw new Error('origin');
+        const response = await fetch(signed.toString(), { cache: 'no-store', credentials: 'omit' });
+        if (!response.ok) throw new Error('arquivo');
+        blob = await response.blob();
+      }
+
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url; link.download = doc.file_name; document.body.append(link); link.click(); link.remove();
@@ -73,4 +87,3 @@ export default function InepLibrary({ institutionId }: { institutionId: string }
     </>}
   </section>;
 }
-
