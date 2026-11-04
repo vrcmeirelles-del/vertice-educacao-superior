@@ -10,6 +10,8 @@ export default function RecordForm({
   onSubmit,
   onCancel,
   submitLabel = "Salvar",
+  optionsFor,
+  onValueChange,
 }: {
   children?: ReactNode;
   submitDisabled?: boolean;
@@ -19,6 +21,8 @@ export default function RecordForm({
   onSubmit: (values: Record<string, unknown>) => Promise<void>;
   onCancel: () => void;
   submitLabel?: string;
+  optionsFor?: (field:Field,values:Record<string,unknown>)=>Field['options'];
+  onValueChange?: (values:Record<string,unknown>,changed:string)=>Record<string,unknown>;
 }) {
   const [values, setValues] = useState<Record<string, unknown>>(() => {
     const v: Record<string, unknown> = {};
@@ -27,7 +31,7 @@ export default function RecordForm({
   });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const set = (k: string, v: unknown) => setValues(s => ({ ...s, [k]: v }));
+  const set = (k: string, v: unknown) => setValues(s => {const next={...s,[k]:v};return onValueChange?onValueChange(next,k):next;});
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -62,7 +66,7 @@ export default function RecordForm({
                 <select id={id} required={f.required} value={v ?? ""} onChange={e => set(f.name, e.target.value)}>
                   {!f.required && <option value="">—</option>}
                   {f.required && v === "" && <option value="">Selecione…</option>}
-                  {f.options?.map(([k, l]) => (
+                  {(optionsFor?optionsFor(f,values):f.options)?.map(([k, l]) => (
                     <option key={k} value={k}>
                       {l}
                     </option>

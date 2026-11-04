@@ -1,4 +1,5 @@
 import InstitutionBranding from "./InstitutionBranding";
+import {actionDraftKey,parseActionDraft,storeActionDraft,validateActionLinks,changeActionScope} from "@/lib/portal-integration";
 import ActionCockpit from "./ActionCockpit";
 import RegistryContacts from "./RegistryContacts";
 import { courseClassification, useCourseFilters } from "./CourseFilters";
@@ -66,6 +67,7 @@ export default function Workspace({
     const t = new URLSearchParams(window.location.hash.slice(1)).get("aba") as Tab | null;
     return t && TABS.some(([k]) => k === t) ? t : role === 'master' || role === 'gestor' ? 'base' : 'geral';
   });
+  useEffect(()=>{const sync=()=>{const t=new URLSearchParams(window.location.hash.slice(1)).get("aba") as Tab;if(TABS.some(([key])=>key===t))setTab(t);};window.addEventListener("hashchange",sync);window.addEventListener("popstate",sync);return()=>{window.removeEventListener("hashchange",sync);window.removeEventListener("popstate",sync);};},[]);
   const [data, setData] = useState<Data>(EMPTY);
   const [repositoryGoal,setRepositoryGoal]=useState("");
   const [loading, setLoading] = useState(true);
@@ -153,7 +155,7 @@ export default function Workspace({
       ) : loading ? (
         <p role="status">Carregando…</p>
       ) : tab === "base" ? (
-        role === 'master' || role === 'gestor' ? <OrganizationBase key={id} institution={institution} onGo={choose}/> : <p>A Base da organização é reservada ao Master e ao Gestor.</p>
+        role === 'master' || role === 'gestor' ? <OrganizationBase key={id} institution={institution} data={data} dataError={!!error} onGo={choose}/> : <p>A Base da organização é reservada ao Master e ao Gestor.</p>
       ) : tab === "ia" ? (
         role !== "master" && role !== "gestor" ? <p role="alert">A análise por IA é restrita à alta gestão da instituição.</p> : error ? <p role="alert">Atualize os dados antes de iniciar uma análise.</p> : <DocumentAI key={id} institutionId={id} courses={data.courses} requests={data.requests} files={data.files} onGo={choose}/>
       ) : tab === "analise" ? (
@@ -173,7 +175,7 @@ export default function Workspace({
       ) : tab === "biblioteca" ? (
         <InepLibrary institutionId={id} />
       ) : tab === "plano" ? (
-        <ActionsTab institutionId={id} role={role} data={data} reload={reload} />
+        error ? <p role="alert">Atualize os dados antes de preparar o plano.</p> : <ActionsTab key={id} institutionId={id} role={role} data={data} reload={reload} />
       ) : tab === "diagnostico" ? (
         <DiagnosisTab institutionId={id} role={role} data={data} reload={reload} onPlan={() => choose("plano")} />
       ) : (
@@ -275,7 +277,7 @@ function OverviewTab({ data, stats, onGo }: { data: Data; stats?: { enrolled: nu
     .filter(a => String(a.due_date) <= new Date(Date.now() + 30 * 864e5).toISOString().slice(0, 10))
     .sort((a, b) => String(a.due_date).localeCompare(String(b.due_date)));
   const byStatus = ACTION_STATUS.map(([k, l]) => ({ k, l, n: data.actions.filter(a => a.status === k).length }));
-  const scored = data.diagnosis.filter(d => d.score !== null && d.score !== undefined);
+  const scored = data.diagnosis.filter(d => d.score !== null && d.score !== undefined && d.score !== "" && Number.isFinite(Number(d.score)));
   const avgScore = scored.length ? scored.reduce((s, d) => s + Number(d.score), 0) / scored.length : null;
   const dims = new Map<string, number[]>();
   for (const d of scored) {
@@ -667,11 +669,12 @@ function GoalsTab({ institutionId, role, data, reload, onRepository }: { institu
 
 // ================================================================ plano 5W2H
 function actionFields(data: Data): Field[] {
+  const scopeName=(id:unknown)=>String(data.courses.find(c=>c.id===id)?.display_name??data.courses.find(c=>c.id===id)?.name??"Institucional");
   return withHelp([
     { name: "what", label: "O quê (ação)", required: true, wide: true },
     { name: "why", label: "Por quê", type: "textarea" },
-    { name: "goal_id", label: "Meta relacionada", type: "select", options: data.goals.map(g => [g.id, String(g.title)]) },
-    { name: "finding_id", label: "Achado do diagnóstico", type: "select", options: data.diagnosis.map(d => [d.id, String(d.criterion)]) },
+    { name: "goal_id", label: "Meta relacionada", type: "select", options: data.goals.map(g => [g.id, scopeName(g.course_id)+" · "+String(g.title)]) },
+    { name: "finding_id", label: "Achado do diagnóstico", type: "select", options: data.diagnosis.map(d => [d.id, scopeName(d.course_id)+" · "+String(d.criterion)]) },
     { name: "course_id", label: "Curso", type: "select", options: courseOptions(data.courses) },
     { name: "who", label: "Quem (responsável)" },
     { name: "where_at", label: "Onde" },
@@ -688,14 +691,8 @@ function actionFields(data: Data): Field[] {
 function ActionsTab({ institutionId, role, data, reload }: { institutionId: string; role: Role | null; data: Data; reload: () => Promise<void> }) {
   const ed = useEditor();
   const [filter, setFilter] = useState("abertas");
-  const pre = sessionStorage.getItem("vertice-action-prefill");
-  useEffect(() => {
-    if (pre) {
-      sessionStorage.removeItem("vertice-action-prefill");
-      ed.open("new");
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-  const [prefill,setPrefill] = useState<Record<string, unknown>>(() => (pre ? JSON.parse(pre) : {}));
+  const [prefill,setPrefill] = useState<Record<string,unknown>>(()=>parseActionDraft(sessionStorage.getItem(actionDraftKey(institutionId)),institutionId));
+  useEffect(()=>{sessionStorage.removeItem(actionDraftKey(institutionId));sessionStorage.removeItem("vertice-action-prefill");if(Object.keys(prefill).length&&can.record(role))ed.open("new");},[]);
   const rows = data.actions.filter(a =>
     filter === "todas" ? true : filter === "atrasadas" ? isLate(a.due_date, a.status) : filter === "abertas" ? !["concluida", "cancelada"].includes(String(a.status)) : a.status === filter
   );
@@ -713,16 +710,19 @@ function ActionsTab({ institutionId, role, data, reload }: { institutionId: stri
             {ACTION_STATUS.map(([k, l]) => <option key={k} value={k}>{l} ({counts[k]})</option>)}
             <option value="todas">Todas</option>
           </select>
-          {can.record(role) && <button className="corp-button small" onClick={() => ed.open("new")}>Nova ação</button>}
+          {can.record(role) && <button className="corp-button small" onClick={() => {setPrefill({});ed.open("new");}}>Nova ação</button>}
         </div>
       </div>
       {ed.editing && (
-        <RecordForm key={JSON.stringify(prefill)}
+        <RecordForm key={(ed.editing === "new" ? "new" : (ed.editing as Row).id)+JSON.stringify(prefill)}
           title={ed.editing === "new" ? "Nova ação" : "Editar ação"}
           fields={actionFields(data)}
+          onValueChange={(values,changed)=>changeActionScope(values,changed,data)}
+          optionsFor={(field,values)=>{const rows=field.name==="goal_id"?data.goals:field.name==="finding_id"?data.diagnosis:null;return rows&&values.course_id?field.options?.filter(([id])=>{const linked=rows.find(r=>r.id===id);return linked&&(!linked.course_id||linked.course_id===values.course_id);}):field.options;}}
           initial={ed.editing === "new" ? { status: "nao_iniciada", progress: 0, ...prefill } : ed.editing}
           onCancel={ed.close}
           onSubmit={async v => {
+            v=validateActionLinks(v,data);
             await saveRow(TABLES.actions, ed.editing === "new" ? { ...v, progress: v.progress ?? 0, institution_id: institutionId } : { ...v, progress: v.progress ?? 0 }, ed.editing === "new" ? undefined : (ed.editing as Row).id);
             ed.close();
             await reload();
@@ -780,17 +780,18 @@ function diagnosisFields(courses: Row[]): Field[] {
 
 function DiagnosisTab({ institutionId, role, data, reload, onPlan }: { institutionId: string; role: Role | null; data: Data; reload: () => Promise<void>; onPlan: () => void }) {
   const ed = useEditor();
+  const [courseId,setCourseId]=useState("");
   const groups = useMemo(() => {
     const m = new Map<string, Row[]>();
-    for (const d of data.diagnosis) {
+    for (const d of data.diagnosis.filter(d=>!courseId||d.course_id===courseId)) {
       const k = String(d.dimension);
       if (!m.has(k)) m.set(k, []);
       m.get(k)!.push(d);
     }
     return [...m.entries()].sort((a, b) => a[0].localeCompare(b[0], "pt-BR"));
-  }, [data.diagnosis]);
+  }, [data.diagnosis,courseId]);
   const avg = (rows: Row[]) => {
-    const s = rows.map(r => r.score).filter(v => v !== null && v !== undefined).map(Number);
+    const s = rows.map(r => r.score).filter(v => v !== null && v !== undefined && v !== "" && Number.isFinite(Number(v))).map(Number);
     return s.length ? s.reduce((a, b) => a + b, 0) / s.length : null;
   };
   const actionsFor = (fid: string) => data.actions.filter(a => a.finding_id === fid).length;
@@ -800,6 +801,7 @@ function DiagnosisTab({ institutionId, role, data, reload, onPlan }: { instituti
         <h3>Diagnóstico ({data.diagnosis.length} critérios)</h3>
         {can.record(role) && <button className="corp-button small" onClick={() => ed.open("new")}>Novo critério</button>}
       </div>
+      <label>Curso do diagnóstico <select value={courseId} onChange={e=>setCourseId(e.target.value)}><option value="">Toda a instituição</option>{data.courses.map(c=><option key={c.id} value={c.id}>{String(c.display_name??c.name)}</option>)}</select></label>
       {ed.editing && (
         <RecordForm
           title={ed.editing === "new" ? "Novo critério avaliado" : "Editar critério"}
@@ -817,11 +819,12 @@ function DiagnosisTab({ institutionId, role, data, reload, onPlan }: { instituti
         <p className="area-muted">Nenhum critério avaliado. Registre cada critério com nota, achado e evidência; os achados podem gerar ações no plano 5W2H.</p>
       ) : (
         groups.map(([dim, rows]) => {
-          const a = avg(rows);
+          const a = avg(rows), scored=rows.filter(r=>r.score!==null&&r.score!==undefined&&r.score!==""&&Number.isFinite(Number(r.score))),low=scored.filter(r=>Number(r.score)<3),open=rows.filter(r=>r.status!=="resolvido"),without=open.filter(r=>!data.actions.some(action=>action.finding_id===r.id&&!["concluida","cancelada"].includes(String(action.status))));
           return (
             <section key={dim} className="area-dim">
               <h4>{dim} <small>{a === null ? "sem nota" : `média ${a.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}`} · {rows.length} critério(s)</small></h4>
-              <div className="table-scroll">
+              <div className="dimension-summary"><span className={`badge ${low.length?"red":open.length?"amber":scored.length?"green":"gray"}`}>{low.length?"Prioridade de melhoria":open.length?"Acompanhar pendências":scored.length?"Sem achados abertos":"Avaliação pendente"}</span><strong>{scored.length}/{rows.length} critérios com nota</strong><p>{low.length?`${low.length} indicador(es) abaixo de 3: ${low.map(r=>String(r.criterion)).join(", ")}. Priorize os achados correspondentes e registre a evidência da melhoria.`:"Não há nota abaixo de 3 entre os critérios avaliados."} {without.length?`${without.length} achado(s) aberto(s) ainda sem ação ativa vinculada.`:"Os achados abertos possuem ações ativas, quando existentes."}</p><p className="area-muted">Síntese gerencial da dimensão: média simples dos critérios registrados, sem substituir o conceito oficial. Notas ausentes ficam fora da média. As causas e providências estão no detalhamento abaixo.</p></div>
+              <details><summary>Ver indicadores, achados e providências ({rows.length})</summary><div className="table-scroll">
                 <table className="area-table">
                   <thead><tr><th>Critério</th><th>Nota</th><th>Achado</th><th>Prioridade</th><th>Situação</th><th>Ações</th><th /></tr></thead>
                   <tbody>
@@ -838,7 +841,7 @@ function DiagnosisTab({ institutionId, role, data, reload, onPlan }: { instituti
                             <button
                               className="corp-login-text-button"
                               onClick={() => {
-                                sessionStorage.setItem("vertice-action-prefill", JSON.stringify({ finding_id: d.id, course_id: d.course_id ?? "", why: d.finding ?? "" }));
+                                storeActionDraft(institutionId,{ what: `Tratar: ${d.criterion}`, finding_id: d.id, course_id: d.course_id ?? "", why: d.finding ?? "" });
                                 onPlan();
                               }}
                             >
@@ -852,7 +855,7 @@ function DiagnosisTab({ institutionId, role, data, reload, onPlan }: { instituti
                     ))}
                   </tbody>
                 </table>
-              </div>
+              </div></details>
             </section>
           );
         })

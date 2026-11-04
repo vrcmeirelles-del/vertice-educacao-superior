@@ -8,31 +8,34 @@ import './inep-library.css';
 function LibraryPanel({ institutionId }: { institutionId: string }) {
   const downloads = useRef(responseGate());
   const [documents, setDocuments] = useState<LibraryDocument[]>([]);
-  const [loading, setLoading] = useState(true), [error, setError] = useState('');
+  const [loading, setLoading] = useState(true), [loadError, setLoadError] = useState('');
+  const [downloadError, setDownloadError] = useState('');
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const [query, setQuery] = useState(''), [dimension, setDimension] = useState('');
   const [indicator, setIndicator] = useState(''), [format, setFormat] = useState('');
   const [references, setReferences] = useState(false), [downloading, setDownloading] = useState('');
   useEffect(() => {
     let current = true;
     downloads.current.invalidate(); setDownloading('');
-    setDocuments([]); setError(''); setLoading(true);
     setQuery(''); setDimension(''); setIndicator(''); setFormat(''); setReferences(false);
-    supabase.from('vertice_inep_library')
+    setDocuments([]); setLoadError(''); setDownloadError(''); setLoading(true);
+    Promise.resolve(supabase.from('vertice_inep_library')
       .select('id,institution_id,library_key,version,code,dimension,indicator,file_name,title,original_path,format,size_bytes,is_placeholder')
-      .eq('institution_id', institutionId).eq('active', true).order('original_path')
+      .eq('institution_id', institutionId).eq('active', true).order('original_path'))
       .then(({ data, error: failure }) => {
         if (!current) return;
-        if (failure) setError('Não foi possível carregar a biblioteca. Tente atualizar a página.');
-        else setDocuments((data ?? []) as LibraryDocument[]);
-        setLoading(false);
-      });
+        if (failure || !Array.isArray(data)) throw new Error('library_unavailable');
+        setDocuments(data as LibraryDocument[]);
+      })
+      .catch(() => { if (current) setLoadError('Não foi possível consultar a biblioteca. Os documentos não foram verificados.'); })
+      .finally(() => { if (current) setLoading(false); });
     return () => { current = false; downloads.current.invalidate(); };
-  }, [institutionId]);
+  }, [institutionId, loadAttempt]);
   const results = useMemo(() => filterLibrary(documents, { query, dimension, indicator, format, references }),
     [documents, query, dimension, indicator, format, references]);
   async function download(doc: LibraryDocument) {
     const current = downloads.current.ticket();
-    setDownloading(doc.id); setError('');
+    setDownloading(doc.id); setDownloadError('');
     try {
       const { data, error: failure } = await supabase.functions.invoke('vertice-inep-library', {
         body: { institutionId, id: doc.id, responseVersion: 2 },
@@ -54,14 +57,14 @@ function LibraryPanel({ institutionId }: { institutionId: string }) {
       const link = document.createElement('a');
       link.href = url; link.download = doc.file_name; document.body.append(link); link.click(); link.remove();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
-    } catch { if (current()) setError('Não foi possível baixar o documento. Confira sua sessão e tente novamente.'); }
+    } catch { if (current()) setDownloadError('Não foi possível baixar o documento. Confira sua sessão e tente novamente.'); }
     finally { if (current()) setDownloading(''); }
   }
   return <section className="inep-library" aria-labelledby="inep-library-title">
     <header><div><p className="inep-library-kicker">Base documental da instituição</p>
       <h3 id="inep-library-title">Biblioteca Institucional INEP</h3>
       <p>Modelos e referências para todas as coordenações, organizados nos 58 indicadores.</p></div>
-      <span className="inep-library-count">{documents.length} arquivos</span></header>
+      <span className="inep-library-count">{loading ? 'Consultando arquivos…' : loadError ? 'Consulta indisponível' : `${documents.length} arquivos`}</span></header>
     <p className="inep-library-guidance">Baixe, revise e adapte o documento ao seu curso. Depois, envie a versão preenchida no Repositório. Consultar a biblioteca não atende uma pendência. Os arquivos REF indicam evidências a preparar.</p>
     <div className="inep-library-filters">
       <label>Buscar documento<input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="Código INEP, nome ou palavra-chave" /></label>
@@ -70,8 +73,8 @@ function LibraryPanel({ institutionId }: { institutionId: string }) {
       <label>Formato<select value={format} onChange={e => setFormat(e.target.value)}><option value="">Todos</option>{['docx', 'pdf', 'xlsx'].map(f => <option key={f} value={f}>{f.toUpperCase()}</option>)}</select></label>
       <label className="inep-library-checkbox"><input type="checkbox" checked={references} onChange={e => setReferences(e.target.checked)} />Somente referências a preencher</label>
     </div>
-    {error && <p role="alert" className="area-error">{error}</p>}
-    {loading ? <p role="status">Carregando a biblioteca…</p> : !documents.length ? <p>Não há documentos da biblioteca disponibilizados para esta instituição.</p> : <>
+    {downloadError && <p role="alert" className="area-error">{downloadError}</p>}
+    {loading ? <p role="status">Carregando a biblioteca…</p> : loadError ? <div><p role="alert" className="area-error">{loadError}</p><button className="corp-button small" onClick={() => { setLoading(true); setLoadAttempt(value => value + 1); }}>Tentar novamente</button></div> : !documents.length ? <p>Não há documentos da biblioteca disponibilizados para esta instituição.</p> : <>
       <p aria-live="polite">{results.length} arquivo(s) encontrado(s)</p>
       <div className="inep-library-results">{results.map(doc => <article key={doc.id}>
         <div><p className="inep-library-code">{doc.code || `REF · ${doc.indicator}`}</p><h4>{doc.file_name}</h4>
