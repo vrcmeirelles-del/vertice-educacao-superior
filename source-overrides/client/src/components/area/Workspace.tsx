@@ -19,6 +19,7 @@ import InepLibrary from "./InepLibrary";
 import ManagementReview from "./ManagementReview";
 import DocumentAI from "./DocumentAI";
 import OrganizationBase from "./OrganizationBase";
+import BrandingPanel from "./BrandingPanel";
 import EmecPanel from "./EmecPanel";
 import {repositorySummary} from "@/lib/repository";
 import {listRepository} from "@/lib/repository-data";
@@ -406,6 +407,8 @@ function RegistryTab({ institution, role, courses, reload, onChanged }: { instit
           </dl>
         )}
       </div>
+
+          <BrandingPanel institution={institution} canEdit={can.editInstitution(role)} onChanged={onChanged} />
 
       <div className="area-panel">
         <div className="area-panel-head">
