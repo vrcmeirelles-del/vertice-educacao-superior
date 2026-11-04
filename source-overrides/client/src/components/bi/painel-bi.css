@@ -1,0 +1,567 @@
+/* ================================================================
+   Painel Executivo de BI — Vértice Superior
+   Estética: livro de registro institucional.
+   Cor é informação, não decoração.
+   ================================================================ */
+
+/* ---------- tokens ---------- */
+.painel-bi {
+  --bi-papel: #F6F7F4;
+  --bi-papel-elevado: #FFFFFF;
+  --bi-tinta: #16211D;
+  --bi-tinta-media: #4A5751;
+  --bi-tinta-fraca: #68736D;
+  --bi-linha: #D9DED7;
+  --bi-destaque: #14432F;
+  --bi-sinal-bom: #1F6B47;
+  --bi-sinal-atencao: #865A10;
+  --bi-sinal-critico: #A33227;
+  --bi-radius: 4px;
+  --bi-gap-secao: 36px;
+  --bi-gap-titulo: 14px;
+  --bi-font-serif: 'Source Serif 4', 'Georgia', serif;
+  --bi-font-sans: 'IBM Plex Sans', system-ui, sans-serif;
+  --bi-font-mono: 'IBM Plex Mono', monospace;
+
+  background: var(--bi-papel);
+  color: var(--bi-tinta);
+  font-family: var(--bi-font-sans);
+  font-variant-numeric: tabular-nums;
+  padding: clamp(16px, 4vw, 48px);
+  line-height: 1.5;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- tipografia ---------- */
+.painel-bi h1 {
+  font-family: var(--bi-font-serif);
+  font-size: clamp(24px, 3.5vw, 36px);
+  font-weight: 700;
+  margin: 0 0 6px;
+  letter-spacing: -0.01em;
+}
+.painel-bi h2 {
+  font-family: var(--bi-font-serif);
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 var(--bi-gap-titulo);
+  color: var(--bi-tinta);
+}
+.painel-bi h3 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 10px;
+  color: var(--bi-tinta-media);
+  text-transform: none;
+}
+
+/* ---------- meta texto ---------- */
+.bi-meta {
+  font-size: 13px;
+  color: var(--bi-tinta-fraca);
+  margin: 0;
+}
+
+/* ---------- barra de filtros ---------- */
+.bi-filtros {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--bi-linha);
+  margin-bottom: var(--bi-gap-secao);
+}
+.bi-filtros label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--bi-tinta-media);
+}
+.bi-filtros select {
+  border: 1px solid var(--bi-linha);
+  background: var(--bi-papel-elevado);
+  color: var(--bi-tinta);
+  font-family: var(--bi-font-sans);
+  font-size: 13px;
+  padding: 6px 10px;
+  border-radius: var(--bi-radius);
+  cursor: pointer;
+}
+.bi-filtros select:focus-visible {
+  outline: 2px solid var(--bi-destaque);
+  outline-offset: 1px;
+}
+.bi-refresh {
+  border: 1px solid var(--bi-linha);
+  background: var(--bi-papel-elevado);
+  color: var(--bi-tinta-media);
+  font-family: var(--bi-font-sans);
+  font-size: 13px;
+  padding: 6px 14px;
+  border-radius: var(--bi-radius);
+  cursor: pointer;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.bi-refresh:hover { background: var(--bi-linha); }
+.bi-refresh:focus-visible { outline: 2px solid var(--bi-destaque); outline-offset: 1px; }
+
+/* ---------- layout principal: coluna larga + lateral ---------- */
+.bi-layout {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: var(--bi-gap-secao);
+  align-items: start;
+}
+@media (max-width: 1024px) {
+  .bi-layout { grid-template-columns: 1fr; }
+}
+
+/* ---------- seções separadas por régua ---------- */
+.bi-secao {
+  padding-bottom: var(--bi-gap-secao);
+  border-bottom: 1px solid var(--bi-linha);
+}
+.bi-secao:last-child { border-bottom: none; }
+
+/* ---------- bloco herói ---------- */
+.bi-heroi {
+  display: flex;
+  gap: 40px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+.bi-heroi-principal {
+  flex: 1;
+  min-width: 200px;
+}
+.bi-heroi-numero {
+  font-family: var(--bi-font-serif);
+  font-size: clamp(40px, 6vw, 56px);
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--bi-tinta);
+  margin: 4px 0 8px;
+}
+.bi-heroi-rotulo {
+  font-size: 14px;
+  color: var(--bi-tinta-media);
+  margin: 0;
+}
+.bi-heroi-variacao {
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+.bi-heroi-secundario {
+  min-width: 160px;
+}
+.bi-heroi-secundario .bi-heroi-numero {
+  font-size: clamp(28px, 4vw, 36px);
+}
+
+/* ---------- variação / seta ---------- */
+.bi-var-bom { color: var(--bi-sinal-bom); }
+.bi-var-atencao { color: var(--bi-sinal-atencao); }
+.bi-var-critico { color: var(--bi-sinal-critico); }
+.bi-var-neutro { color: var(--bi-tinta-fraca); }
+
+/* ---------- faixa de KPIs ---------- */
+.bi-kpi-strip {
+  display: flex;
+  gap: 0;
+  flex-wrap: wrap;
+}
+.bi-kpi-item {
+  flex: 1;
+  min-width: 130px;
+  padding: 16px 18px;
+  border-right: 1px solid var(--bi-linha);
+}
+.bi-kpi-item:last-child { border-right: none; }
+.bi-kpi-label {
+  font-size: 12px;
+  color: var(--bi-tinta-fraca);
+  margin: 0 0 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.bi-kpi-valor {
+  font-family: var(--bi-font-serif);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0;
+}
+.bi-kpi-var {
+  font-size: 12px;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.bi-kpi-info {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid var(--bi-tinta-fraca);
+  font-size: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--bi-tinta-fraca);
+  cursor: help;
+  background: transparent;
+  padding: 0;
+  font-family: var(--bi-font-sans);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+/* ---------- sparkline ---------- */
+.bi-spark {
+  display: block;
+  width: 80px;
+  height: 24px;
+  margin-top: 6px;
+}
+
+/* ---------- série temporal SVG ---------- */
+.bi-serie-container {
+  overflow-x: auto;
+}
+.bi-serie-svg {
+  display: block;
+  width: 100%;
+  max-width: 700px;
+  height: auto;
+}
+.bi-serie-svg text {
+  font-family: var(--bi-font-sans);
+  fill: var(--bi-tinta-fraca);
+  font-size: 11px;
+}
+
+/* ---------- funil ---------- */
+.bi-funil {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.bi-funil-row {
+  display: grid;
+  grid-template-columns: 100px 1fr 60px;
+  gap: 10px;
+  align-items: center;
+  font-size: 13px;
+}
+.bi-funil-label {
+  color: var(--bi-tinta-media);
+  text-align: right;
+}
+.bi-funil-track {
+  height: 28px;
+  background: var(--bi-linha);
+  border-radius: 2px;
+  position: relative;
+  overflow: hidden;
+}
+.bi-funil-bar {
+  height: 100%;
+  background: var(--bi-destaque);
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  color: var(--bi-papel-elevado);
+  font-size: 12px;
+  font-weight: 600;
+  min-width: 32px;
+  transition: width 0.7s ease-out;
+}
+.bi-funil-conv {
+  font-size: 12px;
+  color: var(--bi-tinta-fraca);
+}
+
+/* ---------- barras horizontais (composição) ---------- */
+.bi-hbars {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.bi-hbar-row {
+  display: grid;
+  grid-template-columns: 1fr 200px 60px;
+  gap: 10px;
+  align-items: center;
+  font-size: 13px;
+}
+@media (max-width: 640px) {
+  .bi-hbar-row { grid-template-columns: 1fr 100px 50px; }
+}
+.bi-hbar-label {
+  color: var(--bi-tinta);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bi-hbar-track {
+  height: 20px;
+  background: var(--bi-linha);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.bi-hbar-fill {
+  height: 100%;
+  background: var(--bi-destaque);
+  border-radius: 2px;
+  transition: width 0.7s ease-out;
+}
+.bi-hbar-fill.top {
+  background: var(--bi-destaque);
+}
+.bi-hbar-value {
+  text-align: right;
+  color: var(--bi-tinta-media);
+  font-size: 12px;
+}
+
+/* ---------- grade duas colunas ---------- */
+.bi-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--bi-gap-secao);
+}
+@media (max-width: 768px) {
+  .bi-grid-2 { grid-template-columns: 1fr; }
+}
+
+/* ---------- tabela densa ---------- */
+.bi-tabela {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.bi-tabela th {
+  text-align: left;
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--bi-tinta-fraca);
+  padding: 8px 10px;
+  border-bottom: 2px solid var(--bi-linha);
+  position: sticky;
+  top: 0;
+  background: var(--bi-papel);
+}
+.bi-tabela td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--bi-linha);
+  vertical-align: middle;
+}
+.bi-tabela tr:last-child td { border-bottom: none; }
+.bi-tabela-sinal {
+  width: 3px;
+  padding: 0 !important;
+  border-bottom: none !important;
+}
+.bi-tabela-sinal-critico { background: var(--bi-sinal-critico); }
+.bi-tabela-sinal-atencao { background: var(--bi-sinal-atencao); }
+.bi-tabela-sinal-ok { background: var(--bi-sinal-bom); }
+.bi-tabela-tendencia {
+  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+/* ---------- coluna lateral ---------- */
+.bi-lateral {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ---------- alertas ---------- */
+.bi-alertas {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.bi-alerta-item {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 13px;
+  line-height: 1.4;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--bi-linha);
+}
+.bi-alerta-item:last-child { border-bottom: none; }
+.bi-alerta-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 5px;
+}
+.bi-alerta-dot-critico { background: var(--bi-sinal-critico); }
+.bi-alerta-dot-atencao { background: var(--bi-sinal-atencao); }
+.bi-alerta-dot-ok { background: var(--bi-sinal-bom); }
+.bi-alerta-link {
+  color: var(--bi-destaque);
+  text-decoration: none;
+  font-size: 12px;
+}
+.bi-alerta-link:hover { text-decoration: underline; }
+.bi-alerta-vazio {
+  font-size: 13px;
+  color: var(--bi-sinal-bom);
+  padding: 12px 0;
+}
+
+/* ---------- saúde do período ---------- */
+.bi-saude {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.bi-saude-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--bi-linha);
+}
+.bi-saude-item:last-child { border-bottom: none; }
+.bi-saude-rotulo {
+  color: var(--bi-tinta-media);
+}
+.bi-saude-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ---------- heatmap ---------- */
+.bi-heatmap {
+  display: grid;
+  gap: 2px;
+  font-size: 11px;
+}
+.bi-heatmap-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 4px;
+  border-radius: 2px;
+  font-variant-numeric: tabular-nums;
+  color: var(--bi-tinta);
+  min-width: 48px;
+}
+.bi-heatmap-header {
+  font-weight: 600;
+  color: var(--bi-tinta-fraca);
+  text-align: center;
+  padding: 4px;
+}
+.bi-heat-0 { background: var(--bi-papel); }
+.bi-heat-1 { background: #dceee5; }
+.bi-heat-2 { background: #a8d5bb; }
+.bi-heat-3 { background: #5fb585; }
+.bi-heat-4 { background: var(--bi-destaque); color: var(--bi-papel-elevado); }
+
+/* ---------- estados (loading / error / empty) ---------- */
+.bi-skeleton {
+  background: linear-gradient(90deg, var(--bi-linha) 25%, #e4e8e1 50%, var(--bi-linha) 75%);
+  background-size: 200% 100%;
+  animation: bi-shimmer 1.5s infinite;
+  border-radius: 2px;
+  min-height: 40px;
+}
+@keyframes bi-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.bi-erro {
+  background: #fdf2f0;
+  border-left: 3px solid var(--bi-sinal-critico);
+  padding: 12px 16px;
+  font-size: 13px;
+  color: var(--bi-sinal-critico);
+  border-radius: 0 var(--bi-radius) var(--bi-radius) 0;
+}
+.bi-erro button {
+  background: none;
+  border: 1px solid var(--bi-sinal-critico);
+  color: var(--bi-sinal-critico);
+  padding: 4px 12px;
+  border-radius: var(--bi-radius);
+  cursor: pointer;
+  font-size: 12px;
+  margin-top: 8px;
+}
+.bi-vazio {
+  font-size: 13px;
+  color: var(--bi-tinta-fraca);
+  padding: 20px 0;
+  text-align: center;
+}
+
+/* ---------- exportar ---------- */
+.bi-exportar {
+  border: 1px solid var(--bi-linha);
+  background: var(--bi-papel-elevado);
+  color: var(--bi-tinta-media);
+  font-family: var(--bi-font-sans);
+  font-size: 13px;
+  padding: 8px 16px;
+  border-radius: var(--bi-radius);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.bi-exportar:hover { background: var(--bi-linha); }
+
+/* ---------- movimento: reduzido ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .bi-skeleton { animation: none; }
+  .bi-funil-bar, .bi-hbar-fill { transition: none; }
+}
+
+/* ---------- responsividade 390px ---------- */
+@media (max-width: 480px) {
+  .painel-bi { padding: 16px; }
+  .bi-heroi { gap: 20px; }
+  .bi-heroi-numero { font-size: 36px; }
+  .bi-kpi-strip { flex-direction: column; }
+  .bi-kpi-item { border-right: none; border-bottom: 1px solid var(--bi-linha); }
+  .bi-kpi-item:last-child { border-bottom: none; }
+  .bi-funil-row { grid-template-columns: 80px 1fr 50px; }
+  .bi-tabela { font-size: 12px; }
+  .bi-tabela th, .bi-tabela td { padding: 6px; }
+}
+
+/* ---------- print ---------- */
+@media print {
+  .painel-bi { background: white; padding: 0; }
+  .bi-filtros, .bi-refresh, .bi-exportar { display: none; }
+}
