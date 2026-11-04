@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   fetchLeads, fetchCustos, fetchSnapshots,
-  aggregateBI, getDemoData,
+  aggregateBI,
   type Lead, type CustoCaptacao, type CaptacaoSnapshot,
   type FunnelStage, type OrigemData, type EvolucaoMensal,
   type CustoCanal, type CursoMatricula, type ConversaoOrigem,
@@ -256,12 +256,14 @@ export default function CaptacaoBI({ institutionId, institutionName }: { institu
   const [leads, setLeads] = useState<Lead[]>([]);
   const [custos, setCustos] = useState<CustoCaptacao[]>([]);
   const [snapshots, setSnapshots] = useState<CaptacaoSnapshot[]>([]);
-  const [useDemo, setUseDemo] = useState(false);
+  const [updatedAt, setUpdatedAt] = useState<string | null>(null);
+  const loadRequestId = useRef(0);
   const [tv, setTv] = useState(false);
   const panelRef = useRef<HTMLElement>(null);
   const importRef = useRef<HTMLDialogElement>(null);
 
   async function loadData() {
+    const requestId = ++loadRequestId.current;
     setLoading(true);
     setError('');
     try {
@@ -270,31 +272,28 @@ export default function CaptacaoBI({ institutionId, institutionName }: { institu
         fetchCustos(institutionId),
         fetchSnapshots(institutionId),
       ]);
-      if (!l.length && !c.length && !s.length) {
-        // Sem dados reais â mostrar demo
-        const demo = getDemoData();
-        setLeads(demo.leads);
-        setCustos(demo.custos);
-        setSnapshots(demo.snapshots);
-        setUseDemo(true);
-      } else {
-        setLeads(l);
-        setCustos(c);
-        setSnapshots(s);
-        setUseDemo(false);
-      }
+      if (requestId !== loadRequestId.current) return;
+      // Nunca substituir dados ausentes ou consultas com falha por indicadores fictícios.
+      setLeads(l);
+      setCustos(c);
+      setSnapshots(s);
+      setUpdatedAt(new Date().toISOString());
     } catch {
-      // Tabelas podem nÃ£o existir ainda â usar demo
-      const demo = getDemoData();
-      setLeads(demo.leads);
-      setCustos(demo.custos);
-      setSnapshots(demo.snapshots);
-      setUseDemo(true);
+      if (requestId !== loadRequestId.current) return;
+      setLeads([]);
+      setCustos([]);
+      setSnapshots([]);
+      setUpdatedAt(null);
+      setError('Não foi possível consultar os dados reais de captação. Tente atualizar.');
+    } finally {
+      if (requestId === loadRequestId.current) setLoading(false);
     }
-    setLoading(false);
   }
 
-  useEffect(() => { loadData(); }, [institutionId]);
+  useEffect(() => {
+    void loadData();
+    return () => { loadRequestId.current += 1; };
+  }, [institutionId]);
 
   useEffect(() => {
     if (!tv) return;
@@ -313,6 +312,7 @@ export default function CaptacaoBI({ institutionId, institutionName }: { institu
   };
 
   const bi = aggregateBI(leads, custos, snapshots);
+  const noData = leads.length === 0 && custos.length === 0 && snapshots.length === 0;
 
   if (loading) return <section className="cbi-root"><p role="status">Carregando BI de captaÃ§Ã£oâ¦</p></section>;
 
@@ -320,7 +320,7 @@ export default function CaptacaoBI({ institutionId, institutionName }: { institu
     <div className="cbi-header">
       <div>
         <h2>BI de CaptaÃ§Ã£o</h2>
-        <p>{institutionName} {useDemo && <span className="cbi-demo-badge">Dados demonstrativos</span>}</p>
+        <p>{institutionName}</p>
       </div>
       <div className="cbi-actions">
         <button type="button" onClick={() => importRef.current?.showModal()}>Importar CSV</button>
@@ -330,18 +330,29 @@ export default function CaptacaoBI({ institutionId, institutionName }: { institu
     </div>
 
     {error && <p role="alert" className="cbi-error">{error}</p>}
+    {updatedAt && <p className="cbi-status">Última consulta ao Supabase: {new Date(updatedAt).toLocaleString('pt-BR')}</p>}
 
-    <KPITiles kpis={bi.kpis} snapshots={snapshots} />
-
-    <div className="cbi-grid">
-      <FunnelChart data={bi.funnel} />
-      <HBarChart title="Leads por Origem" data={bi.origens} valueKey="leads" labelKey="canal" />
-      <EvolucaoChart data={bi.evolucao} />
-      <HBarChart title="Custo por Canal" data={bi.custosCanal} valueKey="investimento" labelKey="canal"
-        formatValue={v => fmtMoney.format(v)} subtitle="Investimento total por canal" />
-      <DonutChart title="MatrÃ­culas por Curso" data={bi.cursos} valueKey="mat" labelKey="curso" />
-      <ConversaoChart data={bi.conversao} />
-    </div>
+    {noData ? (
+      <section className="cbi-card" aria-live="polite">
+        <h3>{error ? 'Indicadores indisponíveis' : 'Nenhum dado real de captação'}</h3>
+        <p>{error
+          ? 'Os indicadores não foram exibidos porque a consulta falhou. Atualize para tentar novamente.'
+          : 'Ainda não existem leads, custos ou registros mensais para esta instituição. Importe um CSV ou integre uma fonte de dados para visualizar os indicadores.'}</p>
+      </section>
+    ) : (
+      <>
+        <KPITiles kpis={bi.kpis} snapshots={snapshots} />
+        <div className="cbi-grid">
+          <FunnelChart data={bi.funnel} />
+          <HBarChart title="Leads por Origem" data={bi.origens} valueKey="leads" labelKey="canal" />
+          <EvolucaoChart data={bi.evolucao} />
+          <HBarChart title="Custo por Canal" data={bi.custosCanal} valueKey="investimento" labelKey="canal"
+            formatValue={v => fmtMoney.format(v)} subtitle="Investimento total por canal" />
+          <DonutChart title="Matrículas por Curso" data={bi.cursos} valueKey="mat" labelKey="curso" />
+          <ConversaoChart data={bi.conversao} />
+        </div>
+      </>
+    )}
 
     <ImportDialog institutionId={institutionId} onImported={loadData} dialogRef={importRef} />
   </section>;
