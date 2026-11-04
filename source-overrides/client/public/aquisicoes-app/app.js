@@ -49,8 +49,126 @@ function login(){
  bind('login','submit',async e=>{e.preventDefault();const f=new FormData(e.currentTarget);const d=await request('/auth/v1/token?grant_type=password',{method:'POST',auth:false,body:{email:f.get('email'),password:f.get('password')}});saveSession({...d,expires_at:Date.now()/1000+d.expires_in});await home();});
  bind('signup','click',async()=>{const form=document.querySelector('#login');if(!form.reportValidity())return;const f=new FormData(form);const d=await request('/auth/v1/signup',{method:'POST',auth:false,body:{email:f.get('email'),password:f.get('password'),...((config.mode==='local'||config.mode==='portal')&&config.setupProtected?{activation_token:sessionStorage.getItem('vertice-activation')}: {})}});if(d.access_token){saveSession({...d,expires_at:Date.now()/1000+d.expires_in});await home();}else if(d.local_account_created){sessionStorage.removeItem('vertice-activation');const loginData=await request('/auth/v1/token?grant_type=password',{method:'POST',auth:false,body:{email:f.get('email'),password:f.get('password')}});saveSession({...loginData,expires_at:Date.now()/1000+loginData.expires_in});await home();}else document.querySelector('#auth-message').textContent='Confira seu e-mail para confirmar a conta. Depois, volte aqui para entrar.';});
 }
-function shell(content){root.innerHTML=`<aside><a class="brand institutional-brand" href="#" aria-label="Vértice Educação Superior"><img class="institutional-logo" src="${brandLogo}" alt="Vértice Educação Superior" width="1703" height="390"></a><p class="nav-label">ÁREA DE TRABALHO</p><button id="home" class="nav active">◈ <span>Aquisições</span></button><button id="model-library" class="nav model-nav">▤ <span>Modelos de documentos</span></button><button id="demo-opinion" class="nav model-nav">◇ <span>Teste com parecer</span></button><div class="aside-bottom"><span class="lock">◇</span><strong>Ambiente reservado</strong><p>O acesso é individual e limitado aos seus mandatos.</p></div></aside><main><header><div class="header-identity"><a class="header-brand" href="#" aria-label="Vértice Educação Superior"><img class="header-logo" src="${brandLogo}" alt="Vértice Educação Superior" width="1703" height="390"></a><span class="header-context">Aquisições ${matter?'<b>/</b> '+esc(matter.code):''}</span></div><div><span class="account">${esc(session?.user?.email)}</span>${config.mode==='portal'?'<a class="text-btn" href="/master" target="_top">← Painel master</a>':''}<button id="logout" class="text-btn">Sair ↗</button>${config.mode==='local'?'<button id="shutdown" class="text-btn">Encerrar módulo</button>':''}</div></header><div class="content">${content}</div></main>`;bind('shutdown','click',async()=>{await request('/local/shutdown',{method:'POST',body:{}});sessionStorage.removeItem(config.mode==='portal'?'vertice-green-portal-session':'vertice-session');session=null;root.innerHTML='<div class="empty"><h2>Módulo encerrado.</h2><p>Os dados foram salvos. Use Abrir-Aquisicoes para voltar.</p></div>';});bind('model-library','click',()=>showModels());bind('demo-opinion','click',showDemoOpinion);bind('home','click',returnHome);bind('logout','click',async()=>{if(config.mode==='portal'){parent.postMessage({type:'green-logout'},location.origin);return;}try{await request('/auth/v1/logout',{method:'POST'});}finally{session=null;sessionStorage.removeItem(config.mode==='portal'?'vertice-green-portal-session':'vertice-session');matter=null;login();}});}
+function shell(content){root.innerHTML=`<aside><a class="brand institutional-brand" href="#" aria-label="Vértice Educação Superior"><img class="institutional-logo" src="${brandLogo}" alt="Vértice Educação Superior" width="1703" height="390"></a><p class="nav-label">ÁREA DE TRABALHO</p><button id="home" class="nav active">◈ <span>Aquisições</span></button><button id="rector-bi-open" class="nav model-nav">▥ <span>BI da Reitoria</span></button><button id="model-library" class="nav model-nav">▤ <span>Modelos de documentos</span></button><button id="demo-opinion" class="nav model-nav">◇ <span>Teste com parecer</span></button><div class="aside-bottom"><span class="lock">◇</span><strong>Ambiente reservado</strong><p>O acesso é individual e limitado aos seus mandatos.</p></div></aside><main><header><div class="header-identity"><a class="header-brand" href="#" aria-label="Vértice Educação Superior"><img class="header-logo" src="${brandLogo}" alt="Vértice Educação Superior" width="1703" height="390"></a><span class="header-context">Aquisições ${matter?'<b>/</b> '+esc(matter.code):''}</span></div><div><span class="account">${esc(session?.user?.email)}</span>${config.mode==='portal'?'<a class="text-btn" href="/master" target="_top">← Painel master</a>':''}<button id="logout" class="text-btn">Sair ↗</button>${config.mode==='local'?'<button id="shutdown" class="text-btn">Encerrar módulo</button>':''}</div></header><div class="content">${content}</div></main>`;bind('shutdown','click',async()=>{await request('/local/shutdown',{method:'POST',body:{}});sessionStorage.removeItem(config.mode==='portal'?'vertice-green-portal-session':'vertice-session');session=null;root.innerHTML='<div class="empty"><h2>Módulo encerrado.</h2><p>Os dados foram salvos. Use Abrir-Aquisicoes para voltar.</p></div>';});bind('model-library','click',()=>showModels());bind('demo-opinion','click',showDemoOpinion);bind('home','click',returnHome);bind('rector-bi-open','click',showRectorDashboard);bind('logout','click',async()=>{if(config.mode==='portal'){parent.postMessage({type:'green-logout'},location.origin);return;}try{await request('/auth/v1/logout',{method:'POST'});}finally{session=null;sessionStorage.removeItem(config.mode==='portal'?'vertice-green-portal-session':'vertice-session');matter=null;login();}});}
 async function returnHome(){history.replaceState(null,'',location.pathname+location.search);if(config.mode==='portal')parent.postMessage({type:'green-location',hash:''},location.origin);await home();}
+function showRectorDashboard() {
+ const statuses = {draft:'Em preparação',active:'Em análise',closing:'Fechamento',closed:'Encerrado',cancelled:'Cancelado'};
+ const courses = [
+  {name:'Administração',enrolled:240,assessed:200,failed:24,revenue:180000,cost:126000},
+  {name:'Direito',enrolled:320,assessed:280,failed:42,revenue:250000,cost:194000},
+  {name:'Pedagogia',enrolled:180,assessed:160,failed:32,revenue:96000,cost:108000}
+ ];
+ const money = new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:2});
+ const percent = new Intl.NumberFormat('pt-BR',{style:'percent',maximumFractionDigits:1});
+ const titles = ['Aquisições','Matrículas','Reprovações','Resultado por curso'];
+ shell('<section id="rector-bi" class="empty"><p class="eyebrow">BI DA REITORIA</p><div id="bi-tabs" class="toolbar"></div><div id="bi-controls" class="toolbar"><button class="secondary" id="bi-tv">Iniciar modo TV</button><button class="secondary" id="bi-cost">Captação e permanência</button><button class="secondary" id="bi-back">Voltar a Aquisições</button></div><div id="bi-slide"></div><dialog id="bi-detail"><div id="bi-records"></div><form method="dialog"><button class="secondary">Fechar detalhes</button></form></dialog></section>');
+ const panel = document.getElementById('rector-bi');
+ const slide = panel.querySelector('#bi-slide');
+ const detail = panel.querySelector('#bi-detail');
+ const tvButton = panel.querySelector('#bi-tv');
+ let current = 0, tv = false, timer, refreshError = false, updated, acquisitionRecords = [];
+ const liveRows = () => [...new Set(acquisitionRecords.map(m => m.status))].map(status => {
+  const records = acquisitionRecords.filter(m => m.status === status);
+  return {label:statuses[status] || status,value:records.length,display:records.length,records};
+ });
+ function rows() {
+  if (current === 0) return liveRows();
+  return courses.map(course => {
+   const {name,enrolled,assessed,failed,revenue,cost} = course;
+   const value = [0,enrolled,failed/assessed,revenue-cost][current];
+   const display = current === 2 ? percent.format(value) : current === 3 ? money.format(value) : value;
+   const description = ['',enrolled+' matrículas',failed+' reprovações em '+assessed+' avaliações',money.format(revenue)+' em receitas e '+money.format(cost)+' em custos'][current];
+   return {label:name,value,display,description};
+  }).sort((a,b) => b.value-a.value);
+ }
+ function render() {
+  const data = rows();
+  const max = Math.max(1e-9,...data.map(row => Math.abs(row.value)));
+  slide.innerHTML = `<p class="eyebrow">${current ? 'DEMONSTRAÇÃO · DADOS FICTÍCIOS' : 'MANDATOS AUTORIZADOS'}</p><h1>${titles[current]}</h1><p>${current ? 'Clique em uma barra para ver o cálculo ou a contagem.' : refreshError ? 'Falha na consulta de Aquisições. Tente novamente.' : updated ? 'Consultado às '+updated : 'Consultando Aquisições…'}</p>${data.map((row,index) => `<button class="matter-card" style="display:block;width:100%;margin:12px 0;text-align:left" data-bi-row="${index}"><strong>${esc(row.label)} · ${esc(String(row.display))}</strong><span aria-hidden="true" style="display:block;margin-top:8px;height:14px;border-radius:6px;width:${Math.abs(row.value)/max*100}%;background:${row.value<0?'#b42318':['#087f5b','#3159ba','#a43e10','#7235a0'][current]}"></span></button>`).join('') || (updated && !refreshError ? '<p>Nenhum mandato autorizado.</p>' : '')}`;
+  panel.querySelectorAll('[data-bi-tab]').forEach(button => button.setAttribute('aria-pressed',String(Number(button.dataset.biTab) === current)));
+  slide.querySelectorAll('[data-bi-row]').forEach(button => button.onclick = () => {
+   clearTimeout(timer);
+   const row = data[Number(button.dataset.biRow)];
+   panel.querySelector('#bi-records').innerHTML = `<h2>${esc(row.label)}</h2>${row.records ? row.records.map((m,index) => `<p><button class="text-btn" data-bi-matter="${index}">${esc(m.code)} · ${esc(m.title)}</button></p>`).join('') : `<p>${esc(row.description)}</p>`}`;
+   detail.querySelectorAll('[data-bi-matter]').forEach(link => link.onclick = async () => {
+    if (document.fullscreenElement === panel) await document.exitFullscreen();
+    await openMatter(row.records[Number(link.dataset.biMatter)].id);
+   });
+   detail.showModal();
+  });
+ }
+ async function refresh() {
+  try {
+   const records = await read('dd_matters','&order=created_at.desc');
+   if (!panel.isConnected) return;
+   matters = records;
+   acquisitionRecords = records.filter(m => m.scope_note !== 'SEED-TESTE-FLUXO-COMPLETO-V1');
+   updated = new Date().toLocaleTimeString('pt-BR');
+   refreshError = false;
+  } catch {
+   if (!panel.isConnected) return;
+   acquisitionRecords = [];
+   updated = null;
+   refreshError = true;
+  }
+  if (!detail.open && current === 0) render();
+ }
+ function schedule() {
+  clearTimeout(timer);
+  if (!tv || detail.open || !panel.isConnected) return;
+  timer = setTimeout(() => {
+   if (!panel.isConnected) return;
+   current = (current + 1) % titles.length;
+   render();
+   void refresh();
+   schedule();
+  },600000);
+ }
+ panel.querySelector('#bi-tabs').innerHTML = titles.map((title,index) => `<button class="secondary" data-bi-tab="${index}">${title}</button>`).join('');
+ panel.querySelectorAll('[data-bi-tab]').forEach(button => button.onclick = () => {
+  current = Number(button.dataset.biTab);
+  render();
+  schedule();
+ });
+ detail.addEventListener('close',schedule);
+ tvButton.onclick = async () => {
+  tv = !tv;
+  tvButton.textContent = tv ? 'Pausar modo TV' : 'Iniciar modo TV';
+  if (tv) {
+   panel.style.cssText = 'overflow:auto;padding:clamp(20px,5vw,72px);background:#f5faf7;color:#12372b;font-size:clamp(16px,2vw,28px)';
+   try { await panel.requestFullscreen(); } catch { /* A rotação também funciona na janela. */ }
+  } else if (document.fullscreenElement === panel) await document.exitFullscreen();
+  schedule();
+ };
+ panel.querySelector('#bi-cost').onclick = () => {
+  clearTimeout(timer);
+  const content = panel.querySelector('#bi-records');
+  content.innerHTML = `<h2>Captação e permanência</h2>
+   <p>Informe dados do mesmo período, curso e campanha. Os valores são calculados ao preencher os campos.</p>
+   <form id="bi-cost-inputs">
+    <label>Investimento em captação (R$)<input name="spend" type="number" min="0" step="0.01"></label>
+    <label>Matrículas confirmadas atribuídas à campanha<input name="confirmed" type="number" min="0" step="1"></label>
+    <label>Despesas de permanência no período (R$)<input name="retention" type="number" min="0" step="0.01"></label>
+    <label>Alunos acompanhados no período<input name="students" type="number" min="0" step="1"></label>
+    <p>Custo por matrícula confirmada <strong id="bi-cac">—</strong></p>
+    <p>Custo de permanência por aluno acompanhado <strong id="bi-retention">—</strong></p>
+   </form>`;
+  const form = content.querySelector('form');
+  form.addEventListener('submit',event => event.preventDefault());
+  form.addEventListener('input',() => {
+   for (const [costName,countName,resultId] of [['spend','confirmed','bi-cac'],['retention','students','bi-retention']]) {
+    const cost = form.elements.namedItem(costName);
+    const count = form.elements.namedItem(countName);
+    content.querySelector('#'+resultId).textContent = cost.validity.valid && count.validity.valid &&
+     cost.value !== '' && count.valueAsNumber > 0 ? money.format(cost.valueAsNumber/count.valueAsNumber) : '—';
+   }
+  });
+  detail.showModal();
+ };
+ panel.querySelector('#bi-back').onclick = () => { clearTimeout(timer); void home(); };
+ render();
+ void refresh();
+}
 async function home(){matterLoad++;matter=null;[profile,matters]=await Promise.all([rpc('dd_profile'),read('dd_matters','&order=created_at.desc')]);if(new URLSearchParams(location.hash.slice(1)).has('mandato')){const params=new URLSearchParams(location.hash.slice(1)),id=params.get('mandato');history.replaceState(null,'',location.pathname+location.search);if(matters.some(m=>m.id===id)){tab=['summary','base','emec','requirements','scope','review','ebitda','valuation','opinion','findings','documents','agent','members'].includes(params.get('aba'))?params.get('aba'):'summary';await openMatter(id);}else{renderHome();toast('Mandato não encontrado ou sem autorização.',true);}}else if(location.hash==='#modelos'){renderHome();await showModels();}else if(['#teste-parecer','#teste-aca'].includes(location.hash)){const single=location.hash==='#teste-aca';history.replaceState(null,'',location.pathname+location.search);if(single)showSingleDemoOpinion();else await showDemoOpinion();}else renderHome();}
 function renderHome(){
  shell(`<div class="page-heading"><div><p class="eyebrow">DUE DILIGENCE · ENSINO SUPERIOR</p><h1>Mandatos de aquisição</h1><p>Da primeira análise à decisão de investimento.</p></div>${profile.admin?'<button id="new-matter" class="primary">+ Novo mandato</button>':''}</div><div class="stats"><article><span>MEUS MANDATOS</span><strong>${matters.length.toString().padStart(2,'0')}</strong><small>Operações com acesso autorizado</small></article><article><span>EM ANDAMENTO</span><strong>${matters.filter(m=>['active','draft','closing'].includes(m.status)).length.toString().padStart(2,'0')}</strong><small>Triagem, análise e fechamento</small></article><article><span>INSTRUMENTO DE ANÁLISE</span><strong>305 <em>requisitos</em></strong><small>10 frentes de due diligence</small></article></div><div class="section-heading"><h2>Suas operações</h2><span class="muted">Acesso segregado por mandato</span></div><div class="matter-grid">${matters.map(m=>`<button class="matter-card" data-matter="${m.id}"><div><span class="tag">${esc(m.code)}</span><span class="status">${esc(({draft:'Em preparação',active:'Em análise',closing:'Fechamento',closed:'Encerrado',cancelled:'Cancelado'})[m.status])}</span></div><h2>${esc(m.title)}</h2><p>${esc(m.target_name)}</p><dl><div><dt>CLIENTE</dt><dd>${esc(m.client_name)}</dd></div><div><dt>POSIÇÃO</dt><dd>${m.side==='buyer'?'Comprador':m.side==='seller'?'Vendedor':'Neutro'}</dd></div></dl><footer>Abrir mandato <span>↗</span></footer></button>`).join('')||`<div class="empty"><div class="empty-icon">◇</div><h2>Seu próximo movimento começa aqui.</h2><p>${profile.admin?'Abra um mandato para iniciar a análise dos 305 requisitos.':'Você ainda não participa de um mandato. Solicite autorização ao responsável pela operação.'}</p></div>`}</div><div class="info-strip"><span>01 — 10</span><div><strong>Uma análise em todas as frentes.</strong><p>Regulatória, acadêmica, financeira, tributária, trabalhista e mais cinco áreas conectadas.</p></div></div>`);
