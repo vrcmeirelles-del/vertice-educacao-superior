@@ -1,3 +1,4 @@
+import { iesBootstrapRejected } from './ies/preAuthGuard';
 import "@/lib/master-invitation-bootstrap";
 import { createClient } from '@supabase/supabase-js';
 // Capture the callback type before the SDK consumes and removes the fragment.
@@ -8,5 +9,5 @@ export const callbackToken = passwordCallback ? callback.get('access_token') : n
 export const supabase = createClient(
   'https://qvetbbmviatxxatzzuzc.supabase.co',
   'sb_publishable_id8AJN7W1v1TyYIp4R7yTg_gclHJ0T1',
-  { auth: { persistSession: typeof window !== 'undefined', storage: typeof window !== 'undefined' ? window.localStorage : undefined, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'implicit' } }
+  { auth: { persistSession: typeof window !== 'undefined', storage: typeof window !== 'undefined' ? window.localStorage : undefined, autoRefreshToken: true, detectSessionInUrl: !iesBootstrapRejected, flowType: 'implicit' } }
 );

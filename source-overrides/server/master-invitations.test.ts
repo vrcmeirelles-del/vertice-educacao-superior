@@ -157,7 +157,11 @@ describe('Master invitations fail closed', () => {
     expect(denied).not.toContain('<form'); expect(denied).not.toContain(email); expect(rpc).not.toHaveBeenCalled();
   });
   it('bootstraps before Auth and retains logout/account-change invalidation', () => {
-    for (const file of ['client/src/main.tsx', 'client/src/lib/supabase.ts']) expect(fs.readFileSync(file, 'utf8').split('\n')[0]).toContain('master-invitation-bootstrap');
+    for (const file of ['client/src/main.tsx', 'client/src/lib/supabase.ts']) {
+      const source = fs.readFileSync(file, 'utf8');
+      expect(source.indexOf('ies/preAuthGuard')).toBeLessThan(source.indexOf('master-invitation-bootstrap'));
+      expect(source.indexOf('master-invitation-bootstrap')).toBeLessThan(source.indexOf(file.endsWith('supabase.ts') ? 'createClient' : 'createRoot'));
+    }
     const host = fs.readFileSync('client/src/components/area/MasterAccess.tsx', 'utf8');
     expect(host).toContain("event === 'SIGNED_OUT'"); expect(host).toContain('lastUser.current !== session.user.id'); expect(host).toContain('generation.current++'); expect(host).toContain('queueMicrotask');
   });
