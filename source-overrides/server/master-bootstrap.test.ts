@@ -14,7 +14,7 @@ function browser(hash: string) {
   const replaceState = vi.fn((_state: unknown, _title: string, url: string) => {
     location.hash = new URL(url, 'https://example.invalid').hash;
   });
-  vi.stubGlobal('window', { location, history: { replaceState }, localStorage: {} });
+  vi.stubGlobal('window', { location, history: { replaceState }, localStorage: {}, addEventListener: vi.fn() });
   return { location, replaceState };
 }
 

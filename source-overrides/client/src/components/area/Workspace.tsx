@@ -1,4 +1,4 @@
-import {actionDraftKey,parseActionDraft,storeActionDraft,validateActionLinks} from "@/lib/portal-integration";
+import {actionDraftKey,parseActionDraft,storeActionDraft,validateActionLinks,changeActionScope} from "@/lib/portal-integration";
 import ActionCockpit from "./ActionCockpit";
 import RegistryContacts from "./RegistryContacts";
 import { courseClassification, useCourseFilters } from "./CourseFilters";
@@ -667,11 +667,12 @@ function GoalsTab({ institutionId, role, data, reload, onRepository }: { institu
 
 // ================================================================ plano 5W2H
 function actionFields(data: Data): Field[] {
+  const scopeName=(id:unknown)=>String(data.courses.find(c=>c.id===id)?.display_name??data.courses.find(c=>c.id===id)?.name??"Institucional");
   return withHelp([
     { name: "what", label: "O quê (ação)", required: true, wide: true },
     { name: "why", label: "Por quê", type: "textarea" },
-    { name: "goal_id", label: "Meta relacionada", type: "select", options: data.goals.map(g => [g.id, String(g.title)]) },
-    { name: "finding_id", label: "Achado do diagnóstico", type: "select", options: data.diagnosis.map(d => [d.id, String(d.criterion)]) },
+    { name: "goal_id", label: "Meta relacionada", type: "select", options: data.goals.map(g => [g.id, scopeName(g.course_id)+" · "+String(g.title)]) },
+    { name: "finding_id", label: "Achado do diagnóstico", type: "select", options: data.diagnosis.map(d => [d.id, scopeName(d.course_id)+" · "+String(d.criterion)]) },
     { name: "course_id", label: "Curso", type: "select", options: courseOptions(data.courses) },
     { name: "who", label: "Quem (responsável)" },
     { name: "where_at", label: "Onde" },
@@ -714,6 +715,8 @@ function ActionsTab({ institutionId, role, data, reload }: { institutionId: stri
         <RecordForm key={(ed.editing === "new" ? "new" : (ed.editing as Row).id)+JSON.stringify(prefill)}
           title={ed.editing === "new" ? "Nova ação" : "Editar ação"}
           fields={actionFields(data)}
+          onValueChange={(values,changed)=>changeActionScope(values,changed,data)}
+          optionsFor={(field,values)=>{const rows=field.name==="goal_id"?data.goals:field.name==="finding_id"?data.diagnosis:null;return rows&&values.course_id?field.options?.filter(([id])=>{const linked=rows.find(r=>r.id===id);return linked&&(!linked.course_id||linked.course_id===values.course_id);}):field.options;}}
           initial={ed.editing === "new" ? { status: "nao_iniciada", progress: 0, ...prefill } : ed.editing}
           onCancel={ed.close}
           onSubmit={async v => {
