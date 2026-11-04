@@ -16,6 +16,7 @@ import {isInstrumentRequest,latestInstrumentDocuments} from '@/lib/repository';
 import GlobalRepository from '@/components/area/GlobalRepository';
 import GreenHost from '@/components/acquisitions/GreenHost';
 import DemoLeads from '@/components/DemoLeads';
+import CaptacaoBI from '@/components/area/CaptacaoBI';
 
 type Membership={user_id:string;institution_id:string;role:string};
 const SNAPSHOT_COLUMNS='id,course_id,semester,class_label,enrolled,capacity,available,source_report_at,reported_total,student_status';
@@ -32,7 +33,7 @@ async function fetchDashboardRows(table:string,order:string,ascending=true,colum
  for(let from=0;;from+=1000){const {data,error}=await supabase.from(table).select(columns).order(order,{ascending}).order('id').range(from,from+999);if(error)throw error;rows.push(...((data??[]) as unknown as Row[]));if(!data||data.length<1000)break;}
  return {data:rows,error:null};
 }
-function readHash(){const p=new URLSearchParams(typeof window==='undefined'?'':window.location.hash.slice(1));return {inst:p.get('instituicao')??'',course:p.get('curso')??'',repositories:p.get('repositorios')==='1',bi:p.get('bi')==='1'};}
+function readHash(){const p=new URLSearchParams(typeof window==='undefined'?'':window.location.hash.slice(1));return {inst:p.get('instituicao')??'',course:p.get('curso')??'',repositories:p.get('repositorios')==='1',bi:p.get('bi')==='1',captacao:p.get('captacao')==='1'};}
 function writeHash(inst:string,course:string,repositories=false,library=false,reitor=false){const p=new URLSearchParams();if(inst)p.set('instituicao',inst);if(course)p.set('curso',course);if(repositories){if(inst)p.set('aba','repositorio');else p.set('repositorios','1');}if(library)p.set('aba','biblioteca');if(reitor)p.set('aba','reitor');const h=p.toString();window.history.pushState(null,'',h?`#${h}`:window.location.pathname);window.dispatchEvent(new HashChangeEvent('hashchange'));window.scrollTo({top:0});}
 
 type BiItem = {label:string; group:string; value:number; href?:string};
@@ -95,6 +96,11 @@ function PortalBI({institutions,courses,enrollments,session}:{institutions:Insti
   if(tv){setTv(false);if(document.fullscreenElement===panel.current)void document.exitFullscreen().catch(()=>{});return;}
   setTv(true);if(page<0)setPage(0);void panel.current?.requestFullscreen?.().catch(()=>{});
  }
+ const captacaoLink=<article className="pbi-card" key="captacao-link" style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'12px',cursor:'pointer'}} onClick={()=>{window.location.hash='captacao=1';window.dispatchEvent(new HashChangeEvent('hashchange'));}}>
+   <h3 style={{margin:0,fontSize:'18px',color:'#328ea8'}}>\u{1F4CA} BI de Capta\u{00E7}\u{00E3}o</h3>
+   <p style={{margin:0,fontSize:'13px',color:'#757a80',textAlign:'center'}}>Dashboard completo de capta\u{00E7}\u{00E3}o com funil, custos e convers\u{00E3}o</p>
+   <span style={{background:'#328ea8',color:'white',padding:'6px 16px',borderRadius:'8px',fontSize:'13px',fontWeight:600}}>Acessar</span>
+  </article>;
  const cards:Record<number,BiSource>={...sources,1:{items:enrollmentItems}};
  function chart(index:number){
   const source=cards[index];
@@ -130,7 +136,7 @@ function PortalBI({institutions,courses,enrollments,session}:{institutions:Insti
  <button type="button" onClick={toggleTv}>{tv?'Pausar modo TV':'Modo TV · 10 min'}</button>
  <button type="button" onClick={()=>setTick(previous=>previous+1)}>Consultar fontes</button></div>
  <div className="pbi-toolbar"><button type="button" aria-pressed={page<0} onClick={()=>{setPage(-1);setTv(false);}}>Visão geral</button>{BI_NAMES.map((name,index)=><button type="button" key={name} aria-pressed={page===index} onClick={()=>setPage(index)}>{name}</button>)}</div>
- {page<0?<div className="pbi-grid">{BI_NAMES.slice(0,5).map((_,index)=>chart(index))}{costs}</div>:page===5?costs:chart(page)}
+ {page<0?<div className="pbi-grid">{BI_NAMES.slice(0,5).map((_,index)=>chart(index))}{captacaoLink}{costs}</div>:page===5?costs:chart(page)}
  <dialog ref={dialog} onClose={()=>setDetail(null)}>{detail&&<><h3>{detail.title}</h3><p>{biNumber.format(detail.items.length)} registros</p><ul>{detail.items.map((item,index)=><li key={index}>{item.href?<a href={item.href} onClick={()=>dialog.current?.close()}>{item.label}</a>:item.label}{item.value!==1?' · '+biNumber.format(item.value):''}</li>)}</ul></>}<form method="dialog"><button>Fechar detalhes</button></form></dialog>
  </section>;
 }
@@ -207,11 +213,12 @@ export default function OwnerDashboard(){
  {qr&&<><p>Leia o QR code no seu aplicativo autenticador. Não compartilhe esta imagem.</p><img alt="QR code para configurar seu autenticador" src={qr} width={200} height={200}/></>}
  <form className="access-form" onSubmit={verify}><label>Código do autenticador<input autoComplete="one-time-code" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} required value={code} onChange={e=>setCode(e.target.value)}/></label><button className="corp-button" disabled={busy}>Validar segundo fator</button></form></>}
  </section>:<><p>{master?'Visão das instituições da empresa.':'Você vê somente as instituições vinculadas à sua conta.'}</p>
- <nav className="repo-global-nav" aria-label="Indicadores do portal"><a className="repo-secondary" href="/master#bi=1" onClick={()=>setCommercial(false)}>BI da Reitoria</a></nav>
+ <nav className="repo-global-nav" aria-label="Indicadores do portal"><a className="repo-secondary" href="/master#bi=1" onClick={()=>setCommercial(false)}>BI da Reitoria</a>
+       <a className="repo-secondary" href="/master#captacao=1" onClick={()=>setCommercial(false)}>BI de Captação</a></nav>
  {master&&<nav className="repo-global-nav" aria-label="Visões do master"><a className="repo-secondary" href="/master/aquisicoes">Aquisições e incorporações</a><button className={`repo-secondary ${!commercial&&!route.bi&&!route.repositories&&!currentInst?'active':''}`} onClick={()=>{setCommercial(false);writeHash('','');}}>Gestão das instituições</button><button className={`repo-secondary ${!commercial&&route.repositories?'active':''}`} onClick={()=>{setCommercial(false);writeHash('','',true);}}>Repositórios de todas as IES</button><button className={`repo-secondary ${commercial?'active':''}`} onClick={()=>setCommercial(true)}>Demonstração · inteligência comercial</button></nav>}
  {master&&commercial?<DemoLeads/>:<>
- {!route.bi&&!currentInst&&!route.repositories&&<div className="stats-row"><div className="stat-card">Instituições<strong className="stat-value">{institutions.length}</strong></div><div className="stat-card">Cursos<strong className="stat-value">{courses.length}</strong></div><div className="stat-card">Vínculos<strong className="stat-value">{members.length}</strong></div></div>}
- {route.bi?<PortalBI institutions={institutions} courses={courses} enrollments={enrollments} session={session}/>:currentInst&&currentCourse?<CourseView key={currentCourse.id} course={currentCourse} institution={currentInst} enrollments={enrollments.filter(row => courses.some(course => course.id === row.course_id && course.institution_id === currentInst.id))} reports={reports} onBack={()=>writeHash(currentInst.id,'')} onPlan={can.record(roleIn(currentInst.id)) ? draft => { storeActionDraft(currentInst.id,draft); window.location.hash = new URLSearchParams({instituicao:currentInst.id,aba:'plano'}).toString(); } : undefined}/>
+ {!route.bi&&!route.captacao&&!currentInst&&!route.repositories&&<div className="stats-row"><div className="stat-card">Instituições<strong className="stat-value">{institutions.length}</strong></div><div className="stat-card">Cursos<strong className="stat-value">{courses.length}</strong></div><div className="stat-card">Vínculos<strong className="stat-value">{members.length}</strong></div></div>}
+ {route.captacao?<CaptacaoBI institutionId={institutions[0]?.id??''} institutionName={institutions[0]?.name??'Instituição'}/>:route.bi?<PortalBI institutions={institutions} courses={courses} enrollments={enrollments} session={session}/>:currentInst&&currentCourse?<CourseView key={currentCourse.id} course={currentCourse} institution={currentInst} enrollments={enrollments.filter(row => courses.some(course => course.id === row.course_id && course.institution_id === currentInst.id))} reports={reports} onBack={()=>writeHash(currentInst.id,'')} onPlan={can.record(roleIn(currentInst.id)) ? draft => { storeActionDraft(currentInst.id,draft); window.location.hash = new URLSearchParams({instituicao:currentInst.id,aba:'plano'}).toString(); } : undefined}/>
  :currentInst?<Workspace key={currentInst.id} institution={currentInst as unknown as Row} role={roleIn(currentInst.id)} onBack={()=>writeHash('','')} onChanged={load}
    stats={instStats(currentInst.id)}
    overview={<InstitutionView institution={currentInst} courses={courses} enrollments={enrollments} embedded onOpenCourse={id=>writeHash(currentInst.id,id)} onBack={()=>writeHash('','')}/>}/>
