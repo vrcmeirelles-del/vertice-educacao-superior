@@ -97,8 +97,8 @@ function PortalBI({institutions,courses,enrollments,session}:{institutions:Insti
   setTv(true);if(page<0)setPage(0);void panel.current?.requestFullscreen?.().catch(()=>{});
  }
  const captacaoLink=<article className="pbi-card" key="captacao-link" style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'12px',cursor:'pointer'}} onClick={()=>{window.location.hash='captacao=1';window.dispatchEvent(new HashChangeEvent('hashchange'));}}>
-   <h3 style={{margin:0,fontSize:'18px',color:'#328ea8'}}>\u{1F4CA} BI de Capta\u{00E7}\u{00E3}o</h3>
-   <p style={{margin:0,fontSize:'13px',color:'#757a80',textAlign:'center'}}>Dashboard completo de capta\u{00E7}\u{00E3}o com funil, custos e convers\u{00E3}o</p>
+   <h3 style={{margin:0,fontSize:'18px',color:'#328ea8'}}>📊 BI de Captação</h3>
+   <p style={{margin:0,fontSize:'13px',color:'#757a80',textAlign:'center'}}>Dashboard completo de captação com funil, custos e conversão</p>
    <span style={{background:'#328ea8',color:'white',padding:'6px 16px',borderRadius:'8px',fontSize:'13px',fontWeight:600}}>Acessar</span>
   </article>;
  const cards:Record<number,BiSource>={...sources,1:{items:enrollmentItems}};
