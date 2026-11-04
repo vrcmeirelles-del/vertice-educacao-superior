@@ -1,9 +1,12 @@
+import {storeActionDraft} from "@/lib/portal-integration";
+import {institutionEnrollmentSummary} from "@/lib/enrollment-summary";
+import {can} from "@/lib/area";
 import {useEffect, useState, type FormEvent} from 'react';
 import {Link} from 'wouter';
 import {supabase} from '@/lib/supabase';
 import type {Session} from '@supabase/supabase-js';
 import type {AcademicReport} from '@/components/AcademicReports';
-import {CourseView, InstitutionView, courseTotals, latestEnrollmentSnapshots, type Course, type Enrollment, type Institution} from '@/components/InstitutionArea';
+import {CourseView, InstitutionView, latestEnrollmentSnapshots, type Course, type Enrollment, type Institution} from '@/components/InstitutionArea';
 import Workspace, {INSTITUTION_FIELDS} from '@/components/area/Workspace';
 import RecordForm from '@/components/area/RecordForm';
 import {TABLES, isLate, saveRow, type Role, type Row} from '@/lib/area';
@@ -21,9 +24,9 @@ async function fetchAllSnapshots(){
  }
  return all;
 }
-async function fetchDashboardRows(table:string,order:string,ascending=true){
+async function fetchDashboardRows(table:string,order:string,ascending=true,columns='*'){
  const rows:Row[]=[];
- for(let from=0;;from+=1000){const {data,error}=await supabase.from(table).select('*').order(order,{ascending}).order('id').range(from,from+999);if(error)throw error;rows.push(...((data??[]) as Row[]));if(!data||data.length<1000)break;}
+ for(let from=0;;from+=1000){const {data,error}=await supabase.from(table).select(columns).order(order,{ascending}).order('id').range(from,from+999);if(error)throw error;rows.push(...((data??[]) as unknown as Row[]));if(!data||data.length<1000)break;}
  return {data:rows,error:null};
 }
 function readHash(){const p=new URLSearchParams(typeof window==='undefined'?'':window.location.hash.slice(1));return {inst:p.get('instituicao')??'',course:p.get('curso')??'',repositories:p.get('repositorios')==='1'};}
@@ -43,8 +46,7 @@ export default function OwnerDashboard(){
  const [mgmt,setMgmt]=useState<{goals:Row[];actions:Row[];diagnosis:Row[]}>({goals:[],actions:[],diagnosis:[]});
  const roleIn=(id:string):Role|null=>master?'master':((members.find(m=>m.institution_id===id&&m.user_id===session?.user.id)?.role as Role)??null);
  useEffect(()=>{const f=()=>setRoute(readHash());window.addEventListener('hashchange',f);window.addEventListener('popstate',f);return()=>{window.removeEventListener('hashchange',f);window.removeEventListener('popstate',f);};},[]);
- const latestSemester=[...new Set(enrollments.filter(r=>r.student_status==='MATRICULADO').map(r=>r.semester))].sort().reverse()[0];
- const instTotal=(id:string)=>{if(!latestSemester)return 0;const ids=new Set(courses.filter(c=>c.institution_id===id).map(c=>c.id));const per=new Map<string,Enrollment[]>();for(const r of enrollments)if(ids.has(r.course_id)&&r.semester===latestSemester&&r.student_status==='MATRICULADO'){if(!per.has(r.course_id))per.set(r.course_id,[]);per.get(r.course_id)!.push(r);}return [...per.values()].reduce((t,rows)=>t+courseTotals(rows).value,0);};
+ const instStats=(id:string)=>institutionEnrollmentSummary(id,courses,enrollments);
  const currentInst=institutions.find(i=>i.id===route.inst);
  const currentCourse=courses.find(c=>c.id===route.course&&c.institution_id===route.inst);
  async function load(){
@@ -74,9 +76,9 @@ export default function OwnerDashboard(){
    setEnrollments(latestEnrollmentSnapshots(snapshots));
    setReports(results[4].data as AcademicReport[]);
    const [g,a,d]=await Promise.all([
-    supabase.from('vertice_goals').select('id,institution_id,status'),
-    supabase.from('vertice_actions').select('id,institution_id,status,due_date'),
-    supabase.from('vertice_diagnosis_items').select('id,institution_id,status,priority')
+    fetchDashboardRows('vertice_goals','id',true,'id,institution_id,status'),
+    fetchDashboardRows('vertice_actions','id',true,'id,institution_id,status,due_date'),
+    fetchDashboardRows('vertice_diagnosis_items','id',true,'id,institution_id,status,priority')
    ]);
    setMgmt({goals:(g.data??[]) as Row[],actions:(a.data??[]) as Row[],diagnosis:(d.data??[]) as Row[]});
   }catch{setError('Não foi possível consultar os dados protegidos. Tente novamente.');}
@@ -104,14 +106,14 @@ export default function OwnerDashboard(){
  {master&&<nav className="repo-global-nav" aria-label="Visões do master"><a className="repo-secondary" href="/master/aquisicoes">Aquisições e incorporações</a><button className={`repo-secondary ${!commercial&&!route.repositories&&!currentInst?'active':''}`} onClick={()=>{setCommercial(false);writeHash('','');}}>Gestão das instituições</button><button className={`repo-secondary ${!commercial&&route.repositories?'active':''}`} onClick={()=>{setCommercial(false);writeHash('','',true);}}>Repositórios de todas as IES</button><button className={`repo-secondary ${commercial?'active':''}`} onClick={()=>setCommercial(true)}>Demonstração · inteligência comercial</button></nav>}
  {master&&commercial?<DemoLeads/>:<>
  {!currentInst&&!route.repositories&&<div className="stats-row"><div className="stat-card">Instituições<strong className="stat-value">{institutions.length}</strong></div><div className="stat-card">Cursos<strong className="stat-value">{courses.length}</strong></div><div className="stat-card">Vínculos<strong className="stat-value">{members.length}</strong></div></div>}
- {currentInst&&currentCourse?<CourseView key={currentCourse.id} course={currentCourse} institution={currentInst} enrollments={enrollments} reports={reports} onBack={()=>writeHash(currentInst.id,'')}/>
+ {currentInst&&currentCourse?<CourseView key={currentCourse.id} course={currentCourse} institution={currentInst} enrollments={enrollments.filter(row => courses.some(course => course.id === row.course_id && course.institution_id === currentInst.id))} reports={reports} onBack={()=>writeHash(currentInst.id,'')} onPlan={can.record(roleIn(currentInst.id)) ? draft => { storeActionDraft(currentInst.id,draft); window.location.hash = new URLSearchParams({instituicao:currentInst.id,aba:'plano'}).toString(); } : undefined}/>
  :currentInst?<Workspace key={currentInst.id} institution={currentInst as unknown as Row} role={roleIn(currentInst.id)} onBack={()=>writeHash('','')} onChanged={load}
-   stats={{enrolled:instTotal(currentInst.id),semester:latestSemester}}
+   stats={instStats(currentInst.id)}
    overview={<InstitutionView institution={currentInst} courses={courses} enrollments={enrollments} embedded onOpenCourse={id=>writeHash(currentInst.id,id)} onBack={()=>writeHash('','')}/>}/>
  :master&&route.repositories?<GlobalRepository institutions={institutions as unknown as Row[]} courses={courses as unknown as Row[]} onOpen={id=>writeHash(id,'',true)}/>
  :<><div className="area-list-head"><h2>Instituições</h2>{master&&!creating&&<button className="corp-button small" onClick={()=>setCreating(true)}>Nova instituição</button>}</div>
  {creating&&<RecordForm title="Nova instituição" fields={INSTITUTION_FIELDS} initial={{status:'ativa'}} onCancel={()=>setCreating(false)} onSubmit={async v=>{const row=await saveRow(TABLES.institutions,v);setCreating(false);await load();writeHash(row.id,'');}}/>}
- {!institutions.length?<p>Nenhuma instituição disponível para esta conta. O vínculo deve ser autorizado pela administração.</p>:<div className="table-scroll"><table><thead><tr><th>Instituição</th><th>Seu perfil</th><th>Cursos cadastrados</th><th>Matriculados{latestSemester?` em ${latestSemester}`:''}</th><th>Metas</th><th>Ações atrasadas</th><th>Achados abertos</th><th></th></tr></thead><tbody>{institutions.map(i=><tr key={i.id}><td>{i.name}{(i as unknown as Row).acronym?` · ${String((i as unknown as Row).acronym)}`:''}{(i as unknown as Row).status==='arquivada'&&' (arquivada)'}</td><td>{{master:'Master',gestor:'Gestor',equipe:'Equipe',leitor:'Leitura'}[roleIn(i.id)??'leitor']}</td><td>{courses.filter(c=>c.institution_id===i.id).length||'Nenhum curso cadastrado'}</td><td>{instTotal(i.id).toLocaleString('pt-BR')}</td><td>{mgmt.goals.filter(x=>x.institution_id===i.id&&x.status!=='cancelada').length}</td><td>{mgmt.actions.filter(x=>x.institution_id===i.id&&isLate(x.due_date,x.status)).length}</td><td>{mgmt.diagnosis.filter(x=>x.institution_id===i.id&&x.status!=='resolvido').length}</td><td><button className="corp-button" onClick={()=>writeHash(i.id,'')}>Abrir área</button> <button className="corp-login-text-button" onClick={()=>writeHash(i.id,'',true)}>Repositório →</button> <button className="corp-login-text-button" onClick={()=>writeHash(i.id,'',false,true)}>Biblioteca INEP →</button> {['master','gestor'].includes(roleIn(i.id)??'')&&<button className="corp-login-text-button" onClick={()=>writeHash(i.id,'',false,false,true)}>Calcular EBITDA →</button>}</td></tr>)}</tbody></table></div>}</>}
+ {!institutions.length?<p>Nenhuma instituição disponível para esta conta. O vínculo deve ser autorizado pela administração.</p>:<div className="table-scroll"><table><thead><tr><th>Instituição</th><th>Seu perfil</th><th>Cursos cadastrados</th><th>Matriculados · última referência</th><th>Metas</th><th>Ações atrasadas</th><th>Achados abertos</th><th></th></tr></thead><tbody>{institutions.map(i=><tr key={i.id}><td>{i.name}{(i as unknown as Row).acronym?` · ${String((i as unknown as Row).acronym)}`:''}{(i as unknown as Row).status==='arquivada'&&' (arquivada)'}</td><td>{{master:'Master',gestor:'Gestor',equipe:'Equipe',leitor:'Leitura'}[roleIn(i.id)??'leitor']}</td><td>{courses.filter(c=>c.institution_id===i.id).length||'Nenhum curso cadastrado'}</td><td>{instStats(i.id)?<>{instStats(i.id)!.enrolled.toLocaleString('pt-BR')}<small className="area-block">{instStats(i.id)!.semester} · {instStats(i.id)!.covered}/{instStats(i.id)!.total} cursos com dados</small></>:'Sem dados'}</td><td>{mgmt.goals.filter(x=>x.institution_id===i.id&&x.status!=='cancelada').length}</td><td>{mgmt.actions.filter(x=>x.institution_id===i.id&&isLate(x.due_date,x.status)).length}</td><td>{mgmt.diagnosis.filter(x=>x.institution_id===i.id&&x.status!=='resolvido').length}</td><td><button className="corp-button" onClick={()=>writeHash(i.id,'')}>Abrir área</button> <button className="corp-login-text-button" onClick={()=>writeHash(i.id,'',true)}>Repositório →</button> <button className="corp-login-text-button" onClick={()=>writeHash(i.id,'',false,true)}>Biblioteca INEP →</button> {['master','gestor'].includes(roleIn(i.id)??'')&&<button className="corp-login-text-button" onClick={()=>writeHash(i.id,'',false,false,true)}>Calcular EBITDA →</button>}</td></tr>)}</tbody></table></div>}</>}
  <p>Os dados desta área vêm do banco. Os exemplos da demonstração permanecem separados.</p><button className="corp-login-text-button" onClick={load}>Atualizar dados</button></>}
  </>}
  <button className="corp-login-text-button" onClick={async()=>{const {error}=await supabase.auth.signOut();if(error)setError('Não foi possível encerrar a sessão.');}}>Sair da conta</button></>}

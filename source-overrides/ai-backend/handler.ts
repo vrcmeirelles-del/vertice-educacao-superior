@@ -1,3 +1,4 @@
+import {managementOverview} from './management.ts';
 import {extractDocumentPreview,type ExtractionAdapters} from './extraction.ts';
 import {runDocumentReview,validateSnippets,inspectSensitiveText,ReviewError,type VerifiedSnippet,type ReviewCompletion} from './core.ts';
 export type Scope={actorId:string;institutionId:string;courseId:string};
@@ -35,19 +36,19 @@ export function createReviewHandler(options:HandlerOptions){return async(req:Req
   const allowed=new Set(['action','institution_id','course_id','file_ids','preview_digest','selections','privacy_confirmed']);if(Object.keys(body).some(k=>!allowed.has(k)))throw new BoundaryError('invalid_request',400);
   const files=body.file_ids??[];if(!Array.isArray(files)||files.length>3||files.some(f=>typeof f!=='string'||!UUID.test(f))||new Set(files).size!==files.length)throw new BoundaryError('invalid_request',400);
   scope={actorId,institutionId:body.institution_id,courseId:body.course_id};const policy=await backend.context(scope,files);
-  if(body.action==='status')return response({configured:options.configured(),...policy,limits:{files:3,bytes_per_file:5*1024*1024,snippets:12,snippet_chars:4000,total_chars:24000},provider:'OpenAI',supported_formats:['txt','csv']});
+  if(body.action==='status')return response({configured:options.configured(),...policy,limits:{files:3,bytes_per_file:5*1024*1024,snippets:12,snippet_chars:4000,total_chars:24000},provider:'OpenAI',supported_formats:['txt','csv'],overview:managementOverview(await backend.management(scope))});
   const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),20000);let preview;
   try{preview=files.length?await extractDocumentPreview(scope,files,backend.extraction(scope),controller.signal):{files:[]}}finally{clearTimeout(timeout)}
   const chunks=[...await backend.management(scope),...preview.files.flatMap(f=>f.chunks.map(c=>({id:c.id,file_id:c.fileId,file_name:f.fileName??'',page:c.page,text:c.text,sha256:c.sha256,sensitive_findings:inspectSensitiveText(c.text)})))];
   const digest=await hashValue({scope,files:preview.files.map(f=>({id:f.fileId,status:f.status,sha256:f.sha256??null})),chunks:chunks.map(c=>({id:c.id,text:c.text}))});
-  if(body.action==='preview')return response({preview_digest:digest,chunks,unsupported:preview.files.filter(f=>f.status!=='ready').map(f=>({file_id:f.fileId,status:f.status,message:f.message})),reviewRequired:true,providerTransmission:false});
+  if(body.action==='preview')return response({preview_digest:digest,chunks,overview:managementOverview(chunks),unsupported:preview.files.filter(f=>f.status!=='ready').map(f=>({file_id:f.fileId,status:f.status,message:f.message})),reviewRequired:true,providerTransmission:false});
   if(body.privacy_confirmed!==true||typeof body.preview_digest!=='string'||body.preview_digest!==digest)throw new BoundaryError('preview_changed_or_unconfirmed',409);
   if(!policy.enabled||!options.configured()||!policy.model)throw new BoundaryError('analysis_not_configured',503);
   const snippets:VerifiedSnippet[]=validateSnippets(body.selections);for(const snippet of snippets){const source=chunks.find(c=>c.id===snippet.id);if(!source||!source.text.includes(snippet.text))throw new BoundaryError('unverified_excerpt',400)}
   const criteria=files.length?await backend.criteria(scope,files):[];
-  const requestHash=await hashValue({version:'management-4',scope,digest,snippets,criteria});
+  const requestHash=await hashValue({version:'integrated-5',scope,digest,snippets,criteria});
   reservation=await backend.reserve(scope,files,requestHash);await backend.claim(reservation.reservation_id,actorId,requestHash);
-  const completion:ReviewCompletion=await (options.review??runDocumentReview)({snippets,model:reservation.model,criteria},{apiKey:options.apiKey(),maxOutputTokens:reservation.max_output_tokens,timeoutMs:20000});
+  const completion:ReviewCompletion=await (options.review??runDocumentReview)({snippets,model:reservation.model,criteria,coverage:{available:chunks.length,selected:snippets.length,overview:snippets.some(s=>s.id==='gestao_panorama')}},{apiKey:options.apiKey(),maxOutputTokens:reservation.max_output_tokens,timeoutMs:20000});
   await backend.finalize(reservation.reservation_id,actorId,'succeeded',await hashValue(completion.result),completion.usage,null);
   return response({analysis_id:reservation.reservation_id,...completion});
  }catch(error){

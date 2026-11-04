@@ -39,5 +39,5 @@ export function useCourseFilters(courses: Row[], onChange?: () => void) {
       onChange?.();
     }}>Limpar classificação</button>}
   </>;
-  return { matches, controls };
+  return { matches, controls, active: Object.values(values).some(Boolean) };
 }
