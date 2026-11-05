@@ -8,7 +8,8 @@ import { supabase } from "@/lib/supabase";
 import {
   ACTION_STATUS, COURSE_STATUS, DEGREE, DIMENSIONS, DIRECTION, FINDING_STATUS, FREQUENCY, GOAL_STATUS, MODALITY, PRIORITY, ROLE_LABEL, TABLES, UF,
   can, deleteRow, explain, fmtDate, fmtNum, goalProgress, isLate, label, listByInstitution, saveRow, today,
-  type Field, type Role, type Row,
+  visibleTabs,
+  type Field, type Role, type Row, type Tab,
 } from "@/lib/area";
 import RecordForm from "./RecordForm";
 import GoalsDashboard, { GoalSignalBadge, GoalSignalBar } from "./GoalsDashboard";
@@ -26,7 +27,6 @@ import {listRepository} from "@/lib/repository-data";
 import { FIELD_HELP, TAB_FAQ, TAB_HELP, withHelp } from "@/lib/help";
 import "./area.css";
 
-type Tab = "emec" | "base" | "ia" | "analise" | "geral" | "visao" | "cadastro" | "metas" | "plano" | "diagnostico" | "equipe" | "repositorio" | "biblioteca" | "reitor";
 const TABS: [Tab, string][] = [
   ["base", "Base da organização"],
   ["ia", "Análise Documental"],
@@ -110,7 +110,8 @@ export default function Workspace({
   const late = data.actions.filter(a => isLate(a.due_date, a.status)).length;
   const openFindings = data.diagnosis.filter(d => d.status !== "resolvido").length;
   const activeGoals = data.goals.filter(g => g.status === "ativa" || g.status === "planejada").length;
-  const visible = TABS.filter(([k]) => (k !== "equipe" || can.manageTeam(role)) && (k !== "reitor" || role === "gestor" || role === "master") && (!['ia','base'].includes(k) || role === "gestor" || role === "master"));
+  const allowedTabs = visibleTabs(role);
+  const visible = TABS.filter(([k]) => allowedTabs.includes(k));
 
   return (
     <section aria-labelledby="ws-title" className="area-ws">
