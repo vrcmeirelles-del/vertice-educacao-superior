@@ -5,7 +5,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
-  --color-card-foreground: var(--foreground);
+  --color-card-foreground: var(--foreground)h;
   --color-popover: var(--card);
   --color-popover-foreground: var(--foreground);
   --color-primary: var(--primary);
@@ -1495,6 +1495,76 @@ h4 {
 }
 .table-scroll {
   overflow: auto;
+}
+
+/* ── Tabela de instituições do painel master ── */
+.owner-inst-table {
+    overflow: visible;
+}
+.owner-inst-table table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+}
+.owner-inst-table table th:nth-child(1),
+.owner-inst-table table td:nth-child(1) { width: 17%; }
+.owner-inst-table table th:nth-child(2),
+.owner-inst-table table td:nth-child(2) { width: 7%; }
+.owner-inst-table table th:nth-child(3),
+.owner-inst-table table td:nth-child(3) { width: 9%; }
+.owner-inst-table table th:nth-child(4),
+.owner-inst-table table td:nth-child(4) { width: 22%; }
+.owner-inst-table table th:nth-child(5),
+.owner-inst-table table td:nth-child(5) { width: 7%; }
+.owner-inst-table table th:nth-child(6),
+.owner-inst-table table td:nth-child(6) { width: 10%; }
+.owner-inst-table table th:nth-child(7),
+.owner-inst-table table td:nth-child(7) { width: 10%; }
+.owner-inst-table table th:nth-child(8),
+.owner-inst-table table td:nth-child(8) { width: 18%; }
+
+.owner-inst-table table th,
+.owner-inst-table table td {
+    font-size: 0.82rem;
+    padding: 12px 6px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    vertical-align: middle;
+    text-align: center;
+    border-right: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
+}
+.owner-inst-table table th:last-child,
+.owner-inst-table table td:last-child {
+    border-right: none;
+}
+.owner-inst-table table th:nth-child(1),
+.owner-inst-table table td:nth-child(1),
+.owner-inst-table table th:nth-child(4),
+.owner-inst-table table td:nth-child(4) {
+    text-align: left;
+}
+
+.owner-inst-table table thead th {
+    background: #1e3a5f;
+    color: #fff;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 10px 6px;
+    white-space: normal;
+    line-height: 1.3;
+    border-right-color: rgba(255,255,255,0.15);
+}
+
+.owner-inst-table table tbody tr:nth-child(odd) {
+    background-color: #f7f9fc;
+}
+.owner-inst-table table tbody tr:nth-child(even) {
+    background-color: #ffffff;
+}
+.owner-inst-table table tbody tr:hover {
+    background-color: #ebf0f7;
 }
 .matrix-table {
   width: 100%;
