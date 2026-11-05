@@ -2,23 +2,123 @@ import { supabase } from "@/lib/supabase";
 
 // Papéis efetivos numa instituição. A permissão real é aplicada pelo banco (RLS);
 // estes valores só decidem o que a interface oferece.
-export type Role = "master" | "gestor" | "equipe" | "leitor";
+// --------------------------------------------------------------------------
+// Hierarquia de perfis:
+//   master            → Vértice (vê todas as IES)
+//   reitor            → acesso total dentro da própria IES
+//   diretor_geral     → acesso total dentro da própria IES
+//   diretor_pedagogico→ acesso total dentro da própria IES
+//   procurador        → acesso total dentro da própria IES
+//   cpa               → acesso institucional amplo, sem gestão financeira
+//   coordenador       → acesso limitado ao(s) curso(s) vinculado(s)
+//   nde               → acesso limitado ao(s) curso(s) vinculado(s)
+//   gestor            → (legado) equivale a reitor
+//   equipe            → (legado) acesso operacional
+//   leitor            → somente leitura
+// --------------------------------------------------------------------------
+export type Role =
+  | "master"
+  | "reitor"
+  | "diretor_geral"
+  | "diretor_pedagogico"
+  | "procurador"
+  | "cpa"
+  | "coordenador"
+  | "nde"
+  | "gestor"
+  | "equipe"
+  | "leitor";
+
 export const ROLE_LABEL: Record<Role, string> = {
   master: "Master (Vértice)",
+  reitor: "Reitor",
+  diretor_geral: "Diretor Geral",
+  diretor_pedagogico: "Diretor Pedagógico",
+  procurador: "Procurador Institucional",
+  cpa: "CPA",
+  coordenador: "Coordenador de Curso",
+  nde: "Membro do NDE",
   gestor: "Gestor da IES",
   equipe: "Equipe",
   leitor: "Leitura",
 };
+
+/** Perfis com visão completa da instituição (equivalente ao antigo "gestor" ou superior). */
+const FULL_ACCESS: Role[] = ["master", "reitor", "diretor_geral", "diretor_pedagogico", "procurador", "gestor"];
+/** Perfis de nível de curso (veem apenas dados do(s) curso(s) vinculado(s)). */
+const COURSE_SCOPED: Role[] = ["coordenador", "nde"];
+/** CPA é institucional mas com escopo de abas limitado. */
+const INSTITUTIONAL_LIMITED: Role[] = ["cpa"];
+
+export function isFullAccess(r?: Role | null): boolean { return !!r && FULL_ACCESS.includes(r); }
+export function isCourseScoped(r?: Role | null): boolean { return !!r && COURSE_SCOPED.includes(r); }
+export function isInstitutionalLimited(r?: Role | null): boolean { return !!r && INSTITUTIONAL_LIMITED.includes(r); }
+
+// --------------------------------------------------------------------------
+// Abas visíveis por perfil
+// --------------------------------------------------------------------------
+export type Tab = "emec" | "base" | "ia" | "analise" | "geral" | "visao" | "cadastro" | "metas" | "plano" | "diagnostico" | "equipe" | "repositorio" | "biblioteca" | "reitor";
+
+/** Abas disponíveis para cada grupo de perfis. */
+const TABS_FULL: Tab[] = ["base", "ia", "geral", "analise", "visao", "cadastro", "emec", "metas", "repositorio", "biblioteca", "reitor", "plano", "diagnostico", "equipe"];
+const TABS_CPA: Tab[] = ["geral", "visao", "metas", "repositorio", "biblioteca", "plano", "equipe"];
+const TABS_COURSE: Tab[] = ["geral", "visao", "metas", "repositorio", "biblioteca", "plano", "equipe"];
+
+export function visibleTabs(r?: Role | null): Tab[] {
+  if (!r) return [];
+  if (isFullAccess(r)) return TABS_FULL;
+  if (isInstitutionalLimited(r)) return TABS_CPA;
+  if (isCourseScoped(r)) return TABS_COURSE;
+  // equipe e leitor
+  return ["geral", "visao", "biblioteca"];
+}
+// --------------------------------------------------------------------------
+// Permissões granulares (o que a interface oferece; RLS aplica no banco)
+// --------------------------------------------------------------------------
 export const can = {
-  editInstitution: (r?: Role | null) => r === "master" || r === "gestor",
-  manageCourses: (r?: Role | null) => r === "master" || r === "gestor",
+  editInstitution: (r?: Role | null) => isFullAccess(r),
+  manageCourses: (r?: Role | null) => isFullAccess(r),
   deleteCourse: (r?: Role | null) => r === "master",
-  manageGoals: (r?: Role | null) => r === "master" || r === "gestor",
-  record: (r?: Role | null) => r === "master" || r === "gestor" || r === "equipe",
-  remove: (r?: Role | null) => r === "master" || r === "gestor",
-  manageTeam: (r?: Role | null) => r === "master" || r === "gestor",
+  manageGoals: (r?: Role | null) => isFullAccess(r),
+  record: (r?: Role | null) => isFullAccess(r) || r === "cpa" || r === "coordenador" || r === "nde" || r === "equipe",
+  remove: (r?: Role | null) => isFullAccess(r),
+  manageTeam: (r?: Role | null) => isFullAccess(r) || r === "coordenador" || r === "cpa",
+  /** Coordenador/NDE podem cadastrar membros do NDE; CPA pode cadastrar membros da CPA */
+  manageNde: (r?: Role | null) => isFullAccess(r) || r === "coordenador" || r === "nde",
+  /** Documentos postados por coordenador/NDE/CPA precisam de validação da instância superior */
+  needsValidation: (r?: Role | null) => r === "coordenador" || r === "nde" || r === "cpa",
+  /** Pode validar documentos postados por perfis inferiores */
+  canValidate: (r?: Role | null) => isFullAccess(r),
+  /** Vê dados financeiros (EBITDA, DRE) */
+  viewFinancials: (r?: Role | null) => isFullAccess(r),
+  /** Vê diagnóstico por IA */
+  viewDiagnostics: (r?: Role | null) => isFullAccess(r),
+  /** Vê análise documental por IA */
+  viewDocumentAI: (r?: Role | null) => isFullAccess(r),
+  /** Vê análise gerencial */
+  viewManagement: (r?: Role | null) => isFullAccess(r),
+  /** Vê cadastro e cursos */
+  viewRegistry: (r?: Role | null) => isFullAccess(r),
+  /** Vê base da organização */
+  viewOrgBase: (r?: Role | null) => isFullAccess(r),
 };
 
+// --------------------------------------------------------------------------
+// Descrição textual do perfil (para área de demonstração)
+// --------------------------------------------------------------------------
+export const ROLE_DESCRIPTION: Record<Role, string> = {
+  master: "Acesso completo a todas as instituições, cursos e funcionalidades do sistema. Único perfil que visualiza outras IES além da própria.",
+  reitor: "Acesso completo dentro da própria instituição: todos os módulos, todos os cursos, dados financeiros e análises por IA.",
+  diretor_geral: "Mesmo nível de acesso do Reitor dentro da instituição.",
+  diretor_pedagogico: "Acesso completo à instituição com foco pedagógico. Vê todos os módulos incluindo análises e metas.",
+  procurador: "Acesso completo à instituição com foco regulatório. Vê todos os módulos incluindo e-MEC e repositório.",
+  cpa: "Visão institucional ampla: vê dados de todos os cursos, mas sem acesso a módulos de gestão financeira, análise por IA ou diagnóstico. Pode postar documentos (sujeitos a validação pela instância superior).",
+  coordenador: "Acesso limitado ao(s) curso(s) vinculado(s): visão geral, matrículas, metas, repositório e plano de ação do próprio curso. Pode cadastrar membros do NDE. Documentos postados são validados pela instância superior.",
+  nde: "Mesmo escopo do Coordenador: vê e colabora nos dados do curso vinculado. Pode postar documentos (sujeitos a validação).",
+  gestor: "Perfil legado equivalente ao Reitor. Acesso completo dentro da instituição.",
+  equipe: "Acesso operacional básico: visão geral, matrículas e biblioteca INEP.",
+  leitor: "Somente leitura: visão geral, matrículas e biblioteca INEP.",
+};
 export type FieldType = "text" | "textarea" | "number" | "date" | "select";
 export type Field = {
   name: string;
@@ -115,7 +215,6 @@ export const fmtNum = (v: unknown, unit?: unknown) =>
     ? "—"
     : `${Number(v).toLocaleString("pt-BR", { maximumFractionDigits: 2 })}${unit ? (unit === "%" ? "%" : ` ${unit}`) : ""}`;
 export const today = () => new Date().toISOString().slice(0, 10);
-
 // ---------------------------------------------------------------- dados
 export const TABLES = {
   institutions: "vertice_institutions",
