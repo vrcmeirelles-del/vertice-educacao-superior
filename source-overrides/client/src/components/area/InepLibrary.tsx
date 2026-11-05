@@ -32,10 +32,9 @@ export default function InepLibrary({ institutionId }: { institutionId: string }
   async function download(doc: LibraryDocument) {
     setDownloading(doc.id); setDownloadError('');
     try {
-      // responseType 'blob' so binary .docx comes back as a Blob
+      // The installed SDK selects its response parser from the server Content-Type.
       const { data, error: failure } = await supabase.functions.invoke('vertice-inep-library', {
         body: { institutionId, id: doc.id },
-        responseType: 'blob',
       });
       if (failure) throw new Error('download');
 

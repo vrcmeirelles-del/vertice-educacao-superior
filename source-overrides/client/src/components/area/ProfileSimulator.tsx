@@ -16,6 +16,7 @@ const TAB_LABELS: Record<Tab, string> = {
   repositorio: "Repositório",
   biblioteca: "Biblioteca INEP",
   reitor: "Área do reitor · EBITDA",
+  eorbit: "e-ORBIT",
   plano: "Plano de ação 5W2H",
   diagnostico: "Diagnóstico",
   equipe: "Equipe",
