@@ -1,0 +1,303 @@
+/* e-ORBIT Panel — Dashboard styles (mirrors captacao-bi patterns) */
+.eorbit-root {
+  background: #f5f7fa;
+  color: #243653;
+  padding: clamp(16px, 3vw, 42px);
+  font-family: Inter, system-ui, sans-serif;
+  overflow: auto;
+}
+.eorbit-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+.eorbit-header h2 {
+  margin: 0;
+  font-size: clamp(22px, 3vw, 36px);
+  font-weight: 700;
+  color: #172e46;
+}
+.eorbit-header p {
+  margin: 4px 0 0;
+  color: #757a80;
+  font-size: 14px;
+}
+
+/* Sub-tabs */
+.eorbit-subtabs {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #e1e4e8;
+  padding-bottom: 0;
+}
+.eorbit-subtab {
+  border: none;
+  background: none;
+  color: #757a80;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 10px 16px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+.eorbit-subtab:hover {
+  color: #243653;
+}
+.eorbit-subtab[aria-selected="true"] {
+  color: #2678a8;
+  border-bottom-color: #2678a8;
+  font-weight: 600;
+}
+
+/* Filters */
+.eorbit-filters {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  align-items: center;
+}
+.eorbit-filters label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #757a80;
+}
+.eorbit-filters select {
+  border: 1px solid #d4d9ea;
+  background: white;
+  color: #243653;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* KPI tiles */
+.eorbit-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.eorbit-kpi {
+  background: white;
+  border: 1px solid #e1e4e8;
+  border-radius: 12px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.eorbit-kpi-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #757a80;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.eorbit-kpi-value {
+  font-size: clamp(20px, 2.5vw, 28px);
+  font-weight: 700;
+  color: #172e46;
+}
+.eorbit-kpi-sub {
+  font-size: 12px;
+  color: #757a80;
+}
+
+/* Card grid */
+.eorbit-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+  gap: 20px;
+}
+.eorbit-card {
+  background: white;
+  border: 1px solid #e1e4e8;
+  border-radius: 14px;
+  padding: 22px;
+  min-width: 0;
+}
+.eorbit-card-wide {
+  grid-column: 1 / -1;
+}
+.eorbit-card h3 {
+  margin: 0 0 16px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #172e46;
+}
+
+/* Horizontal bars */
+.eorbit-hbars {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.eorbit-hbar-row {
+  display: grid;
+  grid-template-columns: minmax(100px, 1fr) 3fr auto;
+  gap: 10px;
+  align-items: center;
+}
+.eorbit-hbar-label {
+  font-size: 13px;
+  color: #243653;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.eorbit-hbar-track {
+  height: 20px;
+  background: #f0f2f5;
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+}
+.eorbit-hbar-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.4s ease;
+  min-width: 2px;
+}
+.eorbit-hbar-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: #243653;
+  min-width: 48px;
+  text-align: right;
+}
+
+/* Table */
+.eorbit-table-wrap {
+  overflow-x: auto;
+  margin-top: 8px;
+}
+.eorbit-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.eorbit-table th {
+  text-align: left;
+  padding: 8px 12px;
+  font-weight: 600;
+  color: #757a80;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  border-bottom: 2px solid #e1e4e8;
+  white-space: nowrap;
+}
+.eorbit-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #f0f2f5;
+  color: #243653;
+}
+.eorbit-table tr:hover td {
+  background: #f8f9fb;
+}
+
+/* Progress bar (compliance) */
+.eorbit-progress {
+  height: 8px;
+  background: #f0f2f5;
+  border-radius: 4px;
+  overflow: hidden;
+  min-width: 60px;
+}
+.eorbit-progress-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+/* Conceito badge */
+.eorbit-conceito {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 14px;
+  color: white;
+}
+
+/* SVG charts */
+.eorbit-line-chart {
+  width: 100%;
+  max-height: 220px;
+}
+
+/* Legend */
+.eorbit-legend {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.eorbit-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #757a80;
+}
+.eorbit-legend-item i {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+/* Empty state */
+.eorbit-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: #757a80;
+  font-size: 14px;
+}
+
+/* Donut */
+.eorbit-donut-wrap {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.eorbit-donut-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.eorbit-donut-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #243653;
+}
+.eorbit-donut-legend-item i {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+/* Loading */
+.eorbit-loading {
+  text-align: center;
+  padding: 60px 20px;
+  color: #757a80;
+}
