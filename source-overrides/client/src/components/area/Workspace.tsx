@@ -16,6 +16,7 @@ import { goalSignals, summarizeGoalSignals, goalSignalDate, GOAL_SIGNALS, type G
 import RepositoryTab from "./RepositoryTab";
 import EbitdaCalculator from "../EbitdaCalculator";
 import InepLibrary from "./InepLibrary";
+import AvaliacaoInstitucional from "./AvaliacaoInstitucional";
 import ManagementReview from "./ManagementReview";
 import DocumentAI from "./DocumentAI";
 import OrganizationBase from "./OrganizationBase";
@@ -26,7 +27,7 @@ import {listRepository} from "@/lib/repository-data";
 import { FIELD_HELP, TAB_FAQ, TAB_HELP, withHelp } from "@/lib/help";
 import "./area.css";
 
-type Tab = "emec" | "base" | "ia" | "analise" | "geral" | "visao" | "cadastro" | "metas" | "plano" | "diagnostico" | "equipe" | "repositorio" | "biblioteca" | "reitor";
+type Tab = "emec" | "base" | "ia" | "analise" | "geral" | "visao" | "cadastro" | "metas" | "plano" | "diagnostico" | "equipe" | "repositorio" | "biblioteca" | "avaliacao" | "reitor";
 const TABS: [Tab, string][] = [
   ["base", "Base da organização"],
   ["ia", "Análise Documental"],
@@ -38,6 +39,7 @@ const TABS: [Tab, string][] = [
   ["metas", "Metas e indicadores"],
   ["repositorio", "Repositório"],
   ["biblioteca", "Biblioteca INEP"],
+  ["avaliacao", "Avaliação institucional"],
   ["reitor", "Área do reitor · EBITDA"],
   ["plano", "Plano de ação 5W2H"],
   ["diagnostico", "Diagnóstico"],
@@ -172,6 +174,8 @@ export default function Workspace({
         <RepositoryTab institutionId={id} role={role} courses={data.courses} goals={data.goals} requests={data.requests} files={data.files} reload={reload} goalFilter={repositoryGoal} setGoalFilter={setRepositoryGoal}/>
       ) : tab === "reitor" ? (
         role === "master" || role === "gestor" ? <EbitdaCalculator reserved={{institutionId:id,name:String(institution.name)}}/> : <p>Os dados financeiros são reservados ao Gestor da instituição e ao Master.</p>
+      ) : tab === "avaliacao" ? (
+        <AvaliacaoInstitucional key={id} />
       ) : tab === "biblioteca" ? (
         <InepLibrary institutionId={id} />
       ) : tab === "plano" ? (
