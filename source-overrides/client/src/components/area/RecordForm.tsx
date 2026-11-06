@@ -86,6 +86,7 @@ export default function RecordForm({
                   onChange={e => set(f.name, e.target.value)}
                 />
               )}
+              </label>
               {showSuggestions&&<div className="vx-suggestion-box">
                 <span className="vx-suggestion-caption">Sugestões padronizadas (opcionais)</span>
                 <select id={id+"-suggestions"} value={suggestionMode[f.name]??""} onChange={e=>{
@@ -101,7 +102,6 @@ export default function RecordForm({
                 {suggestionMode[f.name]==="outro"&&<small>Digite livremente no campo acima. O texto personalizado será preservado.</small>}
               </div>}
               {f.help && <small>{f.help}</small>}
-              </label>
             </div>
           );
         })}
