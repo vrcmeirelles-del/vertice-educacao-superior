@@ -69,7 +69,7 @@
 .vm-app .vm-gate{border-radius:18px;background:#fff;padding:28px 21px;margin:28px 0 18px}
 .vm-app .vm-gate p{color:#56657c}
 .vm-app .vm-footer{text-align:center;padding:20px 2px;color:#738299;font-size:11px}
-.vm-app .vm-bottom{position:fixed;bottom:0;left:0;right:0;margin:0 auto;max-width:900px;padding:9px 13px max(10px,env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;background:#fff;box-shadow:0 -8px 30px #0a23411c;border-top:1px solid #dce5ed;z-index:20}
+.vm-app .vm-bottom{position:fixed;bottom:0;left:0;right:0;margin:0 auto;max-width:900px;padding:9px 13px max(10px,env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;background:#fff;box-shadow:0 -8px 30px #0a23411c;border-top:1px solid #dce5ed;z-index:20}
 .vm-app .vm-bottom button,.vm-app .vm-bottom a{min-width:0;min-height:48px;display:grid;place-items:center;text-decoration:none;background:transparent;border:0;border-radius:10px;color:#5b6d82;font-size:12px;font-weight:700}
 .vm-app .vm-bottom .active{background:#e3f4f3;color:#075d64}
 @media(min-width:650px){.vm-app .vm-container{padding-left:30px;padding-right:30px}.vm-app .vm-indicators{grid-template-columns:repeat(4,minmax(0,1fr))}.vm-app .vm-panel{padding:24px}.vm-app .vm-bars{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:25px}}
@@ -79,3 +79,20 @@
 .vm-app .vm-quarantine{border:1px solid #e5b96c;border-left:5px solid #b96a1b;background:#fff4df;color:#653d15;border-radius:12px;padding:15px;margin:13px 0}
 .vm-app .vm-quarantine strong{display:block;font-size:14px}
 .vm-app .vm-quarantine p{margin:6px 0 0;font-size:12px;line-height:1.6}
+
+/* Extensão de catálogo documental e inteligência acadêmica */
+.vm-app .vm-doc-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.vm-app .vm-doc-grid article{min-width:0;padding:13px;border:1px solid #e4e9f3;border-radius:12px;background:#f9fbfe}
+.vm-app .vm-doc-grid article span,.vm-app .vm-doc-grid article small{display:block;color:#5c6a7d;font-size:11px;line-height:1.35}
+.vm-app .vm-doc-grid article strong{display:block;color:#163453;font-size:clamp(22px,5vw,29px);font-variant-numeric:tabular-nums;margin:5px 0}
+.vm-app .vm-doc-subsection{margin-top:23px;padding-top:17px;border-top:1px solid #e7edf4}
+.vm-app .vm-doc-subsection h3{font-size:15px;margin:0 0 13px;color:#20334c}
+.vm-app .vm-doc-line{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 9px;border-bottom:1px solid #ecf0f6;padding:9px 2px;align-items:baseline}
+.vm-app .vm-doc-line span{font-size:12px;overflow-wrap:anywhere}
+.vm-app .vm-doc-line strong{font-variant-numeric:tabular-nums}
+.vm-app .vm-doc-line small{grid-column:1/-1;color:#63748b;font-size:11px}
+.vm-app .vm-doc-course{padding:12px 0;border-bottom:1px solid #e8edf5}
+.vm-app .vm-doc-course strong{font-size:12px;display:block}
+.vm-app .vm-doc-course small{font-size:11px;color:#5c6b82;display:block;margin:3px 0 9px}
+.vm-app .vm-bottom button{font-size:clamp(10px,2.6vw,12px);padding:5px 2px}
+@media(min-width:650px){.vm-app .vm-doc-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
