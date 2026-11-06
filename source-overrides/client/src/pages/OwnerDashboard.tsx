@@ -19,8 +19,11 @@ import GreenHost from '@/components/acquisitions/GreenHost';
 import DemoLeads from '@/components/DemoLeads';
 import CaptacaoBI from '@/components/area/CaptacaoBI';
 import AcademicoBI from '@/components/bi/AcademicoBI';
+import AcademicoBI from '@/components/bi/AcademicoBI';
 import PainelBI from '@/components/bi/PainelBI';
 import ProfileSimulator from '@/components/area/ProfileSimulator';
+
+
 
 
 type Membership={user_id:string;institution_id:string;role:string};
@@ -34,5 +37,3 @@ async function fetchAllSnapshots(){
  return all;
 }
 async function fetchDashboardRows(table:string,order:string,ascending=true,columns='*'){
- const rows:Row[]=[];
- for(let from=0;;from+=1000){const {data,error}=await supabase.from(table).select(columns).order(order,{ascending}).order('id').range(from,from+999);if(error)throw error;rows.push(...((data??[]) as unknown as Row[]));if(!data||data.length<1000)break;}
