@@ -96,3 +96,21 @@ O código da nova aba está na branch `feature/unitop-auditoria-matricula-av1-av
 **Implicação na PR #57:** os dados individuais necessários para nomes e evidência de AV1 já existem em arquivo próprio. O que falta é **indexá-los de maneira segura**, preservando a classificação restrita, resolver o `pending_scan` conforme a política institucional e implementar consultas protegidas pelo perfil autorizado. A ausência de dados na tabela `vertice_eorbit_alunos` NÃO significa ausência de fonte nominal. Evitar nova solicitação ou extração duplicada desta planilha.
 
 **Limites que permanecem:** este arquivo não comprova individualmente AV2, matrícula gratuita, reprovação final por disciplina, recuperação/segunda chance ou aprovação posterior. Sem essas fontes, não calcular exclusão gerencial definitiva nem inferir evasão verdadeira. CPF, nome, matrícula e URLs de evidências não devem ser impressos em logs, expostos publicamente ou enviados a GitHub.
+
+
+## Inventário aprofundado multcurso (06/11/2026) — não confundir CPF com matrícula
+
+Foram examinados:
+1. `UNITOP_Consolidado_2016_2026.xlsx` — OneDrive `CLIENTES/UNITOP/Migração`: Rel 6 "Relação de Alunos" tem **596/597 linhas de totais agregados por curso × semestre**, sem CPF/nome individual. Há dados de muitos cursos, mas não é cadastro nominal.
+2. `UNITOP_Gestao_Completa_Reitor (1).xlsx` — mesma pasta: base gerencial histórica por curso, semestre e reprovações, **sem coluna CPF** no conteúdo legível; 84 cursos nas tabelas consolidadas.
+3. `Lista_Final_Alunos_Risco_UNITOP.xlsx` — OneDrive `CLIENTES/UNITOP/planilhas`: **816 registros de risco de reprovação**, distribuídos por **34 cursos/códigos**, todos com status "Em Risco (Reprovado)" na versão de 31/10/2026. A terceira coluna numérica contém **identificadores de oito dígitos**, compatíveis com matrícula/RA; **não é uma coluna de CPF de 11 dígitos**. É lista de risco, não relação completa de matriculados ou ingressantes.
+4. `UNITOP_Dados_Pessoais_Retencao.xlsx` — OneDrive `CLIENTES/UNITOP/planilhas`: apenas linha de aviso de uso interno e proibição de enviar dados pessoais para Vértice; **sem linhas de alunos** no conteúdo extraído.
+5. `UNITOP_Direito_Coortes_Continuidade_AV1_20102026_RESTRITO.xlsx` — Biblioteca e Storage `vertice-documentos`: **552 CPFs distintos**, mas somente do Direito, com primeiro vínculo, AV1 e fonte de evidência. A planilha possui 4 abas e 552 registros individuais.
+6. `UNITOP_2026-11-06T19-03-50-501Z.json` — extração do Collector em homologação: guarda a tela de filtros `/system/acad/rela/alun/` ("Relação de alunos") e campos de formulário; **não registra uma lista nominal resultante da execução da consulta**.
+7. `tabelas_UNI_GIZ.csv`: inventário de nomes de tabelas `dbo` do sistema GIZ, não exportação de estudantes da UNITOP. Não usar como base nominal de alunos.
+
+**Conclusão verificada:** a existência de uma base com nomes e CPF abrangendo todos os cursos da UNITOP **não foi comprovada nos arquivos efetivamente acessíveis nessa varredura**. Isso não permite afirmar que tal extração não exista em outra subpasta/arquivo ainda não indexado. Até localizá-la, o BI pode usar 816 nomes/matrículas da lista de risco (com a limitação de 34 cursos e sem vínculo de reprovação por disciplina) e 552 CPFs de Direito (com a restrição documental e pendência de scan). Não deve atribuir CPF aos 816 registros, nem assumir que representem todos os alunos ou toda a evasão.
+
+A reconciliação indicou que `diagnostico.txt` da pasta `Migração/reconciliacao` descreve a fonte `rel6_alunos_data.csv` como agregado (597 chaves curso × semestre), e `UNITOP_qtde_structured.json` como quantitativos por grade — nenhuma delas garante dados individualizados.
+
+**Ação de busca seguinte:** procurar exportação original do Rel 6 após executar filtros/gerar relatório (arquivo CSV/XLSX/PDF efetivo, e não apenas a tela de filtros). Não divulgar CPFs, registrar no Git, importar listas desautorizadas ou alterar bases oficiais.
