@@ -1,0 +1,120 @@
+/* ─── BI do Reitor ─── */
+.reitor-bi {
+  background: #f5f6fb; color: #1b2440;
+  padding: clamp(16px, 3vw, 42px); overflow: auto;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+.reitor-bi:fullscreen { background: #f5f6fb; }
+
+/* header */
+.rbi-header { margin-bottom: 24px; }
+.rbi-title-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+.rbi-title-row h2 { margin: 0; font-size: clamp(26px, 4vw, 42px); font-weight: 800; letter-spacing: -0.5px; }
+.rbi-actions { display: flex; gap: 10px; align-items: center; margin-left: auto; flex-wrap: wrap; }
+.rbi-inst-select select { padding: 8px 12px; border: 1px solid #d4d9ea; border-radius: 8px; background: white; color: inherit; font-size: 14px; }
+.rbi-btn { padding: 8px 16px; border: 1px solid #d4d9ea; border-radius: 8px; background: white; color: inherit; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+.rbi-btn:hover { background: #edf0f7; }
+.rbi-btn-primary { background: #5140ad; color: white; border-color: #5140ad; }
+.rbi-btn-primary:hover { background: #4030a0; }
+
+/* tabs */
+.rbi-tabs { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 4px; }
+.rbi-tab { display: flex; align-items: center; gap: 6px; padding: 10px 18px; border: 1px solid transparent; border-radius: 10px; background: transparent; color: #535b78; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.2s; }
+.rbi-tab:hover { background: white; border-color: #e0e4f1; }
+.rbi-tab-active { background: white; border-color: #d4d9ea; color: #1b2440; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.rbi-tab-icon { font-size: 16px; }
+
+/* KPI strip */
+.rbi-kpi-strip { display: flex; gap: 12px; overflow-x: auto; padding: 4px 0 16px; }
+.rbi-kpi-strip-sm { padding: 4px 0 8px; }
+.rbi-kpi { background: white; border: 1px solid #e0e4f1; border-radius: 14px; padding: 16px 20px; min-width: 140px; flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.rbi-kpi-sm { padding: 10px 14px; min-width: 100px; border-radius: 10px; }
+.rbi-kpi-label { font-size: 12px; color: #757a80; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.rbi-kpi-value { font-size: 26px; font-weight: 800; line-height: 1.1; }
+.rbi-kpi-sm .rbi-kpi-value { font-size: 20px; }
+.rbi-kpi-delta { font-size: 12px; font-weight: 700; }
+.rbi-up { color: #168878; }
+.rbi-down { color: #d76d34; }
+.rbi-kpi-spark { margin-top: 4px; }
+
+/* grid */
+.rbi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 16px; }
+
+/* card */
+.rbi-card { background: white; border: 1px solid #e0e4f1; border-radius: 16px; padding: 20px; min-width: 0; }
+.rbi-card h3 { margin: 0 0 14px; font-size: 17px; font-weight: 700; }
+.rbi-span { grid-column: 1 / -1; }
+.rbi-empty { color: #999; font-style: italic; margin: 8px 0; }
+.rbi-good { color: #168878; font-weight: 600; margin: 8px 0; }
+
+/* donut */
+.rbi-donut { display: block; margin: 0 auto; }
+.rbi-donut circle[stroke-dasharray] { cursor: pointer; transition: opacity 0.2s; }
+.rbi-donut circle[stroke-dasharray]:hover { opacity: 0.8; }
+
+/* legend */
+.rbi-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 10px; font-size: 12px; color: #535b78; }
+.rbi-legend span { display: flex; align-items: center; gap: 5px; }
+.rbi-legend i { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+
+/* bar horizontal */
+.rbi-barh { display: flex; flex-direction: column; gap: 6px; }
+.rbi-barh-row { display: flex; align-items: center; gap: 8px; }
+.rbi-barh-label { width: 120px; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex-shrink: 0; }
+.rbi-barh-track { flex: 1; height: 18px; background: #edf0f7; border-radius: 4px; overflow: hidden; }
+.rbi-barh-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease; min-width: 2px; }
+.rbi-barh-val { font-size: 12px; font-weight: 700; width: 50px; text-align: right; flex-shrink: 0; }
+
+/* table */
+.rbi-table-wrap { overflow-x: auto; }
+.rbi-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.rbi-table th { text-align: left; padding: 6px 10px; border-bottom: 2px solid #e0e4f1; font-weight: 700; color: #535b78; font-size: 11px; text-transform: uppercase; }
+.rbi-table td { padding: 6px 10px; border-bottom: 1px solid #edf0f7; }
+.rbi-table tr:hover td { background: #f8f9fc; }
+
+/* heatmap */
+.rbi-heatmap td { text-align: center; font-size: 11px; font-weight: 600; min-width: 50px; transition: background 0.2s; }
+
+/* line chart */
+.rbi-line-chart { display: block; width: 100%; max-height: 180px; }
+
+/* alerts */
+.rbi-alerts { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
+.rbi-alert { padding: 8px 12px; border-radius: 8px; border-left: 4px solid; display: flex; flex-direction: column; gap: 2px; }
+.rbi-alert strong { font-size: 13px; }
+.rbi-alert span { font-size: 12px; color: #535b78; }
+.rbi-alert-critico { border-color: #c0447f; background: #fdf0f5; }
+.rbi-alert-alto { border-color: #d76d34; background: #fef6f0; }
+.rbi-alert-medio { border-color: #82720b; background: #fefce8; }
+.rbi-alert-baixo { border-color: #377acf; background: #f0f5ff; }
+
+/* funnel */
+.rbi-funnel { display: flex; flex-direction: column; gap: 6px; }
+.rbi-funnel-step { display: flex; align-items: center; gap: 10px; }
+.rbi-funnel-bar { height: 32px; border-radius: 6px; display: flex; align-items: center; padding: 0 12px; color: white; font-size: 13px; font-weight: 600; min-width: 60px; transition: width 0.4s ease; }
+.rbi-funnel-val { font-size: 12px; font-weight: 700; white-space: nowrap; }
+
+/* health grid */
+.rbi-health-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; }
+.rbi-health-item { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 8px; background: #f8f9fc; }
+.rbi-health-icon { font-size: 14px; }
+.rbi-health-label { flex: 1; font-size: 13px; }
+.rbi-health-val { font-size: 13px; font-weight: 700; }
+
+/* loading */
+.rbi-loading { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 60px 20px; color: #535b78; font-size: 16px; }
+.rbi-spinner { width: 28px; height: 28px; border: 3px solid #e0e4f1; border-top-color: #6554cf; border-radius: 50%; animation: rbi-spin 0.8s linear infinite; }
+@keyframes rbi-spin { to { transform: rotate(360deg); } }
+
+/* fullscreen tweaks */
+.reitor-bi:fullscreen .rbi-card { max-width: 1400px; margin-left: auto; margin-right: auto; }
+.reitor-bi:fullscreen .rbi-kpi-value { font-size: 36px; }
+
+/* TV mode */
+.rbi-tv-overlay { position: fixed; inset: 0; z-index: 9999; background: #f5f6fb; overflow: auto; }
+
+/* responsive */
+@media (max-width: 640px) {
+  .rbi-kpi-strip { flex-direction: column; }
+  .rbi-barh-label { width: 80px; }
+}
