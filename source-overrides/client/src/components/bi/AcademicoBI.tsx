@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  fetchSemestres, fetchCursos, fetchQuantitativo, fetchReports,
+  fetchSemestres, fetchCursos, fetchQuantitativo, fetchReports, fetchCourseNames,
   aggregateAcademico, compararSemestres, simularRetencao,
   parseProfReprova, parseDiscReprova, parseFluxo, parseReprovaSemestre,
+  parseCohorts, resumirEvasao, parseCourseIndicators, agregarReprovaTipo,
   type Semestre, type CursoInfo, type CursoQuantitativo,
   type KPIsAcademico, type CursoResumo, type ModalidadeDistribuicao, type EvolucaoSemestral,
   type CursoDelta, type ProfReprova, type DiscReprova, type FluxoSemestre, type ReprovaSemestre,
+  type Coorte, type CohortsReport, type CourseIndicator,
 } from '@/lib/academico';
 import './academico-bi.css';
 
@@ -320,10 +322,28 @@ function medal(rank: number) {
   return rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '';
 }
 
-function RaioX({ profs, discs, dossieDireito }: { profs: ProfReprova[]; discs: DiscReprova[]; dossieDireito: ReprovaSemestre[] }) {
-  const [modo, setModo] = useState<'professores' | 'disciplinas'>('professores');
+// Barra empilhada dos 3 tipos de reprovação (falta / nota / após exame).
+function TipoReprovaBar({ rf, rn, ra }: { rf: number; rn: number; ra: number }) {
+  const total = rf + rn + ra || 1;
+  const seg = [
+    { label: 'Falta', v: rf, color: COLORS[1] },
+    { label: 'Nota', v: rn, color: COLORS[4] },
+    { label: 'Após exame', v: ra, color: COLORS[3] },
+  ];
+  return <div className="abi-tipo-bar">{seg.map(s => s.v > 0 && (
+    <div key={s.label} className="abi-tipo-seg" style={{ width: (s.v / total * 100) + '%', background: s.color }}
+      title={`${s.label}: ${fmt.format(s.v)} (${(s.v / total * 100).toFixed(0)}%)`} />
+  ))}</div>;
+}
+
+function RaioX({ profs, discs, dossieDireito, cursos, reprovaTipo }: {
+  profs: ProfReprova[]; discs: DiscReprova[]; dossieDireito: ReprovaSemestre[];
+  cursos: CourseIndicator[]; reprovaTipo: ReturnType<typeof agregarReprovaTipo>;
+}) {
+  const [modo, setModo] = useState<'professores' | 'disciplinas' | 'cursos'>('professores');
   const [busca, setBusca] = useState('');
   const [open, setOpen] = useState<number | null>(null);
+  const [openCurso, setOpenCurso] = useState<string | null>(null);
 
   const profsFiltrados = useMemo(() =>
     profs.filter(p => p.total > 0 && p.nome.toLowerCase().includes(busca.toLowerCase())).slice(0, 60),
@@ -331,22 +351,97 @@ function RaioX({ profs, discs, dossieDireito }: { profs: ProfReprova[]; discs: D
   const discsFiltradas = useMemo(() =>
     discs.filter(d => d.total > 0 && d.disciplina.toLowerCase().includes(busca.toLowerCase())).slice(0, 60),
     [discs, busca]);
+  const cursosFiltrados = useMemo(() =>
+    cursos.filter(c => c.nome.toLowerCase().includes(busca.toLowerCase())).slice(0, 60),
+    [cursos, busca]);
 
   const maxProf = Math.max(1, ...profs.filter(p => p.total > 0).map(p => p.total));
   const maxDisc = Math.max(1, ...discs.filter(d => d.total > 0).map(d => d.total));
+  const maxCurso = Math.max(1, ...cursos.map(c => c.totalReprovacoes));
+  const totTipo = reprovaTipo.totalRf + reprovaTipo.totalRn + reprovaTipo.totalRa || 1;
+
+  const ph = modo === 'professores' ? 'Buscar professor…' : modo === 'disciplinas' ? 'Buscar disciplina…' : 'Buscar curso…';
 
   return <div className="abi-sim">
+    {/* Composição institucional da reprovação por tipo */}
+    {totTipo > 1 && (
+      <article className="abi-card abi-card-wide">
+        <h3>Reprovação por tipo — raiz do problema</h3>
+        <small className="abi-subtitle">Distingue falta (frequência), nota (desempenho) e após exame final. Base: matrícula em disciplina, não aluno único.</small>
+        <div className="abi-tipo-kpis">
+          <div className="abi-tipo-kpi"><i style={{ background: COLORS[1] }} /><span className="abi-kpi-label">Por falta</span><strong>{fmt.format(reprovaTipo.totalRf)}</strong><small>{(reprovaTipo.totalRf / totTipo * 100).toFixed(0)}%</small></div>
+          <div className="abi-tipo-kpi"><i style={{ background: COLORS[4] }} /><span className="abi-kpi-label">Por nota</span><strong>{fmt.format(reprovaTipo.totalRn)}</strong><small>{(reprovaTipo.totalRn / totTipo * 100).toFixed(0)}%</small></div>
+          <div className="abi-tipo-kpi"><i style={{ background: COLORS[3] }} /><span className="abi-kpi-label">Após exame</span><strong>{fmt.format(reprovaTipo.totalRa)}</strong><small>{(reprovaTipo.totalRa / totTipo * 100).toFixed(0)}%</small></div>
+        </div>
+        <TipoReprovaBar rf={reprovaTipo.totalRf} rn={reprovaTipo.totalRn} ra={reprovaTipo.totalRa} />
+        {reprovaTipo.porSemestre.length > 1 && (
+          <div className="abi-tipo-serie">{reprovaTipo.porSemestre.map(s => (
+            <div key={s.semestre} className="abi-tipo-serie-col">
+              <TipoReprovaBar rf={s.rf} rn={s.rn} ra={s.ra} />
+              <span className="abi-tipo-serie-sem">{s.semestre.replace('/', '·')}</span>
+            </div>
+          ))}</div>
+        )}
+      </article>
+    )}
+
     <div className="abi-sim-controls">
       <div className="abi-toggle">
         <button className={modo === 'professores' ? 'active' : ''} onClick={() => { setModo('professores'); setOpen(null); }}>👨‍🏫 Professores</button>
         <button className={modo === 'disciplinas' ? 'active' : ''} onClick={() => { setModo('disciplinas'); setOpen(null); }}>📚 Disciplinas</button>
+        {cursos.length > 0 && <button className={modo === 'cursos' ? 'active' : ''} onClick={() => { setModo('cursos'); setOpenCurso(null); }}>🎓 Cursos</button>}
       </div>
       <label className="abi-search">🔍
-        <input type="search" placeholder={modo === 'professores' ? 'Buscar professor…' : 'Buscar disciplina…'} value={busca} onChange={e => setBusca(e.target.value)} />
+        <input type="search" placeholder={ph} value={busca} onChange={e => setBusca(e.target.value)} />
       </label>
     </div>
 
-    {modo === 'professores' ? (
+    {modo === 'cursos' ? (
+      <article className="abi-card abi-card-wide">
+        <h3>Reprovação por curso</h3>
+        <small className="abi-subtitle">Clique num curso para ver a evolução por tipo (falta · nota · após exame), a média das notas e os alunos em acompanhamento.</small>
+        <div className="abi-rank">{cursosFiltrados.map(c => (
+          <div key={c.courseId} className="abi-rank-group">
+            <button className="abi-rank-row" onClick={() => setOpenCurso(openCurso === c.courseId ? null : c.courseId)}>
+              <span className="abi-rank-name abi-rank-name-wide" title={c.nome}>{c.nome}</span>
+              <div className="abi-rank-track abi-tipo-bar">
+                <div className="abi-tipo-seg" style={{ width: (c.totalRf / Math.max(1, c.totalReprovacoes) * (c.totalReprovacoes / maxCurso) * 100) + '%', background: COLORS[1] }} />
+                <div className="abi-tipo-seg" style={{ width: (c.totalRn / Math.max(1, c.totalReprovacoes) * (c.totalReprovacoes / maxCurso) * 100) + '%', background: COLORS[4] }} />
+                <div className="abi-tipo-seg" style={{ width: (c.totalRa / Math.max(1, c.totalReprovacoes) * (c.totalReprovacoes / maxCurso) * 100) + '%', background: COLORS[3] }} />
+              </div>
+              <span className="abi-rank-val">{fmt.format(c.totalReprovacoes)}</span>
+              {c.alunosEmRisco != null && <span className="abi-rank-tax" title="Alunos em acompanhamento por reprovação">⚠ {c.alunosEmRisco}</span>}
+            </button>
+            {openCurso === c.courseId && (
+              <div className="abi-curso-detail">
+                <div className="abi-curso-resumo">
+                  <span>Por falta: <b>{fmt.format(c.totalRf)}</b></span>
+                  <span>Por nota: <b>{fmt.format(c.totalRn)}</b></span>
+                  <span>Após exame: <b>{fmt.format(c.totalRa)}</b></span>
+                  {c.alunosEmRisco != null && <span>Alunos em risco: <b>{c.alunosEmRisco}</b></span>}
+                </div>
+                {c.series.length > 0 && (
+                  <table className="abi-table abi-curso-table">
+                    <thead><tr><th>Semestre</th><th>Falta</th><th>Nota</th><th>Após exame</th><th>Reprov.</th><th>Matríc. disc.</th><th>Média nota</th></tr></thead>
+                    <tbody>{c.series.map(s => (
+                      <tr key={s.semestre}>
+                        <td>{s.semestre}</td>
+                        <td className="abi-num">{fmt.format(s.rf)}</td>
+                        <td className="abi-num">{fmt.format(s.rn)}</td>
+                        <td className="abi-num">{fmt.format(s.ra)}</td>
+                        <td className="abi-num">{fmt.format(s.reprovacoes)}</td>
+                        <td className="abi-num">{fmt.format(s.matriculasDisciplina)}</td>
+                        <td className="abi-num" style={{ color: s.mediaNota >= 7 ? GREEN : s.mediaNota >= 5 ? COLORS[3] : RED }}>{s.mediaNota.toFixed(1)}</td>
+                      </tr>
+                    ))}</tbody>
+                  </table>
+                )}
+              </div>
+            )}
+          </div>
+        ))}</div>
+      </article>
+    ) : modo === 'professores' ? (
       <article className="abi-card abi-card-wide">
         <h3>Professores que mais reprovam</h3>
         <small className="abi-subtitle">Clique num professor para ver a composição (faltas · notas · pós-recuperação)</small>
@@ -511,12 +606,70 @@ function Funil({ fluxo }: { fluxo: FluxoSemestre[] }) {
   </div>;
 }
 
+/* ============================================================ Evasão & Renovação */
+function EvasaoRenovacao({ report }: { report: CohortsReport | null }) {
+  if (!report || report.coortes.length === 0)
+    return <p className="abi-empty">Sem dados de renovação/evasão para esta instituição.</p>;
+
+  const r = resumirEvasao(report.coortes);
+  const evadidos = r.evadiram || 1;
+  const pctCom = r.evadiramComDesempenho / evadidos * 100;
+  const pctSem = r.evadiramSemDesempenho / evadidos * 100;
+
+  return <div className="abi-sim">
+    <div className="abi-cmp-summary">
+      <article className="abi-cmp-tile"><span className="abi-kpi-label">Base analisada</span><strong>{fmt.format(r.ingressantes)}</strong><small>vínculos nas coortes apuradas</small></article>
+      <article className="abi-cmp-tile"><span className="abi-kpi-label">Taxa de renovação</span><strong style={{ color: GREEN }}>{fmtPct(r.taxaRenovacao)}</strong><small>{fmt.format(r.renovaram)} renovaram</small></article>
+      <article className="abi-cmp-tile"><span className="abi-kpi-label">Taxa de evasão</span><strong style={{ color: RED }}>{fmtPct(r.taxaEvasao)}</strong><small>{fmt.format(r.evadiram)} não renovaram</small></article>
+      <article className="abi-cmp-tile"><span className="abi-kpi-label">Retornaram após intervalo</span><strong style={{ color: COLORS[0] }}>{fmt.format(r.retornaram)}</strong><small>saíram e voltaram</small></article>
+    </div>
+
+    <article className="abi-card abi-card-wide">
+      <h3>Por que evadem? — cruzamento evasão × desempenho</h3>
+      <small className="abi-subtitle">Entre quem não renovou, separa os que tinham desempenho (AV1 positiva) dos que não tinham. É o que distingue evasão provavelmente não-acadêmica de evasão ligada a dificuldade de aprendizagem.</small>
+      <div className="abi-tipo-kpis">
+        <div className="abi-tipo-kpi"><i style={{ background: COLORS[3] }} /><span className="abi-kpi-label">Evadiram com desempenho</span><strong>{fmt.format(r.evadiramComDesempenho)}</strong><small>{pctCom.toFixed(0)}% dos que saíram</small></div>
+        <div className="abi-tipo-kpi"><i style={{ background: RED }} /><span className="abi-kpi-label">Evadiram sem desempenho</span><strong>{fmt.format(r.evadiramSemDesempenho)}</strong><small>{pctSem.toFixed(0)}% dos que saíram</small></div>
+      </div>
+      <div className="abi-tipo-bar">
+        {r.evadiramComDesempenho > 0 && <div className="abi-tipo-seg" style={{ width: pctCom + '%', background: COLORS[3] }} title={`Com desempenho: ${pctCom.toFixed(0)}%`} />}
+        {r.evadiramSemDesempenho > 0 && <div className="abi-tipo-seg" style={{ width: pctSem + '%', background: RED }} title={`Sem desempenho: ${pctSem.toFixed(0)}%`} />}
+      </div>
+      <p className="abi-insight">
+        <b>[Inferência]</b> {pctCom.toFixed(0)}% de quem evadiu vinha com desempenho positivo (AV1) e, mesmo assim, não renovou — padrão associado a causas <b>não-acadêmicas</b> (financeiro, mudança, trabalho). Os {pctSem.toFixed(0)}% restantes saíram sem desempenho, perfil mais ligado a <b>dificuldade acadêmica</b>. A causa individual não está confirmada: para isolar financeiro, transferência ou trancamento aluno a aluno é preciso cruzar com a camada nominal (ainda não carregada neste painel).
+      </p>
+    </article>
+
+    <article className="abi-card abi-card-wide">
+      <h3>Renovação por coorte de ingresso</h3>
+      <table className="abi-table">
+        <thead><tr><th>Coorte</th><th>Ingressantes</th><th>Renovaram</th><th>Evadiram</th><th>— com desemp.</th><th>— sem desemp.</th><th>Renovação</th></tr></thead>
+        <tbody>{report.coortes.map(c => {
+          const base = c.nextLink + c.noNext || 1;
+          const tx = c.nextLink / base * 100;
+          return <tr key={c.cohort}>
+            <td>{c.cohort}</td>
+            <td className="abi-num">{fmt.format(c.entrants)}</td>
+            <td className="abi-num" style={{ color: GREEN }}>{fmt.format(c.nextLink)}</td>
+            <td className="abi-num" style={{ color: RED }}>{fmt.format(c.noNext)}</td>
+            <td className="abi-num">{fmt.format(c.noNextPositiveAv1)}</td>
+            <td className="abi-num">{fmt.format(c.noNextNoPositiveAv1)}</td>
+            <td className="abi-num"><b style={{ color: tx >= 80 ? GREEN : tx >= 60 ? COLORS[3] : RED }}>{fmtPct(tx)}</b></td>
+          </tr>;
+        })}</tbody>
+      </table>
+      <small className="abi-subtitle">Método: {report.method || 'continuidade de vínculo entre semestres (e-ORBIT)'}. Tipos de saída formal (trancamento, transferência, cancelamento, abandono) estão na aba Funil Acadêmico.</small>
+    </article>
+  </div>;
+}
+
 /* ============================================================ Main */
-type Aba = 'geral' | 'comparador' | 'raiox' | 'simulador' | 'funil';
+type Aba = 'geral' | 'comparador' | 'raiox' | 'simulador' | 'funil' | 'evasao';
 const ABAS: { id: Aba; label: string }[] = [
   { id: 'geral', label: '📊 Visão Geral' },
   { id: 'comparador', label: '🔀 Comparador' },
   { id: 'raiox', label: '🔬 Raio-X Reprovações' },
+  { id: 'evasao', label: '🚪 Evasão & Renovação' },
   { id: 'simulador', label: '🎯 Simulador' },
   { id: 'funil', label: '🧭 Funil Acadêmico' },
 ];
@@ -532,6 +685,8 @@ export default function AcademicoBI({ institutionId, institutionName }: { instit
   const [fluxo, setFluxo] = useState<FluxoSemestre[]>([]);
   const [reprovaSem, setReprovaSem] = useState<ReprovaSemestre[]>([]);
   const [dossie, setDossie] = useState<ReprovaSemestre[]>([]);
+  const [cohorts, setCohorts] = useState<CohortsReport | null>(null);
+  const [courseIndicators, setCourseIndicators] = useState<CourseIndicator[]>([]);
   const [selectedSemestre, setSelectedSemestre] = useState<number | null>(null);
   const [modalidadeFilter, setModalidadeFilter] = useState('Todas');
   const [aba, setAba] = useState<Aba>('geral');
@@ -553,18 +708,23 @@ export default function AcademicoBI({ institutionId, institutionName }: { instit
       // Relatórios de reprovação/fluxo (vertice_academic_reports). Falha aqui não derruba a visão geral.
       if (institutionId) {
         try {
-          const [rp, rd, rf, rs, dd] = await Promise.all([
+          const [rp, rd, rf, rs, dd, co, ci, nomes] = await Promise.all([
             fetchReports(institutionId, ['reprovacoes_professor']),
             fetchReports(institutionId, ['reprovacoes_disciplina']),
             fetchReports(institutionId, ['fluxo_academico']),
             fetchReports(institutionId, ['reprovacoes_semestre']),
             fetchReports(institutionId, ['dossie_direito']),
+            fetchReports(institutionId, ['cohorts']),
+            fetchReports(institutionId, ['course_indicators']),
+            fetchCourseNames(),
           ]);
           setProfs(parseProfReprova(rp));
           setDiscs(parseDiscReprova(rd));
           setFluxo(parseFluxo(rf));
           setReprovaSem(parseReprovaSemestre(rs));
           setDossie(parseReprovaSemestre(dd));
+          setCohorts(parseCohorts(co));
+          setCourseIndicators(parseCourseIndicators(ci, nomes));
         } catch { /* simulações ficam vazias, visão geral segue */ }
       }
     } catch (e: any) {
@@ -595,6 +755,8 @@ export default function AcademicoBI({ institutionId, institutionName }: { instit
   const sortedSemestres = [...semestres].sort((a, b) => b.semestre.localeCompare(a.semestre));
   const modalities = ['Todas', ...new Set(bi.cursosResumo.filter(c => c.vinculos > 0).map(c => c.modalidade.charAt(0).toUpperCase() + c.modalidade.slice(1)))];
   const temSimulacoes = profs.length > 0 || fluxo.length > 0;
+  const reprovaTipo = useMemo(() => agregarReprovaTipo(courseIndicators), [courseIndicators]);
+  const temEvasao = (cohorts?.coortes.length ?? 0) > 0;
 
   if (loading) return <section className="abi-root"><p role="status">Carregando BI acadêmico…</p></section>;
 
@@ -618,7 +780,8 @@ export default function AcademicoBI({ institutionId, institutionName }: { instit
     <nav className="abi-tabs">
       {ABAS.map(t => {
         const disabled = (t.id === 'comparador' && quantitativo.length === 0) ||
-          ((t.id === 'raiox' || t.id === 'simulador' || t.id === 'funil') && !temSimulacoes);
+          ((t.id === 'raiox' || t.id === 'simulador' || t.id === 'funil') && !temSimulacoes) ||
+          (t.id === 'evasao' && !temEvasao);
         return <button key={t.id} className={`abi-tab ${aba === t.id ? 'active' : ''}`} disabled={disabled} onClick={() => setAba(t.id)} title={disabled ? 'Sem dados para esta instituição' : ''}>{t.label}</button>;
       })}
     </nav>
@@ -627,7 +790,8 @@ export default function AcademicoBI({ institutionId, institutionName }: { instit
 
     {aba === 'geral' && <VisaoGeral bi={bi} semestreLabel={semestreLabel} modalidadeFilter={modalidadeFilter} setModalidadeFilter={setModalidadeFilter} modalities={modalities} />}
     {aba === 'comparador' && <Comparador quantitativo={quantitativo} cursos={cursos} semestres={semestres} />}
-    {aba === 'raiox' && <RaioX profs={profs} discs={discs} dossieDireito={dossie} />}
+    {aba === 'raiox' && <RaioX profs={profs} discs={discs} dossieDireito={dossie} cursos={courseIndicators} reprovaTipo={reprovaTipo} />}
+    {aba === 'evasao' && <EvasaoRenovacao report={cohorts} />}
     {aba === 'simulador' && <Simulador reprovaSemestre={reprovaSem} />}
     {aba === 'funil' && <Funil fluxo={fluxo} />}
   </section>;
