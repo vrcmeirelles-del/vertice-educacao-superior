@@ -2,6 +2,7 @@ import {actionDraftKey,parseActionDraft,storeActionDraft,validateActionLinks,cha
 import ActionCockpit from "./ActionCockpit";
 import ActionKanban from "./ActionKanban";
 import ActiveGovernance from "./ActiveGovernance";
+import CnpjConnections from "./CnpjConnections";
 import RegistryContacts from "./RegistryContacts";
 import { courseClassification, useCourseFilters } from "./CourseFilters";
 import {displayCourseRows} from '@/lib/course-labels';
@@ -150,6 +151,7 @@ export default function Workspace({
         </div>
       </div>
       {data.courses.some(c=>c.registration_note)&&<p className="area-note">Há cadastros com o mesmo nome e código, mas com históricos próprios. Eles aparecem como Base 1 e Base 2, com suas quantidades de exigências e metas, para você escolher o acervo correto. Nenhum documento ou vínculo foi descartado.</p>}
+      {can.manageGoals(role)&&institution.cnpj&&<CnpjConnections institutionId={id}/>}
       <div role="tablist" aria-label="Áreas da instituição" className="area-tabs">
         {visible.map(([k, l]) => (
           <button key={k} role="tab" aria-selected={tab === k} className={tab === k ? "active" : ""} onClick={() => choose(k)}>
