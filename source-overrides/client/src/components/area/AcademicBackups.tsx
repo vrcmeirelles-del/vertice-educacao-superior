@@ -190,6 +190,41 @@ export default function AcademicBackups({institutionId,institutionName}:{institu
    <h3>Backups Acadêmicos — {institutionName}</h3>
    <p>Ambiente isolado para guardar originais RAR, ZIP e BAK. O envio não executa comandos SQL, não extrai dados pessoais e não altera matrículas ou o BI.</p>
   </header>
+  <section className="vx-backup-spotlight" aria-label="Conferência rápida de backup">
+    <div className="vx-backup-spotlight-heading">
+      <div><span className="vx-backup-eyebrow">PRÓXIMA ETAPA · BACKUP RECEBIDO</span>
+      <h4>Conferir a cópia armazenada</h4>
+      <p>O arquivo já foi recebido. Verifique sua impressão digital antes de solicitar uma restauração técnica.</p></div>
+      <button type="button" className="vx-backup-reload" disabled={busy||!!checking} onClick={()=>void refresh().catch(e=>setError((e as Error).message))}>Atualizar situação</button>
+    </div>
+    {loading?<p role="status">Consultando backups da instituição…</p>:
+    records.filter(row=>row.stage==="recebido").length===0?
+      <p>Não foi encontrado backup com recebimento confirmado para esta instituição. Confira a lista e as mensagens de erro abaixo.</p>:
+    (()=>{const row=records.find(row=>row.stage==="recebido"&&row.backup_kind==="bak")??records.find(row=>row.stage==="recebido")!;
+      const restore=requests.find(x=>x.backup_id===row.id);
+      return <div className="vx-backup-highlight-card">
+        <div className="vx-backup-highlight-filename"><strong>{row.original_name}</strong>
+          <small>{fmtSize(row.bytes)} · Recebido em {row.received_at?new Date(row.received_at).toLocaleString("pt-BR"):"data não informada"}</small>
+        </div>
+        <div className="vx-backup-highlight-meta">
+          <span>Estado: <strong>Recebido · não restaurado</strong></span>
+          <span>Integridade: <strong>{verified[row.id]??"Conferência do arquivo armazenado pendente"}</strong></span>
+        </div>
+        <div className="vx-backup-highlight-actions">
+          <button className="vx-backup-primary" type="button" disabled={busy||!!checking}
+            onClick={()=>void verify(row)}>{checking===row.id?"Conferindo cópia…":"Conferir cópia agora"}</button>
+          {restore?<span className="vx-backup-requested">Solicitação técnica registrada · atendimento pendente</span>:
+          <button className="vx-backup-secondary" type="button" disabled={busy}
+            onClick={()=>setConfirmRestore(row.id)}>Solicitar restauração</button>}
+        </div>
+      </div>})()}
+  </section>
+  {confirmRestore&&<div className="vx-backup-confirm" role="alertdialog" aria-label="Confirmar solicitação de restauração">
+    <strong>Registrar solicitação de restauração técnica?</strong>
+    <p>Isso não iniciará um serviço em segundo plano. Será apenas uma solicitação para confirmar o formato do backup e preparar uma restauração isolada, sem alterar o banco de produção.</p>
+    <div><button type="button" disabled={busy} onClick={()=>setConfirmRestore(null)}>Cancelar</button>
+      <button type="button" disabled={busy} onClick={()=>{const row=records.find(x=>x.id===confirmRestore);if(row)void requestRestoration(row)}}>Confirmar solicitação</button></div>
+  </div>}
   <div className="vx-backup-alert">
    <strong>Regra de segurança:</strong> um backup recebido é apenas um arquivo preservado. A assinatura RAR/ZIP e o hash identificam o arquivo; a validade de um BAK SQL Server somente pode ser confirmada em um processo técnico de restauração isolada.
   </div>
@@ -245,11 +280,5 @@ export default function AcademicBackups({institutionId,institutionName}:{institu
     })}</tbody></table></div>}
    <small>Mostrando até 100 registros. Originais são imutáveis nesta área; exclusão e restauração exigem processo administrativo e técnico específico.</small>
   </div>
-  {confirmRestore&&<div className="vx-backup-confirm" role="alertdialog" aria-label="Confirmar solicitação de restauração">
-    <strong>Registrar solicitação de restauração técnica?</strong>
-    <p>Isso não iniciará um serviço em segundo plano. Será apenas uma solicitação para confirmar o formato do backup e preparar uma restauração isolada, sem alterar o banco de produção.</p>
-    <div><button type="button" disabled={busy} onClick={()=>setConfirmRestore(null)}>Cancelar</button>
-      <button type="button" disabled={busy} onClick={()=>{const row=records.find(x=>x.id===confirmRestore);if(row)void requestRestoration(row)}}>Confirmar solicitação</button></div>
-  </div>}
  </section>;
 }
