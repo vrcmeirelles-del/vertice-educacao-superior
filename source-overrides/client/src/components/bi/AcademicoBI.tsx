@@ -504,7 +504,6 @@ function RaioX({ profs, discs, dossieDireito, cursos, reprovaTipo }: {
             </div>;
           })}</div>;
         })()}
-        ))}</div>
       </article>
     )}
   </div>;
