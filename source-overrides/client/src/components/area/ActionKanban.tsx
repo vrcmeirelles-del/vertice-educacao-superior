@@ -19,7 +19,7 @@ const COLUMNS = [
 ] as const;
 
 function initials(name:string) {
- const parts=name.trim().split(/\\s+/).filter(Boolean);
+ const parts=name.trim().split(/\s+/).filter(Boolean);
  return parts.slice(0,2).map(p=>p[0]?.toLocaleUpperCase("pt-BR")??"").join("")||"?";
 }
 
