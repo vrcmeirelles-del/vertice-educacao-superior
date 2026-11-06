@@ -31,16 +31,26 @@ export function decorateAcquisitionForm(container=document){
   select.className="acq-suggestion-select";
   select.setAttribute("aria-label","Sugestões para "+name);
   select.innerHTML='<option value="">Sugestões para preenchimento — escolher</option>'+values.map((text,i)=>'<option value="'+i+'">'+text.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')+'</option>').join('')+'<option value="outro">Outro — escrever livremente</option>';
+  const other=document.createElement("textarea");
+  other.rows=3;other.hidden=true;other.placeholder="Digite sua redação personalizada";
+  other.setAttribute("aria-label","Outro — texto personalizado");
+  other.className="acq-suggestion-other";
+  other.addEventListener("input",()=>{
+   input.value=other.value;input.dispatchEvent(new Event("input",{bubbles:true}));
+  });
   select.addEventListener("change",()=>{
+   const custom=select.value==="outro";
+   other.hidden=!custom;
    if(select.value==="")return;
-   input.value=select.value==="outro"?"":values[Number(select.value)]??input.value;
+   input.value=custom?"":values[Number(select.value)]??input.value;
    input.dispatchEvent(new Event("input",{bubbles:true}));
-   input.focus();
+   if(custom){other.value="";other.focus();}else input.focus();
   });
   const info=document.createElement("small");
   info.className="acq-suggestion-note";
   info.textContent="Rascunho sugerido. Revise a situação real e a fonte antes de salvar.";
   input.insertAdjacentElement("afterend",info);
   input.insertAdjacentElement("afterend",select);
+  select.insertAdjacentElement("afterend",other);
  });
 }
