@@ -60,6 +60,12 @@ export default function AuditoriaPermanenciaBI({institutionId,institutionName}:{
     return()=>{alive=false;};
   },[institutionId,refresh]);
 
+  const rawReprobation=useMemo(()=>reports.filter(r=>r.kind==="reprovacoes_semestre").map(r=>({
+    semester:String(r.payload.s??""),
+    failures:int(r.payload.reprovacoes),
+    enrollmentEvents:int(r.payload.matriculas),
+    reportedRate:String(r.payload.pct_reprovacao??"—")
+  })).sort((a,b)=>b.semester.localeCompare(a.semester)),[reports]);
   const cohortReports=useMemo(()=>reports.filter(x=>x.kind==="cohorts"),[reports]);
   const cohorts=useMemo(()=>cohortReports.flatMap(r=>(Array.isArray(r.payload.cohorts)?r.payload.cohorts:[])
      .map((c:Cohort)=>({...c,course_id:r.course_id,reference:r.source_report_at,method:r.payload.method}))),[cohortReports]);
@@ -150,6 +156,11 @@ export default function AuditoriaPermanenciaBI({institutionId,institutionName}:{
           <tbody>{visibleSeries.map((s,i)=><tr key={i}><td>{s.semester}</td><td>{fmt(s.RF)}</td><td>{fmt(s.RN)}</td><td>{fmt(s.RA)}</td><td>{fmt(s.failures)}</td><td>{fmt(s.discipline_enrollments)}</td></tr>)}</tbody></table></div>:<p>Série de reprovações não disponibilizada para este curso.</p>}
         {selectedCohorts.length>0&&<p className="vxa-source">Há {fmt(selectedCohorts.length)} coortes históricas de primeiro vínculo disponíveis para este curso.</p>}
         <p className="vxa-source">Fonte: vertice_academic_reports, tipo course_indicators (série de reprovações). RF/RN/RA seguem a codificação original. Não é possível descontar matrículas sem participação ou medir aprovação posterior sem o histórico individual.</p>
+        <h3>Impacto nos indicadores — taxas brutas e ajustes pendentes</h3>
+        <p>Estas taxas históricas abrangem vínculos em disciplinas da instituição e <strong>não são taxas de alunos únicos</strong>. O denominador ajustado só será calculado quando for possível verificar individualmente as condições de primeiro vínculo, gratuidade e ausência real nas duas avaliações.</p>
+        <div className="vxa-scroll"><table><thead><tr><th>Semestre</th><th>Reprovações brutas</th><th>Vínculos em disciplinas</th><th>Taxa bruta</th><th>Taxa gerencial ajustada</th></tr></thead>
+        <tbody>{rawReprobation.map((r,i)=><tr key={i}><td>{r.semester}</td><td>{fmt(r.failures)}</td><td>{fmt(r.enrollmentEvents)}</td><td>{r.reportedRate==="—"?"—":r.reportedRate+"%"}</td><td>Sem base individual verificada</td></tr>)}</tbody></table></div>
+        <p className="vxa-source">Fonte: reprovacoes_semestre, relatório histórico institucional. Não substituir indicadores oficiais por taxas ajustadas sem regras aprovadas, validação e rastreabilidade das exclusões gerenciais.</p>
       </div>}
       {tab==="disciplinas"&&<div className="vxa-card">
         <h3>Disciplinas com reprovações — ranking institucional</h3>
