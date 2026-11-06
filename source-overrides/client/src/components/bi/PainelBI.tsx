@@ -427,36 +427,76 @@ function ReprovacoesAnuais({ reports }: { reports: BIReport[] }) {
   const summarize = (rows: typeof left) =>
     [...new Set(rows.map(([, row]) => row.semester))].sort().join(' e ') || 'ND';
 
-  return <section className="bi-secao" aria-label="Comparativo anual de reprovações">
-    <h2>Reprovações · comparativo anual</h2>
-    <p className="bi-meta">Fonte: indicadores de curso das planilhas e-ORBIT. Cada total soma as matrículas em disciplinas nos semestres disponíveis para o ano escolhido.</p>
-    {!years.length ? <p>Dado não disponível para a instituição selecionada.</p> : <>
-      <div className="bi-filtros">
+  const deltaSign = (delta: number | null): string =>
+    delta === null ? '' : delta > 0 ? 'critico' : delta < 0 ? 'bom' : 'neutro';
+  const deltaLabel = (delta: number | null): string =>
+    delta === null ? 'ND' : delta === 0 ? '—' : delta.toLocaleString('pt-BR', { signDisplay: 'exceptZero' });
+  const pctChange = (a: number | null, b: number | null): string | null =>
+    comparable && a !== null && b !== null && a > 0
+      ? ((b - a) / a * 100).toFixed(1).replace('.', ',') + '%' : null;
+
+  return <section className="bi-secao reprova-section" aria-label="Comparativo anual de reprovações">
+    <div className="reprova-header">
+      <div>
+        <h2>Reprovações · comparativo anual</h2>
+        <p className="bi-meta">Fonte: indicadores de curso das planilhas e-ORBIT. Cada total soma as matrículas em disciplinas nos semestres disponíveis para o ano escolhido.</p>
+      </div>
+    </div>
+    {!years.length ? <p className="bi-vazio">Dado não disponível para a instituição selecionada.</p> : <>
+      <div className="reprova-filtros">
         <label>Ano-base <select value={selectedA} onChange={e => setYearA(e.target.value)}>
           {years.map(year => <option key={year}>{year}</option>)}
         </select></label>
         <label>Ano de comparação <select value={selectedB} onChange={e => setYearB(e.target.value)}>
           {years.map(year => <option key={year}>{year}</option>)}
         </select></label>
+        <span className="reprova-cobertura">
+          {selectedA}: {summarize(left)} ({left.length} reg.) · {selectedB}: {summarize(right)} ({right.length} reg.)
+        </span>
       </div>
-      <p>{selectedA}: {summarize(left)} ({left.length} registros curso × semestre) · {selectedB}: {summarize(right)} ({right.length} registros curso × semestre).</p>
-      <div className="table-scroll" tabIndex={0} role="region" aria-label="Totais de reprovações por ano">
-        <table><thead><tr><th scope="col">Indicador</th><th scope="col">{selectedA}</th><th scope="col">{selectedB}</th><th scope="col">Variação</th></tr></thead>
-          <tbody>{failureMetrics.map(({ key, label, color }) => {
-            const first = total(left, key), second = total(right, key);
-            const delta = comparable && first !== null && second !== null ? second - first : null;
-            const max = Math.max(1, first ?? 0, second ?? 0);
-            return <tr key={key}><th scope="row" style={{ color }}>{label}</th>
-              {[first, second].map((value, index) => <td key={index}>
-                <strong>{format(value)}</strong>
-                {value !== null && <span aria-hidden="true" style={{ display: 'block', height: 5, width: (value / max * 100) + '%', background: color, borderRadius: 4 }}/>}
-              </td>)}
-              <td>{delta === null ? 'ND' : delta.toLocaleString('pt-BR', { signDisplay: 'exceptZero' })}</td>
-            </tr>;
-          })}</tbody>
-        </table>
+
+      <div className="reprova-cards">
+        {failureMetrics.map(({ key, label, color }) => {
+          const first = total(left, key), second = total(right, key);
+          const delta = comparable && first !== null && second !== null ? second - first : null;
+          const pct = pctChange(first, second);
+          const max = Math.max(1, first ?? 0, second ?? 0);
+          const signal = deltaSign(delta);
+          return <div className="reprova-card" key={key}>
+            <div className="reprova-card-indicator" style={{ background: color }} />
+            <h3 className="reprova-card-label">{label}</h3>
+            <div className="reprova-card-body">
+              <div className="reprova-year-col">
+                <span className="reprova-year-label">{selectedA}</span>
+                <span className="reprova-year-value">{format(first)}</span>
+                {first !== null && <div className="reprova-bar-track">
+                  <div className="reprova-bar-fill" style={{ width: (first / max * 100) + '%', background: color }} />
+                </div>}
+              </div>
+              <div className="reprova-year-col">
+                <span className="reprova-year-label">{selectedB}</span>
+                <span className="reprova-year-value">{format(second)}</span>
+                {second !== null && <div className="reprova-bar-track">
+                  <div className="reprova-bar-fill" style={{ width: (second / max * 100) + '%', background: color, opacity: 0.7 }} />
+                </div>}
+              </div>
+              <div className="reprova-delta-col">
+                <span className="reprova-delta-label">Variação</span>
+                {delta !== null ? (
+                  <span className={`reprova-delta-badge reprova-delta-${signal}`}>
+                    {delta > 0 ? '▲' : delta < 0 ? '▼' : '●'} {deltaLabel(delta)}
+                    {pct && <span className="reprova-delta-pct"> ({(delta > 0 ? '+' : '') + pct})</span>}
+                  </span>
+                ) : (
+                  <span className="reprova-delta-badge reprova-delta-nd">ND</span>
+                )}
+              </div>
+            </div>
+          </div>;
+        })}
       </div>
-      {!comparable && <p>Variação indisponível: os anos têm cobertura diferente de cursos ou semestres.</p>}
+
+      {!comparable && <p className="reprova-aviso">⚠ Variação indisponível: os anos têm cobertura diferente de cursos ou semestres.</p>}
       <p className="bi-meta">As contagens representam matrículas em disciplinas. ND indica dado indisponível. O comparativo anual abrange todos os graus da instituição e tem filtros próprios.</p>
     </>}
   </section>;

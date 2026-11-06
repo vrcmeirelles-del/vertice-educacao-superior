@@ -560,6 +560,167 @@
   .bi-tabela th, .bi-tabela td { padding: 6px; }
 }
 
+/* ---------- reprovações: comparativo anual ---------- */
+.reprova-section { padding-bottom: var(--bi-gap-secao); }
+.reprova-header { margin-bottom: 16px; }
+.reprova-header h2 { margin-bottom: 4px; }
+
+.reprova-filtros {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 10px 16px;
+  background: var(--bi-papel-elevado);
+  border: 1px solid var(--bi-linha);
+  border-radius: var(--bi-radius);
+  margin-bottom: 20px;
+}
+.reprova-filtros label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--bi-tinta-media);
+}
+.reprova-filtros select {
+  border: 1px solid var(--bi-linha);
+  background: var(--bi-papel);
+  color: var(--bi-tinta);
+  font-family: var(--bi-font-sans);
+  font-size: 13px;
+  padding: 5px 8px;
+  border-radius: var(--bi-radius);
+  cursor: pointer;
+}
+.reprova-cobertura {
+  font-size: 12px;
+  color: var(--bi-tinta-fraca);
+  margin-left: auto;
+}
+
+.reprova-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.reprova-card {
+  background: var(--bi-papel-elevado);
+  border: 1px solid var(--bi-linha);
+  border-radius: 6px;
+  padding: 16px 18px 14px;
+  position: relative;
+  overflow: hidden;
+}
+.reprova-card-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+}
+.reprova-card-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--bi-tinta-media);
+  margin: 0 0 12px;
+  text-transform: none;
+}
+.reprova-card-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 12px;
+  align-items: end;
+}
+.reprova-year-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.reprova-year-label {
+  font-size: 11px;
+  color: var(--bi-tinta-fraca);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.reprova-year-value {
+  font-family: var(--bi-font-serif);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--bi-tinta);
+}
+.reprova-bar-track {
+  height: 6px;
+  background: var(--bi-linha);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 2px;
+}
+.reprova-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.6s ease-out;
+}
+
+.reprova-delta-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  min-width: 80px;
+}
+.reprova-delta-label {
+  font-size: 11px;
+  color: var(--bi-tinta-fraca);
+}
+.reprova-delta-badge {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+.reprova-delta-critico {
+  background: #fde8e5;
+  color: var(--bi-sinal-critico);
+}
+.reprova-delta-bom {
+  background: #e0f2e9;
+  color: var(--bi-sinal-bom);
+}
+.reprova-delta-neutro {
+  background: var(--bi-linha);
+  color: var(--bi-tinta-fraca);
+}
+.reprova-delta-nd {
+  background: var(--bi-linha);
+  color: var(--bi-tinta-fraca);
+  font-weight: 400;
+}
+.reprova-delta-pct {
+  font-weight: 400;
+  font-size: 11px;
+}
+
+.reprova-aviso {
+  font-size: 13px;
+  color: var(--bi-sinal-atencao);
+  background: #fdf6e9;
+  padding: 10px 14px;
+  border-radius: var(--bi-radius);
+  border-left: 3px solid var(--bi-sinal-atencao);
+  margin-bottom: 12px;
+}
+
+@media (max-width: 640px) {
+  .reprova-cards { grid-template-columns: 1fr; }
+  .reprova-card-body { grid-template-columns: 1fr 1fr; }
+  .reprova-delta-col { grid-column: 1 / -1; align-items: flex-start; flex-direction: row; gap: 8px; }
+  .reprova-cobertura { margin-left: 0; flex-basis: 100%; }
+}
+
 /* ---------- print ---------- */
 @media print {
   .painel-bi { background: white; padding: 0; }
