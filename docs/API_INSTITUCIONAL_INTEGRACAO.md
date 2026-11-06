@@ -44,3 +44,26 @@ O banco tem tabelas privadas, auditoria e RPCs autenticados `vertice_api_connect
 - Validado em transação revertida: cadastro de URL/chave fictícia, consulta e revogação, com zero registros ou segredos persistidos após rollback. Acesso anônimo/sem sessão foi negado.
 - O frontend está apenas na PR #54. Ainda precisa de typecheck, build estático, testes de sessão real e deploy no Render antes de aceitar chave em produção.
 - Como os serviços Render apontam para `main`, mesclar sem QA pode iniciar publicação automática. Evitar isso até confirmar o build.
+
+
+## Destino dos dados — contrato da ponte institucional (06/11/2026)
+
+A conexão é mapeada pelo `institution_id` do cadastro já existente na Vértice, não apenas pelo endereço do portal nem pelo e-mail. Para a UNITOP, por exemplo, o destino é **a área própria da UNITOP no projeto Supabase da Vértice**, e não o banco da faculdade. Outras IES possuem destino próprio no mesmo banco, com o identificador da IES.
+
+O cadastro associa:
+- **Origem:** endereço HTTPS do sistema acadêmico; URL-base da API quando diferente; chave secreta fornecida pela instituição, armazenada no Vault.
+- **Responsável:** e-mail técnico institucional para identificação e tratativas de suporte (não é fator de autenticação).
+- **Correspondência institucional:** código da IES no sistema de origem (opcional até o fornecedor fornecer); `institution_id` interno imutável da Vértice.
+- **Destino:** Supabase Vértice, em staging privado, identificado por `institution_id`. Após conferência e aprovação, os dados poderão alimentar as tabelas e o BI da IES.
+
+Duas tabelas privadas foram adicionadas para recebimento:
+- `vertice_private.api_sync_batches`: lote, origem, dataset, competência, contagens, estado de conferência, autorização e publicação.
+- `vertice_private.api_staging_records`: registros JSON recebidos por lote, tipo, identificador externo, curso, semestre e grade.
+
+RLS ativo, nenhuma permissão para usuários públicos/autenticados sobre essas tabelas. Uma chave estrangeira composta impede vincular um lote da UNICALDAS, por exemplo, à conexão da UNITOP. O gatilho dos registros rejeita misturas de lote/IES/dataset. A rotina de autenticação e armazenamento de credencial foi preservada.
+
+A interface da PR #54 agora solicita **e-mail técnico, URL HTTPS do sistema, chave (quando chegar), código externo opcional e URL específica da API opcional**, além de mostrar claramente **Origem → Destino**. O salvamento chama a nova RPC `vertice_api_connection_bind`, que grava a correspondência institucional e registra o histórico. A RPC de gravação anterior foi retirada das permissões dos usuários autenticados, ficando somente como rotina interna.
+
+**Limite operacional atual:** criar uma área de staging não equivale a acessar automaticamente um banco externo. A futura função conectora (worker server-side) só poderá iniciar transferências quando houver o contrato real da API, endereços permitidos, esquema de autenticação, autorização de acesso e campos disponíveis. Não existe sincronização ativa nesta etapa.
+
+Validações em transações revertidas: criação/vinculação com e-mail, código externo e chave fictícia; escrita fictícia de lote/registro com leitura de resumo; rejeição de conexão de uma IES usada em lote de outra. Nenhum teste permaneceu gravado.
