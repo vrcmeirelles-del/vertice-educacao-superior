@@ -54,6 +54,13 @@ export default function SourceCuration({institutionId,files}:Props){
   return()=>{active=false;};
  },[institutionId]);
  const review=reviews.find(x=>x.upload_id===selected?.id)??null;
+ const matchingReview=!!review&&candidate.length===review.candidate_rows.length
+   &&sha===review.file_sha256&&note.trim()===review.analysis_note.trim()
+   &&candidate.every((row,i)=>{
+     const saved=review.candidate_rows[i];
+     return saved&&row.indicador===saved.indicador&&row.periodo===saved.periodo
+       &&row.valor===saved.valor&&row.unidade===saved.unidade;
+   });
  const approved=useMemo(()=>reviews.filter(r=>r.state==="aprovado"),[reviews]);
  async function open(source:Source){
   setSelected(source);setRawRows([]);setHeaders([]);setCandidate([]);setSha("");setLegacyWarnings([]);
@@ -179,7 +186,8 @@ export default function SourceCuration({institutionId,files}:Props){
     <label>Conclusão preliminar / fonte<textarea rows={2} maxLength={2500} value={note} onChange={e=>setNote(e.target.value)} placeholder="Descreva a origem, a competência e os critérios usados na conferência."/></label>
     <button type="button" disabled={busy||!candidate.length||!sha} onClick={()=>void saveReview()}>Salvar análise em curadoria</button>
    </>}
-   {review&&["analisado","devolvido"].includes(review.state)&&<button type="button" disabled={busy||!consent} onClick={()=>void move("submetido")}>Submeter à validação superior</button>}
+   {review&&["analisado","devolvido"].includes(review.state)&&!matchingReview&&<p role="status">Salve primeiro a versão da análise exibida para poder submetê-la.</p>}
+   {review&&["analisado","devolvido"].includes(review.state)&&<button type="button" disabled={busy||!consent||!matchingReview} onClick={()=>void move("submetido")}>Submeter à validação superior</button>}
    {review?.state==="submetido"&&<>
      <button type="button" onClick={()=>void compare()}>Comparar com versões aprovadas</button>
      {review.submitted_by!==userId&&<><label>Justificativa da decisão<textarea rows={2} value={reviewNote} onChange={e=>setReviewNote(e.target.value)} placeholder="Fundamente a aprovação ou devolução; consulte a fonte e o mapeamento."/></label>

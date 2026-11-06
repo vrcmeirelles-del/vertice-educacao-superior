@@ -159,7 +159,7 @@ export default function SourceUpload({institutionId,institutionName}:{institutio
    <div className="vx-source-scroll"><table><thead><tr><th>Arquivo</th><th>Fonte</th><th>Competência</th><th>Recebimento</th><th>Situação</th><th>Ação</th></tr></thead><tbody>
    {rows.map(row=><tr key={row.id}>
      <td><strong>{row.original_name}</strong><small>{(row.bytes/1024/1024).toLocaleString("pt-BR",{maximumFractionDigits:2})} MB</small></td>
-     <td>{row.source_name}{row.source_url&&<small>URL registrada</small>}</td>
+     <td>{row.source_name}{row.source_url&&<small>URL registrada</small>}{row.drive_url&&<small><a href={row.drive_url} target="_blank" rel="noopener noreferrer">Referência no Drive ↗</a></small>}</td>
      <td>{row.reference_period||"A classificar"}</td>
      <td>{new Date(row.created_at).toLocaleString("pt-BR")}</td>
      <td><span className={row.upload_status==="recebido"?"ok":"pending"}>{row.upload_status==="recebido"?"Recebido · aguarda curadoria":row.upload_status==="falhou"?"Falha no envio":"Recebimento incompleto"}</span></td>
