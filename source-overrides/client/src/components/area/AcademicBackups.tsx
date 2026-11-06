@@ -1,6 +1,7 @@
 import {useCallback,useEffect,useState,type FormEvent} from "react";
 import {supabase} from "@/lib/supabase";
 import OneDriveBackupPicker from "./OneDriveBackupPicker";
+import UniGizValidation from "./UniGizValidation";
 import "./academic-backups.css";
 
 type Kind="rar"|"zip"|"bak";
@@ -257,7 +258,10 @@ export default function AcademicBackups({institutionId,institutionName}:{institu
   {error&&<p role="alert" className="vx-backup-error">{error}</p>}
   {notice&&<p role="status" className="vx-backup-success">{notice}</p>}
   <OneDriveBackupPicker institutionId={institutionId} onImported={refresh}/>
-  <div className="vx-backup-history">
+  {institutionId==="4224e2fc-6a96-4761-820f-6f8e809ca1c1"&&
+    <UniGizValidation institutionId={institutionId}
+      backupId={records.find(row=>row.backup_kind==="bak"&&row.stage==="recebido")?.id??null}/>}
+    <div className="vx-backup-history">
    <h4>Backups da instituição</h4>
    {loading?<p>Consultando cofre privado…</p>:records.length===0?<p>Não existem backups registrados nesta área.</p>:
    <div className="vx-backup-scroll"><table><thead><tr><th>Backup</th><th>Origem</th><th>Integridade</th><th>Situação</th><th>Ações</th></tr></thead><tbody>
