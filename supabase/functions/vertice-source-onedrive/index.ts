@@ -90,12 +90,22 @@ Deno.serve(async req=>{
    const formats=backupList?backupMime:extMime;
    const limitBytes=backupList?52428800:26214400;
    const list=await graph(root+encodeURIComponent(folder.id)+"/children?%24select=id,name,size,file,folder,parentReference,webUrl,lastModifiedDateTime&%24top=100",token);
-   const files=(list.value??[]).filter((item:any)=>{
+   const candidateItems:any[]=(list.value??[]).filter((item:any)=>item.parentReference?.id===folder.id&&item.file);
+   if(backupList&&inst===UNICALDAS){
+     // Allow only the known first backup volume, never traverse arbitrary user-selected folders.
+     const part=(list.value??[]).find((item:any)=>item.folder&&item.parentReference?.id===folder.id&&
+        /^UNI_GIZ_backup_[0-9_]+[.]part001$/.test(String(item.name??"")));
+     if(part){
+       const nested=await graph(root+encodeURIComponent(part.id)+"/children?%24select=id,name,size,file,parentReference,lastModifiedDateTime&%24top=20",token);
+       candidateItems.push(...(nested.value??[]).filter((x:any)=>x.file&&x.parentReference?.id===part.id));
+     }
+   }
+   const files=candidateItems.filter((item:any)=>{
     const extension=String(item.name??"").split(".").pop()?.toLowerCase();
-    return item.file&&item.parentReference?.id===folder.id&&formats[extension??""]&&item.size>0&&item.size<=limitBytes;
+    return formats[extension??""]&&item.size>0&&item.size<=limitBytes;
    }).map((item:any)=>({id:item.id,name:item.name,size:item.size,modified:item.lastModifiedDateTime}));
    return respond({folder:"Migração / "+folders[inst],files,limit:100,
-    notice:backupList?"Backups RAR/ZIP/BAK na raiz da pasta autorizada. Subpastas não são copiadas automaticamente.":"Somente arquivos do diretório da IES; leitura sujeita à autorização Microsoft."});
+    notice:backupList?"Arquivos da pasta Migração e do volume part001 da UNICALDAS, quando houver; nenhuma restauração é iniciada.":"Somente arquivos do diretório da IES; leitura sujeita à autorização Microsoft."});
   }
   const itemId=body.item_id,period=body.reference_period;
   const sourceKind=body.source_kind??"outro";
@@ -106,7 +116,13 @@ Deno.serve(async req=>{
   const backupMode=action==="backup-import";
   const format=backupMode?backupMime[ext]:extMime[ext];
   const maxBytes=backupMode?52428800:26214400;
-  if(metadata.parentReference?.id!==folder.id||!metadata.file||!format||metadata.size<=0||metadata.size>maxBytes)throw E("file_not_authorized",403);
+  let approvedParent=metadata.parentReference?.id===folder.id;
+  if(!approvedParent&&backupMode&&inst===UNICALDAS&&typeof metadata.parentReference?.id==="string"){
+    const part=await graph(root+encodeURIComponent(metadata.parentReference.id)+"?%24select=id,name,folder,parentReference",token);
+    approvedParent=!!part.folder&&part.parentReference?.id===folder.id&&
+       /^UNI_GIZ_backup_[0-9_]+[.]part001$/.test(String(part.name??""));
+  }
+  if(!approvedParent||!metadata.file||!format||metadata.size<=0||metadata.size>maxBytes)throw E("file_not_authorized",403);
   const download=await fetch("https://graph.microsoft.com/v1.0/"+root+encodeURIComponent(itemId)+"/content",{
    headers:{Authorization:"Bearer "+token},redirect:"follow",signal:AbortSignal.timeout(45000)
   });
@@ -128,7 +144,7 @@ Deno.serve(async req=>{
    const hash=[...new Uint8Array(await crypto.subtle.digest("SHA-256",bytes))].map(v=>v.toString(16).padStart(2,"0")).join("");
    const earlier=await api("/rest/v1/vertice_academic_backups?institution_id=eq."+inst+"&file_sha256=eq."+hash+"&stage=eq.recebido&select=id,original_name&limit=1",bearer,key,"GET");
    if(Array.isArray(earlier)&&earlier.length)return respond({already_received:true,id:earlier[0].id,name:earlier[0].original_name,notice:"Esta cópia já consta no cofre da IES."});
-   const record={id,institution_id:inst,source_system:"UNI_GIZ / OneDrive "+folders[inst],
+   const record={id,institution_id:inst,source_system:(inst===UNICALDAS?"UNI_GIZ":"Sistema acadêmico")+" / OneDrive",
     backup_kind:ext,signature_label:signature,original_name:name,bytes:bytes.byteLength,
     file_sha256:hash,storage_path:storagePath,source_url:validUrl?driveUrl:null,
     reference_period:period||null,description:"Cópia autenticada do arquivo na raiz da pasta Migração da IES; sem restauração."};
