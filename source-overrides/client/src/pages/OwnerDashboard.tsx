@@ -42,7 +42,7 @@ function writeHash(inst:string,course:string,repositories=false,library=false,re
 
 type BiItem = {label:string; group:string; value:number; href?:string};
 type BiSource = {items:BiItem[]; error?:boolean};
-const BI_NAMES=['Metas','Matrículas','Documentação','Repositório','Aquisições','Captação e permanência'];
+const BI_NAMES=['Metas','Matrículas','Documentação','Reconhecimento de Curso','Aquisições','Captação e permanência'];
 const BI_COLORS=['#6554cf','#168878','#d76d34','#377acf','#c0447f','#82720b','#39714b'];
 const biNumber=new Intl.NumberFormat('pt-BR');
 const biMoney=new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'});
@@ -155,6 +155,7 @@ export default function OwnerDashboard(){
  const [enrollments,setEnrollments]=useState<Enrollment[]>([]);
  const [reports,setReports]=useState<AcademicReport[]>([]);
  const [route,setRoute]=useState(readHash());
+ const [captacaoInstitutionId,setCaptacaoInstitutionId]=useState('');
  const [creating,setCreating]=useState(false);
  const [commercial,setCommercial]=useState(false);
  const [mgmt,setMgmt]=useState<{goals:Row[];actions:Row[];diagnosis:Row[]}>({goals:[],actions:[],diagnosis:[]});
@@ -162,6 +163,7 @@ export default function OwnerDashboard(){
  useEffect(()=>{const f=()=>setRoute(readHash());window.addEventListener('hashchange',f);window.addEventListener('popstate',f);return()=>{window.removeEventListener('hashchange',f);window.removeEventListener('popstate',f);};},[]);
  const instStats=(id:string)=>institutionEnrollmentSummary(id,courses,enrollments);
  const currentInst=institutions.find(i=>i.id===route.inst);
+ const selectedCaptacaoInstitution=institutions.find(i=>i.id===captacaoInstitutionId);
  const currentCourse=courses.find(c=>c.id===route.course&&c.institution_id===route.inst);
  async function load(){
   setLoading(true);setError('');
@@ -198,7 +200,7 @@ export default function OwnerDashboard(){
   }catch{setError('Não foi possível consultar os dados protegidos. Tente novamente.');}
   finally{setLoading(false);}
  }
- useEffect(()=>{load(); const {data}=supabase.auth.onAuthStateChange((event,current)=>{if(event==='SIGNED_OUT'){setSession(current);setInstitutions([]);setCourses([]);setMembers([]);setEnrollments([]);setReports([]);setMaster(false);}});return()=>data.subscription.unsubscribe();},[]);
+ useEffect(()=>{load(); const {data}=supabase.auth.onAuthStateChange((event,current)=>{if(event==='SIGNED_OUT'){setSession(current);setInstitutions([]);setCourses([]);setMembers([]);setEnrollments([]);setReports([]);setMaster(false);setCaptacaoInstitutionId('');}});return()=>data.subscription.unsubscribe();},[]);
  async function enroll(){setBusy(true);setError('');try{
   const {data:existing,error:listError}=await supabase.auth.mfa.listFactors();if(listError)throw listError;
   const pending=existing.all.find(f=>f.factor_type==='totp' && f.status==='unverified');
@@ -219,10 +221,21 @@ export default function OwnerDashboard(){
  </section>:<><MasterInvitationGate onAccepted={load}/><p>{master?'Visão das instituições da empresa.':'Você vê somente as instituições vinculadas à sua conta.'}</p>
  <nav className="repo-global-nav" aria-label="Indicadores do portal"><a className="repo-secondary" href="/master#bi=1" onClick={()=>setCommercial(false)}>BI da Reitoria</a>
        <a className="repo-secondary" href="/master#captacao=1" onClick={()=>setCommercial(false)}>BI de Captação</a><a className="repo-secondary" href="/master#academico=1" onClick={()=>setCommercial(false)}>BI Acadêmico</a><a className="repo-secondary" href="/master#painel-bi=1" onClick={()=>setCommercial(false)}>Painel Executivo</a></nav>
- {master&&<nav className="repo-global-nav" aria-label="Visões do master"><a className="repo-secondary" href="/master/aquisicoes">Aquisições e incorporações</a><button className={`repo-secondary ${!commercial&&!route.bi&&!route.repositories&&!route.perfis&&!route.masters&&!currentInst?'active':''}`} onClick={()=>{setCommercial(false);writeHash('','');}}>Gestão das instituições</button><button className={`repo-secondary ${!commercial&&route.repositories?'active':''}`} onClick={()=>{setCommercial(false);writeHash('','',true);}}>Repositórios de todas as IES</button><button className={`repo-secondary ${route.perfis?'active':''}`} onClick={()=>{setCommercial(false);window.location.hash='perfis=1';window.dispatchEvent(new HashChangeEvent('hashchange'));}}>Perfis de acesso</button><button className={`repo-secondary ${commercial?'active':''}`} onClick={()=>setCommercial(true)}>Demonstração · inteligência comercial</button><button className={`repo-secondary ${!commercial&&!route.perfis&&!route.painelBi&&!route.captacao&&!route.bi&&route.masters?'active':''}`} onClick={()=>{setCommercial(false);writeHash('','',false,false,false,true);}}>Masters</button></nav>}
+ {master&&<nav className="repo-global-nav" aria-label="Visões do master"><a className="repo-secondary" href="/master/aquisicoes">Aquisições e incorporações</a><button className={`repo-secondary ${!commercial&&!route.bi&&!route.repositories&&!route.perfis&&!route.masters&&!currentInst?'active':''}`} onClick={()=>{setCommercial(false);writeHash('','');}}>Gestão das instituições</button><button className={`repo-secondary ${!commercial&&route.repositories?'active':''}`} onClick={()=>{setCommercial(false);writeHash('','',true);}}>Reconhecimento de Curso de todas as IES</button><button className={`repo-secondary ${route.perfis?'active':''}`} onClick={()=>{setCommercial(false);window.location.hash='perfis=1';window.dispatchEvent(new HashChangeEvent('hashchange'));}}>Perfis de acesso</button><button className={`repo-secondary ${commercial?'active':''}`} onClick={()=>setCommercial(true)}>Demonstração · inteligência comercial</button><button className={`repo-secondary ${!commercial&&!route.perfis&&!route.painelBi&&!route.captacao&&!route.bi&&route.masters?'active':''}`} onClick={()=>{setCommercial(false);writeHash('','',false,false,false,true);}}>Masters</button></nav>}
  {route.perfis&&master?<ProfileSimulator/>:master&&commercial?<DemoLeads/>:<>
  {!route.bi&&!route.captacao&&!route.academico&&!route.painelBi&&!currentInst&&!route.repositories&&!route.masters&&<div className="stats-row"><div className="stat-card">Instituições<strong className="stat-value">{institutions.length}</strong></div><div className="stat-card">Cursos<strong className="stat-value">{courses.length}</strong></div><div className="stat-card">Vínculos<strong className="stat-value">{members.length}</strong></div></div>}
- {route.painelBi?<PainelBI institutions={institutions} courses={courses} enrollments={enrollments} session={session} reports={reports}/>:route.academico?<AcademicoBI institutionId={institutions[0]?.id??''} institutionName={institutions[0]?.name??'Instituição'}/>:route.captacao?<CaptacaoBI institutionId={institutions[0]?.id??''} institutionName={institutions[0]?.name??'Instituição'}/>:route.bi?<PortalBI institutions={institutions} courses={courses} enrollments={enrollments} session={session}/>:master&&route.masters?<MasterDirectory/>:currentInst&&currentCourse?<CourseView key={currentCourse.id} course={currentCourse} institution={currentInst} enrollments={enrollments.filter(row => courses.some(course => course.id === row.course_id && course.institution_id === currentInst.id))} reports={reports} onBack={()=>writeHash(currentInst.id,'')} onPlan={can.record(roleIn(currentInst.id)) ? draft => { storeActionDraft(currentInst.id,draft); window.location.hash = new URLSearchParams({instituicao:currentInst.id,aba:'plano'}).toString(); } : undefined}/>
+ {route.painelBi?<PainelBI institutions={institutions} courses={courses} enrollments={enrollments} session={session} reports={reports}/>:route.academico?<AcademicoBI institutionId={institutions[0]?.id??''} institutionName={institutions[0]?.name??'Instituição'}/>:route.captacao?<section aria-label="BI de Captação institucional">
+    <label htmlFor="captacao-instituicao" style={{display:'grid',gap:'8px',marginBottom:'16px',maxWidth:'560px'}}>
+      <strong>Instituição para análise de captação</strong>
+      <select id="captacao-instituicao" value={selectedCaptacaoInstitution?.id??''} onChange={e=>setCaptacaoInstitutionId(e.target.value)}>
+        <option value="">Selecione uma instituição</option>
+        {institutions.map(i=><option key={i.id} value={i.id}>{i.name}</option>)}
+      </select>
+    </label>
+    {selectedCaptacaoInstitution
+      ? <CaptacaoBI key={selectedCaptacaoInstitution.id} institutionId={selectedCaptacaoInstitution.id} institutionName={selectedCaptacaoInstitution.name}/>
+      : <p role="status">Selecione uma instituição autorizada para consultar somente seus indicadores reais de captação.</p>}
+  </section>:route.bi?<PortalBI institutions={institutions} courses={courses} enrollments={enrollments} session={session}/>:master&&route.masters?<MasterDirectory/>:currentInst&&currentCourse?<CourseView key={currentCourse.id} course={currentCourse} institution={currentInst} enrollments={enrollments.filter(row => courses.some(course => course.id === row.course_id && course.institution_id === currentInst.id))} reports={reports} onBack={()=>writeHash(currentInst.id,'')} onPlan={can.record(roleIn(currentInst.id)) ? draft => { storeActionDraft(currentInst.id,draft); window.location.hash = new URLSearchParams({instituicao:currentInst.id,aba:'plano'}).toString(); } : undefined}/>
  :currentInst?<Workspace key={currentInst.id} institution={currentInst as unknown as Row} role={roleIn(currentInst.id)} onBack={()=>writeHash('','')} onChanged={load}
    stats={instStats(currentInst.id)}
    overview={<InstitutionView institution={currentInst} courses={courses} enrollments={enrollments} embedded onOpenCourse={id=>writeHash(currentInst.id,id)} onBack={()=>writeHash('','')}/>}/>

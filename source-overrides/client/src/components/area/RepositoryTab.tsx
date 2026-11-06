@@ -406,7 +406,7 @@ export default function RepositoryTab(props: RepositoryProps) {
         <div className="er-brand">
           <span>V</span>
           <div>
-            <strong>Repositório de Reconhecimento</strong>
+            <strong>Reconhecimento de Curso</strong>
             <small>Vértice · Evidências de cursos</small>
           </div>
         </div>
