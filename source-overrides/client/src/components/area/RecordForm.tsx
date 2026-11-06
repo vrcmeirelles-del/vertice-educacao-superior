@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { clean, explain, type Field, type Row } from "@/lib/area";
+import {suggestionOptions} from "@/lib/field-suggestions";
 
 /** Formulário genérico de cadastro/edição. Valida no navegador e deixa a regra final ao banco. */
 export default function RecordForm({
@@ -28,6 +29,7 @@ export default function RecordForm({
   });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [suggestionMode,setSuggestionMode] = useState<Record<string,string>>({});
   const set = (k: string, v: unknown) => setValues(s => {const next={...s,[k]:v};return onValueChange?onValueChange(next,k):next;});
 
   async function submit(e: FormEvent) {
@@ -50,6 +52,8 @@ export default function RecordForm({
         {fields.map(f => {
           const id = `f-${f.name}`;
           const v = values[f.name] as string | number | undefined;
+          const suggestions=(f.type==="textarea"||(!f.type&&f.name!=="cnpj"))?suggestionOptions(f.name,f.label):[];
+          const showSuggestions=suggestions.length>0;
           return (
             <label key={f.name} htmlFor={id} className={f.wide || f.type === "textarea" ? "wide" : ""}>
               <span>
@@ -81,6 +85,20 @@ export default function RecordForm({
                   onChange={e => set(f.name, e.target.value)}
                 />
               )}
+              {showSuggestions&&<div className="vx-suggestion-box">
+                <label htmlFor={id+"-suggestions"}>Sugestões padronizadas (opcionais)</label>
+                <select id={id+"-suggestions"} value={suggestionMode[f.name]??""} onChange={e=>{
+                  const choice=e.target.value;
+                  setSuggestionMode(previous=>({...previous,[f.name]:choice}));
+                  if(choice==="outro"){set(f.name,"");return;}
+                  if(choice!==""&&suggestions[Number(choice)])set(f.name,suggestions[Number(choice)]);
+                }}>
+                  <option value="">Não substituir o texto atual</option>
+                  {suggestions.map((text,i)=><option key={i} value={String(i)}>{text.length>105?text.slice(0,105)+"…":text}</option>)}
+                  <option value="outro">Outro — digitar texto personalizado</option>
+                </select>
+                {suggestionMode[f.name]==="outro"&&<small>Digite livremente no campo acima. O texto personalizado será preservado.</small>}
+              </div>}
               {f.help && <small>{f.help}</small>}
             </label>
           );
