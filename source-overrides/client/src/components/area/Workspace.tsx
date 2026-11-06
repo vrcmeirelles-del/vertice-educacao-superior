@@ -4,6 +4,7 @@ import ActionKanban from "./ActionKanban";
 import ActiveGovernance from "./ActiveGovernance";
 import CnpjConnections from "./CnpjConnections";
 import SourceUpload from "./SourceUpload";
+import ApprovedSourcesBI from "./ApprovedSourcesBI";
 import RegistryContacts from "./RegistryContacts";
 import { courseClassification, useCourseFilters } from "./CourseFilters";
 import {displayCourseRows} from '@/lib/course-labels';
@@ -184,7 +185,7 @@ export default function Workspace({
       ) : tab === "ia" ? (
         role !== "master" && role !== "gestor" ? <p role="alert">A análise por IA é restrita à alta gestão da instituição.</p> : error ? <p role="alert">Atualize os dados antes de iniciar uma análise.</p> : <DocumentAI key={id} institutionId={id} courses={data.courses} requests={data.requests} files={data.files} onGo={choose}/>
       ) : tab === "analise" ? (
-        error ? <p role="alert">Análise indisponível enquanto houver falha no carregamento. Atualize a página.</p> : <ManagementReview key={id} data={data} courses={data.courses} institutionId={id} />
+        error ? <p role="alert">Análise indisponível enquanto houver falha no carregamento. Atualize a página.</p> : <><ManagementReview key={id} data={data} courses={data.courses} institutionId={id} /><ApprovedSourcesBI institutionId={id}/></>
       ) : tab === "geral" ? (
         <OverviewTab data={data} stats={stats} onGo={choose} />
       ) : tab === "emec" ? (
