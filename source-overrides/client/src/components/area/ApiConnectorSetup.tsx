@@ -7,12 +7,16 @@ type Connection = {
   status: "nao_configurada" | "aguardando_chave" | "credencial_recebida" | "revogada";
   system_url: string;
   api_url: string;
+  technical_email: string;
+  external_institution_code: string;
+  destination_institution_id: string;
+  destination_name: string;
   has_key: boolean;
   updated_at?: string;
 };
 
 const INITIAL: Connection = {
-  configured: false, status: "nao_configurada", system_url: "", api_url: "", has_key: false
+  configured: false, status: "nao_configurada", system_url: "", api_url: "", technical_email: "", external_institution_code: "", destination_institution_id: "", destination_name: "Supabase Vértice", has_key: false
 };
 
 function validateUrl(raw: string, required: boolean): string | null {
@@ -34,6 +38,8 @@ export default function ApiConnectorSetup({institutionId,institutionName}:{
   const [connection,setConnection] = useState<Connection>(INITIAL);
   const [systemUrl,setSystemUrl] = useState("");
   const [apiUrl,setApiUrl] = useState("");
+  const [technicalEmail,setTechnicalEmail] = useState("");
+  const [externalCode,setExternalCode] = useState("");
   const [key,setKey] = useState("");
   const [showKey,setShowKey] = useState(false);
   const [advanced,setAdvanced] = useState(false);
@@ -51,6 +57,8 @@ export default function ApiConnectorSetup({institutionId,institutionName}:{
     setConnection(c);
     setSystemUrl(c.system_url ?? "");
     setApiUrl(c.api_url ?? "");
+    setTechnicalEmail(c.technical_email ?? "");
+    setExternalCode(c.external_institution_code ?? "");
   },[institutionId]);
 
   useEffect(()=>{
@@ -67,16 +75,20 @@ export default function ApiConnectorSetup({institutionId,institutionName}:{
     if(busy)return;
     const badSystem=validateUrl(systemUrl,true),badApi=validateUrl(apiUrl,false);
     if(badSystem||badApi){setError(badSystem??badApi??"URL inválida");return;}
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(technicalEmail.trim()) || technicalEmail.trim().length>254){setError("Informe o e-mail institucional do responsável técnico.");return;}
+    if(externalCode.trim().length>100){setError("Código externo da instituição muito longo.");return;}
     if(key.trim() && (key.trim().length<8||key.trim().length>4096)){
       setError("Chave fora do formato aceito (8 a 4.096 caracteres).");return;
     }
     setBusy(true);setError("");setMessage("");
     try {
-      const {data,error:saveError}=await supabase.rpc("vertice_api_connection_save",{
+      const {data,error:saveError}=await supabase.rpc("vertice_api_connection_bind",{
         p_institution:institutionId,
         p_system_url:systemUrl.trim(),
         p_api_url:apiUrl.trim(),
-        p_key:key.trim()||null
+        p_key:key.trim()||null,
+        p_technical_email:technicalEmail.trim().toLowerCase(),
+        p_external_institution_code:externalCode.trim()||null
       });
       if(saveError)throw saveError;
       const c=data as Connection;
@@ -112,14 +124,23 @@ export default function ApiConnectorSetup({institutionId,institutionName}:{
     <div className="vx-api-heading">
       <div>
         <span className="vx-api-eyebrow">VÉRTICE · INTEGRAÇÕES INSTITUCIONAIS</span>
-        <h3>Conectar por chave de API</h3>
-        <p>Cadastre o endereço do sistema da {institutionName} e, quando recebê-la, a chave fornecida pela instituição.</p>
+        <h3>Ponte de dados da instituição</h3>
+        <p>Vincule a origem externa à {institutionName}; os dados serão recebidos na área exclusiva desta IES no Supabase Vértice, somente após validação e autorização.</p>
       </div>
       <span className={"vx-api-status "+(connection.has_key?"vx-api-status-ready":"")} role="status">{loading?"Consultando…":status}</span>
     </div>
     {error&&<p role="alert" className="vx-api-alert">{error}</p>}
     {message&&<p role="status" className="vx-api-notice">{message}</p>}
+    <div className="vx-api-route" aria-label="Origem e destino dos dados"><span><b>Origem</b><small>Sistema da instituição, hospedado externamente</small></span><strong aria-hidden="true">→</strong><span><b>Destino</b><small>Supabase Vértice · {institutionName}</small></span></div>
     <form onSubmit={save} className="vx-api-form">
+      <label>E-mail técnico responsável pela integração
+        <input type="email" value={technicalEmail} onChange={e=>setTechnicalEmail(e.target.value)}
+          placeholder="ti@faculdade.edu.br" maxLength={254} autoComplete="email" required disabled={busy||loading}/>
+      </label>
+      <label>Código da faculdade no sistema de origem (opcional)
+        <input value={externalCode} onChange={e=>setExternalCode(e.target.value)}
+          placeholder="Código institucional da API" maxLength={100} disabled={busy||loading}/>
+      </label>
       <label>Endereço do sistema acadêmico
         <input type="url" value={systemUrl} onChange={e=>setSystemUrl(e.target.value)}
           placeholder="https://sistema.faculdade.edu.br" autoComplete="url"
@@ -157,7 +178,8 @@ export default function ApiConnectorSetup({institutionId,institutionName}:{
         <li>Prévia dos dados, conferência por curso/semestre/grade e aprovação da importação.</li>
         <li>Agendamento da atualização automática somente após homologação.</li>
       </ol>
-      <p>Esta tela não consulta a instituição, não importa alunos e não modifica o BI. A credencial nunca é exibida novamente; não envie a chave por chat.</p>
+      <p>O e-mail identifica o contato responsável; não concede acesso sozinho. O banco externo não recebe gravações da Vértice. A chave de leitura permite apenas a futura conexão pelo servidor autorizado.</p>
+      <p>Esta tela ainda não consulta a API externa, não importa alunos e não modifica o BI. A credencial nunca é exibida novamente; não envie a chave por chat.</p>
     </div>
   </section>;
 }
