@@ -3,6 +3,7 @@ import ActionCockpit from "./ActionCockpit";
 import ActionKanban from "./ActionKanban";
 import ActiveGovernance from "./ActiveGovernance";
 import CnpjConnections from "./CnpjConnections";
+import SourceUpload from "./SourceUpload";
 import RegistryContacts from "./RegistryContacts";
 import { courseClassification, useCourseFilters } from "./CourseFilters";
 import {displayCourseRows} from '@/lib/course-labels';
@@ -35,6 +36,7 @@ import "./area.css";
 
 const TABS: [Tab, string][] = [
   ["base", "Base da organização"],
+  ["fontes", "Importar dados de sites"],
   ["ia", "Análise Documental"],
   ["geral", "Visão geral"],
   ["analise", "Análise gerencial"],
@@ -175,6 +177,8 @@ export default function Workspace({
         overview
       ) : loading ? (
         <p role="status">Carregando…</p>
+      ) : tab === "fontes" ? (
+        role==="master"||role==="gestor" ? <SourceUpload key={id} institutionId={id} institutionName={String(institution.name)}/> : <p>O recebimento de extrações é restrito à gestão autorizada da IES.</p>
       ) : tab === "base" ? (
         role === 'master' || role === 'gestor' ? <OrganizationBase key={id} institution={institution} data={data} dataError={!!error} onGo={choose}/> : <p>A Base da organização é reservada ao Master e ao Gestor.</p>
       ) : tab === "ia" ? (
