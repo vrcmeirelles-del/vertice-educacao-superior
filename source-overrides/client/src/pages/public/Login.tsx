@@ -6,7 +6,8 @@ import { supabase } from '@/lib/supabase';
 import ResetPassword from './ResetPassword';
 
 export default function Login() {
-  const dashboard = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("destino") === "reitor" ? "/reitor/reservado" : "/master";
+  const destination = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("destino") : null;
+  const dashboard = destination === "reitor" ? "/reitor/reservado" : destination === "mobile" ? "/mobile" : "/master";
   const [session, setSession] = useState<Session | null>(null);
   const [checking, setChecking] = useState(true);
   const [busy, setBusy] = useState(false);
