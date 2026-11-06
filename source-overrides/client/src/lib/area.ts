@@ -57,10 +57,10 @@ export function isInstitutionalLimited(r?: Role | null): boolean { return !!r &&
 // --------------------------------------------------------------------------
 // Abas visíveis por perfil
 // --------------------------------------------------------------------------
-export type Tab = "backups" | "fontes" | "emec" | "base" | "ia" | "analise" | "geral" | "visao" | "cadastro" | "metas" | "plano" | "diagnostico" | "equipe" | "repositorio" | "biblioteca" | "reitor" | "eorbit" | "resultado-curso";
+export type Tab = "backups" | "fontes" | "emec" | "base" | "ia" | "analise" | "geral" | "visao" | "cadastro" | "metas" | "plano" | "diagnostico" | "equipe" | "repositorio" | "biblioteca" | "reitor" | "eorbit" | "resultado-curso" | "auditoria";
 
 /** Abas disponíveis para cada grupo de perfis. */
-const TABS_FULL: Tab[] = ["backups", "fontes", "base", "ia", "geral", "analise", "visao", "cadastro", "emec", "eorbit", "metas", "repositorio", "biblioteca", "reitor", "resultado-curso", "plano", "diagnostico", "equipe"];
+const TABS_FULL: Tab[] = ["backups", "fontes", "base", "ia", "geral", "analise", "visao", "cadastro", "emec", "eorbit", "auditoria", "metas", "repositorio", "biblioteca", "reitor", "resultado-curso", "plano", "diagnostico", "equipe"];
 const TABS_CPA: Tab[] = ["geral", "visao", "metas", "repositorio", "biblioteca", "plano", "equipe"];
 const TABS_COURSE: Tab[] = ["geral", "visao", "metas", "repositorio", "biblioteca", "plano", "equipe"];
 
