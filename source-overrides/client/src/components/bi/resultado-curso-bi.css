@@ -1,0 +1,296 @@
+/* ── Resultado por Curso BI ── */
+.rbi-root {
+  background: #f5f6fb;
+  color: #1b2440;
+  padding: clamp(16px, 3vw, 42px);
+  overflow: auto;
+  min-height: 100vh;
+}
+
+.rbi-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.rbi-header h2 {
+  margin: 0;
+  font-size: clamp(22px, 3.5vw, 36px);
+  font-weight: 800;
+}
+
+.rbi-header p { margin: 4px 0 0; color: #535b78; font-size: 14px; }
+.rbi-meta { font-size: 12px !important; color: #8890a8 !important; }
+
+.rbi-header-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.rbi-badge {
+  background: #e8eaf4;
+  color: #535b78;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.rbi-btn-primary,
+.rbi-btn-secondary {
+  border: 1px solid #d4d9ea;
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.rbi-btn-primary {
+  background: #5140ad;
+  color: white;
+  border-color: #5140ad;
+}
+.rbi-btn-primary:hover { background: #4030a0; }
+.rbi-btn-primary:disabled { opacity: 0.5; cursor: default; }
+
+.rbi-btn-secondary {
+  background: white;
+  color: #1b2440;
+}
+.rbi-btn-secondary:hover { background: #f0f1f8; }
+
+/* ── Tabs ── */
+.rbi-tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  margin-bottom: 20px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.rbi-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  padding: 10px 16px;
+  border: 1px solid #d4d9ea;
+  border-radius: 10px;
+  background: white;
+  color: #535b78;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.rbi-tab:hover { background: #f0f1f8; }
+.rbi-tab.active { background: #5140ad; color: white; border-color: #5140ad; }
+.rbi-tab.has-data { border-color: #1baf7a; }
+
+.rbi-tab-count {
+  background: rgba(255,255,255,0.25);
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.rbi-tab.active .rbi-tab-count { background: rgba(255,255,255,0.3); }
+.rbi-tab:not(.active) .rbi-tab-count { background: #e0f5ec; color: #1baf7a; }
+
+/* ── Tabela de dados ── */
+.rbi-content {
+  background: white;
+  border: 1px solid #e0e4f1;
+  border-radius: 16px;
+  padding: 20px;
+  min-width: 0;
+}
+
+.rbi-table-wrap { overflow-x: auto; }
+
+.rbi-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.rbi-table th {
+  text-align: left;
+  padding: 8px 6px;
+  border-bottom: 2px solid #e0e4f1;
+  color: #535b78;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.rbi-table td {
+  padding: 4px 4px;
+  border-bottom: 1px solid #f0f1f8;
+  vertical-align: middle;
+}
+
+.rbi-table tr:hover td { background: #fafbfe; }
+
+.rbi-row-num {
+  width: 32px;
+  min-width: 32px;
+  color: #b0b6cc;
+  font-size: 11px;
+  text-align: center;
+}
+
+.rbi-row-action { width: 36px; min-width: 36px; text-align: center; }
+
+.rbi-input {
+  width: 100%;
+  min-width: 80px;
+  padding: 6px 8px;
+  border: 1px solid #e0e4f1;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #1b2440;
+  background: #fafbfe;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+
+.rbi-input:focus { border-color: #5140ad; outline: none; background: white; }
+
+.rbi-money { text-align: right; font-variant-numeric: tabular-nums; }
+
+.rbi-del {
+  background: none;
+  border: none;
+  color: #c0c4d4;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+}
+.rbi-del:hover { color: #e2574c; background: #fef0ef; }
+
+.rbi-add {
+  margin-top: 12px;
+  padding: 8px 18px;
+  border: 1px dashed #d4d9ea;
+  border-radius: 8px;
+  background: transparent;
+  color: #5140ad;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+}
+.rbi-add:hover { background: #f5f4ff; border-color: #5140ad; }
+
+.rbi-empty {
+  text-align: center;
+  padding: 40px 20px !important;
+  color: #b0b6cc;
+  font-size: 14px;
+}
+
+/* ── Simulador ── */
+.rbi-sim { }
+
+.rbi-sim-header { margin-bottom: 24px; }
+.rbi-sim-header h3 { margin: 0; font-size: 22px; }
+.rbi-sim-header p { margin: 6px 0 0; color: #535b78; font-size: 14px; }
+
+.rbi-sim-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: 24px;
+}
+
+.rbi-sim-group {
+  border: 1px solid #e0e4f1;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 0;
+}
+
+.rbi-sim-group legend {
+  font-weight: 700;
+  font-size: 14px;
+  color: #5140ad;
+  padding: 0 8px;
+}
+
+.rbi-sim-field {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 14px;
+}
+
+.rbi-sim-field span { font-size: 13px; color: #535b78; }
+
+.rbi-sim-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rbi-sim-prefix,
+.rbi-sim-suffix {
+  font-size: 13px;
+  color: #8890a8;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.rbi-sim-result {
+  background: #f5f4ff;
+  border: 1px solid #d8d4f0;
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.rbi-sim-result h4 { margin: 0 0 16px; font-size: 16px; color: #5140ad; }
+
+.rbi-sim-kpis { display: grid; gap: 10px; }
+.rbi-sim-kpis hr { border: none; border-top: 2px solid #d8d4f0; margin: 4px 0; }
+
+.rbi-sim-kpi {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+.rbi-sim-kpi span { font-size: 13px; color: #535b78; }
+.rbi-sim-kpi strong { font-size: 15px; font-variant-numeric: tabular-nums; }
+
+.rbi-sim-kpi.rbi-highlight { background: #e8eaf4; }
+.rbi-sim-kpi.rbi-big { background: #1b2440; color: white; padding: 14px 16px; border-radius: 10px; }
+.rbi-sim-kpi.rbi-big span { color: rgba(255,255,255,0.75); }
+.rbi-sim-kpi.rbi-big strong { font-size: 22px; color: white; }
+.rbi-sim-kpi.rbi-neg-bg { background: #e2574c !important; }
+.rbi-sim-kpi.rbi-neg-bg span { color: rgba(255,255,255,0.8); }
+
+.rbi-neg { color: #e2574c; }
+.rbi-pos { }
+
+.rbi-sim-compare { margin-top: 28px; }
+.rbi-sim-compare h4 { margin: 0 0 12px; font-size: 16px; }
+
+/* ── Responsivo ── */
+@media (max-width: 640px) {
+  .rbi-tabs { gap: 3px; }
+  .rbi-tab { padding: 8px 10px; font-size: 12px; }
+  .rbi-header { flex-direction: column; }
+  .rbi-header-actions { width: 100%; }
+}
