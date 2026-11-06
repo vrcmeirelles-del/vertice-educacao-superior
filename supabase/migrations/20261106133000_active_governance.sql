@@ -67,7 +67,7 @@ begin
    raise exception 'Vínculo não pode ser alterado' using errcode='23514';
   end if;
   if new.review_status='aprovado' and old.review_status<>'aprovado' then
-   if not reviewer or old.review_status<>'enviado' or new.declared_progress<>100 or
+   if not reviewer or old.review_status<>'enviado' or new.declared_progress<>100 or length(trim(coalesce(new.review_note,'')))<5 or
       old.submitted_by is null or old.submitted_by=auth.uid() then
     raise exception 'Aprovação exige gestor distinto do autor do envio' using errcode='42501';
    end if;
@@ -83,13 +83,13 @@ begin
       or length(trim(new.note))<5 then
     raise exception 'Envio exige 100 por cento e prestação de contas' using errcode='23514';
    end if;
-   new.submitted_by=auth.uid();new.submitted_at=now();new.reviewed_by=null;new.reviewed_at=null;new.review_note=null;
+   new.submitted_by=auth.uid();new.submitted_at=now();new.reviewed_by=null;new.reviewed_at=null;new.review_note=null;new.validated_progress=old.validated_progress;
   elsif new.review_status is distinct from old.review_status then
    -- Restauração a rascunho somente após devolução; não altera validação histórica.
    if not (new.review_status='rascunho' and old.review_status='devolvido') then
     raise exception 'Transição de validação inválida' using errcode='23514';
    end if;
-   new.reviewed_by=old.reviewed_by;new.reviewed_at=old.reviewed_at;
+   new.reviewed_by=old.reviewed_by;new.reviewed_at=old.reviewed_at;new.validated_progress=old.validated_progress;
   end if;
   if new.review_status=old.review_status then
    if old.review_status in ('enviado','aprovado') and (new.declared_progress is distinct from old.declared_progress or new.note is distinct from old.note or new.blocker is distinct from old.blocker) then
@@ -97,7 +97,7 @@ begin
    end if;
    if new.reviewed_by is distinct from old.reviewed_by or new.reviewed_at is distinct from old.reviewed_at
       or new.submitted_by is distinct from old.submitted_by or new.submitted_at is distinct from old.submitted_at
-      or new.validated_progress is distinct from old.validated_progress then
+      or new.validated_progress is distinct from old.validated_progress or new.review_note is distinct from old.review_note then
     raise exception 'Campos de validação são protegidos' using errcode='42501';
    end if;
   end if;
