@@ -1,0 +1,77 @@
+/* Vértice Mobile — isolado para não afetar o portal existente. */
+.vm-app{--vm-ink:#13223a;--vm-deep:#0c2039;--vm-teal:#147d79;--vm-surface:#fff;--vm-soft:#eef3f9;--vm-border:#dfe6ee;min-height:100dvh;background:linear-gradient(180deg,#102b48 0,#173b60 230px,#eef3f9 231px);color:var(--vm-ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15px;line-height:1.45}
+.vm-app *{box-sizing:border-box}
+.vm-app .vm-container{max-width:900px;margin:0 auto;padding:0 15px 106px}
+.vm-app button,.vm-app select,.vm-app input{font:inherit}
+.vm-app button,.vm-app a{touch-action:manipulation}
+.vm-app button:focus-visible,.vm-app a:focus-visible,.vm-app input:focus-visible,.vm-app select:focus-visible{outline:3px solid #45bdce;outline-offset:3px}
+.vm-app .vm-head{height:76px;display:flex;justify-content:space-between;align-items:center;color:#fff}
+.vm-app .vm-head>div{display:flex;align-items:center;gap:11px;min-width:0}
+.vm-app .vm-head strong{display:block;font-size:18px;letter-spacing:-.04em}
+.vm-app .vm-head em{font-style:normal;color:#91e5da}
+.vm-app .vm-head small{display:block;color:#c8d8e9;font-size:11px}
+.vm-app .vm-brandmark{display:grid;place-items:center;width:40px;height:40px;flex:none;background:linear-gradient(135deg,#39a3a4,#6bd4b1);border-radius:12px;font-size:25px;font-weight:800;color:#102f3b}
+.vm-app .vm-head-link{border:1px solid #a9c4df80;border-radius:12px;color:#fff;text-decoration:none;padding:9px 13px;font-size:13px}
+.vm-app .vm-intro{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:22px 2px 20px;color:#fff}
+.vm-app .vm-intro small,.vm-app .vm-section-top small{font-size:10px;font-weight:800;letter-spacing:.12em}
+.vm-app .vm-intro small{color:#82e0d4}
+.vm-app h1{font-size:clamp(25px,6vw,37px);line-height:1.13;letter-spacing:-.04em;margin:5px 0 9px;font-weight:800}
+.vm-app .vm-intro p{margin:0;color:#d1e1ef;font-size:13px}
+.vm-app .vm-refresh{border:1px solid #9fc5e1aa;border-radius:10px;background:#ffffff1d;color:white;padding:10px 12px;min-height:44px;font-size:12px;font-weight:700}
+.vm-app .vm-refresh:disabled{opacity:.55}
+.vm-app .vm-filters{display:grid;grid-template-columns:minmax(0,1fr) minmax(115px,155px);gap:10px;background:#fff;padding:13px;border:1px solid #dbe5f0;border-radius:16px;box-shadow:0 12px 36px #0b26421a}
+.vm-app .vm-filters label,.vm-app .vm-search{display:block;min-width:0;font-size:11px;color:#55647b;font-weight:700}
+.vm-app select,.vm-app input{width:100%;margin-top:5px;min-width:0;min-height:44px;border:1px solid #cbd8e5;color:var(--vm-ink);background:#f8fafc;border-radius:10px;padding:9px 10px;box-shadow:none}
+.vm-app .vm-indicators{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin:16px 0}
+.vm-app .vm-indicator{background:var(--vm-surface);border:1px solid var(--vm-border);border-top:4px solid #4681cb;border-radius:15px;padding:14px;min-width:0;box-shadow:0 5px 15px #0b264208}
+.vm-app .vm-indicator.vm-teal{border-top-color:#18a091}
+.vm-app .vm-indicator.vm-violet{border-top-color:#8469b8}
+.vm-app .vm-indicator.vm-amber{border-top-color:#e19b34}
+.vm-app .vm-indicator span{display:block;color:#5e6b80;font-size:12px;font-weight:700}
+.vm-app .vm-indicator strong{display:block;overflow-wrap:anywhere;font-size:clamp(23px,5vw,34px);margin:7px 0 5px;line-height:1.15;font-variant-numeric:tabular-nums;letter-spacing:-.035em;color:#152a48}
+.vm-app .vm-indicator small{display:block;color:#64748b;font-size:10px;line-height:1.45}
+.vm-app .vm-panel{background:#fff;border:1px solid var(--vm-border);border-radius:16px;padding:17px 15px;margin:13px 0}
+.vm-app .vm-section-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:0 0 18px}
+.vm-app .vm-section-top small{color:#29798b}
+.vm-app h2{font-size:18px;letter-spacing:-.025em;line-height:1.25;margin:5px 0 0}
+.vm-app .vm-section-top button{color:#155d85;background:#eef7fb;border:1px solid #d1e9f4;border-radius:9px;min-height:40px;padding:7px 11px;font-size:12px;font-weight:700;white-space:nowrap}
+.vm-app .vm-bars{display:grid;gap:15px}
+.vm-app .vm-bar>div:first-child{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:6px;font-size:12px}
+.vm-app .vm-bar span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vm-app .vm-bar strong{font-variant-numeric:tabular-nums}
+.vm-app .vm-track{height:10px;border-radius:99px;background:#e7edf4;overflow:hidden}
+.vm-app .vm-track>span{display:block;height:100%;background:linear-gradient(90deg,#245fbc,#4dc3b9);border-radius:99px}
+.vm-app .vm-alert-summary{display:grid;gap:8px}
+.vm-app .vm-alert-summary>span{border:1px solid #e4eaf1;background:#f6f9fc;border-radius:10px;padding:11px 12px;display:flex;gap:12px;align-items:center;font-size:12px}
+.vm-app .vm-alert-summary b{min-width:32px;font-size:20px;color:#aa5736}
+.vm-app .vm-disclosure{background:#e4ebf4;border-radius:13px;padding:15px;margin:18px 0;font-size:12px;color:#42516a}
+.vm-app .vm-disclosure strong{color:#173354}
+.vm-app .vm-disclosure p{margin:7px 0 6px}
+.vm-app .vm-disclosure small{font-size:11px}
+.vm-app .vm-course-list{display:grid;gap:8px}
+.vm-app .vm-course{display:flex;justify-content:space-between;align-items:center;text-align:left;width:100%;gap:8px;background:#f8fafc;border:1px solid #dfe7ef;border-radius:12px;padding:12px;min-height:72px}
+.vm-app .vm-course.vm-selected{border-color:#2278b1;background:#eef8ff}
+.vm-app .vm-course span:first-child{min-width:0;flex:1}
+.vm-app .vm-course span:last-child{text-align:right;flex:0 0 113px}
+.vm-app .vm-course strong{display:block;font-size:12px;line-height:1.35}
+.vm-app .vm-course b{font-size:17px;font-variant-numeric:tabular-nums}
+.vm-app .vm-course small{display:block;color:#64748b;font-size:10px;margin-top:3px}
+.vm-app .vm-muted,.vm-app .vm-empty{font-size:12px;color:#66768b}
+.vm-app .vm-drilldown{border:1px solid #b6d4e3;background:#f1f8fd;padding:15px;border-radius:12px;margin-top:12px}
+.vm-app .vm-drilldown h3{margin:0 0 7px;font-size:15px}
+.vm-app .vm-drilldown p{margin:4px 0;font-size:13px}
+.vm-app .vm-primary,.vm-app .vm-secondary{display:inline-flex;align-items:center;justify-content:center;min-height:44px;margin-top:12px;padding:10px 13px;border:0;border-radius:10px;text-decoration:none;background:#14677b;color:#fff;font-weight:700;font-size:13px}
+.vm-app .vm-secondary{background:#e2eaf2;color:#1a3756;margin-left:8px}
+.vm-app .vm-alert{border:1px solid #f0d4a6;border-left:4px solid #c9882f;border-radius:10px;margin:9px 0;padding:12px;background:#fff9ef}
+.vm-app .vm-alert strong{font-size:12px;color:#6a421a}
+.vm-app .vm-alert p{margin:6px 0 0;font-size:12px}
+.vm-app .vm-count{display:grid;place-items:center;border-radius:50%;min-width:37px;height:37px;background:#ffeddf;color:#9a5219;font-weight:800}
+.vm-app .vm-gate{border-radius:18px;background:#fff;padding:28px 21px;margin:28px 0 18px}
+.vm-app .vm-gate p{color:#56657c}
+.vm-app .vm-footer{text-align:center;padding:20px 2px;color:#738299;font-size:11px}
+.vm-app .vm-bottom{position:fixed;bottom:0;left:0;right:0;margin:0 auto;max-width:900px;padding:9px 13px max(10px,env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;background:#fff;box-shadow:0 -8px 30px #0a23411c;border-top:1px solid #dce5ed;z-index:20}
+.vm-app .vm-bottom button,.vm-app .vm-bottom a{min-width:0;min-height:48px;display:grid;place-items:center;text-decoration:none;background:transparent;border:0;border-radius:10px;color:#5b6d82;font-size:12px;font-weight:700}
+.vm-app .vm-bottom .active{background:#e3f4f3;color:#075d64}
+@media(min-width:650px){.vm-app .vm-container{padding-left:30px;padding-right:30px}.vm-app .vm-indicators{grid-template-columns:repeat(4,minmax(0,1fr))}.vm-app .vm-panel{padding:24px}.vm-app .vm-bars{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:25px}}
+@media(max-width:359px){.vm-app .vm-filters{grid-template-columns:1fr}.vm-app .vm-intro{flex-direction:column}.vm-app .vm-indicator{padding:11px}.vm-app .vm-indicator strong{font-size:21px}.vm-app .vm-course span:last-child{flex-basis:94px}}
+@media(prefers-reduced-motion:reduce){.vm-app *{scroll-behavior:auto!important;transition:none!important}}
