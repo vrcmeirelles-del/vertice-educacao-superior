@@ -157,6 +157,7 @@ export default function Workspace({
           choose("base");
           const p=new URLSearchParams(window.location.hash.slice(1));p.set("assistente","1");
           window.history.replaceState(null,"","#"+p.toString());
+          window.dispatchEvent(new Event("vertice-open-assistant"));
         }}>Abrir agente de IA</button>
        </div>}
       <div role="tablist" aria-label="Áreas da instituição" className="area-tabs">
