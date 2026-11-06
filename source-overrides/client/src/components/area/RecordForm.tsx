@@ -86,7 +86,7 @@ export default function RecordForm({
                 />
               )}
               {showSuggestions&&<div className="vx-suggestion-box">
-                <label htmlFor={id+"-suggestions"}>Sugestões padronizadas (opcionais)</label>
+                <span className="vx-suggestion-caption">Sugestões padronizadas (opcionais)</span>
                 <select id={id+"-suggestions"} value={suggestionMode[f.name]??""} onChange={e=>{
                   const choice=e.target.value;
                   setSuggestionMode(previous=>({...previous,[f.name]:choice}));
