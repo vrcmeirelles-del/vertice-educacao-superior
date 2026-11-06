@@ -21,5 +21,5 @@ export default function GreenHost(){
   const {data}=supabase.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT')location.assign('/entrar');if(event==='TOKEN_REFRESHED')void send();});
   return()=>{alive=false;window.removeEventListener('message',receive);child?.removeEventListener('load',loaded);data.subscription.unsubscribe();};
  },[]);
- return <>{error&&<p role="alert" style={{padding:20}}>{error} <a href="/master">Voltar ao master</a></p>}<iframe ref={frame} title="Vértice Aquisições — modelo aprovado" src={'/aquisicoes-app/index.html?v=20261106-cnpj-sugestoes'+location.hash} style={{display:'block',width:'100%',height:'100dvh',border:0,background:'#f6f7f3'}} allow="clipboard-write"/></>;
+ return <>{error&&<p role="alert" style={{padding:20}}>{error} <a href="/master">Voltar ao master</a></p>}<iframe ref={frame} title="Vértice Aquisições — modelo aprovado" src={'/aquisicoes-app/index.html?v=20261106-cnpj-sugestoes-v2'+location.hash} style={{display:'block',width:'100%',height:'100dvh',border:0,background:'#f6f7f3'}} allow="clipboard-write"/></>;
 }

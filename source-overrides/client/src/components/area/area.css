@@ -283,3 +283,6 @@
 .area-form-grid .vx-suggestion-caption{font-size:.76rem;font-weight:650;color:#45617c}
 .area-form-grid .vx-suggestion-box select{width:100%;font-size:.78rem}
 .area-form-grid .vx-suggestion-box small{color:#64748b;font-size:.74rem}
+
+.area-form-grid .vx-suggestion-other{display:grid;gap:5px}
+.area-form-grid .vx-suggestion-other textarea{width:100%;min-height:84px}

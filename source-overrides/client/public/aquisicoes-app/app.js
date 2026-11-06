@@ -1,5 +1,5 @@
 import {renderManagementSummary} from './management-summary.js?v=20261103-integracao-v1';
-import {decorateAcquisitionForm} from './text-suggestions.js?v=20261106-1';
+import {decorateAcquisitionForm} from './text-suggestions.js?v=20261106-2';
 import {createOperationForms} from './operation-forms.js?v=20261103-integracao-v1';
 import {brandDownload} from './document-branding.js?v=20261102-forms-v4';
 const brandLogo='./vertice-logo.png';
