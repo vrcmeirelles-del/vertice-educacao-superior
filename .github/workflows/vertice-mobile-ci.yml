@@ -1,0 +1,46 @@
+name: Vértice Mobile — build de homologação
+on:
+  push:
+    branches:
+      - feat/vertice-mobile-bi-20261106
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build_mobile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Preparar fonte original com sobreposições do projeto
+        shell: bash
+        run: |
+          mkdir -p .ci-build
+          unzip -qo vertice-servidor-source.zip -d .ci-build
+          cp -a source-overrides/. .ci-build/
+          test -f .ci-build/package.json
+          test -f .ci-build/client/src/components/bi/VerticeMobileBI.tsx
+      - name: Dependências bloqueadas pelo lockfile
+        working-directory: .ci-build
+        run: npm ci --legacy-peer-deps --no-audit --no-fund
+      - name: Typecheck
+        working-directory: .ci-build
+        run: npm run check
+      - name: Testes existentes
+        working-directory: .ci-build
+        run: npm test
+      - name: Build estático
+        working-directory: .ci-build
+        run: npm run build:static
+      - name: Conferir artefatos do PWA
+        working-directory: .ci-build
+        shell: bash
+        run: |
+          test -f dist/public/index.html
+          test -f dist/public/vertice-mobile.webmanifest
+          test -f dist/public/mobile-icon.svg
+          test -f dist/public/mobile-sw.js
+          grep -q 'vertice-mobile.webmanifest' dist/public/index.html
