@@ -25,6 +25,9 @@ export default function SourceCuration({institutionId,files}:Props){
  const [error,setError]=useState("");
  const [userId,setUserId]=useState<string|null>(null);
  const [conflicts,setConflicts]=useState<Array<{indicador:string;periodo:string;valor_proposto:number;valor_homologado:number}>>([]);
+ const [legacy,setLegacy]=useState<Record<string,number>>({});
+ const [legacyNote,setLegacyNote]=useState("");
+ const [legacyWarnings,setLegacyWarnings]=useState<Array<{indicador:string;periodo:string;proposto:number;legado:number}>>([]);
  const load=useCallback(async()=>{
   const [{data,error:loadError},{data:user}]=await Promise.all([
    supabase.from("vertice_source_analyses").select("*").eq("institution_id",institutionId).order("created_at",{ascending:false}).limit(100),
@@ -34,10 +37,26 @@ export default function SourceCuration({institutionId,files}:Props){
   setReviews((data??[]) as Review[]);setUserId(user.user?.id??null);
  },[institutionId]);
  useEffect(()=>{void load().catch(()=>setError("Curadoria indisponível para este perfil."));},[load]);
+ useEffect(()=>{let active=true;
+  void supabase.from("vertice_enrollment_snapshots")
+   .select("semester,enrolled").eq("institution_id",institutionId)
+   .eq("student_status","MATRICULADO").limit(5000).then(({data,error})=>{
+    if(!active)return;
+    if(error){setLegacy({});setLegacyNote("Não foi possível consultar a fonte de matrícula legada.");return;}
+    const sums:Record<string,number>={};
+    for(const row of data??[]){
+     const p=String(row.semester??"");
+     if(Number.isFinite(Number(row.enrolled)))sums[p]=(sums[p]??0)+Number(row.enrolled);
+    }
+    setLegacy(sums);
+    setLegacyNote((data??[]).length===5000?"Comparação parcial: limite de linhas alcançado.":"Comparação preliminar por semestre na tabela de snapshots.");
+   });
+  return()=>{active=false;};
+ },[institutionId]);
  const review=reviews.find(x=>x.upload_id===selected?.id)??null;
  const approved=useMemo(()=>reviews.filter(r=>r.state==="aprovado"),[reviews]);
  async function open(source:Source){
-  setSelected(source);setRawRows([]);setHeaders([]);setCandidate([]);setSha("");
+  setSelected(source);setRawRows([]);setHeaders([]);setCandidate([]);setSha("");setLegacyWarnings([]);
   setError("");setMessage("");setConflicts([]);setConsent(false);setReviewNote("");
   const existing=reviews.find(x=>x.upload_id===source.id);
   setNote(existing?.analysis_note??"");if(existing){setCandidate(existing.candidate_rows);}
@@ -72,7 +91,12 @@ export default function SourceCuration({institutionId,files}:Props){
     const old=known.get(r.indicador.toLowerCase()+"|"+r.periodo);
     return old!==undefined&&old!==r.valor?[{indicador:r.indicador,periodo:r.periodo,valor_proposto:r.valor,valor_homologado:old}]:[];
    });
-   setCandidate(converted);setConflicts(collisions);
+   const preliminary=converted.flatMap(r=>{
+     if(!/matr[ií]culad|total de matr[ií]cula|total matr[ií]cula/i.test(r.indicador))return [];
+     const current=legacy[r.periodo];
+     return current!==undefined&&current!==r.valor?[{indicador:r.indicador,periodo:r.periodo,proposto:r.valor,legado:current}]:[];
+   });
+   setCandidate(converted);setConflicts(collisions);setLegacyWarnings(preliminary);
    setMessage("Análise preparada com "+converted.length+" indicadores. "+(collisions.length?collisions.length+" divergência(s) em relação às cargas homologadas.":"Sem divergência de valores frente às cargas homologadas acessíveis."));
   }catch(e){setCandidate([]);setError((e as Error).message);}
  }
@@ -141,6 +165,11 @@ export default function SourceCuration({institutionId,files}:Props){
     <div className="vx-curation-scroll"><table><thead><tr><th>Indicador</th><th>Período</th><th>Valor</th><th>Unidade</th></tr></thead><tbody>
      {candidate.slice(0,12).map((r,i)=><tr key={i}><td>{r.indicador}</td><td>{r.periodo}</td><td>{fmt(r.valor)}</td><td>{r.unidade}</td></tr>)}
     </tbody></table></div><small>Amostra de até 12 de {candidate.length} linhas; o total estará no registro de curadoria.</small>
+   </div>}
+   {legacyWarnings.length>0&&<div className="vx-curation-alert">
+    <strong>{legacyWarnings.length} confronto(s) preliminar(es) com o BI legado de matrículas</strong>
+    {legacyWarnings.slice(0,8).map((x,i)=><p key={i}>{x.indicador} · {x.periodo}: proposto {fmt(x.proposto)} / snapshots {fmt(x.legado)}</p>)}
+    <small>{legacyNote} Fontes e grãos podem ser diferentes: não substitua o KPI oficial antes da reconciliação. O quantitativo e-ORBIT pode usar outro identificador institucional.</small>
    </div>}
    {conflicts.length>0&&<div className="vx-curation-alert"><b>{conflicts.length} divergência(s) detectada(s) em fonte aprovada anterior</b>
     {conflicts.slice(0,8).map((c,i)=><p key={i}>{c.indicador} · {c.periodo}: anterior {fmt(c.valor_homologado)} / proposta {fmt(c.valor_proposto)}</p>)}
