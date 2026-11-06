@@ -10,6 +10,7 @@ type G={
  reviewed_by:string|null;reviewed_at:string|null;review_note:string|null;
 };
 type Event={id:number;action_id:string;actor:string|null;event_type:string;progress_before:number|null;progress_after:number;event_note:string|null;occurred_at:string};
+type Ack={action_id:string;actor:string;acknowledged_at:string};
 type Props={institutionId:string;actions:Row[];role:string|null;onChanged:()=>Promise<void>};
 type Member={user_id:string;email:string;role:string};
 function timeRemaining(date:unknown,clock:number):string{
@@ -41,6 +42,7 @@ function daysUntil(date:unknown):number|null {
 export default function ActiveGovernance({institutionId,actions,role,onChanged}:Props){
  const [rows,setRows]=useState<Record<string,G>>({});
  const [events,setEvents]=useState<Event[]>([]);
+ const [acknowledgements,setAcknowledgements]=useState<Ack[]>([]);
  const [selected,setSelected]=useState<string>("");
  const [percent,setPercent]=useState(0);
  const [note,setNote]=useState("");
@@ -58,14 +60,16 @@ export default function ActiveGovernance({institutionId,actions,role,onChanged}:
  const reviewer=role==="master"||role==="gestor";
  const contributor=reviewer||role==="equipe";
  const load=useCallback(async()=>{
-  const [{data,error:dbError},{data:history,error:eventsError},{data:user}]=await Promise.all([
+  const [{data,error:dbError},{data:history,error:eventsError},{data:user},{data:acks,error:ackError}]=await Promise.all([
     supabase.from("vertice_action_governance").select("*").eq("institution_id",institutionId),
     supabase.from("vertice_action_governance_events").select("*").eq("institution_id",institutionId).order("occurred_at",{ascending:false}).limit(300),
-    supabase.auth.getUser()
+    supabase.auth.getUser(),
+    supabase.from("vertice_action_acknowledgements").select("action_id,actor,acknowledged_at").eq("institution_id",institutionId).order("acknowledged_at",{ascending:false}).limit(500)
   ]);
-  if(dbError||eventsError){setError("Governança indisponível: confira se a migração foi aplicada e se seu perfil permite leitura.");return;}
+  if(dbError||eventsError||ackError){setError("Governança indisponível: confira se a migração foi aplicada e se seu perfil permite leitura.");return;}
   setRows(Object.fromEntries(((data??[]) as G[]).map(r=>[r.action_id,r])));
   setEvents((history??[]) as Event[]);
+  setAcknowledgements((acks??[]) as Ack[]);
   setUserId(user.user?.id??null);setLastRead(new Date().toISOString());
  },[institutionId]);
  useEffect(()=>{void load();},[load]);
@@ -95,6 +99,7 @@ export default function ActiveGovernance({institutionId,actions,role,onChanged}:
  }
  const active=selectedAction?daysUntil(selectedAction.due_date):null;
  const history=events.filter(e=>e.action_id===selected).slice(0,12);
+ const lastAcknowledgement=acknowledgements.find(a=>a.action_id===selected);
  const vitalityScore=vitality(current,active);
  const alerts=actions.flatMap(action=>{
   const remain=daysUntil(action.due_date),g=rows[String(action.id)];
@@ -103,6 +108,16 @@ export default function ActiveGovernance({institutionId,actions,role,onChanged}:
   const inactive=g?.checked_at&&Date.now()-Date.parse(g.checked_at)>7*86400000?"Sem check-in há mais de 7 dias":"";
   return [alert,approval,inactive].filter(Boolean).map(kind=>({kind,action:String(action.what),id:String(action.id)}));
  }).slice(0,12);
+ async function acknowledge(){
+  if(!selectedAction||!contributor||busy)return;setBusy(true);setError("");setSuccess("");
+  try {
+   const {error:failure}=await supabase.rpc("vertice_action_acknowledge",{p_action:selected});
+   if(failure)throw failure;
+   await load();
+   setSuccess("Ciência registrada com sua identificação e data. O registro não contabiliza tempo online.");
+  } catch(e){setError((e as {message?:string})?.message??"Não foi possível registrar ciência.");}
+  finally{setBusy(false);}
+ }
  async function assignExecutor(){
   if(!selectedAction||!reviewer||busy)return;setBusy(true);setError("");setSuccess("");
   try{
@@ -142,6 +157,8 @@ export default function ActiveGovernance({institutionId,actions,role,onChanged}:
     </label>}
     <div className="vx-active-gov-pair"><span>Declarado: <b>{current?.declared_progress??selectedAction.progress??0}%</b></span><span>Validado: <b>{current?.validated_progress??0}%</b></span></div>
     <p><strong>Situação da prestação de contas:</strong> {stateName[current?.review_status??"rascunho"]}</p>
+    <div className="vx-active-gov-ack"><span><strong>Última ciência da tarefa:</strong> {lastAcknowledgement?formatTime(lastAcknowledgement.acknowledged_at):"Ainda não registrada"}</span>
+    {contributor&&<button type="button" disabled={busy} onClick={()=>void acknowledge()}>Registrar que tomei ciência</button>}</div>
     {contributor&&(!current||current.review_status==="rascunho"||current.review_status==="devolvido")&&<>
      <label className="vx-active-gov-progress">Progresso da execução <b>{percent}%</b><input type="range" min="0" max="100" step="5" value={percent} onChange={e=>setPercent(Number(e.target.value))}/></label>
      <label>O que foi realizado? <textarea maxLength={3000} rows={2} value={note} onChange={e=>setNote(e.target.value)} placeholder="Descreva a entrega, o link da evidência ou a atividade realizada"/></label>
