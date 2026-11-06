@@ -7,7 +7,7 @@ create table if not exists public.vertice_source_uploads (
  source_name text not null check(length(source_name) between 2 and 180),
  reference_period text check(reference_period is null or length(reference_period)<=35),
  extracted_on date,
- original_name text not null check(length(original_name) between 1 and 250),
+ original_name text not null check(length(original_name) between 1 and 250 and original_name !~ '[/\\\\]'),
  mime_type text not null,
  bytes bigint not null check(bytes > 0 and bytes <= 26214400),
  storage_path text unique not null,
