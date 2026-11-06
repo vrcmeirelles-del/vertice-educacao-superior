@@ -55,6 +55,22 @@ export async function fetchQuantitativo() {
   return fetchAllFrom<CursoQuantitativo>('vertice_eorbit_quantitativo');
 }
 
+// Mapa course_id (UUID de vertice_courses) -> nome do curso, para os indicadores por curso.
+export async function fetchCourseNames(): Promise<Map<string, string>> {
+  const m = new Map<string, string>();
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await supabase
+      .from('vertice_courses')
+      .select('id,name')
+      .order('id')
+      .range(from, from + 999);
+    if (error) throw error;
+    for (const r of (data ?? []) as any[]) m.set(String(r.id), String(r.name ?? 'Curso'));
+    if (!data || data.length < 1000) break;
+  }
+  return m;
+}
+
 // Lê registros de vertice_academic_reports por institution + kinds (pagina de 1000).
 export async function fetchReports(institutionId: string, kinds: string[]) {
   const rows: AcademicReportRow[] = [];
@@ -382,5 +398,139 @@ export function simularRetencao(
     receitaSemestral,
     receitaAnual,
     receitaCiclo: receitaAnual * anosRestantesMedia,
+  };
+}
+
+// ---------- evasão e renovação (coortes) ----------
+// Fonte: vertice_academic_reports kind='cohorts'. Coorte = primeiro vínculo observado
+// (uma contagem por CPF na origem). AV1 positiva = nota > 0 localizada.
+export type Coorte = {
+  cohort: string;
+  entrants: number;          // ingressantes
+  nextLink: number;          // renovaram (vínculo no semestre seguinte)
+  noNext: number;            // não renovaram (sinal de evasão)
+  positiveAv1: number;       // tiveram AV1 positiva (desempenho)
+  returnedAfterGap: number;  // retornaram após intervalo
+  noNextPositiveAv1: number; // evadiram APESAR de desempenho (indício não-acadêmico)
+  noNextNoPositiveAv1: number; // evadiram sem desempenho (associado a dificuldade acadêmica)
+};
+export type CohortsReport = { asOf: string; method: string; coortes: Coorte[] };
+
+export function parseCohorts(rows: AcademicReportRow[]): CohortsReport | null {
+  const row = rows[0];
+  if (!row) return null;
+  const p = row.payload || {};
+  const list: any[] = Array.isArray(p.cohorts) ? p.cohorts : [];
+  const coortes: Coorte[] = list.map(c => ({
+    cohort: String(c.cohort ?? ''),
+    entrants: Number(c.entrants ?? 0),
+    nextLink: Number(c.next_link ?? 0),
+    noNext: Number(c.no_next ?? 0),
+    positiveAv1: Number(c.positive_av1 ?? 0),
+    returnedAfterGap: Number(c.returned_after_gap ?? 0),
+    noNextPositiveAv1: Number(c.no_next_positive_av1 ?? 0),
+    noNextNoPositiveAv1: Number(c.no_next_no_positive_av1 ?? 0),
+  })).filter(c => c.cohort);
+  return { asOf: String(p.as_of ?? ''), method: String(p.method ?? ''), coortes };
+}
+
+// Consolidado de evasão/renovação sobre coortes fechadas (com no_next conhecido).
+export type EvasaoResumo = {
+  ingressantes: number;
+  renovaram: number;
+  evadiram: number;
+  taxaRenovacao: number;
+  taxaEvasao: number;
+  evadiramComDesempenho: number;    // no_next_positive_av1
+  evadiramSemDesempenho: number;    // no_next_no_positive_av1
+  pctEvasaoNaoAcademica: number;    // % dos evadidos que tinham desempenho
+  retornaram: number;
+};
+export function resumirEvasao(coortes: Coorte[]): EvasaoResumo {
+  // considera apenas coortes com no_next apurado (coorte mais recente ainda em aberto)
+  const fechadas = coortes.filter(c => c.noNext > 0 || c.nextLink > 0);
+  const ingressantes = fechadas.reduce((s, c) => s + c.entrants, 0);
+  const renovaram = fechadas.reduce((s, c) => s + c.nextLink, 0);
+  const evadiram = fechadas.reduce((s, c) => s + c.noNext, 0);
+  const comDes = fechadas.reduce((s, c) => s + c.noNextPositiveAv1, 0);
+  const semDes = fechadas.reduce((s, c) => s + c.noNextNoPositiveAv1, 0);
+  const retornaram = fechadas.reduce((s, c) => s + c.returnedAfterGap, 0);
+  const baseMov = renovaram + evadiram;
+  return {
+    ingressantes, renovaram, evadiram,
+    taxaRenovacao: baseMov > 0 ? (renovaram / baseMov) * 100 : 0,
+    taxaEvasao: baseMov > 0 ? (evadiram / baseMov) * 100 : 0,
+    evadiramComDesempenho: comDes,
+    evadiramSemDesempenhn: semDes,
+    pctEvasaoNaoAcademica: (comDes + semDes) > 0 ? (comDes / (comDes + semDes)) * 100 : 0,
+    retornaram,
+  };
+}
+
+// ---------- indicadores por curso (course_indicators) ----------
+// Fonte: vertice_academic_reports kind='course_indicators'. RF (falta), RN (nota),
+// RA (após exame) somados por matrícula em disciplina — não por aluno único.
+export type ReprovaCursoSem = {
+  semestre: string;
+  rf: number; rn: number; ra: number;
+  reprovacoes: number;           // failures
+  matriculasDisciplina: number;  // discipline_enrollments
+  mediaNota: number;             // diary_weighted_mean
+};
+export type CourseIndicator = {
+  courseId: string;
+  nome: string;
+  alunosEmRisco: number | null;  // risk_roster.listed
+  series: ReprovaCursoSem[];
+  method: string;
+  totalReprovacoes: number;
+  totalRf: number; totalRn: number; totalRa: number;
+};
+
+export function parseCourseIndicators(rows: AcademicReportRow[], nomePorCourseId: Map<string, string>): CourseIndicator[] {
+  return rows.map(r => {
+    const p = r.payload || {};
+    const serie: any[] = Array.isArray(p.reprobation_series) ? p.reprobation_series : [];
+    const series: ReprovaCursoSem[] = serie.map(s => ({
+      semestre: String(s.semester ?? ''),
+      rf: Number(s.RF ?? 0), rn: Number(s.RN ?? 0), ra: Number(s.RA ?? 0),
+      reprovacoes: Number(s.failures ?? 0),
+      matriculasDisciplina: Number(s.discipline_enrollments ?? 0),
+      mediaNota: Number(s.diary_weighted_mean ?? 0),
+    })).sort((a, b) => a.semestre.localeCompare(b.semestre));
+    const totalRf = series.reduce((s, x) => s + x.rf, 0);
+    const totalRn = series.reduce((s, x) => s + x.rn, 0);
+    const totalRa = series.reduce((s, x) => s + x.ra, 0);
+    const risk = p.risk_roster?.listed;
+    return {
+      courseId: String((r as any).course_id ?? ''),
+      nome: nomePorCourseId.get(String((r as any).course_id ?? '')) ?? 'Curso',
+      alunosEmRisco: risk == null ? null : Number(risk),
+      series, method: String(p.method ?? ''),
+      totalReprovacoes: totalRf + totalRn + totalRa,
+      totalRf, totalRn, totalRa,
+    };
+  }).filter(c => c.totalReprovacoes > 0 || c.alunosEmRisco)
+    .sort((a, b) => b.totalReprovacoes - a.totalReprovacoes);
+}
+
+// Composição institucional da reprovação por tipo e por semestre (soma dos cursos).
+export type ReprovaTipoSem = { semestre: string; rf: number; rn: number; ra: number; total: number };
+export function agregarReprovaTipo(indicadores: CourseIndicator[]): { porSemestre: ReprovaTipoSem[]; totalRf: number; totalRn: number; totalRa: number } {
+  const m = new Map<string, { rf: number; rn: number; ra: number }>();
+  for (const ci of indicadores) {
+    for (const s of ci.series) {
+      const prev = m.get(s.semestre) ?? { rf: 0, rn: 0, ra: 0 };
+      m.set(s.semestre, { rf: prev.rf + s.rf, rn: prev.rn + s.rn, ra: prev.ra + s.ra });
+    }
+  }
+  const porSemestre: ReprovaTipoSem[] = [...m].map(([semestre, v]) => ({
+    semestre, ...v, total: v.rf + v.rn + v.ra,
+  })).sort((a, b) => a.semestre.localeCompare(b.semestre));
+  return {
+    porSemestre,
+    totalRf: porSemestre.reduce((s, x) => s + x.rf, 0),
+    totalRn: porSemestre.reduce((s, x) => s + x.rn, 0),
+    totalRa: porSemestre.reduce((s, x) => s + x.ra, 0),
   };
 }
