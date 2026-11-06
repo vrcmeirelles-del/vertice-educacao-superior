@@ -116,6 +116,12 @@ export async function getKPIs(filtro: FiltroBI): Promise<KpiResumo[]> {
   const bySem = enrolledBySemester(enrollments);
   const matriculados = bySem.get(currentSem) ?? 0;
   const matriculadosPrev = prevSem ? (bySem.get(prevSem) ?? null) : null;
+  // Comparação homóloga: primeiro semestre contra primeiro, segundo contra segundo.
+  // Usar rótulo explícito e não inventar zero quando o período não está disponível.
+  const homologousSem = /^(\d{4})\/(0?[12])$/.test(currentSem)
+    ? currentSem.replace(/^(\d{4})\//, (_match, year: string) => `${Number(year) - 1}/`)
+    : '';
+  const homologousValue = homologousSem && bySem.has(homologousSem) ? bySem.get(homologousSem)! : null;
 
   // Vagas ofertadas (soma de vacancies dos cursos ativos)
   const vagasOfertadas = courses.reduce((s, c) => s + (Number(c.vacancies) || 0), 0);
@@ -153,7 +159,11 @@ export async function getKPIs(filtro: FiltroBI): Promise<KpiResumo[]> {
       rotulo: 'Alunos Matriculados',
       valor: matriculados,
       unidade: 'qtd',
-      variacaoPct: variacao(matriculados, matriculadosPrev),
+      variacaoPct: variacao(matriculados, homologousValue),
+      comparativos: {
+        homologo: { semestre: homologousSem, valor: homologousValue, variacaoPct: variacao(matriculados, homologousValue) },
+        anterior: { semestre: prevSem, valor: matriculadosPrev, variacaoPct: variacao(matriculados, matriculadosPrev) },
+      },
       meta: null,
       atingimentoMeta: null,
       tendencia: tendenciaMatriculas,

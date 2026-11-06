@@ -29,6 +29,10 @@ export interface KpiResumo {
   tendencia: number[];
   direcaoDesejada: DirecaoDesejada;
   definicao: string;         // fórmula legível, acessível via ícone (i)
+  comparativos?: {
+    homologo: { semestre: string; valor: number | null; variacaoPct: number | null };
+    anterior: { semestre: string | null; valor: number | null; variacaoPct: number | null };
+  };
 }
 
 // ---------- série temporal ----------
