@@ -14,7 +14,7 @@ const mechanisms={condition_precedent:'Condição precedente',rep_warranty_gener
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const options=(o,selected)=>Object.entries(o).map(([v,l])=>`<option value="${esc(v)}" ${v===selected?'selected':''}>${esc(l)}</option>`).join('');
 let session=JSON.parse(sessionStorage.getItem(config.mode==='portal'?'vertice-green-portal-session':'vertice-session')||'null'), profile={},matters=[],matter=null,requirements=[],states=[],findings=[],documents=[],members=[],tab='summary',filter='',search='';
-let refreshing, matterLoad=0;
+let refreshing, matterLoad=0, cnpjContext=null;
 function saveSession(data){session=data;sessionStorage.setItem(config.mode==='portal'?'vertice-green-portal-session':'vertice-session',JSON.stringify(data));}
 async function request(path,{method='GET',body,auth=true,raw=false}={}){
  if(auth&&config.mode==='local'&&session?.expires_at<Date.now()/1000+60){session=null;sessionStorage.removeItem(config.mode==='portal'?'vertice-green-portal-session':'vertice-session');login();throw new Error('Sessão local expirada. Entre novamente.');}
@@ -229,7 +229,27 @@ async function openMatter(id){
  if(loadId!==matterLoad)return;
  matter=selected;agentReport=null;[requirements,states,findings,documents,members]=rows;documentLinks=links;workflowData=workflow;
  if(workflowData){requirements=workflowData.requirements;states=workflowData.states;documents=workflowData.documents;documentLinks=workflowData.links;}
- renderMatter();
+ cnpjContext=null;renderMatter();
+ if(config.mode==='portal')void rpc('vertice_cnpj_matter_context',{p_matter:id}).then(result=>{
+   if(matter?.id===id){cnpjContext=result;renderCnpjContext();}
+ }).catch(()=>{if(matter?.id===id){cnpjContext={status:'sem_permissao',academic_candidates:[]};renderCnpjContext();}});
+}
+function renderCnpjContext(){
+ if(config.mode!=='portal')return;
+ let el=document.querySelector('#cnpj-context');
+ if(!el){const stats=document.querySelector('.stats');if(!stats)return;el=document.createElement('section');el.id='cnpj-context';el.className='cnpj-context';stats.insertAdjacentElement('beforebegin',el);}
+ const c=cnpjContext;
+ if(!c){el.textContent='Conferindo vínculos institucionais autorizados por CNPJ…';return;}
+ const entries=Array.isArray(c.academic_candidates)?c.academic_candidates:[];
+ const item=entries.map(i=>'<li><strong>'+esc(i.name)+'</strong> · CNPJ '+esc(i.cnpj)+' · '+esc(i.city??'')+'/'+esc(i.state??'')+
+  '<span>'+Number(i.courses||0)+' cursos · '+Number(i.goals||0)+' metas · '+Number(i.requests||0)+' exigências</span>'+
+  '<a target="_top" rel="noopener" href="/master#'+new URLSearchParams({instituicao:i.id,aba:'base'})+'">Abrir Base da organização ↗</a></li>').join('');
+ const warning=c.status==='cnpj_alvo_pendente'?'CNPJ da instituição-alvo ausente, inválido ou provisório. Revise a identificação do alvo; não é seguro vinculá-lo por nome.':
+  c.status==='sem_correspondencia_autorizada'?'Nenhuma instituição com a mesma raiz de CNPJ está disponível neste escopo de acesso.':
+  c.status==='sem_permissao'?'Vínculos restritos ao usuário autorizado.':'Correspondência de raiz encontrada. Confirme a filial e o perímetro jurídico antes de aproveitar informações.';
+ el.innerHTML='<strong>Vínculos por CNPJ · Acadêmico × Aquisições</strong><p>'+esc(warning)+'</p>'+
+  (item?'<ul>'+item+'</ul>':'')+
+  '<small>A consulta não copia dados financeiros, documentos sigilosos ou informações de outro mandato. CNPJ-raiz é apenas um identificador candidato.</small>';
 }
 
 function writable(){return members.some(m=>m.user_id===session.user.id&&['matter_lead','analyst'].includes(m.role)&&!m.revoked_at&&new Date(m.expires_at)>new Date());}
@@ -237,7 +257,7 @@ function renderMatter(){
  const route=new URLSearchParams({mandato:matter.id,aba:tab}).toString();history.replaceState(null,'',location.pathname+location.search+'#'+route);if(config.mode==='portal')parent.postMessage({type:'green-location',hash:route},location.origin);
  const done=workflowData?states.length-workflowData.counts.pending:states.filter(s=>s.status==='compliant').length,pct=states.length?Math.round(done/states.length*100):0;
  shell(`<button id="back" class="text-btn">← Todos os mandatos</button><div class="page-heading detail-heading"><div><p class="eyebrow">${esc(matter.code)} · ${matter.side==='buyer'?'COMPRADOR':'VENDEDOR'}</p><h1>${esc(matter.title)}</h1><p>${esc(matter.target_name)} · ${esc(matter.client_name)}</p></div><button id="export" class="secondary">Exportar tracker ↓</button></div>${matter.scope_note==='SEED-TESTE-FLUXO-COMPLETO-V1'?'<div class="form-guide"><strong>MANDATO DE TESTE — TODOS OS DADOS SÃO FICTÍCIOS.</strong><p>Respostas, evidências e revisões foram preparadas por automação para este exercício. Não representam sua revisão pessoal. O parecer aguarda sua leitura e aprovação; não avalia uma aquisição real.</p></div>':''}<div class="stats"><article><span>ANÁLISES ATUAIS</span><strong>${done} <em>/ ${states.length}</em></strong><div class="progress"><i style="width:${pct}%"></i></div></article><article><span>ACHADOS REGISTRADOS</span><strong>${workflowData?workflowData.events.length:findings.length} <em>eventos distintos</em></strong><small>${workflowData?workflowData.events.filter(e=>e.body.risk==='red'&&!e.body.resolved).length:findings.filter(f=>f.severity==='red').length} de severidade alta</small></article><article><span>DOCUMENTOS NO COFRE</span><strong>${documents.length.toString().padStart(2,'0')}</strong><small>Arquivos privados deste mandato</small></article></div><nav class="tabs">${optionsTabs()}</nav><section id="tab-content"></section>`);
- bind('back','click',returnHome);bind('export','click',exportTracker);document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;renderMatter();});renderTab();
+ renderCnpjContext();bind('back','click',returnHome);bind('export','click',exportTracker);document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;renderMatter();});renderTab();
 }
 function optionsTabs(){return Object.entries({...(workflowData?{summary:'Visão gerencial'}:{}),requirements:'Preenchimento',...(config.mode==='portal'?{base:'Base da operação',emec:'e-MEC · Regulação'}:{}),...(workflowData?{scope:'Escopo e conferências',review:'Análise das evidências',ebitda:'Calcular EBITDA',valuation:'Preço da aquisição',opinion:'Parecer e aprovação'}:{}),findings:'Riscos e providências',documents:'Cofre documental',...((config.mode==='local'||config.mode==='portal')?{agent:'Conferência local'}:{}),members:'Equipe'}).map(([v,l])=>`<button data-tab="${v}" class="${tab===v?'selected':''}">${l}</button>`).join('');}
 function renderTab(){
