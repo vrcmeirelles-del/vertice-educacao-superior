@@ -69,11 +69,9 @@
 /* ── Tabs ── */
 .rbi-tabs {
   display: flex;
-  gap: 4px;
-  overflow-x: auto;
-  padding-bottom: 4px;
+  flex-wrap: wrap;
+  gap: 6px;
   margin-bottom: 20px;
-  -webkit-overflow-scrolling: touch;
 }
 
 .rbi-tab {
@@ -81,7 +79,7 @@
   align-items: center;
   gap: 6px;
   white-space: nowrap;
-  padding: 10px 16px;
+  padding: 8px 14px;
   border: 1px solid #d4d9ea;
   border-radius: 10px;
   background: white;
@@ -90,7 +88,6 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.15s;
-  flex-shrink: 0;
 }
 
 .rbi-tab:hover { background: #f0f1f8; }
