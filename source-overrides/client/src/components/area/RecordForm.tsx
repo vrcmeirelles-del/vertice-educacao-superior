@@ -1,4 +1,5 @@
-import { useState, type FormEvent } from "react";
+import { useEffect,useState, type FormEvent } from "react";
+import {supabase} from "@/lib/supabase";
 import { clean, explain, type Field, type Row } from "@/lib/area";
 import {suggestionOptions} from "@/lib/field-suggestions";
 
@@ -12,6 +13,7 @@ export default function RecordForm({
   submitLabel = "Salvar",
   optionsFor,
   onValueChange,
+  institutionId,
 }: {
   title: string;
   fields: Field[];
@@ -21,6 +23,7 @@ export default function RecordForm({
   submitLabel?: string;
   optionsFor?: (field:Field,values:Record<string,unknown>)=>Field['options'];
   onValueChange?: (values:Record<string,unknown>,changed:string)=>Record<string,unknown>;
+  institutionId?: string;
 }) {
   const [values, setValues] = useState<Record<string, unknown>>(() => {
     const v: Record<string, unknown> = {};
@@ -30,6 +33,15 @@ export default function RecordForm({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [suggestionMode,setSuggestionMode] = useState<Record<string,string>>({});
+  const [institutionalSuggestions,setInstitutionalSuggestions]=useState<Record<string,string[]>>({});
+  useEffect(()=>{
+    if(!institutionId){setInstitutionalSuggestions({});return;}
+    let active=true;setInstitutionalSuggestions({});
+    void supabase.rpc("vertice_form_vocabulary",{p_institution:institutionId}).then(({data,error})=>{
+      if(active&&!error&&data&&typeof data==="object")setInstitutionalSuggestions(data as Record<string,string[]>);
+    });
+    return()=>{active=false;};
+  },[institutionId]);
   const set = (k: string, v: unknown) => setValues(s => {const next={...s,[k]:v};return onValueChange?onValueChange(next,k):next;});
 
   async function submit(e: FormEvent) {
@@ -52,7 +64,9 @@ export default function RecordForm({
         {fields.map(f => {
           const id = `f-${f.name}`;
           const v = values[f.name] as string | number | undefined;
-          const suggestions=(f.type==="textarea"||(!f.type&&f.name!=="cnpj"))?suggestionOptions(f.name,f.label):[];
+          const suggestions=(f.type==="textarea"||(!f.type&&f.name!=="cnpj"))
+            ? [...new Set([...suggestionOptions(f.name,f.label),...(institutionalSuggestions[f.name]??[])])]
+            : [];
           const showSuggestions=suggestions.length>0;
           return (
             <div key={f.name} className={"vx-form-field "+(f.wide || f.type === "textarea" ? "wide" : "")}>
