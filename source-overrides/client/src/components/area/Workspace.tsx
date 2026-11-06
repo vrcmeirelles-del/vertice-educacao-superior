@@ -1,5 +1,6 @@
 import {actionDraftKey,parseActionDraft,storeActionDraft,validateActionLinks,changeActionScope} from "@/lib/portal-integration";
 import ActionCockpit from "./ActionCockpit";
+import ActionKanban from "./ActionKanban";
 import RegistryContacts from "./RegistryContacts";
 import { courseClassification, useCourseFilters } from "./CourseFilters";
 import {displayCourseRows} from '@/lib/course-labels';
@@ -701,6 +702,8 @@ function actionFields(data: Data): Field[] {
 function ActionsTab({ institutionId, role, data, reload }: { institutionId: string; role: Role | null; data: Data; reload: () => Promise<void> }) {
   const ed = useEditor();
   const [filter, setFilter] = useState("abertas");
+  const [actionView,setActionView] = useState<"kanban"|"tabela">("kanban");
+  const [actionSaveError,setActionSaveError] = useState("");
   const [prefill,setPrefill] = useState<Record<string,unknown>>(()=>parseActionDraft(sessionStorage.getItem(actionDraftKey(institutionId)),institutionId));
   useEffect(()=>{sessionStorage.removeItem(actionDraftKey(institutionId));sessionStorage.removeItem("vertice-action-prefill");if(Object.keys(prefill).length&&can.record(role))ed.open("new");},[]);
   const rows = data.actions.filter(a =>
@@ -711,6 +714,17 @@ function ActionsTab({ institutionId, role, data, reload }: { institutionId: stri
   return (
     <div className="area-panel">
       <ActionCockpit data={data} institutionId={institutionId} onDraft={can.record(role)?draft=>{setPrefill(draft);ed.open("new");}:undefined}/>
+      <div className="area-inline" role="group" aria-label="Visualização das tarefas">
+        <button type="button" className={actionView==="kanban"?"corp-button small":"corp-login-text-button"} aria-pressed={actionView==="kanban"} onClick={()=>setActionView("kanban")}>Kanban</button>
+        <button type="button" className={actionView==="tabela"?"corp-button small":"corp-login-text-button"} aria-pressed={actionView==="tabela"} onClick={()=>setActionView("tabela")}>Tabela 5W2H</button>
+      </div>
+      {actionSaveError&&<p role="alert" className="area-error">{actionSaveError}</p>}
+      {actionView==="kanban"&&<ActionKanban actions={data.actions} goals={data.goals} canEdit={can.record(role)} onEdit={a=>ed.open(a)} onMove={async(a,status)=>{
+        setActionSaveError("");
+        try {await saveRow(TABLES.actions,{status},String(a.id));await reload();}
+        catch(e){setActionSaveError(explain(e));throw e;}
+      }}/>}
+
       <div className="area-panel-head">
         <h3>Plano de ação 5W2H ({data.actions.length})</h3>
         <div className="area-inline">
@@ -739,7 +753,7 @@ function ActionsTab({ institutionId, role, data, reload }: { institutionId: stri
           }}
         />
       )}
-      {!rows.length ? (
+      {actionView==="tabela"&&(!rows.length ? (
         <p className="area-muted">Nenhuma ação neste filtro.</p>
       ) : (
         <div className="table-scroll">
@@ -767,7 +781,7 @@ function ActionsTab({ institutionId, role, data, reload }: { institutionId: stri
             </tbody>
           </table>
         </div>
-      )}
+      ))}
     </div>
   );
 }
