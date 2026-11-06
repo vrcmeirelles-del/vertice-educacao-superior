@@ -179,7 +179,7 @@ export default function VerticeMobileBI() {
         {access === "error" && <button className="vm-secondary" onClick={() => void reload()}>Tentar novamente</button>}
       </section> : <>
         <section className="vm-intro">
-          <div><small>PAINEL EXECUTIVO</small><h1>Visão em tempo real do banco</h1><p>Indicadores disponíveis para sua conta, sem dados fictícios.</p></div>
+          <div><small>PAINEL EXECUTIVO</small><h1>Indicadores do banco</h1><p>Indicadores disponíveis para sua conta, sem dados fictícios.</p></div>
           <button className="vm-refresh" onClick={() => void reload()} disabled={reloading} aria-label="Atualizar indicadores">{reloading ? "Atualizando…" : "Atualizar"}</button>
         </section>
         {data.institutions.length === 0 ? <section className="vm-panel"><h2>Sem instituições autorizadas</h2><p>Esta conta não possui instituições visíveis pelas políticas do banco.</p></section> : <>
