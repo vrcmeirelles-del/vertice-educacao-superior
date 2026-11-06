@@ -232,6 +232,8 @@ export default function SourceUpload({institutionId,institutionName}:{institutio
      <strong>{link.source_name}</strong> · {link.reference_period||"Sem competência"} ·
      <a target="_blank" rel="noopener noreferrer" href={link.drive_url}>Abrir referência no Drive ↗</a>
      <span className="vx-source-not-started">Link registrado · importação não iniciada</span>
+     {/sharepoint[.]com|onedrive[.]live[.]com|1drv[.]ms/i.test(link.drive_url)&&
+      <button type="button" onClick={()=>window.dispatchEvent(new CustomEvent("vertice-drive-list",{detail:{institutionId}}))}>Consultar pasta OneDrive autorizada</button>}
      <button type="button" disabled={deleting} onClick={()=>askRemoval("link",link.id,link.source_name)}>Excluir referência</button>
      <small>O link não dispara cópia automática. Para pastas Microsoft autorizadas, use "Consultar arquivos do OneDrive" abaixo e escolha um arquivo.</small>
     </p>)}
