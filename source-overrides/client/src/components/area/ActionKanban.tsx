@@ -32,6 +32,7 @@ function Owner({name,title}:{name:string;title:string}) {
 
 export default function ActionKanban({actions,goals,canEdit,onEdit,onMove}:Props) {
  const [search,setSearch]=useState("");
+ const [layout,setLayout]=useState<"kanban"|"prazos"|"cronograma">("kanban");
  const [scope,setScope]=useState("ativas");
  const [busy,setBusy]=useState<string|null>(null);
  const [message,setMessage]=useState("");
@@ -60,7 +61,30 @@ export default function ActionKanban({actions,goals,canEdit,onEdit,onMove}:Props
    <label>Exibir<select value={scope} onChange={e=>setScope(e.target.value)}><option value="ativas">Em aberto</option><option value="todas">Todas</option><option value="atrasadas">Atrasadas</option></select></label>
   </div>
   {message&&<p role="status" className="vx-task-message">{message}</p>}
-  <div className="vx-task-scroll"><div className="vx-task-columns">
+  <div className="vx-task-filters" role="group" aria-label="Modo de visualização">
+   <button type="button" aria-pressed={layout==="kanban"} onClick={()=>setLayout("kanban")}>Quadro</button>
+   <button type="button" aria-pressed={layout==="prazos"} onClick={()=>setLayout("prazos")}>Calendário de prazos</button>
+   <button type="button" aria-pressed={layout==="cronograma"} onClick={()=>setLayout("cronograma")}>Cronograma</button>
+  </div>
+  {layout==="prazos"&&<div className="vx-task-schedule" aria-label="Prazos das ações">
+   {filtered.filter(a=>a.due_date).sort((a,b)=>String(a.due_date).localeCompare(String(b.due_date))).map(a=><article key={String(a.id)}>
+     <strong>{fmtDate(a.due_date)}</strong><span>{String(a.what)}</span><small>{String(a.who??"Não atribuído")} · {ACTION_STATUS.find(x=>x[0]===a.status)?.[1]??String(a.status)}</small>
+     {canEdit&&<button onClick={()=>onEdit(a)} type="button">Abrir</button>}
+   </article>)}
+   {!filtered.some(a=>a.due_date)&&<p>Nenhuma ação com prazo definido neste filtro.</p>}
+  </div>}
+  {layout==="cronograma"&&<div className="vx-task-schedule" aria-label="Cronograma de execução">
+   {filtered.filter(a=>a.start_date&&a.due_date).sort((a,b)=>String(a.start_date).localeCompare(String(b.start_date))).map(a=>{
+    const start=Date.parse(String(a.start_date)+"T00:00:00Z"),end=Date.parse(String(a.due_date)+"T00:00:00Z");
+    const days=Number.isFinite(start)&&Number.isFinite(end)&&end>=start?Math.floor((end-start)/86400000)+1:null;
+    return <article key={String(a.id)}><strong>{fmtDate(a.start_date)} — {fmtDate(a.due_date)}</strong><span>{String(a.what)}</span><small>{days===null?"Intervalo inválido":days+" dia(s)"} · avanço: {Number(a.progress??0)}%</small>
+     <div className="vx-task-progress"><span style={{width:Math.max(0,Math.min(100,Number(a.progress)||0))+"%"}}/></div>
+    </article>;
+   })}
+   {!filtered.some(a=>a.start_date&&a.due_date)&&<p>Preencha as datas de início e vencimento para visualizar o cronograma.</p>}
+   <p>Visualização de cronograma; não calcula dependências ou caminho crítico.</p>
+  </div>}
+  {layout==="kanban"&&<div className="vx-task-scroll"><div className="vx-task-columns">
    {COLUMNS.map(col=><section className={"vx-task-column vx-task-"+col.tone} key={col.status} aria-label={col.title}>
     <h4>{col.title} <span>{filtered.filter(a=>a.status===col.status).length}</span></h4>
     {filtered.filter(a=>a.status===col.status).map(action=>{
@@ -84,7 +108,7 @@ export default function ActionKanban({actions,goals,canEdit,onEdit,onMove}:Props
     })}
     {!filtered.some(a=>a.status===col.status)&&<p className="vx-task-empty">Nenhuma ação</p>}
    </section>)}
-  </div></div>
+  </div></div>}
   <p className="vx-task-footer">Alterações de situação são persistidas na tabela atual de ações e sujeitas às permissões existentes. Fotografias reais, validação formal e notificações ainda não fazem parte desta etapa.</p>
  </section>;
 }
