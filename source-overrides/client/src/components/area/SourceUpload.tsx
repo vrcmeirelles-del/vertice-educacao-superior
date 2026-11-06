@@ -3,6 +3,7 @@ import {supabase} from "@/lib/supabase";
 import "./source-upload.css";
 import SourceCuration from "./SourceCuration";
 import ApprovedSourcesBI from "./ApprovedSourcesBI";
+import OneDriveFolderImporter from "./OneDriveFolderImporter";
 
 type UploadRow={drive_url?:string|null;id:string;source_kind:string;source_name:string;source_url:string|null;reference_period:string|null;extracted_on:string|null;original_name:string;bytes:number;storage_path:string;upload_status:string;review_status:string;created_at:string;description:string|null};
 const SOURCES:ReadonlyArray<readonly [string,string,string]>=[
@@ -175,6 +176,7 @@ export default function SourceUpload({institutionId,institutionName}:{institutio
      <small> Link registrado — não representa arquivo recebido ou validado.</small>
     </p>)}
   </div>}
+  <OneDriveFolderImporter institutionId={institutionId} onImported={load}/>
   <SourceCuration institutionId={institutionId} files={rows}/>
   <ApprovedSourcesBI institutionId={institutionId}/>
  </section>;

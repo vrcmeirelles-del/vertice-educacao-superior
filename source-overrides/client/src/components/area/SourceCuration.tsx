@@ -1,6 +1,7 @@
 import {useCallback,useEffect,useMemo,useState} from "react";
 import {supabase} from "@/lib/supabase";
 import {guessMapping,normalizeInput,parseTabular,type InputRow,type Mapping,type Indicator} from "@/lib/source-curation";
+import {XlsxArchive,xlsxSheets,readXlsxRows,type WorkbookSheet} from "@/lib/xlsx-preview";
 import "./source-curation.css";
 
 type Source={id:string;institution_id:string;original_name:string;storage_path:string;reference_period:string|null;source_name:string;upload_status:string};
@@ -12,6 +13,12 @@ export default function SourceCuration({institutionId,files}:Props){
  const [reviews,setReviews]=useState<Review[]>([]);
  const [selected,setSelected]=useState<Source|null>(null);
  const [rawRows,setRawRows]=useState<InputRow[]>([]);
+ const [workbook,setWorkbook]=useState<XlsxArchive|null>(null);
+ const [sheets,setSheets]=useState<WorkbookSheet[]>([]);
+ const [activeSheet,setActiveSheet]=useState("");
+ const [pdfText,setPdfText]=useState("");
+ const [pdfPages,setPdfPages]=useState<number|null>(null);
+
  const [headers,setHeaders]=useState<string[]>([]);
  const [map,setMap]=useState<Mapping>({indicator:"",period:"",value:"",unit:""});
  const [unit,setUnit]=useState("quantidade");
@@ -63,29 +70,61 @@ export default function SourceCuration({institutionId,files}:Props){
    });
  const approved=useMemo(()=>reviews.filter(r=>r.state==="aprovado"),[reviews]);
  async function open(source:Source){
-  setSelected(source);setRawRows([]);setHeaders([]);setCandidate([]);setSha("");setLegacyWarnings([]);
+  setSelected(source);setRawRows([]);setHeaders([]);setCandidate([]);setSha("");setLegacyWarnings([]);setWorkbook(null);setSheets([]);setActiveSheet("");setPdfText("");setPdfPages(null);
   setError("");setMessage("");setConflicts([]);setConsent(false);setReviewNote("");
   const existing=reviews.find(x=>x.upload_id===source.id);
   setNote(existing?.analysis_note??"");if(existing){setCandidate(existing.candidate_rows);}
   if(source.upload_status!=="recebido"){setError("Arquivo ainda não confirmado. Não é possível analisá-lo.");return;}
   const ext=source.original_name.split(".").pop()?.toLowerCase();
-  if(!["csv","txt","json"].includes(ext??"")){
-   setError("Este formato exige extrator específico. Para análise quantitativa, exporte a planilha em CSV ou JSON. O arquivo original continua preservado.");return;
+  if(ext==="pdf"){
+    setBusy(true);try{
+      const {data,error}=await supabase.functions.invoke("vertice-source-pdf-preview",{body:{upload_id:source.id}});
+      if(error){let code="";try{code=(await error.context?.json())?.error??"";}catch{}
+        throw new Error(code==="no_embedded_text"?"PDF digitalizado sem texto selecionável. OCR ainda requer autorização específica.":code||"Extração textual de PDF indisponível.");
+      }
+      if(!data?.text)throw new Error("O PDF não apresentou texto extraível.");
+      setPdfText(data.text);setPdfPages(data.pages??null);
+      setMessage("Prévia textual extraída no servidor. Confira cada número com o PDF original; não houve importação automática de indicadores.");
+    }catch(e){setError((e as Error).message);}finally{setBusy(false);}return;
+  }
+  if(!["csv","txt","json","xlsx"].includes(ext??"")){
+   setError("Este formato permanece como evidência documental. A curadoria quantitativa aceita CSV, JSON e XLSX; PDFs estão na etapa de prévia textual.");return;
   }
   setBusy(true);
   try{
    const {data,error:downloadError}=await supabase.storage.from("vertice-fontes-ies").download(source.storage_path);
    if(downloadError||!data)throw downloadError??new Error("Fonte indisponível.");
-   if(data.size>2*1024*1024)throw new Error("Prévia limitada a 2 MB; gere um recorte de até 500 linhas para análise.");
+   if(data.size>(ext==="xlsx"?5:2)*1024*1024)throw new Error("Tamanho acima do limite de prévia. Gere um recorte menor.");
    const bytes=await data.arrayBuffer();
    const hash=new Uint8Array(await crypto.subtle.digest("SHA-256",bytes));
    setSha([...hash].map(x=>x.toString(16).padStart(2,"0")).join(""));
-   const parsed=parseTabular(new TextDecoder("utf-8",{fatal:true}).decode(bytes),ext!);
-   const columns=Object.keys(parsed[0]);
-   setRawRows(parsed);setHeaders(columns);setMap(guessMapping(columns));
-   setMessage("Prévia local preparada: "+parsed.length+" linhas. Confira as colunas e os valores antes de gerar a análise.");
+   if(ext==="xlsx"){
+     const archive=new XlsxArchive(bytes), available=await xlsxSheets(archive);
+     if(!available.length)throw new Error("Nenhuma planilha visível encontrada.");
+     setWorkbook(archive);setSheets(available);setActiveSheet(available[0].path);
+     const parsed=await readXlsxRows(archive,available[0]);
+     const columns=Object.keys(parsed[0]);
+     setRawRows(parsed);setHeaders(columns);setMap(guessMapping(columns));
+     setMessage("XLSX analisado localmente: "+available.length+" aba(s). Selecione a aba correta e confira as colunas. Fórmulas nunca serão executadas.");
+   }else{
+     const parsed=parseTabular(new TextDecoder("utf-8",{fatal:true}).decode(bytes),ext!);
+     const columns=Object.keys(parsed[0]);
+     setRawRows(parsed);setHeaders(columns);setMap(guessMapping(columns));
+     setMessage("Prévia local preparada: "+parsed.length+" linhas. Confira as colunas e os valores antes de gerar a análise.");
+   }
   }catch(e){setError((e as {message?:string})?.message??"Não foi possível preparar a prévia.");}
   finally{setBusy(false);}
+ }
+ async function changeSheet(path:string){
+  if(!workbook)return;setBusy(true);setError("");setMessage("");
+  try{
+   const sheet=sheets.find(s=>s.path===path);
+   if(!sheet)throw new Error("Aba não encontrada.");
+   const parsed=await readXlsxRows(workbook,sheet);
+   const columns=Object.keys(parsed[0]);setActiveSheet(path);
+   setRawRows(parsed);setHeaders(columns);setMap(guessMapping(columns));setCandidate([]);
+   setMessage("Aba "+sheet.name+" carregada: "+parsed.length+" linha(s). Gere novamente a prévia antes de salvar.");
+  }catch(e){setError((e as Error).message);}finally{setBusy(false);}
  }
  function validate(){
   setError("");setMessage("");
@@ -152,6 +191,17 @@ export default function SourceCuration({institutionId,files}:Props){
   {selected&&<div className="vx-curation-detail">
    <h4>{selected.original_name}</h4>
    {review&&<p><strong>Estado atual:</strong> {stateLabel[review.state]??review.state} · {review.row_count} linhas mapeadas.</p>}
+   {pdfText&&<div className="vx-curation-preview">
+     <h5>Prévia textual do PDF · {pdfPages??"?"} página(s) no arquivo</h5>
+     <p>Somente texto incorporado ao PDF, sem OCR. Não convertemos tabelas automaticamente em registros: confira o original e envie CSV/XLSX para publicar indicadores.</p>
+     <textarea readOnly rows={12} value={pdfText} aria-label="Texto extraído do PDF" style={{width:"100%",fontFamily:"monospace",fontSize:12}}/>
+     <button type="button" onClick={()=>void navigator.clipboard.writeText(pdfText)}>Copiar prévia textual</button>
+   </div>}
+   {sheets.length>1&&<label>Aba do arquivo Excel
+    <select value={activeSheet} disabled={busy} onChange={e=>void changeSheet(e.target.value)}>
+      {sheets.map(sheet=><option key={sheet.path} value={sheet.path}>{sheet.name}</option>)}
+    </select>
+   </label>}
    {rawRows.length>0&&<>
     <div className="vx-curation-mapping">
      {([
