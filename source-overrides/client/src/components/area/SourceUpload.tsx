@@ -1,8 +1,10 @@
 import {useCallback,useEffect,useState,type FormEvent} from "react";
 import {supabase} from "@/lib/supabase";
 import "./source-upload.css";
+import SourceCuration from "./SourceCuration";
+import ApprovedSourcesBI from "./ApprovedSourcesBI";
 
-type UploadRow={id:string;source_kind:string;source_name:string;source_url:string|null;reference_period:string|null;extracted_on:string|null;original_name:string;bytes:number;storage_path:string;upload_status:string;review_status:string;created_at:string;description:string|null};
+type UploadRow={drive_url?:string|null;id:string;source_kind:string;source_name:string;source_url:string|null;reference_period:string|null;extracted_on:string|null;original_name:string;bytes:number;storage_path:string;upload_status:string;review_status:string;created_at:string;description:string|null};
 const SOURCES:ReadonlyArray<readonly [string,string,string]>=[
  ["eorbit","e-ORBIT","Sistema acadêmico e-ORBIT"],
  ["emec","e-MEC","Cadastro e-MEC"],
@@ -18,6 +20,14 @@ const MIME:Record<string,string>={
  html:"text/html",htm:"text/html",xml:"application/xml"
 };
 const limit=25*1024*1024;
+type SourceLink={id:string;source_name:string;drive_url:string;source_kind:string;reference_period:string|null;created_at:string};
+function allowedDrive(value:string){
+ try{const u=new URL(value);const h=u.hostname.toLowerCase();
+ return u.protocol==="https:"&&!u.username&&!u.password&&(!u.port||u.port==="443")&&
+  (["drive.google.com","docs.google.com","onedrive.live.com","1drv.ms"].includes(h)||
+   h.endsWith(".sharepoint.com"))&&value.length<=1800;
+ }catch{return false;}
+}
 export default function SourceUpload({institutionId,institutionName}:{institutionId:string;institutionName:string}){
  const [rows,setRows]=useState<UploadRow[]>([]);
  const [source,setSource]=useState("eorbit");
@@ -27,11 +37,16 @@ export default function SourceUpload({institutionId,institutionName}:{institutio
  const [date,setDate]=useState("");
  const [description,setDescription]=useState("");
  const [file,setFile]=useState<File|null>(null);
+ const [driveUrl,setDriveUrl]=useState("");
+ const [linkRows,setLinkRows]=useState<SourceLink[]>([]);
+
  const [busy,setBusy]=useState(false),[loading,setLoading]=useState(true);
  const [error,setError]=useState(""),[notice,setNotice]=useState("");
  const load=useCallback(async()=>{
   const {data,error}=await supabase.from("vertice_source_uploads").select("*").eq("institution_id",institutionId).order("created_at",{ascending:false}).limit(100);
   if(error)throw error;setRows((data??[]) as UploadRow[]);
+  const links=await supabase.from("vertice_source_links").select("*").eq("institution_id",institutionId).order("created_at",{ascending:false}).limit(100);
+  if(links.error)throw links.error;setLinkRows((links.data??[]) as SourceLink[]);
  },[institutionId]);
  useEffect(()=>{let active=true;setLoading(true);
   void load().catch(()=>{if(active)setError("Não foi possível consultar os envios. Confirme sua permissão.");}).finally(()=>{if(active)setLoading(false);});
@@ -41,7 +56,24 @@ export default function SourceUpload({institutionId,institutionName}:{institutio
   setSource(k);setSourceName(SOURCES.find(row=>row[0]===k)?.[2]??"");
  }
  async function upload(e:FormEvent<HTMLFormElement>){
-  e.preventDefault();if(!file||busy)return;
+  e.preventDefault();if(busy)return;
+  if(!file&&!driveUrl.trim()){setError("Escolha um arquivo ou informe um link do Drive.");return;}
+  if(driveUrl.trim()&&!allowedDrive(driveUrl.trim())){setError("Aceitamos links HTTPS de Google Drive ou OneDrive/SharePoint. Revise o endereço.");return;}
+  if(!file){
+   setBusy(true);setError("");setNotice("");
+   try{
+    const {error:linkError}=await supabase.from("vertice_source_links").insert({
+      institution_id:institutionId,source_kind:source,source_name:sourceName.trim(),
+      drive_url:driveUrl.trim(),reference_period:period.trim()||null,
+      extracted_on:date||null,description:description.trim()||null
+    });
+    if(linkError)throw linkError;
+    await load();setDriveUrl("");
+    setNotice("Referência do Drive registrada para esta IES. O portal ainda não baixou nem leu o conteúdo do link; é preciso conceder acesso e realizar a importação.");
+   }catch(e){setError((e as {message?:string})?.message??"Falha ao registrar a referência.");}
+   finally{setBusy(false);}
+   return;
+  }
   setError("");setNotice("");
   const ext=file.name.split(".").pop()?.toLowerCase()??"";
   const mime=MIME[ext];
@@ -58,7 +90,8 @@ export default function SourceUpload({institutionId,institutionName}:{institutio
       id,institution_id:institutionId,source_kind:source,source_name:sourceName.trim(),
       source_url:url.trim()||null,reference_period:period.trim()||null,
       extracted_on:date||null,original_name:name,mime_type:mime,bytes:file.size,
-      storage_path:path,description:description.trim()||null
+      storage_path:path,description:description.trim()||null,
+      drive_url:driveUrl.trim()||null
     });
     if(insertError)throw insertError;
     const {error:storageError}=await supabase.storage.from("vertice-fontes-ies").upload(path,file,{contentType:mime,upsert:false});
@@ -69,7 +102,7 @@ export default function SourceUpload({institutionId,institutionName}:{institutio
     const {data:confirmed,error:stateError}=await supabase.from("vertice_source_uploads").update({upload_status:"recebido"}).eq("id",id).select("id").single();
     if(stateError||!confirmed)throw stateError??new Error("Recebimento ainda não confirmado no banco");
     setNotice("Arquivo recebido na área de preparação da "+institutionName+". Aguardando conferência: nenhum dado foi enviado ao BI.");
-    setFile(null);const input=document.getElementById("vx-source-file") as HTMLInputElement|null;if(input)input.value="";
+    setFile(null);setDriveUrl("");const input=document.getElementById("vx-source-file") as HTMLInputElement|null;if(input)input.value="";
     await load();
   }catch(err){setError((err as {message?:string})?.message??"Falha ao enviar o arquivo.");void load().catch(()=>{});}
   finally{setBusy(false);}
@@ -87,7 +120,7 @@ export default function SourceUpload({institutionId,institutionName}:{institutio
   <header><span>VÉRTICE · FONTES E EXTRAÇÕES</span><h3>Central de importação — {institutionName}</h3>
    <p>Envie arquivos extraídos de sites e sistemas. Cada arquivo recebe origem, período, usuário e trilha de recebimento exclusivos desta IES.</p>
   </header>
-  <div className="vx-source-warning"><strong>Área de preparação, não de publicação.</strong>
+  <div className="vx-source-warning"><strong>Etapa 2 · Receber arquivos e links.</strong>
    Os arquivos ficam armazenados em bucket privado. A importação para matrículas, BI ou indicadores só poderá ocorrer após mapeamento, conferência de dados e aprovação específica.</div>
   <form onSubmit={upload} className="vx-source-form">
    <label>Site ou sistema de origem
@@ -105,14 +138,19 @@ export default function SourceUpload({institutionId,institutionName}:{institutio
    <label>Data efetiva da extração (opcional)
     <input type="date" value={date} onChange={e=>setDate(e.target.value)}/>
    </label>
-   <label className="vx-source-wide">Arquivo da extração
-    <input id="vx-source-file" type="file" required accept=".pdf,.csv,.xlsx,.json,.txt,.html,.htm,.xml" onChange={e=>setFile(e.target.files?.[0]??null)}/>
+   <label className="vx-source-wide">Arquivo da extração (opcional quando houver link)
+    <input id="vx-source-file" type="file" accept=".pdf,.csv,.xlsx,.json,.txt,.html,.htm,.xml" onChange={e=>setFile(e.target.files?.[0]??null)}/>
     <small>PDF, CSV, XLSX, JSON, TXT, HTML ou XML — máximo 25 MB. Não envie credenciais, senhas nem dados pessoais desnecessários.</small>
+   </label>
+   <label className="vx-source-wide">Link de Google Drive ou OneDrive / SharePoint (opcional)
+    <input type="url" maxLength={1800} value={driveUrl} onChange={e=>setDriveUrl(e.target.value)}
+     placeholder="https://drive.google.com/... ou https://...sharepoint.com/..."/>
+    <small>Você pode registrar somente o link ou anexar arquivo e link juntos. Não há leitura automática de pastas privadas. Autorize o acesso separadamente.</small>
    </label>
    <label className="vx-source-wide">Observações de origem (opcional)
     <textarea rows={2} value={description} maxLength={1500} onChange={e=>setDescription(e.target.value)} placeholder="Ex.: Relatório 2 completo do sistema, todas as grades do semestre; conferir total de matrículas."/>
    </label>
-   <button type="submit" disabled={busy||!file}>{busy?"Enviando e registrando…":"Enviar arquivo para conferência"}</button>
+   <button type="submit" disabled={busy||(!file&&!driveUrl.trim())}>{busy?"Registrando…":file?"Enviar arquivo para conferência":"Registrar referência do Drive"}</button>
   </form>
   {error&&<p role="alert" className="vx-source-error">{error}</p>}
   {notice&&<p role="status" className="vx-source-success">{notice}</p>}
@@ -129,5 +167,15 @@ export default function SourceUpload({institutionId,institutionName}:{institutio
    </tr>)}</tbody></table></div>}
    <small>Consulta limitada aos últimos 100 registros. Nenhum arquivo é aplicado automaticamente aos indicadores.</small>
   </div>
+  {linkRows.length>0&&<div className="vx-source-list">
+   <h4>Referências do Drive pendentes de acesso e importação</h4>
+   {linkRows.map(link=><p key={link.id}>
+     <strong>{link.source_name}</strong> · {link.reference_period||"Sem competência"} ·
+     <a target="_blank" rel="noopener noreferrer" href={link.drive_url}>Abrir referência no Drive ↗</a>
+     <small> Link registrado — não representa arquivo recebido ou validado.</small>
+    </p>)}
+  </div>}
+  <SourceCuration institutionId={institutionId} files={rows}/>
+  <ApprovedSourcesBI institutionId={institutionId}/>
  </section>;
 }
