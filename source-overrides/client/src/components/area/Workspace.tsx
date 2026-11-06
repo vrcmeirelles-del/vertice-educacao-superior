@@ -401,7 +401,7 @@ function RegistryTab({ institution, role, courses, reload, onChanged }: { instit
           {can.editInstitution(role) && !editInst && <button className="corp-login-text-button" onClick={() => setEditInst(true)}>Editar</button>}
         </div>
         {editInst ? (
-          <RecordForm
+          <RecordForm institutionId={String(institution.id)}
             title="Editar instituição"
             fields={INSTITUTION_FIELDS}
             initial={{ ...institution, status: institution.status ?? "ativa" }}
@@ -433,7 +433,7 @@ function RegistryTab({ institution, role, courses, reload, onChanged }: { instit
           {can.manageCourses(role) && <button className="corp-button small" onClick={() => ed.open("new")}>Novo curso</button>}
         </div>
         {ed.editing && (
-          <RecordForm
+          <RecordForm institutionId={String(institution.id)}
             title={ed.editing === "new" ? "Novo curso" : "Editar curso"}
             fields={COURSE_FIELDS}
             initial={ed.editing === "new" ? { status: "ativo", modality: "presencial" } : ed.editing}
@@ -573,7 +573,7 @@ function GoalsTab({ institutionId, role, data, reload, onRepository }: { institu
       <GoalsDashboard entries={scopeEntries} filter={signalFilter} onFilter={setSignalFilter} referenceDate={referenceDate} courseLabel={id=>id ? String(courseName(id)||"Curso vinculado") : "Institucional"} onOpen={entry=>{chooseCourse(String(entry.goal.course_id||"institution"));setSignalFilter("");setGoalSearch(String(entry.goal.title));}} />
       <div ref={formRef}>
       {ed.editing && (
-        <RecordForm
+        <RecordForm institutionId={institutionId}
           key={ed.editing === "new" ? `new-${course}` : ed.editing.id}
           title={ed.editing === "new" ? "Nova meta" : "Editar meta"}
           fields={goalFields(data.courses,goalMembers)}
@@ -587,7 +587,7 @@ function GoalsTab({ institutionId, role, data, reload, onRepository }: { institu
         />
       )}
       {measuring && (
-        <RecordForm
+        <RecordForm institutionId={institutionId}
           key={measuring.id}
           title={`Registrar medição · ${String(measuring.indicator)}`}
           fields={MEASUREMENT_FIELDS}
@@ -747,7 +747,7 @@ function ActionsTab({ institutionId, role, data, reload }: { institutionId: stri
         </div>
       </div>
       {ed.editing && (
-        <RecordForm key={(ed.editing === "new" ? "new" : (ed.editing as Row).id)+JSON.stringify(prefill)}
+        <RecordForm institutionId={institutionId} key={(ed.editing === "new" ? "new" : (ed.editing as Row).id)+JSON.stringify(prefill)}
           title={ed.editing === "new" ? "Nova ação" : "Editar ação"}
           fields={actionFields(data)}
           onValueChange={(values,changed)=>changeActionScope(values,changed,data)}
@@ -836,7 +836,7 @@ function DiagnosisTab({ institutionId, role, data, reload, onPlan }: { instituti
       </div>
       <label>Curso do diagnóstico <select value={courseId} onChange={e=>setCourseId(e.target.value)}><option value="">Toda a instituição</option>{data.courses.map(c=><option key={c.id} value={c.id}>{String(c.display_name??c.name)}</option>)}</select></label>
       {ed.editing && (
-        <RecordForm
+        <RecordForm institutionId={institutionId}
           title={ed.editing === "new" ? "Novo critério avaliado" : "Editar critério"}
           fields={diagnosisFields(data.courses)}
           initial={ed.editing === "new" ? { priority: "media", status: "aberto", assessed_on: today() } : ed.editing}
