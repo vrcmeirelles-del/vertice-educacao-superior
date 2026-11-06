@@ -1,56 +1,265 @@
-/* BI Academico — segue padrao visual do CaptacaoBI */
-.abi-root { background: #f5f7fa; color: #243653; padding: clamp(16px, 3vw, 42px); font-family: Inter, system-ui, sans-serif; overflow: auto; }
+/* BI Acadêmico — segue padrão visual do CaptacaoBI */
+.abi-root {
+  background: #f5f7fa;
+  color: #243653;
+  padding: clamp(16px, 3vw, 42px);
+  font-family: Inter, system-ui, sans-serif;
+  overflow: auto;
+}
 .abi-root.abi-tv { background: #f5f7fa; }
-.abi-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
-.abi-header h2 { margin: 0; font-size: clamp(24px, 3.5vw, 40px); font-weight: 700; color: #172e46; }
+.abi-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.abi-header h2 {
+  margin: 0;
+  font-size: clamp(24px, 3.5vw, 40px);
+  font-weight: 700;
+  color: #172e46;
+}
 .abi-header p { margin: 4px 0 0; color: #757a80; font-size: 14px; }
 .abi-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-.abi-actions button, .abi-actions select { border: 1px solid #d4d9ea; background: white; color: #243653; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.15s; }
+.abi-actions button,
+.abi-actions select,
+.abi-sim select,
+.abi-sim input {
+  border: 1px solid #d4d9ea;
+  background: white;
+  color: #243653;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
 .abi-actions button:hover { background: #eef1f6; }
-.abi-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 16px; margin-bottom: 24px; }
-.abi-kpi { background: white; border: 1px solid #e1e4e8; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 6px; }
-.abi-kpi-label { font-size: 12px; font-weight: 500; color: #757a80; text-transform: uppercase; letter-spacing: 0.3px; }
+
+/* Tabs */
+.abi-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+  border-bottom: 1px solid #e1e4e8;
+  padding-bottom: 2px;
+}
+.abi-tab {
+  border: 0;
+  background: transparent;
+  color: #757a80;
+  padding: 10px 18px;
+  border-radius: 10px 10px 0 0;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all 0.15s;
+}
+.abi-tab:hover:not(:disabled) { background: #eef1f6; color: #243653; }
+.abi-tab.active { color: #2678a8; border-bottom-color: #2678a8; }
+.abi-tab:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* KPI tiles */
+.abi-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.abi-kpi {
+  background: white;
+  border: 1px solid #e1e4e8;
+  border-radius: 12px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.abi-kpi-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #757a80;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
 .abi-kpi-value { font-size: clamp(22px, 3vw, 32px); font-weight: 700; color: #172e46; }
-.abi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 20px; }
+
+/* Card grid */
+.abi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+  gap: 20px;
+}
 .abi-card { background: white; border: 1px solid #e1e4e8; border-radius: 14px; padding: 22px; min-width: 0; }
 .abi-card-wide { grid-column: 1 / -1; }
 .abi-card h3 { margin: 0 0 16px; font-size: 18px; font-weight: 600; color: #172e46; }
 .abi-subtitle { display: block; color: #757a80; font-size: 12px; margin: -10px 0 12px; }
+.abi-empty { color: #757a80; font-size: 14px; padding: 24px; text-align: center; background: white; border: 1px dashed #d4d9ea; border-radius: 12px; }
+
+/* Horizontal bars */
 .abi-hbars { display: flex; flex-direction: column; gap: 10px; }
 .abi-hbar-row { display: flex; align-items: center; gap: 10px; }
-.abi-hbar-label { flex: 0 0 140px; font-size: 13px; font-weight: 500; text-align: right; color: #535b78; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.abi-hbar-label {
+  flex: 0 0 150px; font-size: 13px; font-weight: 500; text-align: right;
+  color: #535b78; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
 .abi-hbar-track { flex: 1; height: 22px; background: #f0f2f7; border-radius: 4px; overflow: hidden; position: relative; }
 .abi-hbar-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease; position: absolute; top: 0; left: 0; }
 .abi-hbar-fill-secondary { height: 100%; border-radius: 4px; transition: width 0.4s ease; position: absolute; top: 0; left: 0; opacity: 0.5; }
 .abi-hbar-value { flex: 0 0 70px; font-size: 13px; font-weight: 600; color: #172e46; text-align: right; }
+
+/* Donut */
 .abi-donut { display: block; width: min(65%, 200px); margin: 8px auto; }
 .abi-donut circle[pathLength] { cursor: pointer; transition: opacity 0.2s; }
 .abi-donut circle[pathLength]:hover { opacity: 0.8; }
+
+/* Legend */
 .abi-legend { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 14px; }
 .abi-legend-item { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #535b78; }
 .abi-legend-item i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; flex: none; }
 .abi-legend-item b { font-weight: 600; color: #172e46; margin-left: 4px; }
 .abi-legend-row { display: flex; gap: 18px; margin-bottom: 10px; }
+
+/* Line chart */
 .abi-line-chart { display: block; width: 100%; max-height: 260px; }
+
+/* Table */
 .abi-table-wrap { overflow-x: auto; margin-top: 8px; }
 .abi-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.abi-table th { text-align: left; padding: 10px 12px; font-weight: 600; color: #535b78; border-bottom: 2px solid #e1e4e8; white-space: nowrap; cursor: pointer; user-select: none; }
+.abi-table th {
+  text-align: left; padding: 10px 12px; font-weight: 600; color: #535b78;
+  border-bottom: 2px solid #e1e4e8; white-space: nowrap; cursor: pointer; user-select: none;
+}
 .abi-table th:hover { color: #172e46; }
 .abi-table td { padding: 8px 12px; border-bottom: 1px solid #f0f2f7; color: #243653; }
 .abi-table tr:hover td { background: #f8f9fc; }
 .abi-table .abi-num { text-align: right; font-variant-numeric: tabular-nums; }
 .abi-table .abi-pct { text-align: right; font-variant-numeric: tabular-nums; color: #1baf7a; font-weight: 600; }
-.abi-modalidade-badge { display: inline-block; font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 4px; background: #eef1f6; color: #535b78; }
-.abi-modalidade-badge[data-mod="EAD"], .abi-modalidade-badge[data-mod="ead"] { background: #e8f5e9; color: #2e7d32; }
+.abi-modalidade-badge {
+  display: inline-block; font-size: 11px; font-weight: 500; padding: 2px 8px;
+  border-radius: 4px; background: #eef1f6; color: #535b78;
+}
+.abi-modalidade-badge[data-mod="EAD"],
+.abi-modalidade-badge[data-mod="ead"] { background: #e8f5e9; color: #2e7d32; }
+
+/* Inativos */
 .abi-inativos { margin-top: 8px; }
 .abi-inativos summary { cursor: pointer; font-size: 14px; font-weight: 500; color: #757a80; padding: 8px 0; }
 .abi-inativos ul { list-style: none; padding: 0; margin: 8px 0 0; columns: 2; gap: 16px; }
 .abi-inativos li { font-size: 13px; color: #757a80; padding: 2px 0; break-inside: avoid; }
+
+/* Error */
 .abi-error { background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; padding: 10px 16px; border-radius: 8px; margin-bottom: 16px; }
+
+/* Filter row */
 .abi-filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
-.abi-filters button { border: 1px solid #d4d9ea; background: white; color: #535b78; padding: 4px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+.abi-filters button {
+  border: 1px solid #d4d9ea; background: white; color: #535b78;
+  padding: 4px 12px; border-radius: 6px; font-size: 12px; cursor: pointer;
+}
 .abi-filters button.active { background: #2678a8; color: white; border-color: #2678a8; }
+
+/* ---------- Simulações: layout comum ---------- */
+.abi-sim { display: flex; flex-direction: column; gap: 20px; }
+.abi-sim-controls { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end; }
+.abi-sim-controls label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; color: #535b78; }
+.abi-arrow { font-size: 22px; color: #757a80; padding-bottom: 8px; }
+.abi-sim-intro h3 { margin: 0 0 6px; font-size: 20px; color: #172e46; }
+.abi-sim-intro p { margin: 0; color: #535b78; font-size: 14px; max-width: 760px; }
+.abi-sim-note { color: #9aa0b5; font-size: 12px; font-style: italic; margin: 0; }
+
+/* Toggle + search (Raio-X) */
+.abi-toggle { display: flex; gap: 4px; background: #eef1f6; padding: 4px; border-radius: 10px; }
+.abi-toggle button {
+  border: 0; background: transparent; color: #535b78; padding: 8px 16px;
+  border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.abi-toggle button.active { background: white; color: #2678a8; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+.abi-search { flex-direction: row !important; align-items: center; gap: 8px !important; background: white; border: 1px solid #d4d9ea; border-radius: 8px; padding: 0 10px; }
+.abi-search input { border: 0 !important; padding: 9px 4px !important; outline: none; }
+
+/* Comparador: summary tiles */
+.abi-cmp-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr)); gap: 16px; }
+.abi-cmp-tile {
+  background: white; border: 1px solid #e1e4e8; border-radius: 12px; padding: 18px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.abi-cmp-tile strong { font-size: 28px; font-weight: 700; color: #172e46; }
+.abi-cmp-tile small { color: #757a80; font-size: 12px; }
+
+/* Comparador: delta bars */
+.abi-deltas { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+.abi-delta-row { display: flex; align-items: center; gap: 10px; }
+.abi-delta-label {
+  flex: 0 0 150px; font-size: 13px; font-weight: 500; text-align: right; color: #535b78;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.abi-delta-track { flex: 1; height: 20px; background: #f0f2f7; border-radius: 4px; overflow: hidden; }
+.abi-delta-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease; }
+.abi-delta-val { flex: 0 0 90px; font-size: 13px; font-weight: 700; text-align: right; }
+.abi-delta-val small { font-weight: 500; font-size: 11px; }
+
+/* Raio-X: ranking */
+.abi-rank { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.abi-rank-group { display: flex; flex-direction: column; }
+.abi-rank-row, .abi-rank-row-static {
+  display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+  border: 0; background: transparent; padding: 7px 8px; border-radius: 8px; cursor: pointer; font: inherit;
+}
+.abi-rank-row:hover { background: #f8f9fc; }
+.abi-rank-row-static { cursor: default; }
+.abi-rank-pos { flex: 0 0 34px; font-size: 15px; font-weight: 700; color: #757a80; text-align: center; }
+.abi-rank-name { flex: 0 0 230px; font-size: 13px; font-weight: 500; color: #243653; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.abi-rank-track { flex: 1; height: 16px; background: #f0f2f7; border-radius: 4px; overflow: hidden; }
+.abi-rank-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease; }
+.abi-rank-val { flex: 0 0 60px; font-size: 13px; font-weight: 700; color: #172e46; text-align: right; }
+.abi-rank-tax { flex: 0 0 54px; font-size: 12px; font-weight: 600; color: #e2574c; text-align: right; }
+.abi-rank-detail {
+  display: flex; flex-wrap: wrap; gap: 8px 18px; padding: 10px 8px 12px 54px;
+  font-size: 12px; color: #535b78; background: #f8f9fc; border-radius: 0 0 8px 8px; margin-bottom: 4px;
+}
+.abi-rank-detail b { color: #172e46; }
+
+/* Dossiê Direito */
+.abi-dossie { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; margin-top: 8px; }
+.abi-dossie-col { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; min-width: 56px; }
+.abi-dossie-pct { font-size: 13px; font-weight: 700; color: #172e46; }
+.abi-dossie-bar { width: 100%; height: 120px; display: flex; align-items: flex-end; background: #f0f2f7; border-radius: 6px; overflow: hidden; }
+.abi-dossie-bar > div { width: 100%; border-radius: 6px 6px 0 0; transition: height 0.4s ease; }
+.abi-dossie-sem { font-size: 11px; color: #757a80; }
+.abi-dossie-n { font-size: 11px; color: #9aa0b5; }
+
+/* Simulador: sliders e medidor */
+.abi-sim-sliders { align-items: flex-end; }
+.abi-slider-label { min-width: 260px; }
+.abi-slider-label input[type=range] { width: 100%; cursor: pointer; padding: 0; }
+.abi-slider-label b { color: #2678a8; }
+.abi-meter-wrap { display: flex; justify-content: center; }
+.abi-meter { width: min(100%, 320px); }
+.abi-sim-results { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 16px; }
+.abi-sim-result { background: white; border: 1px solid #e1e4e8; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 6px; }
+.abi-sim-result strong { font-size: 24px; font-weight: 700; color: #172e46; }
+.abi-sim-highlight { background: linear-gradient(135deg, #e8f7f1, #f5f7fa); border-color: #1baf7a; }
+.abi-sim-highlight strong { color: #1baf7a; }
+
+/* TV mode */
 .abi-root:fullscreen { overflow: auto; }
 .abi-root:fullscreen .abi-card { max-width: 1400px; margin-left: auto; margin-right: auto; }
 .abi-root:fullscreen .abi-donut { width: min(48vh, 340px); }
-@media (max-width: 640px) { .abi-hbar-label { flex-basis: 90px; font-size: 11px; } .abi-hbar-value { flex-basis: 55px; font-size: 12px; } .abi-kpis { grid-template-columns: 1fr 1fr; } .abi-inativos ul { columns: 1; } }
+
+/* Mobile */
+@media (max-width: 640px) {
+  .abi-hbar-label { flex-basis: 90px; font-size: 11px; }
+  .abi-hbar-value { flex-basis: 55px; font-size: 12px; }
+  .abi-kpis { grid-template-columns: 1fr 1fr; }
+  .abi-inativos ul { columns: 1; }
+  .abi-delta-label, .abi-rank-name { flex-basis: 110px; }
+  .abi-rank-name { flex-basis: 120px; }
+  .abi-sim-controls { flex-direction: column; align-items: stretch; }
+  .abi-slider-label { min-width: 0; }
+}
