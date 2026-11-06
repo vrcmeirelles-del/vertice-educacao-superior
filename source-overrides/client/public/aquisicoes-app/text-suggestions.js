@@ -10,13 +10,20 @@ export const acquisitionSuggestions={
  note:["Pendente de conferência documental e validação por responsável habilitado.","Identificar evidência examinada, data, divergência e providência recomendada."],
  answer:["Informação não comprovada pelos documentos examinados até esta etapa.","A documentação apresentada requer análise adicional, com identificação da versão e da fonte."],
  how:["Conferir fonte, período e documento, registrar achado e acompanhar a ação corretiva."],
- conclusion:["Parecer preliminar: não constitui aprovação de aquisição nem substitui due diligence completa.","Conclusão condicionada à análise documental, verificação dos riscos e validação dos responsáveis."]
+ conclusion:["Parecer preliminar: não constitui aprovação de aquisição nem substitui due diligence completa.","Conclusão condicionada à análise documental, verificação dos riscos e validação dos responsáveis."],
+ declaration:["Informação sujeita à conferência com documentos e validação da equipe.","Não há evidência suficiente para confirmar esta declaração na etapa atual."],
+ justification:["A informação apresentada ainda depende de documento comprobatório.","A providência proposta requer revisão de risco e confirmação da fonte."],
+ comment:["Conferir versão, data, responsável e integridade do documento citado.","Solicitar evidência complementar antes da conclusão da análise."],
+ location:["Identificar documento, página ou aba em que a informação pode ser conferida."],
+ rationale:["A situação identificada demanda conferência da documentação e verificação do impacto."],
+ risk:["Risco potencial ainda não quantificado. Submeter a análise técnica e documental."],
+ evidence:["Documento: [nome/versão]. Página ou aba: [informar]. Responsável pela conferência: [identificar]."]
 };
 export function decorateAcquisitionForm(container=document){
- const known=new Set(["title","scope","description","consequence","note","answer","how","conclusion"]);
- container.querySelectorAll("form textarea[name], form input[name]").forEach(input=>{
-  const name=input.getAttribute("name");
-  if(!known.has(name)||input.dataset.suggestionsAttached==="1"||input.type==="hidden")return;
+ const known=new Set(Object.keys(acquisitionSuggestions));
+ container.querySelectorAll("form textarea, form input").forEach(input=>{
+  const name=(input.dataset.field||input.getAttribute("name")||"").replace(/^field_/,"").toLowerCase();
+  if(!known.has(name)||input.dataset.suggestionsAttached==="1"||["hidden","checkbox","radio","file","date","number"].includes(input.type)||input.disabled)return;
   input.dataset.suggestionsAttached="1";
   const values=acquisitionSuggestions[name];
   if(!values?.length)return;
