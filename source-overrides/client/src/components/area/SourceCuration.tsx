@@ -2,6 +2,7 @@ import {useCallback,useEffect,useMemo,useState} from "react";
 import {supabase} from "@/lib/supabase";
 import {guessMapping,normalizeInput,parseTabular,type InputRow,type Mapping,type Indicator} from "@/lib/source-curation";
 import {XlsxArchive,xlsxSheets,readXlsxRows,type WorkbookSheet} from "@/lib/xlsx-preview";
+import {inspectTableCatalog,type DatabaseCatalog,type CatalogArea} from "@/lib/database-table-catalog";
 import {inspectInstitutionalJson,getInstitutionalJsonDataset,jsonStructureSummary,type JsonStructure} from "@/lib/json-structure-preview";
 import "./source-curation.css";
 
@@ -22,6 +23,9 @@ export default function SourceCuration({institutionId,files}:Props){
  const [jsonValue,setJsonValue]=useState<unknown>(null);
  const [jsonStructure,setJsonStructure]=useState<JsonStructure|null>(null);
  const [jsonPath,setJsonPath]=useState("");
+ const [tableCatalog,setTableCatalog]=useState<DatabaseCatalog|null>(null);
+ const [tableSearch,setTableSearch]=useState("");
+ const [tableArea,setTableArea]=useState<CatalogArea|"todas">("todas");
  const [readingStage,setReadingStage]=useState("");
 
  const [headers,setHeaders]=useState<string[]>([]);
@@ -74,8 +78,14 @@ export default function SourceCuration({institutionId,files}:Props){
        &&row.valor===saved.valor&&row.unidade===saved.unidade;
    });
  const approved=useMemo(()=>reviews.filter(r=>r.state==="aprovado"),[reviews]);
+ const catalogFiltered=useMemo(()=>{
+  if(!tableCatalog)return [];
+  const query=tableSearch.toLocaleLowerCase("pt-BR").trim();
+  return tableCatalog.entries.filter(x=>(tableArea==="todas"||x.area===tableArea)
+   &&(!query||(x.schema+"."+x.table).toLocaleLowerCase("pt-BR").includes(query)));
+ },[tableCatalog,tableSearch,tableArea]);
  async function open(source:Source){
-  setSelected(source);setRawRows([]);setHeaders([]);setCandidate([]);setSha("");setLegacyWarnings([]);setWorkbook(null);setSheets([]);setActiveSheet("");setPdfText("");setPdfPages(null);setJsonValue(null);setJsonStructure(null);setJsonPath("");setReadingStage("");
+  setSelected(source);setRawRows([]);setHeaders([]);setCandidate([]);setSha("");setLegacyWarnings([]);setWorkbook(null);setSheets([]);setActiveSheet("");setPdfText("");setPdfPages(null);setJsonValue(null);setJsonStructure(null);setJsonPath("");setReadingStage("");setTableCatalog(null);setTableSearch("");setTableArea("todas");
   setError("");setMessage("");setConflicts([]);setConsent(false);setReviewNote("");
   const existing=reviews.find(x=>x.upload_id===source.id);
   setNote(existing?.analysis_note??"");if(existing){setCandidate(existing.candidate_rows);}
@@ -126,10 +136,19 @@ export default function SourceCuration({institutionId,files}:Props){
      setRawRows(parsed);setHeaders(columns);setMap(guessMapping(columns));
      setMessage("XLSX analisado localmente: "+available.length+" aba(s). Selecione a aba correta e confira as colunas. Fórmulas nunca serão executadas.");
    }else{
-     const parsed=parseTabular(new TextDecoder("utf-8",{fatal:true}).decode(bytes),ext!);
-     const columns=Object.keys(parsed[0]);
-     setRawRows(parsed);setHeaders(columns);setMap(guessMapping(columns));
-     setMessage("Prévia local preparada: "+parsed.length+" linhas. Confira as colunas e os valores antes de gerar a análise.");
+     const decoded=new TextDecoder("utf-8",{fatal:true}).decode(bytes);
+     const inventory=(ext==="csv"||ext==="txt")?inspectTableCatalog(decoded):null;
+     if(inventory){
+       setTableCatalog(inventory);
+       setMessage("Inventário de banco identificado: "+inventory.entries.length+
+         " tabelas. O arquivo foi conferido integralmente, sem descartar entradas. "+
+         "Os nomes de tabelas não são dados acadêmicos e não podem ser publicados como indicadores.");
+     }else{
+       const parsed=parseTabular(decoded,ext!);
+       const columns=Object.keys(parsed[0]);
+       setRawRows(parsed);setHeaders(columns);setMap(guessMapping(columns));
+       setMessage("Prévia local preparada: "+parsed.length+" linhas. Confira as colunas e os valores antes de gerar a análise.");
+     }
    }
   }catch(e){setError((e as {message?:string})?.message??"Não foi possível preparar a prévia.");}
   finally{setBusy(false);setReadingStage("");}
@@ -231,6 +250,34 @@ export default function SourceCuration({institutionId,files}:Props){
      <p>Somente texto incorporado ao PDF, sem OCR. Não convertemos tabelas automaticamente em registros: confira o original e envie CSV/XLSX para publicar indicadores.</p>
      <textarea readOnly rows={12} value={pdfText} aria-label="Texto extraído do PDF" style={{width:"100%",fontFamily:"monospace",fontSize:12}}/>
      <button type="button" onClick={()=>void navigator.clipboard.writeText(pdfText)}>Copiar prévia textual</button>
+   </div>}
+   {tableCatalog&&<div className="vx-curation-preview vx-database-catalog" aria-label="Inventário do banco de dados">
+     <h5>Inventário de tabelas UNI_GIZ</h5>
+     <p><strong>{tableCatalog.entries.length.toLocaleString("pt-BR")} tabelas identificadas.</strong> O documento foi lido por inteiro. As categorias abaixo são sugestões baseadas nos nomes.</p>
+     <div className="vx-catalog-categories">
+       {Object.entries(tableCatalog.counts).filter(([_,count])=>count>0).map(([area,count])=>
+         <div key={area}><strong>{count}</strong><span>{area}</span></div>)}
+     </div>
+     <div className="vx-curation-mapping">
+       <label>Pesquisar tabela
+         <input type="search" value={tableSearch} onChange={e=>setTableSearch(e.target.value)} placeholder="Ex.: ALUNOGER, CURSOS, DISCIPL, FALTAS"/>
+       </label>
+       <label>Filtrar área
+         <select value={tableArea} onChange={e=>setTableArea(e.target.value as CatalogArea|"todas")}>
+           <option value="todas">Todas as áreas</option>
+           {Object.entries(tableCatalog.counts).filter(([_,count])=>count>0).map(([area,count])=>
+             <option key={area} value={area}>{area} ({count})</option>)}
+         </select>
+       </label>
+     </div>
+     <p>Exibindo {Math.min(120,catalogFiltered.length).toLocaleString("pt-BR")} de {catalogFiltered.length.toLocaleString("pt-BR")} tabelas correspondentes ao filtro. <strong>O arquivo completo foi reconhecido.</strong></p>
+     <div className="vx-curation-scroll"><table>
+       <thead><tr><th>Esquema</th><th>Tabela</th><th>Área sugerida</th></tr></thead>
+       <tbody>{catalogFiltered.slice(0,120).map((entry,i)=>
+         <tr key={entry.schema+"."+entry.table+"-"+i}><td>{entry.schema}</td><td>{entry.table}</td><td>{entry.area}</td></tr>)}</tbody>
+     </table></div>
+     {tableCatalog.warnings.map((warning,i)=><p key={i} className="vx-curation-catalog-warning">{warning}</p>)}
+     <p><strong>Próxima providência:</strong> extrair os registros do backup UNI_GIZ em ambiente isolado, relacionar as tabelas por suas chaves e preparar a curadoria acadêmica por conjuntos de dados completos. Nenhuma tabela ou matrícula foi importada para o BI por esta análise.</p>
    </div>}
    {jsonStructure&&<div className="vx-curation-preview" aria-label="Estrutura do arquivo JSON">
      <h5>Estrutura do JSON — arquivo recebido integralmente</h5>
