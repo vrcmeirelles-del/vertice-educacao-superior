@@ -26,6 +26,7 @@ import {repositorySummary} from "@/lib/repository";
 import {listRepository} from "@/lib/repository-data";
 import { FIELD_HELP, TAB_FAQ, TAB_HELP, withHelp } from "@/lib/help";
 import PainelEorbit from "../eorbit/PainelEorbit";
+import ResultadoCursoBI from "../bi/ResultadoCursoBI";
 import "./area.css";
 
 const TABS: [Tab, string][] = [
@@ -41,6 +42,7 @@ const TABS: [Tab, string][] = [
   ["repositorio", "Repositório"],
   ["biblioteca", "Biblioteca INEP"],
   ["reitor", "Área do reitor · EBITDA"],
+  ["resultado-curso", "Resultado por Curso"],
   ["plano", "Plano de ação 5W2H"],
   ["diagnostico", "Diagnóstico"],
   ["equipe", "Equipe"],
@@ -177,6 +179,8 @@ export default function Workspace({
         <RepositoryTab institutionId={id} role={role} courses={data.courses} goals={data.goals} requests={data.requests} files={data.files} reload={reload} goalFilter={repositoryGoal} setGoalFilter={setRepositoryGoal}/>
       ) : tab === "reitor" ? (
         role === "master" || role === "gestor" ? <EbitdaCalculator reserved={{institutionId:id,name:String(institution.name)}}/> : <p>Os dados financeiros são reservados ao Gestor da instituição e ao Master.</p>
+      ) : tab === "resultado-curso" ? (
+        role === "master" || role === "gestor" ? <ResultadoCursoBI institutionId={id} institutionName={String(institution.name)}/> : <p>O módulo de resultado por curso é reservado ao Gestor da instituição e ao Master.</p>
       ) : tab === "biblioteca" ? (
         <InepLibrary institutionId={id} />
       ) : tab === "plano" ? (
