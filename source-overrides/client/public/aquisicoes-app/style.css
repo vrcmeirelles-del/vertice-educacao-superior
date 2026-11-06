@@ -49,3 +49,14 @@
 
 /* Controles finitos e comentários, preservando a paleta verde aprovada. */
 .field-comment{margin:.35rem 0 1rem;border-left:2px solid var(--line,#d7e0d8);padding-left:.7rem}.field-comment summary{font-size:.85rem;cursor:pointer}.field-comment textarea{width:100%}.record-card{border:1px solid var(--line,#d7e0d8);border-radius:8px;padding:1rem;margin:.8rem 0}.record-card>summary{cursor:pointer;font-weight:600}.record-card .native-fields{margin-top:1rem}.option-tree{padding:.5rem;border:1px solid var(--line,#d7e0d8);border-radius:5px}.option-tree summary{cursor:pointer}.option-tree .check{display:flex;gap:.5rem}.record-evidence{padding:1rem;background:rgba(43,88,65,.04)}
+
+/* Formulários unificados e contexto de CNPJ (somente dados autorizados) */
+.acq-suggestion-select{display:block;margin:6px 0 0;border:1px solid #b8cdb8;background:#f7faf5;color:#173b31;font-size:11px;padding:8px;max-width:100%}
+.acq-suggestion-note{display:block;margin:4px 0 5px;color:#647668;font-size:10px}
+.cnpj-context{background:#f3f8f0;border:1px solid #cfdec9;border-radius:9px;padding:16px 18px;margin:0 0 22px;color:#244d39}
+.cnpj-context>strong{display:block;font-size:14px;margin-bottom:6px}
+.cnpj-context>p{font-size:12px;margin:7px 0;color:#415e49}
+.cnpj-context ul{padding:0;margin:12px 0;list-style:none;display:grid;gap:8px}
+.cnpj-context li{display:flex;flex-wrap:wrap;align-items:center;gap:9px;background:white;border-radius:7px;border:1px solid #dce7d5;padding:10px;font-size:11px}
+.cnpj-context li span{color:#536e5c}.cnpj-context li a{margin-left:auto;color:#1d6046;font-weight:700}
+.cnpj-context small{font-size:10px;color:#69806d}

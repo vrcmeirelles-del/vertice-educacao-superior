@@ -275,3 +275,11 @@
   .area-ws > .area-note { padding: 12px 14px; font-size: .8rem; }
 }
 @media (prefers-reduced-motion: reduce) { .area-ws > .area-tabs > button { transition: none; } }
+
+/* Text suggestion fields: keep actual input and suggestion selector in separate accessible labels. */
+.area-form-grid > .vx-form-field{min-width:0;display:grid;align-content:start;gap:6px}
+.area-form-grid > .vx-form-field.wide{grid-column:1/-1}
+.area-form-grid .vx-suggestion-box{display:grid;gap:4px;padding:7px 9px;border:1px solid #dce5ed;background:#f7fafc;border-radius:7px}
+.area-form-grid .vx-suggestion-caption{font-size:.76rem;font-weight:650;color:#45617c}
+.area-form-grid .vx-suggestion-box select{width:100%;font-size:.78rem}
+.area-form-grid .vx-suggestion-box small{color:#64748b;font-size:.74rem}
