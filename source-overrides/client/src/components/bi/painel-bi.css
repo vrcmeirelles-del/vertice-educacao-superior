@@ -725,3 +725,41 @@
   .bi-secao, .bi-lateral > *, .bi-kpi-item { box-shadow: none; break-inside: avoid; }
   .bi-filtros { display: none; }
 }
+
+
+/* Comparativo anual: cartões independentes em vez de tabela comprimida. */
+.painel-bi .bi-annual-coverage {
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:18px 0 20px;
+}
+.painel-bi .bi-annual-coverage>div {
+ display:flex;flex-direction:column;gap:5px;background:#eef4f9;border:1px solid #dce6f0;
+ border-radius:12px;padding:14px 16px;min-width:0;
+}
+.painel-bi .bi-annual-coverage-label {font-size:12px;font-weight:700;color:#475569;}
+.painel-bi .bi-annual-coverage strong {font-size:16px;line-height:1.4;color:#172b4d;}
+.painel-bi .bi-annual-coverage small {font-size:12px;color:#64748b;}
+.painel-bi .bi-annual-grid {
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:14px;
+}
+.painel-bi .bi-annual-card {
+ min-width:0;background:#fff;border:1px solid #dce5ef;border-top:4px solid #155e75;
+ border-radius:13px;padding:20px;box-shadow:0 3px 12px rgba(15,23,42,.045);
+}
+.painel-bi .bi-annual-title {
+ color:#172b4d;font-size:15px;font-weight:750;margin:0 0 18px;line-height:1.4;
+}
+.painel-bi .bi-annual-values {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;}
+.painel-bi .bi-annual-value {display:flex;flex-direction:column;gap:5px;min-width:0;}
+.painel-bi .bi-annual-year {font-size:12px;font-weight:700;color:#64748b;}
+.painel-bi .bi-annual-value strong {font-size:clamp(22px,2.4vw,30px);line-height:1.15;letter-spacing:-.025em;color:#172b4d;font-variant-numeric:tabular-nums;}
+.painel-bi .bi-annual-track {height:7px;background:#e9eff5;border-radius:999px;overflow:hidden;margin-top:6px;}
+.painel-bi .bi-annual-track span {height:100%;display:block;border-radius:999px;}
+.painel-bi .bi-annual-delta {font-size:12px;color:#64748b;margin:15px 0 0;border-top:1px solid #eef2f6;padding-top:12px;}
+@media(max-width:800px){
+ .painel-bi .bi-annual-grid {grid-template-columns:1fr;}
+}
+@media(max-width:520px){
+ .painel-bi .bi-annual-coverage {grid-template-columns:1fr;}
+ .painel-bi .bi-annual-card {padding:16px;}
+ .painel-bi .bi-annual-values {gap:10px;}
+}
