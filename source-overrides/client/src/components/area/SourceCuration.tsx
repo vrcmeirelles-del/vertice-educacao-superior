@@ -2,6 +2,7 @@ import {useCallback,useEffect,useMemo,useState} from "react";
 import {supabase} from "@/lib/supabase";
 import {guessMapping,normalizeInput,parseTabular,type InputRow,type Mapping,type Indicator} from "@/lib/source-curation";
 import {XlsxArchive,xlsxSheets,readXlsxRows,type WorkbookSheet} from "@/lib/xlsx-preview";
+import {inspectInstitutionalJson,getInstitutionalJsonDataset,jsonStructureSummary,type JsonStructure} from "@/lib/json-structure-preview";
 import "./source-curation.css";
 
 type Source={id:string;institution_id:string;original_name:string;storage_path:string;reference_period:string|null;source_name:string;upload_status:string};
@@ -18,6 +19,10 @@ export default function SourceCuration({institutionId,files}:Props){
  const [activeSheet,setActiveSheet]=useState("");
  const [pdfText,setPdfText]=useState("");
  const [pdfPages,setPdfPages]=useState<number|null>(null);
+ const [jsonValue,setJsonValue]=useState<unknown>(null);
+ const [jsonStructure,setJsonStructure]=useState<JsonStructure|null>(null);
+ const [jsonPath,setJsonPath]=useState("");
+ const [readingStage,setReadingStage]=useState("");
 
  const [headers,setHeaders]=useState<string[]>([]);
  const [map,setMap]=useState<Mapping>({indicator:"",period:"",value:"",unit:""});
@@ -70,7 +75,7 @@ export default function SourceCuration({institutionId,files}:Props){
    });
  const approved=useMemo(()=>reviews.filter(r=>r.state==="aprovado"),[reviews]);
  async function open(source:Source){
-  setSelected(source);setRawRows([]);setHeaders([]);setCandidate([]);setSha("");setLegacyWarnings([]);setWorkbook(null);setSheets([]);setActiveSheet("");setPdfText("");setPdfPages(null);
+  setSelected(source);setRawRows([]);setHeaders([]);setCandidate([]);setSha("");setLegacyWarnings([]);setWorkbook(null);setSheets([]);setActiveSheet("");setPdfText("");setPdfPages(null);setJsonValue(null);setJsonStructure(null);setJsonPath("");setReadingStage("");
   setError("");setMessage("");setConflicts([]);setConsent(false);setReviewNote("");
   const existing=reviews.find(x=>x.upload_id===source.id);
   setNote(existing?.analysis_note??"");if(existing){setCandidate(existing.candidate_rows);}
@@ -90,15 +95,29 @@ export default function SourceCuration({institutionId,files}:Props){
   if(!["csv","txt","json","xlsx"].includes(ext??"")){
    setError("Este formato permanece como evidência documental. A curadoria quantitativa aceita CSV, JSON e XLSX; PDFs estão na etapa de prévia textual.");return;
   }
-  setBusy(true);
+  setBusy(true);setReadingStage("Transferindo a fonte privada para leitura local…");
   try{
    const {data,error:downloadError}=await supabase.storage.from("vertice-fontes-ies").download(source.storage_path);
    if(downloadError||!data)throw downloadError??new Error("Fonte indisponível.");
-   if(data.size>(ext==="xlsx"?5:2)*1024*1024)throw new Error("Tamanho acima do limite de prévia. Gere um recorte menor.");
+   const maxSize=(ext==="json"?12:ext==="xlsx"?5:2)*1024*1024;
+   if(data.size>maxSize)throw new Error("Arquivo acima do limite de leitura local deste formato ("+Math.round(maxSize/1024/1024)+" MiB). É necessário processamento seguro em lotes, preservando a integridade da carga.");
+   setReadingStage("Conferindo integridade do arquivo…");
    const bytes=await data.arrayBuffer();
    const hash=new Uint8Array(await crypto.subtle.digest("SHA-256",bytes));
    setSha([...hash].map(x=>x.toString(16).padStart(2,"0")).join(""));
-   if(ext==="xlsx"){
+   if(ext==="json"){
+     setReadingStage("Identificando tabelas e estruturas do JSON…");
+     const object=JSON.parse(new TextDecoder("utf-8",{fatal:true}).decode(bytes)) as unknown;
+     const structure=inspectInstitutionalJson(object);
+     setJsonValue(object);setJsonStructure(structure);
+     if(structure.datasets.length===1&&structure.datasets[0].previewEligible){
+       const chosen=structure.datasets[0];
+       const parsed=getInstitutionalJsonDataset(object,chosen.path);
+       const columns=Object.keys(parsed[0]);
+       setJsonPath(chosen.path);setRawRows(parsed);setHeaders(columns);setMap(guessMapping(columns));
+     }
+     setMessage(jsonStructureSummary(structure)+(structure.datasets.length!==1?" Selecione abaixo o conjunto de dados para mapear.":""));
+   }else if(ext==="xlsx"){
      const archive=new XlsxArchive(bytes), available=await xlsxSheets(archive);
      if(!available.length)throw new Error("Nenhuma planilha visível encontrada.");
      setWorkbook(archive);setSheets(available);setActiveSheet(available[0].path);
@@ -113,7 +132,23 @@ export default function SourceCuration({institutionId,files}:Props){
      setMessage("Prévia local preparada: "+parsed.length+" linhas. Confira as colunas e os valores antes de gerar a análise.");
    }
   }catch(e){setError((e as {message?:string})?.message??"Não foi possível preparar a prévia.");}
-  finally{setBusy(false);}
+  finally{setBusy(false);setReadingStage("");}
+ }
+ function selectJsonPath(path:string){
+  setJsonPath(path);setError("");setCandidate([]);setRawRows([]);setHeaders([]);setMap({indicator:"",period:"",value:"",unit:""});
+  if(!jsonStructure||!path||jsonValue===null)return;
+  const dataset=jsonStructure.datasets.find(d=>d.path===path);
+  if(!dataset)return;
+  if(!dataset.previewEligible){
+   setMessage("Este conjunto contém "+dataset.count+" registros. A estrutura foi identificada, mas a publicação exige uma carga completa, processada em lotes. Não serão descartados registros silenciosamente.");
+   return;
+  }
+  try{
+   const parsed=getInstitutionalJsonDataset(jsonValue,path);
+   const columns=Object.keys(parsed[0]);
+   setRawRows(parsed);setHeaders(columns);setMap(guessMapping(columns));
+   setMessage("Conjunto "+path+" selecionado com "+parsed.length+" registros. Revise as colunas, indicador, competência, valor e unidade.");
+  }catch(e){setError((e as Error).message);}
  }
  async function changeSheet(path:string){
   if(!workbook)return;setBusy(true);setError("");setMessage("");
@@ -179,7 +214,7 @@ export default function SourceCuration({institutionId,files}:Props){
  }
  return <section className="vx-curation" aria-label="Curadoria e homologação de fontes">
   <div className="vx-curation-heading"><div><span>ETAPA 3 — CONFERÊNCIA E MAPEAMENTO</span><h3>Analisar e cruzar dados</h3>
-   <p>Prévia local para CSV/JSON, mapeamento explícito de indicadores, comparação de versões e prestação de contas.</p></div>
+   <p>Leitura local de CSV, JSON e XLSX; inspeção de estruturas grandes, mapeamento explícito de indicadores e comparação de versões sem descartar registros.</p></div>
   </div>
   <div className="vx-curation-files">
    {files.filter(f=>f.upload_status==="recebido").map(file=><button type="button" key={file.id} onClick={()=>void open(file)} aria-pressed={selected?.id===file.id}>
@@ -197,6 +232,25 @@ export default function SourceCuration({institutionId,files}:Props){
      <textarea readOnly rows={12} value={pdfText} aria-label="Texto extraído do PDF" style={{width:"100%",fontFamily:"monospace",fontSize:12}}/>
      <button type="button" onClick={()=>void navigator.clipboard.writeText(pdfText)}>Copiar prévia textual</button>
    </div>}
+   {jsonStructure&&<div className="vx-curation-preview" aria-label="Estrutura do arquivo JSON">
+     <h5>Estrutura do JSON — arquivo recebido integralmente</h5>
+     <p>Tipo de raiz: <strong>{jsonStructure.rootType}</strong> · {jsonStructure.datasets.length} conjunto(s) tabular(es) identificado(s).</p>
+     {jsonStructure.topLevelKeys.length>0&&<p><strong>Seções principais:</strong> {jsonStructure.topLevelKeys.join(" · ")}</p>}
+     {jsonStructure.notes.map((item,i)=><p key={i} className="vx-curation-alert">{item}</p>)}
+     <label>Conjunto de dados para análise
+      <select value={jsonPath} onChange={e=>selectJsonPath(e.target.value)}>
+       <option value="">Selecione a tabela interna do JSON</option>
+       {jsonStructure.datasets.map(dataset=><option key={dataset.path} value={dataset.path}>
+        {dataset.path} — {dataset.count.toLocaleString("pt-BR")} registros{dataset.previewEligible?"":" · requer lotes"}
+       </option>)}
+      </select>
+     </label>
+     {jsonPath&&jsonStructure.datasets.find(d=>d.path===jsonPath)&&<p>
+      <strong>Campos identificados:</strong> {jsonStructure.datasets.find(d=>d.path===jsonPath)!.columns.join(" · ")}
+     </p>}
+     <small>Apenas nomes de campos são exibidos nesta visão estrutural. Dados pessoais não são enviados à IA. Bases acima de 500 linhas não podem ser aprovadas parcialmente.</small>
+   </div>}
+   {readingStage&&<p role="status" className="vx-source-stage">{readingStage}</p>}
    {sheets.length>1&&<label>Aba do arquivo Excel
     <select value={activeSheet} disabled={busy} onChange={e=>void changeSheet(e.target.value)}>
       {sheets.map(sheet=><option key={sheet.path} value={sheet.path}>{sheet.name}</option>)}
