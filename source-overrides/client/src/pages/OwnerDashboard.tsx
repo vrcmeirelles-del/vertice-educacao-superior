@@ -24,6 +24,7 @@ import ProfileSimulator from '@/components/area/ProfileSimulator';
 import ResultadoCursoBI from '@/components/bi/ResultadoCursoBI';
 import ReitorBI from '@/components/bi/ReitorBI';
 import ModoTV from '@/components/bi/ModoTV';
+import './owner-dashboard-redesign.css';
 
 type Membership={user_id:string;institution_id:string;role:string};
 const SNAPSHOT_COLUMNS='id,course_id,semester,class_label,enrolled,capacity,available,source_report_at,reported_total,student_status';
@@ -62,6 +63,16 @@ function PortalBI({institutions,courses,enrollments,session}:{institutions:Insti
  const own=courses.filter(c=>c.institution_id===id);
  const semesters=[...new Set(snapshots.filter(e=>own.some(c=>c.id===e.course_id)&&e.student_status==='MATRICULADO').map(e=>e.semester))].sort().reverse();
  const term=semesters.includes(semester)?semester:semesters[0];
+ const termPart=(v:string)=>v.match(/(?:^|[-/])0?([12])$/)?.[1]??'';
+ const yearPart=(v:string)=>v.match(/^(\\d{4})/)?.[1]??'';
+ const previousTerm=term?semesters.find(v=>v!==term&&termPart(v)===termPart(term)&&Number(yearPart(v))<Number(yearPart(term))):undefined;
+ const countTerm=(v:string|undefined)=>{
+  if(!v)return null;
+  const available=own.map(c=>snapshots.filter(e=>e.course_id===c.id&&e.semester===v&&e.student_status==='MATRICULADO')).filter(rows=>rows.length>0);
+  return available.length?available.reduce((sum,rows)=>sum+courseTotals(rows).value,0):null;
+ };
+ const currentCount=countTerm(term), priorCount=countTerm(previousTerm);
+ const annualVariation=currentCount!==null&&priorCount!==null&&priorCount>0?(currentCount-priorCount)/priorCount*100:null;
  const link=(aba:string)=>'/master#'+new URLSearchParams({instituicao:id,aba});
  const enrollmentItems=own.flatMap(c=>{
   const rows=snapshots.filter(e=>e.course_id===c.id&&e.semester===term&&e.student_status==='MATRICULADO');
@@ -109,6 +120,13 @@ function PortalBI({institutions,courses,enrollments,session}:{institutions:Insti
    <span style={{background:'#328ea8',color:'white',padding:'6px 16px',borderRadius:'8px',fontSize:'13px',fontWeight:600}}>Acessar</span>
   </article>;
  const cards:Record<number,BiSource>={...sources,1:{items:enrollmentItems}};
+ const totalOf=(index:number)=>cards[index]?.error?null:cards[index]?.items?.reduce((sum,item)=>sum+item.value,0)??null;
+ const executiveIndicators=[
+  {name:'Matrículas no recorte',value:currentCount,caption:term?'Semestre '+term:'Sem recorte',tone:'blue',index:1},
+  {name:'Metas cadastradas',value:totalOf(0),caption:'Instituição selecionada',tone:'violet',index:0},
+  {name:'Exigências documentais',value:totalOf(2),caption:'Solicitações ativas',tone:'amber',index:2},
+  {name:'Arquivos no repositório',value:totalOf(3),caption:'Arquivos registrados',tone:'green',index:3}
+ ];
  function chart(index:number){
   const source=cards[index];
   const groups=new Map<string,BiItem[]>();
@@ -137,12 +155,24 @@ function PortalBI({institutions,courses,enrollments,session}:{institutions:Insti
  <p>Por matrícula confirmada <strong>{ratio(manual[0],manual[1])}</strong></p><p>Por aluno acompanhado <strong>{ratio(manual[2],manual[3])}</strong></p></div></article>;
  return <section ref={panel} className="portal-bi" aria-label="BI da Reitoria">
  <style>{'.portal-bi{background:#f5f6fb;color:#1b2440;padding:clamp(16px,3vw,42px);overflow:auto}.portal-bi h2{margin:0;font-size:clamp(26px,4vw,48px)}.pbi-toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:18px 0}.portal-bi button,.portal-bi select,.portal-bi input{border:1px solid #d4d9ea;background:white;color:inherit;padding:9px;border-radius:8px}.portal-bi button[aria-pressed=true]{background:#5140ad;color:white}.pbi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,310px),1fr));gap:18px}.pbi-card{background:white;border:1px solid #e0e4f1;border-radius:16px;padding:20px;min-width:0}.pbi-card h3{margin:5px 0 18px;font-size:24px}.pbi-card small{color:#535b78}.pbi-donut{display:block;width:min(68%,220px);margin:auto}.pbi-donut circle[stroke-dasharray]{cursor:pointer}.pbi-columns{height:165px;display:flex;align-items:flex-end;gap:5px;padding:24px 0 0;margin:14px 0}.pbi-columns button{position:relative;flex:1;min-width:0;border:0;padding:0;border-radius:5px 5px 0 0}.pbi-columns span{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);font-size:11px}.pbi-legend{display:grid;gap:5px;max-height:260px;overflow:auto;margin-top:14px}.pbi-legend button{display:flex;gap:8px;align-items:center;text-align:left}.pbi-legend i{flex:none;width:11px;height:11px;border-radius:3px}.pbi-legend b{margin-left:auto}.pbi-card label{display:grid;gap:6px}.portal-bi dialog{max-width:min(720px,90vw);max-height:80vh;border:1px solid #d4d9ea;border-radius:16px;padding:24px;color:#1b2440}.portal-bi dialog::backdrop{background:#18142b99}.portal-bi:fullscreen .pbi-card{max-width:1400px;margin:auto}.portal-bi:fullscreen .pbi-donut{width:min(48vh,390px)}.portal-bi:fullscreen .pbi-columns{height:40vh}'}</style>
- <h2>BI da Reitoria</h2><p>Visão institucional. Selecione um gráfico para abrir os registros.</p>
+ <header className="vx-bi-heading"><div><p className="vx-eyebrow">VÉRTICE · INTELIGÊNCIA INSTITUCIONAL</p><h2>Visão Executiva da Reitoria</h2><p>Indicadores institucionais com acesso aos registros originais.</p></div><span className="vx-scope">Consulta ao portal · sem estimativas</span></header>
  <div className="pbi-toolbar"><label>Instituição <select value={id} onChange={event=>{setSources({});setManual(['','','','']);setId(event.target.value);}}>{institutions.map(institution=><option key={institution.id} value={institution.id}>{institution.name}</option>)}</select></label>
  <label>Semestre de matrículas <select value={term??''} onChange={event=>setSemester(event.target.value)}>{!semesters.length&&<option value="">Sem referência</option>}{semesters.map(value=><option key={value}>{value}</option>)}</select></label>
  <button type="button" onClick={toggleTv}>{tv?'Pausar modo TV':'Modo TV · 10 min'}</button>
  <button type="button" onClick={()=>setTick(previous=>previous+1)}>Consultar fontes</button></div>
- <div className="pbi-toolbar"><button type="button" aria-pressed={page<0} onClick={()=>{setPage(-1);setTv(false);}}>Visão geral</button>{BI_NAMES.map((name,index)=><button type="button" key={name} aria-pressed={page===index} onClick={()=>setPage(index)}>{name}</button>)}</div>
+ {page<0&&<div className="vx-overview">
+   <div className="vx-section-heading"><div><p className="vx-eyebrow">PANORAMA INSTITUCIONAL</p><h3>O que merece atenção?</h3></div><p>Selecione um cartão para aprofundar a análise.</p></div>
+   <div className="vx-kpi-grid">{executiveIndicators.map(k=><button key={k.name} type="button" className={'vx-kpi vx-'+k.tone} onClick={()=>setPage(k.index)} aria-label={k.name+': '+(k.value===null?'indisponível':biNumber.format(k.value))+'. Abrir análise'}>
+    <span>{k.name}</span><strong>{k.value===null?'—':biNumber.format(k.value)}</strong><small>{k.value===null?'Fonte pendente ou sem registros':k.caption}</small><em>Abrir análise →</em>
+   </button>)}</div>
+   <section className="vx-comparison" aria-label="Comparativo anual de matrículas">
+    <div><p className="vx-eyebrow">COMPARATIVO ANUAL · MESMO SEMESTRE</p><h3>{term??'Sem semestre'} × {previousTerm??'indisponível'}</h3><p>Fonte: matrículas registradas nos snapshots do portal. Sem projeções.</p></div>
+    <div className="vx-compare-values"><div><span>Período atual</span><strong>{currentCount===null?'—':biNumber.format(currentCount)}</strong></div><div><span>Período anterior equivalente</span><strong>{priorCount===null?'—':biNumber.format(priorCount)}</strong></div><div><span>Variação</span><strong>{annualVariation===null?'—':(annualVariation>0?'+':'')+annualVariation.toLocaleString('pt-BR',{maximumFractionDigits:1})+'%'}</strong></div></div>
+    {priorCount===null&&<p role="status" className="vx-data-note">Comparação indisponível: não há dados do semestre equivalente do ano anterior. Nenhum valor foi estimado.</p>}
+    <p className="vx-data-note">Validar os totais com a extração oficial do e-ORBIT antes de uso regulatório.</p>
+   </section>
+  </div>}
+ <div className="pbi-toolbar vx-bi-tabs"><button type="button" aria-pressed={page<0} onClick={()=>{setPage(-1);setTv(false);}}>Visão geral</button>{BI_NAMES.map((name,index)=><button type="button" key={name} aria-pressed={page===index} onClick={()=>setPage(index)}>{name}</button>)}</div>
  {page<0?<div className="pbi-grid">{BI_NAMES.slice(0,5).map((_,index)=>chart(index))}{captacaoLink}{costs}</div>:page===5?costs:chart(page)}
  <dialog ref={dialog} onClose={()=>setDetail(null)}>{detail&&<><h3>{detail.title}</h3><p>{biNumber.format(detail.items.length)} registros</p><ul>{detail.items.map((item,index)=><li key={index}>{item.href?<a href={item.href} onClick={()=>dialog.current?.close()}>{item.label}</a>:item.label}{item.value!==1?' · '+biNumber.format(item.value):''}</li>)}</ul></>}<form method="dialog"><button>Fechar detalhes</button></form></dialog>
  </section>;
