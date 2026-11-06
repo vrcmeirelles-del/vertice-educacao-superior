@@ -3,9 +3,11 @@ import { supabase } from "@/lib/supabase";
 import { courseTotals } from "@/lib/enrollment-summary";
 import { latestEnrollmentSnapshots, modalityOf, type Course, type Enrollment, type Institution } from "@/components/InstitutionArea";
 import "./vertice-mobile.css";
+import DocumentosMobileBI from "./DocumentosMobileBI";
+import AcademicoFontesMobileBI from "./AcademicoFontesMobileBI";
 
 type Access = "loading" | "signed_out" | "mfa" | "ready" | "error";
-type View = "visao" | "cursos" | "alertas";
+type View = "visao" | "cursos" | "documentos" | "academico" | "alertas";
 type Goal = { id: string; institution_id: string; course_id: string | null; status: string; due_date: string | null };
 type CourseLine = { course: Course; current: number | null; previous: number | null };
 type MobileInstitution = Institution & { acronym?: string | null };
@@ -234,6 +236,8 @@ export default function VerticeMobileBI() {
               <a className="vm-primary" href={"/master#" + new URLSearchParams({ instituicao: id, curso: chosen.course.id }).toString()}>Abrir análise completa</a>
             </aside>}
           </section>}
+          {view === "documentos" && <DocumentosMobileBI key={id} institutionId={id} courses={courses} />}
+          {view === "academico" && <AcademicoFontesMobileBI key={id} institutionId={id} />}
           {view === "alertas" && <section className="vm-panel">
             <div className="vm-section-top"><div><small>PRIORIZAÇÃO</small><h2>Alertas verificáveis</h2></div><span className="vm-count">{flagged}</span></div>
             {!flagged && <p className="vm-empty">Sem alertas calculáveis neste recorte. Isso não equivale à ausência de riscos.</p>}
@@ -252,8 +256,9 @@ export default function VerticeMobileBI() {
         <nav className="vm-bottom" aria-label="Navegação do aplicativo">
           <button className={view === "visao" ? "active" : ""} aria-current={view === "visao" ? "page" : undefined} onClick={() => { setView("visao"); setSelectedCourse(""); }}>Visão</button>
           <button className={view === "cursos" ? "active" : ""} aria-current={view === "cursos" ? "page" : undefined} onClick={() => setView("cursos")}>Cursos</button>
+          <button className={view === "documentos" ? "active" : ""} aria-current={view === "documentos" ? "page" : undefined} onClick={() => setView("documentos")}>Documentos</button>
+          <button className={view === "academico" ? "active" : ""} aria-current={view === "academico" ? "page" : undefined} onClick={() => setView("academico")}>Acadêmico</button>
           <button className={view === "alertas" ? "active" : ""} aria-current={view === "alertas" ? "page" : undefined} onClick={() => setView("alertas")}>Alertas</button>
-          <a href="/master">Portal</a>
         </nav>
       </>}
       <footer className="vm-footer">Vértice Educação Superior · Acesso institucional protegido</footer>
