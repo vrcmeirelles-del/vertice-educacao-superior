@@ -29,7 +29,7 @@ function allowedDrive(value:string){
    h.endsWith(".sharepoint.com"))&&value.length<=1800;
  }catch{return false;}
 }
-export default function SourceUpload({institutionId,institutionName}:{institutionId:string;institutionName:string}){
+export default function SourceUpload({institutionId,institutionName,onBackups}:{institutionId:string;institutionName:string;onBackups?:()=>void}){
  const [rows,setRows]=useState<UploadRow[]>([]);
  const [source,setSource]=useState("eorbit");
  const [sourceName,setSourceName]=useState("Sistema acadêmico e-ORBIT");
@@ -166,6 +166,10 @@ export default function SourceUpload({institutionId,institutionName}:{institutio
   <header><span>VÉRTICE · FONTES E EXTRAÇÕES</span><h3>Central de importação — {institutionName}</h3>
    <p>Envie arquivos extraídos de sites e sistemas. Cada arquivo recebe origem, período, usuário e trilha de recebimento exclusivos desta IES.</p>
   </header>
+  {onBackups&&<div className="vx-source-warning" style={{display:"flex",gap:12,alignItems:"center",flexWrap:"wrap",justifyContent:"space-between"}}>
+   <span><strong>Possui backup RAR, ZIP ou BAK?</strong> Use a área específica de Backups Acadêmicos, isolada dos indicadores.</span>
+   <button type="button" onClick={onBackups} style={{padding:"9px 13px",borderRadius:8,border:"1px solid #9daec4",background:"#fff",cursor:"pointer"}}>Abrir Backups Acadêmicos</button>
+  </div>}
   <div className="vx-source-warning"><strong>Etapa 2 · Receber arquivos e links.</strong>
    Os arquivos ficam armazenados em bucket privado. A importação para matrículas, BI ou indicadores só poderá ocorrer após mapeamento, conferência de dados e aprovação específica.</div>
   <form onSubmit={upload} className="vx-source-form">
