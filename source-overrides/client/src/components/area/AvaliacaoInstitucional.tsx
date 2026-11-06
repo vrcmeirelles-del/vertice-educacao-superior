@@ -101,7 +101,7 @@ export default function AvaliacaoInstitucional() {
       <header>
         <div>
           <p className="aval-kicker">Avaliação institucional externa</p>
-          <h3 id="aval-title">Credenciamento e recredenciamento</h3>
+          <h3 id="aval-title">Recredenciamento Institucional</h3>
           <p>
             {instrumento.instrument}, edição {instrumento.edition}. Cinco eixos,{" "}
             {instrumento.total} indicadores, com o critério de conceito 5 transcrito do
