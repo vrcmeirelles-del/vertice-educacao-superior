@@ -1,0 +1,18 @@
+/* Proposta de tokens Vértice — NÃO IMPORTADO NA APLICAÇÃO.
+ * Revisar após inspeção visual da referência e auditagem do build.
+ * Uso previsto somente na branch de homologação. */
+:root {
+  --vx-primary: #17365d;
+  --vx-accent: #2563eb;
+  --vx-success: #087f5b;
+  --vx-warning: #b45309;
+  --vx-danger: #b42318;
+  --vx-surface: #ffffff;
+  --vx-canvas: #f6f8fc;
+  --vx-text: #182230;
+  --vx-muted: #526071;
+  --vx-border: #e3e9f1;
+  --vx-radius-card: 12px;
+  --vx-spacing-unit: 4px;
+  --vx-font: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
