@@ -90,6 +90,7 @@ function Vazio({ mensagem }: { mensagem: string }) {
 
 /* ---------- Bloco Herói ---------- */
 function BlocoHeroi({ kpis }: { kpis: KpiResumo[] }) {
+  const [modo, setModo] = useState<'homologo' | 'anterior'>('homologo');
   const principal = kpis.find(k => k.chave === 'matriculados');
   const secundario = kpis.find(k => k.chave === 'ocupacao');
 
@@ -100,9 +101,24 @@ function BlocoHeroi({ kpis }: { kpis: KpiResumo[] }) {
       <div className="bi-heroi-principal">
         <p className="bi-heroi-rotulo">{principal.rotulo}</p>
         <div className="bi-heroi-numero">{fmtKPI(principal.valor, principal.unidade)}</div>
+        <div className="bi-hero-comparison">
+          <label htmlFor="bi-compare-mode">Comparar matrículas com</label>
+          <select id="bi-compare-mode" value={modo} onChange={e => setModo(e.target.value as 'homologo' | 'anterior')}>
+            <option value="homologo">Mesmo semestre do ano anterior</option>
+            <option value="anterior">Semestre imediatamente anterior</option>
+          </select>
+        </div>
         <div className="bi-heroi-variacao">
-          <Variacao valor={principal.variacaoPct} direcao={principal.direcaoDesejada} />
-          <span className="bi-meta">vs. semestre anterior</span>
+          {(() => {
+            const ref = principal.comparativos?.[modo];
+            if (!ref?.semestre || ref.valor === null || ref.variacaoPct === null) {
+              return <span className="bi-meta">Comparação indisponível para o período de referência.</span>;
+            }
+            return <>
+              <Variacao valor={ref.variacaoPct} direcao={principal.direcaoDesejada} />
+              <span className="bi-meta">vs. {ref.semestre} ({fmtInt(ref.valor)} matrículas)</span>
+            </>;
+          })()}
         </div>
         <Spark data={principal.tendencia} color="#14432F" />
       </div>
