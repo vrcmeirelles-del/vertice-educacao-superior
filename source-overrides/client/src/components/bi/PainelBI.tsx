@@ -10,6 +10,8 @@
  */
 
 import React, { useEffect, useState, useCallback } from 'react';
+import type { AcademicReport } from '@/components/AcademicReports';
+import type { CourseIndicatorPayload, ReprobationPeriod } from '@/components/CourseIndicators';
 import type { Session } from '@supabase/supabase-js';
 import type { Institution, Course, Enrollment } from '@/components/InstitutionArea';
 import type {
@@ -384,9 +386,83 @@ type Props = {
   courses: Course[];
   enrollments: Enrollment[];
   session: Session;
+  reports: BIReport[];
 };
 
-export default function PainelBI({ institutions, courses, enrollments, session }: Props) {
+const failureMetrics = [
+  { key: 'failures', label: 'Total de reprovações', color: '#4338ca' },
+  { key: 'RF', label: 'Por falta (RF)', color: '#b91c1c' },
+  { key: 'RN', label: 'Por nota (RN)', color: '#0369a1' },
+  { key: 'RA', label: 'Reprovação final (RA)', color: '#7e22ce' },
+] as const;
+
+type BIReport = AcademicReport & { institution_id?: string; course_id?: string | null };
+
+function ReprovacoesAnuais({ reports }: { reports: BIReport[] }) {
+  const [yearA, setYearA] = useState('');
+  const [yearB, setYearB] = useState('');
+  const periods = new Map<string, ReprobationPeriod>();
+  // O painel já ordena os relatórios por data de origem, do mais recente ao mais antigo.
+  for (const report of reports) {
+    if (report.kind !== 'course_indicators' || !report.course_id) continue;
+    const payload = report.payload as CourseIndicatorPayload;
+    for (const row of payload.reprobation_series ?? []) {
+      if (!/^\d{4}\/0[12]$/.test(row.semester)) continue;
+      const key = report.course_id + '/' + row.semester;
+      if (!periods.has(key)) periods.set(key, row);
+    }
+  }
+  const years = [...new Set([...periods.values()].map(row => row.semester.slice(0, 4)))].sort().reverse();
+  const selectedA = years.includes(yearA) ? yearA : years[1] ?? years[0] ?? '';
+  const selectedB = years.includes(yearB) ? yearB : years[0] ?? '';
+  const byYear = (year: string) => [...periods].filter(([, row]) => row.semester.startsWith(year + '/'));
+  const left = byYear(selectedA);
+  const right = byYear(selectedB);
+  const coverage = (rows: typeof left) => rows.map(([key]) => key.replace(/\/\d{4}\//, '/')).sort().join(',');
+  const comparable = left.length > 0 && coverage(left) === coverage(right);
+  const total = (rows: typeof left, key: typeof failureMetrics[number]['key']) =>
+    rows.length && rows.every(([, row]) => Number.isSafeInteger(row[key]) && row[key] >= 0)
+      ? rows.reduce((sum, [, row]) => sum + row[key], 0) : null;
+  const format = (value: number | null) => value === null ? 'ND' : value.toLocaleString('pt-BR');
+  const summarize = (rows: typeof left) =>
+    [...new Set(rows.map(([, row]) => row.semester))].sort().join(' e ') || 'ND';
+
+  return <section className="bi-secao" aria-label="Comparativo anual de reprovações">
+    <h2>Reprovações · comparativo anual</h2>
+    <p className="bi-meta">Fonte: indicadores de curso das planilhas e-ORBIT. Cada total soma as matrículas em disciplinas nos semestres disponíveis para o ano escolhido.</p>
+    {!years.length ? <p>Dado não disponível para a instituição selecionada.</p> : <>
+      <div className="bi-filtros">
+        <label>Ano-base <select value={selectedA} onChange={e => setYearA(e.target.value)}>
+          {years.map(year => <option key={year}>{year}</option>)}
+        </select></label>
+        <label>Ano de comparação <select value={selectedB} onChange={e => setYearB(e.target.value)}>
+          {years.map(year => <option key={year}>{year}</option>)}
+        </select></label>
+      </div>
+      <p>{selectedA}: {summarize(left)} ({left.length} registros curso × semestre) · {selectedB}: {summarize(right)} ({right.length} registros curso × semestre).</p>
+      <div className="table-scroll" tabIndex={0} role="region" aria-label="Totais de reprovações por ano">
+        <table><thead><tr><th scope="col">Indicador</th><th scope="col">{selectedA}</th><th scope="col">{selectedB}</th><th scope="col">Variação</th></tr></thead>
+          <tbody>{failureMetrics.map(({ key, label, color }) => {
+            const first = total(left, key), second = total(right, key);
+            const delta = comparable && first !== null && second !== null ? second - first : null;
+            const max = Math.max(1, first ?? 0, second ?? 0);
+            return <tr key={key}><th scope="row" style={{ color }}>{label}</th>
+              {[first, second].map((value, index) => <td key={index}>
+                <strong>{format(value)}</strong>
+                {value !== null && <span aria-hidden="true" style={{ display: 'block', height: 5, width: (value / max * 100) + '%', background: color, borderRadius: 4 }}/>}
+              </td>)}
+              <td>{delta === null ? 'ND' : delta.toLocaleString('pt-BR', { signDisplay: 'exceptZero' })}</td>
+            </tr>;
+          })}</tbody>
+        </table>
+      </div>
+      {!comparable && <p>Variação indisponível: os anos têm cobertura diferente de cursos ou semestres.</p>}
+      <p className="bi-meta">As contagens representam matrículas em disciplinas. ND indica dado indisponível. O comparativo anual abrange todos os graus da instituição e tem filtros próprios.</p>
+    </>}
+  </section>;
+}
+
+export default function PainelBI({ institutions, courses, enrollments, session, reports }: Props) {
   const [instId, setInstId] = useState(institutions[0]?.id ?? '');
   const [semestre, setSemestre] = useState('');
   const [semestres, setSemestres] = useState<string[]>([]);
@@ -547,6 +623,8 @@ export default function PainelBI({ institutions, courses, enrollments, session }
           ⟳ Atualizar
         </button>
       </div>
+
+      <ReprovacoesAnuais key={instId} reports={reports.filter(report => report.institution_id === instId)} />
 
       {/* ---- Layout principal ---- */}
       <div className="bi-layout">
