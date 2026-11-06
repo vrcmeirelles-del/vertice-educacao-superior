@@ -8,7 +8,10 @@ type Access = "loading" | "signed_out" | "mfa" | "ready" | "error";
 type View = "visao" | "cursos" | "alertas";
 type Goal = { id: string; institution_id: string; course_id: string | null; status: string; due_date: string | null };
 type CourseLine = { course: Course; current: number | null; previous: number | null };
-type Data = { institutions: Institution[]; courses: Course[]; enrollments: Enrollment[]; goals: Goal[] };
+type MobileInstitution = Institution & { acronym?: string | null };
+type Data = { institutions: MobileInstitution[]; courses: Course[]; enrollments: Enrollment[]; goals: Goal[] };
+// Bloqueio temporário de fonte: revisão documental de 06/11/2026 constatou 1.987 na tabela de snapshots vs. 6.846 na extração e-ORBIT.
+const QUARANTINED_SOURCE = { institutionAcronym: "UNITOP", semester: "2026/02" } as const;
 const EMPTY: Data = { institutions: [], courses: [], enrollments: [], goals: [] };
 const fmt = new Intl.NumberFormat("pt-BR");
 const pct = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1, minimumFractionDigits: 1 });
@@ -95,7 +98,7 @@ export default function VerticeMobileBI() {
       if (assuranceError) throw assuranceError;
       if (assurance.currentLevel !== "aal2") { setAccess("mfa"); setData(EMPTY); return; }
       const [institutionsResult, coursesResult, enrollments, goals] = await Promise.all([
-        supabase.from("vertice_institutions").select("id,name").order("name"),
+        supabase.from("vertice_institutions").select("id,name,acronym").order("name"),
         supabase.from("vertice_courses").select("id,institution_id,name,code,modality").order("name"),
         fetchAllEnrollments(),
         fetchAllGoals()
@@ -104,7 +107,7 @@ export default function VerticeMobileBI() {
       if (coursesResult.error) throw coursesResult.error;
       // Cada SELECT está sujeito às políticas RLS da instituição.
       setData({
-        institutions: (institutionsResult.data ?? []) as Institution[],
+        institutions: (institutionsResult.data ?? []) as MobileInstitution[],
         courses: (coursesResult.data ?? []) as Course[],
         enrollments,
         goals
@@ -142,6 +145,7 @@ export default function VerticeMobileBI() {
   const semesters = useMemo(() => [...new Set(rows.map(row => row.semester))].sort().reverse(), [rows]);
   const semester = semesters.includes(selectedSemester) ? selectedSemester : (semesters[0] ?? "");
   const previousYearSemester = yearBefore(semester);
+  const sourceQuarantined = institution?.acronym?.toUpperCase() === QUARANTINED_SOURCE.institutionAcronym && semester === QUARANTINED_SOURCE.semester;
   const currentRows = rows.filter(row => row.semester === semester);
   const previousRows = rows.filter(row => row.semester === previousYearSemester);
 
@@ -149,7 +153,7 @@ export default function VerticeMobileBI() {
     const own = input.filter(row => row.course_id === courseId);
     return own.length ? courseTotals(own).value : null;
   }
-  const lines = courses.map(course => ({ course, current: amountFor(course.id, currentRows), previous: amountFor(course.id, previousRows) }))
+  const lines = courses.map(course => ({ course, current: sourceQuarantined ? null : amountFor(course.id, currentRows), previous: amountFor(course.id, previousRows) }))
     .sort((a, b) => (b.current ?? -1) - (a.current ?? -1) || a.course.name.localeCompare(b.course.name, "pt-BR"));
   const coverage = lines.filter(line => line.current !== null).length;
   const currentTotal = coverage ? lines.reduce((n, line) => n + (line.current ?? 0), 0) : null;
@@ -161,8 +165,8 @@ export default function VerticeMobileBI() {
   const activeGoals = goals.filter(goal => goal.status === "ativa" || goal.status === "planejada");
   const overdue = activeGoals.filter(goal => goal.due_date && new Date(goal.due_date + "T23:59:59") < new Date());
   const declining = lines.filter(line => line.current !== null && line.previous !== null && line.current < line.previous);
-  const missing = lines.filter(line => line.current === null);
-  const flagged = declining.length + missing.length + overdue.length;
+  const missing = sourceQuarantined ? [] : lines.filter(line => line.current === null);
+  const flagged = declining.length + missing.length + overdue.length + (sourceQuarantined ? 1 : 0);
   const filtered = lines.filter(line => (line.course.name + " " + (line.course.code ?? "")).toLocaleLowerCase("pt-BR").includes(query.toLocaleLowerCase("pt-BR")));
   const chosen = lines.find(line => line.course.id === selectedCourse);
 
@@ -191,9 +195,10 @@ export default function VerticeMobileBI() {
               {semesters.length === 0 ? <option value="">Sem dados</option> : semesters.map(term => <option key={term} value={term}>{term}</option>)}
             </select></label>
           </div>
+          {sourceQuarantined && <section className="vm-quarantine" role="alert"><strong>Fonte de matrículas em conciliação</strong><p>Os totais da UNITOP em 2026/02 não serão exibidos até a validação do sincronizador: a tabela resumida diverge da extração e-ORBIT. Selecione outro semestre para consultar períodos sem este bloqueio.</p></section>}
           {view === "visao" && <>
             <section aria-label="Indicadores principais" className="vm-indicators">
-              <Indicator title="Matrículas no recorte" value={currentTotal === null ? "—" : fmt.format(currentTotal)} note={coverage + "/" + courses.length + " cursos com dados"} tone="blue" />
+              <Indicator title="Matrículas no recorte" value={currentTotal === null ? "—" : fmt.format(currentTotal)} note={sourceQuarantined ? "Fonte sob conciliação" : coverage + "/" + courses.length + " cursos com dados"} tone="blue" />
               <Indicator title="Variação anual comparável" value={yoy} note={previousYearSemester ? previousYearSemester + " × " + semester + " · " + comparable.length + " cursos" : "Período indisponível"} tone="teal" />
               <Indicator title="Metas ativas ou planejadas" value={fmt.format(activeGoals.length)} note="Sem incluir metas canceladas ou concluídas" tone="violet" />
               <Indicator title="Prazos vencidos" value={fmt.format(overdue.length)} note="Metas ativas ou planejadas" tone="amber" />
@@ -232,6 +237,7 @@ export default function VerticeMobileBI() {
           {view === "alertas" && <section className="vm-panel">
             <div className="vm-section-top"><div><small>PRIORIZAÇÃO</small><h2>Alertas verificáveis</h2></div><span className="vm-count">{flagged}</span></div>
             {!flagged && <p className="vm-empty">Sem alertas calculáveis neste recorte. Isso não equivale à ausência de riscos.</p>}
+            {sourceQuarantined && <article className="vm-alert"><strong>Conciliação obrigatória · 2026/02</strong><p>Corrigir a fonte resumida no sincronizador UNITOP e validar contra o relatório e-ORBIT antes de liberar os indicadores.</p></article>}
             {declining.slice(0, 30).map(line => <article className="vm-alert" key={line.course.id}><strong>Queda anual · {line.course.name}</strong><p>{fmt.format(line.previous ?? 0)} em {previousYearSemester} para {fmt.format(line.current ?? 0)} em {semester}. Verificar rematrículas e outras causas.</p></article>)}
             {missing.slice(0, 30).map(line => <article className="vm-alert" key={line.course.id}><strong>Sem dados · {line.course.name}</strong><p>Não substituir ausência de relatório por zero.</p></article>)}
             {overdue.slice(0, 30).map(goal => <article className="vm-alert" key={goal.id}><strong>Meta com prazo vencido</strong><p>Vencimento registrado: {goal.due_date}. Consulte a meta no portal para identificar o responsável.</p></article>)}
