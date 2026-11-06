@@ -41,11 +41,11 @@ export default function GlobalRepository({
     return () => window.clearInterval(timer);
   }, [load]);
   return (
-    <section className="repo-global" aria-label="Todos os repositórios das IES">
+    <section className="repo-global" aria-label="Reconhecimento de Curso de todas as IES">
       <header className="repo-header">
         <div>
           <small>VISÃO MASTER · TODAS AS INSTITUIÇÕES</small>
-          <h2>Repositórios das IES</h2>
+          <h2>Reconhecimento de Curso das IES</h2>
           <p>
             Acompanhe o acervo documental de todas as instituições e abra cada
             repositório para ver seus cursos e arquivos.
@@ -143,7 +143,7 @@ export default function GlobalRepository({
                             className="repo-open"
                             onClick={() => onOpen(i.id)}
                           >
-                            Abrir repositório →
+                            Abrir Reconhecimento de Curso →
                           </button>
                         </td>
                       </tr>
