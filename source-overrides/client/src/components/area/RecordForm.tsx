@@ -113,7 +113,10 @@ export default function RecordForm({
                   {suggestions.map((text,i)=><option key={i} value={String(i)}>{text.length>105?text.slice(0,105)+"…":text}</option>)}
                   <option value="outro">Outro — digitar texto personalizado</option>
                 </select>
-                {suggestionMode[f.name]==="outro"&&<small>Digite livremente no campo acima. O texto personalizado será preservado.</small>}
+                {suggestionMode[f.name]==="outro"&&<label className="vx-suggestion-other">
+                  <span>Outro — texto personalizado</span>
+                  <textarea rows={3} value={String(values[f.name]??"")} placeholder="Digite sua redação" onChange={e=>set(f.name,e.target.value)}/>
+                </label>}
               </div>}
               {f.help && <small>{f.help}</small>}
             </div>
