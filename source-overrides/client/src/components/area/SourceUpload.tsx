@@ -40,6 +40,11 @@ export default function SourceUpload({institutionId,institutionName}:{institutio
  const [file,setFile]=useState<File|null>(null);
  const [driveUrl,setDriveUrl]=useState("");
  const [linkRows,setLinkRows]=useState<SourceLink[]>([]);
+ const [protectedFiles,setProtectedFiles]=useState<Set<string>>(new Set());
+ const [pendingRemoval,setPendingRemoval]=useState<{type:"arquivo"|"link";id:string;name:string}|null>(null);
+ const [deleting,setDeleting]=useState(false);
+ const [stage,setStage]=useState("");
+
 
  const [busy,setBusy]=useState(false),[loading,setLoading]=useState(true);
  const [error,setError]=useState(""),[notice,setNotice]=useState("");
@@ -48,6 +53,10 @@ export default function SourceUpload({institutionId,institutionName}:{institutio
   if(error)throw error;setRows((data??[]) as UploadRow[]);
   const links=await supabase.from("vertice_source_links").select("*").eq("institution_id",institutionId).order("created_at",{ascending:false}).limit(100);
   if(links.error)throw links.error;setLinkRows((links.data??[]) as SourceLink[]);
+  const analyzed=await supabase.from("vertice_source_analyses").select("upload_id").eq("institution_id",institutionId).limit(500);
+  if(analyzed.error)throw analyzed.error;
+  setProtectedFiles(new Set((analyzed.data??[]).map(x=>String(x.upload_id))));
+
  },[institutionId]);
  useEffect(()=>{let active=true;setLoading(true);
   void load().catch(()=>{if(active)setError("Não foi possível consultar os envios. Confirme sua permissão.");}).finally(()=>{if(active)setLoading(false);});
@@ -70,7 +79,8 @@ export default function SourceUpload({institutionId,institutionName}:{institutio
     });
     if(linkError)throw linkError;
     await load();setDriveUrl("");
-    setNotice("Referência do Drive registrada para esta IES. O portal ainda não baixou nem leu o conteúdo do link; é preciso conceder acesso e realizar a importação.");
+    setStage("Link registrado · aguardando ação para importar");
+    setNotice("Link registrado. Importação NÃO iniciada: use 'Consultar pasta do OneDrive' (pasta autorizada) ou anexe os arquivos. Um link sozinho não copia documentos.");
    }catch(e){setError((e as {message?:string})?.message??"Falha ao registrar a referência.");}
    finally{setBusy(false);}
    return;
@@ -85,7 +95,7 @@ export default function SourceUpload({institutionId,institutionName}:{institutio
   if(url.trim()&&!/^https?:\/\//i.test(url.trim())){setError("A URL da fonte deve começar por https:// ou http://.");return;}
   const id=crypto.randomUUID();
   const path=institutionId+"/"+id+"/"+name;
-  setBusy(true);
+  setBusy(true);setStage("1/3 · Registrando arquivo…");
   try{
     const {error:insertError}=await supabase.from("vertice_source_uploads").insert({
       id,institution_id:institutionId,source_kind:source,source_name:sourceName.trim(),
@@ -95,18 +105,53 @@ export default function SourceUpload({institutionId,institutionName}:{institutio
       drive_url:driveUrl.trim()||null
     });
     if(insertError)throw insertError;
+    setStage("2/3 · Transferindo arquivo para armazenamento privado…");
     const {error:storageError}=await supabase.storage.from("vertice-fontes-ies").upload(path,file,{contentType:mime,upsert:false});
     if(storageError){
       await supabase.from("vertice_source_uploads").update({upload_status:"falhou"}).eq("id",id);
       throw storageError;
     }
+    setStage("3/3 · Confirmando recebimento…");
     const {data:confirmed,error:stateError}=await supabase.from("vertice_source_uploads").update({upload_status:"recebido"}).eq("id",id).select("id").single();
     if(stateError||!confirmed)throw stateError??new Error("Recebimento ainda não confirmado no banco");
-    setNotice("Arquivo recebido na área de preparação da "+institutionName+". Aguardando conferência: nenhum dado foi enviado ao BI.");
+    setStage("Arquivo recebido · aguardando curadoria");
+    setNotice("Arquivo recebido na área de preparação da "+institutionName+". Use o Passo 3 para conferir e mapear os dados; nenhum dado foi enviado ao BI.");
     setFile(null);setDriveUrl("");const input=document.getElementById("vx-source-file") as HTMLInputElement|null;if(input)input.value="";
     await load();
   }catch(err){setError((err as {message?:string})?.message??"Falha ao enviar o arquivo.");void load().catch(()=>{});}
   finally{setBusy(false);}
+ }
+ async function removeSelected(){
+  if(!pendingRemoval||deleting)return;
+  const item=pendingRemoval;setDeleting(true);setError("");setNotice("");
+  try{
+   if(item.type==="link"){
+    const {data,error}=await supabase.from("vertice_source_links").delete().eq("id",item.id).eq("institution_id",institutionId).select("id").single();
+    if(error||!data)throw error??new Error("A referência não foi excluída.");
+    setNotice("Referência removida da Vértice. O arquivo original permanece no Drive.");
+   }else{
+    if(protectedFiles.has(item.id))throw new Error("Este arquivo já está ligado à curadoria. Não é possível apagá-lo sem preservar a análise.");
+    const row=rows.find(r=>r.id===item.id);
+    if(!row)throw new Error("Arquivo não localizado.");
+    setStage("Excluindo anexo do armazenamento privado…");
+    if(row.upload_status==="recebido"){
+     const {data,error}=await supabase.storage.from("vertice-fontes-ies").remove([row.storage_path]);
+     if(error)throw error;
+     if(!data?.length)throw new Error("Exclusão do arquivo não confirmada no armazenamento.");
+    }
+    setStage("Registrando exclusão no histórico…");
+    const {data,error}=await supabase.from("vertice_source_uploads").delete()
+      .eq("id",row.id).eq("institution_id",institutionId).select("id").single();
+    if(error||!data)throw error??new Error("Arquivo excluído do armazenamento, mas o registro precisa ser reconciliado.");
+    setStage("Anexo excluído");
+    setNotice("Anexo excluído da Vértice. A operação foi registrada na trilha de auditoria.");
+   }
+   setPendingRemoval(null);await load();
+  }catch(e){setError((e as {message?:string})?.message??"Não foi possível concluir a exclusão.");}
+  finally{setDeleting(false);}
+ }
+ function askRemoval(type:"arquivo"|"link",id:string,name:string){
+  setPendingRemoval({type,id,name});setError("");setNotice("");
  }
  async function download(row:UploadRow){
   setError("");try{
@@ -154,7 +199,17 @@ export default function SourceUpload({institutionId,institutionName}:{institutio
    <button type="submit" disabled={busy||(!file&&!driveUrl.trim())}>{busy?"Registrando…":file?"Enviar arquivo para conferência":"Registrar referência do Drive"}</button>
   </form>
   {error&&<p role="alert" className="vx-source-error">{error}</p>}
+  {stage&&<p role="status" className="vx-source-stage"><strong>Andamento:</strong> {stage}</p>}
   {notice&&<p role="status" className="vx-source-success">{notice}</p>}
+  {pendingRemoval&&<div role="alertdialog" aria-label="Confirmar exclusão" className="vx-source-confirm">
+   <strong>Excluir {pendingRemoval.type==="link"?"referência do Drive":"arquivo anexado"}?</strong>
+   <p>{pendingRemoval.name}</p>
+   <p>{pendingRemoval.type==="link"?"A referência será retirada do portal; o conteúdo no Drive continuará intacto.":"O arquivo será removido do armazenamento privado e seu cadastro retirado da lista. Arquivos vinculados a análises não podem ser excluídos."}</p>
+   <div className="vx-source-confirm-actions">
+     <button type="button" disabled={deleting} onClick={()=>setPendingRemoval(null)}>Cancelar</button>
+     <button type="button" disabled={deleting} onClick={()=>void removeSelected()}>{deleting?"Excluindo…":"Confirmar exclusão"}</button>
+   </div>
+  </div>}
   <div className="vx-source-list"><h4>Histórico de arquivos recebidos</h4>
    {loading?<p>Carregando histórico…</p>:rows.length===0?<p>Ainda não existem arquivos recebidos por esta área para a instituição.</p>:
    <div className="vx-source-scroll"><table><thead><tr><th>Arquivo</th><th>Fonte</th><th>Competência</th><th>Recebimento</th><th>Situação</th><th>Ação</th></tr></thead><tbody>
@@ -164,16 +219,21 @@ export default function SourceUpload({institutionId,institutionName}:{institutio
      <td>{row.reference_period||"A classificar"}</td>
      <td>{new Date(row.created_at).toLocaleString("pt-BR")}</td>
      <td><span className={row.upload_status==="recebido"?"ok":"pending"}>{row.upload_status==="recebido"?"Recebido · aguarda curadoria":row.upload_status==="falhou"?"Falha no envio":"Recebimento incompleto"}</span></td>
-     <td>{row.upload_status==="recebido"&&<button type="button" onClick={()=>void download(row)}>Baixar</button>}</td>
+     <td><div className="vx-source-row-actions">
+      {row.upload_status==="recebido"&&<button type="button" onClick={()=>void download(row)}>Baixar</button>}
+      <button type="button" disabled={deleting||protectedFiles.has(row.id)} title={protectedFiles.has(row.id)?"Arquivo vinculado à curadoria — exclusão bloqueada":"Excluir arquivo anexado"} onClick={()=>askRemoval("arquivo",row.id,row.original_name)}>Excluir</button>
+     </div></td>
    </tr>)}</tbody></table></div>}
    <small>Consulta limitada aos últimos 100 registros. Nenhum arquivo é aplicado automaticamente aos indicadores.</small>
   </div>
   {linkRows.length>0&&<div className="vx-source-list">
-   <h4>Referências do Drive pendentes de acesso e importação</h4>
+   <h4>Referências do Drive — situação da importação</h4>
    {linkRows.map(link=><p key={link.id}>
      <strong>{link.source_name}</strong> · {link.reference_period||"Sem competência"} ·
      <a target="_blank" rel="noopener noreferrer" href={link.drive_url}>Abrir referência no Drive ↗</a>
-     <small> Link registrado — não representa arquivo recebido ou validado.</small>
+     <span className="vx-source-not-started">Link registrado · importação não iniciada</span>
+     <button type="button" disabled={deleting} onClick={()=>askRemoval("link",link.id,link.source_name)}>Excluir referência</button>
+     <small>O link não dispara cópia automática. Para pastas Microsoft autorizadas, use "Consultar arquivos do OneDrive" abaixo e escolha um arquivo.</small>
     </p>)}
   </div>}
   <OneDriveFolderImporter institutionId={institutionId} onImported={load}/>
