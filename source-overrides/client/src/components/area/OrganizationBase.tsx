@@ -32,7 +32,7 @@ export default function OrganizationBase({institution,data,dataError,onGo}:{inst
  const id=institution.id;
  const [cycles,setCycles]=useState<Cycle[]>([]),[cycle,setCycle]=useState(''),[records,setRecords]=useState<RecordRow[]>([]),[modules,setModules]=useState<Row[]>([]),[valuations,setValuations]=useState<Row[]>([]),[earnings,setEarnings]=useState<Row[]>([]),[matters,setMatters]=useState<Row[]>([]);
  const [matterLink,setMatterLink]=useState(''),[linkConfirmed,setLinkConfirmed]=useState(false);
- const [view,setView]=useState(()=>new URLSearchParams(window.location.hash.slice(1)).get('assistente')==='1'?'assistente':'base'),[error,setError]=useState(''),[notice,setNotice]=useState(''),[busy,setBusy]=useState(false),[loading,setLoading]=useState(true);
+ const [view,setView]=useState(()=>typeof window!=='undefined'&&new URLSearchParams(window.location.hash.slice(1)).get('assistente')==='1'?'assistente':'base'),[error,setError]=useState(''),[notice,setNotice]=useState(''),[busy,setBusy]=useState(false),[loading,setLoading]=useState(true);
  const [kind,setKind]=useState('base'),[title,setTitle]=useState(''),[text,setText]=useState(''),[due,setDue]=useState(''),[owner,setOwner]=useState(''),[status,setStatus]=useState('pendente'),[editing,setEditing]=useState<RecordRow|null>(null);
  const [messages,setMessages]=useState<Message[]>([]),[prompt,setPrompt]=useState(''),[consent,setConsent]=useState(false),[available,setAvailable]=useState<boolean|null>(null);
  const [crosschecks,setCrosschecks]=useState<Crosschecks|null>(null),[crossError,setCrossError]=useState('');
