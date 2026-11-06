@@ -34,3 +34,30 @@
 .vx-backup-onedrive table{width:100%;border-collapse:collapse;font-size:11px}
 .vx-backup-onedrive th,.vx-backup-onedrive td{padding:10px;text-align:left;border-bottom:1px solid #e2eaf2}
 .vx-backup-onedrive td button{border:1px solid #a5bed3;background:white;color:#245c8e;border-radius:7px;padding:7px 9px;cursor:pointer}
+
+
+/* Cópia recebida: ação principal sem rolagem horizontal nem busca na tabela. */
+.vx-backup-spotlight{display:grid;gap:12px;border:2px solid #93bfdc;background:linear-gradient(135deg,#e9f5ff 0%,#fff 80%);border-radius:14px;padding:17px}
+.vx-backup-spotlight-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.vx-backup-eyebrow{font-size:10px;font-weight:800;letter-spacing:.08em;color:#2c71a7}
+.vx-backup-spotlight-heading h4{margin:5px 0;font-size:18px;color:#173d5b}
+.vx-backup-spotlight-heading p{font-size:12px;color:#476a83;margin:3px 0}
+.vx-backup-highlight-card{display:grid;gap:13px;border:1px solid #c9dfe9;background:#fff;border-radius:10px;padding:14px;min-width:0}
+.vx-backup-highlight-filename{min-width:0;overflow-wrap:anywhere}
+.vx-backup-highlight-filename strong{display:block;font-size:13px;color:#174361}
+.vx-backup-highlight-filename small{display:block;color:#647b8b;margin-top:5px;font-size:11px}
+.vx-backup-highlight-meta{display:grid;gap:5px;font-size:12px;color:#506a7b}
+.vx-backup-highlight-meta strong{color:#124863}
+.vx-backup-highlight-actions{display:flex;flex-wrap:wrap;gap:9px;align-items:center}
+.vx-backup-highlight-actions button{padding:11px 16px;font-weight:700;min-height:42px;border-radius:9px;cursor:pointer}
+.vx-backup-highlight-actions .vx-backup-primary{background:#1768a4;color:white;border:1px solid #1768a4}
+.vx-backup-highlight-actions .vx-backup-secondary{background:#fff;color:#24638e;border:1px solid #b8cbdd}
+.vx-backup-requested{font-size:12px;color:#4c6f81}
+.vx-backup-reload{background:#fff;border:1px solid #a8c5dd;color:#326b90;border-radius:8px;padding:9px 10px;font-size:12px;cursor:pointer}
+@media(max-width:640px){
+ .vx-backup-spotlight{padding:12px}
+ .vx-backup-spotlight-heading{flex-direction:column}
+ .vx-backup-highlight-actions{display:grid;grid-template-columns:1fr}
+ .vx-backup-highlight-actions button{width:100%}
+ .vx-backup-reload{width:100%;min-height:38px}
+}
