@@ -60,6 +60,8 @@ jobs:
             echo "::warning::A checagem global da main já contém erros TypeScript; o Mobile não acrescentou novos erros."
           fi
       - name: Testes existentes
+        id: tests
+        continue-on-error: true
         working-directory: .ci-build
         run: npm test
       - name: Build estático
@@ -74,3 +76,9 @@ jobs:
           test -f dist/public/mobile-icon.svg
           test -f dist/public/mobile-sw.js
           grep -q 'vertice-mobile.webmanifest' dist/public/index.html
+
+      - name: Não aprovar homologação se testes falharam
+        if: ${{ steps.tests.outcome == 'failure' }}
+        run: |
+          echo "::error::A suite existente falhou. Build não substitui homologação funcional."
+          exit 1
