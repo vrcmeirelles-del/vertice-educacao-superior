@@ -7,6 +7,7 @@ const extMime:Record<string,string>={
  pdf:"application/pdf",csv:"text/csv",xlsx:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
  json:"application/json",txt:"text/plain",xml:"application/xml"
 };
+const backupMime:Record<string,string>={rar:"application/vnd.rar",zip:"application/zip",bak:"application/octet-stream"};
 const UUID=/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
 const enc=new TextEncoder();
 const b64=(v:Uint8Array)=>btoa(String.fromCharCode(...v)).replaceAll("+","-").replaceAll("/","_").replace(/=+$/,"");
@@ -79,18 +80,32 @@ Deno.serve(async req=>{
   if(!userResponse.ok||!user?.id||user.is_anonymous)throw E("authentication_required",401);
   const body=await readBody(req);
   const inst=body.institution_id,action=body.action;
-  if(typeof inst!=="string"||!UUID.test(inst)||!folders[inst]||!["list","import"].includes(action))throw E("invalid_request");
+  if(typeof inst!=="string"||!UUID.test(inst)||!folders[inst]||!["list","import","backup-list","backup-import"].includes(action))throw E("invalid_request");
   const allowed=await api("/rest/v1/rpc/vertice_source_drive_authorize",bearer,key,"POST",{p_institution:inst});
   if(allowed!==true)throw E("access_denied",403);
   const token=await graphToken(),folder=await folderInfo(inst,token);
   const root="drives/"+driveId+"/items/";
-  if(action==="list"){
+  if(action==="list"||action==="backup-list"){
+   const backupList=action==="backup-list";
+   const formats=backupList?backupMime:extMime;
+   const limitBytes=backupList?52428800:26214400;
    const list=await graph(root+encodeURIComponent(folder.id)+"/children?%24select=id,name,size,file,folder,parentReference,webUrl,lastModifiedDateTime&%24top=100",token);
-   const files=(list.value??[]).filter((item:any)=>{
+   const candidateItems:any[]=(list.value??[]).filter((item:any)=>item.parentReference?.id===folder.id&&item.file);
+   if(backupList&&inst===UNICALDAS){
+     // Allow only the known first backup volume, never traverse arbitrary user-selected folders.
+     const part=(list.value??[]).find((item:any)=>item.folder&&item.parentReference?.id===folder.id&&
+        /^UNI_GIZ_backup_[0-9_]+[.]part001$/.test(String(item.name??"")));
+     if(part){
+       const nested=await graph(root+encodeURIComponent(part.id)+"/children?%24select=id,name,size,file,parentReference,lastModifiedDateTime&%24top=20",token);
+       candidateItems.push(...(nested.value??[]).filter((x:any)=>x.file&&x.parentReference?.id===part.id));
+     }
+   }
+   const files=candidateItems.filter((item:any)=>{
     const extension=String(item.name??"").split(".").pop()?.toLowerCase();
-    return item.file&&item.parentReference?.id===folder.id&&extMime[extension??""]&&item.size>0&&item.size<=26214400;
+    return formats[extension??""]&&item.size>0&&item.size<=limitBytes;
    }).map((item:any)=>({id:item.id,name:item.name,size:item.size,modified:item.lastModifiedDateTime}));
-   return respond({folder:"Migração / "+folders[inst],files,limit:100,notice:"Somente arquivos do diretório da IES; leitura sujeita à autorização Microsoft."});
+   return respond({folder:"Migração / "+folders[inst],files,limit:100,
+    notice:backupList?"Arquivos da pasta Migração e do volume part001 da UNICALDAS, quando houver; nenhuma restauração é iniciada.":"Somente arquivos do diretório da IES; leitura sujeita à autorização Microsoft."});
   }
   const itemId=body.item_id,period=body.reference_period;
   const sourceKind=body.source_kind??"outro";
@@ -98,17 +113,51 @@ Deno.serve(async req=>{
      ||typeof period!=="string"||period.length>35||!["eorbit","emec","censo","enade","secretaria","site_institucional","outro"].includes(sourceKind))throw E("invalid_request");
   const metadata=await graph(root+encodeURIComponent(itemId)+"?%24select=id,name,size,file,parentReference,webUrl",token);
   const ext=String(metadata.name??"").split(".").pop()?.toLowerCase()??"";
-  if(metadata.parentReference?.id!==folder.id||!metadata.file||!extMime[ext]||metadata.size<=0||metadata.size>26214400)throw E("file_not_authorized",403);
+  const backupMode=action==="backup-import";
+  const format=backupMode?backupMime[ext]:extMime[ext];
+  const maxBytes=backupMode?52428800:26214400;
+  let approvedParent=metadata.parentReference?.id===folder.id;
+  if(!approvedParent&&backupMode&&inst===UNICALDAS&&typeof metadata.parentReference?.id==="string"){
+    const part=await graph(root+encodeURIComponent(metadata.parentReference.id)+"?%24select=id,name,folder,parentReference",token);
+    approvedParent=!!part.folder&&part.parentReference?.id===folder.id&&
+       /^UNI_GIZ_backup_[0-9_]+[.]part001$/.test(String(part.name??""));
+  }
+  if(!approvedParent||!metadata.file||!format||metadata.size<=0||metadata.size>maxBytes)throw E("file_not_authorized",403);
   const download=await fetch("https://graph.microsoft.com/v1.0/"+root+encodeURIComponent(itemId)+"/content",{
-   headers:{Authorization:"Bearer "+token},redirect:"follow",signal:AbortSignal.timeout(25000)
+   headers:{Authorization:"Bearer "+token},redirect:"follow",signal:AbortSignal.timeout(45000)
   });
   if(!download.ok)throw E("file_download_failed",502);
   const bytes=new Uint8Array(await download.arrayBuffer());
-  if(bytes.byteLength!==metadata.size||bytes.byteLength>26214400)throw E("file_size_mismatch",400);
+  if(bytes.byteLength!==metadata.size||bytes.byteLength>maxBytes)throw E("file_size_mismatch",400);
   const id=crypto.randomUUID(),name=String(metadata.name).replace(/[\\/\u0000-\u001f]/g,"_").slice(0,250);
   const storagePath=inst+"/"+id+"/"+name;
   const driveUrl=String(metadata.webUrl??"");
   const validUrl=driveUrl.startsWith("https://")&&new URL(driveUrl).hostname.endsWith(".sharepoint.com");
+  if(backupMode){
+   // Only signature and digest are inspected; no archive unpacking nor SQL execution.
+   const isRar=bytes.length>=7&&bytes[0]===0x52&&bytes[1]===0x61&&bytes[2]===0x72&&
+      bytes[3]===0x21&&bytes[4]===0x1a&&bytes[5]===0x07;
+   const signature=ext==="rar" ? isRar ? bytes[6]===0?"RAR4":bytes[6]===1&&bytes[7]===0?"RAR5":null:null
+     :ext==="zip" ? bytes[0]===0x50&&bytes[1]===0x4b&&bytes[2]===0x03&&bytes[3]===0x04?"ZIP":null
+     :ext==="bak"?"BAK_NAO_VERIFICADO":null;
+   if(!signature)throw E("archive_signature_mismatch",400);
+   const hash=[...new Uint8Array(await crypto.subtle.digest("SHA-256",bytes))].map(v=>v.toString(16).padStart(2,"0")).join("");
+   const earlier=await api("/rest/v1/vertice_academic_backups?institution_id=eq."+inst+"&file_sha256=eq."+hash+"&stage=eq.recebido&select=id,original_name&limit=1",bearer,key,"GET");
+   if(Array.isArray(earlier)&&earlier.length)return respond({already_received:true,id:earlier[0].id,name:earlier[0].original_name,notice:"Esta cópia já consta no cofre da IES."});
+   const record={id,institution_id:inst,source_system:(inst===UNICALDAS?"UNI_GIZ":"Sistema acadêmico")+" / OneDrive",
+    backup_kind:ext,signature_label:signature,original_name:name,bytes:bytes.byteLength,
+    file_sha256:hash,storage_path:storagePath,source_url:validUrl?driveUrl:null,
+    reference_period:period||null,description:"Cópia autenticada do arquivo na raiz da pasta Migração da IES; sem restauração."};
+   await api("/rest/v1/vertice_academic_backups",bearer,key,"POST",record);
+   const store=await fetch(Deno.env.get("SUPABASE_URL")!+"/storage/v1/object/vertice-backups-ies/"+storagePath.split("/").map(encodeURIComponent).join("/"),{
+    method:"POST",headers:{apikey:key,Authorization:bearer,"Content-Type":backupMime[ext],"x-upsert":"false"},
+    body:bytes,signal:AbortSignal.timeout(45000)
+   });
+   if(!store.ok)throw E("backup_storage_upload_failed",502);
+   await api("/rest/v1/vertice_academic_backups?id=eq."+id,bearer,key,"PATCH",{stage:"recebido"});
+   return respond({imported:true,id,name,bytes:bytes.byteLength,
+      notice:"Backup armazenado em cofre privado. Nenhuma restauração ou importação de matrículas foi executada."});
+  }
   const info={id,institution_id:inst,source_kind:sourceKind,source_name:"OneDrive · Migração "+folders[inst],
     reference_period:period||null,original_name:name,mime_type:extMime[ext],bytes:bytes.byteLength,storage_path:storagePath,
     drive_url:validUrl?driveUrl:null,description:"Importação autenticada do diretório Microsoft cadastrado para esta IES."};

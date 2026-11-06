@@ -1,0 +1,36 @@
+.vx-backup{display:grid;gap:16px;padding:20px;border-radius:14px;border:1px solid #d5e3f1;background:#f6f9fd;color:#25405d}
+.vx-backup header span{font-size:11px;letter-spacing:.09em;font-weight:800;color:#2772ad}
+.vx-backup header h3{font-size:21px;margin:6px 0}
+.vx-backup header p{font-size:12px;color:#526e88;line-height:1.5}
+.vx-backup-alert{padding:12px 14px;border:1px solid #e6d7ae;background:#fffaf0;border-radius:9px;font-size:12px;line-height:1.6}
+.vx-backup-form{background:white;border:1px solid #dfe8f1;border-radius:12px;padding:16px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.vx-backup-form label{font-size:12px;font-weight:650;display:grid;align-content:start;gap:6px;min-width:0}
+.vx-backup-form input,.vx-backup-form textarea{width:100%;border:1px solid #bfcbdc;border-radius:8px;padding:10px;background:white;color:#25405d}
+.vx-backup-form .wide,.vx-backup-form>button{grid-column:1/-1}
+.vx-backup-form small,.vx-backup-history small{display:block;font-size:11px;color:#62778a}
+.vx-backup-form button{justify-self:start;background:#2369a4;border:0;border-radius:8px;color:#fff;padding:11px 16px;font-weight:700;cursor:pointer}
+.vx-backup button:disabled{opacity:.55;cursor:wait}
+.vx-backup-selected{font-size:12px;padding:10px;margin:0;background:#eef6ff;border:1px solid #c6dfef;border-radius:7px}
+.vx-backup-stage{font-size:12px;padding:10px 12px;border:1px solid #bfd8f4;background:#edf6ff;border-radius:8px;margin:0}
+.vx-backup-error{color:#a9251e;font-size:12px}.vx-backup-success{color:#0b7553;font-size:12px}
+.vx-backup-history{background:white;padding:16px;border:1px solid #dfe8f1;border-radius:12px}
+.vx-backup-history h4{margin:0 0 12px}.vx-backup-scroll{overflow:auto}
+.vx-backup-history table{border-collapse:collapse;width:100%;font-size:11px}
+.vx-backup-history th,.vx-backup-history td{text-align:left;padding:11px 9px;border-bottom:1px solid #e4ecf3;vertical-align:top}
+.vx-backup-actions{display:flex;flex-wrap:wrap;gap:6px}
+.vx-backup-actions button,.vx-backup-confirm button{border:1px solid #b6cde1;background:#fff;color:#285f90;border-radius:7px;padding:8px;cursor:pointer}
+.vx-backup-confirm{border:1px solid #e2b982;background:#fff7e8;border-radius:10px;padding:14px}
+.vx-backup-confirm p{font-size:12px;line-height:1.5}
+.vx-backup-confirm>div{display:flex;gap:9px}
+@media(max-width:640px){.vx-backup{padding:12px}.vx-backup-form{grid-template-columns:1fr}.vx-backup-form .wide,.vx-backup-form>button{grid-column:1}}
+
+.vx-backup-onedrive{display:grid;gap:11px;padding:16px;background:#fff;border:1px solid #dce7f0;border-radius:12px}
+.vx-backup-onedrive>div>strong{font-size:15px}
+.vx-backup-onedrive>div>p{font-size:12px;color:#526e88;line-height:1.5}
+.vx-backup-onedrive>button{justify-self:start;border:1px solid #9bb5cf;background:#f5fafe;color:#21639c;border-radius:8px;padding:9px 12px;cursor:pointer}
+.vx-backup-onedrive label{display:grid;max-width:320px;gap:5px;font-size:12px;font-weight:650}
+.vx-backup-onedrive label input{width:100%;padding:9px;border-radius:7px;border:1px solid #bdcadb}
+.vx-backup-onedrive small{color:#657c93;font-size:11px}
+.vx-backup-onedrive table{width:100%;border-collapse:collapse;font-size:11px}
+.vx-backup-onedrive th,.vx-backup-onedrive td{padding:10px;text-align:left;border-bottom:1px solid #e2eaf2}
+.vx-backup-onedrive td button{border:1px solid #a5bed3;background:white;color:#245c8e;border-radius:7px;padding:7px 9px;cursor:pointer}
