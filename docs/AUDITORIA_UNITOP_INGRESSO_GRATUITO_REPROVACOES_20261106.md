@@ -71,3 +71,28 @@ Com essas fontes será possível calcular métricas **brutas e ajustadas lado a 
 ## 6. Governança e publicação
 
 O código da nova aba está na branch `feature/unitop-auditoria-matricula-av1-av2-20261106`; ainda **não foi mesclado na main nem publicado no Render**, por falta de validação do build e sessão real na instalação. Não criar novas assinaturas, não alterar preços e não alterar dados acadêmicos.
+
+
+## RETIFICAÇÃO IMPORTANTE — descoberta da base nominal restrita em 06/11/2026
+
+**Correção do diagnóstico anterior:** a afirmação de que não existia base nominal de alunos disponível estava errada. A tabela `public.vertice_eorbit_alunos` está vazia, mas o arquivo nominal **já existe no Supabase Storage da Vértice** e foi recuperado também pela Biblioteca do usuário.
+
+**Localização exata da fonte original:**
+- Arquivo: `UNITOP_Direito_Coortes_Continuidade_AV1_20102026_RESTRITO.xlsx`
+- Bucket privado: `vertice-documentos`
+- Objeto: `1f5fd5b4-93c6-4626-834d-136884915587/restrito/34ff9e51-7ab1-53e4-b2d7-c837bf88f81e/UNITOP_Direito_Coortes_Continuidade_AV1_20102026_RESTRITO.xlsx`
+- Registro `vertice_app.documents`: `classification='restricted'`, `scan_status='pending_scan'`, `deleted_at=null`, 398.839 bytes.
+- SHA-256 do arquivo armazenado no Supabase e da cópia conferida: `1069937c3828b03521dd47ca5110151d370a1acf78c229e39201b5d5381ed9d1` (idênticos).
+- Fonte consultada no e-ORBIT em 20/10/2026.
+
+**Estrutura encontrada:**
+- 4 abas: `Resumo`, `Alunos`, `Base`, `Fontes`.
+- `Alunos`: 552 registros com **552 CPFs distintos**, nome, matrícula, primeiro vínculo, vínculo seguinte, AV1 positiva/zero, retorno, disciplina e docente vinculados à evidência e URL de comprovação no e-ORBIT.
+- `Base`: histórico por CPF para 2023/1–2026/2, vínculo por semestre, AV1 positiva e AV1 zero por semestre; não contém AV2 comprovada.
+- `Fontes`: cobertura da extração, com apontamento de diários consultados e limitações.
+- Contagem rechecável em `Alunos`: 353 estudantes com AV1 positiva na entrada; 199 sem AV1 positiva localizada (27 com AV1 zero sem positiva). Não afirmar que 199 não realizaram prova.
+- Coortes observáveis até 2026/1: 484 entradas, 210 sem vínculo imediatamente seguinte, 114 sem vínculo seguinte e sem AV1 positiva localizada. A coorte 2026/2 ainda não tem acompanhamento posterior.
+
+**Implicação na PR #57:** os dados individuais necessários para nomes e evidência de AV1 já existem em arquivo próprio. O que falta é **indexá-los de maneira segura**, preservando a classificação restrita, resolver o `pending_scan` conforme a política institucional e implementar consultas protegidas pelo perfil autorizado. A ausência de dados na tabela `vertice_eorbit_alunos` NÃO significa ausência de fonte nominal. Evitar nova solicitação ou extração duplicada desta planilha.
+
+**Limites que permanecem:** este arquivo não comprova individualmente AV2, matrícula gratuita, reprovação final por disciplina, recuperação/segunda chance ou aprovação posterior. Sem essas fontes, não calcular exclusão gerencial definitiva nem inferir evasão verdadeira. CPF, nome, matrícula e URLs de evidências não devem ser impressos em logs, expostos publicamente ou enviados a GitHub.
