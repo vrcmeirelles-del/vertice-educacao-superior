@@ -439,22 +439,31 @@ function ReprovacoesAnuais({ reports }: { reports: BIReport[] }) {
           {years.map(year => <option key={year}>{year}</option>)}
         </select></label>
       </div>
-      <p>{selectedA}: {summarize(left)} ({left.length} registros curso × semestre) · {selectedB}: {summarize(right)} ({right.length} registros curso × semestre).</p>
-      <div className="table-scroll" tabIndex={0} role="region" aria-label="Totais de reprovações por ano">
-        <table><thead><tr><th scope="col">Indicador</th><th scope="col">{selectedA}</th><th scope="col">{selectedB}</th><th scope="col">Variação</th></tr></thead>
-          <tbody>{failureMetrics.map(({ key, label, color }) => {
-            const first = total(left, key), second = total(right, key);
-            const delta = comparable && first !== null && second !== null ? second - first : null;
-            const max = Math.max(1, first ?? 0, second ?? 0);
-            return <tr key={key}><th scope="row" style={{ color }}>{label}</th>
-              {[first, second].map((value, index) => <td key={index}>
-                <strong>{format(value)}</strong>
-                {value !== null && <span aria-hidden="true" style={{ display: 'block', height: 5, width: (value / max * 100) + '%', background: color, borderRadius: 4 }}/>}
-              </td>)}
-              <td>{delta === null ? 'ND' : delta.toLocaleString('pt-BR', { signDisplay: 'exceptZero' })}</td>
-            </tr>;
-          })}</tbody>
-        </table>
+      <div className="bi-annual-coverage" aria-label="Cobertura dos dados por ano">
+        <div><span className="bi-annual-coverage-label">Ano-base · {selectedA}</span><strong>{left.length} registros de curso/semestre</strong><small>{summarize(left)}</small></div>
+        <div><span className="bi-annual-coverage-label">Comparação · {selectedB}</span><strong>{right.length} registros de curso/semestre</strong><small>{summarize(right)}</small></div>
+      </div>
+      <div className="bi-annual-grid" aria-label="Totais de reprovações por ano">
+        {failureMetrics.map(({ key, label, color }) => {
+          const first = total(left, key), second = total(right, key);
+          const delta = comparable && first !== null && second !== null ? second - first : null;
+          const max = Math.max(1, first ?? 0, second ?? 0);
+          return <article className="bi-annual-card" key={key} style={{ borderTopColor: color }}>
+            <h3 className="bi-annual-title">{label}</h3>
+            <div className="bi-annual-values">
+              {[{ year: selectedA, value: first }, { year: selectedB, value: second }].map(({ year, value }) => (
+                <div className="bi-annual-value" key={year}>
+                  <span className="bi-annual-year">{year}</span>
+                  <strong>{format(value)}</strong>
+                  <div className="bi-annual-track" aria-hidden="true">
+                    <span style={{ width: value === null ? '0%' : (value / max * 100) + '%', backgroundColor: color }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="bi-annual-delta">{delta === null ? 'Variação não comparável' : `Variação: ${delta.toLocaleString('pt-BR', { signDisplay: 'exceptZero' })}`}</p>
+          </article>;
+        })}
       </div>
       {!comparable && <p>Variação indisponível: os anos têm cobertura diferente de cursos ou semestres.</p>}
       <p className="bi-meta">As contagens representam matrículas em disciplinas. ND indica dado indisponível. O comparativo anual abrange todos os graus da instituição e tem filtros próprios.</p>
