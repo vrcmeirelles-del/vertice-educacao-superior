@@ -37,9 +37,9 @@ const TABS: [Tab, string][] = [
   ["cadastro", "Cadastro e cursos"],
   ["emec", "e-MEC · Regulação"],
   ["metas", "Metas e indicadores"],
-  ["repositorio", "Repositório"],
+  ["repositorio", "Reconhecimento de Curso"],
   ["biblioteca", "Biblioteca INEP"],
-  ["avaliacao", "Avaliação institucional"],
+  ["avaliacao", "Recredenciamento Institucional"],
   ["reitor", "Área do reitor · EBITDA"],
   ["plano", "Plano de ação 5W2H"],
   ["diagnostico", "Diagnóstico"],
@@ -299,7 +299,7 @@ function OverviewTab({ data, stats, onGo }: { data: Data; stats?: { enrolled: nu
       <header><small>ACOMPANHAMENTO INSTITUCIONAL</small><h3>Visão geral da gestão</h3><p>Acompanhe os resultados e abra cada área para tratar as pendências.</p></header>
       <div className="area-stat-grid">
         <article><small>Vida acadêmica</small><b>{stats ? stats.enrolled.toLocaleString("pt-BR") : "—"}</b><span>Matriculados{stats?.semester ? ` em ${stats.semester}` : ""} · {activeCourses} cursos ativos</span><button className="corp-login-text-button" onClick={() => onGo("visao")}>Ver matrículas →</button></article>
-        <article className={docs.late ? "warn" : ""}><small>Evidências validadas</small><b>{docs.validated} / {docs.total}</b><span>{docs.pending} sem envio · {docs.late} em atraso · {docs.nsa} NSA</span><button className="corp-login-text-button" onClick={() => onGo("repositorio")}>Abrir repositório →</button></article>
+        <article className={docs.late ? "warn" : ""}><small>Evidências validadas</small><b>{docs.validated} / {docs.total}</b><span>{docs.pending} sem envio · {docs.late} em atraso · {docs.nsa} NSA</span><button className="corp-login-text-button" onClick={() => onGo("repositorio")}>Abrir Reconhecimento de Curso →</button></article>
         <article className={late.length ? "warn" : ""}><small>Execução do plano</small><b>{done} / {acts.length}</b><span>Ações concluídas · {late.length} atrasadas · {soon.length} a vencer em 30 dias</span><button className="corp-login-text-button" onClick={() => onGo("plano")}>Abrir plano →</button></article>
         <article className={highOpen ? "warn" : ""}><small>Diagnóstico institucional</small><b>{avgScore === null ? "—" : `${fmt1(avgScore)} / 5`}</b><span>{scored.length} critérios com nota · {highOpen} achados prioritários em aberto</span><button className="corp-login-text-button" onClick={() => onGo("diagnostico")}>Abrir diagnóstico →</button></article>
       </div>
