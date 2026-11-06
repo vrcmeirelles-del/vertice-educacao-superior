@@ -16,6 +16,8 @@ export default function SourceCuration({institutionId,files}:Props){
  const [workbook,setWorkbook]=useState<XlsxArchive|null>(null);
  const [sheets,setSheets]=useState<WorkbookSheet[]>([]);
  const [activeSheet,setActiveSheet]=useState("");
+ const [pdfText,setPdfText]=useState("");
+ const [pdfPages,setPdfPages]=useState<number|null>(null);
 
  const [headers,setHeaders]=useState<string[]>([]);
  const [map,setMap]=useState<Mapping>({indicator:"",period:"",value:"",unit:""});
@@ -68,12 +70,23 @@ export default function SourceCuration({institutionId,files}:Props){
    });
  const approved=useMemo(()=>reviews.filter(r=>r.state==="aprovado"),[reviews]);
  async function open(source:Source){
-  setSelected(source);setRawRows([]);setHeaders([]);setCandidate([]);setSha("");setLegacyWarnings([]);setWorkbook(null);setSheets([]);setActiveSheet("");
+  setSelected(source);setRawRows([]);setHeaders([]);setCandidate([]);setSha("");setLegacyWarnings([]);setWorkbook(null);setSheets([]);setActiveSheet("");setPdfText("");setPdfPages(null);
   setError("");setMessage("");setConflicts([]);setConsent(false);setReviewNote("");
   const existing=reviews.find(x=>x.upload_id===source.id);
   setNote(existing?.analysis_note??"");if(existing){setCandidate(existing.candidate_rows);}
   if(source.upload_status!=="recebido"){setError("Arquivo ainda não confirmado. Não é possível analisá-lo.");return;}
   const ext=source.original_name.split(".").pop()?.toLowerCase();
+  if(ext==="pdf"){
+    setBusy(true);try{
+      const {data,error}=await supabase.functions.invoke("vertice-source-pdf-preview",{body:{upload_id:source.id}});
+      if(error){let code="";try{code=(await error.context?.json())?.error??"";}catch{}
+        throw new Error(code==="no_embedded_text"?"PDF digitalizado sem texto selecionável. OCR ainda requer autorização específica.":code||"Extração textual de PDF indisponível.");
+      }
+      if(!data?.text)throw new Error("O PDF não apresentou texto extraível.");
+      setPdfText(data.text);setPdfPages(data.pages??null);
+      setMessage("Prévia textual extraída no servidor. Confira cada número com o PDF original; não houve importação automática de indicadores.");
+    }catch(e){setError((e as Error).message);}finally{setBusy(false);}return;
+  }
   if(!["csv","txt","json","xlsx"].includes(ext??"")){
    setError("Este formato permanece como evidência documental. A curadoria quantitativa aceita CSV, JSON e XLSX; PDFs estão na etapa de prévia textual.");return;
   }
@@ -178,6 +191,12 @@ export default function SourceCuration({institutionId,files}:Props){
   {selected&&<div className="vx-curation-detail">
    <h4>{selected.original_name}</h4>
    {review&&<p><strong>Estado atual:</strong> {stateLabel[review.state]??review.state} · {review.row_count} linhas mapeadas.</p>}
+   {pdfText&&<div className="vx-curation-preview">
+     <h5>Prévia textual do PDF · {pdfPages??"?"} página(s) no arquivo</h5>
+     <p>Somente texto incorporado ao PDF, sem OCR. Não convertemos tabelas automaticamente em registros: confira o original e envie CSV/XLSX para publicar indicadores.</p>
+     <textarea readOnly rows={12} value={pdfText} aria-label="Texto extraído do PDF" style={{width:"100%",fontFamily:"monospace",fontSize:12}}/>
+     <button type="button" onClick={()=>void navigator.clipboard.writeText(pdfText)}>Copiar prévia textual</button>
+   </div>}
    {sheets.length>1&&<label>Aba do arquivo Excel
     <select value={activeSheet} disabled={busy} onChange={e=>void changeSheet(e.target.value)}>
       {sheets.map(sheet=><option key={sheet.path} value={sheet.path}>{sheet.name}</option>)}
