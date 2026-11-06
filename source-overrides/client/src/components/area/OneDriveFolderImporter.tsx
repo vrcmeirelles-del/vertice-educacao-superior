@@ -1,4 +1,4 @@
-import {useState} from "react";
+import {useEffect,useState} from "react";
 import {supabase} from "@/lib/supabase";
 import "./source-curation.css";
 type Item={id:string;name:string;size:number;modified:string};
@@ -13,6 +13,18 @@ export default function OneDriveFolderImporter({institutionId,onImported}:Props)
  const [error,setError]=useState("");
  const [period,setPeriod]=useState("");
  const [kind,setKind]=useState("eorbit");
+ const [stage,setStage]=useState("Nenhuma importação iniciada");
+ useEffect(()=>{
+  const handle=(event:Event)=>{
+   const detail=(event as CustomEvent<{institutionId:string}>).detail;
+   if(detail?.institutionId===institutionId){
+    document.getElementById("vx-onedrive-importer")?.scrollIntoView({behavior:"smooth",block:"start"});
+    void list();
+   }
+  };
+  window.addEventListener("vertice-drive-list",handle);
+  return()=>window.removeEventListener("vertice-drive-list",handle);
+ },[institutionId]);
  async function invoke(body:Record<string,unknown>){
   const {data,error}=await supabase.functions.invoke("vertice-source-onedrive",{body});
   if(error){let detail="";try{detail=(await error.context?.json())?.error??"";}catch{}
@@ -21,29 +33,30 @@ export default function OneDriveFolderImporter({institutionId,onImported}:Props)
   return data;
  }
  async function list(){
-  setLoading(true);setError("");setMessage("");
+  setLoading(true);setError("");setMessage("");setStage("Consultando pasta autorizada no OneDrive…");
   try{const response=await invoke({action:"list",institution_id:institutionId});
-    setFiles(response.files??[]);setFolder(response.folder??"Migração");
+    setFiles(response.files??[]);setFolder(response.folder??"Migração");setStage("Consulta concluída · selecione o arquivo para importar");
     setMessage(response.files?.length?"Selecione o arquivo que deseja copiar para a área de preparação.":"Nenhum arquivo compatível encontrado na pasta autorizada.");
-  }catch(e){setFiles([]);setError((e as Error).message);}
+  }catch(e){setFiles([]);setStage("Falha ao consultar a pasta");setError((e as Error).message);}
   finally{setLoading(false);}
  }
  async function importFile(item:Item){
-  setImporting(item.id);setError("");setMessage("");
+  setImporting(item.id);setError("");setMessage("");setStage("Importando "+item.name+" para o armazenamento privado…");
   try{
    const out=await invoke({action:"import",institution_id:institutionId,item_id:item.id,reference_period:period,source_kind:kind});
    if(!out.imported)throw new Error("Não foi possível confirmar a cópia.");
-   await onImported();
+   await onImported();setStage("Arquivo recebido · aguardando análise no passo 3");
    setMessage("Arquivo "+item.name+" copiado para a área privada de preparação da IES. Agora use a Curadoria (passo 3).");
-  }catch(e){setError((e as Error).message);}
+  }catch(e){setStage("Falha na importação · verifique o erro");setError((e as Error).message);}
   finally{setImporting("");}
  }
  if(!INSTS.has(institutionId))return <section className="vx-source-warning"><strong>Integração Microsoft:</strong> para esta IES ainda não foi configurada uma pasta autorizada. Use o upload ou registre o link até a vinculação da pasta.</section>;
- return <section className="vx-curation" aria-label="Importar da pasta Microsoft autorizada">
+ return <section id="vx-onedrive-importer" className="vx-curation" aria-label="Importar da pasta Microsoft autorizada">
   <div className="vx-curation-heading"><div><span>ETAPA 2 · PASTA AUTORIZADA</span><h3>OneDrive / SharePoint — Migração</h3>
    <p>Leitura restrita à pasta CLIENTES / {institutionId==="1f5fd5b4-93c6-4626-834d-136884915587"?"UNITOP":"UNICALDAS"} / Migração. Não acessa outros clientes nem segue links arbitrários.</p>
   </div></div>
   <button type="button" disabled={loading||!!importing} onClick={()=>void list()}>{loading?"Consultando pasta…":"Consultar arquivos do OneDrive"}</button>
+  <p role="status" className="vx-source-stage"><strong>Andamento:</strong> {stage}</p>
   {folder&&<p>Diretório: {folder}</p>}
   {files.length>0&&<div className="vx-curation-detail">
    <div className="vx-curation-mapping">
