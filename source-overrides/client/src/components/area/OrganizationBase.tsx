@@ -36,6 +36,8 @@ export default function OrganizationBase({institution,data,dataError,onGo}:{inst
  const [kind,setKind]=useState('base'),[title,setTitle]=useState(''),[text,setText]=useState(''),[due,setDue]=useState(''),[owner,setOwner]=useState(''),[status,setStatus]=useState('pendente'),[editing,setEditing]=useState<RecordRow|null>(null);
  const [messages,setMessages]=useState<Message[]>([]),[prompt,setPrompt]=useState(''),[consent,setConsent]=useState(false),[available,setAvailable]=useState<boolean|null>(null);
  const [crosschecks,setCrosschecks]=useState<Crosschecks|null>(null),[crossError,setCrossError]=useState('');
+ useEffect(()=>{const open=()=>setView('assistente');window.addEventListener('vertice-open-assistant',open);return()=>window.removeEventListener('vertice-open-assistant',open);},[]);
+
 
  const [valuation,setValuation]=useState<Record<string,any>>({method:'dcf',scope:'',assumptions:'',valuation_date:new Date().toISOString().slice(0,10),debt:'',cash:'',non_operating:'',equity_adjustments:'',wacc:'',growth:'',cash_flows:['','','','',''],multiple:'',ebitda_adjustment:'',sourceId:''});
  const [calculated,setCalculated]=useState<ReturnType<typeof calculateValuation>|null>(null);
