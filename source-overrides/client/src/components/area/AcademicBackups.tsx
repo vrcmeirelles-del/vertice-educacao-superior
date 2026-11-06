@@ -1,5 +1,6 @@
 import {useCallback,useEffect,useState,type FormEvent} from "react";
 import {supabase} from "@/lib/supabase";
+import OneDriveBackupPicker from "./OneDriveBackupPicker";
 import "./academic-backups.css";
 
 type Kind="rar"|"zip"|"bak";
@@ -220,6 +221,7 @@ export default function AcademicBackups({institutionId,institutionName}:{institu
   <p role="status" className="vx-backup-stage"><strong>Andamento:</strong> {stage}</p>
   {error&&<p role="alert" className="vx-backup-error">{error}</p>}
   {notice&&<p role="status" className="vx-backup-success">{notice}</p>}
+  <OneDriveBackupPicker institutionId={institutionId} onImported={refresh}/>
   <div className="vx-backup-history">
    <h4>Backups da instituição</h4>
    {loading?<p>Consultando cofre privado…</p>:records.length===0?<p>Não existem backups registrados nesta área.</p>:
