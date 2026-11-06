@@ -1,0 +1,29 @@
+.vx-unigiz-check{display:grid;gap:14px;background:#fbfdff;border:1px solid #c9ddec;border-radius:13px;padding:18px;color:#284963}
+.vx-unigiz-check header span{font-size:10px;color:#34739e;font-weight:800;letter-spacing:.09em}
+.vx-unigiz-check header h4{font-size:19px;margin:7px 0 4px}
+.vx-unigiz-check header p{font-size:12px;line-height:1.6;color:#556f85}
+.vx-unigiz-alert{background:#fff8e9;border:1px solid #eed7a3;border-radius:8px;padding:12px;font-size:12px;line-height:1.6}
+.vx-unigiz-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.vx-unigiz-form label{display:grid;gap:6px;background:#fff;border:1px solid #d7e3ee;border-radius:9px;padding:12px;font-size:12px;font-weight:700;min-width:0}
+.vx-unigiz-form input{max-width:100%;font-size:11px}
+.vx-unigiz-form small,.vx-unigiz-check>small{font-size:11px;color:#60778b}
+.vx-unigiz-primary{justify-self:start;background:#1769a4;border:1px solid #1769a4;border-radius:9px;color:#fff;padding:11px 15px;font-weight:700;font-size:12px;cursor:pointer}
+.vx-unigiz-primary:disabled{opacity:.5;cursor:wait}
+.vx-unigiz-form>button{grid-column:1/-1}
+.vx-unigiz-result{border:1px solid #c3d8e8;background:#f1f8ff;border-radius:11px;padding:14px;display:grid;gap:12px}
+.vx-unigiz-result>strong{font-size:13px}
+.vx-unigiz-result>p{font-size:12px;line-height:1.5}
+.vx-unigiz-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.vx-unigiz-stats>div{background:#fff;border:1px solid #d9e7ee;border-radius:9px;padding:11px;display:grid;gap:4px;text-align:center}
+.vx-unigiz-stats b{font-size:21px;color:#135c90;font-variant-numeric:tabular-nums}
+.vx-unigiz-stats span{font-size:10px;color:#687e8d}
+.vx-unigiz-risk{background:#fff5e9;border:1px solid #e9c58e;padding:11px;border-radius:9px}
+.vx-unigiz-result details{font-size:12px;overflow-wrap:anywhere}
+.vx-unigiz-error{color:#af2a29;font-size:12px}
+.vx-unigiz-notice{color:#126d54;font-size:12px}
+.vx-unigiz-history{background:#fff;border:1px solid #e0e9f1;border-radius:10px;padding:13px;font-size:12px}
+.vx-unigiz-history h5{font-size:13px;margin:0 0 9px}
+.vx-unigiz-scroll{overflow:auto}
+.vx-unigiz-history table{border-collapse:collapse;width:100%}
+.vx-unigiz-history th,.vx-unigiz-history td{padding:9px;text-align:left;border-bottom:1px solid #e4ebf1;font-size:11px}
+@media(max-width:640px){.vx-unigiz-check{padding:12px}.vx-unigiz-form{grid-template-columns:1fr}.vx-unigiz-form>button{grid-column:auto}.vx-unigiz-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.vx-unigiz-primary{width:100%}}
