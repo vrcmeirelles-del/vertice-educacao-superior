@@ -64,7 +64,7 @@ function PortalBI({institutions,courses,enrollments,session}:{institutions:Insti
  const semesters=[...new Set(snapshots.filter(e=>own.some(c=>c.id===e.course_id)&&e.student_status==='MATRICULADO').map(e=>e.semester))].sort().reverse();
  const term=semesters.includes(semester)?semester:semesters[0];
  const termPart=(v:string)=>v.match(/(?:^|[-/])0?([12])$/)?.[1]??'';
- const yearPart=(v:string)=>v.match(/^(\\d{4})/)?.[1]??'';
+ const yearPart=(v:string)=>v.match(/^(\d{4})/)?.[1]??'';
  const previousTerm=term?semesters.find(v=>v!==term&&termPart(v)===termPart(term)&&Number(yearPart(v))<Number(yearPart(term))):undefined;
  const countTerm=(v:string|undefined)=>{
   if(!v)return null;
