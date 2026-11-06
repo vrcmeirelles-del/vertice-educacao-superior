@@ -2,6 +2,7 @@ import {useCallback,useEffect,useState,type FormEvent} from "react";
 import {supabase} from "@/lib/supabase";
 import OneDriveBackupPicker from "./OneDriveBackupPicker";
 import UniGizValidation from "./UniGizValidation";
+import MigrationCatalog from "./MigrationCatalog";
 import "./academic-backups.css";
 
 type Kind="rar"|"zip"|"bak";
@@ -257,6 +258,7 @@ export default function AcademicBackups({institutionId,institutionName}:{institu
   <p role="status" className="vx-backup-stage"><strong>Andamento:</strong> {stage}</p>
   {error&&<p role="alert" className="vx-backup-error">{error}</p>}
   {notice&&<p role="status" className="vx-backup-success">{notice}</p>}
+  {institutionId==="4224e2fc-6a96-4761-820f-6f8e809ca1c1"&&<MigrationCatalog institutionId={institutionId}/>}
   <OneDriveBackupPicker institutionId={institutionId} onImported={refresh}/>
   {institutionId==="4224e2fc-6a96-4761-820f-6f8e809ca1c1"&&
     <UniGizValidation institutionId={institutionId}
