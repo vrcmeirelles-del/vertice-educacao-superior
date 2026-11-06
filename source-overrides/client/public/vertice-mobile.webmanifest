@@ -1,0 +1,21 @@
+{
+  "name": "Vértice Mobile — Inteligência Executiva",
+  "short_name": "Vértice",
+  "id": "/mobile",
+  "start_url": "/mobile",
+  "scope": "/mobile",
+  "display": "standalone",
+  "background_color": "#102b48",
+  "theme_color": "#102b48",
+  "orientation": "portrait-primary",
+  "lang": "pt-BR",
+  "description": "BI acadêmico e indicadores de gestão para instituições de ensino superior.",
+  "icons": [
+    {
+      "src": "/mobile-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
