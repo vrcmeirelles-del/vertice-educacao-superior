@@ -54,7 +54,8 @@ export function normalizeInput(rows:InputRow[],mapping:Mapping,defaultUnit:strin
  return rows.map((row,i)=>{
   const indicador=String(row[mapping.indicator]??"").trim();
   const rawPeriod=String(row[mapping.period]??"").trim();
-  const periodo=rawPeriod.replace(/^(\d{4})[-/](0?[12])$/,"$1/0$2").replace(/\/0([12])$/,"/0$1");
+  const parts=/^(20\d\d)[-/](0?[12])$/.exec(rawPeriod);
+  const periodo=parts?parts[1]+"/"+String(Number(parts[2])).padStart(2,"0"):rawPeriod;
   const text=String(row[mapping.value]??"").trim();
   // Not accept ambiguous thousand separators such as "1.987" without an explicit decision.
   if(!/^-?\d+(?:[.,]\d{1,2})?$/.test(text))throw new Error("Linha "+(i+1)+": valor inválido/ambíguo ("+text.slice(0,30)+"). Revise o separador e a unidade.");
