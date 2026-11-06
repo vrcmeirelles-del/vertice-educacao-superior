@@ -152,7 +152,7 @@ export default function Workspace({
       </div>
       {data.courses.some(c=>c.registration_note)&&<p className="area-note">Há cadastros com o mesmo nome e código, mas com históricos próprios. Eles aparecem como Base 1 e Base 2, com suas quantidades de exigências e metas, para você escolher o acervo correto. Nenhum documento ou vínculo foi descartado.</p>}
       {can.manageGoals(role)&&institution.cnpj&&<CnpjConnections institutionId={id}/>}
-      {(role==="master"||role==="gestor"||role==="reitor"||role==="diretor_geral"||role==="diretor_pedagogico"||role==="procurador")&&
+      {(role==="master"||role==="gestor")&&
        <div className="area-panel" style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:14,flexWrap:"wrap"}}>
         <div><strong>Agente de IA · Cruzamento de dados</strong><p className="area-muted" style={{margin:"4px 0 0"}}>Consulte divergências de matrículas, metas, documentos e vínculos autorizados por CNPJ.</p></div>
         <button type="button" className="corp-button" onClick={()=>{
