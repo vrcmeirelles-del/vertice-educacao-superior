@@ -55,7 +55,8 @@ export default function RecordForm({
           const suggestions=(f.type==="textarea"||(!f.type&&f.name!=="cnpj"))?suggestionOptions(f.name,f.label):[];
           const showSuggestions=suggestions.length>0;
           return (
-            <label key={f.name} htmlFor={id} className={f.wide || f.type === "textarea" ? "wide" : ""}>
+            <div key={f.name} className={"vx-form-field "+(f.wide || f.type === "textarea" ? "wide" : "")}>
+              <label htmlFor={id}>
               <span>
                 {f.label}
                 {f.required && <em aria-hidden="true"> *</em>}
@@ -100,7 +101,8 @@ export default function RecordForm({
                 {suggestionMode[f.name]==="outro"&&<small>Digite livremente no campo acima. O texto personalizado será preservado.</small>}
               </div>}
               {f.help && <small>{f.help}</small>}
-            </label>
+              </label>
+            </div>
           );
         })}
       </div>
