@@ -482,17 +482,28 @@ function RaioX({ profs, discs, dossieDireito, cursos, reprovaTipo }: {
       </article>
     )}
 
-    {dossieDireito.length > 0 && (
+    {cursos.length > 0 && (
       <article className="abi-card abi-card-wide">
-        <h3>⚖️ Dossiê Direito — evolução da reprovação</h3>
-        <small className="abi-subtitle">Curso estratégico acompanhado semestre a semestre</small>
-        <div className="abi-dossie">{dossieDireito.map(d => (
-          <div key={d.semestre} className="abi-dossie-col">
-            <span className="abi-dossie-pct">{d.pct.toFixed(1)}%</span>
-            <div className="abi-dossie-bar"><div style={{ height: Math.max(4, d.pct / 20 * 100) + '%', background: d.pct > 13 ? RED : d.pct > 10 ? COLORS[3] : GREEN }} /></div>
-            <span className="abi-dossie-sem">{d.semestre.replace('/', '·')}</span>
-            <span className="abi-dossie-n">{fmt.format(d.reprovacoes)}</span>
-          </div>
+        <h3>📋 Dossiê por Curso — evolução da reprovação</h3>
+        <small className="abi-subtitle">Selecione um curso para acompanhar a evolução semestre a semestre. Todos os cursos com dados de reprovação estão disponíveis.</small>
+        <div className="abi-dossie-select">
+          <select value={openCurso ?? cursos[0]?.courseId ?? ''} onChange={e => setOpenCurso(e.target.value)}>
+            {cursos.map(c => <option key={c.courseId} value={c.courseId}>{c.nome} ({fmt.format(c.totalReprovacoes)} reprov.)</option>)}
+          </select>
+        </div>
+        {(() => {
+          const sel = cursos.find(c => c.courseId === (openCurso ?? cursos[0]?.courseId));
+          if (!sel || sel.series.length === 0) return <p className="abi-empty">Sem séries para este curso.</p>;
+          return <div className="abi-dossie">{sel.series.map(s => {
+            const pct = s.matriculasDisciplina > 0 ? (s.reprovacoes / s.matriculasDisciplina) * 100 : 0;
+            return <div key={s.semestre} className="abi-dossie-col">
+              <span className="abi-dossie-pct">{pct.toFixed(1)}%</span>
+              <div className="abi-dossie-bar"><div style={{ height: Math.max(4, pct / 20 * 100) + '%', background: pct > 13 ? RED : pct > 10 ? COLORS[3] : GREEN }} /></div>
+              <span className="abi-dossie-sem">{s.semestre.replace('/', '·')}</span>
+              <span className="abi-dossie-n">{fmt.format(s.reprovacoes)}</span>
+            </div>;
+          })}</div>;
+        })()}
         ))}</div>
       </article>
     )}
@@ -607,7 +618,7 @@ function Funil({ fluxo }: { fluxo: FluxoSemestre[] }) {
 }
 
 /* ============================================================ Evasão & Renovação */
-function EvasaoRenovacao({ report }: { report: CohortsReport | null }) {
+function EvasaoRenovacao({ report, cursos }: { report: CohortsReport | null; cursos: CourseIndicator[] }) {
   if (!report || report.coortes.length === 0)
     return <p className="abi-empty">Sem dados de renovação/evasão para esta instituição.</p>;
 
@@ -660,6 +671,26 @@ function EvasaoRenovacao({ report }: { report: CohortsReport | null }) {
       </table>
       <small className="abi-subtitle">Método: {report.method || 'continuidade de vínculo entre semestres (e-ORBIT)'}. Tipos de saída formal (trancamento, transferência, cancelamento, abandono) estão na aba Funil Acadêmico.</small>
     </article>
+
+    {cursos.length > 0 && (
+      <article className="abi-card abi-card-wide">
+        <h3>Reprovação por curso — impacto na evasão</h3>
+        <small className="abi-subtitle">Cursos com maior volume de reprovações tendem a apresentar maior evasão. Clique para expandir.</small>
+        <table className="abi-table">
+          <thead><tr><th>Curso</th><th>Reprov. total</th><th>RF (falta)</th><th>RN (nota)</th><th>RA (exame)</th><th>Em risco</th></tr></thead>
+          <tbody>{cursos.slice(0, 15).map(c => (
+            <tr key={c.courseId}>
+              <td>{c.nome}</td>
+              <td className="abi-num">{fmt.format(c.totalReprovacoes)}</td>
+              <td className="abi-num">{fmt.format(c.totalRf)}</td>
+              <td className="abi-num">{fmt.format(c.totalRn)}</td>
+              <td className="abi-num">{fmt.format(c.totalRa)}</td>
+              <td className="abi-num">{c.alunosEmRisco != null ? fmt.format(c.alunosEmRisco) : '—'}</td>
+            </tr>
+          ))}</tbody>
+        </table>
+      </article>
+    )}
   </div>;
 }
 
@@ -791,7 +822,7 @@ export default function AcademicoBI({ institutionId, institutionName }: { instit
     {aba === 'geral' && <VisaoGeral bi={bi} semestreLabel={semestreLabel} modalidadeFilter={modalidadeFilter} setModalidadeFilter={setModalidadeFilter} modalities={modalities} />}
     {aba === 'comparador' && <Comparador quantitativo={quantitativo} cursos={cursos} semestres={semestres} />}
     {aba === 'raiox' && <RaioX profs={profs} discs={discs} dossieDireito={dossie} cursos={courseIndicators} reprovaTipo={reprovaTipo} />}
-    {aba === 'evasao' && <EvasaoRenovacao report={cohorts} />}
+    {aba === 'evasao' && <EvasaoRenovacao report={cohorts} cursos={courseIndicators} />}
     {aba === 'simulador' && <Simulador reprovaSemestre={reprovaSem} />}
     {aba === 'funil' && <Funil fluxo={fluxo} />}
   </section>;

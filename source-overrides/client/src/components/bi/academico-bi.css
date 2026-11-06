@@ -226,6 +226,8 @@
 .abi-rank-detail b { color: #172e46; }
 
 /* Dossiê Direito */
+.abi-dossie-select { margin-bottom: 12px; }
+.abi-dossie-select select { padding: 8px 12px; border: 1px solid #d4d9ea; border-radius: 8px; background: white; color: inherit; font-size: 14px; max-width: 100%; }
 .abi-dossie { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; margin-top: 8px; }
 .abi-dossie-col { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; min-width: 56px; }
 .abi-dossie-pct { font-size: 13px; font-weight: 700; color: #172e46; }
