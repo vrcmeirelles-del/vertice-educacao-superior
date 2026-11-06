@@ -34,7 +34,7 @@ export default function UniGizValidation({institutionId,backupId}:{institutionId
   }catch(e){setError((e as Error).message);}
   finally{setBusy(false);}
  }
- async function uploadEvidence(id:string,path:string,file:File,hash:string,contentType:string){
+ async function uploadEvidence(path:string,file:File,hash:string,contentType:string){
   const {error}=await supabase.storage.from(BUCKET).upload(path,file,{upsert:false,contentType});
   if(!error)return;
   // Support safe retry after an interrupted transfer, without overwriting evidence.
@@ -69,12 +69,16 @@ export default function UniGizValidation({institutionId,backupId}:{institutionId
     if(insertError)throw insertError;
    }
    const prefix=institutionId+"/"+id+"/";
-   await uploadEvidence(id,prefix+"00_manifesto_conciliacao.json",manifest,verification.manifestSha,"application/json");
-   await uploadEvidence(id,prefix+"02_642_tabelas.csv",tables,verification.tablesSha,"text/csv");
-   const {data:confirmed,error:confirmError}=await supabase.from("vertice_backup_structure_checks")
-    .update({stage:"evidencias_recebidas"})
-    .eq("id",id).eq("institution_id",institutionId).select("id").single();
-   if(confirmError||!confirmed)throw confirmError??new Error("A Vértice não confirmou o recebimento das duas evidências.");
+   await uploadEvidence(prefix+"00_manifesto_conciliacao.json",manifest,verification.manifestSha,"application/json");
+   await uploadEvidence(prefix+"02_642_tabelas.csv",tables,verification.tablesSha,"text/csv");
+   const {data:confirmed,error:confirmError}=await supabase.functions.invoke("vertice-backup-validation-confirm",{
+     body:{report_id:id,institution_id:institutionId}
+   });
+   if(confirmError){
+     let code="";try{code=(await confirmError.context?.json())?.error??"";}catch{}
+     throw new Error(code||"A confirmação de integridade no servidor não foi concluída.");
+   }
+   if(!confirmed?.confirmed)throw new Error("A confirmação de integridade no servidor não foi concluída.");
    setMessage("Evidências recebidas no cofre restrito da UNICALDAS. Pré-análise registrada; homologação acadêmica e BI permanecem bloqueados.");
    setResult(null);setManifest(null);setTables(null);
    const a=document.getElementById("vx-unigiz-manifest") as HTMLInputElement|null,b=document.getElementById("vx-unigiz-tables") as HTMLInputElement|null;
