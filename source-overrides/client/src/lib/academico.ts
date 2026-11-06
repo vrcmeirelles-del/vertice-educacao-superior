@@ -461,7 +461,7 @@ export function resumirEvasao(coortes: Coorte[]): EvasaoResumo {
     taxaRenovacao: baseMov > 0 ? (renovaram / baseMov) * 100 : 0,
     taxaEvasao: baseMov > 0 ? (evadiram / baseMov) * 100 : 0,
     evadiramComDesempenho: comDes,
-    evadiramSemDesempenhn: semDes,
+    evadiramSemDesempenho: semDes,
     pctEvasaoNaoAcademica: (comDes + semDes) > 0 ? (comDes / (comDes + semDes)) * 100 : 0,
     retornaram,
   };
