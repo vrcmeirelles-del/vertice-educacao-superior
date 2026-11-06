@@ -1,3 +1,5 @@
+import "@/lib/ies/preAuthGuard";
+import "@/lib/master-invitation-bootstrap";
 import './pages/public/commercial-demo.css';
 import "./styles/aquisicoes.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";

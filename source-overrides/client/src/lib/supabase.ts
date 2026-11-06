@@ -1,4 +1,5 @@
 import { iesBootstrapRejected } from './ies/preAuthGuard';
+import "@/lib/master-invitation-bootstrap";
 import { createClient } from '@supabase/supabase-js';
 // Capture the callback type before the SDK consumes and removes the fragment.
 const callback = typeof window === 'undefined' ? new URLSearchParams() : new URLSearchParams(window.location.hash.slice(1));
