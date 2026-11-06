@@ -1,6 +1,7 @@
 import {actionDraftKey,parseActionDraft,storeActionDraft,validateActionLinks,changeActionScope} from "@/lib/portal-integration";
 import ActionCockpit from "./ActionCockpit";
 import ActionKanban from "./ActionKanban";
+import ActiveGovernance from "./ActiveGovernance";
 import RegistryContacts from "./RegistryContacts";
 import { courseClassification, useCourseFilters } from "./CourseFilters";
 import {displayCourseRows} from '@/lib/course-labels';
@@ -719,6 +720,7 @@ function ActionsTab({ institutionId, role, data, reload }: { institutionId: stri
         <button type="button" className={actionView==="tabela"?"corp-button small":"corp-login-text-button"} aria-pressed={actionView==="tabela"} onClick={()=>setActionView("tabela")}>Tabela 5W2H</button>
       </div>
       {actionSaveError&&<p role="alert" className="area-error">{actionSaveError}</p>}
+      <ActiveGovernance institutionId={institutionId} actions={data.actions} role={role} onChanged={reload}/>
       {actionView==="kanban"&&<ActionKanban actions={data.actions} goals={data.goals} canEdit={can.record(role)} onEdit={a=>ed.open(a)} onMove={async(a,status)=>{
         setActionSaveError("");
         try {await saveRow(TABLES.actions,{status},String(a.id));await reload();}
