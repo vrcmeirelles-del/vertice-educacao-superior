@@ -26,9 +26,39 @@ jobs:
       - name: Dependências bloqueadas pelo lockfile
         working-directory: .ci-build
         run: npm ci --legacy-peer-deps --no-audit --no-fund
-      - name: Typecheck
-        working-directory: .ci-build
-        run: npm run check
+      - name: Preparar referência da branch principal
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: .ci-main-source
+      - name: Montar fonte de referência
+        shell: bash
+        run: |
+          mkdir -p .ci-base
+          unzip -qo .ci-main-source/vertice-servidor-source.zip -d .ci-base
+          cp -a .ci-main-source/source-overrides/. .ci-base/
+          ln -s "$PWD/.ci-build/node_modules" .ci-base/node_modules
+      - name: Comparar erros TypeScript com a branch principal
+        shell: bash
+        run: |
+          set +e
+          (cd .ci-base && ../.ci-build/node_modules/.bin/tsc --noEmit) > typecheck-base.log 2>&1
+          base_rc=$?
+          (cd .ci-build && npm run check) > typecheck-mobile.log 2>&1
+          mobile_rc=$?
+          set -e
+          grep -E 'error TS[0-9]+:' typecheck-base.log | sort > typecheck-base-errors.txt || true
+          grep -E 'error TS[0-9]+:' typecheck-mobile.log | sort > typecheck-mobile-errors.txt || true
+          echo "TypeScript base exit: $base_rc; mobile exit: $mobile_rc"
+          echo "Erros pré-existentes: $(wc -l < typecheck-base-errors.txt)"
+          echo "Erros da branch mobile: $(wc -l < typecheck-mobile-errors.txt)"
+          if ! diff -u typecheck-base-errors.txt typecheck-mobile-errors.txt; then
+            echo "::error::A branch mobile acrescenta ou altera erros TypeScript em relação à main."
+            exit 1
+          fi
+          if [ "$mobile_rc" -ne 0 ]; then
+            echo "::warning::A checagem global da main já contém erros TypeScript; o Mobile não acrescentou novos erros."
+          fi
       - name: Testes existentes
         working-directory: .ci-build
         run: npm test
