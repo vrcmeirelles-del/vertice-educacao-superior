@@ -5,6 +5,7 @@ import {
 } from "@/lib/area";
 
 const TAB_LABELS: Record<Tab, string> = {
+  avaliacao: "Recredenciamento Institucional",
   base: "Base da organização",
   ia: "Análise Documental",
   geral: "Visão geral",
@@ -13,7 +14,7 @@ const TAB_LABELS: Record<Tab, string> = {
   cadastro: "Cadastro e cursos",
   emec: "e-MEC · Regulação",
   metas: "Metas e indicadores",
-  repositorio: "Repositório",
+  repositorio: "Reconhecimento de Curso",
   biblioteca: "Biblioteca INEP",
   reitor: "Área do reitor · EBITDA",
   eorbit: "e-ORBIT",
@@ -24,7 +25,7 @@ const TAB_LABELS: Record<Tab, string> = {
 
 const ALL_TABS: Tab[] = [
   "base", "ia", "geral", "analise", "visao", "cadastro",
-  "emec", "metas", "repositorio", "biblioteca", "reitor",
+  "emec", "metas", "repositorio", "biblioteca", "avaliacao", "reitor",
   "plano", "diagnostico", "equipe",
 ];
 
