@@ -29,7 +29,7 @@ export function RepositoryNumbers({
     <div className="repo-numbers">
       {courses !== undefined && (
         <article>
-          <span>Cursos no repositório</span>
+          <span>Cursos em Reconhecimento de Curso</span>
           <strong>{courses}</strong>
           <small>Todos os cursos cadastrados</small>
         </article>
@@ -216,7 +216,7 @@ export function RepositoryCourseHome({
                 </td>
                 <td>
                   <button className="repo-open" onClick={() => onCourse(c.id)}>
-                    Abrir repositório <span aria-hidden="true">→</span>
+                    Abrir Reconhecimento de Curso <span aria-hidden="true">→</span>
                   </button>
                 </td>
               </tr>
