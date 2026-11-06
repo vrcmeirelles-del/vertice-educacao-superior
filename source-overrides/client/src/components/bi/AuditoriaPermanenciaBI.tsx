@@ -88,9 +88,22 @@ export default function AuditoriaPermanenciaBI({institutionId,institutionName}:{
     }
     return map;
   },[reports]);
-  const listedCourses=courses.filter(c=>courseIndicators.has(c.id)||cohorts.some(x=>x.course_id===c.id));
+  const listedCourses=courses.filter(c=>courseIndicators.has(c.id)||cohorts.some(x=>x.course_id===c.id))
+    .sort((a,b)=>{
+      const aC=cohorts.some(x=>x.course_id===a.id)?1:0,bC=cohorts.some(x=>x.course_id===b.id)?1:0;
+      if(aC!==bC)return bC-aC;
+      return a.name.localeCompare(b.name)||((courseIndicators.get(b.id)?.payload.reprobation_series??[]).length-
+        (courseIndicators.get(a.id)?.payload.reprobation_series??[]).length);
+    });
   const currentId=listedCourses.some(c=>c.id===courseId)?courseId:(listedCourses[0]?.id??"");
   const currentCourse=courses.find(c=>c.id===currentId);
+  const currentReport=courseIndicators.get(currentId);
+  const riskCount=currentReport?.payload?.risk_roster?.listed;
+  const sources=Array.isArray(currentReport?.payload?.sources)?currentReport!.payload.sources:[];
+  const rosterSource=sources.find((s:any)=>s.name==="Lista_Final_Alunos_Risco_UNITOP.xlsx"
+    && /^https:\/\/vrcmeirelles-my[.]sharepoint[.]com\//.test(String(s.source_url??"")));
+  const duplicateCodes=listedCourses.filter(c=>c.code&&listedCourses.filter(o=>o.code===c.code).length>1);
+
   const series=(courseIndicators.get(currentId)?.payload.reprobation_series??[]) as Reprobation[];
   const semesters=series.map(s=>s.semester);
   const chosenSemester=semester&&semesters.includes(semester)?semester:"";
@@ -139,13 +152,18 @@ export default function AuditoriaPermanenciaBI({institutionId,institutionName}:{
         <h3>Reprovações por curso e semestre — recorte analítico</h3>
         <div className="vxa-filters">
           <label>Curso <select value={currentId} onChange={e=>{setCourseId(e.target.value);setSemester("");}}>
-            {listedCourses.map(c=><option key={c.id} value={c.id}>{c.code?c.code+" · ":""}{c.name}</option>)}
+            {listedCourses.map(c=><option key={c.id} value={c.id}>{c.code?c.code+" · ":""}{c.name}{listedCourses.filter(x=>x.code===c.code&&c.code).length>1?" · "+String((courseIndicators.get(c.id)?.payload.reprobation_series??[]).length)+" períodos na fonte":""}</option>)}
           </select></label>
           <label>Semestre <select value={chosenSemester} onChange={e=>setSemester(e.target.value)}>
             <option value="">Todos os disponíveis</option>{semesters.map(s=><option key={s} value={s}>{s}</option>)}
           </select></label>
         </div>
         {currentCourse?<p><strong>{currentCourse.name}</strong> · código {currentCourse.code??"não informado"} · total de vínculos em disciplinas, não alunos únicos</p>:<p>Não há relatório por curso identificado.</p>}
+        {duplicateCodes.some(c=>c.code===currentCourse?.code)&&<p className="vxa-alert"><strong>Atenção:</strong> existem cadastros distintos com o mesmo código de curso. Seus recortes não foram somados automaticamente; selecione o histórico adequado antes de interpretar o indicador.</p>}
+        {riskCount!=null&&<div className="vxa-roster"><strong>{fmt(int(riskCount))} registros na lista de acompanhamento por reprovação</strong>
+          <p>Fonte nominal histórica por curso, sem semestre da seleção, disciplina da reprovação nem informação de segunda chance. Não corresponde necessariamente aos reprovados do recorte acima.</p>
+          {rosterSource&&<a href={rosterSource.source_url} target="_blank" rel="noopener noreferrer">Consultar lista nominal original no OneDrive</a>}
+        </div>}
         <div className="vxa-submetrics">
           <article><small>Reprovação por falta (RF)</small><strong>{fmt(totalRF)}</strong></article>
           <article><small>Reprovação por nota (RN)</small><strong>{fmt(totalRN)}</strong></article>
