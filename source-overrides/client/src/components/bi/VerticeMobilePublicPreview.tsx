@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "./vertice-mobile-public.css";
 
 type Tab = "visao" | "cursos" | "academico" | "documentos" | "alertas";
@@ -36,6 +36,12 @@ function Tag({ children, type = "neutral" }: { children: string; type?: "neutral
   return <span className={"vmp-tag vmp-tag-" + type}>{children}</span>;
 }
 export default function VerticeMobilePublicPreview() {
+  useEffect(() => {
+    document.title = "Vértice Mobile | Demonstração sem login";
+    if ("serviceWorker" in navigator) {
+      void navigator.serviceWorker.register("/mobile-sw.js", { scope: "/mobile" }).catch(() => undefined);
+    }
+  }, []);
   const [tab, setTab] = useState<Tab>("visao");
   const [selectedCourse, setSelectedCourse] = useState(COURSES[0].name);
   const [focus, setFocus] = useState<"2026/02" | "2026/01">("2026/02");
@@ -58,7 +64,7 @@ export default function VerticeMobilePublicPreview() {
     </section>
     <main className="vmp-main">
       <div className="vmp-filter">
-        <label>Instituição <select value="Faculdade Exemplo — Demonstração" onChange={() => {}} aria-label="Instituição demonstrativa"><option>Faculdade Exemplo — Demonstração</option></select></label>
+        <label>Instituição <select value="Faculdade Exemplo — Demonstração" disabled aria-label="Instituição demonstrativa"><option>Faculdade Exemplo — Demonstração</option></select></label>
         <label>Semestre <select value={focus} onChange={event => setFocus(event.target.value as "2026/02" | "2026/01")} aria-label="Semestre demonstrativo"><option value="2026/02">2026/2</option><option value="2026/01">2026/1</option></select></label>
       </div>
       {tab === "visao" && <>
@@ -74,7 +80,7 @@ export default function VerticeMobilePublicPreview() {
           <div className="vmp-gauge"><div className="vmp-gauge-inside"><strong>84</strong><small>de 100</small></div></div>
         </section>
         <section className="vmp-panel">
-          <div className="vmp-section-head inner"><div><span>TRAJETÓRIA</span><h3>Evolução institucional</h3></div><Tag type="success">+8,0%</Tag></div>
+          <div className="vmp-section-head inner"><div><span>TRAJETÓRIA</span><h3>Evolução institucional</h3></div><Tag type="success">{percent(change(all, priorAll))}</Tag></div>
           <div className="vmp-spark-chart" aria-label="Série histórica fictícia em barras verticais">{lineChart.map((v,i) => <div key={i} className="vmp-spark-wrap"><span style={{height:v+"%"}}/><small>{i===0?"Jan":i===5?"Jun":i===11?"Dez":""}</small></div>)}</div>
           <div className="vmp-insight"><strong>✦ Leitura estratégica</strong><p>O crescimento agregado é positivo, mas a análise por curso revela comportamentos diferentes. Oportunidade de captação e permanência devem ser tratadas separadamente.</p></div>
         </section>
