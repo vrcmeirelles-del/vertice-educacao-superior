@@ -48,7 +48,7 @@ def pick(row: dict, field: str) -> str:
 
 def semester(value: str) -> str:
     m = re.fullmatch(r"\s*(20\d{2}|19\d{2})\s*[/._-]\s*0?([12])\s*", str(value))
-    return f"{m.group(1)}/{m.group(2)}" if m else ""
+    return f"{m.group(1)}/{int(m.group(2)):02d}" if m else ""
 
 
 def cpf_is_valid(value: str) -> bool:
