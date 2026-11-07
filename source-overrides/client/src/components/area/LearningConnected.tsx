@@ -42,7 +42,6 @@ export default function LearningConnected({institutionId,courses,role}:{
  const periods=[...new Set(data.map(x=>x.semester))].sort().reverse();
  const filtered=data.filter(row=>(!filterCourse||row.course_id===filterCourse)&&
    (!filterPeriod||row.semester===filterPeriod)&&(!filterModule||row.module===filterModule));
- const students=new Set(filtered.map(x=>x.course_id+"|"+x.semester));
  const totals={courses:courses.length,groups:filtered.length,
    attempts:filtered.reduce((s,x)=>s+x.attempts,0),
    coherent:filtered.filter(x=>x.paired_students>=5&&x.comparison_gap!==null).length};
@@ -83,7 +82,8 @@ export default function LearningConnected({institutionId,courses,role}:{
      const {data:rows,error:refreshError}=await supabase.from("vertice_learning_course_metrics")
        .select("*").eq("institution_id",institutionId).limit(1000);
      if(!refreshError)setData((rows??[]) as Metric[]);
-   }catch(error){setMessage("Não foi possível concluir: "+errorMessage(error));}
+     return true;
+   }catch(error){setMessage("Não foi possível concluir: "+errorMessage(error));return false;}
    finally{setBusy(false);}
  };
  const link="https://www.fatoeordem.com.br/vincular-vertice?institutionId="+encodeURIComponent(institutionId);
@@ -91,7 +91,7 @@ export default function LearningConnected({institutionId,courses,role}:{
    event.preventDefault();
    if(!canManage||!mapping.reviewed)return;
    if(!window.confirm("Confirmar que o vínculo disciplina–competência foi revisado com evidência?"))return;
-   void bridgeAction({operation:"map_subject",...mapping}).then(()=>setMapping(initial));
+   void bridgeAction({operation:"map_subject",...mapping}).then(ok=>{if(ok)setMapping(initial);});
  };
  return <section className="learning-connected">
    <header className="learning-hero">
@@ -156,7 +156,7 @@ export default function LearningConnected({institutionId,courses,role}:{
        <label>Curso <select value={mapping.courseId} required onChange={e=>setMapping(v=>({...v,courseId:e.target.value}))}><option value="">Selecione o curso</option>{courses.map(c=><option key={String(c.id)} value={String(c.id)}>{String(c.display_name??c.name)} · {String(c.code??"")}</option>)}</select></label>
        <label>Código da disciplina<input required value={mapping.subjectCode} maxLength={120} onChange={e=>setMapping(v=>({...v,subjectCode:e.target.value}))} placeholder="Código cadastrado no sistema acadêmico"/></label>
        <label>Exame <select value={mapping.module} onChange={e=>setMapping(v=>({...v,module:e.target.value}))}>{MODULES.map(([k,v])=><option key={k} value={k}>{v}</option>)}</select></label>
-       <label>Competência avaliada<input required minLength={3} value={mapping.competency} maxLength={500} onChange={e=>setMapping(v=>({...v,competency:e.target.value}))} placeholder="Descrição validada; * apenas para avaliação geral"/></label>
+       <label>Competência avaliada<input required minLength={3} value={mapping.competency} maxLength={500} onChange={e=>setMapping(v=>({...v,competency:e.target.value}))} placeholder="Competência documentada na matriz e no plano de ensino"/></label>
        <label className="wide">Evidência de vínculo curricular<input required minLength={3} value={mapping.evidenceRef} maxLength={1000} onChange={e=>setMapping(v=>({...v,evidenceRef:e.target.value}))} placeholder="Matriz de referência, plano de ensino ou documentação institucional"/></label>
        <label className="wide learning-check"><input type="checkbox" checked={mapping.reviewed} onChange={e=>setMapping(v=>({...v,reviewed:e.target.checked}))} required/><span>Confirmei pessoalmente a correspondência entre disciplina, competência e instrumento de avaliação.</span></label>
        <button className="corp-button small" type="submit" disabled={busy||!status?.configured}>Validar mapeamento</button>
