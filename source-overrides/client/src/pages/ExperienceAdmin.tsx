@@ -51,6 +51,15 @@ export default function ExperienceAdmin(){
    try{await call('admin:revoke',{id});await load();setNotice('Convite revogado.');}catch(e){setError((e as Error).message);}finally{setBusy(false);}
  }
  async function copy(){if(!link)return;try{await navigator.clipboard.writeText(link);setNotice('Link copiado. Compartilhe somente com o destinatário autorizado.');}catch{setNotice('Selecione e copie manualmente o link no campo abaixo.');}}
+ function exportCsv(){
+   const header=['Destinatário','E-mail','Cenário','Perfil','Criado em','Expira em','Revogado em','Aberturas','Simulações salvas','Último acesso','Módulos explorados'];
+   const safe=(x:unknown)=>{const value=String(x??'');const escaped=/^[=+@-]/.test(value)?"'"+value:value;return '"'+escaped.replaceAll('"','""')+'"';};
+   const rows=invites.map(i=>[i.recipient_name,i.target_email,demoInstitutionProfiles[i.institution_type]?.name,i.experience_role,i.created_at,i.expires_at,i.revoked_at??'',i.opens,i.saves,i.last_opened_at??'',Object.entries(i.usage??{}).map(([k,v])=>k+':'+v).join(' | ')]);
+   const csv='\uFEFF'+[header,...rows].map(row=>row.map(safe).join(';')).join('\r\n');
+   const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+   const anchor=document.createElement('a');anchor.href=url;anchor.download='Vertice-Experience-Relatorio-Comercial.csv';anchor.click();
+   window.setTimeout(()=>URL.revokeObjectURL(url),2000);
+ }
  const summary=useMemo(()=>({
     total:invites.length,opened:invites.filter(i=>i.opens>0).length,
     active:invites.filter(i=>!i.revoked_at&&Date.parse(i.expires_at)>Date.now()).length,
@@ -105,6 +114,7 @@ export default function ExperienceAdmin(){
      <section className="ds-card" style={{padding:22}}>
        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:8}}><h2 style={{marginTop:0}}>Visitas e desempenho</h2><button type="button" className="demo-link-button" disabled={busy} onClick={()=>{setBusy(true);void load().catch(e=>setError(e.message)).finally(()=>setBusy(false));}}><RefreshCw size={15}/> Atualizar</button></div>
        <p>Visão comercial por convite: o que foi explorado, quantas alterações fictícias foram realizadas e quais módulos despertaram interesse.</p>
+       <button type="button" className="demo-link-button" disabled={!invites.length} onClick={exportCsv}>Exportar relatório CSV</button>
        {!invites.length&&<p>Não há convites registrados neste ambiente.</p>}
        <div className="table-scroll"><table><thead><tr><th>Destinatário / cenário</th><th>Visitas</th><th>Utilização</th><th>Situação</th><th>Ação</th></tr></thead><tbody>
         {invites.map(x=>{
