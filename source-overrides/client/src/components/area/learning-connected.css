@@ -43,3 +43,6 @@
 .learning-message{background:#f0f8ed;border:1px solid #c9e4c7;border-radius:11px;padding:15px;color:#396449;font-size:13px}
 @media(max-width:900px){.learning-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.learning-columns{grid-template-columns:1fr}}
 @media(max-width:650px){.learning-hero{padding:17px}.learning-panel{padding:16px}.learning-map{grid-template-columns:1fr}.learning-map label.wide{grid-column:auto}.learning-filters{display:grid}.learning-filters label{min-width:0}.learning-kpis article{padding:12px}}
+
+.learning-tenant-actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 18px}
+.learning-tenant-actions button{max-width:100%}
