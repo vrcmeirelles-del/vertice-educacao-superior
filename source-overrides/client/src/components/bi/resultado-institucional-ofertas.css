@@ -1,0 +1,38 @@
+.vxo{display:grid;gap:16px;color:#21334d;padding:5px 0 25px}
+.vxo-header{display:flex;justify-content:space-between;gap:18px;align-items:center;flex-wrap:wrap;padding:20px 22px;border-radius:18px;background:linear-gradient(120deg,#deebfa,#eaf6f1);border:1px solid #c4d9e6}
+.vxo-header small{letter-spacing:.08em;font-size:.73rem;font-weight:800;color:#34748d}
+.vxo-header h3{font-size:clamp(1.17rem,2.3vw,1.5rem);margin:7px 0;color:#234378}
+.vxo-header p{font-size:.9rem;margin:0;color:#526880;max-width:740px}
+.vxo-header button{border:1px solid #adcbda;border-radius:10px;padding:10px 14px;color:#2b5b87;background:white;cursor:pointer;font-weight:700}
+.vxo-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.vxo-kpis article{display:flex;flex-direction:column;gap:8px;padding:16px;border:1px solid #d8e2ee;border-radius:14px;background:#fff;box-shadow:0 4px 12px #24406b10}
+.vxo-kpis small{font-weight:750;font-size:.81rem;color:#62758b}
+.vxo-kpis strong{font-size:clamp(1.5rem,2.5vw,2.25rem);color:#285d8a;line-height:1.1;font-variant-numeric:tabular-nums}
+.vxo-kpis span{font-size:.72rem;color:#6d7b90}
+.vxo-types{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.vxo-types div{border-radius:13px;background:#f1f6fa;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;color:#36516f}
+.vxo-types div:nth-child(1){background:#fff0e5}.vxo-types div:nth-child(2){background:#e9f1ff}.vxo-types div:nth-child(3){background:#f1ebff}
+.vxo-types span{font-size:.85rem;font-weight:650}.vxo-types strong{font-size:1.35rem;font-variant-numeric:tabular-nums}
+.vxo-tools{display:grid;grid-template-columns:1fr 1.8fr 1.5fr;gap:12px;background:white;border:1px solid #dce6ef;padding:15px;border-radius:13px}
+.vxo-tools label{display:flex;flex-direction:column;gap:6px;color:#425975;font-size:.83rem;font-weight:750}
+.vxo-tools input,.vxo-tools select{padding:10px 12px;border-radius:9px;border:1px solid #beccdb;width:100%;background:#fff;color:#253956;font:inherit;box-sizing:border-box}
+.vxo-context{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:.88rem;color:#516381}
+.vxo-context button{border:0;background:none;padding:0;cursor:pointer;color:#176a9c;text-decoration:underline;font:inherit}
+.vxo-card{background:white;border:1px solid #dce5ef;border-radius:16px;padding:18px;box-shadow:0 7px 15px #1a34500d;display:grid;gap:12px;min-width:0}
+.vxo-card h4{font-size:1.12rem;color:#244679;margin:0}
+.vxo-scroll{overflow-x:auto;max-width:100%;border-radius:10px;border:1px solid #e4eaf1}
+.vxo-scroll table{border-collapse:collapse;width:100%;font-size:.82rem;min-width:720px}
+.vxo-scroll th{position:sticky;top:0;background:#edf3fa;color:#294874;font-weight:800;text-align:left;padding:10px;white-space:nowrap}
+.vxo-scroll td{padding:9px 10px;border-bottom:1px solid #e9edf3;vertical-align:top}
+.vxo-scroll td:not(:first-child){font-variant-numeric:tabular-nums}
+.vxo-scroll tr:nth-child(even){background:#f8fafd}
+.vxo-link{background:none;border:0;padding:0;color:#176397;cursor:pointer;font:inherit;font-weight:750;text-decoration:underline;text-underline-offset:3px;text-align:left}
+.vxo-link:focus-visible,.vxo-context button:focus-visible{outline:2px solid #316fbe;outline-offset:3px}
+.vxo-bar{height:4px;width:100%;max-width:220px;border-radius:2px;background:#eef2f7;overflow:hidden;margin-top:5px}
+.vxo-bar span{height:100%;display:block;background:#f08d55}
+.vxo-notice{padding:14px 16px;border-radius:11px;background:#fff9ed;border:1px solid #ecd3a6;font-size:.83rem;line-height:1.5;color:#755322}
+.vxo-source{font-size:.77rem;color:#68788c;margin:0}
+.vxo-summary{font-size:.84rem;color:#52667e;margin:0}
+.vxo-error{background:#ffe9ee;border:1px solid #efbec8;color:#922a48;padding:12px;border-radius:10px}
+@media(max-width:900px){.vxo-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.vxo-tools{grid-template-columns:1fr 1fr}.vxo-tools label:last-child{grid-column:1/-1}}
+@media(max-width:570px){.vxo-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.vxo-types{grid-template-columns:1fr}.vxo-tools{grid-template-columns:1fr}.vxo-tools label:last-child{grid-column:auto}.vxo-card{padding:12px}.vxo-header{padding:15px}}
