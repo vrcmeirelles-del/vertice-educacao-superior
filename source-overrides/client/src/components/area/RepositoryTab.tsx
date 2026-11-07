@@ -1,6 +1,8 @@
 import { useCourseFilters } from "./CourseFilters";
 import indicatorNames from "@/lib/repository-indicators.json";
 import RepositoryFiles from "./RepositoryFiles";
+import AvaliacaoSimuladaPanel from "./AvaliacaoSimuladaPanel";
+import "./avaliacao-simulada.css";
 import { isInstrumentFile, isInstrumentRequest, instrumentIndicators } from "@/lib/repository";
 import {
   REPOSITORY_PERIODS,
@@ -48,7 +50,7 @@ import "./repository-evidence.css";
 
 const indicatorList = (value: unknown): string[] =>
   Array.from(String(value ?? "").match(/[123]\.\d+/g) ?? []);
-type View = "cobertura" | "arquivos" | "outros" | "serie" | "catalogo";
+type View = "cobertura" | "arquivos" | "outros" | "serie" | "catalogo" | "simulacao";
 const stateLabel: Record<string, string> = {
   pendente: "Sem arquivo",
   enviado: "Em análise",
@@ -406,7 +408,7 @@ export default function RepositoryTab(props: RepositoryProps) {
         <div className="er-brand">
           <span>V</span>
           <div>
-            <strong>Reconhecimento de Curso</strong>
+            <strong>Repositório de Reconhecimento</strong>
             <small>Vértice · Evidências de cursos</small>
           </div>
         </div>
@@ -721,6 +723,7 @@ export default function RepositoryTab(props: RepositoryProps) {
                   ["outros", "Outros documentos"],
                   ["serie", "Série histórica"],
                   ["catalogo", "Documentos exigidos"],
+                  ["simulacao", "Avaliação simulada"],
                 ] as [View, string][]
               ).map(([id, text]) => (
                 <button
@@ -862,6 +865,12 @@ export default function RepositoryTab(props: RepositoryProps) {
                   </div>
                 )}
               </Card>
+            ) : view === "simulacao" ? (
+              courseId && courseId !== "institucional" ? (
+                <AvaliacaoSimuladaPanel institutionId={institutionId} courseId={courseId} role={role} />
+              ) : (
+                <div className="er-alert info"><strong>Selecione um curso</strong><p>A avaliação simulada é por curso. Selecione um curso no filtro acima.</p></div>
+              )
             ) : (
               <>
                 {scoped.length > 0 &&
