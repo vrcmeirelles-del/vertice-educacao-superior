@@ -2,6 +2,28 @@
 
 Data da verificação: 07/11/2026. Estado: preparação da rotina local, ainda sem exportação nominal institucional completa. Não publicar resultados não homologados.
 
+## Fontes adicionais efetivamente localizadas no OneDrive institucional — 07/11/2026
+
+A pesquisa anterior não abrangia a conta Microsoft 365 de trabalho e por isso **não havia identificado a árvore de documentos correta**. O endereço-base é:
+
+`Documentos Virgilio/Empresas/Vertice/CLIENTES/UNITOP/`
+
+Acessado via biblioteca pessoal Microsoft 365 de trabalho (não o drive pessoal de outra conta). As fontes encontradas incluem:
+
+| Arquivo / pasta | Cobertura verificada | Uso correto |
+| --- | --- | --- |
+| `planilhas/unitop_aba09_dados_pessoais.csv` | 1.662 linhas com Nome, CPF, Codigo, Status Atual, Matricula e ÚLTIMO semestre com reprovação; 1.658 CPFs distintos, 44 códigos e status 1.613 Matriculado + 49 Trancado | **Lista nominal parcial de risco**, não catálogo completo de primeiras matrículas e sem campo de primeiro vínculo |
+| `Migração/UNITOP_Consolidado_2016_2026.json` | ~13 MB; `rel6_relacao_alunos.dados` com 596 registros agregados por semestre e curso (sem CPF) | Série de quantitativos, não permite observar a primeira matrícula individual |
+| `Migração/rel6_alunos_data.csv` | 597 linhas de quantitativos por semestre/curso, sem CPF ou matrícula nominal | Comparativo estatístico apenas |
+| `planilhas/matricula_agregada.json` | 840 registros agregados por curso, semestre e turmas; estruturas internas sem identificadores pessoais | Séries agregadas, não coortes |
+| `cursos-eorbit-2022-2026/{Presencial,EAD,Semipresencial}` | 27 + 30 + 27 pastas com CSVs de status e turmas por período (agregados) | Granularidade de curso e turma, não pessoa |
+| `Migração/supabase-sync/` | Sincronizador, `run_sync.py`, mapeamento e parsers | Verificar etapa de importação dos dados nominais e detectar lacuna |
+| `regulacao-auditoria/Eorbit/02_Bases_Restritas/` | Bases nominais existentes ligadas ao Direito | Não estender a outros cursos sem comprovar histórico completo |
+
+No projeto Supabase Vértice, a conferência independente encontrou `public.vertice_eorbit_alunos=0`, `vertice_private.api_staging_records=0` e `vertice_app.ingestion_batches=0`. As fontes `vertice_academic_reports` de tipo `cohorts` são agregados identificados apenas para Direito. Os arquivos nominais do OneDrive de trabalho **não estavam materializados nas tabelas nominais do Supabase consultado**.
+
+**Decisão metodológica:** O arquivo `unitop_aba09_dados_pessoais.csv` é útil para identificar pessoas de risco e cursos; o campo `Ultimo semestre com reprovacao` **não equivale** ao primeiro semestre acadêmico. Não transformar os seus 1.658 CPFs em ingressantes. O próximo passo técnico é localizar os demais vínculos históricos por CPF na fonte autenticada (ou pasta de raspagem que contenha estas linhas), conciliar com e-ORBIT, homologar datas e somente então executar a rotina de cálculo já preparada. Nenhum dado pessoal deve ser publicado ou copiado para commits.
+
 ## Diagnóstico de dados
 
 - A tabela pública vertice_eorbit_alunos tem zero registros.
