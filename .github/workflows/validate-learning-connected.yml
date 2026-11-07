@@ -1,0 +1,47 @@
+name: Vértice · build Aprendizagem Conectada
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "source-overrides/client/src/components/area/LearningConnected.tsx"
+      - "source-overrides/client/src/components/area/learning-connected.css"
+      - "source-overrides/client/src/components/area/Workspace.tsx"
+      - "source-overrides/client/src/lib/area.ts"
+      - "supabase/migrations/*learning*"
+      - ".github/workflows/validate-learning-connected.yml"
+permissions:
+  contents: read
+jobs:
+  learning:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Preparar mesmo overlay do Render
+        shell: bash
+        run: |
+          mkdir -p .learning-build
+          unzip -qo vertice-servidor-source.zip -d .learning-build
+          cp -a source-overrides/. .learning-build/
+          git fetch --depth=1 origin release/novo-instrumento-20261107
+          git archive FETCH_HEAD \
+            source-overrides/client/src/components/area/Workspace.tsx \
+            source-overrides/client/src/components/area/ProfileSimulator.tsx \
+            source-overrides/client/src/lib/area.ts | tar -xf - -C .learning-build --strip-components=1
+          test -f .learning-build/client/src/components/area/LearningConnected.tsx
+          grep -q 'aprendizagem' .learning-build/client/src/components/area/Workspace.tsx
+          grep -q 'aprendizagem' .learning-build/client/src/lib/area.ts
+      - name: Instalar dependências
+        working-directory: .learning-build
+        run: npm ci --legacy-peer-deps --no-audit --no-fund
+      - name: Compilar o portal
+        working-directory: .learning-build
+        run: npm run build:static
+      - name: Conferir novo módulo no pacote
+        run: |
+          test -f .learning-build/dist/public/index.html
+          grep -Rql 'Aprendizagem Conectada' .learning-build/dist/public/assets
+          grep -Rql 'coerência avaliativa' .learning-build/dist/public/assets

@@ -26,6 +26,7 @@ import InepLibrary from "./InepLibrary";
 import AvaliacaoInstitucional from "./AvaliacaoInstitucional";
 import NovoInstrumento from "./NovoInstrumento";
 import Enade360 from "./Enade360";
+import LearningConnected from "./LearningConnected";
 import AuditoriaPermanenciaBI from "../bi/AuditoriaPermanenciaBI";
 import ManagementReview from "./ManagementReview";
 import DocumentAI from "./DocumentAI";
@@ -66,6 +67,7 @@ const TABS: [Tab, string][] = [
   ["avaliacao", "Recredenciamento Institucional"],
   ["novo_instrumento", "Novo Instrumento"],
   ["enade", "ENADE 360°"],
+  ["aprendizagem", "Aprendizagem Conectada"],
   ["reitor", "Área do reitor · EBITDA"],
   ["resultado-curso", "Resultado por Curso"],
   ["simulador", "Simulador de Custo"],
@@ -232,6 +234,8 @@ export default function Workspace({
         <RepositoryTab institutionId={id} role={role} courses={data.courses} goals={data.goals} requests={data.requests} files={data.files} reload={reload} goalFilter={repositoryGoal} setGoalFilter={setRepositoryGoal}/>
       ) : tab === "reitor" ? (
         role === "master" || role === "gestor" ? <EbitdaCalculator reserved={{institutionId:id,name:String(institution.name)}}/> : <p>Os dados financeiros são reservados ao Gestor da instituição e ao Master.</p>
+      ) : tab === "aprendizagem" ? (
+        <LearningConnected key={id} institutionId={id} courses={data.courses} role={role}/>
       ) : tab === "enade" ? (
         <Enade360 key={id} institutionId={id} courses={data.courses} actions={data.actions} goals={data.goals} role={role} onPlan={()=>choose("plano")}/>
       ) : tab === "novo_instrumento" ? (
