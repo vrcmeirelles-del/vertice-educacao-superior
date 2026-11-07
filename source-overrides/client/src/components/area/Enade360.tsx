@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { supabase } from "@/lib/supabase";
+import EnadeCross from "./EnadeCross";
 import type { Role, Row } from "@/lib/area";
 import "./enade-360.css";
 
@@ -58,8 +59,8 @@ function courseStatus(row:CourseSummary) {
   return {label:"Diagnóstico documentado",color:"success"};
 }
 
-export default function Enade360({institutionId,courses,actions,role,onPlan}:{
-  institutionId:string;courses:Row[];actions:Row[];role:Role|null;onPlan:()=>void;
+export default function Enade360({institutionId,courses,actions,goals,role,onPlan}:{
+  institutionId:string;courses:Row[];actions:Row[];goals:Row[];role:Role|null;onPlan:()=>void;
 }) {
   const [records,setRecords]=useState<EnadeRecord[]>([]);
   const [mirror,setMirror]=useState<MirrorEnade[]>([]);
@@ -198,6 +199,7 @@ export default function Enade360({institutionId,courses,actions,role,onPlan}:{
       <article><span>Ações ENADE 5W2H</span><strong>{fmt.format(counts.actions)}</strong><small>Vinculadas ao plano institucional</small></article>
     </div>
     <p className="enade360-note">As notas e categorias apresentadas abaixo são diagnósticos internos. Não são Conceito ENADE, CPC, IDD ou previsão de resultado oficial. Edição, modalidade e elegibilidade devem ser confirmadas pelas fontes INEP/MEC aplicáveis a cada curso.</p>
+    <EnadeCross institutionId={institutionId} courses={courses} goals={goals} actions={actions} role={role} selectedCourseId={courseId} onPlan={onPlan}/>
     {loading?<p role="status">Carregando o conjunto de cursos e evidências…</p>:null}
     {failure?<p role="alert" className="enade360-error">Falha de carregamento: {failure}. Nenhum indicador ausente foi tratado como zero.</p>:null}
     <section className="enade360-panel">

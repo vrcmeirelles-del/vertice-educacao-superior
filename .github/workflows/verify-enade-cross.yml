@@ -1,0 +1,47 @@
+name: ENADE 360 - validar cruzamentos no build publicado
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "source-overrides/client/src/components/area/EnadeCross.tsx"
+      - "source-overrides/client/src/components/area/enade-cross.css"
+      - "source-overrides/client/src/components/area/Enade360.tsx"
+      - "source-overrides/client/src/components/area/Workspace.tsx"
+      - ".github/workflows/verify-enade-cross.yml"
+permissions:
+  contents: read
+jobs:
+  cross:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Compor fontes da producao com overlay do release
+        shell: bash
+        run: |
+          mkdir -p .enade-build
+          unzip -qo vertice-servidor-source.zip -d .enade-build
+          cp -a source-overrides/. .enade-build/
+          git fetch --depth=1 origin release/novo-instrumento-20261107
+          git archive FETCH_HEAD \
+            source-overrides/client/src/components/area/Workspace.tsx \
+            source-overrides/client/src/components/area/ProfileSimulator.tsx \
+            source-overrides/client/src/lib/area.ts | tar -xf - -C .enade-build --strip-components=1
+          test -f .enade-build/client/src/components/area/EnadeCross.tsx
+          grep -q 'goals={data.goals}' .enade-build/client/src/components/area/Workspace.tsx
+      - name: Instalar dependencias do pacote atual
+        working-directory: .enade-build
+        run: npm ci --legacy-peer-deps --no-audit --no-fund
+      - name: Compilar portal na configuracao real
+        working-directory: .enade-build
+        run: npm run build:static
+      - name: Confirmar que os cruzamentos chegaram ao JS publicado
+        shell: bash
+        run: |
+          test -f .enade-build/dist/public/index.html
+          grep -Rql 'Cruzamento de dados' .enade-build/dist/public/assets
+          grep -Rql 'Reprovações por falta' .enade-build/dist/public/assets
+          grep -Rql 'Rastreabilidade e reconciliação' .enade-build/dist/public/assets
