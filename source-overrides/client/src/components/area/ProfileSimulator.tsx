@@ -10,6 +10,7 @@ const TAB_LABELS: Record<Tab, string> = {
   auditoria: "BI · Permanência e Reprovações",
   avaliacao: "Recredenciamento Institucional",
   enade: "ENADE 360°",
+  aprendizagem: "Aprendizagem Conectada",
   novo_instrumento: "Novo Instrumento",
   simulador: "Simulador de Custo",
   "resultado-curso": "Resultado por Curso",
@@ -34,7 +35,7 @@ const ALL_TABS: Tab[] = [
   "base", "ia", "geral", "analise", "visao", "cadastro",
   "emec", "metas", "repositorio", "biblioteca", "reitor",
   "plano", "diagnostico", "equipe", "auditoria", "avaliacao",
-  "enade", "novo_instrumento", "simulador",
+  "enade", "aprendizagem", "novo_instrumento", "simulador",
 ];
 
 /** Perfis disponíveis para demonstração (exclui master e legados internos). */
