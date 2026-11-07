@@ -1,5 +1,5 @@
 declare const Deno:{env:{get:(key:string)=>string|undefined};serve:(fn:(req:Request)=>Promise<Response>)=>void};
-const origins=new Set(['https://www.verticesuperior.com.br','https://verticesuperior.com.br','https://vertice-educacao-superior-jlri.onrender.com']);
+const origins=new Set(['https://www.verticesuperior.com.br','https://verticesuperior.com.br','https://vertice-educacao-superior-jlri.onrender.com','https://vertice-portal.onrender.com','https://vertice-educacao-superior-site.onrender.com','https://vertice-educacao-superior.onrender.com']);
 const UUID=/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
 export function createHandler(env:(key:string)=>string|undefined,request:typeof fetch=fetch){return async(req:Request)=>{
  const origin=req.headers.get('origin')||'';
