@@ -3,9 +3,10 @@ import { can, deleteRow, explain, fmtDate, saveRow, today, type Role, type Row }
 import { supabase } from "@/lib/supabase";
 import {
   ANDAMENTO, ANDAMENTO_BADGE, ANDAMENTO_COR, CICLO_BASE, CONFORMIDADE, CONFORMIDADE_BADGE, CONFORMIDADE_COR, DIMENSOES_INSTRUMENTO,
+  EIXOS_INSTITUCIONAL, OBJETOS_INSTITUCIONAL, TIPOS_INSTRUMENTO,
   FASES, ITENS_CPA, MARCOS, NI_TABLES, PERFIL_ROTULO, TEMAS, VAZIO, carregarInstrumento, cicloRotulo, garantirLinhaChecklist,
   mesmoEscopo, objetosDoEscopo, perfilArea, resumir, semearChecklist, semearCiclo, semearCpa, statusValido, urlSegura, usuarioAtual,
-  type AndamentoStatus, type Conformidade, type DadosInstrumento, type ObjetoInstrumento, type Tema,
+  type AndamentoStatus, type Conformidade, type DadosInstrumento, type ObjetoInstrumento, type Tema, type TipoInstrumento,
 } from "@/lib/novo-instrumento";
 import "./novo-instrumento.css";
 
@@ -32,6 +33,7 @@ export default function NovoInstrumento({ institutionId, role, courses }: Props)
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [courseId, setCourseId] = useState("");
+  const [tipo, setTipo] = useState<TipoInstrumento>("curso");
 
   const reload = useCallback(async () => {
     try {
@@ -64,8 +66,16 @@ export default function NovoInstrumento({ institutionId, role, courses }: Props)
         ))}
       </div>
       {!can.record(role) && <p className="area-note">Seu perfil é de leitura: você acompanha o diagnóstico, mas não altera os registros.</p>}
+      <label className="area-search ni-scope" style={{marginBottom:8}}>
+        Instrumento
+        <select value={tipo} onChange={e => setTipo(e.target.value as TipoInstrumento)}>
+          {TIPOS_INSTRUMENTO.map(([k,l]) => <option key={k} value={k}>{l}</option>)}
+        </select>
+      </label>
       {error && <p role="alert" className="area-error">{error}</p>}
-      {loading ? (
+      {tipo === "institucional" ? (
+        <InstitucionalPanel role={role} />
+      ) : loading ? (
         <p role="status" className="area-muted">Carregando o Novo Instrumento…</p>
       ) : sub === "checklist" ? (
         <ChecklistPanel {...shared} courses={courses} course={course} onCourse={setCourseId} />
@@ -80,6 +90,61 @@ export default function NovoInstrumento({ institutionId, role, courses }: Props)
         O roteiro de verificação é uma orientação do Vértice para organizar as evidências. Confira os títulos e os critérios no instrumento
         publicado pelo INEP. O diagnóstico registra a avaliação interna e não substitui a avaliação oficial.
       </p>
+    </div>
+  );
+}
+
+// ================================================================ painel institucional (recredenciamento — 5 eixos)
+function InstitucionalPanel({ role }: { role: Role | null }) {
+  const [filtroEixo, setFiltroEixo] = useState(0);
+  const [filtroTema, setFiltroTema] = useState("");
+  const [busca, setBusca] = useState("");
+  const objetos = useMemo(() => {
+    let list = OBJETOS_INSTITUCIONAL;
+    if (filtroEixo) list = list.filter(o => o.eixo === filtroEixo);
+    if (filtroTema) list = list.filter(o => o.temas.includes(filtroTema as Tema));
+    if (busca) { const q = busca.toLowerCase(); list = list.filter(o => o.code.includes(q) || o.title.toLowerCase().includes(q) || o.hint.toLowerCase().includes(q)); }
+    return list;
+  }, [filtroEixo, filtroTema, busca]);
+
+  return (
+    <div className="ni-inst-panel">
+      <p className="area-note" style={{marginBottom:12}}>
+        <strong>[Não verificado]</strong> Instrumento institucional de recredenciamento em fase de consulta pública.
+        Os eixos e objetos abaixo são baseados no parecer CONIF/FDE (jul/2026) e na ata da 211ª reunião da CONAES.
+        Serão atualizados quando a versão definitiva for publicada pelo INEP.
+      </p>
+      <div className="ni-inst-eixos">
+        {EIXOS_INSTITUCIONAL.map(([n, title]) => {
+          const count = OBJETOS_INSTITUCIONAL.filter(o => o.eixo === n).length;
+          return (
+            <div key={n} className={`ni-inst-eixo-card ${filtroEixo === n ? 'active' : ''}`} onClick={() => setFiltroEixo(filtroEixo === n ? 0 : n)}>
+              <span className="ni-inst-eixo-num">Eixo {n}</span>
+              <strong>{title}</strong>
+              <span className="area-muted">{count} objeto{count !== 1 ? 's' : ''}</span>
+            </div>
+          );
+        })}
+      </div>
+      <div className="ni-filters" style={{marginTop:12}}>
+        <label className="area-search"><input placeholder="Buscar objeto" value={busca} onChange={e => setBusca(e.target.value)} /></label>
+        <label className="area-search">Tema transversal <select value={filtroTema} onChange={e => setFiltroTema(e.target.value)}><option value="">Todos</option>{TEMAS.map(([k,l])=><option key={k} value={k}>{l}</option>)}</select></label>
+      </div>
+      <p className="area-muted" style={{marginTop:8}}>{objetos.length} objeto(s) exibido(s)</p>
+      <div className="ni-obj-list">
+        {objetos.map(o => (
+          <details key={o.code} className="ni-obj-row">
+            <summary>
+              <span className="ni-obj-code">{o.code}</span>
+              <span className="ni-obj-title">{o.title}{o.provisorio ? <small className="badge gray">título a confirmar</small> : null}</span>
+            </summary>
+            <div className="ni-obj-body">
+              <p className="area-muted"><strong>Roteiro de verificação (Vértice):</strong> {o.hint}</p>
+              {o.temas.length > 0 && <p className="area-muted">Temas: {o.temas.map(t => TEMAS.find(([k])=>k===t)?.[1] ?? t).join(", ")}</p>}
+            </div>
+          </details>
+        ))}
+      </div>
     </div>
   );
 }
@@ -140,7 +205,7 @@ function SeletorEscopo({ courses, value, onChange }: { courses: Row[]; value: st
     <label className="area-search ni-scope">
       Escopo da avaliação
       <select value={value} onChange={e => onChange(e.target.value)}>
-        <option value="">Institucional (dimensões 1 a 3)</option>
+        <option value="">Institucional (dimensões 1 a 4)</option>
         {courses.map(c => (
           <option key={c.id} value={c.id}>
             {String(c.name)}
@@ -156,7 +221,7 @@ function SeletorEscopo({ courses, value, onChange }: { courses: Row[]; value: st
 function ChecklistPanel({ institutionId, role, data, reload, fail, courses, course, onCourse }: Shared & { courses: Row[]; course: Row | null; onCourse: (id: string) => void }) {
   const courseId = course ? String(course.id) : null;
   const edit = can.record(role);
-  const objetos = useMemo(() => objetosDoEscopo(course), [course]);
+  const objetos = useMemo(() => objetosDoEscopo(course, courses), [course, courses]);
   const rows = useMemo(() => data.checklist.filter(r => mesmoEscopo(r, courseId)), [data.checklist, courseId]);
   const byCode = useMemo(() => new Map(rows.map(r => [String(r.object_code), r])), [rows]);
   const evCount = useMemo(() => {
@@ -413,7 +478,7 @@ function ObjetoLinhas({ o, row, status, ev, aberto, edit, ocupado, onToggle, onS
 function EvidenciasPanel({ institutionId, role, data, reload, fail, courses, course, onCourse }: Shared & { courses: Row[]; course: Row | null; onCourse: (id: string) => void }) {
   const courseId = course ? String(course.id) : null;
   const edit = can.record(role);
-  const objetos = useMemo(() => objetosDoEscopo(course), [course]);
+  const objetos = useMemo(() => objetosDoEscopo(course, courses), [course, courses]);
   const rows = useMemo(() => data.checklist.filter(r => mesmoEscopo(r, courseId)), [data.checklist, courseId]);
   const byCode = useMemo(() => new Map(rows.map(r => [String(r.object_code), r])), [rows]);
   const idParaCodigo = useMemo(() => new Map(rows.map(r => [String(r.id), String(r.object_code)])), [rows]);

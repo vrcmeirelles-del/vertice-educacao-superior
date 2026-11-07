@@ -46,3 +46,12 @@
   .ni-marco-top { flex-direction: column; align-items: flex-start; }
   .ni-dim-card { padding: 10px; }
 }
+/* eixos institucionais */
+.ni-inst-eixos { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+.ni-inst-eixo-card { border: 1px solid #e0e6ed; border-radius: 8px; padding: 12px; cursor: pointer; transition: border-color .15s, background .15s; display: flex; flex-direction: column; gap: 4px; }
+.ni-inst-eixo-card:hover { border-color: var(--area-accent, #3b82f6); }
+.ni-inst-eixo-card.active { border-color: var(--area-accent, #3b82f6); background: #f0f6ff; }
+.ni-inst-eixo-num { font-size: .75rem; font-weight: 600; color: var(--area-accent, #3b82f6); text-transform: uppercase; letter-spacing: .04em; }
+.ni-inst-eixo-card strong { font-size: .88rem; color: var(--area-ink, #243653); }
+.ni-inst-panel .ni-filters { display: flex; gap: 12px; flex-wrap: wrap; }
+.ni-inst-panel .ni-obj-list { margin-top: 8px; }
