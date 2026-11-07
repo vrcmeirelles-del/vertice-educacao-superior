@@ -74,6 +74,8 @@ jobs:
           test -f dist/public/index.html
           test -f dist/public/vertice-mobile.webmanifest
           test -f dist/public/mobile-icon.svg
+          test -f dist/public/mobile-icon-192.png
+          test -f dist/public/mobile-icon-512.png
           test -f dist/public/mobile-sw.js
           grep -q 'vertice-mobile.webmanifest' dist/public/index.html
 
