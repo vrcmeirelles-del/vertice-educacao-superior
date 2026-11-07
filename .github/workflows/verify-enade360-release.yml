@@ -1,0 +1,45 @@
+name: ENADE 360 - validar integracao real no Render
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "source-overrides/client/src/components/area/Enade360.tsx"
+      - "source-overrides/client/src/components/area/Workspace.tsx"
+      - "source-overrides/client/src/lib/area.ts"
+      - ".github/workflows/verify-enade360-release.yml"
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Compor o mesmo overlay que o Render usara
+        shell: bash
+        run: |
+          mkdir -p .enade-ci
+          unzip -qo vertice-servidor-source.zip -d .enade-ci
+          cp -a source-overrides/. .enade-ci/
+          git fetch --depth=1 origin feat/enade360-integracao-release-20261107
+          git archive FETCH_HEAD \
+            source-overrides/client/src/components/area/Workspace.tsx \
+            source-overrides/client/src/components/area/ProfileSimulator.tsx \
+            source-overrides/client/src/lib/area.ts | tar -xf - -C .enade-ci --strip-components=1
+          test -f .enade-ci/client/src/components/area/Enade360.tsx
+          grep -q 'ENADE 360' .enade-ci/client/src/components/area/Workspace.tsx
+      - name: Instalar dependencias
+        working-directory: .enade-ci
+        run: npm ci --legacy-peer-deps --no-audit --no-fund
+      - name: Build estatico
+        working-directory: .enade-ci
+        run: npm run build:static
+      - name: Confirmar que o modulo chegou ao artefato
+        shell: bash
+        run: |
+          test -f .enade-ci/dist/public/index.html
+          grep -Rql 'Sem diagnóstico' .enade-ci/dist/public/assets
+          grep -Rql 'ENADE 360' .enade-ci/dist/public/assets
