@@ -26,7 +26,7 @@ jobs:
           python-version: '3.12'
       - name: Validar sintaxe
         run: python -m py_compile scripts/unitop_primeira_matricula_nominal.py
-      - name: Casos artificiais: aluno em dois cursos, duplicidade, CPF inválido, ausência de prova
+      - name: "Casos artificiais: aluno em dois cursos, duplicidade, CPF inválido, ausência de prova"
         run: python -m unittest discover -s tests -p 'test_primeira_matricula_nominal.py' -v
       - name: Conferir ausência de banco ou dados nominais no repositório
         shell: bash
