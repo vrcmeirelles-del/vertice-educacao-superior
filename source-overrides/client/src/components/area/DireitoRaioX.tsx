@@ -117,68 +117,79 @@ export default function DireitoRaioX({ institutionId }: Props) {
         </div>
       </div>
 
-      {/* Série Histórica REAL vs Snapshot */}
-      {serieReal && serieReal.ingressantes_1o_periodo && (
+      {/* Série Histórica REAL — Todas as turmas */}
+      {serieReal && serieReal.semestres && (
         <div className="drx-section">
-          <h4>🎯 Série Histórica Real — Ingressantes 1º Período</h4>
-          <p className="drx-sub">Alunos que efetivamente cursaram vs. snapshot atual do sistema. Fonte: Cadastro de Notas e-ORBIT.</p>
+          <h4>🎯 Série Histórica Real — Todas as Turmas</h4>
+          <p className="drx-sub">Alunos que efetivamente cursaram cada turma, com identificação de fantasmas (sem AV1/AV2). Fonte: Cadastro de Notas e-ORBIT.</p>
+          {Object.entries(serieReal.semestres).map(([sem, semData]: [string, any]) => (
+            <div key={sem} style={{marginBottom:16}}>
+              <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:8}}>
+                <strong style={{fontSize:15}}>{sem}</strong>
+                <span className="drx-chip drx-chip-green">{semData.total_alunos} alunos</span>
+                {semData.total_fantasmas > 0 && <span className="drx-chip drx-chip-red">{semData.total_fantasmas} fantasmas ({((semData.total_fantasmas/semData.total_alunos)*100).toFixed(0)}%)</span>}
+                {semData.nota && <span style={{fontSize:11,color:"var(--muted-foreground)",fontStyle:"italic"}}>{semData.nota}</span>}
+              </div>
+              <div className="drx-table-wrap">
+                <table className="drx-table" style={{fontSize:12}}>
+                  <thead><tr><th>Turma</th><th>Per.</th><th>Alunos</th><th>Fant.</th><th>AD</th><th>AF</th><th>RF</th><th>RN</th><th>RA</th><th>TR</th><th>CA/AC</th></tr></thead>
+                  <tbody>
+                    {(semData.turmas || []).map((t: any, i: number) => {
+                      const s = t.situacoes || {};
+                      return (
+                        <tr key={i}>
+                          <td><strong>{t.turma}</strong></td>
+                          <td>{t.periodo}º</td>
+                          <td><strong>{t.alunos_reais}</strong></td>
+                          <td>{t.fantasmas > 0 ? <span style={{color:"var(--danger)",fontWeight:700}}>{t.fantasmas}</span> : "—"}</td>
+                          <td style={{color:"var(--success)"}}>{s.AD||"—"}</td>
+                          <td>{s.AF||"—"}</td>
+                          <td>{s.RF ? <span style={{color:"var(--danger)"}}>{s.RF}</span> : "—"}</td>
+                          <td>{s.RN ? <span style={{color:"var(--warning)"}}>{s.RN}</span> : "—"}</td>
+                          <td>{s.RA ? <span style={{color:"var(--warning)"}}>{s.RA}</span> : "—"}</td>
+                          <td>{s.TR||"—"}</td>
+                          <td>{(s.CA||0)+(s.AC||0)+(s.CR||0)+(s.AB||0) > 0 ? <span style={{color:"var(--danger)"}}>{(s.CA||0)+(s.AC||0)+(s.CR||0)+(s.AB||0)}</span> : "—"}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ))}
+          <p className="drx-footer" style={{marginTop:8}}>
+            <strong>Fantasma</strong> = aluno sem AV1 e AV2 com situação CA/RF/AC/AB/TR (matriculou mas nunca cursou).<br/>
+            <strong>Legenda:</strong> AD = Aprovado Direto · AF = Aprovado Final · RF = Reprovado Falta · RN = Reprovado Nota · RA = Reprovado Ambos · TR = Transferido · CA = Cancelado · AC = Abandonou
+          </p>
+        </div>
+      )}
+
+      {/* Resumo da série — crescimento do curso */}
+      {serieReal && serieReal.resumo_serie_historica && (
+        <div className="drx-section">
+          <h4>📊 Crescimento Real do Curso</h4>
+          <p className="drx-sub">Total de alunos reais por semestre (não snapshot) — evolução desde a fundação</p>
           <div className="drx-table-wrap">
             <table className="drx-table">
-              <thead>
-                <tr>
-                  <th>Semestre</th>
-                  <th>Turmas</th>
-                  <th>Alunos Reais</th>
-                  <th>Snapshot Atual</th>
-                  <th>Diferença</th>
-                  <th>Aprovados</th>
-                  <th>Reprov. Falta</th>
-                  <th>Reprov. Nota</th>
-                  <th>Transferidos</th>
-                  <th>Cancelados/Aband.</th>
-                </tr>
-              </thead>
+              <thead><tr><th>Semestre</th><th>Total Real</th><th>Ingressantes 1º Per.</th><th>Fantasmas</th><th>% Fantasma</th><th>Crescimento</th></tr></thead>
               <tbody>
-                {serieReal.ingressantes_1o_periodo.map((s: any, i: number) => {
-                  const total = s.total_real || s.total_real_parcial || 0;
-                  const snap = s.snapshot_atual || 0;
-                  const diff = total - snap;
-                  const sits = s.situacoes || {};
-                  const ad = (sits.AD || 0) + (sits.AF || 0);
-                  const rf = sits.RF || 0;
-                  const rn = (sits.RN || 0) + (sits.RA || 0);
-                  const tr = sits.TR || 0;
-                  const ca = (sits.CA || 0) + (sits.AC || 0) + (sits.AB || 0) + (sits.CR || 0);
-                  // For 2026/01 which has combined data
-                  const sits1a = s.situacoes_1a || {};
-                  const sits1b = s.situacoes_1b || {};
-                  const adComb = s.situacoes_1a ? (sits1a.AD||0)+(sits1a.AF||0)+(sits1b.AD||0)+(sits1b.AF||0) : ad;
-                  const rfComb = s.situacoes_1a ? (sits1a.RF||0)+(sits1b.RF||0) : rf;
-                  const rnComb = s.situacoes_1a ? (sits1a.RN||0)+(sits1a.RA||0)+(sits1b.RN||0)+(sits1b.RA||0) : rn;
-                  const trComb = s.situacoes_1a ? (sits1a.TR||0)+(sits1b.TR||0) : tr;
-                  const caComb = s.situacoes_1a ? (sits1a.CA||0)+(sits1a.AC||0)+(sits1b.CA||0)+(sits1b.AC||0)+(sits1b.CR||0) : ca;
+                {Object.entries(serieReal.resumo_serie_historica).map(([sem, d]: [string, any], i: number, arr: any[]) => {
+                  const prev = i > 0 ? (arr[i-1][1] as any).total_real : 0;
+                  const cresc = prev > 0 ? (((d.total_real - prev) / prev) * 100).toFixed(0) : "—";
                   return (
-                    <tr key={i}>
-                      <td><strong>{s.semestre}</strong></td>
-                      <td>{(s.turmas || []).join(", ")}</td>
-                      <td><strong style={{fontSize:16}}>{total}{s.total_real_parcial ? "*" : ""}</strong></td>
-                      <td style={{color:"var(--muted-foreground)"}}>{snap}</td>
-                      <td><span className="drx-trend-down">-{diff} ({total > 0 ? ((diff/total)*100).toFixed(0) : 0}%)</span></td>
-                      <td><span style={{color:"var(--success)", fontWeight:600}}>{adComb}</span></td>
-                      <td>{rfComb > 0 ? <span style={{color:"var(--danger)"}}>{rfComb}</span> : "—"}</td>
-                      <td>{rnComb > 0 ? <span style={{color:"var(--warning)"}}>{rnComb}</span> : "—"}</td>
-                      <td>{trComb > 0 ? trComb : "—"}</td>
-                      <td>{caComb > 0 ? <span style={{color:"var(--danger)"}}>{caComb}</span> : "—"}</td>
+                    <tr key={sem}>
+                      <td><strong>{sem}</strong></td>
+                      <td><strong style={{fontSize:15}}>{d.total_real}</strong>{d.estimado ? <span style={{fontSize:10,color:"var(--muted-foreground)"}}> (~{d.estimado})</span> : ""}</td>
+                      <td>{d.ingressantes_1per || "—"}{d.obs ? <span style={{fontSize:10,color:"var(--muted-foreground)"}}> ({d.obs})</span> : ""}</td>
+                      <td>{d.fantasmas > 0 ? <span style={{color:"var(--danger)"}}>{d.fantasmas}</span> : "0"}</td>
+                      <td>{d.pct_fantasma > 0 ? <span className={`drx-chip ${d.pct_fantasma > 10 ? "drx-chip-red" : d.pct_fantasma > 5 ? "drx-chip-yellow" : "drx-chip-green"}`}>{d.pct_fantasma}%</span> : <span className="drx-chip drx-chip-green">0%</span>}</td>
+                      <td>{cresc !== "—" ? <span className={Number(cresc) > 0 ? "drx-trend-up" : "drx-trend-down"}>{Number(cresc) > 0 ? "▲" : "▼"} {cresc}%</span> : "—"}</td>
                     </tr>
                   );
                 })}
               </tbody>
             </table>
           </div>
-          <p className="drx-footer" style={{marginTop:8}}>
-            * Parcial — apenas uma turma extraída.<br/>
-            <strong>Legenda:</strong> AD = Aprovado Direto · AF = Aprovado Final · RF = Reprovado por Falta · RN = Reprovado por Nota · RA = Reprovado por Ambos · TR = Transferido · CA = Cancelado · AC = Abandonou · CR = Cancelado Rematrícula
-          </p>
         </div>
       )}
 
