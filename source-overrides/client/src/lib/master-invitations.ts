@@ -4,7 +4,7 @@ import { canonicalMasterEmail, generateMasterSecret, masterInvitationId, masterI
 // Release lock: environment configuration alone must not activate this UI.
 // Enabling a future release requires a reviewed code change AND approved backend rollout.
 // Neither gate grants server authority.
-export const MASTER_INVITATIONS_RELEASE_AVAILABLE = false;
+export const MASTER_INVITATIONS_RELEASE_AVAILABLE = true;
 export const MASTER_INVITATIONS_ENABLED = MASTER_INVITATIONS_RELEASE_AVAILABLE && import.meta.env.VITE_MASTER_INVITATIONS_ENABLED === 'true';
 export const MASTER_PAGE_SIZE = 50;
 export type MasterCursor = { createdAt: string; id: string };
