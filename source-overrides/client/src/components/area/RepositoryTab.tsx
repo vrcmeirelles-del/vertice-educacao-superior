@@ -867,7 +867,7 @@ export default function RepositoryTab(props: RepositoryProps) {
               </Card>
             ) : view === "simulacao" ? (
               courseId && courseId !== "institucional" ? (
-                <AvaliacaoSimuladaPanel institutionId={institutionId} courseId={courseId} role={role} />
+                <AvaliacaoSimuladaPanel institutionId={institutionId} courseId={courseId} role={role} requests={requests} files={files} />
               ) : (
                 <div className="er-alert info"><strong>Selecione um curso</strong><p>A avaliação simulada é por curso. Selecione um curso no filtro acima.</p></div>
               )

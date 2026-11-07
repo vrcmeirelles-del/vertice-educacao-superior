@@ -21,6 +21,38 @@ import {
   type AvsRow,
 } from "@/lib/avaliacao-simulada";
 import { supabase } from "@/lib/supabase";
+import { instrumentIndicators } from "@/lib/repository";
+import indicatorNames from "@/lib/repository-indicators.json";
+
+// ================================================================ IA
+const AI_ERRORS: Record<string, string> = {
+  analysis_not_configured: "IA não habilitada para esta instituição.",
+  quota_exceeded: "Limite diário de análises atingido.",
+  provider_unavailable: "Provedor indisponível. Não repita automaticamente.",
+  timeout: "Análise excedeu o tempo limite.",
+};
+
+async function invokeAI(body: Record<string, unknown>) {
+  const { data, error } = await supabase.functions.invoke("vertice-ai-review", { body });
+  if (error) {
+    let code = "";
+    try { code = (await error.context?.json())?.error ?? ""; } catch {}
+    throw new Error(AI_ERRORS[code] ?? "Não foi possível gerar a análise. Confira sua sessão.");
+  }
+  if (data?.error) throw new Error(AI_ERRORS[data.error] ?? "A análise não foi concluída.");
+  return data;
+}
+
+/** Conta documentos do repositório vinculados a um indicador. */
+function contarDocumentos(requests: Row[], files: Row[], indicador: string) {
+  const reqs = requests.filter(r => r.active !== false && instrumentIndicators(String(r.indicator ?? "")).includes(indicador));
+  const reqIds = new Set(reqs.map(r => String(r.id)));
+  const docs = files.filter(f => reqIds.has(String(f.request_id)));
+  const validados = docs.filter(f => f.status === "validado").length;
+  const enviados = docs.filter(f => f.status === "enviado").length;
+  const pendentes = reqs.filter(r => !r.not_applicable && !docs.some(f => String(f.request_id) === String(r.id))).length;
+  return { total: reqs.length, docs: docs.length, validados, enviados, pendentes };
+}
 
 // ================================================================ Donut SVG
 type Parte = { value: number; color: string; label: string };
@@ -47,9 +79,11 @@ type Props = {
   institutionId: string;
   courseId: string;
   role: Role | null;
+  requests: Row[];
+  files: Row[];
 };
 
-export default function AvaliacaoSimuladaPanel({ institutionId, courseId, role }: Props) {
+export default function AvaliacaoSimuladaPanel({ institutionId, courseId, role, requests, files }: Props) {
   const edit = can.record(role);
   const indicadores = useMemo(() => listarIndicadores(), []);
   const [rows, setRows] = useState<AvsRow[]>([]);
@@ -213,6 +247,10 @@ export default function AvaliacaoSimuladaPanel({ institutionId, courseId, role }
                         busy={busy}
                         onToggle={() => setOpen(aberto ? null : ind.code)}
                         onGravar={(campo, valor) => gravar(ind.code, dim, campo, valor)}
+                        requests={requests}
+                        files={files}
+                        institutionId={institutionId}
+                        courseId={courseId}
                       />
                     );
                   })}
@@ -229,13 +267,16 @@ export default function AvaliacaoSimuladaPanel({ institutionId, courseId, role }
 // ================================================================ linha do indicador
 function IndicadorRow({
   code, name, dimensao, atual, viavel, row, aberto, edit, busy, onToggle, onGravar,
+  requests, files, institutionId, courseId,
 }: {
   code: string; name: string; dimensao: number;
   atual: number | null; viavel: number | null;
   row: AvsRow | undefined; aberto: boolean; edit: boolean; busy: boolean;
   onToggle: () => void;
   onGravar: (campo: string, valor: unknown) => void;
+  requests: Row[]; files: Row[]; institutionId: string; courseId: string;
 }) {
+  const docInfo = contarDocumentos(requests, files, code);
   return (
     <>
       <tr className={`avs-row ${aberto ? "aberto" : ""}`} style={{ borderLeft: `4px solid ${corConceito(atual)}` }}>
@@ -275,7 +316,11 @@ function IndicadorRow({
       {aberto && (
         <tr className="avs-detail-row">
           <td colSpan={5}>
-            <DetalheIndicador row={row} edit={edit} busy={busy} onGravar={onGravar} />
+            <DetalheIndicador
+              row={row} edit={edit} busy={busy} onGravar={onGravar}
+              code={code} name={name} docInfo={docInfo}
+              institutionId={institutionId} courseId={courseId}
+            />
           </td>
         </tr>
       )}
@@ -283,17 +328,23 @@ function IndicadorRow({
   );
 }
 
-// ================================================================ detalhe expandido (parecer, lacunas, plano, perguntas)
+// ================================================================ detalhe expandido (parecer, lacunas, plano, perguntas + IA)
+type DocInfo = { total: number; docs: number; validados: number; enviados: number; pendentes: number };
+
 function DetalheIndicador({
-  row, edit, busy, onGravar,
+  row, edit, busy, onGravar, code, name, docInfo, institutionId, courseId,
 }: {
   row: AvsRow | undefined; edit: boolean; busy: boolean;
   onGravar: (campo: string, valor: unknown) => void;
+  code: string; name: string; docInfo: DocInfo;
+  institutionId: string; courseId: string;
 }) {
   const [parecer, setParecer] = useState(String(row?.parecer ?? ""));
   const [lacunas, setLacunas] = useState(String(row?.lacunas ?? ""));
   const [plano, setPlano] = useState(String(row?.plano_nde ?? ""));
   const [perguntas, setPerguntas] = useState(String(row?.perguntas_comissao ?? ""));
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState("");
 
   const campos: [string, string, string, (v: string) => void][] = [
     ["parecer", "Parecer do avaliador", parecer, setParecer],
@@ -302,8 +353,120 @@ function DetalheIndicador({
     ["perguntas_comissao", "Perguntas prováveis da comissão", perguntas, setPerguntas],
   ];
 
+  async function gerarComIA() {
+    setAiLoading(true);
+    setAiError("");
+    try {
+      // 1. Verificar status da IA
+      const status = await invokeAI({
+        action: "status",
+        institution_id: institutionId,
+        course_id: courseId,
+      });
+      if (!status.configured || !status.enabled) {
+        setAiError("IA não habilitada para esta instituição. Ative nas configurações.");
+        return;
+      }
+
+      // 2. Preparar prévia (sem envio à OpenAI) — usa registros de gestão
+      const preview = await invokeAI({
+        action: "preview",
+        institution_id: institutionId,
+        course_id: courseId,
+      });
+
+      // 3. Filtrar chunks relevantes ao indicador
+      const chunks = (preview.chunks ?? []).filter((c: any) =>
+        c.id === "gestao_panorama" ||
+        c.id === `gestao_dim_${code.split(".")[0]}` ||
+        c.text?.includes(code) ||
+        c.text?.includes(name)
+      ).slice(0, 6);
+
+      if (!chunks.length) {
+        // Sem dados da gestão, gerar parecer baseado apenas na cobertura documental
+        const parecerAuto = `Indicador ${code} — ${name}.\n\nCobertura documental: ${docInfo.docs} documento(s) no repositório (${docInfo.validados} validado(s), ${docInfo.enviados} em análise, ${docInfo.pendentes} pendência(s)).\n\n${docInfo.pendentes > 0 ? "Há pendências documentais a resolver antes da visita." : "Cobertura documental completa."} ${docInfo.validados === 0 ? "Nenhum documento foi validado pela gestão." : ""}`;
+        setParecer(parecerAuto);
+        onGravar("parecer", parecerAuto);
+
+        const lacunasAuto = docInfo.pendentes > 0
+          ? `${docInfo.pendentes} exigência(s) sem documento enviado. Reunir evidências e submeter para validação.`
+          : "Cobertura documental completa. Verificar se os documentos atendem aos critérios do conceito 5 do instrumento INEP.";
+        setLacunas(lacunasAuto);
+        onGravar("lacunas", lacunasAuto);
+
+        const perguntasAuto = `Mostre as evidências do indicador ${code}. Como o curso demonstra ${name.toLowerCase()}?`;
+        setPerguntas(perguntasAuto);
+        onGravar("perguntas_comissao", perguntasAuto);
+        return;
+      }
+
+      // 4. Enviar para análise com os chunks filtrados
+      const selections = chunks.map((c: any) => ({ id: c.id, text: c.text }));
+      const result = await invokeAI({
+        action: "analyze",
+        institution_id: institutionId,
+        course_id: courseId,
+        preview_digest: preview.preview_digest,
+        selections,
+        privacy_confirmed: true,
+      });
+
+      // 5. Preencher campos com o resultado da IA
+      const r = result.result;
+      if (r) {
+        const parecerIA = [
+          r.summary ?? "",
+          ...(r.facts ?? []).map((f: any) => `• ${f.text}`),
+        ].filter(Boolean).join("\n");
+        setParecer(parecerIA);
+        onGravar("parecer", parecerIA);
+
+        const lacunasIA = (r.gaps ?? []).map((g: any) => `• ${g.text}`).join("\n") || "Nenhuma lacuna identificada pela IA.";
+        setLacunas(lacunasIA);
+        onGravar("lacunas", lacunasIA);
+
+        const planoIA = (r.recommendations ?? []).map((rec: any) => `• ${rec.text}`).join("\n") || "";
+        setPlano(planoIA);
+        onGravar("plano_nde", planoIA);
+
+        const perguntasIA = (r.limitations ?? []).map((l: string) => `• ${l}`).join("\n") || `Mostre as evidências do indicador ${code}.`;
+        setPerguntas(perguntasIA);
+        onGravar("perguntas_comissao", perguntasIA);
+      }
+    } catch (e) {
+      setAiError((e as Error).message);
+    } finally {
+      setAiLoading(false);
+    }
+  }
+
   return (
     <div className="avs-detalhe">
+      {/* Cruzamento de dados — documentos do repositório */}
+      <div className="avs-docs-info">
+        <span className="avs-docs-badge" style={{ background: docInfo.pendentes > 0 ? "#c0594f" : docInfo.docs > 0 ? "#4f9a76" : "#a9b6c4" }}>
+          {docInfo.docs} doc{docInfo.docs !== 1 ? "s" : ""}
+        </span>
+        <span className="area-muted" style={{ fontSize: ".8rem" }}>
+          {docInfo.validados > 0 && <>{docInfo.validados} validado{docInfo.validados !== 1 ? "s" : ""} · </>}
+          {docInfo.enviados > 0 && <>{docInfo.enviados} em análise · </>}
+          {docInfo.pendentes > 0 ? <strong style={{ color: "#c0594f" }}>{docInfo.pendentes} pendência{docInfo.pendentes !== 1 ? "s" : ""}</strong> : "sem pendências"}
+        </span>
+        {edit && (
+          <button
+            type="button"
+            className="avs-ai-btn"
+            disabled={aiLoading || busy}
+            onClick={gerarComIA}
+            title="Gerar parecer, lacunas e perguntas com IA"
+          >
+            {aiLoading ? "⏳ Analisando…" : "🤖 Gerar com IA"}
+          </button>
+        )}
+      </div>
+      {aiError && <p role="alert" className="area-error" style={{ fontSize: ".8rem", margin: ".25rem 0" }}>{aiError}</p>}
+
       {campos.map(([campo, label, valor, set]) => (
         <div key={campo} className="avs-campo">
           <label><strong>{label}</strong></label>
