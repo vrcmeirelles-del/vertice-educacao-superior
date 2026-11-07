@@ -1,0 +1,36 @@
+name: UNITOP — cálculo nominal de primeira matrícula (sem dados pessoais)
+on:
+  push:
+    branches:
+      - feat/unitop-primeira-matricula-nominal-auditada-20261107
+    paths:
+      - scripts/unitop_primeira_matricula_nominal.py
+      - tests/test_primeira_matricula_nominal.py
+      - .github/workflows/unitop-primeira-matricula.yml
+  pull_request:
+    paths:
+      - scripts/unitop_primeira_matricula_nominal.py
+      - tests/test_primeira_matricula_nominal.py
+      - .github/workflows/unitop-primeira-matricula.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test_only_synthetic_data:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validar sintaxe
+        run: python -m py_compile scripts/unitop_primeira_matricula_nominal.py
+      - name: "Casos artificiais: aluno em dois cursos, duplicidade, CPF inválido, ausência de prova"
+        run: python -m unittest discover -s tests -p 'test_primeira_matricula_nominal.py' -v
+      - name: Conferir ausência de banco ou dados nominais no repositório
+        shell: bash
+        run: |
+          test -f scripts/unitop_primeira_matricula_nominal.py
+          test -f docs/UNITOP_PRIMEIRA_MATRICULA_FONTE_NOMINAL.md
+          ! grep -E 'SUPABASE_SERVICE_ROLE|OPENAI_API_KEY|Authorization: Bearer' scripts/unitop_primeira_matricula_nominal.py
