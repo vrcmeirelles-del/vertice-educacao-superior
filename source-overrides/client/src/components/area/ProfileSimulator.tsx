@@ -13,6 +13,7 @@ const TAB_LABELS: Record<Tab, string> = {
   aprendizagem: "Aprendizagem Conectada",
   novo_instrumento: "Novo Instrumento",
   simulador: "Simulador de Custo",
+  "raio-x-direito": "Raio-X de Direito",
   "resultado-curso": "Resultado por Curso",
   base: "Base da organização",
   ia: "Análise Documental",
