@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-ancestors 'none'; form-action 'none'; base-uri 'none'">
+<meta name="theme-color" content="#102847">
+<meta name="description" content="Prévia pública, somente leitura, do BI gerencial acadêmico institucional da UNITOP, sem identificação pessoal.">
+<title>Vértice | Prévia executiva UNITOP</title>
+<link rel="stylesheet" href="/bi-unitop-publico.css">
+<script defer src="/bi-unitop-publico.js"></script>
+</head>
+<body>
+<div class="app">
+ <header class="brand">
+  <div class="wordmark"><span class="symbol">V</span><span><strong>VÉRTICE</strong><small>EDUCAÇÃO SUPERIOR</small></span></div>
+  <div class="top-right"><span class="chip"><span class="led"></span> Prévia pública</span><span class="read-only">Somente leitura · sem senha</span></div>
+ </header>
+ <main>
+  <section class="hero">
+   <div class="hero-content">
+    <span class="eyebrow">INTELIGÊNCIA INSTITUCIONAL • REITORIA</span>
+    <h1>Os dados contam uma história.<br><em>A gestão decide o futuro.</em></h1>
+    <p>Panorama acadêmico da UNITOP a partir de registros consolidados do e-ORBIT. Uma amostra da experiência de BI da Vértice, preparada para visualização no celular e no computador.</p>
+    <div class="hero-foot"><span><b>UNITOP</b> • Centro Universitário ITOP</span><span>Fonte da extração: 04/11/2026</span></div>
+   </div>
+   <div class="hero-graphic" aria-hidden="true">
+    <div class="graphic-orbit orbit-a"></div><div class="graphic-orbit orbit-b"></div>
+    <div class="graphic-circle"><span>VISÃO</span><strong>360°</strong><small>Acadêmica</small></div>
+   </div>
+  </section>
+  <section class="public-note" aria-label="Informação sobre acesso">
+   <span class="note-icon">i</span><p><strong>Esta é uma visualização pública com dados consolidados.</strong> Não exibe CPFs, nomes de alunos, resultados individuais, nem rankings identificáveis de professores. O BI completo continua protegido no portal institucional.</p>
+  </section>
+  <section class="filter-card" aria-label="Filtros do relatório">
+   <div class="filter-heading"><div><span class="section-kicker">EXPLORAR INDICADORES</span><h2>Panorama de reprovações</h2></div><span class="snapshot">Base histórica • 2022–2026</span></div>
+   <div class="filters">
+    <label>Semestre de referência<select id="period"><option value="all">Histórico completo</option></select></label>
+    <label>Comparar com<select id="compare"><option value="none">Sem comparação</option></select></label>
+    <button id="reset" type="button">Limpar filtros</button>
+   </div>
+  </section>
+  <section class="metrics" aria-label="Indicadores">
+   <article class="metric m-blue"><span class="metric-label">Ofertas de disciplinas</span><strong id="metric-offerings">—</strong><span class="metric-hint">Registros no recorte selecionado</span><span class="metric-decoration">▥</span></article>
+   <article class="metric m-teal"><span class="metric-label">Vínculos em disciplinas</span><strong id="metric-enrollments">—</strong><span class="metric-hint">Não corresponde a alunos únicos</span><span class="metric-decoration">◎</span></article>
+   <article class="metric m-orange"><span class="metric-label">Ocorrências de reprovação</span><strong id="metric-failures">—</strong><span id="metric-rate" class="metric-hint">—</span><span class="metric-decoration">↗</span></article>
+   <article class="metric m-purple"><span class="metric-label">Aprovações após final</span><strong id="metric-approved">—</strong><span class="metric-hint">Não equivale à recuperação posterior</span><span class="metric-decoration">✓</span></article>
+  </section>
+  <section class="content-grid">
+   <article class="panel dist">
+    <div class="panel-header"><div><span class="section-kicker">COMPOSIÇÃO</span><h2>Tipos de reprovação</h2></div><span class="tiny-label">RF / RN / RA</span></div>
+    <div class="donut-layout"><div class="donut" id="donut" role="img" aria-label="Distribuição das categorias de reprovação"><div class="donut-inner"><strong id="donut-total">—</strong><span>ocorrências</span></div></div><div class="legend">
+     <div><span class="legend-name"><i class="swatch sw1"></i>Falta <small>RF</small></span><strong id="d-rf">—</strong></div>
+     <div><span class="legend-name"><i class="swatch sw2"></i>Nota <small>RN</small></span><strong id="d-rn">—</strong></div>
+     <div><span class="legend-name"><i class="swatch sw3"></i>Após final <small>RA</small></span><strong id="d-ra">—</strong></div>
+    </div></div>
+   </article>
+   <article class="panel insight">
+    <div class="panel-header"><div><span class="section-kicker">LEITURA EXECUTIVA</span><h2>O que os números indicam?</h2></div></div>
+    <p id="insight-text">Aguardando indicadores do período.</p>
+    <div id="comparison" class="comparison" hidden></div>
+    <p class="insight-foot">O indicador mede ocorrências por matrícula em disciplina. Não é taxa de evasão, nem prova de causa de reprovação.</p>
+   </article>
+  </section>
+  <section class="panel courses-panel">
+    <div class="panel-header split"><div><span class="section-kicker">VISÃO POR CURSO</span><h2>Cursos com maior volume de ocorrências</h2><p>Selecione um curso para visualizar sua composição, sempre em nível agregado.</p></div><div><label class="search-label">Filtrar cursos<input id="course-search" type="search" placeholder="Pesquisar curso" autocomplete="off"></label></div></div>
+    <div class="course-flex"><div id="course-list" class="course-list" role="list" aria-label="Indicadores por curso"></div><aside id="course-detail" class="course-detail"><div class="course-placeholder"><span>↗</span><strong>Escolha um curso</strong><p>Clique em uma linha para conhecer seus indicadores e comparar com o conjunto institucional.</p></div></aside></div>
+  </section>
+  <footer class="footer">
+    <div class="footer-brand"><span class="symbol">V</span><span><strong>VÉRTICE EDUCAÇÃO SUPERIOR</strong><small>Informação para decisões melhores.</small></span></div>
+    <p>Prévia estática pública de 04/11/2026. Dados consolidados de ofertas acadêmicas; não reproduz informações pessoais. Não possui atualização em tempo real.</p>
+    <p class="footer-small">O acesso sem senha é exclusivo desta prévia. Para históricos individuais, nomes de estudantes, docentes e dados restritos, utilize o portal autenticado.</p>
+  </footer>
+ </main>
+</div>
+</body>
+</html>
