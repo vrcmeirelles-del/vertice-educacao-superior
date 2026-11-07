@@ -180,7 +180,7 @@ export default function OutcomesMobileBreakdown({ institutionId }: { institution
   const beforeRate = rate(beforeStats);
   const afterRate = rate(afterStats);
   const rateDiff = beforeRate === null || afterRate === null ? null : afterRate - beforeRate;
-  const lines = useMemo(() => compareGroups(before, after, level, sort), [rows, courseFilter, textFilter, mode, periodKey, level, sort]);
+  const lines = useMemo(() => compareGroups(before, after, level, sort), [rows, courseFilter, textFilter, mode, periodKey, semesterBefore, semesterAfter, yearBefore, yearAfter, level, sort]);
   const highest = Math.max(1, occurrences(beforeStats), occurrences(afterStats));
   const comparisonType = mode === "anos" ? "Comparação entre anos letivos completos (1º e 2º semestres)" :
     semesterBefore.slice(5) === semesterAfter.slice(5) ? "Mesmo semestre em anos diferentes" :
@@ -203,7 +203,7 @@ export default function OutcomesMobileBreakdown({ institutionId }: { institution
       {mode === "semestres" ? <>
         <label>Período de referência
           <select value={semesterBefore} onChange={event => setSemesterBefore(event.target.value)}>
-            {semesters.map(term => <option key={term} value={term}>{term.replace("/", "/")}</option>)}
+            {semesters.map(term => <option key={term} value={term}>{term}</option>)}
           </select>
         </label>
         <label>Período de comparação
@@ -324,7 +324,7 @@ export default function OutcomesMobileBreakdown({ institutionId }: { institution
           {lines.length > 40 && <p className="vm-muted">Exibindo 40 de {fmt.format(lines.length)} agrupamentos. Restrinja por curso ou pesquise a disciplina para aprofundar.</p>}
         </div>
         <p className="vm-muted">
-          **Interpretação:** RF, RN e RA são códigos de ocorrência conforme registrados na fonte, ainda sem dicionário homologado de causas. As taxas são razões brutas por 100 vínculos em disciplinas, não percentuais de alunos únicos nem indicadores de evasão. A lista de docentes pode reunir várias pessoas na mesma oferta, sem atribuição individual de responsabilidade. Diferenças na quantidade de ofertas e na composição das turmas podem afetar o resultado.
+          Interpretação: RF, RN e RA são códigos de ocorrência conforme registrados na fonte, ainda sem dicionário homologado de causas. As taxas são razões brutas por 100 vínculos em disciplinas, não percentuais de alunos únicos nem indicadores de evasão. A lista de docentes pode reunir várias pessoas na mesma oferta, sem atribuição individual de responsabilidade. Diferenças na quantidade de ofertas e na composição das turmas podem afetar o resultado.
         </p>
       </>}
   </section>;
