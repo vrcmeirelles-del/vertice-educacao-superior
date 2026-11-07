@@ -65,6 +65,11 @@ export default function DemoShowroom({onExplore,onAsk,onContact,mode='faculdade'
  const report=executiveDemoText(rows,goals,econ,institution.name,courses);
  return <section className="demo-showroom" aria-label={`Portal demonstrativo: ${institution.name}`}>
   <div className="ds-topbar"><div><span className="ds-avatar">V</span><div><strong>{institution.name}</strong><small>{institution.subtitle} · {institution.description}</small></div></div><span className="ds-demo-badge">DADOS FICTÍCIOS · 2026/2</span></div>
+  <div role="note" style={{background:'#173647',color:'#f1f8fa',border:'1px solid #3a7681',padding:'15px 19px',borderRadius:14,margin:'14px 0 20px',display:'flex',gap:15,justifyContent:'space-between',alignItems:'center',flexWrap:'wrap'}}>
+    <div><strong style={{display:'block'}}>Aprendizagem conectada · Fato &amp; Ordem</strong>
+    <span style={{display:'block',fontSize:13,color:'#d5e5e9'}}>Explore o mesmo porte institucional no Campus Demonstrativo Fato &amp; Ordem: OAB, CFC, ENADE, acompanhamento longitudinal e indicadores fictícios. A integração real exige homologação e dados autorizados.</span></div>
+    <a href={`https://www.fatoeordem.com.br/demonstracao-ies?porte=${mode}&perfil=reitor`} target="_blank" rel="noopener noreferrer" style={{color:'#ffe0b2',fontWeight:800,whiteSpace:'nowrap'}}>Abrir Fato &amp; Ordem ↗</a>
+  </div>
   <div className="ds-frame">
    <aside className="ds-sidebar"><span className="ds-nav-caption">GESTÃO ESTRATÉGICA</span><nav aria-label="Áreas internas da demonstração">{menu.map(m=><button key={m.id} type="button" aria-current={view===m.id?'page':undefined} onClick={()=>navigate(m.id)}><m.icon size={18}/><span>{m.label}</span>{view===m.id&&<ChevronRight size={14}/>}</button>)}</nav><div className="ds-sidebar-foot"><p>Explore os dados, abra documentos e teste as decisões.</p><button type="button" onClick={()=>tourStep(0)}><CompassIcon/>Fazer visita guiada</button>{onSave?<span>Os testes desta visita são persistidos somente neste ambiente fictício.</span>:<a href="/painel">Abrir o painel de gestão completo<ArrowRight size={14}/></a>}</div></aside>
    <div className="ds-main">
