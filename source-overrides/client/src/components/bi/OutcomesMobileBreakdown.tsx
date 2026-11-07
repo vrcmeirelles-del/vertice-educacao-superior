@@ -16,9 +16,6 @@ type Group = { key: string; label: string; rf: number; rn: number; ra: number; c
 const fmt = new Intl.NumberFormat("pt-BR");
 const SEMESTERS = ["2026/02", "2026/01", "2025/02", "2025/01", "2024/02", "2024/01", "2023/02", "2023/01"];
 
-function sumCodes(row: Outcome) {
-  return (row.rf ?? 0) + (row.rn ?? 0) + (row.ra ?? 0);
-}
 function groupRows(rows: Outcome[], selector: (row: Outcome) => { key: string; label: string }): Group[] {
   const grouped = new Map<string, Group>();
   for (const row of rows) {
