@@ -5,6 +5,7 @@ import { latestEnrollmentSnapshots, modalityOf, type Course, type Enrollment, ty
 import "./vertice-mobile.css";
 import DocumentosMobileBI from "./DocumentosMobileBI";
 import AcademicoFontesMobileBI from "./AcademicoFontesMobileBI";
+import VerticeMobilePublicPreview from "./VerticeMobilePublicPreview";
 
 type Access = "loading" | "signed_out" | "mfa" | "ready" | "error";
 type View = "visao" | "cursos" | "documentos" | "academico" | "alertas";
@@ -171,6 +172,9 @@ export default function VerticeMobileBI() {
   const flagged = declining.length + missing.length + overdue.length + (sourceQuarantined ? 1 : 0);
   const filtered = lines.filter(line => (line.course.name + " " + (line.course.code ?? "")).toLocaleLowerCase("pt-BR").includes(query.toLocaleLowerCase("pt-BR")));
   const chosen = lines.find(line => line.course.id === selectedCourse);
+
+  // Fora de sessão autenticada com AAL2, exibe apenas demonstração estática sem SELECT institucional.
+  if (access !== "ready" && access !== "loading") return <VerticeMobilePublicPreview />;
 
   return <main className="vm-app">
     <div className="vm-container">
