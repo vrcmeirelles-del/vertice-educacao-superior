@@ -70,7 +70,10 @@ export default function AuditoriaPermanenciaBI({institutionId,institutionName}:{
   const cohorts=useMemo(()=>cohortReports.flatMap(r=>(Array.isArray(r.payload.cohorts)?r.payload.cohorts:[])
      .map((c:Cohort)=>({...c,course_id:r.course_id,reference:r.source_report_at,method:r.payload.method}))),[cohortReports]);
   const professors=useMemo(()=>reports.filter(r=>r.kind==="reprovacoes_professor")
-    .map(r=>({...r.payload,id:r.id,rank:int(r.payload.r),total:int(r.payload.t),name:String(r.payload.n??"")}))
+    .map(r=>({...r.payload,id:r.id,rank:int(r.payload.r),total:int(r.payload.t),name:String(r.payload.n??""),
+      rf:r.payload.rf==null?undefined:int(r.payload.rf),rn:r.payload.rn==null?undefined:int(r.payload.rn),
+      ra:r.payload.ra==null?undefined:int(r.payload.ra),di:r.payload.di==null?undefined:int(r.payload.di),
+      of:r.payload.of==null?undefined:int(r.payload.of),se:r.payload.se==null?undefined:int(r.payload.se)}))
     .sort((a,b)=>a.rank-b.rank),[reports]);
   const subjects=useMemo(()=>reports.filter(r=>r.kind==="reprovacoes_disciplina")
     .map(r=>({...r.payload,id:r.id,rank:int(r.payload.r),total:int(r.payload.t),name:String(r.payload.d??"")}))
