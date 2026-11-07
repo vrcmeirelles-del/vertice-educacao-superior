@@ -2,16 +2,16 @@ import {useEffect,useMemo,useState} from "react";
 import {supabase} from "@/lib/supabase";
 import "./auditoria-permanencia-bi.css";
 import ResultadoInstitucionalOfertas from "./ResultadoInstitucionalOfertas";
+import PrimeiraMatriculaTodosCursos from "./PrimeiraMatriculaTodosCursos";
 
 type Report={id:string;kind:string;course_id:string|null;payload:Record<string,any>;source_report_at:string|null};
 type Course={id:string;name:string;code:string|null};
 type Cohort={cohort:string;entrants?:number;no_next?:number;positive_av1?:number;no_next_no_positive_av1?:number};
 type Reprobation={semester:string;RF?:number;RN?:number;RA?:number;failures?:number;discipline_enrollments?:number};
 const fmt=(n:number|null|undefined)=>n==null?"—":new Intl.NumberFormat("pt-BR").format(n);
-const pct=(a:number,b:number)=>b>0?(a/b*100).toLocaleString("pt-BR",{maximumFractionDigits:1})+"%":"—";
 const norm=(s:unknown)=>String(s??"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
 const int=(n:unknown)=>Number.isFinite(Number(n))?Number(n):0;
-const SOURCE_KINDS=["cohorts","reprovacoes_professor","reprovacoes_disciplina","reprovacoes_semestre","course_indicators"] as const;
+const SOURCE_KINDS=["cohorts","quantitativo_alunos_historico","reprovacoes_professor","reprovacoes_disciplina","reprovacoes_semestre","course_indicators"] as const;
 
 async function loadReports(institutionId:string):Promise<Report[]> {
   const rows:Report[]=[];
@@ -28,7 +28,6 @@ async function loadReports(institutionId:string):Promise<Report[]> {
   }
   return rows;
 }
-const getDate=(s:string|null)=>s?new Date(s).toLocaleDateString("pt-BR"):"sem data de extração";
 
 export default function AuditoriaPermanenciaBI({institutionId,institutionName}:{
   institutionId:string; institutionName:string;
@@ -70,12 +69,11 @@ export default function AuditoriaPermanenciaBI({institutionId,institutionName}:{
   const cohortReports=useMemo(()=>reports.filter(x=>x.kind==="cohorts"),[reports]);
   const cohorts=useMemo(()=>cohortReports.flatMap(r=>(Array.isArray(r.payload.cohorts)?r.payload.cohorts:[])
      .map((c:Cohort)=>({...c,course_id:r.course_id,reference:r.source_report_at,method:r.payload.method}))),[cohortReports]);
-  const completed=cohorts.filter(c=>c.no_next!=null&&c.no_next_no_positive_av1!=null);
-  const entrants=completed.reduce((s,c)=>s+int(c.entrants),0);
-  const noNext=completed.reduce((s,c)=>s+int(c.no_next),0);
-  const risk=completed.reduce((s,c)=>s+int(c.no_next_no_positive_av1),0);
   const professors=useMemo(()=>reports.filter(r=>r.kind==="reprovacoes_professor")
-    .map(r=>({...r.payload,id:r.id,rank:int(r.payload.r),total:int(r.payload.t),name:String(r.payload.n??"")}))
+    .map(r=>({...r.payload,id:r.id,rank:int(r.payload.r),total:int(r.payload.t),name:String(r.payload.n??""),
+      rf:r.payload.rf==null?undefined:int(r.payload.rf),rn:r.payload.rn==null?undefined:int(r.payload.rn),
+      ra:r.payload.ra==null?undefined:int(r.payload.ra),di:r.payload.di==null?undefined:int(r.payload.di),
+      of:r.payload.of==null?undefined:int(r.payload.of),se:r.payload.se==null?undefined:int(r.payload.se)}))
     .sort((a,b)=>a.rank-b.rank),[reports]);
   const subjects=useMemo(()=>reports.filter(r=>r.kind==="reprovacoes_disciplina")
     .map(r=>({...r.payload,id:r.id,rank:int(r.payload.r),total:int(r.payload.t),name:String(r.payload.d??"")}))
@@ -124,32 +122,15 @@ export default function AuditoriaPermanenciaBI({institutionId,institutionName}:{
         <p>{institutionName} · relatório gerencial com proveniência e limites explícitos das fontes</p></div>
       <button type="button" onClick={()=>setRefresh(x=>x+1)} disabled={loading}>Atualizar leitura</button>
     </header>
-    <div className="vxa-alert"><strong>Regra de integridade:</strong> dados de alunos jamais são apagados desta análise. A exclusão de matrículas da taxa gerencial ajustada só poderá ocorrer após verificação de primeiro vínculo, gratuidade e AV1/AV2 explicitamente não realizadas, com decisão auditada. O indicador acadêmico oficial permanece inalterado.</div>
+    <details className="vxa-integrity"><summary><strong>Integridade e rastreabilidade:</strong> nenhum dado original é excluído. <span>Ver regra completa</span></summary><p>Dados de alunos jamais são apagados desta análise. A exclusão de matrículas da taxa gerencial ajustada só poderá ocorrer após verificação de primeiro vínculo, gratuidade e AV1/AV2 explicitamente não realizadas, com decisão auditada. O indicador acadêmico oficial permanece inalterado.</p></details>
     {error&&<p role="alert" className="vxa-error">{error}</p>}
     {loading?<p role="status">Consultando dados disponíveis…</p>:<>
-      {tab==="coortes"&&<div className="vxa-metrics">
-        <article><small>Primeiros vínculos observados</small><strong>{completed.length?fmt(entrants):"—"}</strong><span>Coortes com semestre seguinte pesquisado</span></article>
-        <article><small>Sem vínculo seguinte localizado</small><strong>{completed.length?fmt(noNext):"—"}</strong><span>Não equivale automaticamente a evasão</span></article>
-        <article className="vxa-risk"><small>Sem vínculo seguinte e sem AV1 positiva</small><strong>{completed.length?fmt(risk):"—"}</strong><span>{completed.length?pct(risk,entrants):"—"} dos ingressantes observados; não confirma ausência em prova</span></article>
-        <article><small>Matrículas gratuitas sem AV1 e AV2</small><strong>—</strong><span>Sem fonte individual ou indicador de gratuidade verificado</span></article>
-      </div>}
       <nav className="vxa-tabs" aria-label="Análises de permanência">
-        {([["ofertas","Todos os cursos · ofertas"],["coortes","Primeira matrícula (Direito)"],["cursos","Séries consolidadas"],["disciplinas","Ranking geral disciplinas"],["professores","Ranking geral professores"]] as const).map(([id,label])=>
+        {([["ofertas","Todos os cursos · ofertas"],["coortes","Primeira matrícula · Todos os cursos"],["cursos","Séries consolidadas"],["disciplinas","Ranking geral disciplinas"],["professores","Ranking geral professores"]] as const).map(([id,label])=>
           <button type="button" key={id} className={tab===id?"vxa-selected":""} onClick={()=>setTab(id)} aria-current={tab===id?"page":undefined}>{label}</button>)}
       </nav>
       {tab==="ofertas"&&<ResultadoInstitucionalOfertas institutionId={institutionId}/>}
-      {tab==="coortes"&&<div className="vxa-card">
-        <h3>Ingressantes e continuidade por coorte</h3>
-        <p>A fonte histórica usa primeiro vínculo observado; a presença na AV1 é apenas nota positiva localizada. Não há informação individual de AV2 nem marcação da gratuidade.</p>
-        {!cohorts.length?<p>Coortes indisponíveis para esta instituição.</p>:
-        <div className="vxa-scroll"><table><thead><tr><th>Curso</th><th>Coorte</th><th>Ingressantes</th><th>Sem vínculo seguinte</th><th>Sem vínculo e sem AV1 positiva</th><th>% em investigação</th></tr></thead>
-        <tbody>{cohorts.map((c,i)=><tr key={i}>
-          <td>{courses.find(x=>x.id===c.course_id)?.name??"Curso não identificado"}</td>
-          <td>{c.cohort}</td><td>{fmt(c.entrants)}</td><td>{fmt(c.no_next)}</td>
-          <td>{fmt(c.no_next_no_positive_av1)}</td><td>{c.no_next_no_positive_av1!=null?pct(int(c.no_next_no_positive_av1),int(c.entrants)):"—"}</td>
-        </tr>)}</tbody></table></div>}
-        <p className="vxa-source">Fonte: vertice_academic_reports, tipo cohorts · corte {getDate(cohortReports[0]?.source_report_at??null)}. O semestre mais recente, sem período seguinte, não deve integrar o indicador de continuidade.</p>
-      </div>}
+      {tab==="coortes"&&<PrimeiraMatriculaTodosCursos courses={courses} reports={reports}/>}
       {tab==="cursos"&&<div className="vxa-card">
         <h3>Reprovações por curso e semestre — recorte analítico</h3>
         <div className="vxa-filters">

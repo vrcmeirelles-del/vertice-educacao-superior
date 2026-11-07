@@ -13,3 +13,12 @@
 @media(max-width:570px){.vxa-metrics,.vxa-submetrics{grid-template-columns:repeat(2,minmax(0,1fr))}.vxa-filters{grid-template-columns:1fr}.vxa-metrics article{padding:12px}.vxa-card{padding:14px}.vxa-head{padding:14px}}
 
 .vxa-roster{border-radius:12px;border:1px solid #c3e1da;background:#effbf6;padding:13px 16px;display:grid;gap:7px;color:#205746}.vxa-roster strong{font-size:.94rem}.vxa-roster p{font-size:.83rem}.vxa-roster a{font-size:.85rem;color:#1368aa;text-decoration:underline;font-weight:700;justify-self:start}
+
+/* UX responsiva: abas horizontais, sem empilhamento vertical no celular */
+.vxa-tabs{display:flex;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;gap:7px;scrollbar-width:thin;scroll-snap-type:x proximity;padding:3px 1px 10px;-webkit-overflow-scrolling:touch}
+.vxa-tabs button{flex:0 0 auto;white-space:nowrap;scroll-snap-align:start;min-height:44px;padding:10px 13px;max-width:290px;font-size:clamp(.77rem,2.9vw,.9rem)}
+.vxa-integrity{padding:9px 13px;background:#fffaf0;border-radius:12px;border:1px solid #ead4aa;border-left:4px solid #c69a1f;color:#765111;font-size:.85rem}
+.vxa-integrity summary{cursor:pointer;line-height:1.45}
+.vxa-integrity summary span{color:#99651c;text-decoration:underline;text-underline-offset:2px;font-size:.78rem}
+.vxa-integrity p{margin:10px 0 0;line-height:1.6;font-size:.85rem}
+@media(max-width:570px){.vxa-tabs button{font-size:.79rem;max-width:none}.vxa-integrity{padding:8px 11px}.vxa-tabs{margin-left:-3px;margin-right:-3px}}
