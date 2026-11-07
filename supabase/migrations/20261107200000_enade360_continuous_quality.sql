@@ -47,16 +47,20 @@ alter table public.vertice_enade360_records enable row level security;
 
 create policy enade360_read on public.vertice_enade360_records
  for select to authenticated
- using (vertice_private.can_read_institution(institution_id));
+ using (vertice_private.can_read_institution(institution_id)
+   and vertice_private.has_role(institution_id,array[
+     'gestor','equipe','reitor','diretor_geral','diretor_pedagogico','procurador','cpa'
+   ]));
 
--- Coordenação, NDE e CPA podem registrar insumos; não podem autopublicá-los.
+-- A alta gestão e a CPA podem registrar insumos; perfis restritos a curso
+-- aguardam a vinculação de permissões por curso, sem acesso cruzado.
 create policy enade360_create_draft on public.vertice_enade360_records
  for insert to authenticated
  with check (
    vertice_private.can_read_institution(institution_id)
    and vertice_private.has_role(institution_id, array[
      'gestor','equipe','reitor','diretor_geral','diretor_pedagogico',
-     'procurador','coordenador','nde','cpa'
+     'procurador','cpa'
    ])
    and validation_status='pendente'
    and validated_by is null and validated_at is null
