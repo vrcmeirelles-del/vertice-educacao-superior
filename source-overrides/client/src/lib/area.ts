@@ -62,7 +62,7 @@ export type Tab = "enade" | "backups" | "fontes" | "avaliacao" | "novo_instrumen
 /** Abas disponíveis para cada grupo de perfis. */
 const TABS_FULL: Tab[] = ["enade", "backups", "fontes", "avaliacao", "novo_instrumento", "base", "ia", "geral", "analise", "visao", "cadastro", "emec", "eorbit", "auditoria", "metas", "repositorio", "biblioteca", "reitor", "resultado-curso", "simulador", "plano", "diagnostico", "equipe"];
 const TABS_CPA: Tab[] = ["enade", "avaliacao", "geral", "visao", "metas", "repositorio", "biblioteca", "plano", "equipe"];
-const TABS_COURSE: Tab[] = ["enade", "geral", "visao", "metas", "repositorio", "biblioteca", "plano", "equipe"];
+const TABS_COURSE: Tab[] = ["geral", "visao", "metas", "repositorio", "biblioteca", "plano", "equipe"];
 
 export function visibleTabs(r?: Role | null): Tab[] {
   if (!r) return [];
