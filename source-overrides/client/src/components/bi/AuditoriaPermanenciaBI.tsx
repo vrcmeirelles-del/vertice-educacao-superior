@@ -1,6 +1,7 @@
 import {useEffect,useMemo,useState} from "react";
 import {supabase} from "@/lib/supabase";
 import "./auditoria-permanencia-bi.css";
+import ResultadoInstitucionalOfertas from "./ResultadoInstitucionalOfertas";
 
 type Report={id:string;kind:string;course_id:string|null;payload:Record<string,any>;source_report_at:string|null};
 type Course={id:string;name:string;code:string|null};
@@ -42,7 +43,7 @@ export default function AuditoriaPermanenciaBI({institutionId,institutionName}:{
   const [subjectSearch,setSubjectSearch]=useState("");
   const [selectedTeacher,setSelectedTeacher]=useState<string|null>(null);
   const [selectedSubject,setSelectedSubject]=useState<string|null>(null);
-  const [tab,setTab]=useState<"coortes"|"cursos"|"professores"|"disciplinas">("coortes");
+  const [tab,setTab]=useState<"ofertas"|"coortes"|"cursos"|"professores"|"disciplinas">("ofertas");
   const [refresh,setRefresh]=useState(0);
 
   useEffect(()=>{
@@ -133,9 +134,10 @@ export default function AuditoriaPermanenciaBI({institutionId,institutionName}:{
         <article><small>Matrículas gratuitas sem AV1 e AV2</small><strong>—</strong><span>Sem fonte individual ou indicador de gratuidade verificado</span></article>
       </div>
       <nav className="vxa-tabs" aria-label="Análises de permanência">
-        {([["coortes","Primeira matrícula"],["cursos","Cursos e reprovações"],["disciplinas","Disciplinas"],["professores","Professores"]] as const).map(([id,label])=>
+        {([["ofertas","Todos os cursos · ofertas"],["coortes","Primeira matrícula (Direito)"],["cursos","Séries consolidadas"],["disciplinas","Ranking geral disciplinas"],["professores","Ranking geral professores"]] as const).map(([id,label])=>
           <button type="button" key={id} className={tab===id?"vxa-selected":""} onClick={()=>setTab(id)} aria-current={tab===id?"page":undefined}>{label}</button>)}
       </nav>
+      {tab==="ofertas"&&<ResultadoInstitucionalOfertas institutionId={institutionId}/>}
       {tab==="coortes"&&<div className="vxa-card">
         <h3>Ingressantes e continuidade por coorte</h3>
         <p>A fonte histórica usa primeiro vínculo observado; a presença na AV1 é apenas nota positiva localizada. Não há informação individual de AV2 nem marcação da gratuidade.</p>
