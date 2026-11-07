@@ -44,6 +44,51 @@ tabela exposta à API.** Uma futura sincronização nominal exige tabela privada
 controles de acesso e conferência da origem do primeiro semestre acadêmico por pessoa,
 além de aprovação de segurança da fonte.
 
+## Decisão executiva de integração — fontes verificadas em 07/11/2026
+
+**Fonte 1 — Risco acadêmico individual (permitida em ambiente restrito, não em prévia pública).**
+Arquivo institucional `CLIENTES/UNITOP/planilhas/unitop_aba09_dados_pessoais.csv`:
+1.662 linhas, 1.658 CPFs distintos, 44 códigos de curso, 1.613 registros com
+status Matriculado e 49 com status Trancado. O arquivo contém `Codigo`,
+`Matricula`, `CPF`, `Status Atual`, reprovações e `Ultimo semestre com reprovacao`.
+**Não há coluna de data ou semestre do primeiro vínculo**.
+Esta fonte alimentará apenas retenção/risco após ingestão privada, RLS, varredura e mapeamento
+de códigos, sem CPF em API pública. O código 027 possui múltiplos UUIDs na Vértice;
+é proibido adotar um deles por conveniência.
+
+**Fonte 2 — Tendência de alunos e status (apta a agregados, não a ingressantes).**
+`CLIENTES/UNITOP/planilhas/matricula_agregada.json`: 840 registros por
+curso/semestre; 1.389 linhas de turmas agregadas nas estruturas aninhadas.
+As turmas contêm apenas série, turma e matriculados, sem identificador pessoal.
+
+**Fonte 3 — Histórico e-ORBIT 2016/01–2026/02 (apta a agregados, não a ingressantes).**
+`CLIENTES/UNITOP/Migração/UNITOP_Consolidado_2016_2026.json`:
+`relatorios.rel6_relacao_alunos.dados` inclui 596 registros resumidos,
+com `semestre`, `curso_id`, `curso_nome`, `total_alunos`. O arquivo se
+identifica como *Camada 1 — dados agregados (sem dados pessoais)*.
+Arquivo auxiliar `rel6_alunos_data.csv` também contém apenas quantitativos.
+
+**Estado do destino Supabase verificado:** `public.vertice_eorbit_alunos=0`,
+`vertice_private.api_staging_records=0`,
+`vertice_app.retention_records=0`, e 1 conjunto de coortes do Direito.
+O sincronizador `Migração/supabase-sync/run_sync.py` carrega rel2, rel3/4/5,
+rel8, rel10, rel13 e planilhas de gestão, mas não a base nominal da aba09.
+Raspar os totais da página não equivale a exportar histórico de alunos por CPF.
+
+**Definição de execução, sem novas contratações:**
+1. Conservar relatórios 2/6 e matrículas agregadas na camada de indicadores quantitativos.
+2. Habilitar carga **restrita** e auditada da aba09 para risco/permanência, após inspeção
+   da origem, verificação de CPF/duplicidades, mapeamento de código/curso/IES e RLS;
+   jamais para atribuir primeiro ingresso.
+3. Para primeira matrícula: exigir os registros históricos efetivos de pessoa +
+   curso identificado + semestre + situação, do período de observação completo;
+   importar em staging privado, deduplicar por pessoa/curso/semestre e conciliar
+   transferências, modalidades, mudanças de grade e rematrículas.
+4. Publicar somente agregados homologados no BI; jamais expor a fonte nominal
+   na prévia pública sem senha. Sem histórico suficiente, mostrar **não verificável**.
+5. Não iniciar rotina contínua em nuvem até verificar credenciais da conta Microsoft
+   e o ambiente de execução autorizado, para evitar chaves no navegador e custo extra.
+
 ## Diagnóstico de dados
 
 - A tabela pública vertice_eorbit_alunos tem zero registros.
