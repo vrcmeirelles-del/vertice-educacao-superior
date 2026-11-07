@@ -73,6 +73,11 @@ export default function PrimeiraMatriculaTodosCursos({ reports, courses }: { rep
 
   const courseList = useMemo(() => courses.slice().sort((a, b) =>
     a.name.localeCompare(b.name, "pt-BR") || (a.code ?? "").localeCompare(b.code ?? "") || a.id.localeCompare(b.id)), [courses]);
+  const codeCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const course of courseList) if (course.code) counts.set(course.code, (counts.get(course.code) ?? 0) + 1);
+    return counts;
+  }, [courseList]);
   const knownCourseIds = useMemo(() => new Set(courseList.map(c => c.id)), [courseList]);
   const validScope = courseList.some(c => c.id === courseId) ? courseId : "";
   const semesters = useMemo(() => [...new Set(cohortRows.filter(r => !validScope || r.courseId === validScope).map(r => r.term))].sort().reverse(), [cohortRows, validScope]);
@@ -97,13 +102,13 @@ export default function PrimeiraMatriculaTodosCursos({ reports, courses }: { rep
     <div className="vxa-first-head">
       <div><small>VÉRTICE · LEITURA POR CURSO E INSTITUCIONAL</small><h3 id="vxa-first-title">Primeira matrícula e permanência — todos os cursos</h3>
         <p>Escolha qualquer curso do cadastro. O sistema separa coortes identificadas de históricos de matrícula que ainda não demonstram primeiro vínculo.</p></div>
-      <span className="vxa-first-counter">{format(scoped.length)} cursos no recorte</span>
+      <span className="vxa-first-counter">{format(scoped.length)} cadastros no recorte</span>
     </div>
     <div className="vxa-first-filters">
       <label>Curso
         <select value={validScope} onChange={e => { setCourseId(e.target.value); setSemester(""); setSearch(""); }}>
           <option value="">Todos os cursos · visão institucional</option>
-          {courseList.map(c => <option key={c.id} value={c.id}>{c.code ? c.code + " · " : ""}{c.name}</option>)}
+          {courseList.map(c => <option key={c.id} value={c.id}>{c.code ? c.code + " · " : ""}{c.name}{c.code && (codeCounts.get(c.code) ?? 0) > 1 ? " · cadastro " + c.id.slice(0, 8) : ""}</option>)}
         </select>
       </label>
       <label>Coorte
@@ -114,7 +119,7 @@ export default function PrimeiraMatriculaTodosCursos({ reports, courses }: { rep
       </label>
     </div>
     <div className="vxa-first-metrics">
-      <article><small>Cursos no recorte</small><strong>{format(scoped.length)}</strong><span>Catálogo institucional, não coortes</span></article>
+      <article><small>Cadastros de curso no recorte</small><strong>{format(scoped.length)}</strong><span>Catálogo institucional, não coortes</span></article>
       <article><small>Coorte de primeiro vínculo</small><strong>{format(withCohort)}</strong><span>Cursos com fonte nominal já agregada</span></article>
       <article><small>Histórico quantitativo</small><strong>{format(withHistory)}</strong><span>Matrículas por semestre; não são ingressantes</span></article>
       <article className="vxa-first-warning"><small>Coorte ainda indisponível</small><strong>{format(pending)}</strong><span>Cursos pendentes de cruzamento individual</span></article>
@@ -148,7 +153,7 @@ export default function PrimeiraMatriculaTodosCursos({ reports, courses }: { rep
           const hist = history.get(course.id);
           const last = hist?.size ? [...hist].sort().at(-1) : null;
           return <div className="vxa-first-course" key={course.id}>
-            <div><strong>{course.name}</strong><small>{course.code ? "Código " + course.code + " · " : ""}{hist?.size ? hist.size + " semestres de matrícula disponíveis" : "Sem histórico quantitativo vinculado"}</small></div>
+            <div><strong>{course.name}</strong><small>{course.code ? "Código " + course.code + " · " : ""}{course.code && (codeCounts.get(course.code) ?? 0) > 1 ? "Cadastro " + course.id.slice(0, 8) + " · " : ""}{hist?.size ? hist.size + " semestres de matrícula disponíveis" : "Sem histórico quantitativo vinculado"}</small></div>
             <div className="vxa-first-course-right">
               <span className={hasCohort ? "vxa-first-verified" : "vxa-first-pending"}>{hasCohort ? "Coorte identificada" : "Primeiro vínculo pendente"}</span>
               <small>{last ? "Último quantitativo: " + last.replace("/0", "/") : "Sem semestre de referência"}</small>
