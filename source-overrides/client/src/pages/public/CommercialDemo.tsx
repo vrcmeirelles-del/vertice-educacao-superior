@@ -3,9 +3,12 @@ import {Link} from 'wouter';
 import {ArrowRight,Check,Compass,MessageCircle,ShieldCheck,Mail,Trash2} from 'lucide-react';
 import {company} from '@/lib/consultancy';
 import DemoShowroom from '@/components/DemoShowroom';
+import {demoInstitutionProfiles,type DemoInstitutionMode} from '@/lib/demo-showroom';
 import {buildDemoBrief,demoApi,demoEvent,demoTracks,forgetDemo,hasDemoSession,refreshDemoExpiry,startDemo,updateDemo,type DemoEvent,type DemoProfile,type DemoState,type DemoTrack} from '@/lib/commercial-demo';
 type Chat={role:'user'|'assistant';content:string;source?:'visitor'|'demo'};
+const demoInstitutionModes: DemoInstitutionMode[]=['faculdade','centro','universidade'];
 export default function CommercialDemo(){
+ const [institutionMode,setInstitutionMode]=useState<DemoInstitutionMode>(()=>{if(typeof window==='undefined')return 'faculdade';const mode=new URLSearchParams(window.location.search).get('perfil');return mode==='centro'||mode==='universidade'?mode:'faculdade';});
  const [track,setTrack]=useState<DemoTrack>('regulacao'),[step,setStep]=useState(0);
  const [profile,setProfile]=useState<DemoProfile>({track:'regulacao'}),[events,setEvents]=useState<DemoEvent[]>([]),[remote,setRemote]=useState<DemoState|null>(null);
  const [memory,setMemory]=useState(false),[ai,setAi]=useState(false),[configured,setConfigured]=useState<boolean|null>(null),[chats,setChats]=useState<Chat[]>([]),[message,setMessage]=useState('');
@@ -28,7 +31,20 @@ export default function CommercialDemo(){
  return <div className="commercial-demo">
   <section className="demo-sales-hero demo-sales-hero-compact corp-container"><span className="corp-eyebrow">VÉRTICE POR DENTRO</span><h1>Entre na gestão.<br/><em>Explore as decisões.</em></h1><p>Abra o portal de uma instituição fictícia. Investigue pendências, confira documentos, acompanhe metas e explore uma aquisição — do dado ao relatório executivo.</p><div className="demo-trust"><span><Check size={16}/>Sem cadastro para explorar</span><span><ShieldCheck size={16}/>Cenários fictícios</span><span><Compass size={16}/>Você escolhe o percurso</span></div></section>
   <section className="corp-container demo-sales-body demo-sales-expanded">
-   <DemoShowroom onExplore={explore} onAsk={explainArea} onContact={()=>void prepareContact()}/>
+   <div className="demo-institution-selector" aria-label="Escolha o porte da instituição demonstrativa" style={{margin:'0 0 24px'}}>
+    <h2 style={{fontSize:'1.4rem',marginBottom:8}}>Escolha a instituição que deseja conhecer</h2>
+    <p style={{marginBottom:16}}>Três cenários independentes, com cursos, matrículas, evidências e indicadores inventados. O acesso é livre e os seus testes não alteram dados reais.</p>
+    <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))',gap:12}}>
+      {demoInstitutionModes.map(mode=>{const p=demoInstitutionProfiles[mode];const active=institutionMode===mode;return <a key={mode} href={`/demonstracao?perfil=${mode}`} onClick={e=>{e.preventDefault();setInstitutionMode(mode);window.history.replaceState(window.history.state,'',`/demonstracao?perfil=${mode}`);}} aria-current={active?'page':undefined} style={{display:'block',border:active?'2px solid #19869b':'1px solid #8b9cab',borderRadius:12,padding:16,textDecoration:'none',color:'inherit',background:active?'rgba(25,134,155,.07)':'transparent'}}>
+        <strong style={{display:'block',marginBottom:6}}>{p.name}</strong>
+        <small style={{display:'block',marginBottom:8}}>{p.subtitle}</small>
+        <span style={{fontSize:13}}>{p.description}</span>
+        <span style={{display:'block',fontWeight:700,marginTop:12,color:'#19869b'}}>{active?'Ambiente em exibição':'Explorar ambiente →'}</span>
+      </a>})}
+    </div>
+    <p style={{fontSize:13,marginTop:12}}>Para convidar um gestor, compartilhe o link do perfil escolhido. A visita não exige senha e não permite acesso aos bancos dos clientes.</p>
+   </div>
+   <DemoShowroom mode={institutionMode} onExplore={explore} onAsk={explainArea} onContact={()=>void prepareContact()}/>
    <div className="demo-advice-heading"><h2>Agora, vamos olhar para a sua instituição?</h2><p>Conte o contexto que deseja discutir. A assistente considera a área explorada e ajuda a preparar a próxima conversa.</p></div>
    <div className="demo-sales-workspace">
     <div className="demo-workbench">
