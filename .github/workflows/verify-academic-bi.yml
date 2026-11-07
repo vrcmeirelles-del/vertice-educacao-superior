@@ -1,0 +1,46 @@
+name: Validar BI permanência e reprovações
+on:
+  pull_request:
+    paths:
+      - 'source-overrides/**'
+      - 'vertice-servidor-source.zip'
+      - '.github/workflows/verify-academic-bi.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Extrair fonte editável e aplicar overrides
+        run: |
+          test -f vertice-servidor-source.zip
+          mkdir -p .validation-build
+          unzip -qo vertice-servidor-source.zip -d .validation-build
+          cp -a source-overrides/. .validation-build/
+          if [ -d supabase ]; then cp -a supabase .validation-build/; fi
+          test -f .validation-build/package.json
+          test -f .validation-build/client/src/components/bi/AuditoriaPermanenciaBI.tsx
+      - name: Instalar dependências exatas
+        working-directory: .validation-build
+        run: npm ci --legacy-peer-deps --no-audit --no-fund
+      - name: Typecheck
+        working-directory: .validation-build
+        run: npm run check
+      - name: Testes
+        working-directory: .validation-build
+        run: npm test
+      - name: Build estático
+        working-directory: .validation-build
+        run: npm run build:static
+      - name: Verificar saída
+        run: |
+          test -f .validation-build/dist/public/index.html
