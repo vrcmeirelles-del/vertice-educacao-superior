@@ -89,6 +89,31 @@ Raspar os totais da página não equivale a exportar histórico de alunos por CP
 5. Não iniciar rotina contínua em nuvem até verificar credenciais da conta Microsoft
    e o ambiente de execução autorizado, para evitar chaves no navegador e custo extra.
 
+## Conciliação verificável dos 44 códigos da fonte nominal
+
+Comparação do campo `Codigo` da aba09 com o cadastro `public.vertice_courses` da UNITOP:
+
+- **42 códigos** têm correspondência única.
+- **027 (Direito): 62 registros**, com dois UUIDs ativos. O cadastro
+  `679995fa-72a9-4bae-a5ec-812b2ec229d5` tem 12 relatórios,
+  incluindo coortes, e 56 linhas de snapshots de matrículas.
+  O cadastro `dfca6d07-fef6-4fa0-9475-3a85eaf4baa6` tem
+  2 relatórios e 9 linhas de snapshots. Não mesclar automaticamente nem
+  redistribuir pessoas sem chave histórica de origem.
+- **029: 10 registros** sem código correspondente em `vertice_courses`.
+  O diretório de cursos do OneDrive tem a pasta `EAD/029 - CIÊNCIAS CONTÁBEIS -EAD`,
+  mas essa referência documental exige conciliação com o cadastro de cursos
+  antes de vincular os registros à IES e modalidade corretas.
+- **Total nominal analisado:** 1.662 linhas em 44 códigos de curso; as
+  duas divergências abrangem **72 registros**. Esses registros devem ser
+  enviados para fila de curadoria, não descartados ou realocados silenciosamente.
+
+**Decisão de implementação:** mesmo os 1.590 registros com códigos de
+curso de correspondência única não demonstram primeira matrícula, pois
+não trazem semestre de ingresso. A prioridade é homologar essa base
+para o **BI de permanência/risco**, mantendo a classificação correta,
+enquanto a trilha histórica por pessoa permanece separada.
+
 ## Diagnóstico de dados
 
 - A tabela pública vertice_eorbit_alunos tem zero registros.
