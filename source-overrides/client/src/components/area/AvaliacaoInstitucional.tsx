@@ -17,6 +17,24 @@ function formatarNota(valor: number | null): string {
   return valor === null ? "—" : valor.toFixed(2).replace(".", ",");
 }
 
+type Parte = { value: number; color: string; label: string };
+function DonutAval({ parts, center, caption, size = 96 }: { parts: Parte[]; center: string; caption: string; size?: number }) {
+  const total = parts.reduce((s, p) => s + p.value, 0);
+  let acc = 0;
+  return (
+    <svg className="aval-donut" viewBox="0 0 42 42" width={size} height={size} role="img" aria-label={caption}>
+      <circle cx="21" cy="21" r="15.915" fill="none" stroke="#e7ecf1" strokeWidth="5" />
+      {total > 0 && parts.filter(p => p.value > 0).map(p => {
+        const len = (p.value / total) * 100;
+        const el = <circle key={p.label} cx="21" cy="21" r="15.915" fill="none" stroke={p.color} strokeWidth="5" strokeDasharray={`${len} ${100 - len}`} strokeDashoffset={25 - acc} />;
+        acc += len;
+        return el;
+      })}
+      <text x="21" y="23" textAnchor="middle" className="aval-donut-text">{center}</text>
+    </svg>
+  );
+}
+
 function Evidencias({ titulo, itens }: { titulo: string; itens: string[] }) {
   return (
     <div className="aval-bloco">
@@ -116,6 +134,41 @@ export default function AvaliacaoInstitucional() {
         avaliação in loco; a calculadora abaixo serve para simular o efeito de cada eixo
         e não substitui a avaliação oficial. As notas que você digitar não são gravadas.
       </p>
+
+      <div className="aval-resumo">
+        <div className="aval-resumo-main">
+          <DonutAval parts={[
+            {value: Object.values(notas).filter(n=>n!==null&&n!==undefined&&n>=4).length, color:'#4f9a76', label:'≥ 4'},
+            {value: Object.values(notas).filter(n=>n!==null&&n!==undefined&&n!==undefined&&n>=3&&n<4).length, color:'#d1a54a', label:'3'},
+            {value: Object.values(notas).filter(n=>n!==null&&n!==undefined&&n<3).length, color:'#c0594f', label:'< 3'},
+            {value: instrumento.axes.length - Object.values(notas).filter(n=>n!==null&&n!==undefined).length, color:'#a9b6c4', label:'Sem nota'},
+          ]} center={formatarNota(conceito)} caption="Conceito institucional simulado" />
+          <div>
+            <strong style={{fontSize:'1.15rem'}}>{formatarNota(conceito)} conceito simulado</strong>
+            <ul className="aval-legenda">
+              <li><i style={{background:'#4f9a76'}}/> Conceito ≥ 4 <b>{Object.values(notas).filter(n=>n!==null&&n!==undefined&&n>=4).length}</b></li>
+              <li><i style={{background:'#d1a54a'}}/> Conceito 3 <b>{Object.values(notas).filter(n=>n!==null&&n!==undefined&&n>=3&&n<4).length}</b></li>
+              <li><i style={{background:'#c0594f'}}/> Conceito {'<'} 3 <b>{Object.values(notas).filter(n=>n!==null&&n!==undefined&&n<3).length}</b></li>
+              <li><i style={{background:'#a9b6c4'}}/> Sem nota <b>{instrumento.axes.length - Object.values(notas).filter(n=>n!==null&&n!==undefined).length}</b></li>
+            </ul>
+          </div>
+        </div>
+        <div className="aval-eixo-cards">
+          {instrumento.axes.map(a => {
+            const nota = notas[a.code];
+            const pct = nota !== null && nota !== undefined ? Math.round((nota/5)*100) : 0;
+            return (
+              <div key={a.code} className="aval-eixo-card">
+                <DonutAval parts={[{value:pct,color:nota!==null&&nota!==undefined?(nota>=4?'#4f9a76':nota>=3?'#d1a54a':'#c0594f'):'#a9b6c4',label:''},{value:100-pct,color:'#e7ecf1',label:''}]} center={nota!==null&&nota!==undefined?String(nota):'—'} caption={`Eixo ${a.code}`} size={52} />
+                <div>
+                  <strong>Eixo {a.code}</strong>
+                  <p className="area-muted" style={{margin:0,fontSize:'.78rem'}}>{a.name}<br/>peso {pesoDoEixo(a.code)}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
 
       <div className="aval-kpis">
         <span><b>{instrumento.axes.length}</b> eixos</span>
