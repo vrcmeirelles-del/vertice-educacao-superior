@@ -183,7 +183,7 @@ export default function Workspace({
       ) : loading ? (
         <p role="status">Carregando…</p>
       ) : tab === "fontes" ? (
-        role==="master"||role==="gestor" ? <SourceUpload key={id} institutionId={id} institutionName={String(institution.name)} onBackups={()=>choose("backups")}/> : <p>O recebimento de extrações é restrito à gestão autorizada da IES.</p>
+        role==="master"||role==="gestor" ? <SourceUpload key={id} institutionId={id} institutionName={String(institution.name)} isMaster={role==="master"} onBackups={()=>choose("backups")}/> : <p>O recebimento de extrações é restrito à gestão autorizada da IES.</p>
       ) : tab === "backups" ? (
         role==="master"||role==="gestor" ? <AcademicBackups key={id} institutionId={id} institutionName={String(institution.name)}/> : <p>O acesso aos backups acadêmicos é restrito à gestão da instituição com segundo fator de autenticação.</p>
       ) : tab === "base" ? (

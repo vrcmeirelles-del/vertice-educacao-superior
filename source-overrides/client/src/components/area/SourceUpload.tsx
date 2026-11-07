@@ -2,6 +2,7 @@ import {useCallback,useEffect,useState,type FormEvent} from "react";
 import {supabase} from "@/lib/supabase";
 import "./source-upload.css";
 import SourceCuration from "./SourceCuration";
+import ApiConnectorSetup from "./ApiConnectorSetup";
 import ApprovedSourcesBI from "./ApprovedSourcesBI";
 import OneDriveFolderImporter from "./OneDriveFolderImporter";
 
@@ -29,7 +30,7 @@ function allowedDrive(value:string){
    h.endsWith(".sharepoint.com"))&&value.length<=1800;
  }catch{return false;}
 }
-export default function SourceUpload({institutionId,institutionName,onBackups}:{institutionId:string;institutionName:string;onBackups?:()=>void}){
+export default function SourceUpload({institutionId,institutionName,onBackups,isMaster=false}:{institutionId:string;institutionName:string;onBackups?:()=>void;isMaster?:boolean}){
  const [rows,setRows]=useState<UploadRow[]>([]);
  const [source,setSource]=useState("eorbit");
  const [sourceName,setSourceName]=useState("Sistema acadêmico e-ORBIT");
@@ -166,6 +167,7 @@ export default function SourceUpload({institutionId,institutionName,onBackups}:{
   <header><span>VÉRTICE · FONTES E EXTRAÇÕES</span><h3>Central de importação — {institutionName}</h3>
    <p>Envie arquivos extraídos de sites e sistemas. Cada arquivo recebe origem, período, usuário e trilha de recebimento exclusivos desta IES.</p>
   </header>
+  {isMaster&&<ApiConnectorSetup institutionId={institutionId} institutionName={institutionName}/>}
   {onBackups&&<div className="vx-source-warning" style={{display:"flex",gap:12,alignItems:"center",flexWrap:"wrap",justifyContent:"space-between"}}>
    <span><strong>Possui backup RAR, ZIP ou BAK?</strong> Use a área específica de Backups Acadêmicos, isolada dos indicadores.</span>
    <button type="button" onClick={onBackups} style={{padding:"9px 13px",borderRadius:8,border:"1px solid #9daec4",background:"#fff",cursor:"pointer"}}>Abrir Backups Acadêmicos</button>
