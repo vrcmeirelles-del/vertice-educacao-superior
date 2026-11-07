@@ -24,6 +24,26 @@ No projeto Supabase Vértice, a conferência independente encontrou `public.vert
 
 **Decisão metodológica:** O arquivo `unitop_aba09_dados_pessoais.csv` é útil para identificar pessoas de risco e cursos; o campo `Ultimo semestre com reprovacao` **não equivale** ao primeiro semestre acadêmico. Não transformar os seus 1.658 CPFs em ingressantes. O próximo passo técnico é localizar os demais vínculos históricos por CPF na fonte autenticada (ou pasta de raspagem que contenha estas linhas), conciliar com e-ORBIT, homologar datas e somente então executar a rotina de cálculo já preparada. Nenhum dado pessoal deve ser publicado ou copiado para commits.
 
+## Causa da lacuna de sincronização nominal — conferida no código de origem
+
+O sincronizador institucional original está em
+`Documentos Virgilio/Empresas/Vertice/CLIENTES/UNITOP/Migração/supabase-sync/run_sync.py`.
+Suas listas `FONTES_JSON`, `FONTES_JSON_345`, `FONTES_XLSX` e `FONTES_XLSX_OPCIONAIS` incluem
+os relatórios 2, 3, 4, 5, 8, 10 e 13 e a planilha gerencial, **mas não incluem a planilha
+nominal `planilhas/unitop_aba09_dados_pessoais.csv` nem uma importação de `rel6_relacao_alunos`**.
+
+A fonte `UNITOP_Consolidado_2016_2026.json`, identificada explicitamente como
+`Camada 1 — dados agregados (sem dados pessoais)`, contém 596 registros em
+`relatorios.rel6_relacao_alunos.dados`, com campos `semestre`, `curso_id`,
+`curso_nome`, `total_alunos` e nenhuma identidade individual.
+O arquivo `planilhas/matricula_agregada.json` contém 840 registros agregados;
+suas turmas são descritas somente por série, turma e quantidade de matriculados.
+
+**Não importar a planilha com CPF diretamente em `public.vertice_academic_reports` ou qualquer
+tabela exposta à API.** Uma futura sincronização nominal exige tabela privada,
+controles de acesso e conferência da origem do primeiro semestre acadêmico por pessoa,
+além de aprovação de segurança da fonte.
+
 ## Diagnóstico de dados
 
 - A tabela pública vertice_eorbit_alunos tem zero registros.
