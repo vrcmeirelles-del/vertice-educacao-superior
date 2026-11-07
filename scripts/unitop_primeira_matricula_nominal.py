@@ -96,9 +96,11 @@ def read_rows(path: Path):
     elif suffix == ".json":
         with path.open(encoding="utf-8") as stream:
             obj = json.load(stream)
-        rows = obj if isinstance(obj, list) else obj.get("alunos", obj.get("registros", []))
+        rows = obj if isinstance(obj, list) else (
+            obj.get("alunos", obj.get("registros")) if isinstance(obj, dict) else None
+        )
         if not isinstance(rows, list):
-            raise ValueError("JSON deve conter uma lista de registros.")
+            raise ValueError("JSON não contém lista nominal 'alunos'/'registros'. Formulários não são registros de matrícula.")
         for row in rows:
             yield row
     elif suffix == ".xlsx":
@@ -267,6 +269,8 @@ def main() -> int:
         allow_code=args.aceitar_codigo_sem_id,
         historical_coverage_confirmed=args.historico_completo_confirmado
     )
+    if not summary["registros_lidos"] or not summary["pessoas_unicas_com_matricula_confirmada"]:
+        parser.error("Fonte sem registros nominais confirmados; saída bloqueada para evitar apresentar zero indevido.")
     summary["fontes_sha256"] = [digest(p) for p in paths]
     summary["evidencia_cobertura"] = args.evidencia_cobertura if args.historico_completo_confirmado else None
     # Não gravar IDs pessoais, nomes ou matrículas; proteger arquivo agregado local.
