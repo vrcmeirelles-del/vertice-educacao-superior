@@ -1,0 +1,78 @@
+diff --git a/client/src/components/area/Workspace.tsx b/client/src/components/area/Workspace.tsx
+index 5046af8..3901ef8 100644
+--- a/client/src/components/area/Workspace.tsx
++++ b/client/src/components/area/Workspace.tsx
+@@ -8,13 +8,14 @@ import {
+ import RecordForm from "./RecordForm";
+ import RepositoryTab from "./RepositoryTab";
+ import InepLibrary from "./InepLibrary";
++import NovoInstrumento from "./NovoInstrumento";
+ import ManagementReview from "./ManagementReview";
+ import {repositorySummary} from "@/lib/repository";
+ import {listRepository} from "@/lib/repository-data";
+ import { FIELD_HELP, TAB_FAQ, TAB_HELP, withHelp } from "@/lib/help";
+ import "./area.css";
+ 
+-type Tab = "analise" | "geral" | "visao" | "cadastro" | "metas" | "plano" | "diagnostico" | "equipe" | "repositorio" | "biblioteca";
++type Tab = "analise" | "geral" | "visao" | "cadastro" | "metas" | "plano" | "diagnostico" | "equipe" | "repositorio" | "biblioteca" | "novo_instrumento";
+ const TABS: [Tab, string][] = [
+   ["geral", "Visão geral"],
+   ["analise", "Análise gerencial"],
+@@ -23,6 +24,7 @@ const TABS: [Tab, string][] = [
+   ["metas", "Metas e indicadores"],
+   ["repositorio", "Repositório"],
+   ["biblioteca", "Biblioteca INEP"],
++  ["novo_instrumento", "Novo Instrumento"],
+   ["plano", "Plano de ação 5W2H"],
+   ["diagnostico", "Diagnóstico"],
+   ["equipe", "Equipe"],
+@@ -147,6 +149,8 @@ export default function Workspace({
+         <RepositoryTab institutionId={id} role={role} courses={data.courses} goals={data.goals} requests={data.requests} files={data.files} reload={reload} goalFilter={repositoryGoal} setGoalFilter={setRepositoryGoal}/>
+       ) : tab === "biblioteca" ? (
+         <InepLibrary institutionId={id} />
++      ) : tab === "novo_instrumento" ? (
++        <NovoInstrumento institutionId={id} role={role} courses={data.courses} />
+       ) : tab === "plano" ? (
+         <ActionsTab institutionId={id} role={role} data={data} reload={reload} />
+       ) : tab === "diagnostico" ? (
+diff --git a/client/src/lib/help.ts b/client/src/lib/help.ts
+index 2c1af74..89e229d 100644
+--- a/client/src/lib/help.ts
++++ b/client/src/lib/help.ts
+@@ -84,6 +84,14 @@ export function withHelp(fields: Field[], help: HelpMap): Field[] {
+ }
+ 
+ export const TAB_HELP: Record<string, { title: string; text: string[] }> = {
++  novo_instrumento: {
++    title: "Como usar o Novo Instrumento",
++    text: [
++      "O checklist reúne os objetos de avaliação das dimensões 1 a 3 e, para cursos da Área 04 (Negócios, Administração e Direito), os da dimensão 4. Marque cada objeto como conforme, parcial, não conforme ou não avaliado e registre responsável e achados.",
++      "Anexe em Evidências o link de cada documento que sustenta a avaliação. O Cronograma acompanha o ciclo trienal (ENADE, autoavaliação e visita in loco) e a aba CPA mostra a prontidão da comissão.",
++      "O diagnóstico é interno e orienta a preparação; ele não comprova nem substitui a avaliação oficial.",
++    ],
++  },
+  repositorio:{title:"Da meta à evidência documental",text:["A gestão define o documento, a meta, o curso, o responsável e o prazo. Use um dos modelos do catálogo ou uma exigência personalizada.","O responsável envia a evidência e a gestão valida ou devolve com parecer. Cada nova versão preserva as anteriores. A IES tem seu próprio repositório, acessível somente às contas vinculadas e à administração Vértice.","Nas metas, use Documentos da meta para acompanhar as entregas. Documento enviado não significa meta cumprida; as medições da meta continuam separadas."]},
+   geral: {
+     title: "O que esta visão mostra",
+diff --git a/client/src/pages/OwnerDashboard.tsx b/client/src/pages/OwnerDashboard.tsx
+index 2c53ee0..12d6aae 100644
+--- a/client/src/pages/OwnerDashboard.tsx
++++ b/client/src/pages/OwnerDashboard.tsx
+@@ -25,7 +25,7 @@ async function fetchDashboardRows(table:string,order:string,ascending=true){
+  return {data:rows,error:null};
+ }
+ function readHash(){const p=new URLSearchParams(typeof window==='undefined'?'':window.location.hash.slice(1));return {inst:p.get('instituicao')??'',course:p.get('curso')??'',repositories:p.get('repositorios')==='1'};}
+-function writeHash(inst:string,course:string,repositories=false,library=false){const p=new URLSearchParams();if(inst)p.set('instituicao',inst);if(course)p.set('curso',course);if(repositories){if(inst)p.set('aba','repositorio');else p.set('repositorios','1');}if(library)p.set('aba','biblioteca');const h=p.toString();window.history.pushState(null,'',h?`#${h}`:window.location.pathname);window.dispatchEvent(new HashChangeEvent('hashchange'));window.scrollTo({top:0});}
++function writeHash(inst:string,course:string,repositories=false,library=false,instrument=false){const p=new URLSearchParams();if(inst)p.set('instituicao',inst);if(course)p.set('curso',course);if(repositories){if(inst)p.set('aba','repositorio');else p.set('repositorios','1');}if(library)p.set('aba','biblioteca');if(instrument&&inst)p.set('aba','novo_instrumento');const h=p.toString();window.history.pushState(null,'',h?`#${h}`:window.location.pathname);window.dispatchEvent(new HashChangeEvent('hashchange'));window.scrollTo({top:0});}
+ export default function OwnerDashboard(){
+  const [session,setSession]=useState<Session|null>(null);
+  const [loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[error,setError]=useState('');
+@@ -103,7 +103,7 @@ export default function OwnerDashboard(){
+  :master&&route.repositories?<GlobalRepository institutions={institutions as unknown as Row[]} courses={courses as unknown as Row[]} onOpen={id=>writeHash(id,'',true)}/>
+  :<><div className="area-list-head"><h2>Instituições</h2>{master&&!creating&&<button className="corp-button small" onClick={()=>setCreating(true)}>Nova instituição</button>}</div>
+  {creating&&<RecordForm title="Nova instituição" fields={INSTITUTION_FIELDS} initial={{status:'ativa'}} onCancel={()=>setCreating(false)} onSubmit={async v=>{const row=await saveRow(TABLES.institutions,v);setCreating(false);await load();writeHash(row.id,'');}}/>}
+- {!institutions.length?<p>Nenhuma instituição disponível para esta conta. O vínculo deve ser autorizado pela administração.</p>:<div className="table-scroll"><table><thead><tr><th>Instituição</th><th>Seu perfil</th><th>Cursos cadastrados</th><th>Matriculados{latestSemester?` em ${latestSemester}`:''}</th><th>Metas</th><th>Ações atrasadas</th><th>Achados abertos</th><th></th></tr></thead><tbody>{institutions.map(i=><tr key={i.id}><td>{i.name}{(i as unknown as Row).acronym?` · ${String((i as unknown as Row).acronym)}`:''}{(i as unknown as Row).status==='arquivada'&&' (arquivada)'}</td><td>{{master:'Master',gestor:'Gestor',equipe:'Equipe',leitor:'Leitura'}[roleIn(i.id)??'leitor']}</td><td>{courses.filter(c=>c.institution_id===i.id).length||'Nenhum curso cadastrado'}</td><td>{instTotal(i.id).toLocaleString('pt-BR')}</td><td>{mgmt.goals.filter(x=>x.institution_id===i.id&&x.status!=='cancelada').length}</td><td>{mgmt.actions.filter(x=>x.institution_id===i.id&&isLate(x.due_date,x.status)).length}</td><td>{mgmt.diagnosis.filter(x=>x.institution_id===i.id&&x.status!=='resolvido').length}</td><td><button className="corp-button" onClick={()=>writeHash(i.id,'')}>Abrir área</button> <button className="corp-login-text-button" onClick={()=>writeHash(i.id,'',true)}>Repositório →</button> <button className="corp-login-text-button" onClick={()=>writeHash(i.id,'',false,true)}>Biblioteca INEP →</button></td></tr>)}</tbody></table></div>}</>}
++ {!institutions.length?<p>Nenhuma instituição disponível para esta conta. O vínculo deve ser autorizado pela administração.</p>:<div className="table-scroll"><table><thead><tr><th>Instituição</th><th>Seu perfil</th><th>Cursos cadastrados</th><th>Matriculados{latestSemester?` em ${latestSemester}`:''}</th><th>Metas</th><th>Ações atrasadas</th><th>Achados abertos</th><th></th></tr></thead><tbody>{institutions.map(i=><tr key={i.id}><td>{i.name}{(i as unknown as Row).acronym?` · ${String((i as unknown as Row).acronym)}`:''}{(i as unknown as Row).status==='arquivada'&&' (arquivada)'}</td><td>{{master:'Master',gestor:'Gestor',equipe:'Equipe',leitor:'Leitura'}[roleIn(i.id)??'leitor']}</td><td>{courses.filter(c=>c.institution_id===i.id).length||'Nenhum curso cadastrado'}</td><td>{instTotal(i.id).toLocaleString('pt-BR')}</td><td>{mgmt.goals.filter(x=>x.institution_id===i.id&&x.status!=='cancelada').length}</td><td>{mgmt.actions.filter(x=>x.institution_id===i.id&&isLate(x.due_date,x.status)).length}</td><td>{mgmt.diagnosis.filter(x=>x.institution_id===i.id&&x.status!=='resolvido').length}</td><td><button className="corp-button" onClick={()=>writeHash(i.id,'')}>Abrir área</button> <button className="corp-login-text-button" onClick={()=>writeHash(i.id,'',true)}>Repositório →</button> <button className="corp-login-text-button" onClick={()=>writeHash(i.id,'',false,true)}>Biblioteca INEP →</button> <button className="corp-login-text-button" onClick={()=>writeHash(i.id,'',false,false,true)}>Novo Instrumento →</button></td></tr>)}</tbody></table></div>}</>}
+  <p>Os dados desta área vêm do banco. Os exemplos da demonstração permanecem separados.</p><button className="corp-login-text-button" onClick={load}>Atualizar dados</button></>}
+  <button className="corp-login-text-button" onClick={async()=>{const {error}=await supabase.auth.signOut();if(error)setError('Não foi possível encerrar a sessão.');}}>Sair da conta</button></>}
+  {error&&<p role="alert">{error}</p>}<p><Link href="/privacidade.html">Privacidade</Link> · <Link href="/">Voltar ao site</Link></p></main>;
