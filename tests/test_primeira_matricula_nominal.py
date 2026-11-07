@@ -52,7 +52,7 @@ class PrimeiraMatriculaTests(unittest.TestCase):
         report = m.aggregate([row("A", "10", "2025/01"), row("A", "20", "2025/01")],
                              identity_mode="id_estavel")
         self.assertEqual(report["primeira_matricula_na_ies_por_semestre"],
-                         [{"semestre": "2025/1", "pessoas": 1, "sem_atribuicao_unica_de_curso": 1}])
+                         [{"semestre": "2025/01", "pessoas": 1, "sem_atribuicao_unica_de_curso": 1}])
         self.assertEqual(sum(c["primeira_matricula_no_curso"] for c in report["por_curso_semestre"]), 2)
         self.assertEqual(sum(c["primeira_matricula_na_ies_atribuida_ao_curso"] for c in report["por_curso_semestre"]), 0)
 
@@ -60,7 +60,7 @@ class PrimeiraMatriculaTests(unittest.TestCase):
         report = m.aggregate([row("A", "10", "2025/01", "PRÉ-MATRICULADO"),
                               row("A", "10", "2025/02", "MATRICULADO")],
                              identity_mode="id_estavel")
-        self.assertEqual(report["primeira_matricula_na_ies_por_semestre"][0]["semestre"], "2025/2")
+        self.assertEqual(report["primeira_matricula_na_ies_por_semestre"][0]["semestre"], "2025/02")
         self.assertEqual(report["problemas_e_exclusoes"]["status_nao_confirmado"], 1)
 
     def test_aluno_sem_identidade_inequivoca_nao_entra(self):
