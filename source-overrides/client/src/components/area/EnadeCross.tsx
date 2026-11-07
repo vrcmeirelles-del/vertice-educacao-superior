@@ -9,9 +9,11 @@ type Enrollment={course_id:string;semester:string;student_status:string;class_la
 type Stats={codigo:string|null;semestre:string;modalidade:string|null;evasao_total:number|null;trancado:number|null};
 type Report={course_id:string|null;kind:string;source_report_at:string};
 type Risk={codigo_curso:string|null;alunos_risco:number|null;data_referencia:string|null};
+type Request={id:string;course_id:string|null;semester:string|null};
+type EvidenceFile={id:string;request_id:string;status:string};
 type Item={name:string;count:number;error:string|null};
-type Data={offers:Offer[];enrollments:Enrollment[];stats:Stats[];reports:Report[];risks:Risk[];sources:Item[]};
-const EMPTY:Data={offers:[],enrollments:[],stats:[],reports:[],risks:[],sources:[]};
+type Data={offers:Offer[];enrollments:Enrollment[];stats:Stats[];reports:Report[];risks:Risk[];requests:Request[];files:EvidenceFile[];sources:Item[]};
+const EMPTY:Data={offers:[],enrollments:[],stats:[],reports:[],risks:[],requests:[],files:[],sources:[]};
 const n=(x:unknown)=>Number.isFinite(Number(x))?Number(x):0;
 const fmt=new Intl.NumberFormat("pt-BR");
 const codeOf=(x:unknown)=>String(x??"").trim();
@@ -69,9 +71,17 @@ export default function EnadeCross({institutionId,courses,goals,actions,role,sel
       ["Histórico de evasão","stats","vertice_course_semester_stats","institution_id","id,codigo,semestre,modalidade,evasao_total,trancado"],
       ["Relatórios acadêmicos","reports","vertice_academic_reports","institution_id","id,course_id,kind,source_report_at"],
       ["Risco agregado","risks","vertice_risco_agregado","institution_id","id,codigo_curso,alunos_risco,data_referencia"],
+      ["Solicitações do repositório","requests","vertice_repository_requests","institution_id","id,course_id,semester"],
+      ["Evidências documentais","files","vertice_repository_files","institution_id","id,request_id,status"],
       ["Espelho ENADE",null,"vertice_eorbit_enade","instituicao_id","id"],
       ["Diários",null,"vertice_eorbit_diario_classe","instituicao_id","id"],
       ["Frequência e conteúdo",null,"vertice_eorbit_frequencia_conteudo","instituicao_id","id"],
+      ["Professores do sistema acadêmico",null,"vertice_eorbit_professores","instituicao_id","id"],
+      ["Conformidade dos planos",null,"vertice_eorbit_compliance_plano","instituicao_id","id"],
+      ["Conformidade de notas",null,"vertice_eorbit_compliance_notas","instituicao_id","id"],
+      ["Registros e-MEC",null,"vertice_emec_snapshots","institution_id","id"],
+      ["Biblioteca INEP",null,"vertice_inep_library","institution_id","id"],
+      ["Captação",null,"vertice_captacao_leads","institution_id","id"],
     ] as const;
     const results=await Promise.allSettled(sources.map(s=>fetchPages(s[2],institutionId,s[3],s[4])));
     const next:Data={...EMPTY,sources:[]};
@@ -84,6 +94,8 @@ export default function EnadeCross({institutionId,courses,goals,actions,role,sel
       if(src[1]==="stats")next.stats=res.value as Stats[];
       if(src[1]==="reports")next.reports=res.value as Report[];
       if(src[1]==="risks")next.risks=res.value as Risk[];
+      if(src[1]==="requests")next.requests=res.value as Request[];
+      if(src[1]==="files")next.files=res.value as EvidenceFile[];
     });
     setData(next);setLoading(false);
   },[institutionId,allowed]);
@@ -137,6 +149,10 @@ export default function EnadeCross({institutionId,courses,goals,actions,role,sel
   const reported=data.reports.filter(r=>!current||r.course_id===current.id);
   const actionsN=actions.filter(x=>!current||x.course_id===current.id);
   const goalsN=goals.filter(x=>!current||x.course_id===current.id);
+  const requestsN=data.requests.filter(x=>!current||x.course_id===current.id);
+  const requestIds=new Set(requestsN.map(x=>x.id));
+  const filesN=data.files.filter(x=>requestIds.has(x.request_id));
+  const filesValidated=filesN.filter(x=>x.status==="validado").length;
   const riskRecords=risks.filter(x=>String(x.data_referencia??"").startsWith(active.slice(0,4)));
   const latestRisk=new Map<string,Risk>();
   for(const x of [...riskRecords].sort((a,b)=>String(b.data_referencia).localeCompare(String(a.data_referencia)))){
@@ -188,6 +204,9 @@ export default function EnadeCross({institutionId,courses,goals,actions,role,sel
           <div><b>{reported.length}</b><span>Relatórios acadêmicos vinculados</span></div>
           <div><b>{goalsN.length}</b><span>Metas</span></div>
           <div><b>{actionsN.length}</b><span>Ações 5W2H</span></div>
+          <div><b>{requestsN.length}</b><span>Solicitações documentais do repositório</span></div>
+          <div><b>{filesN.length}</b><span>Arquivos associados às solicitações</span></div>
+          <div><b>{filesValidated}</b><span>Evidências documentais validadas</span></div>
           <div><b>{riskCount===null?"—":fmt.format(riskCount)}</b><span>Risco agregado com data no ano</span></div>
         </div>
         <p>Dados correlacionados por instituição e, quando existente, identificador inequívoco de curso. Risco de evasão não é uma previsão de ENADE.</p>
@@ -200,7 +219,7 @@ export default function EnadeCross({institutionId,courses,goals,actions,role,sel
           <div><b>{fmt.format(mapping.unmatched)}</b><span>Ofertas sem correspondência</span></div>
           <div><b>{fmt.format(courses.length)}</b><span>Cursos abrangidos pelo módulo</span></div>
         </div>
-        <p>Outras fontes por instituição, sem atribuição indevida ao curso: o espelho ENADE, os diários, a frequência e conteúdo. Nesses registros, a equivalência com o cadastro da Vértice ainda necessita validação.</p>
+        <p>Outras fontes por instituição, sem atribuição indevida ao curso: espelho ENADE, diários, frequência e conteúdo, conformidade de notas e planos, professores do e-ORBIT, e-MEC e Biblioteca INEP. Nesses registros, a equivalência com o cadastro da Vértice ainda necessita validação.</p>
         <div className="enadex-sources">{data.sources.map(x=><div key={x.name}>
           <span>{x.name}</span><strong>{x.error?"Indisponível":fmt.format(x.count)}</strong>
           {x.error&&<small>{x.error}</small>}</div>)}</div>
