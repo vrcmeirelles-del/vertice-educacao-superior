@@ -247,7 +247,9 @@ export default function Workspace({
       ) : tab === "simulador" ? (
         role === "master" || role === "gestor" ? <CostSimulator institutionId={id}/> : <p>O simulador de custo é reservado ao Gestor da instituição e ao Master.</p>
       ) : tab === "raio-x-direito" ? (
-        <DireitoRaioX institutionId={id}/>
+        id === "1f5fd5b4-93c6-4626-834d-136884915587"
+          ? <DireitoRaioX institutionId={id}/>
+          : <p role="status">O Raio-X do Direito utiliza exclusivamente informações institucionais da UNITOP. Este conjunto de dados não é compartilhado com outras IES.</p>
       ) : tab === "biblioteca" ? (
         <InepLibrary institutionId={id} />
       ) : tab === "plano" ? (

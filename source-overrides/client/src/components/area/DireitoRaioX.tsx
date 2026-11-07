@@ -4,6 +4,8 @@ import "./direito-raio-x.css";
 
 interface Props { institutionId: string }
 
+const UNITOP_INSTITUTION_ID = "1f5fd5b4-93c6-4626-834d-136884915587";
+
 export default function DireitoRaioX({ institutionId }: Props) {
   const [semData, setSemData] = useState<any[]>([]);
   const [turmaData, setTurmaData] = useState<any[]>([]);
@@ -11,32 +13,50 @@ export default function DireitoRaioX({ institutionId }: Props) {
   const [quantGeral, setQuantGeral] = useState<any>(null);
   const [docenteEvo, setDocenteEvo] = useState<any>(null);
   const [serieReal, setSerieReal] = useState<any>(null);
+  const [sourceStatus, setSourceStatus] = useState<"ready"|"pending_mapping"|"error">("pending_mapping");
+  const [sourceDate, setSourceDate] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let active = true;
+    setSemData([]); setTurmaData([]); setProfData(null); setQuantGeral(null);
+    setDocenteEvo(null); setSerieReal(null); setSourceStatus("pending_mapping");
+    setSourceDate(null); setLoading(true);
+
+    if (institutionId !== UNITOP_INSTITUTION_ID) {
+      setLoading(false);
+      return () => { active = false; };
+    }
     (async () => {
-      // 1. Course semester stats (evolução semestral)
-      const { data: css } = await supabase
-        .from("vertice_course_semester_stats")
-        .select("*")
-        .ilike("curso", "%DIREITO%")
-        .order("semestre");
-      if (css) setSemData(css);
-
-      // 2. Turma stats
-      const { data: ts } = await supabase
-        .from("vertice_turma_stats")
-        .select("*")
-        .ilike("curso", "%DIREITO%")
-        .order("semestre");
-      if (ts) setTurmaData(ts);
-
-      // 3. Raio-X data from new table
-      const { data: rx } = await supabase
-        .from("vertice_eorbit_direito_raio_x")
-        .select("*")
-        .order("created_at");
-      if (rx) {
+      try {
+        const [courseStats, classStats, source] = await Promise.all([
+          supabase.from("vertice_course_semester_stats")
+            .select("*").eq("institution_id", institutionId)
+            .ilike("curso", "%DIREITO%").order("semestre"),
+          supabase.from("vertice_turma_stats")
+            .select("*").eq("institution_id", institutionId)
+            .ilike("curso", "%DIREITO%").order("semestre"),
+          supabase.from("vertice_eorbit_direito_raio_x")
+            .select("tipo,dados,data_extracao,created_at")
+            .eq("institution_id", institutionId).order("created_at"),
+        ]);
+        if (!active) return;
+        if (courseStats.error || classStats.error || source.error) {
+          setSourceStatus("error");
+          return;
+        }
+        setSemData(courseStats.data ?? []);
+        setTurmaData(classStats.data ?? []);
+        const rx = source.data ?? [];
+        if (rx.length === 0) {
+          // Registros legados do e-ORBIT usam uma identidade de origem ainda não
+          // conciliada documentalmente com o cadastro UNITOP. Não misturar IES.
+          setSourceStatus("pending_mapping");
+          return;
+        }
+        setSourceStatus("ready");
+        const dates = rx.map(r => r.data_extracao).filter(Boolean).sort();
+        setSourceDate(dates.length ? new Date(dates[dates.length - 1] + "T12:00:00").toLocaleDateString("pt-BR") : null);
         const qg = rx.find(r => r.tipo === "quantitativo_geral");
         if (qg) setQuantGeral(qg.dados);
         const pe = rx.find(r => r.tipo === "professor_disciplina");
@@ -45,13 +65,33 @@ export default function DireitoRaioX({ institutionId }: Props) {
         if (de) setDocenteEvo(de.dados);
         const sr = rx.find(r => r.tipo === "serie_historica_real");
         if (sr) setSerieReal(sr.dados);
+      } catch {
+        if (active) setSourceStatus("error");
+      } finally {
+        if (active) setLoading(false);
       }
-
-      setLoading(false);
     })();
+    return () => { active = false; };
   }, [institutionId]);
 
   if (loading) return <p style={{padding:24,color:"var(--muted-foreground)"}}>Carregando Raio-X do Direito…</p>;
+
+  if (institutionId !== UNITOP_INSTITUTION_ID) return (
+    <section role="status" style={{padding:24}}>
+      <h3>Raio-X do Direito — acesso institucional</h3>
+      <p>Este painel utiliza dados do e-ORBIT da UNITOP e não está disponível para outras instituições.</p>
+    </section>
+  );
+
+  if (sourceStatus !== "ready") return (
+    <section role={sourceStatus === "error" ? "alert" : "status"} style={{padding:24}}>
+      <h3>Raio-X do Direito — UNITOP</h3>
+      <p>{sourceStatus === "error"
+        ? "Não foi possível validar o acesso aos dados do e-ORBIT. Nenhuma informação de outra instituição será exibida."
+        : "Os registros de origem do e-ORBIT estão preservados, mas seu identificador institucional legado ainda precisa ser conciliado documentalmente com o cadastro da UNITOP. O painel não exibirá números parciais ou de outra instituição."}</p>
+      <p>O Master pode realizar a conciliação da fonte autorizada antes de liberar novamente a visualização.</p>
+    </section>
+  );
 
   // Compute KPIs
   const latest = semData.length > 0 ? semData[semData.length - 1] : null;
@@ -75,7 +115,7 @@ export default function DireitoRaioX({ institutionId }: Props) {
         <div>
           <p className="drx-eyebrow">Raio-X Estratégico</p>
           <h3>Curso de Direito — UNITOP</h3>
-          <p className="drx-sub">Dados reais extraídos do e-ORBIT · Atualizado em {new Date().toLocaleDateString("pt-BR")}</p>
+          <p className="drx-sub">Dados institucionais do e-ORBIT · Extração: {sourceDate ?? "data não identificada"}</p>
         </div>
         <div className="drx-badge">
           <span className="drx-badge-icon">⚖️</span>
@@ -335,7 +375,7 @@ export default function DireitoRaioX({ institutionId }: Props) {
       )}
 
       <div className="drx-footer">
-        Dados extraídos do e-ORBIT (itop.eorbit.com.br) em {new Date().toLocaleDateString("pt-BR")} · Processado pela Vértice Educação Superior
+        Dados de origem e-ORBIT UNITOP · Extração: {sourceDate ?? "data não identificada"} · Uso reservado à instituição
       </div>
     </div>
   );
