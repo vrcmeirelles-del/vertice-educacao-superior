@@ -3,6 +3,18 @@ import {ArrowDownToLine,ArrowRight,BarChart3,BookOpen,BriefcaseBusiness,Building
 import {ddFronts,defaultGoals,demoInstitutionCourses,demoInstitutionProfiles,demoEconomics,evidenceLabels,evidenceSummary,executiveDemoText,initialDemoEvidence,type DemoEvidence,type DemoCourse,type DemoInstitutionMode} from '@/lib/demo-showroom';
 import type {DemoTrack} from '@/lib/commercial-demo';
 export type DemoSnapshot={evidence:{id:string;status:DemoEvidence['status']}[];goals:{id:string;progress:number}[];finance:{revenue:number;cost:number;depreciation:number;multiple:number;debt:number;cash:number};queue:boolean;submitted:string[];lastView:string};
+type FoSessionShare={
+ origin:string;kind:'synthetic_demo_session';synthetic:true;mode:DemoInstitutionMode;
+ expiresAt:string;courses:number;
+ attempts:Array<{course_code:string;module:string;attempts:number;correct:number}>;
+ actions:Array<{course_code:string;action_code:string;count:number}>;
+};
+type FoSyntheticFeed={
+  origin:string;kind:string;synthetic:boolean;mode:DemoInstitutionMode;
+  institution:string;period:string;
+  summary:{students:number;courses:number;exam:number|null;engagement:number|null};
+  courses:Array<{id:string;name:string;students:number;exam:number|null}>;
+};
 type View='overview'|'courses'|'academic'|'enade'|'governance'|'evidence'|'library'|'goals'|'acquisitions'|'economics'|'admissions'|'report';
 type CatalogRow={code:string;front:string;title:string;expected:string;fields:{key:string;label:string;type:string;help?:string;options?:Record<string,string>}[]};
 const menu:{id:View;label:string;icon:typeof LayoutDashboard;track:DemoTrack;step:number;context:string}[]=[
@@ -27,6 +39,50 @@ export default function DemoShowroom({onExplore,onAsk,onContact,mode='faculdade'
  const courses=useMemo(()=>demoInstitutionCourses(mode),[mode]);
  const institution=demoInstitutionProfiles[mode];
  const courseName=(id:string)=>courses.find(c=>c.id===id)?.name??id;
+ const [foShareToken]=useState<string|null>(()=>{
+  if(typeof window==='undefined')return null;
+  const value=new URLSearchParams(window.location.hash.replace(/^#/,'')).get('fo_demo');
+  if(!value||!/^[A-Za-z0-9_-]{43}$/.test(value))return null;
+  window.history.replaceState(window.history.state,'',window.location.pathname+window.location.search);
+  return value;
+ });
+ const [foSessionShare,setFoSessionShare]=useState<FoSessionShare|null>(null);
+ const [foShareError,setFoShareError]=useState(false);
+ useEffect(()=>{
+  if(!foShareToken)return;
+  let current=true;
+  const controller=new AbortController();
+  fetch('https://www.fatoeordem.com.br/api/public/institutional-demo-share/'+encodeURIComponent(foShareToken),{
+   mode:'cors',credentials:'omit',cache:'no-store',signal:controller.signal
+  }).then(async response=>{if(!response.ok)throw new Error('expired');return response.json();})
+  .then((data:FoSessionShare)=>{
+   if(!current)return;
+   if(data.origin!=='fato-e-ordem'||data.kind!=='synthetic_demo_session'||data.synthetic!==true||
+    data.mode!==mode||!Array.isArray(data.attempts)||!Array.isArray(data.actions)||data.courses<1||
+    data.attempts.some(row=>!Number.isInteger(row.attempts)||row.attempts<0))throw new Error('invalid');
+   setFoSessionShare(data);
+  }).catch(()=>{if(current)setFoShareError(true);});
+  return()=>{current=false;controller.abort();};
+ },[foShareToken,mode]);
+ const [foDemoFeed,setFoDemoFeed]=useState<FoSyntheticFeed|null>(null);
+ const [foFeedError,setFoFeedError]=useState(false);
+ useEffect(()=>{
+  let current=true;
+  setFoDemoFeed(null);setFoFeedError(false);
+  const controller=new AbortController();
+  const endpoint='https://www.fatoeordem.com.br/api/public/institutional-demo-feed?mode='+encodeURIComponent(mode);
+  fetch(endpoint,{mode:'cors',credentials:'omit',cache:'no-store',signal:controller.signal})
+   .then(async response=>{if(!response.ok)throw new Error('unavailable');return response.json();})
+   .then((data:FoSyntheticFeed)=>{
+    if(!current)return;
+    if(data.origin!=='fato-e-ordem'||data.kind!=='synthetic_demo'||data.synthetic!==true||
+      data.mode!==mode||!Array.isArray(data.courses)||data.courses.length<1||
+      data.summary?.courses!==data.courses.length)throw new Error('invalid_synthetic_feed');
+    setFoDemoFeed(data);
+   })
+   .catch(()=>{if(current)setFoFeedError(true);});
+  return()=>{current=false;controller.abort();};
+ },[mode]);
  const [view,setView]=useState<View>('overview'),[course,setCourse]=useState('all'),[rows,setRows]=useState(()=>initialDemoEvidence(courses)),[selected,setSelected]=useState(''),[status,setStatus]=useState('all'),[search,setSearch]=useState('');
  const [goals,setGoals]=useState(()=>defaultGoals.map(g=>({...g}))),[catalog,setCatalog]=useState<CatalogRow[]>([]),[catalogError,setCatalogError]=useState(false),[front,setFront]=useState('REG'),[query,setQuery]=useState(''),[page,setPage]=useState(0),[req,setReq]=useState('');
  const [answers,setAnswers]=useState<Record<string,string>>({}),[submitted,setSubmitted]=useState<string[]>([]),[note,setNote]=useState(''),[queue,setQueue]=useState(false),[tour,setTour]=useState(-1);
@@ -70,6 +126,18 @@ export default function DemoShowroom({onExplore,onAsk,onContact,mode='faculdade'
     <span style={{display:'block',fontSize:13,color:'#d5e5e9'}}>Explore o mesmo porte institucional no Campus Demonstrativo Fato &amp; Ordem: OAB, CFC, ENADE, acompanhamento longitudinal e indicadores fictícios. A integração real exige homologação e dados autorizados.</span></div>
     <a href={`https://www.fatoeordem.com.br/demonstracao-ies?porte=${mode}&perfil=reitor`} target="_blank" rel="noopener noreferrer" style={{color:'#ffe0b2',fontWeight:800,whiteSpace:'nowrap'}}>Abrir Fato &amp; Ordem ↗</a>
   </div>
+  <div role="status" aria-live="polite" style={{background:'#eff9fb',border:'1px solid #82a6ae',borderRadius:12,padding:'12px 16px',margin:'0 0 16px',color:'#183a4a'}}>
+   <strong style={{display:'block'}}>Indicadores recebidos do Fato &amp; Ordem — integração demonstrativa</strong>
+   {foDemoFeed
+    ? <span style={{fontSize:13}}>Fonte verificada no próprio Fato &amp; Ordem: {foDemoFeed.summary.courses} cursos e {foDemoFeed.summary.students.toLocaleString('pt-BR')} matrículas <strong>fictícias</strong> · média de acertos ilustrativa {foDemoFeed.summary.exam==null?'não disponível':foDemoFeed.summary.exam.toFixed(1)+'%'}. Esses dados chegam pela API de demonstração, sem CPF, nomes ou notas reais.</span>
+    : <span style={{fontSize:13}}>{foFeedError?'A consulta ao feed fictício do Fato & Ordem falhou. Os indicadores locais continuam sendo apenas exemplos.':'Consultando o feed demonstrativo do Fato & Ordem…'}</span>}
+  </div>
+  {foShareToken&&<div role="status" aria-live="polite" style={{border:'1px solid #7fb5b2',padding:'15px 18px',background:'#e7f7f6',color:'#123f43',borderRadius:12,margin:'0 0 16px'}}>
+   <strong style={{display:'block'}}>Laboratório autenticado Fato &amp; Ordem → Vértice</strong>
+   {foSessionShare
+     ? <span style={{fontSize:13}}>Dados realmente recebidos da base fictícia do Fato &amp; Ordem: {foSessionShare.attempts.reduce((n,row)=>n+Number(row.attempts),0)} respostas demonstrativas, {foSessionShare.attempts.reduce((n,row)=>n+Number(row.correct),0)} acertos e {foSessionShare.actions.reduce((n,row)=>n+Number(row.count),0)} intervenções, exclusivamente do grupo convidado. Compartilhamento expira em {new Date(foSessionShare.expiresAt).toLocaleString('pt-BR')}.</span>
+     : <span style={{fontSize:13}}>{foShareError?'Este link demonstrativo está expirado, revogado ou indisponível. Nenhum dado real foi consultado.':'Lendo indicadores fictícios protegidos por compartilhamento temporário…'}</span>}
+  </div>}
   <div className="ds-frame">
    <aside className="ds-sidebar"><span className="ds-nav-caption">GESTÃO ESTRATÉGICA</span><nav aria-label="Áreas internas da demonstração">{menu.map(m=><button key={m.id} type="button" aria-current={view===m.id?'page':undefined} onClick={()=>navigate(m.id)}><m.icon size={18}/><span>{m.label}</span>{view===m.id&&<ChevronRight size={14}/>}</button>)}</nav><div className="ds-sidebar-foot"><p>Explore os dados, abra documentos e teste as decisões.</p><button type="button" onClick={()=>tourStep(0)}><CompassIcon/>Fazer visita guiada</button>{onSave?<span>Os testes desta visita são persistidos somente neste ambiente fictício.</span>:<a href="/painel">Abrir o painel de gestão completo<ArrowRight size={14}/></a>}</div></aside>
    <div className="ds-main">
