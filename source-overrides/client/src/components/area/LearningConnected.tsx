@@ -9,7 +9,7 @@ type Metric={
  paired_students:number;curricular_average:number|null;external_accuracy:number|null;
  comparison_gap:number|null;updated_at:string;
 };
-type BridgeStatus={configured:boolean;courseCount:number;metrics:Metric[];ok:boolean};
+type BridgeStatus={configured:boolean;tenantEnabled:boolean|null;tenantStatus:string;courseCount:number;metrics:Metric[];ok:boolean};
 type MapForm={courseId:string;subjectCode:string;module:string;competency:string;evidenceRef:string;reviewed:boolean};
 const MODULES=[
  ["oab","OAB"],["cfc","CFC"],["enade","ENADE"],["delegado","Delegado"],
@@ -78,7 +78,14 @@ export default function LearningConnected({institutionId,courses,role}:{
         ". Grupos gerenciais: "+number(answer?.publishedGroups??0)+
         (answer?.remainingPages?". Há mais páginas para sincronizar.":"")
        :body.operation==="map_subject"?"Mapeamento validado. Indicadores serão calculados quando houver eventos e notas comparáveis."
+       :body.operation==="provision_tenant"
+          ?answer?.enabled?"Esta instituição foi habilitada para integração, mediante consentimento e matrícula confirmada."
+           :"Integração suspensa para esta instituição; novos compartilhamentos foram interrompidos."
        :"Operação registrada.");
+     if(body.operation==="provision_tenant")setStatus(previous=>previous?{
+       ...previous,tenantEnabled:answer?.enabled===true,
+       tenantStatus:answer?.enabled===true?"ativo":"inativo"
+     }:previous);
      const {data:rows,error:refreshError}=await supabase.from("vertice_learning_course_metrics")
        .select("*").eq("institution_id",institutionId).limit(1000);
      if(!refreshError)setData((rows??[]) as Metric[]);
@@ -143,10 +150,21 @@ export default function LearningConnected({institutionId,courses,role}:{
        <p>O módulo opera em lotes idempotentes, com cursor por instituição, vinculação verificada e aprovação curricular. As credenciais são armazenadas somente no servidor.</p>
        <dl className="learning-status">
          <div><dt>Canal de integração</dt><dd>{status===null?"A verificar":status.configured?"Credenciais configuradas":"Aguardando configuração de credenciais"}</dd></div>
+         <div><dt>Credenciamento deste cliente</dt><dd>{status?.tenantStatus||"A verificar"}</dd></div>
          <div><dt>Últimos indicadores</dt><dd>{data.length?relativeDate(data[0].updated_at):"Sem sincronização publicada"}</dd></div>
        </dl>
-       {canManage&&<button type="button" className="corp-button" disabled={busy||!status?.configured} onClick={()=>void bridgeAction({operation:"sync"})}>Sincronizar desempenho</button>}
-       <p className="learning-footnote">O botão é desativado enquanto não houver credenciais seguras. Sincronizar não equivale a criar resultados oficiais do ENADE ou a conferir notas automaticamente.</p>
+       {canManage&&<div className="learning-tenant-actions">
+         <button type="button" className="corp-button small" disabled={busy||!status?.configured||status?.tenantStatus==="indisponível"||status?.tenantEnabled===true}
+          onClick={()=>{if(window.confirm("Ativar a integração do Fato & Ordem para esta IES? O aluno ainda deverá autorizar o compartilhamento e a matrícula deverá ser verificada."))void bridgeAction({operation:"provision_tenant",enabled:true,reviewed:true});}}>
+           Habilitar esta instituição
+         </button>
+         <button type="button" className="corp-button secondary small" disabled={busy||!status?.configured||status?.tenantEnabled!==true}
+          onClick={()=>{if(window.confirm("Suspender esta instituição e revogar autorizações anteriores no Fato & Ordem?"))void bridgeAction({operation:"provision_tenant",enabled:false,reviewed:true});}}>
+           Suspender integração
+         </button>
+       </div>}
+       {canManage&&<button type="button" className="corp-button" disabled={busy||!status?.configured||status?.tenantEnabled!==true} onClick={()=>void bridgeAction({operation:"sync"})}>Sincronizar desempenho</button>}
+       <p className="learning-footnote">Cada nova IES cadastrada pode ser habilitada aqui, sem alteração de código ou lista manual de clientes. A ativação não vincula alunos automaticamente. O botão de sincronização permanece bloqueado sem credenciais, credenciamento e matrícula verificada.</p>
      </section>
    </div>
    {canManage&&<section className="learning-panel">

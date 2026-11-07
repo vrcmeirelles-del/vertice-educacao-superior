@@ -118,12 +118,35 @@ Deno.serve(async req=>{
   const {url,serviceKey}=cfg();
   const admin=createClient(url,serviceKey,{auth:{persistSession:false}});
   const actor=await authenticate(req,inst,admin);
+  if(operation==="provision_tenant"){
+   if(typeof body.enabled!=="boolean"||body.reviewed!==true)
+    throw fail("Confirme a ativação institucional e o escopo do compartilhamento.");
+   const {data:ies,error:iesError}=await admin.from("vertice_institutions")
+     .select("id,name,status").eq("id",inst).maybeSingle();
+   if(iesError||!ies)throw fail("Instituição não cadastrada na Vértice.",404);
+   if(body.enabled&&(ies.status!=="ativa"||/(?:teste|fict[ií]ci|demonstrativ)/i.test(ies.name||"")))
+    throw fail("O ambiente de demonstração ou instituição inativa não pode compartilhar dados reais.",403);
+   const confirmed=await remote("/api/internal/vertice/provision","POST",{
+     institutionId:inst,enabled:body.enabled,authorizedBy:actor,institutionName:ies.name
+   });
+   return send({ok:true,institutionId:inst,enabled:confirmed.enabled,
+     notice:confirmed.notice||"Integração institucional atualizada."},200,origin);
+  }
   if(operation==="status"){
    const {data,error}=await admin.from("vertice_learning_course_metrics").select(
     "course_id,semester,module,participants,attempts,graded,correct,paired_students,comparison_gap,updated_at"
    ).eq("institution_id",inst).limit(300);
    if(error)throw fail("Painel não disponível.",503);
-   return send({ok:true,configured:env("VERTICE_BRIDGE_API_KEY").length>=32&&env("VERTICE_BRIDGE_IDENTITY_KEY").length>=32,
+   const configured=env("VERTICE_BRIDGE_API_KEY").length>=32&&env("VERTICE_BRIDGE_IDENTITY_KEY").length>=32;
+   let tenantEnabled:null|boolean=null,tenantStatus:"não configurado"|"ativo"|"inativo"|"indisponível"="não configurado";
+   if(configured)try{
+     const info=await remote("/api/internal/vertice/tenant?institutionId="+encodeURIComponent(inst));
+     tenantEnabled=info.enabled===true;
+     tenantStatus=tenantEnabled?"ativo":"inativo";
+   }catch{
+     tenantStatus="indisponível";
+   }
+   return send({ok:true,configured,tenantEnabled,tenantStatus,
     metrics:data||[],scope:"institution",courseCount:new Set((data||[]).map(x=>x.course_id)).size},200,origin);
   }
   if(operation==="import_roster"){

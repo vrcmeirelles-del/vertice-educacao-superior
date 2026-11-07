@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - "source-overrides/client/src/components/area/LearningConnected.tsx"
+      - "supabase/functions/vertice-learning-bridge/index.ts"
       - "source-overrides/client/src/components/area/learning-connected.css"
       - "source-overrides/client/src/components/area/Workspace.tsx"
       - "source-overrides/client/src/lib/area.ts"
@@ -45,3 +46,10 @@ jobs:
           test -f .learning-build/dist/public/index.html
           grep -Rql 'Aprendizagem Conectada' .learning-build/dist/public/assets
           grep -Rql 'coerência avaliativa' .learning-build/dist/public/assets
+          grep -Rql 'Habilitar esta instituição' .learning-build/dist/public/assets
+      - name: Confirmar credenciamento para todos os clientes sem ID fixo
+        shell: bash
+        run: |
+          grep -q 'provision_tenant' supabase/functions/vertice-learning-bridge/index.ts
+          grep -q 'vertice_institutions' supabase/functions/vertice-learning-bridge/index.ts
+          grep -q 'tenantEnabled' source-overrides/client/src/components/area/LearningConnected.tsx
