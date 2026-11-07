@@ -23,6 +23,9 @@ import { goalSignals, summarizeGoalSignals, goalSignalDate, GOAL_SIGNALS, type G
 import RepositoryTab from "./RepositoryTab";
 import EbitdaCalculator from "../EbitdaCalculator";
 import InepLibrary from "./InepLibrary";
+import AvaliacaoInstitucional from "./AvaliacaoInstitucional";
+import NovoInstrumento from "./NovoInstrumento";
+import AuditoriaPermanenciaBI from "../bi/AuditoriaPermanenciaBI";
 import ManagementReview from "./ManagementReview";
 import DocumentAI from "./DocumentAI";
 import OrganizationBase from "./OrganizationBase";
@@ -33,8 +36,6 @@ import {listRepository} from "@/lib/repository-data";
 import { FIELD_HELP, TAB_FAQ, TAB_HELP, withHelp } from "@/lib/help";
 import PainelEorbit from "../eorbit/PainelEorbit";
 import ResultadoCursoBI from "../bi/ResultadoCursoBI";
-import AuditoriaPermanenciaBI from "../bi/AuditoriaPermanenciaBI";
-import AvaliacaoInstitucional from "./AvaliacaoInstitucional";
 import "./area.css";
 
 const TABS: [Tab, string][] = [
@@ -48,11 +49,12 @@ const TABS: [Tab, string][] = [
   ["cadastro", "Cadastro e cursos"],
   ["emec", "e-MEC · Regulação"],
   ["eorbit", "e-ORBIT · Espelho"],
-  ["auditoria", "BI · Permanência e Reprovações"],
+  ["auditoria", "BI · Reprovações de Todos os Cursos"],
   ["metas", "Metas e indicadores"],
   ["repositorio", "Reconhecimento de Curso"],
-  ["avaliacao", "Recredenciamento Institucional"],
   ["biblioteca", "Biblioteca INEP"],
+  ["avaliacao", "Recredenciamento Institucional"],
+  ["novo_instrumento", "Novo Instrumento"],
   ["reitor", "Área do reitor · EBITDA"],
   ["resultado-curso", "Resultado por Curso"],
   ["plano", "Plano de ação 5W2H"],
@@ -196,8 +198,6 @@ export default function Workspace({
         <OverviewTab data={data} stats={stats} onGo={choose} />
       ) : tab === "emec" ? (
         <EmecPanel key={id} institution={institution} role={role}/>
-      ) : tab === "avaliacao" ? (
-        <AvaliacaoInstitucional key={id} />
       ) : tab === "auditoria" ? (
         can.viewManagement(role) ? <AuditoriaPermanenciaBI key={id} institutionId={id} institutionName={String(institution.name)} /> : <p role="alert">A auditoria acadêmica é restrita à alta gestão autorizada.</p>
       ) : tab === "eorbit" ? (
@@ -210,6 +210,10 @@ export default function Workspace({
         <RepositoryTab institutionId={id} role={role} courses={data.courses} goals={data.goals} requests={data.requests} files={data.files} reload={reload} goalFilter={repositoryGoal} setGoalFilter={setRepositoryGoal}/>
       ) : tab === "reitor" ? (
         role === "master" || role === "gestor" ? <EbitdaCalculator reserved={{institutionId:id,name:String(institution.name)}}/> : <p>Os dados financeiros são reservados ao Gestor da instituição e ao Master.</p>
+      ) : tab === "novo_instrumento" ? (
+        <NovoInstrumento institutionId={id} role={role} courses={data.courses} />
+      ) : tab === "avaliacao" ? (
+        <AvaliacaoInstitucional key={id} />
       ) : tab === "resultado-curso" ? (
         role === "master" || role === "gestor" ? <ResultadoCursoBI institutionId={id} institutionName={String(institution.name)}/> : <p>O módulo de resultado por curso é reservado ao Gestor da instituição e ao Master.</p>
       ) : tab === "biblioteca" ? (
@@ -755,6 +759,7 @@ function ActionsTab({ institutionId, role, data, reload }: { institutionId: stri
         try {await saveRow(TABLES.actions,{status},String(a.id));await reload();}
         catch(e){setActionSaveError(explain(e));throw e;}
       }}/>}
+
 
       <div className="area-panel-head">
         <h3>Plano de ação 5W2H ({data.actions.length})</h3>

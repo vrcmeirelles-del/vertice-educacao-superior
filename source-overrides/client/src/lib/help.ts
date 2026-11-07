@@ -84,6 +84,7 @@ export function withHelp(fields: Field[], help: HelpMap): Field[] {
 }
 
 export const TAB_HELP: Record<string, { title: string; text: string[] }> = {
+ novo_instrumento:{title:"Preparação para o Novo Instrumento INEP 2026",text:["Este módulo acompanha a preparação da IES para os novos instrumentos de avaliação in loco, com ciclo trienal obrigatório a partir de 2026.","Use o Checklist para mapear a conformidade de cada objeto de avaliação (Dimensões 1 a 4), vincule evidências, acompanhe o cronograma do ciclo (ENADE → CPA → Visita) e monitore a prontidão da CPA.","Os objetos de avaliação seguem a proposta do INEP apresentada nas consultas públicas de 2025-2026. Títulos marcados como 'a confirmar' serão atualizados quando o instrumento definitivo for publicado."]},
  repositorio:{title:"Da meta à evidência documental",text:["A gestão define o documento, a meta, o curso, o responsável e o prazo. Use um dos modelos do catálogo ou uma exigência personalizada.","O responsável envia a evidência e a gestão valida ou devolve com parecer. Cada nova versão preserva as anteriores. A IES tem seu próprio repositório, acessível somente às contas vinculadas e à administração Vértice.","Nas metas, use Documentos da meta para acompanhar as entregas. Documento enviado não significa meta cumprida; as medições da meta continuam separadas."]},
   geral: {
     title: "O que esta visão mostra",
