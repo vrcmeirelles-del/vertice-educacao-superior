@@ -34,6 +34,7 @@ import { FIELD_HELP, TAB_FAQ, TAB_HELP, withHelp } from "@/lib/help";
 import PainelEorbit from "../eorbit/PainelEorbit";
 import ResultadoCursoBI from "../bi/ResultadoCursoBI";
 import AuditoriaPermanenciaBI from "../bi/AuditoriaPermanenciaBI";
+import AvaliacaoInstitucional from "./AvaliacaoInstitucional";
 import "./area.css";
 
 const TABS: [Tab, string][] = [
@@ -49,7 +50,8 @@ const TABS: [Tab, string][] = [
   ["eorbit", "e-ORBIT · Espelho"],
   ["auditoria", "BI · Permanência e Reprovações"],
   ["metas", "Metas e indicadores"],
-  ["repositorio", "Repositório"],
+  ["repositorio", "Reconhecimento de Curso"],
+  ["avaliacao", "Recredenciamento Institucional"],
   ["biblioteca", "Biblioteca INEP"],
   ["reitor", "Área do reitor · EBITDA"],
   ["resultado-curso", "Resultado por Curso"],
@@ -194,6 +196,8 @@ export default function Workspace({
         <OverviewTab data={data} stats={stats} onGo={choose} />
       ) : tab === "emec" ? (
         <EmecPanel key={id} institution={institution} role={role}/>
+      ) : tab === "avaliacao" ? (
+        <AvaliacaoInstitucional key={id} />
       ) : tab === "auditoria" ? (
         can.viewManagement(role) ? <AuditoriaPermanenciaBI key={id} institutionId={id} institutionName={String(institution.name)} /> : <p role="alert">A auditoria acadêmica é restrita à alta gestão autorizada.</p>
       ) : tab === "eorbit" ? (
@@ -331,7 +335,7 @@ function OverviewTab({ data, stats, onGo }: { data: Data; stats?: { enrolled: nu
       <header><small>ACOMPANHAMENTO INSTITUCIONAL</small><h3>Visão geral da gestão</h3><p>Acompanhe os resultados e abra cada área para tratar as pendências.</p></header>
       <div className="area-stat-grid">
         <article><small>Vida acadêmica</small><b>{stats ? stats.enrolled.toLocaleString("pt-BR") : "—"}</b><span>Matriculados{stats?.semester ? ` em ${stats.semester}` : ""} · {activeCourses} cursos ativos</span><button className="corp-login-text-button" onClick={() => onGo("visao")}>Ver matrículas →</button></article>
-        <article className={docs.late ? "warn" : ""}><small>Evidências validadas</small><b>{docs.validated} / {docs.total}</b><span>{docs.pending} sem envio · {docs.late} em atraso · {docs.nsa} NSA</span><button className="corp-login-text-button" onClick={() => onGo("repositorio")}>Abrir repositório →</button></article>
+        <article className={docs.late ? "warn" : ""}><small>Evidências validadas</small><b>{docs.validated} / {docs.total}</b><span>{docs.pending} sem envio · {docs.late} em atraso · {docs.nsa} NSA</span><button className="corp-login-text-button" onClick={() => onGo("repositorio")}>Abrir Reconhecimento de Curso →</button></article>
         <article className={late.length ? "warn" : ""}><small>Execução do plano</small><b>{done} / {acts.length}</b><span>Ações concluídas · {late.length} atrasadas · {soon.length} a vencer em 30 dias</span><button className="corp-login-text-button" onClick={() => onGo("plano")}>Abrir plano →</button></article>
         <article className={highOpen ? "warn" : ""}><small>Diagnóstico institucional</small><b>{avgScore === null ? "—" : `${fmt1(avgScore)} / 5`}</b><span>{scored.length} critérios com nota · {highOpen} achados prioritários em aberto</span><button className="corp-login-text-button" onClick={() => onGo("diagnostico")}>Abrir diagnóstico →</button></article>
       </div>
