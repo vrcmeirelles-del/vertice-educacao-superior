@@ -9,6 +9,8 @@ import {
   type AndamentoStatus, type Conformidade, type DadosInstrumento, type ObjetoInstrumento, type Tema, type TipoInstrumento,
 } from "@/lib/novo-instrumento";
 import "./novo-instrumento.css";
+import { indicadoresDoObjeto2026, GRAU_COR, GRAU_LABEL } from "@/lib/instrumento-mapping";
+import indicatorNames from "@/lib/repository-indicators.json";
 
 type Sub = "checklist" | "evidencias" | "cronograma" | "cpa";
 const SUBS: [Sub, string][] = [
@@ -449,6 +451,24 @@ function ObjetoLinhas({ o, row, status, ev, aberto, edit, ocupado, onToggle, onS
           <td />
           <td colSpan={5}>
             <p className="area-muted small"><strong>Roteiro de verificação:</strong> {o.hint}</p>
+            {(() => {
+              const fontes = indicadoresDoObjeto2026(o.code);
+              if (!fontes.length) return null;
+              const names = indicatorNames as Record<string, string>;
+              return (
+                <div className="ni-espelhamento">
+                  <strong>🔗 Instrumento 2017 — Reconhecimento</strong>
+                  {fontes.map(f => (
+                    <div key={f.ind} className="ni-espelhamento-item">
+                      <span className="ni-espelhamento-tag" style={{ borderColor: GRAU_COR[f.grau] }}>
+                        <b>{f.ind}</b> {names[f.ind] ?? "Indicador"}
+                      </span>
+                      <span className="ni-espelhamento-grau" style={{ color: GRAU_COR[f.grau] }}>{GRAU_LABEL[f.grau]}</span>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
             <div className="area-form-grid">
               <label>
                 Responsável

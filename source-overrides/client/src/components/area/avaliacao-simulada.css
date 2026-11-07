@@ -75,6 +75,23 @@
 .avs-ai-btn:hover:not(:disabled) { background: #3b82f6; color: #fff; }
 .avs-ai-btn:disabled { opacity: .5; cursor: not-allowed; }
 
+/* Espelhamento 2017↔2026 */
+.avs-espelhamento {
+  margin-bottom: .75rem; padding: .6rem .8rem;
+  background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: .4rem;
+  font-size: .82rem;
+}
+.avs-espelhamento-title { display: block; font-size: .85rem; margin-bottom: .2rem; }
+.avs-espelhamento-grau { font-size: .75rem; font-weight: 600; }
+.avs-espelhamento-nota { margin: .25rem 0 .4rem; color: #374151; font-size: .8rem; }
+.avs-espelhamento-objs { display: flex; flex-wrap: wrap; gap: .35rem; }
+.avs-espelhamento-tag {
+  display: inline-flex; align-items: center; gap: .25rem;
+  padding: .2rem .5rem; background: #dcfce7; border-radius: .25rem;
+  font-size: .78rem; color: #166534;
+}
+.avs-espelhamento-tag b { font-weight: 700; }
+
 /* Detalhe expandido */
 .avs-detail-row td { padding: 0 !important; }
 .avs-detalhe { padding: .75rem 1rem 1rem; background: #f8fafc; border-top: 1px solid #e2e8f0; }

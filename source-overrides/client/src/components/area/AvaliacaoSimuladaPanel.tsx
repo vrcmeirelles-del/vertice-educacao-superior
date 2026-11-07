@@ -23,6 +23,8 @@ import {
 import { supabase } from "@/lib/supabase";
 import { instrumentIndicators } from "@/lib/repository";
 import indicatorNames from "@/lib/repository-indicators.json";
+import { objetosDoIndicador2017, GRAU_COR, GRAU_LABEL } from "@/lib/instrumento-mapping";
+import { OBJETOS_BASE, dimensao4 } from "@/lib/novo-instrumento";
 
 // ================================================================ IA
 const AI_ERRORS: Record<string, string> = {
@@ -466,6 +468,32 @@ function DetalheIndicador({
         )}
       </div>
       {aiError && <p role="alert" className="area-error" style={{ fontSize: ".8rem", margin: ".25rem 0" }}>{aiError}</p>}
+
+      {/* ─── Espelhamento 2017↔2026 ─── */}
+      {(() => {
+        const mapping = objetosDoIndicador2017(code);
+        if (!mapping) return null;
+        const allObjs = [...OBJETOS_BASE, ...dimensao4("direito")];
+        return (
+          <div className="avs-espelhamento">
+            <strong className="avs-espelhamento-title">🔗 Governança 360 — Novo Instrumento 2026</strong>
+            <span className="avs-espelhamento-grau" style={{ color: GRAU_COR[mapping.grau] }}>
+              {GRAU_LABEL[mapping.grau]}
+            </span>
+            <p className="avs-espelhamento-nota">{mapping.nota}</p>
+            <div className="avs-espelhamento-objs">
+              {mapping.obj2026.map(objCode => {
+                const obj = allObjs.find(o => o.code === objCode);
+                return (
+                  <span key={objCode} className="avs-espelhamento-tag">
+                    <b>{objCode}</b> {obj?.title ?? "Objeto"}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
 
       {campos.map(([campo, label, valor, set]) => (
         <div key={campo} className="avs-campo">
