@@ -170,8 +170,9 @@ CREATE POLICY learning_metrics_read ON public.vertice_learning_course_metrics
     OR ((select auth.jwt()->>'aal')='aal2'
       AND EXISTS(
         SELECT 1 FROM public.vertice_learning_staff_scope sc
-        WHERE sc.user_id=(select auth.uid()) AND sc.institution_id=institution_id
-          AND sc.course_id=course_id AND sc.subject_code=subject_code AND sc.active=TRUE
+        WHERE sc.user_id=(select auth.uid()) AND sc.institution_id=vertice_learning_course_metrics.institution_id
+          AND sc.course_id=vertice_learning_course_metrics.course_id
+          AND sc.subject_code=vertice_learning_course_metrics.subject_code AND sc.active=TRUE
       ))
   );
 GRANT SELECT ON public.vertice_learning_course_metrics TO authenticated;
@@ -182,4 +183,8 @@ ALTER TABLE vertice_private.learning_events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE vertice_private.learning_curricular_grades ENABLE ROW LEVEL SECURITY;
 ALTER TABLE vertice_private.learning_subject_maps ENABLE ROW LEVEL SECURITY;
 ALTER TABLE vertice_private.learning_sync_runs ENABLE ROW LEVEL SECURITY;
-REVOKE ALL ON ALL TABLES IN SCHEMA vertice_private FROM anon,authenticated;
+REVOKE ALL ON vertice_private.learning_students,
+  vertice_private.learning_events,
+  vertice_private.learning_curricular_grades,
+  vertice_private.learning_subject_maps,
+  vertice_private.learning_sync_runs FROM anon,authenticated;
