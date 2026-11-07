@@ -269,7 +269,7 @@ export default function OwnerDashboard(){
   <button className={`vx-module-card ${!commercial&&!route.perfis&&!route.painelBi&&!route.captacao&&!route.bi&&route.masters&&!route.governanca?'vx-module-active':''}`} onClick={()=>{setCommercial(false);writeHash('','',false,false,false,true);}}><span className="vx-module-icon" style={{background:'#f0f9ff',color:'#0369a1'}}>🔑</span><strong>Masters</strong><small>Administradores do sistema</small></button>
  </div>}
  {route.perfis&&master?<ProfileSimulator/>:master&&commercial?<DemoLeads/>:<>
- {!route.bi&&!route.captacao&&!route.academico&&!route.painelBi&&!currentInst&&!route.repositories&&!route.masters&&<div className="vx-module-grid" style={{gridTemplateColumns:'repeat(5,1fr)',marginBottom:4}}>
+ {!route.bi&&!route.captacao&&!route.academico&&!route.painelBi&&!currentInst&&!route.repositories&&!route.masters&&<div className="vx-module-grid vx-kpi-row">
   <div className="vx-module-card" style={{borderLeft:'3px solid #0073ea'}}><small style={{color:'#676e7a'}}>Instituições</small><strong style={{fontSize:28}}>{institutions.length}</strong></div>
   <div className="vx-module-card" style={{borderLeft:'3px solid #7c3aed'}}><small style={{color:'#676e7a'}}>Cursos</small><strong style={{fontSize:28}}>{courses.length}</strong></div>
   <div className="vx-module-card" style={{borderLeft:'3px solid #00a86b'}}><small style={{color:'#676e7a'}}>Vínculos</small><strong style={{fontSize:28}}>{members.length}</strong></div>

@@ -64,8 +64,11 @@
 .vx-module-icon { width: 36px; height: 36px; border-radius: 8px; display: grid; place-items: center; font-size: 18px; flex-shrink: 0; }
 .vx-module-card strong { font-size: 14px; font-weight: 600; color: var(--foreground, #1e2a3a); }
 .vx-module-card small { font-size: 12px; color: var(--muted-foreground, #676e7a); line-height: 1.4; }
-@media (max-width: 768px) { .vx-module-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 480px) { .vx-module-grid { grid-template-columns: 1fr; } }
+/* ── KPI row (5 cols desktop → 3 tablet → 2 mobile) ── */
+.vx-kpi-row { grid-template-columns: repeat(5, 1fr); margin-bottom: 4px; }
+@media (max-width: 1024px) { .vx-kpi-row { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 768px) { .vx-module-grid { grid-template-columns: repeat(2, 1fr); } .vx-kpi-row { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px) { .vx-module-grid { grid-template-columns: 1fr; } .vx-kpi-row { grid-template-columns: 1fr; } .vx-module-card { flex-direction: row; align-items: center; gap: 12px; } .vx-module-icon { width: 32px; height: 32px; font-size: 16px; } }
 
 /* The existing PortalBI renders legacy inline styles. These scoped rules must win. */
 .portal-bi button.vx-kpi {padding:18px !important;border:1px solid var(--border-light) !important;border-left:4px solid var(--vx-tone) !important;border-top:1px solid var(--border-light) !important;background:var(--card) !important;color:var(--foreground) !important;border-radius:var(--radius) !important}

@@ -3248,8 +3248,8 @@ h4 {
 @media(max-width:900px){.main-shell{margin-left:0;}.page-content{padding:24px 20px;}}
 
 .demo-loading{min-height:65vh;display:grid;place-items:center;font:17px Inter,Arial;color:#243653;}
-@media(min-width:801px) and (max-width:1100px){.sidebar{width:250px}.main-shell{margin-left:250px;width:calc(100% - 250px)}.sidebar .vertex-brand{width:208px}}
-@media(max-width:800px){.main-shell{margin-left:0;width:100%}.sidebar{width:270px}.sidebar .vertex-brand{width:220px}}
+@media(min-width:801px) and (max-width:1100px){.sidebar{width:220px}.main-shell{margin-left:220px;width:calc(100% - 220px)}}
+@media(max-width:800px){.main-shell{margin-left:0;width:100%}.sidebar{display:none}}
 
 /* Caso real (página pública) e Competências (demonstração) */
 .case-flow {
