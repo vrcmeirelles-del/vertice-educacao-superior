@@ -1,7 +1,8 @@
-import React,{useEffect,useMemo,useState} from 'react';
+import React,{useEffect,useMemo,useState,useRef} from 'react';
 import {ArrowDownToLine,ArrowRight,BarChart3,BookOpen,BriefcaseBusiness,Building2,ChartNoAxesCombined,Check,ChevronRight,ClipboardCheck,FileCheck2,FileText,FolderOpen,LayoutDashboard,MessageCircle,Search,ShieldCheck,Target,Users} from 'lucide-react';
 import {ddFronts,defaultGoals,demoInstitutionCourses,demoInstitutionProfiles,demoEconomics,evidenceLabels,evidenceSummary,executiveDemoText,initialDemoEvidence,type DemoEvidence,type DemoCourse,type DemoInstitutionMode} from '@/lib/demo-showroom';
 import type {DemoTrack} from '@/lib/commercial-demo';
+export type DemoSnapshot={evidence:{id:string;status:DemoEvidence['status']}[];goals:{id:string;progress:number}[];finance:{revenue:number;cost:number;depreciation:number;multiple:number;debt:number;cash:number};queue:boolean;submitted:string[];lastView:string};
 type View='overview'|'courses'|'academic'|'enade'|'governance'|'evidence'|'library'|'goals'|'acquisitions'|'economics'|'admissions'|'report';
 type CatalogRow={code:string;front:string;title:string;expected:string;fields:{key:string;label:string;type:string;help?:string;options?:Record<string,string>}[]};
 const menu:{id:View;label:string;icon:typeof LayoutDashboard;track:DemoTrack;step:number;context:string}[]=[
@@ -21,7 +22,8 @@ const menu:{id:View;label:string;icon:typeof LayoutDashboard;track:DemoTrack;ste
 const money=(n:number)=>n.toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0});
 const percent=(n:number)=>n.toLocaleString('pt-BR',{maximumFractionDigits:1})+'%';
 function downloadReport(text:string){const escape=(s:string)=>s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');const html=`<!doctype html><html lang="pt-BR"><meta charset="utf-8"><title>Vértice — relatório demonstrativo</title><style>body{font:16px/1.7 Arial;color:#243653;max-width:850px;margin:50px auto;padding:28px}h1{border-bottom:4px solid #328ea8;padding-bottom:16px}pre{font:inherit;white-space:pre-wrap}</style><h1>VÉRTICE</h1><pre>${escape(text)}</pre></html>`;const url=URL.createObjectURL(new Blob([html],{type:'text/html;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download='Vertice-Relatorio-Demonstrativo.html';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
-export default function DemoShowroom({onExplore,onAsk,onContact,mode='faculdade'}:{onExplore:(track:DemoTrack,step:number,context:string)=>void;onAsk:(context:string)=>void;onContact:()=>void;mode?:DemoInstitutionMode}){
+export default function DemoShowroom({onExplore,onAsk,onContact,mode='faculdade',savedState,onSave,onNavigate}:{onExplore:(track:DemoTrack,step:number,context:string)=>void;onAsk:(context:string)=>void;onContact:()=>void;mode?:DemoInstitutionMode;savedState?:Partial<DemoSnapshot>;onSave?:(snapshot:DemoSnapshot)=>void;onNavigate?:(view:string)=>void}){
+ const saveReady=useRef(false);
  const courses=useMemo(()=>demoInstitutionCourses(mode),[mode]);
  const institution=demoInstitutionProfiles[mode];
  const courseName=(id:string)=>courses.find(c=>c.id===id)?.name??id;
@@ -29,7 +31,18 @@ export default function DemoShowroom({onExplore,onAsk,onContact,mode='faculdade'
  const [goals,setGoals]=useState(()=>defaultGoals.map(g=>({...g}))),[catalog,setCatalog]=useState<CatalogRow[]>([]),[catalogError,setCatalogError]=useState(false),[front,setFront]=useState('REG'),[query,setQuery]=useState(''),[page,setPage]=useState(0),[req,setReq]=useState('');
  const [answers,setAnswers]=useState<Record<string,string>>({}),[submitted,setSubmitted]=useState<string[]>([]),[note,setNote]=useState(''),[queue,setQueue]=useState(false),[tour,setTour]=useState(-1);
  const [finance,setFinance]=useState(()=>({revenue:institution.revenue,cost:institution.cost,depreciation:institution.depreciation,multiple:4,debt:institution.debt,cash:institution.cash}));
- useEffect(()=>{setRows(initialDemoEvidence(courses));setFinance({revenue:institution.revenue,cost:institution.cost,depreciation:institution.depreciation,multiple:4,debt:institution.debt,cash:institution.cash});setGoals(defaultGoals.map(g=>({...g})));setCourse('all');setSelected('');setView('overview');setNote('');setSubmitted([]);setQueue(false);},[mode]);
+ useEffect(()=>{
+  saveReady.current=false;
+  const statuses=new Map((savedState?.evidence??[]).map(e=>[e.id,e.status]));
+  setRows(initialDemoEvidence(courses).map(row=>({...row,status:statuses.get(row.id)??row.status})));
+  const progress=new Map((savedState?.goals??[]).map(g=>[g.id,g.progress]));
+  setGoals(defaultGoals.map(g=>({...g,progress:progress.get(g.id)??g.progress})));
+  setFinance(savedState?.finance??{revenue:institution.revenue,cost:institution.cost,depreciation:institution.depreciation,multiple:4,debt:institution.debt,cash:institution.cash});
+  setSubmitted(savedState?.submitted??[]);setQueue(savedState?.queue??false);
+  setCourse('all');setSelected('');setView(menu.some(m=>m.id===savedState?.lastView)?savedState!.lastView as View:'overview');setNote('');
+  const timer=window.setTimeout(()=>{saveReady.current=true;},300);
+  return()=>window.clearTimeout(timer);
+ },[mode]);
  const econ=demoEconomics(finance.revenue,finance.cost,finance.depreciation,finance.multiple,finance.debt,finance.cash);
  const current=menu.find(m=>m.id===view)!;const scoped=rows.filter(r=>course==='all'||r.course===course);const totals=evidenceSummary(rows);const scopedTotals=evidenceSummary(scoped);
  const selectedEvidence=rows.find(r=>r.id===selected);const totalStudents=courses.reduce((n,c)=>n+c.students,0),capacity=courses.reduce((n,c)=>n+c.capacity,0);
@@ -37,15 +50,23 @@ export default function DemoShowroom({onExplore,onAsk,onContact,mode='faculdade'
  useEffect(()=>{if(view!=='acquisitions'||catalog.length)return;let live=true;import('@/lib/demo-acquisition-catalog.json').then(m=>{if(live)setCatalog(m.default.requirements.map(r=>({code:r.code,front:r.front,title:r.title,expected:r.expected,fields:r.fieldIds.map(id=>id===-1?{key:'specific',label:r.title,type:'textarea'}:m.default.fields[id])})) as CatalogRow[]);}).catch(()=>{if(live)setCatalogError(true);});return()=>{live=false;};},[view,catalog.length]);
  useEffect(()=>{if(selected)document.getElementById('ds-evidence-detail')?.scrollIntoView({behavior:'smooth',block:'start'});},[selected]);
  useEffect(()=>{if(req)document.getElementById('ds-native-form')?.scrollIntoView({behavior:'smooth',block:'start'});},[req]);
- function navigate(id:View){setView(id);setNote('');setSelected('');const m=menu.find(x=>x.id===id)!;onExplore(m.track,m.step,m.context);}
+ function navigate(id:View){setView(id);setNote('');setSelected('');onNavigate?.(id);const m=menu.find(x=>x.id===id)!;onExplore(m.track,m.step,m.context);}
  function changeEvidence(id:string,status:DemoEvidence['status']){setRows(items=>items.map(r=>r.id===id?{...r,status,file:r.file||`${r.id}-DOCUMENTO-FICTICIO.pdf`,note:status==='review'?'Arquivo fictício vinculado. Aguarda análise do responsável.':'Revisão concluída apenas neste cenário demonstrativo.'}:r));setNote(status==='review'?'Documento fictício vinculado. O painel já reflete a nova situação.':'Revisão simulada registrada. Os indicadores e o relatório foram atualizados.');}
  const tourViews:View[]=['overview','evidence','goals','acquisitions','economics','report'];
  function tourStep(n:number){if(n>=tourViews.length){setTour(-1);return;}setTour(n);navigate(tourViews[n]);}
+ useEffect(()=>{
+  if(!onSave)return;
+  const t=window.setTimeout(()=>{
+    if(!saveReady.current)return;
+    onSave({evidence:rows.map(r=>({id:r.id,status:r.status})),goals:goals.map(g=>({id:g.id,progress:g.progress})),finance:{revenue:finance.revenue,cost:finance.cost,depreciation:finance.depreciation,multiple:finance.multiple,debt:finance.debt,cash:finance.cash},queue,submitted,lastView:view});
+  },850);
+  return()=>window.clearTimeout(t);
+ },[rows,goals,finance,queue,submitted,view,onSave]);
  const report=executiveDemoText(rows,goals,econ,institution.name,courses);
  return <section className="demo-showroom" aria-label={`Portal demonstrativo: ${institution.name}`}>
   <div className="ds-topbar"><div><span className="ds-avatar">V</span><div><strong>{institution.name}</strong><small>{institution.subtitle} · {institution.description}</small></div></div><span className="ds-demo-badge">DADOS FICTÍCIOS · 2026/2</span></div>
   <div className="ds-frame">
-   <aside className="ds-sidebar"><span className="ds-nav-caption">GESTÃO ESTRATÉGICA</span><nav aria-label="Áreas internas da demonstração">{menu.map(m=><button key={m.id} type="button" aria-current={view===m.id?'page':undefined} onClick={()=>navigate(m.id)}><m.icon size={18}/><span>{m.label}</span>{view===m.id&&<ChevronRight size={14}/>}</button>)}</nav><div className="ds-sidebar-foot"><p>Explore os dados, abra documentos e teste as decisões.</p><button type="button" onClick={()=>tourStep(0)}><CompassIcon/>Fazer visita guiada</button><a href="/painel">Abrir o painel de gestão completo<ArrowRight size={14}/></a></div></aside>
+   <aside className="ds-sidebar"><span className="ds-nav-caption">GESTÃO ESTRATÉGICA</span><nav aria-label="Áreas internas da demonstração">{menu.map(m=><button key={m.id} type="button" aria-current={view===m.id?'page':undefined} onClick={()=>navigate(m.id)}><m.icon size={18}/><span>{m.label}</span>{view===m.id&&<ChevronRight size={14}/>}</button>)}</nav><div className="ds-sidebar-foot"><p>Explore os dados, abra documentos e teste as decisões.</p><button type="button" onClick={()=>tourStep(0)}><CompassIcon/>Fazer visita guiada</button>{onSave?<span>Os testes desta visita são persistidos somente neste ambiente fictício.</span>:<a href="/painel">Abrir o painel de gestão completo<ArrowRight size={14}/></a>}</div></aside>
    <div className="ds-main">
     <div className="ds-page-heading"><div><span>VÉRTICE / {view==='acquisitions'||view==='economics'?'AQUISIÇÕES':'GESTÃO INSTITUCIONAL'}</span><h2>{current.label}</h2></div><button type="button" className="ds-secondary" onClick={()=>onAsk(current.context)}><MessageCircle size={16}/>Explique com IA</button></div>
     {tour>=0&&<div className="ds-tour" role="status"><div><strong>Visita guiada · {tour+1} de {tourViews.length}</strong><p>{current.context}</p></div><div><button type="button" onClick={()=>setTour(-1)}>Explorar livremente</button><button type="button" onClick={()=>tourStep(tour+1)}>{tour===tourViews.length-1?'Concluir visita':'Próxima área'}<ArrowRight size={15}/></button></div></div>}
