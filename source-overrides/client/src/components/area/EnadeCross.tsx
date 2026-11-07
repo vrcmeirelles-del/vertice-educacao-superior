@@ -6,7 +6,7 @@ import "./enade-cross.css";
 
 type Offer={semester:string;course_code:string|null;discipline:string|null;teachers:string|null;rf:number|null;rn:number|null;ra:number|null;discipline_enrollments:number|null};
 type Enrollment={course_id:string;semester:string;student_status:string;class_label:string;enrolled:number;reported_total:number|null;source_report_at:string};
-type Stats={codigo:string|null;semestre:string;evasao_total:number|null;trancado:number|null};
+type Stats={codigo:string|null;semestre:string;modalidade:string|null;evasao_total:number|null;trancado:number|null};
 type Report={course_id:string|null;kind:string;source_report_at:string};
 type Risk={codigo_curso:string|null;alunos_risco:number|null;data_referencia:string|null};
 type Item={name:string;count:number;error:string|null};
@@ -48,7 +48,7 @@ function rank(offers:Offer[],key:"discipline"|"teachers"){
   }
   return [...groups.values()].sort((a,b)=>(b.rf+b.rn+b.ra)-(a.rf+a.rn+a.ra)).slice(0,12);
 }
-type Totals={matriculados:number|null;rf:number;rn:number;ra:number;vinculos:number;ofertas:number;evasao:number|null;trancado:number|null};
+type Totals={matriculados:number|null;rf:number|null;rn:number|null;ra:number|null;vinculos:number|null;ofertas:number|null;evasao:number|null;trancado:number|null};
 const high:Role[]=["master","reitor","gestor","diretor_geral","diretor_pedagogico","procurador"];
 
 export default function EnadeCross({institutionId,courses,goals,actions,role,selectedCourseId,onPlan}:{
@@ -66,7 +66,7 @@ export default function EnadeCross({institutionId,courses,goals,actions,role,sel
     const sources=[
       ["Ofertas, docentes e reprovações","offers","vertice_offering_outcomes","institution_id","id,semester,course_code,discipline,teachers,rf,rn,ra,discipline_enrollments"],
       ["Matrículas","enrollments","vertice_enrollment_snapshots","institution_id","id,course_id,semester,student_status,class_label,enrolled,reported_total,source_report_at"],
-      ["Histórico de evasão","stats","vertice_course_semester_stats","institution_id","id,codigo,semestre,evasao_total,trancado"],
+      ["Histórico de evasão","stats","vertice_course_semester_stats","institution_id","id,codigo,semestre,modalidade,evasao_total,trancado"],
       ["Relatórios acadêmicos","reports","vertice_academic_reports","institution_id","id,course_id,kind,source_report_at"],
       ["Risco agregado","risks","vertice_risco_agregado","institution_id","id,codigo_curso,alunos_risco,data_referencia"],
       ["Espelho ENADE",null,"vertice_eorbit_enade","instituicao_id","id"],
@@ -125,9 +125,9 @@ export default function EnadeCross({institutionId,courses,goals,actions,role,sel
       vinculos:acc.vinculos+n(x.discipline_enrollments),ofertas:acc.ofertas+1}),{rf:0,rn:0,ra:0,vinculos:0,ofertas:0});
     const rows=stats.filter(x=>term(x.semestre)===t);
     // Não somar diferentes versões/granularidades de uma mesma extração.
-    const seen=new Map<string,Stats>();for(const x of rows)if(!seen.has(codeOf(x.codigo)))seen.set(codeOf(x.codigo),x);
+    const seen=new Map<string,Stats>();for(const x of rows){const key=codeOf(x.codigo)+"|"+String(x.modalidade??"");if(!seen.has(key))seen.set(key,x);}
     const unique=[...seen.values()];
-    return {...summary,matriculados:enrollCount(snapshots,ids,t),
+    return {...(subset.length?summary:{rf:null,rn:null,ra:null,vinculos:null,ofertas:null}),matriculados:enrollCount(snapshots,ids,t),
       evasao:unique.length?unique.reduce((a,x)=>a+n(x.evasao_total),0):null,
       trancado:unique.length?unique.reduce((a,x)=>a+n(x.trancado),0):null};
   }
@@ -138,7 +138,12 @@ export default function EnadeCross({institutionId,courses,goals,actions,role,sel
   const actionsN=actions.filter(x=>!current||x.course_id===current.id);
   const goalsN=goals.filter(x=>!current||x.course_id===current.id);
   const riskRecords=risks.filter(x=>String(x.data_referencia??"").startsWith(active.slice(0,4)));
-  const riskLatest=[...riskRecords].sort((a,b)=>String(b.data_referencia).localeCompare(String(a.data_referencia)))[0];
+  const latestRisk=new Map<string,Risk>();
+  for(const x of [...riskRecords].sort((a,b)=>String(b.data_referencia).localeCompare(String(a.data_referencia)))){
+    const code=codeOf(x.codigo_curso);
+    if(!latestRisk.has(code))latestRisk.set(code,x);
+  }
+  const riskCount=latestRisk.size?[...latestRisk.values()].reduce((sum,x)=>sum+n(x.alunos_risco),0):null;
   const statusCode=current?mapping.byCode.get(codeOf(current.code))?.length??0:1;
   const metrics:[string,number|null,number|null,string][]=[
     ["Matriculados",value.matriculados,prior.matriculados,"Pessoas informadas nos relatórios"],
@@ -183,7 +188,7 @@ export default function EnadeCross({institutionId,courses,goals,actions,role,sel
           <div><b>{reported.length}</b><span>Relatórios acadêmicos vinculados</span></div>
           <div><b>{goalsN.length}</b><span>Metas</span></div>
           <div><b>{actionsN.length}</b><span>Ações 5W2H</span></div>
-          <div><b>{riskLatest?fmt.format(n(riskLatest.alunos_risco)):"—"}</b><span>Risco agregado com data no ano</span></div>
+          <div><b>{riskCount===null?"—":fmt.format(riskCount)}</b><span>Risco agregado com data no ano</span></div>
         </div>
         <p>Dados correlacionados por instituição e, quando existente, identificador inequívoco de curso. Risco de evasão não é uma previsão de ENADE.</p>
         <button type="button" className="corp-button small" onClick={onPlan}>Abrir plano 5W2H</button>
