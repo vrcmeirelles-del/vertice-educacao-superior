@@ -25,6 +25,7 @@ import EbitdaCalculator from "../EbitdaCalculator";
 import InepLibrary from "./InepLibrary";
 import AvaliacaoInstitucional from "./AvaliacaoInstitucional";
 import NovoInstrumento from "./NovoInstrumento";
+import Enade360 from "./Enade360";
 import AuditoriaPermanenciaBI from "../bi/AuditoriaPermanenciaBI";
 import ManagementReview from "./ManagementReview";
 import DocumentAI from "./DocumentAI";
@@ -41,7 +42,7 @@ import "./area.css";
 
 const TAB_GROUPS: {label:string; tabs:Tab[]}[] = [
   {label:'Gestão', tabs:['base','metas','plano','diagnostico','equipe']},
-  {label:'Regulação', tabs:['emec','repositorio','avaliacao','novo_instrumento','biblioteca']},
+  {label:'Regulação', tabs:['emec','repositorio','enade','avaliacao','novo_instrumento','biblioteca']},
   {label:'Acadêmico', tabs:['geral','cadastro','visao','eorbit','backups','auditoria']},
   {label:'Inteligência', tabs:['analise','ia','fontes','reitor','resultado-curso','simulador']},
 ];
@@ -63,6 +64,7 @@ const TABS: [Tab, string][] = [
   ["biblioteca", "Biblioteca INEP"],
   ["avaliacao", "Recredenciamento Institucional"],
   ["novo_instrumento", "Novo Instrumento"],
+  ["enade", "ENADE 360°"],
   ["reitor", "Área do reitor · EBITDA"],
   ["resultado-curso", "Resultado por Curso"],
   ["simulador", "Simulador de Custo"],
@@ -228,6 +230,8 @@ export default function Workspace({
         <RepositoryTab institutionId={id} role={role} courses={data.courses} goals={data.goals} requests={data.requests} files={data.files} reload={reload} goalFilter={repositoryGoal} setGoalFilter={setRepositoryGoal}/>
       ) : tab === "reitor" ? (
         role === "master" || role === "gestor" ? <EbitdaCalculator reserved={{institutionId:id,name:String(institution.name)}}/> : <p>Os dados financeiros são reservados ao Gestor da instituição e ao Master.</p>
+      ) : tab === "enade" ? (
+        <Enade360 key={id} institutionId={id} courses={data.courses} actions={data.actions} role={role} onPlan={()=>choose("plano")}/>
       ) : tab === "novo_instrumento" ? (
         <NovoInstrumento institutionId={id} role={role} courses={data.courses} />
       ) : tab === "avaliacao" ? (
