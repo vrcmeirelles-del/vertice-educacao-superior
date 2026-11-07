@@ -1,0 +1,333 @@
+/**
+ * Painel da Reitoria — Governança Regulatória 360
+ *
+ * Visão consolidada de todos os cursos da IES:
+ * - CC simulado por curso (instrumento 2017)
+ * - Conformidade no Novo Instrumento (2026)
+ * - Cobertura documental
+ * - Comparativo 2017↔2026
+ * - Alertas e prioridades
+ * - Modo TV para monitor do reitor
+ */
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { type Row } from "@/lib/area";
+import { DIMENSOES, calcularResumo, formatarConceito, corConceito, faixaConceito, listarIndicadores } from "@/lib/avaliacao-simulada";
+import { MAPPING_2017_2026 } from "@/lib/instrumento-mapping";
+import "./governanca-bi.css";
+
+// ================================================================ tipos
+type CourseStatus = {
+  courseId: string;
+  courseName: string;
+  coordinator: string;
+  // 2017
+  indicadoresAvaliados: number;
+  indicadoresTotal: number;
+  ccAtual: number | null;
+  ccViavel: number | null;
+  dimMedias: { dim: number; media: number | null }[];
+  alertas2017: string[];
+  // 2026
+  objetosTotal: number;
+  objetosConformes: number;
+  objetosParciais: number;
+  objetosNaoConformes: number;
+  objetosNaoAvaliados: number;
+  pctConforme2026: number;
+  // docs
+  docsTotal: number;
+  docsEnviados: number;
+  docsValidados: number;
+  docsPendentes: number;
+  coberturaDoc: number;
+};
+
+type Props = {
+  institutionId: string;
+  institutionName: string;
+  courses: Row[];
+};
+
+// ================================================================ Donut
+type Parte = { value: number; color: string; label: string };
+function Donut({ parts, center, caption, size = 80 }: { parts: Parte[]; center: string; caption: string; size?: number }) {
+  const total = parts.reduce((s, p) => s + p.value, 0);
+  let acc = 0;
+  return (
+    <svg className="gov-donut" viewBox="0 0 42 42" width={size} height={size} role="img" aria-label={caption}>
+      <circle cx="21" cy="21" r="15.915" fill="none" stroke="#e7ecf1" strokeWidth="5" />
+      {total > 0 && parts.filter(p => p.value > 0).map(p => {
+        const len = (p.value / total) * 100;
+        const el = <circle key={p.label} cx="21" cy="21" r="15.915" fill="none" stroke={p.color} strokeWidth="5" strokeDasharray={`${len} ${100 - len}`} strokeDashoffset={25 - acc} />;
+        acc += len;
+        return el;
+      })}
+      <text x="21" y="23" textAnchor="middle" className="gov-donut-text">{center}</text>
+    </svg>
+  );
+}
+
+// ================================================================ componente principal
+export default function GovernancaBI({ institutionId, institutionName, courses }: Props) {
+  const [data, setData] = useState<CourseStatus[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [tv, setTv] = useState(false);
+  const indicadores = useMemo(() => listarIndicadores(), []);
+
+  const load = useCallback(async () => {
+    try {
+      // Carregar avaliações simuladas (2017)
+      const { data: avs } = await supabase
+        .from("vertice_avaliacao_simulada")
+        .select("*")
+        .eq("institution_id", institutionId);
+
+      // Carregar checklist do novo instrumento (2026)
+      const { data: ni } = await supabase
+        .from("vertice_instrumento_checklist")
+        .select("*")
+        .eq("institution_id", institutionId);
+
+      // Carregar documentos do repositório
+      const { data: reqs } = await supabase
+        .from("vertice_repository_requests")
+        .select("id, course_id, indicator, not_applicable, active")
+        .eq("institution_id", institutionId)
+        .eq("active", true);
+
+      const { data: files } = await supabase
+        .from("vertice_repository_files")
+        .select("request_id, status")
+        .eq("institution_id", institutionId);
+
+      const avsRows = avs ?? [];
+      const niRows = ni ?? [];
+      const reqRows = reqs ?? [];
+      const fileRows = files ?? [];
+
+      const statuses: CourseStatus[] = courses.map(course => {
+        const cid = String(course.id);
+        const cname = String(course.name ?? "Curso");
+        const coord = String(course.coordinator ?? "Não informada");
+
+        // 2017 — avaliação simulada
+        const courseAvs = avsRows.filter(r => r.course_id === cid);
+        const conceitosMap = new Map<string, number | null>();
+        for (const r of courseAvs) {
+          conceitosMap.set(String(r.indicador), r.conceito_atual != null ? Number(r.conceito_atual) : null);
+        }
+        const resumo = calcularResumo(conceitosMap, indicadores);
+        const ccViavel = courseAvs.length > 0
+          ? courseAvs.reduce((s, r) => s + (r.conceito_viavel != null ? Number(r.conceito_viavel) : 0), 0) / courseAvs.filter(r => r.conceito_viavel != null).length
+          : null;
+
+        // Alertas 2017
+        const alertas: string[] = [];
+        for (const r of courseAvs) {
+          if (r.conceito_atual != null && Number(r.conceito_atual) <= 2) {
+            alertas.push(`${r.indicador}: conceito ${r.conceito_atual}`);
+          }
+        }
+
+        // 2026 — novo instrumento
+        const courseNi = niRows.filter(r => r.course_id === cid || r.course_id === null);
+        const conformes = courseNi.filter(r => r.status === "conforme").length;
+        const parciais = courseNi.filter(r => r.status === "parcial").length;
+        const naoConf = courseNi.filter(r => r.status === "nao_conforme").length;
+        const naoAval = courseNi.filter(r => r.status === "nao_avaliado" || !r.status).length;
+        const totalNi = courseNi.length;
+
+        // Documentos
+        const courseReqs = reqRows.filter(r => r.course_id === cid && !r.not_applicable);
+        const reqIds = new Set(courseReqs.map(r => r.id));
+        const courseDocs = fileRows.filter(f => reqIds.has(String(f.request_id)));
+        const validados = courseDocs.filter(f => f.status === "validado").length;
+        const enviados = courseDocs.filter(f => f.status === "enviado").length;
+        const pendentes = courseReqs.length - courseDocs.length;
+
+        return {
+          courseId: cid,
+          courseName: cname,
+          coordinator: coord,
+          indicadoresAvaliados: resumo.totalAvaliados,
+          indicadoresTotal: resumo.totalIndicadores,
+          ccAtual: resumo.conceitoCurso,
+          ccViavel: ccViavel && !isNaN(ccViavel) ? ccViavel : null,
+          dimMedias: resumo.dimensoes.map(d => ({ dim: d.dimensao, media: d.media })),
+          alertas2017: alertas.slice(0, 5),
+          objetosTotal: totalNi,
+          objetosConformes: conformes,
+          objetosParciais: parciais,
+          objetosNaoConformes: naoConf,
+          objetosNaoAvaliados: naoAval,
+          pctConforme2026: totalNi ? Math.round((conformes / totalNi) * 100) : 0,
+          docsTotal: courseReqs.length,
+          docsEnviados: enviados,
+          docsValidados: validados,
+          docsPendentes: Math.max(0, pendentes),
+          coberturaDoc: courseReqs.length ? Math.round(((enviados + validados) / courseReqs.length) * 100) : 0,
+        };
+      }).filter(c => c.indicadoresAvaliados > 0 || c.objetosTotal > 0 || c.docsTotal > 0);
+
+      setData(statuses);
+    } finally {
+      setLoading(false);
+    }
+  }, [institutionId, courses, indicadores]);
+
+  useEffect(() => { void load(); }, [load]);
+
+  // Modo TV: refresh a cada 10min
+  useEffect(() => {
+    if (!tv) return;
+    const id = setInterval(() => void load(), 10 * 60 * 1000);
+    return () => clearInterval(id);
+  }, [tv, load]);
+
+  // KPIs globais
+  const cursosComAvs = data.filter(d => d.ccAtual !== null);
+  const ccMedioIES = cursosComAvs.length
+    ? cursosComAvs.reduce((s, d) => s + (d.ccAtual ?? 0), 0) / cursosComAvs.length
+    : null;
+  const cursosRisco = data.filter(d => d.ccAtual !== null && d.ccAtual < 3).length;
+  const coberturaMedia = data.length
+    ? Math.round(data.reduce((s, d) => s + d.coberturaDoc, 0) / data.length)
+    : 0;
+
+  if (loading) return <p role="status" className="area-muted">Carregando governança regulatória…</p>;
+
+  return (
+    <section className={`gov ${tv ? "gov-tv" : ""}`} aria-label="Governança Regulatória">
+      <header className="gov-header">
+        <div>
+          <span className="gov-eyebrow">Governança regulatória 360</span>
+          <h2>{institutionName}</h2>
+          <p className="gov-sub">Visão consolidada para a reitoria · {data.length} curso(s) acompanhado(s)</p>
+        </div>
+        <button className="gov-tv-btn" onClick={() => { setTv(!tv); if (!tv) document.documentElement.requestFullscreen?.(); else document.exitFullscreen?.(); }}>
+          {tv ? "Sair do modo TV" : "📺 Modo TV"}
+        </button>
+      </header>
+
+      {/* KPIs globais */}
+      <div className="gov-kpis">
+        <div className="gov-kpi">
+          <Donut
+            parts={[
+              { value: cursosComAvs.filter(d => (d.ccAtual ?? 0) >= 4).length, color: "#2d6a4f", label: "≥4" },
+              { value: cursosComAvs.filter(d => (d.ccAtual ?? 0) >= 3 && (d.ccAtual ?? 0) < 4).length, color: "#4f9a76", label: "3" },
+              { value: cursosComAvs.filter(d => (d.ccAtual ?? 0) < 3).length, color: "#c0594f", label: "<3" },
+              { value: data.length - cursosComAvs.length, color: "#a9b6c4", label: "s/n" },
+            ]}
+            center={formatarConceito(ccMedioIES)}
+            caption="CC médio da IES"
+            size={100}
+          />
+          <div>
+            <strong className="gov-kpi-value">{formatarConceito(ccMedioIES)}</strong>
+            <span className="gov-kpi-label">CC médio (2017)</span>
+            <span className="gov-kpi-detail">{faixaConceito(ccMedioIES)}</span>
+          </div>
+        </div>
+        <div className="gov-kpi-simple">
+          <strong style={{ color: cursosRisco > 0 ? "#c0594f" : "#4f9a76" }}>{cursosRisco}</strong>
+          <span>curso(s) com CC {'<'} 3</span>
+        </div>
+        <div className="gov-kpi-simple">
+          <strong>{coberturaMedia}%</strong>
+          <span>cobertura documental média</span>
+        </div>
+        <div className="gov-kpi-simple">
+          <strong>{MAPPING_2017_2026.length}</strong>
+          <span>conexões 2017↔2026</span>
+        </div>
+      </div>
+
+      {/* Tabela por curso */}
+      <div className="gov-table-scroll">
+        <table className="gov-table">
+          <thead>
+            <tr>
+              <th>Curso</th>
+              <th>Coordenação</th>
+              <th>CC atual</th>
+              <th>CC viável</th>
+              <th>D1</th>
+              <th>D2</th>
+              <th>D3</th>
+              <th>Docs</th>
+              <th>NI 2026</th>
+              <th>Alertas</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.sort((a, b) => (a.ccAtual ?? 99) - (b.ccAtual ?? 99)).map(c => (
+              <tr key={c.courseId} className={c.ccAtual !== null && c.ccAtual < 3 ? "gov-risco" : ""}>
+                <td><strong>{c.courseName}</strong></td>
+                <td className="gov-coord">{c.coordinator}</td>
+                <td>
+                  <span className="gov-cc" style={{ background: corConceito(c.ccAtual) }}>
+                    {formatarConceito(c.ccAtual)}
+                  </span>
+                </td>
+                <td>
+                  <span className="gov-cc gov-cc-viavel" style={{ borderColor: corConceito(c.ccViavel) }}>
+                    {formatarConceito(c.ccViavel)}
+                  </span>
+                </td>
+                {[1, 2, 3].map(dim => {
+                  const d = c.dimMedias.find(m => m.dim === dim);
+                  return (
+                    <td key={dim}>
+                      <span className="gov-dim" style={{ color: corConceito(d?.media ?? null) }}>
+                        {d?.media !== null && d?.media !== undefined ? d.media.toFixed(1) : "—"}
+                      </span>
+                    </td>
+                  );
+                })}
+                <td>
+                  <div className="gov-docs-bar">
+                    <div className="gov-docs-fill" style={{ width: `${c.coberturaDoc}%`, background: c.coberturaDoc >= 80 ? "#4f9a76" : c.coberturaDoc >= 50 ? "#d1a54a" : "#c0594f" }} />
+                  </div>
+                  <span className="gov-docs-label">{c.coberturaDoc}% · {c.docsPendentes} pend.</span>
+                </td>
+                <td>
+                  {c.objetosTotal > 0 ? (
+                    <span className="gov-ni">{c.pctConforme2026}% conf.</span>
+                  ) : (
+                    <span className="gov-ni gov-ni-empty">—</span>
+                  )}
+                </td>
+                <td>
+                  {c.alertas2017.length > 0 ? (
+                    <span className="gov-alertas" title={c.alertas2017.join("\n")}>
+                      ⚠️ {c.alertas2017.length}
+                    </span>
+                  ) : (
+                    <span className="gov-ok">✓</span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Legenda e comparativo */}
+      <div className="gov-footer">
+        <div className="gov-legenda">
+          <span><i style={{ background: "#2d6a4f" }} /> CC ≥ 4</span>
+          <span><i style={{ background: "#4f9a76" }} /> CC 3–3,9</span>
+          <span><i style={{ background: "#c0594f" }} /> CC {'<'} 3</span>
+          <span><i style={{ background: "#a9b6c4" }} /> Sem avaliação</span>
+        </div>
+        <p className="gov-disclaimer">
+          Avaliação simulada interna. O CC é calculado conforme o instrumento INEP de Reconhecimento de Curso (2017).
+          A conformidade do Novo Instrumento (2026) é independente e segue os objetos de avaliação do instrumento publicado.
+          Nenhum dado substitui a avaliação oficial do INEP/MEC.
+        </p>
+      </div>
+    </section>
+  );
+}
