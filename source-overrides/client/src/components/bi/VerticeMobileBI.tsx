@@ -6,6 +6,7 @@ import "./vertice-mobile.css";
 import DocumentosMobileBI from "./DocumentosMobileBI";
 import AcademicoFontesMobileBI from "./AcademicoFontesMobileBI";
 import VerticeMobilePublicPreview from "./VerticeMobilePublicPreview";
+import UnitopEorbitOfficial, { type UnitopOfficialSummary } from "./UnitopEorbitOfficial";
 
 type Access = "loading" | "signed_out" | "mfa" | "ready" | "error";
 type View = "visao" | "cursos" | "documentos" | "academico" | "alertas";
@@ -88,6 +89,7 @@ export default function VerticeMobileBI() {
   const [view, setView] = useState<View>("visao");
   const [query, setQuery] = useState("");
   const [reloading, setReloading] = useState(false);
+  const [officialUnitop, setOfficialUnitop] = useState<UnitopOfficialSummary | null>(null);
   const [lastRead, setLastRead] = useState<Date | null>(null);
 
   async function reload() {
@@ -159,7 +161,7 @@ export default function VerticeMobileBI() {
   const lines = courses.map(course => ({ course, current: sourceQuarantined ? null : amountFor(course.id, currentRows), previous: amountFor(course.id, previousRows) }))
     .sort((a, b) => (b.current ?? -1) - (a.current ?? -1) || a.course.name.localeCompare(b.course.name, "pt-BR"));
   const coverage = lines.filter(line => line.current !== null).length;
-  const currentTotal = coverage ? lines.reduce((n, line) => n + (line.current ?? 0), 0) : null;
+  const currentTotal = sourceQuarantined ? (officialUnitop?.matriculas ?? null) : (coverage ? lines.reduce((n, line) => n + (line.current ?? 0), 0) : null);
   const comparable = lines.filter(line => line.current !== null && line.previous !== null);
   const priorComparable = comparable.reduce((n, line) => n + (line.previous ?? 0), 0);
   const nowComparable = comparable.reduce((n, line) => n + (line.current ?? 0), 0);
@@ -200,17 +202,18 @@ export default function VerticeMobileBI() {
               {semesters.length === 0 ? <option value="">Sem dados</option> : semesters.map(term => <option key={term} value={term}>{term}</option>)}
             </select></label>
           </div>
-          {sourceQuarantined && <section className="vm-quarantine" role="alert"><strong>Fonte de matrículas em conciliação</strong><p>Os totais da UNITOP em 2026/02 não serão exibidos até a validação do sincronizador: a tabela resumida diverge da extração e-ORBIT. Selecione outro semestre para consultar períodos sem este bloqueio.</p></section>}
+          {sourceQuarantined && <section className="vm-quarantine" role="alert"><strong>Tabela resumida sob conciliação</strong><p>A fonte antiga de 2026/02 soma apenas 1.987 matrículas e não será utilizada. O painel consulta, abaixo, o relatório 2 completo do e-ORBIT para apresentar os quantitativos por curso e grade sem reescrever a base histórica.</p></section>}
+          {sourceQuarantined && <UnitopEorbitOfficial onVerified={setOfficialUnitop} showCourses={view === "cursos"} />}
           {view === "visao" && <>
             <section aria-label="Indicadores principais" className="vm-indicators">
-              <Indicator title="Matrículas no recorte" value={currentTotal === null ? "—" : fmt.format(currentTotal)} note={sourceQuarantined ? "Fonte sob conciliação" : coverage + "/" + courses.length + " cursos com dados"} tone="blue" />
+              <Indicator title="Matrículas no recorte" value={currentTotal === null ? "—" : fmt.format(currentTotal)} note={sourceQuarantined ? (officialUnitop ? officialUnitop.cursos + " cursos · " + officialUnitop.grades + " grades · e-ORBIT" : "Conferência da fonte e-ORBIT") : coverage + "/" + courses.length + " cursos com dados"} tone="blue" />
               <Indicator title="Variação anual comparável" value={yoy} note={previousYearSemester ? previousYearSemester + " × " + semester + " · " + comparable.length + " cursos" : "Período indisponível"} tone="teal" />
               <Indicator title="Metas ativas ou planejadas" value={fmt.format(activeGoals.length)} note="Sem incluir metas canceladas ou concluídas" tone="violet" />
               <Indicator title="Prazos vencidos" value={fmt.format(overdue.length)} note="Metas ativas ou planejadas" tone="amber" />
             </section>
             <section className="vm-panel">
               <div className="vm-section-top"><div><small>DESEMPENHO</small><h2>Maiores cursos em matrículas</h2></div><button onClick={() => setView("cursos")}>Ver todos</button></div>
-              <Bars lines={lines} />
+              {sourceQuarantined ? <p className="vm-muted">O detalhamento completo dos 43 cursos está disponível na aba Cursos, com os totais por grade extraídos do e-ORBIT.</p> : <Bars lines={lines} />}
             </section>
             <section className="vm-panel">
               <div className="vm-section-top"><div><small>ATENÇÃO GERENCIAL</small><h2>Pontos para verificar</h2></div><button onClick={() => setView("alertas")}>Detalhar</button></div>
@@ -223,6 +226,8 @@ export default function VerticeMobileBI() {
           </>}
           {view === "cursos" && <section className="vm-panel">
             <div className="vm-section-top"><div><small>GESTÃO POR CURSO</small><h2>Comparativo de matrículas</h2></div></div>
+            {sourceQuarantined && <p className="vm-muted">Consulte acima os cursos do relatório 2 e-ORBIT. Não foram misturados ao cadastro anterior enquanto as chaves de curso não estiverem reconciliadas.</p>}
+            {!sourceQuarantined && <>
             <label className="vm-search">Buscar curso<input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Nome ou código do curso" /></label>
             <p className="vm-muted">{semester || "Sem semestre"} versus {previousYearSemester || "período anterior indisponível"} · Mesma metade do ano</p>
             <div className="vm-course-list">
@@ -238,6 +243,7 @@ export default function VerticeMobileBI() {
               <p>Variação: {percentChange(chosen.current, chosen.previous)}</p>
               <a className="vm-primary" href={"/master#" + new URLSearchParams({ instituicao: id, curso: chosen.course.id }).toString()}>Abrir análise completa</a>
             </aside>}
+            </>}
           </section>}
           {view === "documentos" && <DocumentosMobileBI key={id} institutionId={id} courses={courses} />}
           {view === "academico" && <AcademicoFontesMobileBI key={id} institutionId={id} />}
