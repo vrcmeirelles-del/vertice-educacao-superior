@@ -10,6 +10,7 @@ export default function DireitoRaioX({ institutionId }: Props) {
   const [profData, setProfData] = useState<any>(null);
   const [quantGeral, setQuantGeral] = useState<any>(null);
   const [docenteEvo, setDocenteEvo] = useState<any>(null);
+  const [serieReal, setSerieReal] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -42,6 +43,8 @@ export default function DireitoRaioX({ institutionId }: Props) {
         if (pe) setProfData(pe.dados);
         const de = rx.find(r => r.tipo === "corpo_docente_evolucao");
         if (de) setDocenteEvo(de.dados);
+        const sr = rx.find(r => r.tipo === "serie_historica_real");
+        if (sr) setSerieReal(sr.dados);
       }
 
       setLoading(false);
@@ -113,6 +116,71 @@ export default function DireitoRaioX({ institutionId }: Props) {
           <span>{totalGeral > 0 ? `${((cancelados/totalGeral)*100).toFixed(0)}% do total` : ""}</span>
         </div>
       </div>
+
+      {/* Série Histórica REAL vs Snapshot */}
+      {serieReal && serieReal.ingressantes_1o_periodo && (
+        <div className="drx-section">
+          <h4>🎯 Série Histórica Real — Ingressantes 1º Período</h4>
+          <p className="drx-sub">Alunos que efetivamente cursaram vs. snapshot atual do sistema. Fonte: Cadastro de Notas e-ORBIT.</p>
+          <div className="drx-table-wrap">
+            <table className="drx-table">
+              <thead>
+                <tr>
+                  <th>Semestre</th>
+                  <th>Turmas</th>
+                  <th>Alunos Reais</th>
+                  <th>Snapshot Atual</th>
+                  <th>Diferença</th>
+                  <th>Aprovados</th>
+                  <th>Reprov. Falta</th>
+                  <th>Reprov. Nota</th>
+                  <th>Transferidos</th>
+                  <th>Cancelados/Aband.</th>
+                </tr>
+              </thead>
+              <tbody>
+                {serieReal.ingressantes_1o_periodo.map((s: any, i: number) => {
+                  const total = s.total_real || s.total_real_parcial || 0;
+                  const snap = s.snapshot_atual || 0;
+                  const diff = total - snap;
+                  const sits = s.situacoes || {};
+                  const ad = (sits.AD || 0) + (sits.AF || 0);
+                  const rf = sits.RF || 0;
+                  const rn = (sits.RN || 0) + (sits.RA || 0);
+                  const tr = sits.TR || 0;
+                  const ca = (sits.CA || 0) + (sits.AC || 0) + (sits.AB || 0) + (sits.CR || 0);
+                  // For 2026/01 which has combined data
+                  const sits1a = s.situacoes_1a || {};
+                  const sits1b = s.situacoes_1b || {};
+                  const adComb = s.situacoes_1a ? (sits1a.AD||0)+(sits1a.AF||0)+(sits1b.AD||0)+(sits1b.AF||0) : ad;
+                  const rfComb = s.situacoes_1a ? (sits1a.RF||0)+(sits1b.RF||0) : rf;
+                  const rnComb = s.situacoes_1a ? (sits1a.RN||0)+(sits1a.RA||0)+(sits1b.RN||0)+(sits1b.RA||0) : rn;
+                  const trComb = s.situacoes_1a ? (sits1a.TR||0)+(sits1b.TR||0) : tr;
+                  const caComb = s.situacoes_1a ? (sits1a.CA||0)+(sits1a.AC||0)+(sits1b.CA||0)+(sits1b.AC||0)+(sits1b.CR||0) : ca;
+                  return (
+                    <tr key={i}>
+                      <td><strong>{s.semestre}</strong></td>
+                      <td>{(s.turmas || []).join(", ")}</td>
+                      <td><strong style={{fontSize:16}}>{total}{s.total_real_parcial ? "*" : ""}</strong></td>
+                      <td style={{color:"var(--muted-foreground)"}}>{snap}</td>
+                      <td><span className="drx-trend-down">-{diff} ({total > 0 ? ((diff/total)*100).toFixed(0) : 0}%)</span></td>
+                      <td><span style={{color:"var(--success)", fontWeight:600}}>{adComb}</span></td>
+                      <td>{rfComb > 0 ? <span style={{color:"var(--danger)"}}>{rfComb}</span> : "—"}</td>
+                      <td>{rnComb > 0 ? <span style={{color:"var(--warning)"}}>{rnComb}</span> : "—"}</td>
+                      <td>{trComb > 0 ? trComb : "—"}</td>
+                      <td>{caComb > 0 ? <span style={{color:"var(--danger)"}}>{caComb}</span> : "—"}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          <p className="drx-footer" style={{marginTop:8}}>
+            * Parcial — apenas uma turma extraída.<br/>
+            <strong>Legenda:</strong> AD = Aprovado Direto · AF = Aprovado Final · RF = Reprovado por Falta · RN = Reprovado por Nota · RA = Reprovado por Ambos · TR = Transferido · CA = Cancelado · AC = Abandonou · CR = Cancelado Rematrícula
+          </p>
+        </div>
+      )}
 
       {/* Evolução Semestral */}
       <div className="drx-section">
