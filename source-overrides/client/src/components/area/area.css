@@ -288,3 +288,21 @@
 
 .area-form-grid .vx-suggestion-other{display:grid;gap:5px}
 .area-form-grid .vx-suggestion-other textarea{width:100%;min-height:84px}
+
+/* ── KPI semaphore colors ── */
+.area-kpis .kpi-success { background: #ecfdf5; border-color: #a7f3d0; }
+.area-kpis .kpi-success b { color: var(--success, #00a86b); }
+.area-kpis .kpi-danger { background: #fef2f2; border-color: #fecaca; }
+.area-kpis .kpi-danger b { color: var(--danger, #d83a52); }
+.area-kpis .kpi-warn { background: #fffbeb; border-color: #fde68a; }
+.area-kpis .kpi-warn b { color: #b45309; }
+.area-kpis .kpi-info { background: #eff6ff; border-color: #bfdbfe; }
+.area-kpis .kpi-info b { color: var(--primary, #0073ea); }
+.area-kpis .kpi-neutral { background: var(--card); border-color: var(--border-light, #ebeef2); }
+
+/* ── Grouped tabs ── */
+.area-tabs-grouped { flex-direction: column; gap: 2px; padding: 12px; border-radius: var(--radius); }
+.area-tab-group { margin-bottom: 4px; }
+.area-tab-group-label { display: block; font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted-foreground); padding: 8px 8px 4px; }
+.area-tab-group-items { display: flex; flex-wrap: wrap; gap: 4px; }
+@media (max-width: 640px) { .area-tabs-grouped { padding: 8px; } .area-tab-group-items { gap: 2px; } }
