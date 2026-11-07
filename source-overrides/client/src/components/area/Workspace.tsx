@@ -213,7 +213,7 @@ export default function Workspace({
       ) : tab === "reitor" ? (
         role === "master" || role === "gestor" ? <EbitdaCalculator reserved={{institutionId:id,name:String(institution.name)}}/> : <p>Os dados financeiros são reservados ao Gestor da instituição e ao Master.</p>
       ) : tab === "enade" ? (
-        <Enade360 key={id} institutionId={id} courses={data.courses} actions={data.actions} role={role} onPlan={()=>choose("plano")}/>
+        <Enade360 key={id} institutionId={id} courses={data.courses} actions={data.actions} goals={data.goals} role={role} onPlan={()=>choose("plano")}/>
       ) : tab === "novo_instrumento" ? (
         <NovoInstrumento institutionId={id} role={role} courses={data.courses} />
       ) : tab === "avaliacao" ? (
