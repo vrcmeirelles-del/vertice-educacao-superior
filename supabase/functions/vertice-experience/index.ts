@@ -158,7 +158,7 @@ async function handler(req:Request):Promise<Response> {
         const id=readString(input.id,50);
         if(!uuid.test(id))throw new APIError("invalid_invitation");
         const {data,error}=await db.from("vertice_experience_invites")
-          .update({revoked_at:now(),updated_at:now()})
+          .update({revoked_at:now(),revoked_by:actor,updated_at:now()})
           .eq("id",id).is("revoked_at",null).select("id").maybeSingle();
         if(error)throw new APIError("service_unavailable",503);
         return send({revoked:Boolean(data)});
