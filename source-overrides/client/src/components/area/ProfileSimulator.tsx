@@ -7,6 +7,7 @@ import {
 const TAB_LABELS: Record<Tab, string> = {
   auditoria: "BI · Reprovações de Todos os Cursos",
   avaliacao: "Recredenciamento Institucional",
+  enade: "ENADE 360°",
   base: "Base da organização",
   ia: "Análise Documental",
   geral: "Visão geral",
@@ -27,7 +28,7 @@ const TAB_LABELS: Record<Tab, string> = {
 const ALL_TABS: Tab[] = [
   "base", "ia", "geral", "analise", "visao", "cadastro",
   "emec", "metas", "repositorio", "biblioteca", "avaliacao", "reitor",
-  "plano", "diagnostico", "equipe", "auditoria",
+  "plano", "diagnostico", "equipe", "auditoria", "enade",
 ];
 
 /** Perfis disponíveis para demonstração (exclui master e legados internos). */
