@@ -15,23 +15,24 @@ export default function ExperiencePortal(){
  const [credential,setCredential]=useState<ExperienceCredential|null>(null);
  const [access,setAccess]=useState<ExperienceAccess|null>(null);
  const [initial,setInitial]=useState<Partial<DemoSnapshot>>({});
- const [loading,setLoading]=useState(true),[error,setError]=useState(''),[saveState,setSaveState]=useState(''),[help,setHelp]=useState('');
+ const [loading,setLoading]=useState(true),[entryConsent,setEntryConsent]=useState(false),[error,setError]=useState(''),[saveState,setSaveState]=useState(''),[help,setHelp]=useState('');
  const queue=useRef<Promise<unknown>>(Promise.resolve());
- useEffect(()=>{
-  let live=true;const c=readExperienceCredential();setCredential(c);
-  if(!c){setLoading(false);return;}
-  guestExperience('guest:open',c).then(result=>{
-    if(!live)return;
-    setAccess(result.experience as ExperienceAccess);setInitial((result.state??{}) as Partial<DemoSnapshot>);
-  }).catch(e=>{if(live){setError(e.message);clearExperienceCredential();}}).finally(()=>{if(live)setLoading(false);});
-  return()=>{live=false;};
- },[]);
+ useEffect(()=>{setCredential(readExperienceCredential());setLoading(false);},[]);
+ async function enter(){
+   if(!credential||!entryConsent)return;
+   setLoading(true);setError('');
+   try{
+     const result=await guestExperience('guest:open',credential);
+     setAccess(result.experience as ExperienceAccess);setInitial((result.state??{}) as Partial<DemoSnapshot>);
+   }catch(e){setError((e as Error).message);clearExperienceCredential();setCredential(null);}
+   finally{setLoading(false);}
+ }
  const save=useCallback((snapshot:DemoSnapshot)=>{
   if(!credential||!access)return;
   setSaveState('Salvando seu cenário fictício…');
   const work=queue.current.catch(()=>undefined).then(()=>guestExperience('guest:save',credential,{state:snapshot}));
   queue.current=work;
-  void work.then(()=>setSaveState('Alterações demonstrativas salvas.')).catch(e=>setSaveState('Não foi possível salvar: '+e.message));
+  void work.then(()=>setSaveState('Progresso fictício salvo: evidências, metas, premissas e navegação.')).catch(e=>setSaveState('Não foi possível salvar: '+e.message));
  },[credential,access]);
  const visit=useCallback((module:string)=>{
   if(!credential)return;
@@ -41,9 +42,15 @@ export default function ExperiencePortal(){
  if(loading)return <main className="corp-container corp-section" role="status"><h1>Verificando seu convite Vértice Experience…</h1><p>Acesso exclusivamente ao ambiente fictício.</p></main>;
  if(!access)return <main className="corp-container corp-section" style={{maxWidth:850,margin:'0 auto',padding:'48px 20px'}}>
    <span className="corp-eyebrow">VÉRTICE EXPERIENCE</span><h1>Convite de demonstração</h1>
-   <p role={error?'alert':undefined}>{error||'Para entrar neste ambiente, abra o link temporário compartilhado pela equipe Vértice.'}</p>
+   {credential&&!error?<section className="ds-card" style={{padding:24,marginTop:24}}>
+    <h2 style={{marginTop:0}}>Seu acesso demonstrativo está disponível</h2>
+    <p>Antes de entrar, saiba que o cenário contém apenas dados fictícios. O Master terá acesso à quantidade de visitas, aos módulos explorados e às alterações fictícias salvas. Nenhum documento verdadeiro deve ser enviado.</p>
+    <p>O link funciona como uma chave temporária: qualquer pessoa que o receba poderá utilizá-lo. Não há verificação de identidade por e-mail nesta versão.</p>
+    <label style={{display:'flex',alignItems:'flex-start',gap:10,margin:'18px 0'}}><input type="checkbox" checked={entryConsent} onChange={e=>setEntryConsent(e.target.checked)} style={{marginTop:5}}/><span>Li as informações acima e concordo em iniciar a experiência demonstrativa com registro de utilização.</span></label>
+    <button className="corp-button" type="button" disabled={!entryConsent} onClick={()=>void enter()}>Entrar na Vértice Experience<ArrowRight size={16}/></button>
+   </section>:<><p role={error?'alert':undefined}>{error||'Para entrar neste ambiente, abra o link temporário compartilhado pela equipe Vértice.'}</p>
    <p>O acesso demonstrativo comum continua disponível sem cadastro, com exemplos fictícios.</p>
-   <Link href="/demonstracao" className="corp-button">Explorar demonstração pública<ArrowRight size={16}/></Link>
+   <Link href="/demonstracao" className="corp-button">Explorar demonstração pública<ArrowRight size={16}/></Link></>}
  </main>;
  const institution=demoInstitutionProfiles[access.mode],role=roles[access.role];
  return <main className="corp-container corp-section" style={{maxWidth:1500,margin:'0 auto',padding:'24px 16px 56px'}}>
