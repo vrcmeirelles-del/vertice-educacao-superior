@@ -1,0 +1,48 @@
+/* Novo Instrumento INEP: checklist, evidências, cronograma e CPA. Reaproveita as variáveis e classes de area.css. */
+.ni-subtabs { margin-top: -4px; }
+.ni-scope { margin-bottom: 0; }
+.ni-summary { display: grid; grid-template-columns: minmax(280px, 1fr) 2fr; gap: 24px; align-items: start; margin-top: 8px; }
+.ni-summary-main { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+.ni-summary-main strong { font-size: 1.15rem; color: var(--area-ink); }
+.ni-summary-main p { margin: 4px 0; }
+.ni-donut { flex: none; }
+.ni-donut-text { font-size: 8px; font-weight: 700; fill: #243653; dominant-baseline: middle; }
+.ni-legend { margin-top: 8px; min-width: 190px; }
+.ni-dims { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }
+.ni-dim-card { display: flex; gap: 12px; align-items: center; border: 1px solid var(--area-line); border-radius: 10px; padding: 12px; }
+.ni-dim-card > div { display: grid; gap: 2px; min-width: 0; }
+.ni-dim-card small { color: var(--area-muted); }
+.ni-temas { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0 28px; }
+.ni-warn { color: var(--area-warn); font-weight: 600; }
+.ni-filters { align-items: flex-end; }
+.ni-filters .area-search { margin-bottom: 0; }
+.ni-table td select { max-width: 190px; }
+.ni-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.ni-tag { font-size: .72rem; color: #2f6f86; background: #eaf3f6; border-radius: 4px; padding: 2px 6px; }
+.ni-chip { margin-left: 8px; font-size: .7rem; vertical-align: middle; }
+.ni-detail td { background: var(--area-soft); }
+.ni-detail .area-form-grid { margin-top: 8px; }
+.ni-inline-input { width: 100%; min-width: 120px; padding: 7px 9px; border: 1px solid #b8c2ce; border-radius: 6px; background: #fff; font: inherit; color: var(--area-ink); }
+.ni-inline-input:disabled { background: transparent; border-color: transparent; padding-left: 0; }
+.ni-sem { margin-top: 12px; }
+.ni-sem summary { cursor: pointer; font-weight: 600; color: var(--area-ink); }
+.ni-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 0; }
+.ni-chip-btn { border: 1px solid #b8c2ce; background: #fff; border-radius: 999px; padding: 4px 10px; font: inherit; font-size: .85rem; cursor: pointer; color: var(--area-ink); }
+.ni-chip-btn:hover:not(:disabled) { border-color: #328ea8; }
+.ni-chip-btn:disabled { cursor: default; color: var(--area-muted); }
+.ni-timeline-wrap { max-width: 720px; margin: 0 auto 8px; }
+.ni-timeline { width: 100%; height: auto; display: block; }
+.ni-fases { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-top: 16px; }
+.ni-marcos { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 10px; }
+.ni-marcos li { display: grid; gap: 6px; border-bottom: 1px solid #edf1f5; padding-bottom: 10px; }
+.ni-marcos li.principal > .ni-marco-top > span:first-child { font-weight: 700; color: var(--area-ink); }
+.ni-marco-top { display: flex; justify-content: space-between; gap: 10px; align-items: center; font-size: .92rem; }
+.ni-marco-top select { padding: 6px 8px; border: 1px solid #b8c2ce; border-radius: 6px; background: #fff; font: inherit; }
+.ni-add { margin-top: 16px; }
+@media (max-width: 860px) {
+  .ni-summary { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .ni-marco-top { flex-direction: column; align-items: flex-start; }
+  .ni-dim-card { padding: 10px; }
+}
