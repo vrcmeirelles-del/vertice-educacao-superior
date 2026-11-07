@@ -24,6 +24,7 @@ import RepositoryTab from "./RepositoryTab";
 import EbitdaCalculator from "../EbitdaCalculator";
 import InepLibrary from "./InepLibrary";
 import AvaliacaoInstitucional from "./AvaliacaoInstitucional";
+import AuditoriaPermanenciaBI from "../bi/AuditoriaPermanenciaBI";
 import ManagementReview from "./ManagementReview";
 import DocumentAI from "./DocumentAI";
 import OrganizationBase from "./OrganizationBase";
@@ -47,6 +48,7 @@ const TABS: [Tab, string][] = [
   ["cadastro", "Cadastro e cursos"],
   ["emec", "e-MEC · Regulação"],
   ["eorbit", "e-ORBIT · Espelho"],
+  ["auditoria", "BI · Reprovações de Todos os Cursos"],
   ["metas", "Metas e indicadores"],
   ["repositorio", "Reconhecimento de Curso"],
   ["biblioteca", "Biblioteca INEP"],
@@ -194,6 +196,8 @@ export default function Workspace({
         <OverviewTab data={data} stats={stats} onGo={choose} />
       ) : tab === "emec" ? (
         <EmecPanel key={id} institution={institution} role={role}/>
+      ) : tab === "auditoria" ? (
+        can.viewManagement(role) ? <AuditoriaPermanenciaBI key={id} institutionId={id} institutionName={String(institution.name)} /> : <p role="alert">A auditoria acadêmica é restrita à alta gestão autorizada.</p>
       ) : tab === "eorbit" ? (
         <PainelEorbit key={id} instituicaoId={id} instituicaoNome={String(institution.name)} />
       ) : tab === "cadastro" ? (
