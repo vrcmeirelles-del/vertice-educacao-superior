@@ -1,0 +1,45 @@
+.learning-connected{display:grid;gap:18px;--lc-ink:#173249;--lc-muted:#576f82;--lc-border:#dce7f0;color:var(--lc-ink)}
+.learning-hero{background:linear-gradient(112deg,#102c4b,#135473 62%,#167a83);border-radius:18px;color:white;padding:25px;display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.learning-hero small{display:block;font-weight:750;letter-spacing:.13em;font-size:11px;color:#a6e1e2}
+.learning-hero h3{color:white;margin:6px 0 10px;font-size:clamp(27px,3vw,36px);line-height:1.15}
+.learning-hero p{font-size:14px;max-width:810px;color:#e4f2f7;line-height:1.6;margin:0}
+.learning-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.learning-kpis article{display:grid;gap:5px;border:1px solid var(--lc-border);border-radius:13px;padding:17px;background:linear-gradient(140deg,#fff,#f4f8fb)}
+.learning-kpis small{color:var(--lc-muted);font-size:12px}
+.learning-kpis b{font-size:clamp(24px,3vw,32px);font-variant-numeric:tabular-nums}
+.learning-kpis span{font-size:12px;color:#688198}
+.learning-panel{border:1px solid var(--lc-border);background:#fff;padding:21px;border-radius:16px;min-width:0}
+.learning-panel h4{font-size:20px;margin:0 0 10px;color:var(--lc-ink)}
+.learning-panel p{font-size:13px;color:var(--lc-muted);line-height:1.6;margin:8px 0 13px}
+.learning-filters{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin:17px 0}
+.learning-filters label,.learning-map label{font-size:12px;font-weight:700;color:#37566c;display:grid;gap:6px}
+.learning-filters select,.learning-map select,.learning-map input,.learning-copy input{min-height:43px;width:100%;font:inherit;font-size:13px;color:#243c50;background:#fff;border:1px solid #b9ccda;border-radius:9px;padding:9px}
+.learning-filters label{min-width:180px;flex:1}
+.learning-empty{padding:26px 23px;border:1px dashed #aac6d4;background:#f4f9fc;border-radius:13px}
+.learning-empty strong{font-size:17px}
+.learning-empty p{max-width:780px}
+.learning-scroll{overflow:auto;max-height:650px;border:1px solid var(--lc-border);border-radius:12px}
+.learning-scroll table{width:100%;min-width:990px;border-collapse:collapse;font-size:12px}
+.learning-scroll th{position:sticky;top:0;background:#edf4f8;padding:11px;text-align:left;color:#3f5c78}
+.learning-scroll td{padding:11px;border-top:1px solid #e1e8ef;vertical-align:middle}
+.learning-scroll td strong{font-size:12px;display:block}
+.learning-scroll td small{font-size:11px;color:var(--lc-muted);display:block;margin-top:3px}
+.learning-signal{font-size:11px;font-weight:700;display:inline-block;border-radius:30px;padding:7px 10px;background:#eef2f6;color:#596c7b;white-space:nowrap}
+.learning-signal.atenção{background:#fff0d9;color:#995a17}
+.learning-signal.comparável{background:#e6f7ef;color:#1e7658}
+.learning-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+.learning-copy{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.learning-copy input{flex:1;min-width:150px;max-width:100%}
+.learning-footnote{font-size:12px!important;color:#718296!important}
+.learning-status{display:grid;gap:9px;margin:17px 0}
+.learning-status div{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid #e9eef3;padding:7px 0;font-size:12px}
+.learning-status dt{color:#607588}
+.learning-status dd{margin:0;font-weight:700;text-align:right}
+.learning-map{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:16px}
+.learning-map label.wide{grid-column:1/-1}
+.learning-map .learning-check{display:flex;align-items:flex-start;gap:10px;cursor:pointer}
+.learning-check input{flex:none;width:20px;min-height:20px;height:20px;margin:1px 0;accent-color:#176b79}
+.learning-map button{width:max-content;max-width:100%}
+.learning-message{background:#f0f8ed;border:1px solid #c9e4c7;border-radius:11px;padding:15px;color:#396449;font-size:13px}
+@media(max-width:900px){.learning-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.learning-columns{grid-template-columns:1fr}}
+@media(max-width:650px){.learning-hero{padding:17px}.learning-panel{padding:16px}.learning-map{grid-template-columns:1fr}.learning-map label.wide{grid-column:auto}.learning-filters{display:grid}.learning-filters label{min-width:0}.learning-kpis article{padding:12px}}
