@@ -1,0 +1,53 @@
+/* ── Simulador de Resultado por Curso ── Design System v2 ── */
+.cost-sim { margin: 16px 0; }
+.cost-sim-header { background: linear-gradient(135deg, #1a1d24 0%, #1e3a5f 100%); color: #fff; padding: 22px 24px; border-radius: var(--radius); margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; box-shadow: var(--shadow-sm); }
+.cost-sim-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #7cc4ff; margin: 0 0 4px; }
+.cost-sim-header h3 { margin: 0; font-size: 22px; font-weight: 700; }
+.cost-sim-sub { font-size: 13px; color: #94a3b8; margin: 6px 0 0; }
+.cost-sim-header .cost-sim-sub { color: #bcd5f4; }
+.cost-sim-header-actions { display: flex; gap: 8px; align-items: center; }
+.cost-sim-header-actions select, .cost-sim-header-actions button { background: #ffffff18; border: 1px solid #ffffff30; color: #fff; padding: 8px 12px; border-radius: 6px; font-size: 13px; cursor: pointer; }
+.cost-sim-header-actions button:hover { background: #ffffff28; }
+
+.cost-sim-params { background: var(--card); border: 1px solid var(--border-light); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow-card); }
+.cost-sim-params h4 { margin: 0 0 4px; font-size: 16px; }
+.cost-sim-params .cost-sim-sub { color: var(--muted-foreground); margin: 0 0 16px; }
+.cost-sim-params-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.cost-sim-params-grid label { display: grid; gap: 4px; font-size: 12px; font-weight: 600; color: var(--foreground); }
+.cost-sim-params-grid input { padding: 8px; border: 1px solid var(--border); border-radius: 6px; font: inherit; color: var(--foreground); }
+.cost-sim-params-grid input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px var(--primary-light); }
+
+.cost-sim-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
+.cost-sim-kpi { background: var(--card); border: 1px solid var(--border-light); border-left: 4px solid var(--primary); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow-card); }
+.cost-sim-kpi small { font-size: 11px; color: var(--muted-foreground); font-weight: 500; }
+.cost-sim-kpi strong { display: block; font-size: 28px; font-weight: 700; margin: 4px 0; }
+.cost-sim-kpi span { font-size: 12px; color: var(--muted-foreground); }
+
+.cost-sim-table-wrap { overflow-x: auto; border: 1px solid var(--border-light); border-radius: var(--radius); box-shadow: var(--shadow-card); }
+.cost-sim-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.cost-sim-table th { text-align: left; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted-foreground); background: var(--background); padding: 10px 12px; border-bottom: 1px solid var(--border); white-space: nowrap; position: sticky; top: 0; }
+.cost-sim-table td { padding: 10px 12px; border-bottom: 1px solid var(--border-light); vertical-align: middle; white-space: nowrap; }
+.cost-sim-table tbody tr { transition: background .1s; }
+.cost-sim-table tbody tr:hover { background: #f8fafc; }
+.cost-row-ok { }
+.cost-row-bad td { background: #fef8f8; }
+.cost-curso { white-space: normal !important; min-width: 180px; max-width: 280px; font-weight: 500; }
+
+.cost-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
+.cost-dot.green { background: var(--success); }
+.cost-dot.red { background: var(--danger); }
+.cost-dot.gray { background: #94a3b8; }
+
+.cost-mod { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; letter-spacing: .05em; }
+.cost-mod-presencial { background: #eff6ff; color: var(--primary); }
+.cost-mod-semipresencial { background: #faf5ff; color: #7c3aed; }
+.cost-mod-ead { background: #ecfdf5; color: var(--success); }
+
+.cost-bar-wrap { display: flex; align-items: center; gap: 6px; min-width: 100px; }
+.cost-bar { height: 6px; border-radius: 99px; min-width: 2px; transition: width .4s ease; }
+.cost-bar-wrap span { font-size: 11px; font-weight: 600; }
+
+.cost-sim-footer { font-size: 11px; color: var(--muted-foreground); margin: 12px 0 0; line-height: 1.6; }
+
+@media (max-width: 768px) { .cost-sim-kpis { grid-template-columns: repeat(2, 1fr); } .cost-sim-header { flex-direction: column; align-items: flex-start; } }
+@media (max-width: 480px) { .cost-sim-kpis { grid-template-columns: 1fr; } }

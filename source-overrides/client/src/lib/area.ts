@@ -57,10 +57,10 @@ export function isInstitutionalLimited(r?: Role | null): boolean { return !!r &&
 // --------------------------------------------------------------------------
 // Abas visíveis por perfil
 // --------------------------------------------------------------------------
-export type Tab = "backups" | "fontes" | "avaliacao" | "novo_instrumento" | "emec" | "base" | "ia" | "analise" | "geral" | "visao" | "cadastro" | "metas" | "plano" | "diagnostico" | "equipe" | "repositorio" | "biblioteca" | "reitor" | "eorbit" | "resultado-curso" | "auditoria";
+export type Tab = "backups" | "fontes" | "avaliacao" | "novo_instrumento" | "emec" | "base" | "ia" | "analise" | "geral" | "visao" | "cadastro" | "metas" | "plano" | "diagnostico" | "equipe" | "repositorio" | "biblioteca" | "reitor" | "eorbit" | "resultado-curso" | "auditoria" | "simulador";
 
 /** Abas disponíveis para cada grupo de perfis. */
-const TABS_FULL: Tab[] = ["backups", "fontes", "avaliacao", "novo_instrumento", "base", "ia", "geral", "analise", "visao", "cadastro", "emec", "eorbit", "auditoria", "metas", "repositorio", "biblioteca", "reitor", "resultado-curso", "plano", "diagnostico", "equipe"];
+const TABS_FULL: Tab[] = ["backups", "fontes", "avaliacao", "novo_instrumento", "base", "ia", "geral", "analise", "visao", "cadastro", "emec", "eorbit", "auditoria", "metas", "repositorio", "biblioteca", "reitor", "resultado-curso", "simulador", "plano", "diagnostico", "equipe"];
 const TABS_CPA: Tab[] = ["avaliacao", "geral", "visao", "metas", "repositorio", "biblioteca", "plano", "equipe"];
 const TABS_COURSE: Tab[] = ["geral", "visao", "metas", "repositorio", "biblioteca", "plano", "equipe"];
 

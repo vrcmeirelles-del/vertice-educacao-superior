@@ -36,13 +36,14 @@ import {listRepository} from "@/lib/repository-data";
 import { FIELD_HELP, TAB_FAQ, TAB_HELP, withHelp } from "@/lib/help";
 import PainelEorbit from "../eorbit/PainelEorbit";
 import ResultadoCursoBI from "../bi/ResultadoCursoBI";
+import CostSimulator from "./CostSimulator";
 import "./area.css";
 
 const TAB_GROUPS: {label:string; tabs:Tab[]}[] = [
   {label:'Gestão', tabs:['base','metas','plano','diagnostico','equipe']},
   {label:'Regulação', tabs:['emec','repositorio','avaliacao','novo_instrumento','biblioteca']},
   {label:'Acadêmico', tabs:['geral','cadastro','visao','eorbit','backups','auditoria']},
-  {label:'Inteligência', tabs:['analise','ia','fontes','reitor','resultado-curso']},
+  {label:'Inteligência', tabs:['analise','ia','fontes','reitor','resultado-curso','simulador']},
 ];
 
 const TABS: [Tab, string][] = [
@@ -64,6 +65,7 @@ const TABS: [Tab, string][] = [
   ["novo_instrumento", "Novo Instrumento"],
   ["reitor", "Área do reitor · EBITDA"],
   ["resultado-curso", "Resultado por Curso"],
+  ["simulador", "Simulador de Custo"],
   ["plano", "Plano de ação 5W2H"],
   ["diagnostico", "Diagnóstico"],
   ["equipe", "Equipe"],
@@ -232,6 +234,8 @@ export default function Workspace({
         <AvaliacaoInstitucional key={id} />
       ) : tab === "resultado-curso" ? (
         role === "master" || role === "gestor" ? <ResultadoCursoBI institutionId={id} institutionName={String(institution.name)}/> : <p>O módulo de resultado por curso é reservado ao Gestor da instituição e ao Master.</p>
+      ) : tab === "simulador" ? (
+        role === "master" || role === "gestor" ? <CostSimulator institutionId={id}/> : <p>O simulador de custo é reservado ao Gestor da instituição e ao Master.</p>
       ) : tab === "biblioteca" ? (
         <InepLibrary institutionId={id} />
       ) : tab === "plano" ? (
