@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import OutcomesMobileBreakdown from "./OutcomesMobileBreakdown";
 
 type ReportIndex = { id: string; kind: string; course_id: string | null; source_report_at: string };
 type ReproRate = { id: string; payload: { s?: string; matriculas?: number | string; reprovacoes?: number | string; pct_reprovacao?: number | string } };
@@ -105,6 +106,7 @@ export default function AcademicoFontesMobileBI({ institutionId }: { institution
           <small>{g.courses.size ? g.courses.size + " cursos" : "Relatórios institucionais"} · {g.latest ? new Date(g.latest).toLocaleDateString("pt-BR") : "sem data"}</small>
         </div>)}
       </div>
+      <OutcomesMobileBreakdown institutionId={institutionId} />
       <a href={"/master#" + new URLSearchParams({instituicao:institutionId,aba:"eorbit"}).toString()} className="vm-primary">Abrir análise acadêmica completa</a>
     </>}
   </section>;
