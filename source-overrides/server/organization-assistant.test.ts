@@ -8,6 +8,7 @@ function fixture({access=true,quota=false,key=true,provider=true,reservationErro
   const body=options.body?JSON.parse(options.body):null;calls.push({url:String(url),body});
   if(String(url).endsWith('/auth/v1/user'))return Response.json({id:'actor'});
   if(String(url).endsWith('/vertice_ebitda_access'))return Response.json(access);
+  if(String(url).endsWith('/vertice_ai_crosschecks'))return Response.json({matriculas:{legacy_snapshots:1987,eorbit_quantitativo:null},governanca:{metas:901}});
   if(String(url).endsWith('/vertice_base_ai_reserve'))return reservationError?Response.json({message:'internal SQL failure'},{status:400}):quota?Response.json({message:'quota_exceeded'},{status:400}):Response.json({courses:2,observed_at:'2026-11-02T00:00:00Z'});
   return provider?Response.json({status:'completed',output:[{type:'message',role:'assistant',content:[{type:'output_text',text:'Organize as fontes e confirme os responsáveis.'}]}]}):Response.json({error:'test'},{status:500});
  };
