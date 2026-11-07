@@ -5,6 +5,7 @@ import {
 } from "@/lib/area";
 
 const TAB_LABELS: Record<Tab, string> = {
+  auditoria: "BI · Reprovações de Todos os Cursos",
   avaliacao: "Recredenciamento Institucional",
   base: "Base da organização",
   ia: "Análise Documental",
@@ -26,7 +27,7 @@ const TAB_LABELS: Record<Tab, string> = {
 const ALL_TABS: Tab[] = [
   "base", "ia", "geral", "analise", "visao", "cadastro",
   "emec", "metas", "repositorio", "biblioteca", "avaliacao", "reitor",
-  "plano", "diagnostico", "equipe",
+  "plano", "diagnostico", "equipe", "auditoria",
 ];
 
 /** Perfis disponíveis para demonstração (exclui master e legados internos). */
