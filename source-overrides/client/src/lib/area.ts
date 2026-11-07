@@ -57,12 +57,12 @@ export function isInstitutionalLimited(r?: Role | null): boolean { return !!r &&
 // --------------------------------------------------------------------------
 // Abas visíveis por perfil
 // --------------------------------------------------------------------------
-export type Tab = "enade" | "backups" | "fontes" | "avaliacao" | "novo_instrumento" | "emec" | "base" | "ia" | "analise" | "geral" | "visao" | "cadastro" | "metas" | "plano" | "diagnostico" | "equipe" | "repositorio" | "biblioteca" | "reitor" | "eorbit" | "resultado-curso" | "auditoria" | "simulador" | "raio-x-direito";
+export type Tab = "aprendizagem" | "enade" | "backups" | "fontes" | "avaliacao" | "novo_instrumento" | "emec" | "base" | "ia" | "analise" | "geral" | "visao" | "cadastro" | "metas" | "plano" | "diagnostico" | "equipe" | "repositorio" | "biblioteca" | "reitor" | "eorbit" | "resultado-curso" | "auditoria" | "simulador" | "raio-x-direito";
 
 /** Abas disponíveis para cada grupo de perfis. */
-const TABS_FULL: Tab[] = ["enade", "backups", "fontes", "avaliacao", "novo_instrumento", "base", "ia", "geral", "analise", "visao", "cadastro", "emec", "eorbit", "auditoria", "metas", "repositorio", "biblioteca", "reitor", "resultado-curso", "simulador", "raio-x-direito", "plano", "diagnostico", "equipe"];
-const TABS_CPA: Tab[] = ["enade", "avaliacao", "geral", "visao", "metas", "repositorio", "biblioteca", "plano", "equipe"];
-const TABS_COURSE: Tab[] = ["geral", "visao", "metas", "repositorio", "biblioteca", "plano", "equipe"];
+const TABS_FULL: Tab[] = ["aprendizagem", "enade", "backups", "fontes", "avaliacao", "novo_instrumento", "base", "ia", "geral", "analise", "visao", "cadastro", "emec", "eorbit", "auditoria", "metas", "repositorio", "biblioteca", "reitor", "resultado-curso", "simulador", "raio-x-direito", "plano", "diagnostico", "equipe"];
+const TABS_CPA: Tab[] = ["aprendizagem", "enade", "avaliacao", "geral", "visao", "metas", "repositorio", "biblioteca", "plano", "equipe"];
+const TABS_COURSE: Tab[] = ["aprendizagem", "geral", "visao", "metas", "repositorio", "biblioteca", "plano", "equipe"];
 
 export function visibleTabs(r?: Role | null): Tab[] {
   if (!r) return [];
