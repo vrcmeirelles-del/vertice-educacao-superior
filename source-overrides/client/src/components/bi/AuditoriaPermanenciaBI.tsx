@@ -120,19 +120,19 @@ export default function AuditoriaPermanenciaBI({institutionId,institutionName}:{
   const selectedDiscipline=subjects.find(p=>p.id===selectedSubject);
   return <section className="vxa" aria-labelledby="vxa-title">
     <header className="vxa-head">
-      <div><small>VÉRTICE · AUDITORIA ACADÊMICA</small><h2 id="vxa-title">Matrícula de ingresso, permanência e reprovações</h2>
+      <div><small>VÉRTICE · AUDITORIA ACADÊMICA</small><h2 id="vxa-title">BI institucional · Reprovações e permanência</h2>
         <p>{institutionName} · relatório gerencial com proveniência e limites explícitos das fontes</p></div>
       <button type="button" onClick={()=>setRefresh(x=>x+1)} disabled={loading}>Atualizar leitura</button>
     </header>
     <div className="vxa-alert"><strong>Regra de integridade:</strong> dados de alunos jamais são apagados desta análise. A exclusão de matrículas da taxa gerencial ajustada só poderá ocorrer após verificação de primeiro vínculo, gratuidade e AV1/AV2 explicitamente não realizadas, com decisão auditada. O indicador acadêmico oficial permanece inalterado.</div>
     {error&&<p role="alert" className="vxa-error">{error}</p>}
     {loading?<p role="status">Consultando dados disponíveis…</p>:<>
-      <div className="vxa-metrics">
+      {tab==="coortes"&&<div className="vxa-metrics">
         <article><small>Primeiros vínculos observados</small><strong>{completed.length?fmt(entrants):"—"}</strong><span>Coortes com semestre seguinte pesquisado</span></article>
         <article><small>Sem vínculo seguinte localizado</small><strong>{completed.length?fmt(noNext):"—"}</strong><span>Não equivale automaticamente a evasão</span></article>
         <article className="vxa-risk"><small>Sem vínculo seguinte e sem AV1 positiva</small><strong>{completed.length?fmt(risk):"—"}</strong><span>{completed.length?pct(risk,entrants):"—"} dos ingressantes observados; não confirma ausência em prova</span></article>
         <article><small>Matrículas gratuitas sem AV1 e AV2</small><strong>—</strong><span>Sem fonte individual ou indicador de gratuidade verificado</span></article>
-      </div>
+      </div>}
       <nav className="vxa-tabs" aria-label="Análises de permanência">
         {([["ofertas","Todos os cursos · ofertas"],["coortes","Primeira matrícula (Direito)"],["cursos","Séries consolidadas"],["disciplinas","Ranking geral disciplinas"],["professores","Ranking geral professores"]] as const).map(([id,label])=>
           <button type="button" key={id} className={tab===id?"vxa-selected":""} onClick={()=>setTab(id)} aria-current={tab===id?"page":undefined}>{label}</button>)}
