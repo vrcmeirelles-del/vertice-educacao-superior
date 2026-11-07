@@ -1,8 +1,55 @@
-.vx-task-board{border:1px solid #dce5f0;border-radius:16px;background:#f6f8fd;padding:20px;margin:16px 0 22px;color:#183250}
-.vx-task-header{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap}.vx-task-header h3{margin:4px 0;font-size:23px}.vx-task-header p{margin:5px 0;color:#64748b;font-size:12px;line-height:1.6}.vx-task-eyebrow{color:#52759c;font-size:10px;font-weight:800;letter-spacing:.12em}.vx-task-stats{display:flex;gap:10px}.vx-task-stats span{border:1px solid #e2e8f0;border-radius:9px;background:#fff;padding:8px 12px;font-size:11px}.vx-task-stats b{font-size:17px;display:block}.vx-task-filters{display:flex;gap:12px;flex-wrap:wrap;margin:18px 0}.vx-task-filters label{display:grid;gap:5px;color:#53667b;font-size:11px}.vx-task-filters input,.vx-task-filters select,.vx-task-controls select{background:#fff;border:1px solid #cbd5e1;border-radius:8px;padding:8px;color:#183250;max-width:100%}.vx-task-scroll{overflow-x:auto;padding-bottom:9px}.vx-task-columns{display:grid;grid-template-columns:repeat(5,minmax(200px,1fr));gap:12px;min-width:1060px}.vx-task-column{background:#edf2f8;border-radius:12px;padding:10px;min-width:0}.vx-task-column h4{display:flex;justify-content:space-between;margin:3px 2px 13px;font-size:12px;color:#334155;border-top:3px solid var(--vx-task-tone);padding-top:11px}.vx-task-column h4 span{background:#fff;border-radius:20px;padding:2px 7px}.vx-task-slate{--vx-task-tone:#64748b}.vx-task-blue{--vx-task-tone:#2563eb}.vx-task-red{--vx-task-tone:#c24141}.vx-task-green{--vx-task-tone:#138568}.vx-task-gray{--vx-task-tone:#94a3b8}.vx-task-card{border:1px solid #e2e8f0;border-radius:12px;background:#fff;padding:13px;margin-bottom:10px;box-shadow:0 2px 7px #1e293b09}.vx-task-pill{font-size:9px;letter-spacing:.07em;color:#36669b;font-weight:800}.vx-task-card h5{font-size:13px;line-height:1.45;margin:7px 0;color:#1e293b;overflow-wrap:anywhere}.vx-task-goal{font-size:11px;color:#58677b;border-left:2px solid #93b9ef;padding-left:8px}.vx-task-people{display:grid;gap:9px;margin:12px 0}.vx-task-owner{display:flex;align-items:center;gap:7px;min-width:0}.vx-task-avatar{width:31px;height:31px;flex:none;border-radius:50%;background:#dce9ff;color:#1c548f;display:grid;place-items:center;font-size:11px;font-weight:800}.vx-task-owner>span:last-child{min-width:0}.vx-task-owner small{display:block;color:#64748b;font-size:9px}.vx-task-owner strong{display:block;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.vx-task-bottom{display:flex;align-items:center;justify-content:space-between;font-size:11px;color:#475569}.vx-task-late{color:#b42318;font-weight:750}.vx-task-progress{height:6px;border-radius:20px;background:#e2e8f0;overflow:hidden;margin:7px 0}.vx-task-progress span{height:100%;display:block;background:#2c7ad6}.vx-task-controls{display:flex;gap:8px;align-items:end;justify-content:space-between;margin-top:12px}.vx-task-controls label{display:grid;gap:4px;font-size:9px;color:#64748b;min-width:0}.vx-task-controls select{font-size:10px;padding:6px;max-width:133px}.vx-task-controls button{padding:7px;border:1px solid #cbd5e1;border-radius:7px;background:white;color:#1e40af;font-size:11px;cursor:pointer}.vx-task-empty{font-size:11px;color:#64748b;padding:10px}.vx-task-message{font-size:11px;color:#216044}.vx-task-footer{font-size:11px;color:#64748b;margin:13px 0 0;line-height:1.5}@media(max-width:600px){.vx-task-board{padding:12px}.vx-task-header h3{font-size:19px}}
-.vx-task-filters button{border:1px solid #ccd9e8;border-radius:8px;padding:8px 11px;background:#fff;color:#334155;font-size:11px;cursor:pointer}
-.vx-task-filters button[aria-pressed=true]{background:#17365d;color:#fff;border-color:#17365d}
+/* ── Kanban Board ── Design System v2 ── Trello / Monday inspired ── */
+.vx-task-board{border:1px solid var(--border);border-radius:var(--radius);background:var(--background);padding:20px;margin:16px 0 22px;color:var(--foreground)}
+.vx-task-header{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap}
+.vx-task-header h3{margin:4px 0;font-size:22px;font-weight:700;letter-spacing:-.3px}
+.vx-task-header p{margin:5px 0;color:var(--muted-foreground);font-size:12px;line-height:1.6}
+.vx-task-eyebrow{color:var(--primary);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.vx-task-stats{display:flex;gap:8px}
+.vx-task-stats span{border:1px solid var(--border-light);border-radius:var(--radius);background:var(--card);padding:8px 12px;font-size:11px;box-shadow:var(--shadow-xs)}
+.vx-task-stats b{font-size:17px;display:block;color:var(--foreground)}
+.vx-task-filters{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}
+.vx-task-filters label{display:grid;gap:5px;color:var(--muted-foreground);font-size:11px;font-weight:500}
+.vx-task-filters input,.vx-task-filters select,.vx-task-controls select{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:8px;color:var(--foreground);max-width:100%;transition:border-color .15s}
+.vx-task-filters input:focus,.vx-task-filters select:focus,.vx-task-controls select:focus{border-color:var(--primary);outline:none;box-shadow:0 0 0 3px var(--primary-light)}
+.vx-task-filters button{border:1px solid var(--border);border-radius:6px;padding:8px 12px;background:var(--card);color:var(--foreground);font-size:11px;font-weight:500;cursor:pointer;transition:all .15s}
+.vx-task-filters button:hover{border-color:var(--primary);color:var(--primary)}
+.vx-task-filters button[aria-pressed=true]{background:var(--primary);color:#fff;border-color:var(--primary)}
+.vx-task-scroll{overflow-x:auto;padding-bottom:9px}
+.vx-task-columns{display:grid;grid-template-columns:repeat(5,minmax(200px,1fr));gap:10px;min-width:1060px}
+.vx-task-column{background:var(--border-light);border-radius:var(--radius);padding:8px;min-width:0}
+.vx-task-column h4{display:flex;justify-content:space-between;margin:3px 4px 10px;font-size:12px;font-weight:600;color:var(--foreground);border-top:3px solid var(--vx-task-tone);padding-top:10px;letter-spacing:-.1px}
+.vx-task-column h4 span{background:var(--card);border-radius:20px;padding:2px 8px;font-size:11px;font-weight:700;color:var(--vx-task-tone)}
+.vx-task-slate{--vx-task-tone:#64748b}
+.vx-task-blue{--vx-task-tone:var(--primary)}
+.vx-task-red{--vx-task-tone:var(--danger)}
+.vx-task-green{--vx-task-tone:var(--success)}
+.vx-task-gray{--vx-task-tone:#94a3b8}
+.vx-task-card{border:1px solid var(--border-light);border-radius:var(--radius);background:var(--card);padding:12px;margin-bottom:8px;box-shadow:var(--shadow-card);transition:box-shadow .2s,transform .15s;cursor:default}
+.vx-task-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px)}
+.vx-task-pill{font-size:9px;letter-spacing:.06em;color:var(--primary);font-weight:700;text-transform:uppercase}
+.vx-task-card h5{font-size:13px;line-height:1.45;margin:6px 0;color:var(--foreground);font-weight:600;overflow-wrap:anywhere}
+.vx-task-goal{font-size:11px;color:var(--muted-foreground);border-left:3px solid var(--primary-light);padding-left:8px;background:#f0f7ff;border-radius:0 4px 4px 0;padding:4px 8px}
+.vx-task-people{display:grid;gap:8px;margin:10px 0}
+.vx-task-owner{display:flex;align-items:center;gap:7px;min-width:0}
+.vx-task-avatar{width:28px;height:28px;flex:none;border-radius:50%;background:var(--primary-light);color:var(--primary);display:grid;place-items:center;font-size:10px;font-weight:700}
+.vx-task-owner>span:last-child{min-width:0}
+.vx-task-owner small{display:block;color:var(--muted-foreground);font-size:9px}
+.vx-task-owner strong{display:block;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vx-task-bottom{display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--muted-foreground)}
+.vx-task-late{color:var(--danger);font-weight:700}
+.vx-task-progress{height:4px;border-radius:20px;background:var(--border-light);overflow:hidden;margin:6px 0}
+.vx-task-progress span{height:100%;display:block;background:var(--primary);border-radius:20px;transition:width .4s ease}
+.vx-task-controls{display:flex;gap:8px;align-items:end;justify-content:space-between;margin-top:10px}
+.vx-task-controls label{display:grid;gap:4px;font-size:9px;color:var(--muted-foreground);font-weight:500;min-width:0}
+.vx-task-controls select{font-size:10px;padding:6px;max-width:133px}
+.vx-task-controls button{padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--card);color:var(--primary);font-size:11px;font-weight:500;cursor:pointer;transition:all .15s}
+.vx-task-controls button:hover{background:var(--primary-light);border-color:var(--primary)}
+.vx-task-empty{font-size:11px;color:var(--muted-foreground);padding:12px;text-align:center;font-style:italic}
+.vx-task-message{font-size:11px;color:var(--success);font-weight:500}
+.vx-task-footer{font-size:11px;color:var(--muted-foreground);margin:13px 0 0;line-height:1.5}
+@media(max-width:600px){.vx-task-board{padding:12px}.vx-task-header h3{font-size:19px}}
 .vx-task-schedule{display:grid;gap:8px;margin:10px 0}
-.vx-task-schedule article{display:grid;grid-template-columns:minmax(120px,160px) minmax(160px,1fr) minmax(140px,1fr) auto;gap:12px;align-items:center;background:#fff;border:1px solid #dde5f0;border-radius:9px;padding:12px;font-size:12px}
-.vx-task-schedule article strong{color:#1e40af}.vx-task-schedule article small{color:#64748b}.vx-task-schedule article button{border:1px solid #ccd9e8;border-radius:6px;padding:7px;background:#fff;color:#1d4ed8}.vx-task-schedule article .vx-task-progress{grid-column:2/-1;width:100%}
+.vx-task-schedule article{display:grid;grid-template-columns:minmax(120px,160px) minmax(160px,1fr) minmax(140px,1fr) auto;gap:12px;align-items:center;background:var(--card);border:1px solid var(--border-light);border-radius:var(--radius);padding:12px;font-size:12px;box-shadow:var(--shadow-xs);transition:box-shadow .2s}
+.vx-task-schedule article:hover{box-shadow:var(--shadow-sm)}
+.vx-task-schedule article strong{color:var(--primary)}.vx-task-schedule article small{color:var(--muted-foreground)}.vx-task-schedule article button{border:1px solid var(--border);border-radius:6px;padding:7px;background:var(--card);color:var(--primary)}.vx-task-schedule article .vx-task-progress{grid-column:2/-1;width:100%}
 @media(max-width:720px){.vx-task-schedule article{grid-template-columns:1fr}.vx-task-schedule article .vx-task-progress{grid-column:1}}

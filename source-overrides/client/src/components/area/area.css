@@ -1,18 +1,19 @@
-/* Área real (painel autenticado): cadastro, metas, plano 5W2H, diagnóstico e equipe. */
-.area-ws { --area-line: #dfe5ec; --area-soft: #f5f7fa; --area-ink: #243653; --area-muted: #627184; --area-warn: #a4462f; }
+/* ── Área real (painel autenticado) ── Design System v2 ── */
+.area-ws { --area-line: var(--border); --area-soft: var(--background); --area-ink: var(--foreground); --area-muted: var(--muted-foreground); --area-warn: var(--danger); }
 .area-ws-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px; margin: 8px 0 18px; }
 .area-ws-head h2 small { font-size: .6em; color: var(--area-muted); font-weight: 500; }
 .area-muted { color: var(--area-muted); }
 .area-muted.small, .area-ws .small { font-size: .85rem; }
 .area-kpis { display: flex; flex-wrap: wrap; gap: 8px; }
-.area-kpis span { background: #fff; border: 1px solid var(--area-line); border-radius: 999px; padding: 6px 12px; font-size: .9rem; color: var(--area-muted); }
+.area-kpis span { background: var(--card); border: 1px solid var(--border-light); border-radius: 999px; padding: 6px 14px; font-size: .85rem; color: var(--area-muted); box-shadow: var(--shadow-xs); }
 .area-kpis b { color: var(--area-ink); margin-right: 4px; }
 .area-kpis .warn b, .area-block.warn { color: var(--area-warn); }
-.area-tabs { display: flex; gap: 4px; flex-wrap: wrap; border-bottom: 1px solid var(--area-line); margin-bottom: 20px; }
-.area-tabs button { background: none; border: 0; border-bottom: 3px solid transparent; padding: 10px 14px; font-weight: 600; color: var(--area-muted); cursor: pointer; }
-.area-tabs button.active { color: var(--area-ink); border-bottom-color: #328ea8; }
-.area-tabs button:hover { color: var(--area-ink); }
-.area-panel { background: #fff; border: 1px solid var(--area-line); border-radius: 10px; padding: 20px; margin-bottom: 20px; }
+.area-tabs { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 20px; padding: 4px; background: var(--border-light); border-radius: 10px; }
+.area-tabs button { background: none; border: 0; padding: 8px 14px; font-weight: 500; font-size: .88rem; color: var(--area-muted); cursor: pointer; border-radius: 7px; transition: all .15s; }
+.area-tabs button.active { color: var(--area-ink); background: var(--card); box-shadow: var(--shadow-sm); font-weight: 600; }
+.area-tabs button:hover:not(.active) { color: var(--area-ink); background: #ffffff80; }
+.area-panel { background: var(--card); border: 1px solid var(--border-light); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow-card); transition: box-shadow .2s; }
+.area-panel:hover { box-shadow: var(--shadow-sm); }
 .area-panel-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
 .area-panel-head h3 { margin: 0; }
 .area-inline { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
@@ -20,7 +21,7 @@
   padding: 8px 10px; border: 1px solid #b8c2ce; border-radius: 6px; background: #fff; font: inherit; color: var(--area-ink);
 }
 .corp-button.small { padding: 8px 14px; font-size: .9rem; }
-.area-form { background: var(--area-soft); border: 1px solid var(--area-line); border-radius: 10px; padding: 18px; margin: 0 0 18px; }
+.area-form { background: var(--area-soft); border: 1px solid var(--border-light); border-radius: var(--radius); padding: 18px; margin: 0 0 16px; }
 .area-form h3 { margin: 0 0 14px; font-size: 1.05rem; }
 .area-form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px 16px; }
 .area-form-grid label { display: grid; gap: 6px; font-weight: 600; font-size: .92rem; color: var(--area-ink); }
@@ -52,15 +53,16 @@
 .area-dl dt { font-size: .82rem; color: var(--area-muted); }
 .area-dl dd { margin: 2px 0 0; font-weight: 600; }
 .area-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
-.area-card { border: 1px solid var(--area-line); border-radius: 10px; padding: 16px; display: grid; gap: 8px; align-content: start; }
+.area-card { border: 1px solid var(--border-light); border-radius: var(--radius); padding: 16px; display: grid; gap: 8px; align-content: start; background: var(--card); box-shadow: var(--shadow-card); transition: box-shadow .2s, transform .2s; }
+.area-card:hover { box-shadow: var(--shadow-sm); transform: translateY(-1px); }
 .area-card h4 { margin: 0; font-size: 1.05rem; }
 .area-card-top { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
 .area-card-top small { color: var(--area-muted); text-align: right; }
 .area-goal-numbers { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
 .area-goal-numbers small { display: block; font-size: .75rem; color: var(--area-muted); }
 .area-goal-numbers b { font-size: 1rem; }
-.area-progress { height: 8px; background: #e7ecf1; border-radius: 99px; overflow: hidden; }
-.area-progress span { display: block; height: 100%; background: #328ea8; border-radius: 99px; }
+.area-progress { height: 6px; background: var(--border-light); border-radius: 99px; overflow: hidden; }
+.area-progress span { display: block; height: 100%; background: var(--primary); border-radius: 99px; transition: width .4s ease; }
 .area-dim { margin-top: 18px; }
 .area-dim h4 { margin: 0 0 8px; }
 .area-dim h4 small { font-weight: 500; color: var(--area-muted); margin-left: 6px; }

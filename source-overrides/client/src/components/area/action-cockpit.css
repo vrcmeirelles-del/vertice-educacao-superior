@@ -1,1 +1,16 @@
-.action-cockpit{margin-bottom:24px}.action-cockpit header{background:linear-gradient(120deg,#184e46,#306893);color:white;padding:24px;border-radius:16px;margin-bottom:16px}.action-cockpit header h3{color:inherit}.action-metrics,.action-suggestions{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:12px;margin:16px 0}.action-metrics article{background:#e7f3ee;padding:18px;border-radius:12px;display:grid;gap:6px}.action-metrics article:nth-child(2){background:#fff0d8}.action-metrics article:nth-child(3){background:#eee8fb}.action-metrics article:nth-child(4){background:#e5f1fc}.action-metrics strong{font-size:28px}.action-suggestions article{padding:18px;border:1px solid #cfdfd8;border-top:4px solid #b88936;border-radius:12px;background:#fffdf8}.action-cockpit details{padding:12px;margin:10px 0;background:#f3f7f6;border-radius:8px}.action-cockpit summary{cursor:pointer;font-weight:600}.action-cockpit select{max-width:100%;padding:10px}.action-cockpit p{line-height:1.65}
+/* ── Action Cockpit ── Design System v2 ── */
+.action-cockpit{margin-bottom:20px}
+.action-cockpit header{background:linear-gradient(135deg,#1a1d24 0%,#1e3a5f 100%);color:white;padding:22px 24px;border-radius:var(--radius);margin-bottom:16px;box-shadow:var(--shadow-sm)}
+.action-cockpit header h3{color:inherit;font-weight:700;letter-spacing:-.3px}
+.action-metrics,.action-suggestions{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:10px;margin:14px 0}
+.action-metrics article{background:var(--card);border:1px solid var(--border-light);padding:18px;border-radius:var(--radius);display:grid;gap:6px;box-shadow:var(--shadow-xs);border-left:3px solid var(--success);transition:box-shadow .2s}
+.action-metrics article:hover{box-shadow:var(--shadow-sm)}
+.action-metrics article:nth-child(2){border-left-color:var(--warning)}
+.action-metrics article:nth-child(3){border-left-color:#8b5cf6}
+.action-metrics article:nth-child(4){border-left-color:var(--primary)}
+.action-metrics strong{font-size:26px;font-weight:700;color:var(--foreground)}
+.action-suggestions article{padding:16px;border:1px solid var(--border-light);border-left:3px solid var(--warning);border-radius:var(--radius);background:var(--card);box-shadow:var(--shadow-xs)}
+.action-cockpit details{padding:12px;margin:10px 0;background:var(--background);border:1px solid var(--border-light);border-radius:var(--radius)}
+.action-cockpit summary{cursor:pointer;font-weight:600;color:var(--foreground)}
+.action-cockpit select{max-width:100%;padding:10px;border:1px solid var(--border);border-radius:6px}
+.action-cockpit p{line-height:1.65;color:var(--muted-foreground)}

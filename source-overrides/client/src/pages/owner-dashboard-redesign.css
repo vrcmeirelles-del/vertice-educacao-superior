@@ -1,15 +1,16 @@
-/* Isolated executive BI redesign — scoped to .portal-bi (homologation branch). */
+/* ── Executive BI redesign ── Design System v2 ── scoped to .portal-bi ── */
 .portal-bi {
-  --vx-blue: #2563eb;
-  --vx-ink: #182230;
-  --vx-muted: #58677a;
-  --vx-outline: #dde5ef;
+  --vx-blue: var(--primary);
+  --vx-ink: var(--foreground);
+  --vx-muted: var(--muted-foreground);
+  --vx-outline: var(--border-light);
   font-family: Inter, system-ui, sans-serif;
 }
 .portal-bi .vx-bi-heading {
   display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;
-  gap:18px; margin-bottom:20px; padding:22px 24px; border-radius:18px;
-  background:linear-gradient(120deg,#17365d,#254f82); color:white;
+  gap:18px; margin-bottom:20px; padding:22px 24px; border-radius:var(--radius);
+  background:linear-gradient(135deg,#1a1d24 0%,#1e3a5f 100%); color:white;
+  box-shadow:var(--shadow-sm);
 }
 .portal-bi .vx-bi-heading h2 {color:#fff;font-size:clamp(24px,3vw,36px);line-height:1.15;letter-spacing:-.025em}
 .portal-bi .vx-bi-heading p {color:#e7eef9;margin:8px 0 0}
@@ -22,14 +23,14 @@
 .portal-bi .vx-kpi-grid {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:20px}
 .portal-bi .vx-kpi {
   display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:8px;
-  padding:20px;border-radius:16px;background:#fff;border:1px solid var(--vx-outline);
-  border-top:4px solid var(--vx-tone);min-width:0;cursor:pointer;
-  box-shadow:0 3px 14px #1426420a;transition:transform .15s ease,box-shadow .15s ease;
+  padding:18px;border-radius:var(--radius);background:var(--card);border:1px solid var(--vx-outline);
+  border-left:4px solid var(--vx-tone);min-width:0;cursor:pointer;
+  box-shadow:var(--shadow-card);transition:transform .15s ease,box-shadow .15s ease;
 }
-.portal-bi .vx-kpi:hover {transform:translateY(-2px);box-shadow:0 12px 24px #14264219}
+.portal-bi .vx-kpi:hover {transform:translateY(-2px);box-shadow:var(--shadow-md)}
 .portal-bi .vx-kpi:focus-visible,.portal-bi .vx-bi-tabs button:focus-visible {outline:3px solid #2563eb;outline-offset:3px}
-.portal-bi .vx-blue {--vx-tone:#2563eb}.portal-bi .vx-violet {--vx-tone:#7c3aed}
-.portal-bi .vx-amber {--vx-tone:#b45309}.portal-bi .vx-green {--vx-tone:#087f5b}
+.portal-bi .vx-blue {--vx-tone:var(--primary)}.portal-bi .vx-violet {--vx-tone:#7c3aed}
+.portal-bi .vx-amber {--vx-tone:var(--warning)}.portal-bi .vx-green {--vx-tone:var(--success)}
 .portal-bi .vx-kpi span {font-size:13px;font-weight:650;color:#42536b}
 .portal-bi .vx-kpi strong {font-size:clamp(29px,3vw,39px);line-height:1.1;color:#172e46;font-variant-numeric:tabular-nums}
 .portal-bi .vx-kpi small {font-size:12px;color:var(--vx-muted)}
@@ -46,14 +47,15 @@
 .portal-bi .vx-compare-values span {display:block;color:#52647b;font-size:12px;min-height:32px}
 .portal-bi .vx-compare-values strong {display:block;color:#15395e;font-size:clamp(18px,2vw,25px);font-variant-numeric:tabular-nums}
 .portal-bi .vx-comparison .vx-data-note {grid-column:1/-1;margin:0;color:#64748b}
-.portal-bi .vx-bi-tabs {padding:5px;background:#eaf0f8;border-radius:12px;margin:18px 0}
-.portal-bi .vx-bi-tabs button {border-color:transparent;background:transparent;font-weight:600}
-.portal-bi .vx-bi-tabs button[aria-pressed=true] {background:#17365d;color:white}
+.portal-bi .vx-bi-tabs {padding:4px;background:var(--border-light);border-radius:10px;margin:18px 0;display:flex;gap:4px}
+.portal-bi .vx-bi-tabs button {border-color:transparent;background:transparent;font-weight:500;border-radius:7px;transition:all .15s;font-size:.88rem}
+.portal-bi .vx-bi-tabs button[aria-pressed=true] {background:var(--card);color:var(--foreground);box-shadow:var(--shadow-sm);font-weight:600}
+.portal-bi .vx-bi-tabs button:hover:not([aria-pressed=true]) {background:#ffffff80}
 @media(max-width:1100px) {.portal-bi .vx-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.portal-bi .vx-comparison{grid-template-columns:1fr}}
 @media(max-width:620px) {.portal-bi .vx-bi-heading{padding:18px}.portal-bi .vx-kpi-grid{grid-template-columns:1fr}.portal-bi .vx-compare-values{grid-template-columns:1fr}.portal-bi .vx-compare-values span{min-height:0}.portal-bi .vx-comparison{padding:16px}.portal-bi .vx-bi-tabs{overflow-x:auto;flex-wrap:nowrap}.portal-bi .vx-bi-tabs button{white-space:nowrap}}
 @media(prefers-reduced-motion:reduce){.portal-bi .vx-kpi{transition:none}}
 
 /* The existing PortalBI renders legacy inline styles. These scoped rules must win. */
-.portal-bi button.vx-kpi {padding:20px !important;border:1px solid #dde5ef !important;border-top:4px solid var(--vx-tone) !important;background:#fff !important;color:#182230 !important;border-radius:16px !important}
-.portal-bi button.vx-kpi:hover {box-shadow:0 12px 24px #14264219}
-.portal-bi .vx-bi-tabs button[aria-pressed=true]{background:#17365d;color:#fff}
+.portal-bi button.vx-kpi {padding:18px !important;border:1px solid var(--border-light) !important;border-left:4px solid var(--vx-tone) !important;border-top:1px solid var(--border-light) !important;background:var(--card) !important;color:var(--foreground) !important;border-radius:var(--radius) !important}
+.portal-bi button.vx-kpi:hover {box-shadow:var(--shadow-md)}
+.portal-bi .vx-bi-tabs button[aria-pressed=true]{background:var(--card);color:var(--foreground);box-shadow:var(--shadow-sm)}
