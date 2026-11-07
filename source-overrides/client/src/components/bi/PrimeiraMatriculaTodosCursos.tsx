@@ -95,7 +95,7 @@ export default function PrimeiraMatriculaTodosCursos({ reports, courses }: { rep
 
   return <section className="vxa-first" aria-labelledby="vxa-first-title">
     <div className="vxa-first-head">
-      <div><small>UNITOP · LEITURA POR CURSO E INSTITUCIONAL</small><h3 id="vxa-first-title">Primeira matrícula e permanência — todos os cursos</h3>
+      <div><small>VÉRTICE · LEITURA POR CURSO E INSTITUCIONAL</small><h3 id="vxa-first-title">Primeira matrícula e permanência — todos os cursos</h3>
         <p>Escolha qualquer curso do cadastro. O sistema separa coortes identificadas de históricos de matrícula que ainda não demonstram primeiro vínculo.</p></div>
       <span className="vxa-first-counter">{format(scoped.length)} cursos no recorte</span>
     </div>
@@ -150,7 +150,7 @@ export default function PrimeiraMatriculaTodosCursos({ reports, courses }: { rep
           return <div className="vxa-first-course" key={course.id}>
             <div><strong>{course.name}</strong><small>{course.code ? "Código " + course.code + " · " : ""}{hist?.size ? hist.size + " semestres de matrícula disponíveis" : "Sem histórico quantitativo vinculado"}</small></div>
             <div className="vxa-first-course-right">
-              <span className={hasCohort ? "vxa-first-verified" : "vxa-first-pending"}>{hasCohort ? "Coorte verificada" : "Primeiro vínculo pendente"}</span>
+              <span className={hasCohort ? "vxa-first-verified" : "vxa-first-pending"}>{hasCohort ? "Coorte identificada" : "Primeiro vínculo pendente"}</span>
               <small>{last ? "Último quantitativo: " + last.replace("/0", "/") : "Sem semestre de referência"}</small>
             </div>
           </div>;
