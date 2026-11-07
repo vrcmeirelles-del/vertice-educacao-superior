@@ -10,6 +10,7 @@ import { publicPages } from "./lib/consultancy";
 import { passwordCallback } from "./lib/supabase";
 import ResetPassword from "./pages/public/ResetPassword";
 const OwnerDashboard = lazy(() => import("./pages/OwnerDashboard"));
+const VerticeMobileBI = lazy(() => import("./components/bi/VerticeMobileBI"));
 const DemoApp = lazy(() => import("./DemoApp"));
 const demoPaths = new Set([
   "/demonstracao",
@@ -35,7 +36,7 @@ export default function App() {
   useEffect(() => {
     const page = publicPages.find(p => p.path === normalized);
     document.title =
-      (iesActive ? "Cadastro institucional | Vértice Educação Superior" : ["/master","/gestor","/admin-ies","/painel-real"].includes(normalized) ? "Painel institucional | Vértice Educação Superior" : normalized === "/master/aquisicoes" ? "Aquisições e incorporações | Vértice" : normalized === "/redefinir-senha" || passwordCallback ? "Definir nova senha | Vértice Educação Superior" : normalized === "/reitor/reservado" ? "Área reservada do reitor | Vértice Educação Superior" : normalized === "/entrar" ? "Entrar | Vértice Educação Superior" : page?.title) ??
+      (iesActive ? "Cadastro institucional | Vértice Educação Superior" : normalized === "/mobile" ? "Vértice Mobile | Inteligência executiva" : ["/master","/gestor","/admin-ies","/painel-real"].includes(normalized) ? "Painel institucional | Vértice Educação Superior" : normalized === "/master/aquisicoes" ? "Aquisições e incorporações | Vértice" : normalized === "/redefinir-senha" || passwordCallback ? "Definir nova senha | Vértice Educação Superior" : normalized === "/reitor/reservado" ? "Área reservada do reitor | Vértice Educação Superior" : normalized === "/entrar" ? "Entrar | Vértice Educação Superior" : page?.title) ??
       (demoPaths.has(normalized)
         ? "Demonstração de gestão | Vértice Educação Superior"
         : "Página não encontrada | Vértice Educação Superior");
@@ -53,11 +54,12 @@ export default function App() {
       if (description) description.content = page.description;
     }
   }, [path, normalized, isPublic, iesActive]);
+  if (normalized === "/mobile") return <ErrorBoundary><Suspense fallback={<main role="status">Carregando Vértice Mobile…</main>}><VerticeMobileBI /></Suspense></ErrorBoundary>;
   if (iesActive) return <ErrorBoundary>{iesSuspended ? <main className="ies-shell"><p role="status">Área institucional suspensa. Os links de convite foram removidos.</p></main> : <IesPortal key={iesRouteRevision} />}</ErrorBoundary>;
   return (
     <ErrorBoundary>
       <DemoTelemetry />
-      {["/master", "/gestor", "/admin-ies", "/painel-real"].includes(normalized) && <nav className="corp-container" aria-label="Cadastro institucional"><a className="corp-button" href="/master#ies=1">Cadastro e convites de instituições</a></nav>}
+      {["/master", "/gestor", "/admin-ies", "/painel-real"].includes(normalized) && <nav className="corp-container" aria-label="Cadastro institucional"><a className="corp-button" href="/master#ies=1">Cadastro e convites de instituições</a><a className="corp-button" href="/mobile" style={{ marginLeft: 8 }}>Abrir Vértice Mobile</a></nav>}
       {passwordCallback ? <PublicLayout><ResetPassword /></PublicLayout> : normalized === "/master/aquisicoes" ? <Suspense fallback={<p>Verificando acesso…</p>}><OwnerDashboard /></Suspense> : ["/master", "/gestor", "/admin-ies", "/painel-real", "/reitor/reservado"].includes(normalized) ? <PublicLayout><Suspense fallback={<p>Verificando acesso…</p>}><OwnerDashboard /></Suspense></PublicLayout> : isPublic ? (
         <PublicApp />
       ) : demoPaths.has(normalized) ? (
