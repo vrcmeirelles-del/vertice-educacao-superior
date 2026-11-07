@@ -51,13 +51,17 @@ jobs:
           (cd .ci-build && npm run check) > typecheck-mobile.log 2>&1
           mobile_rc=$?
           set -e
-          grep -E 'error TS[0-9]+:' typecheck-base.log | sort > typecheck-base-errors.txt || true
-          grep -E 'error TS[0-9]+:' typecheck-mobile.log | sort > typecheck-mobile-errors.txt || true
+          # Compare diagnostics by file, TS code and message rather than volatile line numbers.
+          # Fixing existing diagnostics is allowed; only new diagnostics fail the branch.
+          grep -E 'error TS[0-9]+:' typecheck-base.log | sed -E 's/\\([0-9]+,[0-9]+\\):/(__line__):/' | sort -u > typecheck-base-errors.txt || true
+          grep -E 'error TS[0-9]+:' typecheck-mobile.log | sed -E 's/\\([0-9]+,[0-9]+\\):/(__line__):/' | sort -u > typecheck-mobile-errors.txt || true
           echo "TypeScript base exit: $base_rc; mobile exit: $mobile_rc"
-          echo "Erros pré-existentes: $(wc -l < typecheck-base-errors.txt)"
-          echo "Erros da branch mobile: $(wc -l < typecheck-mobile-errors.txt)"
-          if ! diff -u typecheck-base-errors.txt typecheck-mobile-errors.txt; then
-            echo "::error::A branch mobile acrescenta ou altera erros TypeScript em relação à main."
+          echo "Erros distintos pré-existentes: $(wc -l < typecheck-base-errors.txt)"
+          echo "Erros distintos da branch: $(wc -l < typecheck-mobile-errors.txt)"
+          comm -13 typecheck-base-errors.txt typecheck-mobile-errors.txt > typecheck-new-errors.txt
+          if [ -s typecheck-new-errors.txt ]; then
+            cat typecheck-new-errors.txt
+            echo "::error::A branch acrescentou erros TypeScript não presentes na main."
             exit 1
           fi
           if [ "$mobile_rc" -ne 0 ]; then
