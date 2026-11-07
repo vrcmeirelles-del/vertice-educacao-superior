@@ -24,6 +24,7 @@ import RepositoryTab from "./RepositoryTab";
 import EbitdaCalculator from "../EbitdaCalculator";
 import InepLibrary from "./InepLibrary";
 import AvaliacaoInstitucional from "./AvaliacaoInstitucional";
+import NovoInstrumento from "./NovoInstrumento";
 import AuditoriaPermanenciaBI from "../bi/AuditoriaPermanenciaBI";
 import ManagementReview from "./ManagementReview";
 import DocumentAI from "./DocumentAI";
@@ -53,6 +54,7 @@ const TABS: [Tab, string][] = [
   ["repositorio", "Reconhecimento de Curso"],
   ["biblioteca", "Biblioteca INEP"],
   ["avaliacao", "Recredenciamento Institucional"],
+  ["novo_instrumento", "Novo Instrumento"],
   ["reitor", "Área do reitor · EBITDA"],
   ["resultado-curso", "Resultado por Curso"],
   ["plano", "Plano de ação 5W2H"],
@@ -208,6 +210,8 @@ export default function Workspace({
         <RepositoryTab institutionId={id} role={role} courses={data.courses} goals={data.goals} requests={data.requests} files={data.files} reload={reload} goalFilter={repositoryGoal} setGoalFilter={setRepositoryGoal}/>
       ) : tab === "reitor" ? (
         role === "master" || role === "gestor" ? <EbitdaCalculator reserved={{institutionId:id,name:String(institution.name)}}/> : <p>Os dados financeiros são reservados ao Gestor da instituição e ao Master.</p>
+      ) : tab === "novo_instrumento" ? (
+        <NovoInstrumento institutionId={id} role={role} courses={data.courses} />
       ) : tab === "avaliacao" ? (
         <AvaliacaoInstitucional key={id} />
       ) : tab === "resultado-curso" ? (
