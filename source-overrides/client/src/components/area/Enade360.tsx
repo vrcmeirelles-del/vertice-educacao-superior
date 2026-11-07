@@ -33,7 +33,7 @@ const KIND_LABEL: Record<Kind,string> = {
   evidencia: "Evidência pedagógica",
 };
 const MANAGERS: Role[] = ["master","gestor","reitor","diretor_geral","diretor_pedagogico","procurador"];
-const AUTHORS: Role[] = [...MANAGERS,"equipe","coordenador","nde","cpa"];
+const AUTHORS: Role[] = [...MANAGERS,"equipe","cpa"];
 const fmt = new Intl.NumberFormat("pt-BR");
 const pct = (n:number) => n.toLocaleString("pt-BR",{minimumFractionDigits:1,maximumFractionDigits:1}) + "%";
 function safeUrl(url:string|null):string|null {
