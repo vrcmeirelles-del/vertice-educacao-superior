@@ -1,0 +1,59 @@
+/* ── Raio-X Direito ── Design System v2 ── */
+.drx { margin: 16px 0; }
+
+.drx-header { background: linear-gradient(135deg, #1a1d24 0%, #1e3a5f 100%); color: #fff; padding: 24px; border-radius: var(--radius); margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; box-shadow: var(--shadow-sm); }
+.drx-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #7cc4ff; margin: 0 0 4px; }
+.drx-header h3 { margin: 0; font-size: 22px; font-weight: 700; }
+.drx-sub { font-size: 13px; color: #94a3b8; margin: 6px 0 0; }
+.drx-header .drx-sub { color: #bcd5f4; }
+.drx-badge { background: #ffffff18; border: 1px solid #ffffff30; padding: 8px 14px; border-radius: 8px; display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; }
+.drx-badge-icon { font-size: 20px; }
+
+.drx-kpis { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 16px; }
+.drx-kpi { background: var(--card); border: 1px solid var(--border-light); border-left: 4px solid var(--primary); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow-card); transition: box-shadow .15s, transform .15s; }
+.drx-kpi:hover { box-shadow: var(--shadow-sm); transform: translateY(-1px); }
+.drx-kpi small { font-size: 11px; color: var(--muted-foreground); font-weight: 500; }
+.drx-kpi strong { display: block; font-size: 26px; font-weight: 700; margin: 4px 0; }
+.drx-kpi span { font-size: 11px; color: var(--muted-foreground); }
+
+.drx-section { background: var(--card); border: 1px solid var(--border-light); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow-card); }
+.drx-section h4 { margin: 0 0 4px; font-size: 16px; }
+.drx-section .drx-sub { color: var(--muted-foreground); margin: 0 0 16px; }
+
+.drx-table-wrap { overflow-x: auto; }
+.drx-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.drx-table th { text-align: left; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted-foreground); background: var(--background); padding: 10px 12px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.drx-table td { padding: 10px 12px; border-bottom: 1px solid var(--border-light); vertical-align: middle; }
+.drx-table tbody tr { transition: background .1s; }
+.drx-table tbody tr:hover { background: #f8fafc; }
+
+.drx-bar-wrap { display: flex; align-items: center; gap: 6px; min-width: 100px; }
+.drx-bar { height: 6px; border-radius: 99px; min-width: 2px; transition: width .4s ease; }
+.drx-bar-wrap span { font-size: 11px; font-weight: 600; }
+
+.drx-chip { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; }
+.drx-chip-green { background: #ecfdf5; color: var(--success); }
+.drx-chip-yellow { background: #fffbeb; color: #b45309; }
+.drx-chip-red { background: #fef2f2; color: var(--danger); }
+
+.drx-trend-up { color: var(--success); font-weight: 700; font-size: 12px; }
+.drx-trend-down { color: var(--danger); font-weight: 700; font-size: 12px; }
+
+.drx-docente-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
+.drx-docente-card { background: var(--background); border: 1px solid var(--border-light); border-radius: var(--radius); padding: 16px; text-align: center; }
+.drx-docente-sem { font-size: 11px; color: var(--muted-foreground); font-weight: 600; display: block; }
+.drx-docente-num { font-size: 28px; display: block; margin: 4px 0; color: var(--primary); }
+.drx-docente-label { font-size: 11px; color: var(--muted-foreground); }
+
+.drx-status-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
+.drx-status-item { background: var(--background); border: 1px solid var(--border-light); border-radius: var(--radius); padding: 12px; text-align: center; }
+.drx-status-zero { opacity: .4; }
+.drx-status-label { font-size: 10px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted-foreground); display: block; }
+.drx-status-item strong { font-size: 22px; display: block; margin: 2px 0; }
+.drx-status-pct { font-size: 11px; color: var(--muted-foreground); }
+
+.drx-footer { font-size: 11px; color: var(--muted-foreground); margin: 12px 0; line-height: 1.6; }
+
+@media (max-width: 1024px) { .drx-kpis { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 768px) { .drx-kpis { grid-template-columns: repeat(2, 1fr); } .drx-header { flex-direction: column; align-items: flex-start; } }
+@media (max-width: 480px) { .drx-kpis { grid-template-columns: 1fr; } }
