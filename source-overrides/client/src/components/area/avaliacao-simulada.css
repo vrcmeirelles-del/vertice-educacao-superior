@@ -57,6 +57,24 @@
 
 .avs-badge { display: inline-block; padding: .15rem .5rem; border-radius: .25rem; color: #fff; font-weight: 600; font-size: .82rem; min-width: 1.5rem; text-align: center; }
 
+/* Docs info + IA button */
+.avs-docs-info {
+  display: flex; align-items: center; gap: .6rem; margin-bottom: .75rem;
+  padding: .5rem .6rem; background: #f1f5f9; border-radius: .4rem;
+}
+.avs-docs-badge {
+  display: inline-block; padding: .15rem .5rem; border-radius: .25rem;
+  color: #fff; font-weight: 600; font-size: .8rem; white-space: nowrap;
+}
+.avs-ai-btn {
+  margin-left: auto; padding: .35rem .75rem; border: 1px solid #3b82f6;
+  border-radius: .35rem; background: #eff6ff; color: #1d4ed8;
+  font-size: .82rem; font-weight: 600; cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.avs-ai-btn:hover:not(:disabled) { background: #3b82f6; color: #fff; }
+.avs-ai-btn:disabled { opacity: .5; cursor: not-allowed; }
+
 /* Detalhe expandido */
 .avs-detail-row td { padding: 0 !important; }
 .avs-detalhe { padding: .75rem 1rem 1rem; background: #f8fafc; border-top: 1px solid #e2e8f0; }
