@@ -38,7 +38,16 @@ import {listRepository} from "@/lib/repository-data";
 import { FIELD_HELP, TAB_FAQ, TAB_HELP, withHelp } from "@/lib/help";
 import PainelEorbit from "../eorbit/PainelEorbit";
 import ResultadoCursoBI from "../bi/ResultadoCursoBI";
+import CostSimulator from "./CostSimulator";
+import DireitoRaioX from "./DireitoRaioX";
 import "./area.css";
+
+const TAB_GROUPS: {label:string; tabs:Tab[]}[] = [
+  {label:'Gestão', tabs:['base','metas','plano','diagnostico','equipe']},
+  {label:'Regulação', tabs:['emec','repositorio','enade','avaliacao','novo_instrumento','biblioteca']},
+  {label:'Acadêmico', tabs:['geral','cadastro','visao','eorbit','backups','auditoria']},
+  {label:'Inteligência', tabs:['analise','ia','fontes','reitor','resultado-curso','simulador','raio-x-direito']},
+];
 
 const TABS: [Tab, string][] = [
   ["base", "Base da organização"],
@@ -61,6 +70,8 @@ const TABS: [Tab, string][] = [
   ["aprendizagem", "Aprendizagem Conectada"],
   ["reitor", "Área do reitor · EBITDA"],
   ["resultado-curso", "Resultado por Curso"],
+  ["simulador", "Simulador de Custo"],
+  ["raio-x-direito", "Raio-X Direito"],
   ["plano", "Plano de ação 5W2H"],
   ["diagnostico", "Diagnóstico"],
   ["equipe", "Equipe"],
@@ -156,11 +167,11 @@ export default function Workspace({
         </div>
         <a className="area-guide-link" href="/guia.html" target="_blank" rel="noopener">Guia e glossário ↗</a>
         <div className="area-kpis">
-          <span><b>{data.courses.length}</b> cursos</span>
-          <span><b>{activeGoals}</b> metas em curso</span>
-          <span><b>{documents.validated}/{documents.total}</b> documentos validados</span>
-          <span className={late ? "warn" : ""}><b>{late}</b> ações atrasadas</span>
-          <span><b>{openFindings}</b> achados abertos</span>
+          <span className="kpi-neutral"><b>{data.courses.length}</b> cursos</span>
+          <span className={activeGoals > 0 ? "kpi-info" : "kpi-neutral"}><b>{activeGoals}</b> metas em curso</span>
+          <span className={documents.total > 0 && documents.validated === documents.total ? "kpi-success" : documents.total > 0 ? "kpi-warn" : "kpi-neutral"}><b>{documents.validated}/{documents.total}</b> documentos validados</span>
+          <span className={late > 0 ? "kpi-danger" : "kpi-success"}><b>{late}</b> ações atrasadas</span>
+          <span className={openFindings > 0 ? "kpi-warn" : "kpi-success"}><b>{openFindings}</b> achados abertos</span>
         </div>
       </div>
       {data.courses.some(c=>c.registration_note)&&<p className="area-note">Há cadastros com o mesmo nome e código, mas com históricos próprios. Eles aparecem como Base 1 e Base 2, com suas quantidades de exigências e metas, para você escolher o acervo correto. Nenhum documento ou vínculo foi descartado.</p>}
@@ -175,12 +186,21 @@ export default function Workspace({
           window.dispatchEvent(new Event("vertice-open-assistant"));
         }}>Abrir agente de IA</button>
        </div>}
-      <div role="tablist" aria-label="Áreas da instituição" className="area-tabs">
-        {visible.map(([k, l]) => (
-          <button key={k} role="tab" aria-selected={tab === k} className={tab === k ? "active" : ""} onClick={() => choose(k)}>
-            {l}
-          </button>
-        ))}
+      <div role="tablist" aria-label="Áreas da instituição" className="area-tabs area-tabs-grouped">
+        {TAB_GROUPS.map(group => {
+          const groupTabs = visible.filter(([k]) => group.tabs.includes(k));
+          if (!groupTabs.length) return null;
+          return <div key={group.label} className="area-tab-group">
+            <span className="area-tab-group-label">{group.label}</span>
+            <div className="area-tab-group-items">
+              {groupTabs.map(([k, l]) => (
+                <button key={k} role="tab" aria-selected={tab === k} className={tab === k ? "active" : ""} onClick={() => choose(k)}>
+                  {l}
+                </button>
+              ))}
+            </div>
+          </div>;
+        })}
       </div>
       {error && <p role="alert" className="area-error">{error}</p>}
       {TAB_HELP[tab] && tab!=="repositorio" && <TabHelp id={tab} />}
@@ -224,6 +244,10 @@ export default function Workspace({
         <AvaliacaoInstitucional key={id} />
       ) : tab === "resultado-curso" ? (
         role === "master" || role === "gestor" ? <ResultadoCursoBI institutionId={id} institutionName={String(institution.name)}/> : <p>O módulo de resultado por curso é reservado ao Gestor da instituição e ao Master.</p>
+      ) : tab === "simulador" ? (
+        role === "master" || role === "gestor" ? <CostSimulator institutionId={id}/> : <p>O simulador de custo é reservado ao Gestor da instituição e ao Master.</p>
+      ) : tab === "raio-x-direito" ? (
+        <DireitoRaioX institutionId={id}/>
       ) : tab === "biblioteca" ? (
         <InepLibrary institutionId={id} />
       ) : tab === "plano" ? (
