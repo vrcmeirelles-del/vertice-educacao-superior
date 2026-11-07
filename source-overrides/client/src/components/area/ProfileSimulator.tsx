@@ -8,6 +8,7 @@ const TAB_LABELS: Record<Tab, string> = {
   backups: "Backups Acadêmicos",
   fontes: "Importar dados de sites",
   auditoria: "BI · Permanência e Reprovações",
+  avaliacao: "Recredenciamento Institucional",
   "resultado-curso": "Resultado por Curso",
   base: "Base da organização",
   ia: "Análise Documental",
@@ -29,7 +30,7 @@ const TAB_LABELS: Record<Tab, string> = {
 const ALL_TABS: Tab[] = [
   "base", "ia", "geral", "analise", "visao", "cadastro",
   "emec", "metas", "repositorio", "biblioteca", "reitor",
-  "plano", "diagnostico", "equipe", "auditoria",
+  "plano", "diagnostico", "equipe", "auditoria", "avaliacao",
 ];
 
 /** Perfis disponíveis para demonstração (exclui master e legados internos). */
