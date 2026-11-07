@@ -5,6 +5,7 @@ import { latestEnrollmentSnapshots, modalityOf, type Course, type Enrollment, ty
 import "./vertice-mobile.css";
 import DocumentosMobileBI from "./DocumentosMobileBI";
 import AcademicoFontesMobileBI from "./AcademicoFontesMobileBI";
+import VerticeMobilePublicPreview from "./VerticeMobilePublicPreview";
 
 type Access = "loading" | "signed_out" | "mfa" | "ready" | "error";
 type View = "visao" | "cursos" | "documentos" | "academico" | "alertas";
@@ -172,6 +173,9 @@ export default function VerticeMobileBI() {
   const filtered = lines.filter(line => (line.course.name + " " + (line.course.code ?? "")).toLocaleLowerCase("pt-BR").includes(query.toLocaleLowerCase("pt-BR")));
   const chosen = lines.find(line => line.course.id === selectedCourse);
 
+  // Fora de sessão autenticada com AAL2, exibe apenas demonstração estática sem SELECT institucional.
+  if (access !== "ready" && access !== "loading") return <VerticeMobilePublicPreview />;
+
   return <main className="vm-app">
     <div className="vm-container">
       <header className="vm-head">
@@ -182,7 +186,6 @@ export default function VerticeMobileBI() {
         <h1>{access === "loading" ? "Verificando acesso…" : access === "signed_out" ? "Entre na sua conta" : access === "mfa" ? "Segundo fator necessário" : "Dados indisponíveis"}</h1>
         <p>{access === "loading" ? "Consultando a sessão protegida." : access === "signed_out" ? "Utilize a mesma conta e permissões do portal Vértice." : access === "mfa" ? "Valide o código de autenticação no portal antes de abrir os indicadores." : failure}</p>
         {access !== "loading" && <a className="vm-primary" href={access === "signed_out" ? "/entrar?destino=mobile" : "/master"}>{access === "signed_out" ? "Entrar" : "Abrir acesso protegido"}</a>}
-        {access === "error" && <button className="vm-secondary" onClick={() => void reload()}>Tentar novamente</button>}
       </section> : <>
         <section className="vm-intro">
           <div><small>PAINEL EXECUTIVO</small><h1>Indicadores do banco</h1><p>Indicadores disponíveis para sua conta, sem dados fictícios.</p></div>
