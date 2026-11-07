@@ -1,4 +1,5 @@
 import { useCourseFilters } from "./CourseFilters";
+import MinutesDrafts from './MinutesDrafts';
 import indicatorNames from "@/lib/repository-indicators.json";
 import RepositoryFiles from "./RepositoryFiles";
 import { isInstrumentFile, isInstrumentRequest, instrumentIndicators } from "@/lib/repository";
@@ -402,6 +403,7 @@ export default function RepositoryTab(props: RepositoryProps) {
   );
   return (
     <div className="evidence-repo">
+      {import.meta.env.VITE_INEP_MINUTES_ENABLED === 'true' && <MinutesDrafts key={institutionId} institutionId={institutionId} />}
       <div className="er-top">
         <div className="er-brand">
           <span>V</span>

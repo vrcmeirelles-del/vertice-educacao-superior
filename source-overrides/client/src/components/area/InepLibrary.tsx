@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { LIBRARY_DIMENSIONS, filterLibrary, type LibraryDocument } from '@/lib/inep-library';
 import structure from '@/lib/inep-library-structure.json';
 import './inep-library.css';
+import MinutesDrafts from './MinutesDrafts';
 
 export default function InepLibrary({ institutionId }: { institutionId: string }) {
   const [documents, setDocuments] = useState<LibraryDocument[]>([]);
@@ -62,6 +63,7 @@ export default function InepLibrary({ institutionId }: { institutionId: string }
     finally { setDownloading(''); }
   }
   return <section className="inep-library" aria-labelledby="inep-library-title">
+    {import.meta.env.VITE_INEP_MINUTES_ENABLED === 'true' && <MinutesDrafts key={institutionId} institutionId={institutionId} />}
     <header><div><p className="inep-library-kicker">Base documental da instituição</p>
       <h3 id="inep-library-title">Biblioteca Institucional INEP</h3>
       <p>Modelos e referências para todas as coordenações, organizados nos 58 indicadores.</p></div>
