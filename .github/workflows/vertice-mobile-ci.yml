@@ -4,6 +4,7 @@ on:
     branches:
       - feat/vertice-mobile-bi-20261106
       - feat/mobile-preview-reitor-sem-login-20261106
+      - fix/primeira-matricula-todos-cursos-20261107
   workflow_dispatch:
 permissions:
   contents: read
@@ -25,6 +26,7 @@ jobs:
           test -f .ci-build/package.json
           test -f .ci-build/client/src/components/bi/VerticeMobileBI.tsx
           test -f .ci-build/client/src/components/bi/VerticeMobilePublicPreview.tsx
+          test -f .ci-build/client/src/components/bi/PrimeiraMatriculaTodosCursos.tsx
       - name: Dependências bloqueadas pelo lockfile
         working-directory: .ci-build
         run: npm ci --legacy-peer-deps --no-audit --no-fund
