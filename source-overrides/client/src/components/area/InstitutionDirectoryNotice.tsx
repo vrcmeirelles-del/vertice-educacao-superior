@@ -1,5 +1,5 @@
 import {useEffect,useState} from "react";
-import {syncInstitutionDirectory} from "@/lib/area";
+import {syncInstitutionDirectory} from "@/lib/institution-directory";
 export default function InstitutionDirectoryNotice(){
  const [result,setResult]=useState<{institutionId:string;ok:boolean}|null>(null);
  const [busy,setBusy]=useState(false);
