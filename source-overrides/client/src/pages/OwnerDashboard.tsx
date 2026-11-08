@@ -252,6 +252,7 @@ export default function OwnerDashboard(){
  const [reports,setReports]=useState<AcademicReport[]>([]);
  const [route,setRoute]=useState(readHash());
  const [captacaoInstitutionId,setCaptacaoInstitutionId]=useState('');
+ const [academicoInstitutionId,setAcademicoInstitutionId]=useState('');
  const [creating,setCreating]=useState(false);
  const [commercial,setCommercial]=useState(false);
  const [mgmt,setMgmt]=useState<{goals:Row[];actions:Row[];diagnosis:Row[]}>({goals:[],actions:[],diagnosis:[]});
@@ -260,6 +261,7 @@ export default function OwnerDashboard(){
  const instStats=(id:string)=>institutionEnrollmentSummary(id,courses,enrollments);
  const currentInst=institutions.find(i=>i.id===route.inst);
  const selectedCaptacaoInstitution=institutions.find(i=>i.id===captacaoInstitutionId);
+ const selectedAcademicoInstitution=institutions.find(i=>i.id===academicoInstitutionId);
  const currentCourse=courses.find(c=>c.id===route.course&&c.institution_id===route.inst);
  async function load(){
   setLoading(true);setError('');
@@ -338,7 +340,7 @@ export default function OwnerDashboard(){
   <div className="vx-module-card" style={{borderLeft:'3px solid '+(mgmt.goals.filter(x=>x.status!=='cancelada').length>0?'#b45309':'#00a86b')}}><small style={{color:'#676e7a'}}>Metas ativas</small><strong style={{fontSize:28}}>{mgmt.goals.filter(x=>x.status!=='cancelada').length}</strong></div>
   <div className="vx-module-card" style={{borderLeft:'3px solid '+(mgmt.actions.filter(x=>isLate(x.due_date,x.status)).length>0?'#d83a52':'#00a86b')}}><small style={{color:'#676e7a'}}>Ações atrasadas</small><strong style={{fontSize:28,color:mgmt.actions.filter(x=>isLate(x.due_date,x.status)).length>0?'#d83a52':'#00a86b'}}>{mgmt.actions.filter(x=>isLate(x.due_date,x.status)).length}</strong></div>
  </div>}
- {route.governanca?<GovernancaBI institutionId={institutions[0]?.id??''} institutionName={String(institutions[0]?.name??'Instituição')} courses={courses}/>:route.painelBi?<BIFrame view="executivo" source="Supabase · matrículas, indicadores de curso e relatórios acadêmicos"><PainelBI institutions={institutions} courses={courses} enrollments={enrollments} session={session} reports={reports}/></BIFrame>:route.academico?<BIFrame view="academico" institutionName={institutions[0]?.name??'Instituição não selecionada'} source="e-ORBIT e relatórios acadêmicos importados · cobertura sujeita à conciliação"><AcademicoBI institutionId={institutions[0]?.id??''} institutionName={institutions[0]?.name??'Instituição'}/></BIFrame>:route.captacao?<BIFrame view="captacao" institutionName={selectedCaptacaoInstitution?.name} source="Leads, custos de captação e snapshots · Supabase"><section aria-label="BI de Captação institucional">
+ {route.governanca?<GovernancaBI institutionId={institutions[0]?.id??''} institutionName={String(institutions[0]?.name??'Instituição')} courses={courses}/>:route.painelBi?<BIFrame view="executivo" source="Supabase · matrículas, indicadores de curso e relatórios acadêmicos"><PainelBI institutions={institutions} courses={courses} enrollments={enrollments} session={session} reports={reports}/></BIFrame>:route.academico?<BIFrame view="academico" institutionName={selectedAcademicoInstitution?.name} source="e-ORBIT e relatórios acadêmicos importados · cobertura sujeita à conciliação"><section aria-label="Instituição do BI Acadêmico"><label htmlFor="academico-instituicao" style={{display:"grid",gap:8,margin:"12px 0",maxWidth:520}}><strong>Instituição para análise acadêmica</strong><select id="academico-instituicao" value={selectedAcademicoInstitution?.id??""} onChange={e=>setAcademicoInstitutionId(e.target.value)}><option value="">Selecione uma instituição</option>{institutions.map(inst=><option key={inst.id} value={inst.id}>{inst.name}</option>)}</select></label>{selectedAcademicoInstitution?<AcademicoBI key={selectedAcademicoInstitution.id} institutionId={selectedAcademicoInstitution.id} institutionName={selectedAcademicoInstitution.name}/>:<p role="status">Selecione uma instituição autorizada. Nenhum dado acadêmico é exibido antes de definir o escopo.</p>}</section></BIFrame>:route.captacao?<BIFrame view="captacao" institutionName={selectedCaptacaoInstitution?.name} source="Leads, custos de captação e snapshots · Supabase"><section aria-label="BI de Captação institucional">
     <label htmlFor="captacao-instituicao" style={{display:'grid',gap:'8px',marginBottom:'16px',maxWidth:'560px'}}>
       <strong>Instituição para análise de captação</strong>
       <select id="captacao-instituicao" value={selectedCaptacaoInstitution?.id??''} onChange={e=>setCaptacaoInstitutionId(e.target.value)}>
