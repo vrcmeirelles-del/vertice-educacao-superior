@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import "./direito-raio-x.css";
 
@@ -16,6 +16,8 @@ export default function DireitoRaioX({ institutionId }: Props) {
   const [sourceStatus, setSourceStatus] = useState<"ready"|"pending_mapping"|"error">("pending_mapping");
   const [sourceDate, setSourceDate] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [openTurma, setOpenTurma] = useState<string|null>(null);
+  const [turmaAlunos, setTurmaAlunos] = useState<Record<string, any[]>>({});
 
   useEffect(() => {
     let active = true;
@@ -105,6 +107,24 @@ export default function DireitoRaioX({ institutionId }: Props) {
   const cancelados = quantGeral?.status?.CANCELADO || 0;
   const profCount = docenteEvo?.evolucao?.["2026/01"]?.professores || profData?.professores?.length || 0;
 
+  // Fetch nominal students for a turma on click
+  const SEM_IDS: Record<string,number> = {"2023/01":41,"2023/02":42,"2024/01":43,"2024/02":44,"2025/01":45,"2025/02":46,"2026/01":47};
+  async function loadTurmaAlunos(sem: string, turma: string) {
+    const key = `${sem}|${turma}`;
+    if (turmaAlunos[key]) { setOpenTurma(openTurma === key ? null : key); return; }
+    setOpenTurma(key);
+    const semId = SEM_IDS[sem];
+    if (!semId) return;
+    const { data } = await supabase
+      .from("vertice_eorbit_alunos")
+      .select("nome_aluno,matricula,situacao")
+      .eq("semestre_id", semId)
+      .eq("curso_id", 46)
+      .eq("turma_nome", turma)
+      .order("nome_aluno");
+    if (data) setTurmaAlunos(prev => ({...prev, [key]: data}));
+  }
+
   // Semestres from 2023+
   const semFiltered = semData.filter(s => s.semestre >= "2023/01");
 
@@ -176,9 +196,13 @@ export default function DireitoRaioX({ institutionId }: Props) {
                   <tbody>
                     {(semData.turmas || []).map((t: any, i: number) => {
                       const s = t.situacoes || {};
+                      const turmaKey = `${sem}|${t.turma}`;
+                      const isOpen = openTurma === turmaKey;
+                      const alunos = turmaAlunos[turmaKey] || [];
                       return (
-                        <tr key={i}>
-                          <td><strong>{t.turma}</strong></td>
+                        <React.Fragment key={i}>
+                        <tr onClick={() => loadTurmaAlunos(sem, t.turma)} style={{cursor:"pointer"}} className={isOpen ? "drx-row-active" : ""}>
+                          <td><strong>{t.turma}</strong> <span style={{fontSize:10,color:"var(--muted-foreground)"}}>{isOpen ? "▼" : "▶"}</span></td>
                           <td>{t.periodo}º</td>
                           <td><strong>{t.alunos_reais}</strong></td>
                           <td>{t.fantasmas > 0 ? <span style={{color:"var(--danger)",fontWeight:700}}>{t.fantasmas}</span> : "—"}</td>
@@ -190,6 +214,31 @@ export default function DireitoRaioX({ institutionId }: Props) {
                           <td>{s.TR||"—"}</td>
                           <td>{(s.CA||0)+(s.AC||0)+(s.CR||0)+(s.AB||0) > 0 ? <span style={{color:"var(--danger)"}}>{(s.CA||0)+(s.AC||0)+(s.CR||0)+(s.AB||0)}</span> : "—"}</td>
                         </tr>
+                        {isOpen && (
+                          <tr><td colSpan={11} style={{padding:0}}>
+                            <div className="drx-alunos-panel">
+                              {alunos.length === 0 ? <p style={{padding:12,color:"var(--muted-foreground)",fontSize:12}}>Carregando alunos…</p> : (
+                                <table className="drx-table drx-table-inner">
+                                  <thead><tr><th>Matrícula</th><th>Nome</th><th>Situação</th><th>Status</th></tr></thead>
+                                  <tbody>
+                                    {alunos.map((a: any, j: number) => {
+                                      const isGhost = !a.situacao || ["CA","RF","AC","AB","TR"].includes(a.situacao);
+                                      return (
+                                        <tr key={j} className={isGhost ? "drx-ghost-row" : ""}>
+                                          <td style={{fontFamily:"monospace",fontSize:11}}>{a.matricula}</td>
+                                          <td>{a.nome_aluno}</td>
+                                          <td><span className={`drx-chip ${a.situacao === "AD" || a.situacao === "AF" ? "drx-chip-green" : ["RF","CA","AC","AB"].includes(a.situacao) ? "drx-chip-red" : "drx-chip-yellow"}`}>{a.situacao || "—"}</span></td>
+                                          <td>{isGhost ? <span style={{color:"var(--danger)",fontWeight:600,fontSize:11}}>👻 Fantasma</span> : <span style={{color:"var(--success)",fontSize:11}}>✓ Ativo</span>}</td>
+                                        </tr>
+                                      );
+                                    })}
+                                  </tbody>
+                                </table>
+                              )}
+                            </div>
+                          </td></tr>
+                        )}
+                        </React.Fragment>
                       );
                     })}
                   </tbody>
