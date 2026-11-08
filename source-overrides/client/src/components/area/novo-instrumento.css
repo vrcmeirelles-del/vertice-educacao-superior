@@ -88,3 +88,17 @@
 .ni-obj-title small { margin-left:8px; }
 .ni-obj-body { padding:12px 16px; border-top:1px solid #edf1f5; }
 @media(max-width:640px){ .ni-instrument-picker .ni-scope { max-width:none; } }
+
+/* Inteligência documental: vínculos entre instrumento institucional atual e proposta. */
+.ni-crosswalk {margin:16px 0 22px}
+.ni-crosswalk .area-panel-head > div {flex:1 1 340px}
+.ni-crosswalk .area-panel-head p {margin:6px 0 0;max-width:800px}
+.ni-crosswalk .area-stat-grid {margin:12px 0}
+.ni-crosswalk-toggle {display:inline-flex;align-items:center;gap:8px;font-size:.84rem;margin:10px 0}
+.ni-crosswalk-table {min-width:820px}
+.ni-crosswalk-table td {vertical-align:top}
+.ni-crosswalk-table small {line-height:1.45}
+.ni-crosswalk-actions {display:flex;gap:8px;flex-wrap:wrap}
+.ni-crosswalk-actions button {cursor:pointer;padding:6px 9px;border:1px solid #d1dbe4;border-radius:7px;background:#fff;color:#243653;font-size:.81rem}
+.ni-crosswalk-actions button:first-child {background:#e5f4ed;border-color:#a0d5bd;color:#1c7654}
+.ni-crosswalk-actions button:disabled {opacity:.5;cursor:wait}
