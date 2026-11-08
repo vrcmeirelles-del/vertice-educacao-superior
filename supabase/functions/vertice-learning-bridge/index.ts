@@ -86,7 +86,9 @@ async function rpc(admin:ReturnType<typeof createClient>,name:string,args:Record
  return data;
 }
 async function remote(path:string,method="GET",body?:unknown){
- const key=env("VERTICE_BRIDGE_API_KEY");
+ const key=path==="/api/internal/vertice/institution-directory"
+  ? env("VERTICE_DIRECTORY_API_KEY")||env("VERTICE_BRIDGE_API_KEY")
+  : env("VERTICE_BRIDGE_API_KEY");
  if(key.length<32)throw fail("Credencial de comunicação com o Fato & Ordem não configurada.",503);
  const base=env("FATO_ORDEM_BRIDGE_URL")||"https://www.fatoeordem.com.br";
  const url=new URL(path,base);
