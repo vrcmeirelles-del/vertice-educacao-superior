@@ -59,11 +59,13 @@ export default function DireitoRaioX({ institutionId }: Props) {
   const [buscaAluno, setBuscaAluno] = useState("");
   const [profRes, setProfRes] = useState<any[]>([]);
   const [profResErro, setProfResErro] = useState<string>("");
-  const [docenciaOfertas,setDocenciaOfertas]=useState<{semestre:string;nome:string;disciplina:string}[]>([]);
+  const [docenciaOfertas,setDocenciaOfertas]=useState<{semestre:string;nome:string;disciplina:string;rf:number;rn:number;ra:number;matriculas:number}[]>([]);
   const [docenciaStatus,setDocenciaStatus]=useState<"loading"|"ready"|"error">("loading");
   const [docenciaSem,setDocenciaSem]=useState("2026/02");
   const [docenciaCompare,setDocenciaCompare]=useState("2025/02");
   const [docenciaBusca,setDocenciaBusca]=useState("");
+  const [rankingSemestre,setRankingSemestre]=useState("todos");
+  const [rankingSelecionado,setRankingSelecionado]=useState<string|null>(null);
   const [selectedSem,setSelectedSem]=useState("");
   const [compareMode,setCompareMode]=useState<CompareMode>("homologo");
   const [comparisonSem,setComparisonSem]=useState("");
@@ -79,14 +81,14 @@ export default function DireitoRaioX({ institutionId }: Props) {
     setSourceDate(null); setLoading(true);setDocenciaOfertas([]);setDocenciaStatus("loading");
     (async()=>{
       const {data,error}=await supabase.from("vertice_offering_outcomes")
-        .select("semester,teachers,discipline").eq("institution_id",institutionId).eq("course_code","027")
+        .select("semester,teachers,discipline,rf,rn,ra,discipline_enrollments").eq("institution_id",institutionId).eq("course_code","027")
         .gte("semester","2023/01").lte("semester","2026/02").order("semester",{ascending:true}).limit(1000);
       if(!active)return;
       if(error){setDocenciaStatus("error");return;}
       const items=(data??[]).flatMap(row=>{
         const name=String(row.teachers??"").trim();
         if(!name)return [];
-        return [{semestre:String(row.semester),nome:name,disciplina:String(row.discipline??"Disciplina não identificada")}];
+        return [{semestre:String(row.semester),nome:name,disciplina:String(row.discipline??"Disciplina não identificada"),rf:Math.max(0,Number(row.rf)||0),rn:Math.max(0,Number(row.rn)||0),ra:Math.max(0,Number(row.ra)||0),matriculas:Math.max(0,Number(row.discipline_enrollments)||0)}];
       });
       setDocenciaOfertas(items);
       setDocenciaStatus("ready");
@@ -272,18 +274,23 @@ export default function DireitoRaioX({ institutionId }: Props) {
     : trajetorias;
 
   // Ranking de professores: soma de todas as disciplinas/turmas/semestres desde 2023/01.
-  const rankingProf = (() => {
-    const m = new Map<string, {professor: string; total: number; reprov: number; nota: number; falta: number; ambos: number; disc: Set<string>; sems: Set<number>}>();
-    for (const r of profRes) {
-      const k = String(r.professor ?? "").trim() || "—";
-      if (!m.has(k)) m.set(k, {professor: k, total: 0, reprov: 0, nota: 0, falta: 0, ambos: 0, disc: new Set(), sems: new Set()});
-      const a = m.get(k)!;
-      a.total += r.total||0; a.nota += r.reprov_nota||0; a.falta += r.reprov_falta||0; a.ambos += r.reprov_ambos||0;
-      a.reprov += (r.reprov_nota||0)+(r.reprov_falta||0)+(r.reprov_ambos||0);
-      a.disc.add(String(r.disciplina)); a.sems.add(Number(r.semestre_id));
+  // Professor × oferta × semestre: classificação por ocorrências documentadas, não pessoas únicas.
+  // Não usar a tabela antiga professor_resultados: ela não contém linhas para este recorte.
+  const rankingProf=(()=>{
+    const normalize=(name:string)=>name.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleUpperCase("pt-BR").replace(/\s+/g," ").trim();
+    const map=new Map<string,{professor:string;total:number;reprov:number;nota:number;falta:number;ambos:number;disc:Set<string>;sems:Set<string>;ofertas:number}>();
+    for(const r of docenciaOfertas){
+      if(rankingSemestre!=="todos"&&r.semestre!==rankingSemestre)continue;
+      const key=normalize(r.nome);
+      if(!key||key.includes("PROFESSOR TESTE")||key.includes("TESTE LIFE"))continue;
+      if(!map.has(key))map.set(key,{professor:r.nome,total:0,reprov:0,nota:0,falta:0,ambos:0,disc:new Set(),sems:new Set(),ofertas:0});
+      const p=map.get(key)!;
+      p.total+=r.matriculas;p.nota+=r.rn;p.falta+=r.rf;p.ambos+=r.ra;
+      p.reprov+=r.rf+r.rn+r.ra;p.ofertas++;
+      p.disc.add(r.disciplina);p.sems.add(r.semestre);
     }
-    return [...m.values()].map(a => ({...a, taxa: a.total>0 ? (a.reprov/a.total)*100 : 0}))
-      .sort((x,y) => y.reprov - x.reprov || y.taxa - x.taxa);
+    return [...map.values()].map(p=>({...p,taxa:p.total>0&&p.reprov<=p.total?100*p.reprov/p.total:null}))
+      .sort((a,b)=>b.reprov-a.reprov||b.ofertas-a.ofertas);
   })();
   const topProf = rankingProf[0];
 
@@ -450,42 +457,47 @@ export default function DireitoRaioX({ institutionId }: Props) {
         </div>
       )}
 
-      {/* ── Professores com mais reprovações ── */}
-      <div className="drx-section">
+      {/* ── Ranking por professor, origem nas ofertas de Direito ── */}
+      <div className="drx-section" id="drx-ranking-professores">
         <div className="drx-section-header">
-          <h4>Professor com mais reprovações desde 2023</h4>
-          <p className="drx-sub">Soma de reprovações por nota, falta e ambos (RN + RF + RA) nas disciplinas de cada professor, 2023/01 a 2026/01.</p>
+          <h4>Professores com mais ocorrências de reprovação · desde 2023/01</h4>
+          <p className="drx-sub">Dados reais das ofertas do curso de Direito (027), até 2026/02. RF + RN + RA são ocorrências nas disciplinas, não estudantes únicos. O ranking não mede isoladamente desempenho ou qualidade docente.</p>
         </div>
-        {profResErro ? (
-          <p className="drx-alunos-bloqueado">{profResErro}</p>
-        ) : rankingProf.length === 0 ? (
-          <p className="drx-alunos-empty">Extração por professor ainda não carregada. O e-ORBIT registra a situação por aluno e disciplina, mas o vínculo professor × reprovação ainda não foi extraído para este painel — nenhum número é exibido até que a extração seja feita.</p>
-        ) : (
-          <>
-            {topProf && (
-              <div className="drx-alunos-summary">
-                <span><strong>{topProf.professor}</strong> lidera: {topProf.reprov} reprovações em {topProf.total} registros ({topProf.taxa.toFixed(1)}%)</span>
-              </div>
-            )}
-            <div className="drx-table-wrap">
-              <table className="drx-table">
-                <thead><tr><th>#</th><th>Professor</th><th>Alunos avaliados</th><th>Reprov. nota</th><th>Reprov. falta</th><th>Reprov. ambos</th><th>Total reprov.</th><th>Taxa</th></tr></thead>
-                <tbody>
-                  {rankingProf.slice(0, 15).map((a, i) => (
-                    <tr key={a.professor}>
-                      <td className="drx-cell-num">{i+1}</td>
-                      <td className="drx-cell-name">{a.professor}<span className="drx-note"> · {a.disc.size} disciplina{a.disc.size!==1?"s":""}</span></td>
-                      <td>{a.total}</td><td>{a.nota}</td><td>{a.falta}</td><td>{a.ambos}</td>
-                      <td><strong>{a.reprov}</strong></td>
-                      <td><span className={`drx-chip ${chipTaxa(a.taxa)}`}>{a.taxa.toFixed(1)}%</span></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <div className="drx-legend">Leitura com cautela: o total absoluto favorece quem leciona mais turmas; compare também a taxa. Reprovação por falta não reflete a avaliação do professor. Dados do e-ORBIT, sem normalização por dificuldade da disciplina.</div>
-          </>
-        )}
+        <div className="drx-compare-controls">
+          <label>Período de análise<select value={rankingSemestre} onChange={e=>{setRankingSemestre(e.target.value);setRankingSelecionado(null);}}>
+            <option value="todos">Todos · 2023/01 a 2026/02</option>
+            {["2023/01","2023/02","2024/01","2024/02","2025/01","2025/02","2026/01","2026/02"].map(t=><option key={t} value={t}>{t}</option>)}
+          </select></label>
+        </div>
+        {docenciaStatus==="loading"?<p className="drx-alunos-loading" role="status">Consultando ocorrências por professor…</p>:
+        docenciaStatus==="error"?<p className="drx-alunos-bloqueado" role="alert">A fonte de ofertas não está acessível no momento. Nenhum resultado foi estimado.</p>:
+        rankingProf.length===0?<p className="drx-alunos-empty">Não existem ocorrências atribuídas a professores no período escolhido.</p>:<>
+          {topProf&&<div className="drx-alunos-summary">
+            <span><strong>{topProf.professor}</strong> possui o maior número de ocorrências no recorte: <strong>{topProf.reprov}</strong> em {topProf.total} matrículas em disciplinas, distribuídas por {topProf.ofertas} ofertas.</span>
+          </div>}
+          <div className="drx-table-wrap"><table className="drx-table">
+            <thead><tr><th>Posição</th><th>Professor</th><th>Ofertas</th><th>Matrículas em disciplinas</th><th>RF · falta</th><th>RN · nota</th><th>RA · ambas</th><th>Ocorrências</th><th>Índice bruto*</th><th>Detalhes</th></tr></thead>
+            <tbody>{rankingProf.map((p,i)=><tr key={p.professor} className={rankingSelecionado===p.professor?"drx-row-selected":undefined}>
+              <td>{i+1}</td><td><strong>{p.professor}</strong><small className="drx-note"> · {p.disc.size} disciplina(s)</small></td>
+              <td>{p.ofertas}</td><td>{p.total}</td><td>{p.falta}</td><td>{p.nota}</td><td>{p.ambos}</td>
+              <td><strong>{p.reprov}</strong></td><td>{p.taxa===null?"Não apurado":p.taxa.toFixed(1)+"%"}</td>
+              <td><button type="button" className="drx-period-link" aria-expanded={rankingSelecionado===p.professor} onClick={()=>setRankingSelecionado(current=>current===p.professor?null:p.professor)}>Ver disciplinas ↗</button></td>
+            </tr>)}</tbody>
+          </table></div>
+          {rankingSelecionado&&(()=>{
+            const professor=rankingProf.find(p=>p.professor===rankingSelecionado);
+            if(!professor)return null;
+            const key=(v:string)=>v.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().trim();
+            const linhas=docenciaOfertas.filter(x=>key(x.nome)===key(professor.professor)&&(rankingSemestre==="todos"||x.semestre===rankingSemestre));
+            return <div className="drx-detail" aria-live="polite">
+              <div className="drx-compare-top"><h4>{professor.professor} · disciplinas e períodos</h4><button type="button" onClick={()=>setRankingSelecionado(null)}>Fechar</button></div>
+              <div className="drx-table-wrap"><table className="drx-table"><thead><tr><th>Semestre</th><th>Disciplina</th><th>Matrículas em disciplina</th><th>RF</th><th>RN</th><th>RA</th><th>Ocorrências</th></tr></thead>
+                <tbody>{linhas.sort((a,b)=>a.semestre.localeCompare(b.semestre)).map((d,i)=><tr key={d.semestre+d.disciplina+i}><td>{d.semestre}</td><td>{d.disciplina}</td><td>{d.matriculas}</td><td>{d.rf}</td><td>{d.rn}</td><td>{d.ra}</td><td>{d.rf+d.rn+d.ra}</td></tr>)}</tbody>
+              </table></div>
+            </div>;
+          })()}
+          <div className="drx-legend">*Índice bruto = (RF + RN + RA) ÷ matrículas em disciplinas × 100, quando as categorias não excedem o denominador. Não é taxa de alunos únicos reprovados. O total depende da quantidade de ofertas atribuídas ao docente; reprovações por falta também dependem da frequência dos estudantes. Comparações de qualidade docente exigem análise contextual, cobertura e validação das categorias.</div>
+        </>}
       </div>
 
       {/* ── Crescimento Real ── */}
