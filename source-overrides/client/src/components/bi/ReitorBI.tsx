@@ -195,7 +195,7 @@ export default function ReitorBI({ institutions, courses, enrollments, session, 
       setRisco(risk); setAlertas(al); setSaude(sau); setHeatmap(hm);
 
       // academic reports
-      const courseNames = await fetchCourseNames();
+      const courseNames = await fetchCourseNames(instId);
       const [cohortRep, profRep, discRep, fluxoRep, indRep] = await Promise.all([
         fetchReports(instId, ['cohorts']),
         fetchReports(instId, ['reprovacoes_professor']),
