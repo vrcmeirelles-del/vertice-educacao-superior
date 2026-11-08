@@ -8,7 +8,8 @@ type FileRow = { id: string; file_name: string; storage_path: string; request_id
 type RequestRow = { id: string; title: string; course_id: string | null };
 const titleByCode = new Map(OBJETOS_INSTITUCIONAL.map(o => [o.code, o.title]));
 
-export default function CorrespondenciasInstitucionais({ institutionId, role }: { institutionId: string; role: Role | null }) {
+export type DocumentoVinculado = { object_code: string; file_name: string; source_file_id: string };
+export default function CorrespondenciasInstitucionais({ institutionId, role, onLinksUpdated }: { institutionId: string; role: Role | null; onLinksUpdated?: (items: DocumentoVinculado[]) => void }) {
   const [links, setLinks] = useState<LinkRow[]>([]);
   const [files, setFiles] = useState<FileRow[]>([]);
   const [requests, setRequests] = useState<RequestRow[]>([]);
@@ -76,6 +77,8 @@ export default function CorrespondenciasInstitucionais({ institutionId, role }: 
   const visible=links.filter(x=>institutionFileIds.has(x.source_file_id)&&(showDiscarded||x.suggestion_status!=="descartado"));
   const suggested=visible.filter(x=>x.suggestion_status==="sugerido").length;
   const confirmed=visible.filter(x=>x.suggestion_status==="confirmado").length;
+  const confirmedDocuments = useMemo(() => links.filter(x=>x.suggestion_status==="confirmado" && institutionFileIds.has(x.source_file_id)).map(x=>({object_code:x.target_object_code,source_file_id:x.source_file_id,file_name:fileById.get(x.source_file_id)?.file_name??"Arquivo não localizado"})), [links,institutionFileIds,fileById]);
+  useEffect(() => { onLinksUpdated?.(confirmedDocuments); }, [confirmedDocuments,onLinksUpdated]);
 
   return <section className="area-panel ni-crosswalk" aria-label="Inteligência de correspondência documental">
     <div className="area-panel-head">
