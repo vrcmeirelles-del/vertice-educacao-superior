@@ -53,7 +53,7 @@ function KPITiles({ kpis, snapshots, hasLeads, hasCosts }: { kpis: KPIs; snapsho
 function FunnelChart({ data }: { data: FunnelStage[] }) {
   const max = Math.max(...data.map(d => d.count), 1);
   return <article className="cbi-card">
-    <h3>Funil de Captação</h3>
+    <h3>Etapas registradas da captação</h3><small className="cbi-subtitle">Contagem de leads em cada etapa informada, sem supor conversões ou etapas percorridas.</small>
     <div className="cbi-funnel">{data.map((d, i) => (
       <div className="cbi-funnel-row" key={d.stage}>
         <span className="cbi-funnel-label">{d.stage}</span>
@@ -343,7 +343,7 @@ export default function CaptacaoBI({ institutionId, institutionName }: { institu
       <>
         <KPITiles kpis={bi.kpis} snapshots={snapshots} hasLeads={leads.length>0} hasCosts={custos.length>0} />
         <div className="cbi-grid">
-          {leads.length>0?<FunnelChart data={bi.funnel} />:<section className="cbi-card"><h3>Funil de Captação</h3><p>Fonte não disponibilizada: sem registros de leads para esta instituição.</p></section>}
+          {leads.length>0?<FunnelChart data={bi.funnel} />:<section className="cbi-card"><h3>Etapas registradas da captação</h3><small className="cbi-subtitle">Contagem de leads em cada etapa informada, sem supor conversões ou etapas percorridas.</small><p>Fonte não disponibilizada: sem registros de leads para esta instituição.</p></section>}
           {leads.length>0?<HBarChart title="Leads por Origem" data={bi.origens} valueKey="leads" labelKey="canal" />:<section className="cbi-card"><h3>Leads por origem</h3><p>Sem dados de origem.</p></section>}
           {snapshots.length>0?<EvolucaoChart data={bi.evolucao} />:<section className="cbi-card"><h3>Evolução mensal</h3><p>Snapshots mensais não disponibilizados.</p></section>}
           {custos.length>0?<HBarChart title="Custo por Canal" data={bi.custosCanal} valueKey="investimento" labelKey="canal" formatValue={v => fmtMoney.format(v)} subtitle="Investimento total por canal" />:<section className="cbi-card"><h3>Custo por canal</h3><p>Custos de campanhas não disponibilizados.</p></section>}
