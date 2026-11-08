@@ -1,0 +1,45 @@
+/* Identidade única e responsiva dos BIs autenticados. Não afeta demonstração comercial. */
+.vx-bi-unified{--vxb-ink:#163936;--vxb-teal:#087f75;--vxb-muted:#607578;display:grid;grid-template-columns:214px minmax(0,1fr);background:#f0f7f7;border:1px solid #d5e8e5;border-radius:16px;overflow:hidden;box-shadow:0 12px 30px #063b361a;color:var(--vxb-ink);font-family:Inter,system-ui,sans-serif}
+.vx-bi-unified *{box-sizing:border-box}
+.vx-bi-unified-side{padding:20px 12px;display:flex;flex-direction:column;gap:16px;background:linear-gradient(165deg,#073934,#07554c);color:#e6fff5}
+.vx-bi-unified-brand{display:flex;align-items:center;gap:10px;padding:0 7px 17px;border-bottom:1px solid #ffffff3c}
+.vx-bi-unified-brand>b{display:grid;place-items:center;width:40px;height:40px;flex:none;border-radius:9px;background:linear-gradient(130deg,#ffeaa2,#dfac46);color:#163d35;font-size:25px}
+.vx-bi-unified-brand strong{display:block;font-size:17px;line-height:1.1;color:white}
+.vx-bi-unified-brand small{font-size:10px;color:#b2e5d8}
+.vx-bi-unified-side nav{display:grid;gap:5px}
+.vx-bi-unified-side nav a{display:flex;align-items:center;gap:10px;padding:12px 9px;border-radius:9px;text-decoration:none;color:#e3f7f0;font-size:12px;font-weight:650}
+.vx-bi-unified-side nav a span{font-size:22px;font-weight:400;width:22px;text-align:center}
+.vx-bi-unified-side nav a[aria-current=page]{background:linear-gradient(90deg,#10a992,#087f75);color:white;box-shadow:0 3px 12px #042f2c70}
+.vx-bi-unified-side nav a:hover{background:#ffffff24}
+.vx-bi-unified-side nav a:focus-visible{outline:3px solid #f2cb71;outline-offset:2px}
+.vx-bi-unified-side-note{margin:auto 0 0;border-top:1px solid #ffffff38;padding:17px 8px 0;font-style:italic;font-size:16px;line-height:1.4}
+.vx-bi-unified-side-note strong{display:block;color:#f4d575}
+.vx-bi-unified-side-note small{display:block;font-size:11px;font-style:normal;color:#b9ded6;margin-top:10px}
+.vx-bi-unified-main{min-width:0;padding:15px;background:#f0f7f7}
+.vx-bi-unified-heading{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;padding:16px 20px;background:linear-gradient(90deg,#093b36,#0b5f54);color:#fff;border-radius:12px}
+.vx-bi-unified-heading h2{color:white!important;font-size:clamp(20px,2.6vw,28px)!important;font-weight:800!important;font-family:Inter,system-ui,sans-serif!important;margin:4px 0!important}
+.vx-bi-unified-heading small{color:#d2e9e4;font-size:10px;font-weight:800;letter-spacing:.1em}
+.vx-bi-unified-heading p{margin:0;color:#d5eee6;font-size:12px}
+.vx-bi-unified-heading>span{border:1px solid #83bbb0;border-radius:99px;padding:7px 11px;font-size:11px}
+.vx-bi-unified-data{display:flex;align-items:center;gap:8px 16px;flex-wrap:wrap;background:#f9fdfb;border:1px solid #dbe9e5;border-radius:10px;padding:10px 13px;margin:12px 0;color:#58716d;font-size:11px}
+.vx-bi-unified-data strong{color:#245b53}
+.vx-bi-unified-content{min-width:0}
+/* Remapeamento de identidade para os módulos existentes, sem tocar nas fórmulas. */
+.vx-bi-unified .cbi-root,.vx-bi-unified .abi-root,.vx-bi-unified .painel-bi{background:transparent!important;padding:6px!important;color:var(--vxb-ink);font-family:Inter,system-ui,sans-serif}
+.vx-bi-unified .cbi-header,.vx-bi-unified .abi-header{margin:12px 0}
+.vx-bi-unified .cbi-header h2,.vx-bi-unified .abi-header h2,.vx-bi-unified .painel-bi h1{font-size:20px!important;font-weight:800!important;font-family:Inter,system-ui,sans-serif!important;color:#184942!important}
+.vx-bi-unified .painel-bi h2{font-family:Inter,system-ui,sans-serif!important;color:#184942!important}
+.vx-bi-unified .cbi-card,.vx-bi-unified .abi-card,.vx-bi-unified .bi-secao,.vx-bi-unified .bi-lateral>div{background:white!important;border:1px solid #dbe8e6!important;border-radius:13px!important;box-shadow:0 3px 12px #083c3412!important;padding:15px!important;margin-bottom:14px}
+.vx-bi-unified .cbi-kpi,.vx-bi-unified .abi-kpi{border:1px solid #bce3dc!important;border-radius:12px!important;background:linear-gradient(125deg,#e8fbf5,#d0efe7)!important;box-shadow:0 3px 10px #003e3215!important}
+.vx-bi-unified .cbi-kpi:nth-child(4n+2),.vx-bi-unified .abi-kpi:nth-child(4n+2){background:linear-gradient(120deg,#fff8e9,#ffebc8)!important;border-color:#f1dab0!important}
+.vx-bi-unified .cbi-kpi:nth-child(4n+3),.vx-bi-unified .abi-kpi:nth-child(4n+3){background:linear-gradient(120deg,#eefafc,#cceef0)!important;border-color:#b8e0e5!important}
+.vx-bi-unified .cbi-kpi:nth-child(4n+4),.vx-bi-unified .abi-kpi:nth-child(4n+4){background:linear-gradient(120deg,#fff4f1,#f9dbd9)!important;border-color:#ebceca!important}
+.vx-bi-unified .cbi-kpi-value,.vx-bi-unified .abi-kpi-value{color:#184941!important;font-variant-numeric:tabular-nums}
+.vx-bi-unified .cbi-tab.active,.vx-bi-unified .abi-tab.active{color:#086d64!important;border-bottom-color:#0a8f82!important}
+.vx-bi-unified .cbi-actions button,.vx-bi-unified .abi-actions button,.vx-bi-unified .bi-refresh,.vx-bi-unified .bi-exportar{background:#0a8378!important;border:1px solid #08756b!important;border-radius:8px!important;color:white!important;cursor:pointer}
+.vx-bi-unified .cbi-actions button:hover,.vx-bi-unified .abi-actions button:hover{background:#086a60!important}
+.vx-bi-unified .cbi-empty,.vx-bi-unified .abi-empty,.vx-bi-unified .bi-vazio{padding:15px;border-radius:10px;background:#f3f8f7;color:#5a7371;font-size:13px}
+.vx-bi-unified .cbi-status,.vx-bi-unified .abi-subtitle,.vx-bi-unified .bi-meta{color:#5a7475}
+@media(max-width:1100px){.vx-bi-unified{grid-template-columns:175px minmax(0,1fr)}.vx-bi-unified-main{padding:10px}}
+@media(max-width:740px){.vx-bi-unified{grid-template-columns:1fr}.vx-bi-unified-side{padding:12px;gap:8px}.vx-bi-unified-side nav{grid-template-columns:repeat(2,minmax(0,1fr))}.vx-bi-unified-side nav a{padding:9px;font-size:11px}.vx-bi-unified-side-note{display:none}.vx-bi-unified-main{padding:9px}.vx-bi-unified-heading>span{white-space:normal}}
+@media(prefers-reduced-motion:reduce){.vx-bi-unified *{transition:none!important;animation:none!important}}
