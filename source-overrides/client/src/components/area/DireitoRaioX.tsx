@@ -44,6 +44,8 @@ export default function DireitoRaioX({ institutionId }: Props) {
   const [roster, setRoster] = useState<any[]>([]);
   const [rosterErro, setRosterErro] = useState<string>("");
   const [buscaAluno, setBuscaAluno] = useState("");
+  const [profRes, setProfRes] = useState<any[]>([]);
+  const [profResErro, setProfResErro] = useState<string>("");
 
   useEffect(() => {
     let active = true;
@@ -51,6 +53,15 @@ export default function DireitoRaioX({ institutionId }: Props) {
     setDocenteEvo(null); setSerieReal(null); setSourceStatus("pending_mapping");
     setSourceDate(null); setLoading(true);
     if (institutionId !== UNITOP_ID) { setLoading(false); return () => { active = false; }; }
+    (async () => {
+      const pr = await supabase.from("vertice_eorbit_professor_resultados")
+        .select("professor,disciplina,turma_nome,semestre_id,total,aprovados,reprov_nota,reprov_falta,reprov_ambos,outros")
+        .eq("instituicao_id", UNITOP_ID).eq("curso_id", 46);
+      if (active) {
+        if (pr.error) { setProfResErro(motivoBloqueio(pr.error).replace("dados nominais","resultados por professor")); setProfRes([]); }
+        else { setProfResErro(""); setProfRes(pr.data ?? []); }
+      }
+    })();
     (async () => {
       try {
         const [courseStats, classStats, source, nominal] = await Promise.all([
@@ -187,6 +198,22 @@ export default function DireitoRaioX({ institutionId }: Props) {
   const trajetoriasFiltradas = termoBusca
     ? trajetorias.filter(a => a.nome.toLowerCase().includes(termoBusca) || a.matricula.toLowerCase().includes(termoBusca))
     : trajetorias;
+
+  // Ranking de professores: soma de todas as disciplinas/turmas/semestres desde 2023/01.
+  const rankingProf = (() => {
+    const m = new Map<string, {professor: string; total: number; reprov: number; nota: number; falta: number; ambos: number; disc: Set<string>; sems: Set<number>}>();
+    for (const r of profRes) {
+      const k = String(r.professor ?? "").trim() || "—";
+      if (!m.has(k)) m.set(k, {professor: k, total: 0, reprov: 0, nota: 0, falta: 0, ambos: 0, disc: new Set(), sems: new Set()});
+      const a = m.get(k)!;
+      a.total += r.total||0; a.nota += r.reprov_nota||0; a.falta += r.reprov_falta||0; a.ambos += r.reprov_ambos||0;
+      a.reprov += (r.reprov_nota||0)+(r.reprov_falta||0)+(r.reprov_ambos||0);
+      a.disc.add(String(r.disciplina)); a.sems.add(Number(r.semestre_id));
+    }
+    return [...m.values()].map(a => ({...a, taxa: a.total>0 ? (a.reprov/a.total)*100 : 0}))
+      .sort((x,y) => y.reprov - x.reprov || y.taxa - x.taxa);
+  })();
+  const topProf = rankingProf[0];
 
   const corTaxa = (t: number) => t > 40 ? "var(--danger)" : t > 25 ? "var(--warning)" : "var(--success)";
   const chipTaxa = (t: number) => t > 40 ? "drx-chip-red" : t > 25 ? "drx-chip-yellow" : "drx-chip-green";
@@ -338,6 +365,44 @@ export default function DireitoRaioX({ institutionId }: Props) {
           </div>
         </div>
       )}
+
+      {/* ── Professores com mais reprovações ── */}
+      <div className="drx-section">
+        <div className="drx-section-header">
+          <h4>Professor com mais reprovações desde 2023</h4>
+          <p className="drx-sub">Soma de reprovações por nota, falta e ambos (RN + RF + RA) nas disciplinas de cada professor, 2023/01 a 2026/01.</p>
+        </div>
+        {profResErro ? (
+          <p className="drx-alunos-bloqueado">{profResErro}</p>
+        ) : rankingProf.length === 0 ? (
+          <p className="drx-alunos-empty">Extração por professor ainda não carregada. O e-ORBIT registra a situação por aluno e disciplina, mas o vínculo professor × reprovação ainda não foi extraído para este painel — nenhum número é exibido até que a extração seja feita.</p>
+        ) : (
+          <>
+            {topProf && (
+              <div className="drx-alunos-summary">
+                <span><strong>{topProf.professor}</strong> lidera: {topProf.reprov} reprovações em {topProf.total} registros ({topProf.taxa.toFixed(1)}%)</span>
+              </div>
+            )}
+            <div className="drx-table-wrap">
+              <table className="drx-table">
+                <thead><tr><th>#</th><th>Professor</th><th>Alunos avaliados</th><th>Reprov. nota</th><th>Reprov. falta</th><th>Reprov. ambos</th><th>Total reprov.</th><th>Taxa</th></tr></thead>
+                <tbody>
+                  {rankingProf.slice(0, 15).map((a, i) => (
+                    <tr key={a.professor}>
+                      <td className="drx-cell-num">{i+1}</td>
+                      <td className="drx-cell-name">{a.professor}<span className="drx-note"> · {a.disc.size} disciplina{a.disc.size!==1?"s":""}</span></td>
+                      <td>{a.total}</td><td>{a.nota}</td><td>{a.falta}</td><td>{a.ambos}</td>
+                      <td><strong>{a.reprov}</strong></td>
+                      <td><span className={`drx-chip ${chipTaxa(a.taxa)}`}>{a.taxa.toFixed(1)}%</span></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="drx-legend">Leitura com cautela: o total absoluto favorece quem leciona mais turmas; compare também a taxa. Reprovação por falta não reflete a avaliação do professor. Dados do e-ORBIT, sem normalização por dificuldade da disciplina.</div>
+          </>
+        )}
+      </div>
 
       {/* ── Crescimento Real ── */}
       {serieReal?.resumo_serie_historica && (
