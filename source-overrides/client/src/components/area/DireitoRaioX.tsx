@@ -89,7 +89,6 @@ export default function DireitoRaioX({ institutionId }: Props) {
   const matriculadosAtual = latest?.matriculados || 0;
   const matriculadosPrev = prev?.matriculados || 0;
   const crescimento = matriculadosPrev > 0 ? (((matriculadosAtual - matriculadosPrev) / matriculadosPrev) * 100).toFixed(1) : "—";
-  const taxaEvasao = latest ? parseFloat(latest.taxa_evasao) : 0;
   const totalGeral = quantGeral?.total_geral || 0;
   const trancados = quantGeral?.status?.TRANCADO || 0;
   const cancelados = quantGeral?.status?.CANCELADO || 0;
@@ -103,10 +102,13 @@ export default function DireitoRaioX({ institutionId }: Props) {
   const coortes = semFiltered.map((s) => {
     const evadidos = (s.trancado||0)+(s.abandono||0)+(s.cancelado||0)+(s.transferido||0)+(s.troca_curso||0);
     const ativos = s.matriculados||0;
-    const base = ativos + evadidos;
+    const concluintes = (s.concluido||0)+(s.graduado||0);
+    // Coorte inteira: ativos + pre-matriculados + concluintes + evadidos.
+    // Mesma base da coluna taxa_evasao do banco. Concluir curso nao e evadir.
+    const base = ativos + (s.pre_matriculado||0) + concluintes + evadidos;
     return {
       semestre: String(s.semestre), ano: String(s.semestre).slice(0,4),
-      vinculos: base, ativos, evadidos,
+      vinculos: base, ativos, evadidos, concluintes,
       trancado: s.trancado||0, cancelado: s.cancelado||0, transferido: s.transferido||0,
       vagas: s.vagas||0, ocupacao: parseFloat(s.taxa_ocupacao)||0,
       taxa: base>0 ? (evadidos/base)*100 : 0,
@@ -127,7 +129,8 @@ export default function DireitoRaioX({ institutionId }: Props) {
     const vinculos = rows.reduce((a,c)=>a+c.vinculos,0);
     const evadidos = rows.reduce((a,c)=>a+c.evadidos,0);
     const ativos = rows.reduce((a,c)=>a+c.ativos,0);
-    return { ano, vinculos, ativos, evadidos, taxa: vinculos>0 ? (evadidos/vinculos)*100 : 0 };
+    const concluintes = rows.reduce((a,c)=>a+c.concluintes,0);
+    return { ano, vinculos, ativos, evadidos, concluintes, taxa: vinculos>0 ? (evadidos/vinculos)*100 : 0 };
   });
 
   const corTaxa = (t: number) => t > 40 ? "var(--danger)" : t > 25 ? "var(--warning)" : "var(--success)";
@@ -332,7 +335,7 @@ export default function DireitoRaioX({ institutionId }: Props) {
                           <span>{parseFloat(s.taxa_ocupacao).toFixed(1)}%</span>
                         </div>
                       </td>
-                      <td>{(() => { const ev=(s.trancado||0)+(s.abandono||0)+(s.cancelado||0)+(s.transferido||0)+(s.troca_curso||0); const bs=(s.matriculados||0)+ev; const tx=bs>0?(ev/bs)*100:0; return <span className={`drx-chip ${chipTaxa(tx)}`}>{tx.toFixed(1)}%</span>; })()}</td>
+                      <td>{(() => { const ev=(s.trancado||0)+(s.abandono||0)+(s.cancelado||0)+(s.transferido||0)+(s.troca_curso||0); const bs=(s.matriculados||0)+(s.pre_matriculado||0)+(s.concluido||0)+(s.graduado||0)+ev; const tx=bs>0?(ev/bs)*100:0; return <span className={`drx-chip ${chipTaxa(tx)}`}>{tx.toFixed(1)}%</span>; })()}</td>
                       <td>{i===0?"—":diff>0?<span className="drx-trend-up">▲+{diff}</span>:diff<0?<span className="drx-trend-down">▼{diff}</span>:<span>→</span>}</td>
                     </tr>
                   );
@@ -416,7 +419,7 @@ export default function DireitoRaioX({ institutionId }: Props) {
           </div>
 
           <p className="drx-evasao-nota">
-            Taxa = evadidos ÷ (ativos + evadidos), contando trancamento, abandono, cancelamento, transferência e troca de curso. A coluna <code>taxa_evasao</code> gravada no banco divide pelos que permaneceram e por isso chega a passar de 100%; este painel recalcula e não a utiliza.
+            Taxa = evadidos ÷ coorte inteira, onde evadidos = trancamento, abandono, cancelamento, transferência e troca de curso, e a coorte inteira inclui ativos, pré-matriculados, concluintes e evadidos. Concluir o curso não é evadir. É a mesma fórmula gravada na coluna <code>taxa_evasao</code> do banco.
           </p>
         </div>
       )}
