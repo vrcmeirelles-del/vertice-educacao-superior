@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import "./cost-simulator.css";
 import CostEvidence from "./CostEvidence";
@@ -54,6 +54,11 @@ export default function CostSimulator({ institutionId, onUploadDocument }: { ins
   const [params, setParams] = useState<Params>(DEFAULT_PARAMS);
   const [editing, setEditing] = useState(false);
   const [resultFilter,setResultFilter]=useState<"todos"|"superavit"|"deficit"|"equilibrio">("todos");
+  const resultsRef=useRef<HTMLDivElement>(null);
+  const openResults=(filter:"superavit"|"deficit")=>{
+    setResultFilter(current=>current===filter?"todos":filter);
+    window.requestAnimationFrame(()=>resultsRef.current?.scrollIntoView({behavior:"smooth",block:"start"}));
+  };
   const [draft, setDraft] = useState<Params>(DEFAULT_PARAMS);
   const [quants, setQuants] = useState<Quant[]>([]);
   const [semester, setSemester] = useState('');
@@ -306,12 +311,12 @@ export default function CostSimulator({ institutionId, onUploadDocument }: { ins
           <strong>{results.length}</strong>
           <span>{NUM.format(totals.matriculados)} matriculados</span>
         </div>
-        <button type="button" className="cost-sim-kpi cost-sim-kpi-action" style={{ borderLeftColor: 'var(--success)' }} aria-pressed={resultFilter==="superavit"} onClick={()=>setResultFilter(f=>f==="superavit"?"todos":"superavit")}>
+        <button type="button" className="cost-sim-kpi cost-sim-kpi-action" style={{ borderLeftColor: 'var(--success)' }} aria-pressed={resultFilter==="superavit"} onClick={()=>openResults("superavit")}>
           <small>Superávit estimado · ver cursos ↗</small>
           <strong style={{ color: 'var(--success)' }}>{totals.lucro}</strong>
           <span>registros de curso com saldo simulado positivo</span>
         </button>
-        <button type="button" className="cost-sim-kpi cost-sim-kpi-action" style={{ borderLeftColor: 'var(--danger)' }} aria-pressed={resultFilter==="deficit"} onClick={()=>setResultFilter(f=>f==="deficit"?"todos":"deficit")}>
+        <button type="button" className="cost-sim-kpi cost-sim-kpi-action" style={{ borderLeftColor: 'var(--danger)' }} aria-pressed={resultFilter==="deficit"} onClick={()=>openResults("deficit")}>
           <small>Déficit estimado · ver cursos ↗</small>
           <strong style={{ color: 'var(--danger)' }}>{totals.prejuizo}</strong>
           <span>registros de curso com saldo simulado negativo</span>
@@ -324,7 +329,7 @@ export default function CostSimulator({ institutionId, onUploadDocument }: { ins
       </div>}
 
       {/* Tabela de cursos */}
-      {results.length>0&&<div className="cost-sim-list">
+      {results.length>0&&<div className="cost-sim-list" ref={resultsRef}>
         <div className="cost-sim-list-head"><div><h4>Detalhamento por curso · {semester}</h4><p>Os filtros abaixo usam o saldo projetado do cenário, não lucro ou prejuízo contabilizado.</p></div><div className="cost-sim-result-filters" role="group" aria-label="Filtrar cursos por resultado simulado">
         <button type="button" aria-pressed={resultFilter==="todos"} onClick={()=>setResultFilter("todos")}>Todos ({results.length})</button>
         <button type="button" aria-pressed={resultFilter==="superavit"} onClick={()=>setResultFilter("superavit")}>Superávit ({totals.lucro})</button>
