@@ -16,6 +16,14 @@ type Data={offers:Offer[];enrollments:Enrollment[];stats:Stats[];reports:Report[
 const EMPTY:Data={offers:[],enrollments:[],stats:[],reports:[],risks:[],requests:[],files:[],sources:[]};
 const n=(x:unknown)=>Number.isFinite(Number(x))?Number(x):0;
 const fmt=new Intl.NumberFormat("pt-BR");
+const fmtPct=new Intl.NumberFormat("pt-BR",{minimumFractionDigits:1,maximumFractionDigits:1});
+/** Razão entre ocorrências classificadas e matrículas em disciplinas: não é taxa de alunos únicos. */
+function incidenciaBruta(row:{rf:number;rn:number;ra:number;vinculos:number}):string {
+  const occurrences=row.rf+row.rn+row.ra;
+  // Sem base válida, não produz percentual nem transforma cobertura insuficiente em dado certo.
+  if(row.vinculos<=0||occurrences>row.vinculos||occurrences<0)return "—";
+  return fmtPct.format(100*occurrences/row.vinculos)+"%";
+}
 const codeOf=(x:unknown)=>String(x??"").trim();
 function term(x:unknown){const m=String(x??"").trim().match(/^(20\d{2})[/-]0?([12])$/);return m?m[1]+"/"+m[2]:"";}
 function previous(t:string,mode:"year"|"term"){const m=t.match(/^(\d{4})\/([12])$/);if(!m)return"";return mode==="year"?(Number(m[1])-1)+"/"+m[2]:m[2]==="2"?m[1]+"/1":(Number(m[1])-1)+"/2";}
@@ -167,7 +175,7 @@ export default function EnadeCross({institutionId,courses,goals,actions,role,sel
     ["Reprovações por nota",value.rn,prior.rn,"Ocorrências em disciplinas"],
     ["Falta e nota",value.ra,prior.ra,"Categoria combinada"],
     ["Ofertas analisadas",value.ofertas,prior.ofertas,"Registros por oferta"],
-    ["Vínculos em disciplinas",value.vinculos,prior.vinculos,"Não são alunos distintos"],
+    ["Matrículas em disciplinas",value.vinculos,prior.vinculos,"Registros nas ofertas; um aluno pode aparecer em várias disciplinas"],
     ["Evasão",value.evasao,prior.evasao,"Contagem da fonte agregada"],
     ["Trancamentos",value.trancado,prior.trancado,"Contagem da fonte agregada"],
   ];
@@ -191,12 +199,13 @@ export default function EnadeCross({institutionId,courses,goals,actions,role,sel
         <small>{priorTerm}: {b===null?"sem dados":fmt.format(b)} · diferença {a===null||b===null?"indisponível":(a-b>0?"+":"")+fmt.format(a-b)}</small>
         <em>{description}</em>
       </article>)}</div>
-      <p className="enadex-alert">RF/RN/RA representam <strong>ocorrências de reprovação por disciplina</strong>, não estudantes diferentes. O indicador não é nota oficial do ENADE e não prova causalidade docente. {statusCode>1?"O código deste curso está duplicado: reprovações não são atribuídas a nenhum dos cadastros até a reconciliação.":""}</p>
+      <p className="enadex-alert">RF/RN/RA representam <strong>ocorrências registradas por disciplina</strong>, não estudantes diferentes. O índice bruto adicional utiliza a soma das categorias por matrículas em disciplinas; não equivale à taxa de alunos reprovados e depende da homologação do dicionário RF/RN/RA e da ausência de sobreposição para uso regulatório. O indicador não é nota oficial do ENADE e não prova causalidade docente. {statusCode>1?"O código deste curso está duplicado: reprovações não são atribuídas a nenhum dos cadastros até a reconciliação.":""}</p>
       <div className="enadex-tables">
         {([["Disciplinas com mais reprovações",discipline],["Docência registrada em ofertas",teachers]] as const).map(([title,rows])=><section key={title}><h5>{title} · {active}</h5>
-          <div className="enadex-scroll"><table><thead><tr><th>Registro</th><th>RF</th><th>RN</th><th>RA</th><th>Vínculos</th></tr></thead>
-          <tbody>{rows.map(x=><tr key={x.label}><td>{x.label}</td><td>{fmt.format(x.rf)}</td><td>{fmt.format(x.rn)}</td><td>{fmt.format(x.ra)}</td><td>{fmt.format(x.vinculos)}</td></tr>)}
-          {!rows.length&&<tr><td colSpan={5}>Sem registros atribuíveis com segurança neste período.</td></tr>}</tbody></table></div>
+          <p className="enadex-alert">Matrículas em disciplinas = registros nas ofertas. Um aluno matriculado em várias disciplinas pode gerar vários registros. Índice bruto = (RF + RN + RA) ÷ matrículas em disciplinas × 100, quando o denominador é válido; não mede estudantes únicos nem reprovação oficial.</p>
+          <div className="enadex-scroll"><table><thead><tr><th>Registro</th><th title="Código RF informado pela fonte; motivo sujeito à homologação">RF</th><th title="Código RN informado pela fonte; motivo sujeito à homologação">RN</th><th title="Código RA informado pela fonte; significado definitivo sujeito à homologação">RA</th><th title="Quantidade de matrículas em ofertas de disciplinas. Um mesmo aluno pode gerar vários registros.">Matrículas em disciplinas</th><th title="Soma bruta das categorias RF, RN e RA dividida pelas matrículas em disciplinas, sem deduplicação de alunos. Não é taxa oficial de reprovação.">Índice bruto de ocorrências</th></tr></thead>
+          <tbody>{rows.map(x=><tr key={x.label}><td>{x.label}</td><td>{fmt.format(x.rf)}</td><td>{fmt.format(x.rn)}</td><td>{fmt.format(x.ra)}</td><td>{fmt.format(x.vinculos)}</td><td title="Indicador descritivo; não representa taxa de alunos reprovados">{incidenciaBruta(x)}</td></tr>)}
+          {!rows.length&&<tr><td colSpan={6}>Sem registros atribuíveis com segurança neste período.</td></tr>}</tbody></table></div>
         </section>)}
       </div>
       <section className="enadex-panel"><h5>Correlação com gestão institucional</h5>
