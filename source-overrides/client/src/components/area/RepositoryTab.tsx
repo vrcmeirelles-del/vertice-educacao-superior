@@ -1,5 +1,6 @@
 import { useCourseFilters } from "./CourseFilters";
 import indicatorNames from "@/lib/repository-indicators.json";
+import "./avaliacao-institucional.css";
 import RepositoryFiles from "./RepositoryFiles";
 import AvaliacaoSimuladaPanel from "./AvaliacaoSimuladaPanel";
 import "./avaliacao-simulada.css";
@@ -47,6 +48,93 @@ import RepositoryDocuments, {
   type RepositoryProps,
 } from "./RepositoryDocuments";
 import "./repository-evidence.css";
+
+const COR_VALIDADO = "#4f9a76";
+const COR_AGUARDA = "#d1a54a";
+const COR_DEVOLVIDO = "#c0594f";
+const COR_SEM = "#a9b6c4";
+
+const DIMENSOES_INSTRUMENTO = [
+  ...new Set(Object.keys(indicatorNames).map((k) => k.split(".")[0])),
+].sort();
+
+type ParteRepo = { value: number; color: string; label: string };
+
+function DonutRepo({ parts, center, caption, size = 96 }: { parts: ParteRepo[]; center: string; caption: string; size?: number }) {
+  const total = parts.reduce((s, p) => s + p.value, 0);
+  let acc = 0;
+  return (
+    <svg className="aval-donut" viewBox="0 0 42 42" width={size} height={size} role="img" aria-label={caption}>
+      <circle cx="21" cy="21" r="15.915" fill="none" stroke="#e7ecf1" strokeWidth="5" />
+      {total > 0 && parts.filter((p) => p.value > 0).map((p) => {
+        const len = (p.value / total) * 100;
+        const el = <circle key={p.label} cx="21" cy="21" r="15.915" fill="none" stroke={p.color} strokeWidth="5" strokeDasharray={`${len} ${100 - len}`} strokeDashoffset={25 - acc} />;
+        acc += len;
+        return el;
+      })}
+      <text x="21" y="23" textAnchor="middle" className="aval-donut-text">{center}</text>
+    </svg>
+  );
+}
+
+type ResumoSummary = { total: number; sent: number; validated: number; returned: number; nsa: number; late: number; percent: number };
+type ResumoDimensao = { code: string; total: number; validados: number };
+
+function ResumoDocumental({ summary, dimensoes }: { summary: ResumoSummary; dimensoes: ResumoDimensao[] }) {
+  if (!summary.total && !summary.nsa) return null;
+  const aguardando = Math.max(0, summary.sent - summary.validated - summary.returned);
+  const semArquivo = Math.max(0, summary.total - summary.sent);
+  return (
+    <div className="aval-resumo">
+      <div className="aval-resumo-main">
+        <DonutRepo
+          parts={[
+            { value: summary.validated, color: COR_VALIDADO, label: "Validado" },
+            { value: aguardando, color: COR_AGUARDA, label: "Aguardando" },
+            { value: summary.returned, color: COR_DEVOLVIDO, label: "Devolvido" },
+            { value: semArquivo, color: COR_SEM, label: "Sem arquivo" },
+          ]}
+          center={`${summary.percent}%`}
+          caption="Situação documental do Reconhecimento de Curso"
+        />
+        <div>
+          <strong style={{ fontSize: "1.15rem" }}>{summary.percent}% validado</strong>
+          <ul className="aval-legenda">
+            <li><i style={{ background: COR_VALIDADO }} /> Validado <b>{summary.validated}</b></li>
+            <li><i style={{ background: COR_AGUARDA }} /> Aguardando conferência <b>{aguardando}</b></li>
+            <li><i style={{ background: COR_DEVOLVIDO }} /> Devolvido <b>{summary.returned}</b></li>
+            <li><i style={{ background: COR_SEM }} /> Sem arquivo <b>{semArquivo}</b></li>
+          </ul>
+          <p className="area-muted" style={{ margin: "8px 0 0", fontSize: ".78rem" }}>
+            {summary.nsa} marcados como NSA · {summary.late} em atraso · contagem sobre {summary.total} exigências aplicáveis
+          </p>
+        </div>
+      </div>
+      <div className="aval-eixo-cards">
+        {dimensoes.map((d) => {
+          const pct = d.total ? Math.round((d.validados * 100) / d.total) : 0;
+          const cor = !d.total ? COR_SEM : pct >= 80 ? COR_VALIDADO : pct >= 50 ? COR_AGUARDA : COR_DEVOLVIDO;
+          return (
+            <div key={d.code} className="aval-eixo-card">
+              <DonutRepo
+                parts={[{ value: pct, color: cor, label: "" }, { value: 100 - pct, color: "#e7ecf1", label: "" }]}
+                center={d.total ? `${pct}%` : "—"}
+                caption={`Dimensão ${d.code}`}
+                size={52}
+              />
+              <div>
+                <strong>Dimensão {d.code}</strong>
+                <p className="area-muted" style={{ margin: 0, fontSize: ".78rem" }}>
+                  {d.total ? `${d.validados} de ${d.total} validados` : "sem exigência no semestre"}
+                </p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 const indicatorList = (value: unknown): string[] =>
   Array.from(String(value ?? "").match(/[123]\.\d+/g) ?? []);
@@ -252,6 +340,16 @@ export default function RepositoryTab(props: RepositoryProps) {
       (r) => indicatorList(r.indicator).includes(i) && latest.has(r.id),
     ),
   ).length;
+  const dimensoesResumo = DIMENSOES_INSTRUMENTO.map((code) => {
+    const reqs = applicable.filter((r) =>
+      indicatorList(r.indicator).some((i) => i.split(".")[0] === code),
+    );
+    return {
+      code,
+      total: reqs.length,
+      validados: reqs.filter((r) => latest.get(r.id)?.status === "validado").length,
+    };
+  });
   const canDecide = (r: Row) =>
     r.active !== false &&
     (manager || (role === "equipe" && r.assigned_to === userId));
@@ -577,6 +675,7 @@ export default function RepositoryTab(props: RepositoryProps) {
             </>
           )}
         </div>
+        <ResumoDocumental summary={summary} dimensoes={dimensoesResumo} />
         {courseId === null ? (
           <>
             <div className="er-toolbar">
