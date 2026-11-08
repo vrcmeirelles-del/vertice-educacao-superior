@@ -29,16 +29,16 @@ function Spark({ data, color }: { data: number[]; color: string }) {
 }
 
 /* ---------- KPI Tiles ---------- */
-function KPITiles({ kpis, snapshots }: { kpis: KPIs; snapshots: CaptacaoSnapshot[] }) {
+function KPITiles({ kpis, snapshots, hasLeads, hasCosts }: { kpis: KPIs; snapshots: CaptacaoSnapshot[]; hasLeads: boolean; hasCosts: boolean }) {
   const sparkLeads = snapshots.map(s => s.total_leads);
   const sparkMat = snapshots.map(s => s.total_matriculas);
   const sparkInvest = snapshots.map(s => Number(s.investimento_total));
   const sparkCac = snapshots.map(s => s.total_matriculas > 0 ? Number(s.investimento_total) / s.total_matriculas : 0);
   const tiles = [
-    { label: 'Total de Leads', value: fmt.format(kpis.totalLeads), spark: sparkLeads, color: COLORS[0] },
-    { label: 'Matrículas Captadas', value: fmt.format(kpis.totalMat), spark: sparkMat, color: COLORS[2] },
-    { label: 'Investimento Total', value: fmtMoney.format(kpis.totalInvest), spark: sparkInvest, color: COLORS[1] },
-    { label: 'CAC Médio', value: kpis.cac > 0 ? fmtMoney.format(kpis.cac) : '—', spark: sparkCac, color: COLORS[3] },
+    { label: 'Total de Leads', value: hasLeads ? fmt.format(kpis.totalLeads) : 'Sem dados', spark: sparkLeads, color: COLORS[0] },
+    { label: 'Matrículas Captadas', value: hasLeads ? fmt.format(kpis.totalMat) : 'Sem dados', spark: sparkMat, color: COLORS[2] },
+    { label: 'Investimento Total', value: hasCosts ? fmtMoney.format(kpis.totalInvest) : 'Sem dados', spark: sparkInvest, color: COLORS[1] },
+    { label: 'CAC Médio', value: hasLeads && hasCosts && kpis.totalMat > 0 ? fmtMoney.format(kpis.cac) : 'Sem base conciliada', spark: sparkCac, color: COLORS[3] },
   ];
   return <div className="cbi-kpis">{tiles.map(t => (
     <article className="cbi-kpi" key={t.label}>
@@ -341,15 +341,14 @@ export default function CaptacaoBI({ institutionId, institutionName }: { institu
       </section>
     ) : (
       <>
-        <KPITiles kpis={bi.kpis} snapshots={snapshots} />
+        <KPITiles kpis={bi.kpis} snapshots={snapshots} hasLeads={leads.length>0} hasCosts={custos.length>0} />
         <div className="cbi-grid">
-          <FunnelChart data={bi.funnel} />
-          <HBarChart title="Leads por Origem" data={bi.origens} valueKey="leads" labelKey="canal" />
-          <EvolucaoChart data={bi.evolucao} />
-          <HBarChart title="Custo por Canal" data={bi.custosCanal} valueKey="investimento" labelKey="canal"
-            formatValue={v => fmtMoney.format(v)} subtitle="Investimento total por canal" />
-          <DonutChart title="Matrículas por Curso" data={bi.cursos} valueKey="mat" labelKey="curso" />
-          <ConversaoChart data={bi.conversao} />
+          {leads.length>0?<FunnelChart data={bi.funnel} />:<section className="cbi-card"><h3>Funil de Captação</h3><p>Fonte não disponibilizada: sem registros de leads para esta instituição.</p></section>}
+          {leads.length>0?<HBarChart title="Leads por Origem" data={bi.origens} valueKey="leads" labelKey="canal" />:<section className="cbi-card"><h3>Leads por origem</h3><p>Sem dados de origem.</p></section>}
+          {snapshots.length>0?<EvolucaoChart data={bi.evolucao} />:<section className="cbi-card"><h3>Evolução mensal</h3><p>Snapshots mensais não disponibilizados.</p></section>}
+          {custos.length>0?<HBarChart title="Custo por Canal" data={bi.custosCanal} valueKey="investimento" labelKey="canal" formatValue={v => fmtMoney.format(v)} subtitle="Investimento total por canal" />:<section className="cbi-card"><h3>Custo por canal</h3><p>Custos de campanhas não disponibilizados.</p></section>}
+          {bi.cursos.length>0?<DonutChart title="Matrículas por Curso" data={bi.cursos} valueKey="mat" labelKey="curso" />:<section className="cbi-card"><h3>Matrículas por curso</h3><p>Sem matrículas por curso no recorte de captação.</p></section>}
+          {bi.conversao.length>0?<ConversaoChart data={bi.conversao} />:<section className="cbi-card"><h3>Conversão por canal</h3><p>Sem dados suficientes para calcular a conversão por origem.</p></section>}
         </div>
       </>
     )}
