@@ -171,3 +171,39 @@
 .drx-traj-ok{background:#ecfdf5;color:#166534;border-color:#bbf7d0}
 .drx-traj-rep{background:#fef2f2;color:#991b1b;border-color:#fecaca}
 .drx-traj-out{background:#f3f4f6;color:#4b5563;border-color:#e5e7eb}
+
+
+/* Raio-X Direito: leitura comparativa por coorte, acessível e responsiva */
+.drx .drx-kpi-action{display:flex;flex-direction:column;align-items:flex-start;text-align:left;width:100%;font:inherit;color:inherit;cursor:pointer}
+.drx .drx-kpi-action:hover{box-shadow:0 6px 20px #1b435825;transform:translateY(-2px)}
+.drx .drx-kpi-action[aria-pressed=true]{outline:2px solid #087a72;outline-offset:-2px;background:#f0faf8}
+.drx .drx-kpi-open{font-size:10px;color:#147b73;margin-top:8px;font-weight:700}
+.drx .drx-detail{border:1px solid #abd9d1;border-left:4px solid #08796e;border-radius:12px;background:#f3fcf9;margin:8px 0 20px;padding:16px 20px;color:#294c4a}
+.drx .drx-detail p{font-size:13px;line-height:1.65;margin:8px 0}
+.drx .drx-compare-top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.drx .drx-compare-top h4{margin:0;font-size:16px}
+.drx .drx-compare-top button{background:white;border:1px solid #b5dad3;border-radius:8px;padding:7px 12px;cursor:pointer}
+.drx .drx-definitions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:13px 0 20px}
+.drx .drx-definitions p{background:#f6fafb;border:1px solid #dbe9e9;border-radius:10px;padding:12px 14px;font-size:12px;line-height:1.6;margin:0;color:#405f63}
+.drx .drx-definitions strong{color:#174e4a}
+.drx .drx-compare-controls{display:flex;align-items:end;gap:12px;flex-wrap:wrap;background:#f2f8f8;border:1px solid #dce8e7;padding:14px;border-radius:11px;margin:14px 0}
+.drx .drx-compare-controls label{display:grid;gap:5px;font-size:12px;font-weight:650;color:#456469;flex:1 1 185px}
+.drx .drx-compare-controls select{min-height:38px;border:1px solid #bfcfd0;border-radius:8px;padding:7px 10px;background:#fff;color:#203d40;font-size:12px}
+.drx .drx-compare-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:14px 0}
+.drx .drx-compare-cards>div{background:linear-gradient(120deg,#f0faf7,#e0f5ed);border:1px solid #cbe8df;border-radius:11px;padding:13px;display:grid;gap:6px;min-width:0}
+.drx .drx-compare-cards>div:nth-child(2){background:#f2f7fb;border-color:#d7e5f1}
+.drx .drx-compare-cards>div:nth-child(4){background:#fff9e9;border-color:#ecdfc1}
+.drx .drx-compare-cards small{font-size:10px;color:#496b66}
+.drx .drx-compare-cards strong{font-size:clamp(18px,2vw,25px);font-variant-numeric:tabular-nums;color:#195d52}
+.drx .drx-compare-cards span{font-size:10px;color:#627f78}
+.drx .drx-compare-breakdown{border:1px solid #d8e9e5;padding:14px;border-radius:11px;margin:14px 0;background:white}
+.drx .drx-compare-breakdown h5{color:#1d4e4b;font-size:14px;margin:0 0 9px}
+.drx .drx-period-link{background:transparent;border:0;color:#0b776c;font-weight:800;cursor:pointer;text-decoration:underline;text-underline-offset:3px;padding:5px 3px;white-space:nowrap}
+.drx .drx-period-link:hover{color:#064a42}
+.drx .drx-row-selected td{background:#e6f7f1!important}
+.drx .drx-comparison-note{font-size:12px;line-height:1.6;color:#775d29;border:1px solid #f0deb2;background:#fff8e9;border-radius:8px;padding:12px;margin:11px 0}
+.drx .drx-period-link:focus-visible,.drx .drx-kpi-action:focus-visible,.drx .drx-compare-controls select:focus-visible{outline:3px solid #0c9385;outline-offset:3px}
+@media(max-width:1050px){.drx .drx-compare-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:720px){.drx .drx-definitions{grid-template-columns:1fr}.drx .drx-compare-cards{grid-template-columns:1fr 1fr}}
+@media(max-width:470px){.drx .drx-compare-cards{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.drx .drx-kpi-action{transition:none}.drx .drx-kpi-action:hover{transform:none}}
