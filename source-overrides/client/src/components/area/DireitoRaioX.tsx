@@ -197,7 +197,8 @@ export default function DireitoRaioX({ institutionId }: Props) {
   const prevIndex=periodLabels.indexOf(displayedSem)-1;
   const previousLabel=prevIndex>=0?periodLabels[prevIndex]:"";
   const homologousLabel=displayedSem?String(Number(displayedSem.slice(0,4))-1)+displayedSem.slice(4):"";
-  const comparisonLabel=compareMode==="anterior"?previousLabel:compareMode==="homologo"?periodLabels.includes(homologousLabel)?homologousLabel:"":periodLabels.includes(comparisonSem)?comparisonSem:"";
+  const selectedOther=periodLabels.includes(comparisonSem)&&comparisonSem!==displayedSem?comparisonSem:(periodLabels.find(sem=>sem!==displayedSem)??"");
+  const comparisonLabel=compareMode==="anterior"?previousLabel:compareMode==="homologo"?periodLabels.includes(homologousLabel)?homologousLabel:"":selectedOther;
   const comparisonPeriod=semFiltered.find(s=>String(s.semestre)===comparisonLabel);
   const selectedMove=selectedPeriod?movement(selectedPeriod):null;
   const comparedMove=comparisonPeriod?movement(comparisonPeriod):null;
@@ -274,9 +275,9 @@ export default function DireitoRaioX({ institutionId }: Props) {
       <div className="drx-kpis">
         {[
           {label:"Matriculados",value:matriculadosAtual,sub:crescimento !== "—" ? `${Number(crescimento)>0?"+":""}${crescimento}%` : "—",color:"var(--primary)",icon:"📊"},
-          {label:"Vínculos Totais",value:totalGeral,sub:"desde 2023/01",color:"#6366f1",icon:"📋"},
-          {label:"Evasão acumulada",value:`${taxaAcumulada.toFixed(1)}%`,sub:`${evadidosAcum} de ${baseAcum} vínculos encerrados`,color:corTaxa(taxaAcumulada),icon:taxaAcumulada>40?"⚠️":taxaAcumulada>25?"⚠️":"✅"},
-          {label:"Evasão da turma nova",value:`${(coortes[coortes.length-1]?.taxa ?? 0).toFixed(1)}%`,sub:`turma ${coortes[coortes.length-1]?.semestre ?? "—"} · menos tempo de exposição`,color:"#6366f1",icon:"🆕"},
+          {label:"Vínculos Totais",value:totalGeral,sub:"base histórica · desde 2023/01",color:"#6366f1",icon:"📋"},
+          {label:"Saídas classificadas acumuladas",value:`${taxaAcumulada.toFixed(1)}%`,sub:`${evadidosAcum} de ${baseAcum} com saída classificada`,color:corTaxa(taxaAcumulada),icon:taxaAcumulada>40?"⚠️":taxaAcumulada>25?"⚠️":"✅"},
+          {label:"Saídas classificadas da coorte recente",value:`${(coortes[coortes.length-1]?.taxa ?? 0).toFixed(1)}%`,sub:`turma ${coortes[coortes.length-1]?.semestre ?? "—"} · menos tempo de exposição`,color:"#6366f1",icon:"🆕"},
           {label:"Corpo Docente",value:profCount,sub:"professores 2026/01",color:"#7c3aed",icon:"👨‍🏫"},
           {label:"Trancados",value:trancados,sub:totalGeral>0?`${((trancados/totalGeral)*100).toFixed(0)}% do total`:"",color:"var(--warning)",icon:"⏸️"},
           {label:"Cancelados",value:cancelados,sub:totalGeral>0?`${((cancelados/totalGeral)*100).toFixed(0)}% do total`:"",color:"var(--danger)",icon:"❌"},
@@ -294,8 +295,8 @@ export default function DireitoRaioX({ institutionId }: Props) {
         <p>{({
           "Matriculados":"Estoque de vínculos classificados MATRICULADO no recorte de Direito. Não significa captação nem alunos únicos de toda a instituição.",
           "Vínculos Totais":"Base cumulativa de vínculos e situações informadas desde 2023/01, incluindo estados diferentes. Não é o total atual de matriculados.",
-          "Evasão acumulada":"Indicador operacional composto por trancamentos, abandonos, cancelamentos, transferências e trocas de curso divididos pela base cumulativa. Transferência e trancamento não são necessariamente evasão definitiva. Não compara coortes com tempos de exposição distintos.",
-          "Evasão da turma nova":"Percentual operacional de eventos de saída na coorte mais recente; por possuir menor tempo de acompanhamento, não deve ser comparado diretamente a coortes antigas.",
+          "Saídas classificadas acumuladas":"Indicador operacional composto por trancamentos, abandonos, cancelamentos, transferências e trocas de curso divididos pela base cumulativa. Transferência e trancamento não são necessariamente evasão definitiva. Não compara coortes com tempos de exposição distintos.",
+          "Saídas classificadas da coorte recente":"Percentual operacional de eventos de saída na coorte mais recente; por possuir menor tempo de acompanhamento, não deve ser comparado diretamente a coortes antigas.",
           "Corpo Docente":"Quantidade registrada na fonte docente identificada no período indicado, não equivalente a docentes ativos hoje sem revalidação.",
           "Trancados":"Vínculos classificados como trancados; trancamento pode ser temporário e não comprova desligamento definitivo.",
           "Cancelados":"Vínculos classificados como cancelados. A soma de estados não substitui estudo longitudinal por matrícula."
@@ -491,7 +492,7 @@ export default function DireitoRaioX({ institutionId }: Props) {
         <div className="drx-compare-controls">
           <label>Coorte de referência<select value={displayedSem} onChange={e=>setSelectedSem(e.target.value)}>{periodLabels.map(sem=><option value={sem} key={sem}>{sem}</option>)}</select></label>
           <label>Comparar com<select value={compareMode} onChange={e=>setCompareMode(e.target.value as CompareMode)}><option value="homologo">Mesmo semestre do ano anterior</option><option value="anterior">Coorte imediatamente anterior</option><option value="livre">Selecionar período</option></select></label>
-          {compareMode==="livre"&&<label>Outro semestre<select value={comparisonSem||periodLabels[0]} onChange={e=>setComparisonSem(e.target.value)}>{periodLabels.filter(sem=>sem!==displayedSem).map(sem=><option value={sem} key={sem}>{sem}</option>)}</select></label>}
+          {compareMode==="livre"&&<label>Outro semestre<select value={selectedOther} onChange={e=>setComparisonSem(e.target.value)}>{periodLabels.filter(sem=>sem!==displayedSem).map(sem=><option value={sem} key={sem}>{sem}</option>)}</select></label>}
         </div>
         <div className="drx-compare-cards">
           <div><small>Coorte selecionada · {displayedSem}</small><strong>{selectedPeriod?valueNum(selectedPeriod.matriculados):"Sem dados"}</strong><span>Matriculados classificados como ativos</span></div>
