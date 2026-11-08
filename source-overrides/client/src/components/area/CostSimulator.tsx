@@ -59,6 +59,9 @@ export default function CostSimulator({ institutionId, onUploadDocument }: { ins
   const [semesters, setSemesters] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [paramsSaved,setParamsSaved]=useState(false);
+  const [paramError,setParamError]=useState("");
+  const [existingParams,setExistingParams]=useState(false);
   const [classrooms,setClassrooms]=useState<{name:string;students:number|null;vinculos:number|null}[]>([]);
   const [roomStatus,setRoomStatus]=useState('Consultando turmas da instituição.');
 
@@ -68,6 +71,7 @@ export default function CostSimulator({ institutionId, onUploadDocument }: { ins
       // Load params
       const { data: p } = await supabase.from('vertice_cost_parameters')
         .select('*').eq('institution_id', institutionId).maybeSingle();
+      if (active) setExistingParams(Boolean(p));
       if (active && p) { setParams(p as unknown as Params); setDraft(p as unknown as Params); }
 
       // Load semesters
@@ -218,12 +222,16 @@ export default function CostSimulator({ institutionId, onUploadDocument }: { ins
   }, [results]);
 
   async function saveParams() {
-    setSaving(true);
-    const { error } = await supabase.from('vertice_cost_parameters')
-      .update({ ...draft, updated_at: new Date().toISOString() })
-      .eq('institution_id', institutionId);
-    if (!error) { setParams(draft); setEditing(false); }
-    setSaving(false);
+    setSaving(true);setParamError("");setParamsSaved(false);
+    try {
+      const values={...draft,institution_id:institutionId,updated_at:new Date().toISOString()};
+      const response=existingParams
+        ?await supabase.from('vertice_cost_parameters').update(values).eq('institution_id',institutionId).select('id').single()
+        :await supabase.from('vertice_cost_parameters').insert(values).select('id').single();
+      if(response.error||!response.data)throw response.error??new Error('Registro não confirmado');
+      setParams(draft);setEditing(false);setExistingParams(true);setParamsSaved(true);
+    }catch {setParamError('Parâmetros não salvos. Confira a autorização do perfil e os campos informados.');}
+    finally {setSaving(false);}
   }
 
   if (loading) return <p role="status">Carregando simulador…</p>;
@@ -246,6 +254,8 @@ export default function CostSimulator({ institutionId, onUploadDocument }: { ins
         </div>
       </header>
 
+      {paramError&&<p role="alert" className="area-error">{paramError}</p>}
+      {paramsSaved&&<p role="status" className="area-note">Parâmetros registrados na instituição. A validade das fontes continua sujeita à conferência documental.</p>}
       {editing && (
         <div className="cost-sim-params">
           <h4>Parâmetros do simulador</h4>
