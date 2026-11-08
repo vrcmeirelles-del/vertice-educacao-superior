@@ -1,3 +1,4 @@
+import PremiumBI from '@/components/bi/PremiumBI';
 import React,{useEffect,useMemo,useState,useRef} from 'react';
 import {ArrowDownToLine,ArrowRight,BarChart3,BookOpen,BriefcaseBusiness,Building2,ChartNoAxesCombined,Check,ChevronRight,ClipboardCheck,FileCheck2,FileText,FolderOpen,LayoutDashboard,MessageCircle,Search,ShieldCheck,Target,Users} from 'lucide-react';
 import {ddFronts,defaultGoals,demoInstitutionCourses,demoInstitutionProfiles,demoEconomics,evidenceLabels,evidenceSummary,executiveDemoText,initialDemoEvidence,type DemoEvidence,type DemoCourse,type DemoInstitutionMode} from '@/lib/demo-showroom';
@@ -15,9 +16,10 @@ type FoSyntheticFeed={
   summary:{students:number;courses:number;exam:number|null;engagement:number|null};
   courses:Array<{id:string;name:string;students:number;exam:number|null}>;
 };
-type View='overview'|'courses'|'academic'|'enade'|'governance'|'evidence'|'library'|'goals'|'acquisitions'|'economics'|'admissions'|'report';
+type View='bi'|'overview'|'courses'|'academic'|'enade'|'governance'|'evidence'|'library'|'goals'|'acquisitions'|'economics'|'admissions'|'report';
 type CatalogRow={code:string;front:string;title:string;expected:string;fields:{key:string;label:string;type:string;help?:string;options?:Record<string,string>}[]};
 const menu:{id:View;label:string;icon:typeof LayoutDashboard;track:DemoTrack;step:number;context:string}[]=[
+ {id:'bi',label:'BI Premium • Modo TV',icon:ChartNoAxesCombined,track:'regulacao',step:1,context:'Gráficos clicáveis, filtros por curso e semestre, além de rotação Modo TV com dados fictícios.'},
  {id:'overview',label:'Visão executiva',icon:LayoutDashboard,track:'regulacao',step:1,context:'Painel fictício com seis cursos, matrículas, ocupação, preparação documental e prioridades.'},
  {id:'courses',label:'Cursos e indicadores',icon:Building2,track:'regulacao',step:1,context:'Visão por curso: matrículas, capacidade, ocupação e pendências documentais do cenário.'},
  {id:'academic',label:'BI acadêmico e evasão',icon:BarChart3,track:'regulacao',step:1,context:'Comparação de semestres, ocorrências de reprovação por nota/falta e acompanhamento acadêmico fictício.'},
@@ -83,7 +85,7 @@ export default function DemoShowroom({onExplore,onAsk,onContact,mode='faculdade'
    .catch(()=>{if(current)setFoFeedError(true);});
   return()=>{current=false;controller.abort();};
  },[mode]);
- const [view,setView]=useState<View>('overview'),[course,setCourse]=useState('all'),[rows,setRows]=useState(()=>initialDemoEvidence(courses)),[selected,setSelected]=useState(''),[status,setStatus]=useState('all'),[search,setSearch]=useState('');
+ const [view,setView]=useState<View>(()=>typeof window!=='undefined'&&new URLSearchParams(window.location.search).get('bi')==='1'?'bi':'overview'),[course,setCourse]=useState('all'),[rows,setRows]=useState(()=>initialDemoEvidence(courses)),[selected,setSelected]=useState(''),[status,setStatus]=useState('all'),[search,setSearch]=useState('');
  const [goals,setGoals]=useState(()=>defaultGoals.map(g=>({...g}))),[catalog,setCatalog]=useState<CatalogRow[]>([]),[catalogError,setCatalogError]=useState(false),[front,setFront]=useState('REG'),[query,setQuery]=useState(''),[page,setPage]=useState(0),[req,setReq]=useState('');
  const [answers,setAnswers]=useState<Record<string,string>>({}),[submitted,setSubmitted]=useState<string[]>([]),[note,setNote]=useState(''),[queue,setQueue]=useState(false),[tour,setTour]=useState(-1);
  const [finance,setFinance]=useState(()=>({revenue:institution.revenue,cost:institution.cost,depreciation:institution.depreciation,multiple:4,debt:institution.debt,cash:institution.cash}));
@@ -95,7 +97,7 @@ export default function DemoShowroom({onExplore,onAsk,onContact,mode='faculdade'
   setGoals(defaultGoals.map(g=>({...g,progress:progress.get(g.id)??g.progress})));
   setFinance(savedState?.finance??{revenue:institution.revenue,cost:institution.cost,depreciation:institution.depreciation,multiple:4,debt:institution.debt,cash:institution.cash});
   setSubmitted(savedState?.submitted??[]);setQueue(savedState?.queue??false);
-  setCourse('all');setSelected('');setView(menu.some(m=>m.id===savedState?.lastView)?savedState!.lastView as View:'overview');setNote('');
+  setCourse('all');setSelected('');setView(typeof window!=='undefined'&&new URLSearchParams(window.location.search).get('bi')==='1'?'bi':menu.some(m=>m.id===savedState?.lastView)?savedState!.lastView as View:'overview');setNote('');
   const timer=window.setTimeout(()=>{saveReady.current=true;},300);
   return()=>window.clearTimeout(timer);
  },[mode]);
@@ -143,6 +145,7 @@ export default function DemoShowroom({onExplore,onAsk,onContact,mode='faculdade'
    <div className="ds-main">
     <div className="ds-page-heading"><div><span>VÉRTICE / {view==='acquisitions'||view==='economics'?'AQUISIÇÕES':'GESTÃO INSTITUCIONAL'}</span><h2>{current.label}</h2></div><button type="button" className="ds-secondary" onClick={()=>onAsk(current.context)}><MessageCircle size={16}/>{assistLabel}</button></div>
     {tour>=0&&<div className="ds-tour" role="status"><div><strong>Visita guiada · {tour+1} de {tourViews.length}</strong><p>{current.context}</p></div><div><button type="button" onClick={()=>setTour(-1)}>Explorar livremente</button><button type="button" onClick={()=>tourStep(tour+1)}>{tour===tourViews.length-1?'Concluir visita':'Próxima área'}<ArrowRight size={15}/></button></div></div>}
+    {view==='bi'&&<PremiumBI mode={mode} courses={courses} foFeed={foDemoFeed}/>} 
     {view==='overview'&&<>
      <div className="ds-intro"><div><span className="ds-kicker">A INSTITUIÇÃO EM UMA TELA</span><h3>Onde a gestão precisa agir agora?</h3><p>Uma leitura conectada de cursos, evidências e execução. Abra uma prioridade para investigar o caso.</p></div><div className="ds-period">Semestre de referência<strong>2026/2</strong></div></div>
      <div className="ds-kpis"><Metric label="Matrículas no cenário" value={totalStudents.toLocaleString('pt-BR')} detail={`${courses.length} cursos no cenário`} icon={Users}/><Metric label="Ocupação da oferta" value={percent(totalStudents/capacity*100)} detail={`${capacity.toLocaleString('pt-BR')} vagas no recorte`} icon={BarChart3}/><Metric label="Revisão documental" value={`${totals.validated}/${totals.total}`} detail={`${totals.pending} itens sem envio ou devolvidos`} icon={FileCheck2}/><Metric label="Execução das metas" value={percent(goals.reduce((n,g)=>n+g.progress,0)/goals.length)} detail="Média das 3 metas simuladas" icon={Target}/></div>
