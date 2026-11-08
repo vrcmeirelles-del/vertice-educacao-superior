@@ -185,7 +185,16 @@ function ChecklistPanel({ institutionId, role, data, reload, fail, courses, cour
     return { o, row, status: statusValido(row?.status) };
   });
   const geral = resumir(itens.map(i => i.status));
-  const porDim = DIMENSOES_INSTRUMENTO.map(([d, nome]) => ({ d, nome, r: resumir(itens.filter(i => i.o.dimension === d).map(i => i.status)) })).filter(x => x.r.total > 0);
+  // A dimensão específica permanece visível no painel institucional, sem computar ausência de escopo como nota zero.
+  const porDim = DIMENSOES_INSTRUMENTO.map(([d, nome]) => ({ d, nome, r: resumir(itens.filter(i => i.o.dimension === d).map(i => i.status)) }));
+  const cursosDim4 = courses.filter(c => perfilArea(c) !== null);
+  const primeiroCursoDim4 = cursosDim4[0];
+  function abrirDim4() {
+    if (primeiroCursoDim4) {
+      onCourse(String(primeiroCursoDim4.id));
+      setDim("4");
+    }
+  }
   const porTema = TEMAS.map(([t, nome]) => ({ t, nome, r: resumir(itens.filter(i => i.o.temas.includes(t)).map(i => i.status)) }));
   const semEvidencia = itens.filter(i => i.status === "conforme" && !(i.row && evCount.get(String(i.row.id)))).length;
 
@@ -221,6 +230,7 @@ function ChecklistPanel({ institutionId, role, data, reload, fail, courses, cour
           <p className="area-note">A dimensão 4 está catalogada para a Área 04 (Negócios, Administração e Direito). Este curso é avaliado nas dimensões 1 a 3.</p>
         )}
         {course && perfilArea(course) && <p className="area-muted small">Perfil da dimensão 4: {PERFIL_ROTULO[perfilArea(course)!]}.</p>}
+        {!course && <p className="area-note">Visão institucional: as dimensões 1 a 3 compõem este diagnóstico. A dimensão 4 é específica do curso e aparece abaixo como <strong>seleção necessária</strong>, sem nota zero ou resultado institucional artificial. Selecione um curso para consultar e registrar seus objetos.</p>}
         <div className="ni-summary">
           <div className="ni-summary-main">
             <Donut parts={partesConformidade(geral)} center={`${geral.pctConforme}%`} caption={`${geral.pctConforme}% dos objetos conformes`} size={132} />
@@ -234,13 +244,25 @@ function ChecklistPanel({ institutionId, role, data, reload, fail, courses, cour
           <div className="ni-dims">
             {porDim.map(({ d, nome, r }) => (
               <article key={d} className="ni-dim-card">
-                <Donut parts={partesConformidade(r)} center={`${r.pctConforme}%`} caption={`Dimensão ${d}: ${r.pctConforme}% conforme`} size={64} />
+                {r.total > 0 ? (
+                  <Donut parts={partesConformidade(r)} center={`${r.pctConforme}%`} caption={`Dimensão ${d}: ${r.pctConforme}% conforme`} size={64} />
+                ) : (
+                  <div className="ni-donut" style={{ width: 64, height: 64, display: "grid", placeItems: "center", border: "5px solid #e7ecf1", borderRadius: "50%", boxSizing: "border-box" }} aria-label={`Dimensão ${d}: sem avaliação neste escopo`}>
+                    <strong style={{ fontSize: 12 }}>N/A</strong>
+                  </div>
+                )}
                 <div>
                   <small>Dimensão {d}</small>
                   <b>{nome}</b>
                   <span className="area-muted small">
-                    {r.conforme} conformes de {r.total} · {r.pctAvaliado}% avaliado
+                    {r.total > 0 ? `${r.conforme} conformes de ${r.total} · ${r.pctAvaliado}% avaliado` : d === 4 ? "Selecione um curso para avaliar" : "Sem objetos neste escopo"}
                   </span>
+                  {d === 4 && !course && primeiroCursoDim4 && (
+                    <button type="button" className="corp-login-text-button" onClick={abrirDim4}>
+                      Abrir dimensão 4 por curso
+                    </button>
+                  )}
+                  {d === 4 && !course && !primeiroCursoDim4 && <span className="area-muted small">Nenhum curso com perfil específico identificado</span>}
                 </div>
               </article>
             ))}
@@ -298,6 +320,10 @@ function ChecklistPanel({ institutionId, role, data, reload, fail, courses, cour
             </select>
           </label>
         </div>
+        {dim === "4" && !course && (
+          <p className="area-note">A dimensão 4 não possui pontuação institucional. {primeiroCursoDim4 ? "Escolha um curso no seletor acima ou abra diretamente a avaliação específica." : "Nenhum curso com perfil específico identificado; confira o cadastro e a classificação dos cursos."} {primeiroCursoDim4 && <button type="button" className="corp-login-text-button" onClick={abrirDim4}>Selecionar curso</button>}</p>
+        )}
+        {dim === "4" && course && !perfilArea(course) && <p className="area-note">A dimensão 4 não está catalogada para este curso. Confira a classificação regulatória antes de cadastrar objetos específicos.</p>}
         <p aria-live="polite" className="area-muted small">{filtrados.length} objeto(s) exibido(s)</p>
         {porDim.map(({ d, nome }) => {
           const lista = filtrados.filter(i => i.o.dimension === d);
