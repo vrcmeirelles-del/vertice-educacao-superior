@@ -101,7 +101,7 @@ function Indicador({ indicador }: { indicador: IndicadorAvaliacao }) {
   );
 }
 
-export default function AvaliacaoInstitucional() {
+export default function AvaliacaoInstitucional({ onRepository }: { onRepository?: () => void }) {
   const [busca, setBusca] = useState("");
   const [eixo, setEixo] = useState("");
   const [somenteRestritos, setSomenteRestritos] = useState(false);
@@ -119,7 +119,8 @@ export default function AvaliacaoInstitucional() {
       <header>
         <div>
           <p className="aval-kicker">Avaliação institucional externa</p>
-          <h3 id="aval-title">Recredenciamento Institucional</h3>
+          <h3 id="aval-title">Recredenciamento Institucional · Instrumento 2017</h3>
+          {onRepository && <button type="button" className="corp-button small" onClick={onRepository} style={{ margin: "10px 0" }}>Registrar documento no Repositório Institucional</button>}
           <p>
             {instrumento.instrument}, edição {instrumento.edition}. Cinco eixos,{" "}
             {instrumento.total} indicadores, com o critério de conceito 5 transcrito do
