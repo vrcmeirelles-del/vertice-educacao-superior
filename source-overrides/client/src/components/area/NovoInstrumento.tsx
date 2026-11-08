@@ -19,7 +19,7 @@ const SUBS: [Sub, string][] = [
   ["cpa", "CPA"],
 ];
 
-type Props = { institutionId: string; role: Role | null; courses: Row[] };
+type Props = { institutionId: string; role: Role | null; courses: Row[]; onOpenRecredenciamento?: () => void };
 type Shared = {
   institutionId: string;
   role: Role | null;
@@ -28,7 +28,7 @@ type Shared = {
   fail: (e: unknown) => void;
 };
 
-export default function NovoInstrumento({ institutionId, role, courses }: Props) {
+export default function NovoInstrumento({ institutionId, role, courses, onOpenRecredenciamento }: Props) {
   const [sub, setSub] = useState<Sub>("checklist");
   const [data, setData] = useState<DadosInstrumento>(VAZIO);
   const [loading, setLoading] = useState(true);
@@ -58,6 +58,13 @@ export default function NovoInstrumento({ institutionId, role, courses }: Props)
 
   return (
     <div className="ni">
+      <div className="area-panel" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+        <div>
+          <strong>Instrumentos de avaliação do INEP</strong>
+          <p className="area-muted small" style={{ margin: "4px 0 0" }}>Este checklist organiza a preparação para a avaliação de cursos. O recredenciamento avalia a instituição por cinco eixos e possui instrumento independente.</p>
+        </div>
+        {onOpenRecredenciamento && <button className="corp-button" type="button" onClick={onOpenRecredenciamento}>Abrir Recredenciamento Institucional</button>}
+      </div>
       <div role="tablist" aria-label="Novo Instrumento INEP" className="area-tabs ni-subtabs">
         {SUBS.map(([k, l]) => (
           <button key={k} role="tab" aria-selected={sub === k} className={sub === k ? "active" : ""} onClick={() => setSub(k)}>
