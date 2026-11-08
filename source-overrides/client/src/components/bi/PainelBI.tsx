@@ -22,7 +22,8 @@ import type {
 import {
   getSemestres, getKPIs, getSerieTemporal, getFunil,
   getComposicaoPorCurso, getCursosRisco, getAlertas,
-  getSaudePeriodo, getHeatmap, exportCSV,
+  getSaudePeriodo, getHeatmap, getEnrollmentCoverage, getResumoOfertas, exportCSV,
+  type ResumoOfertas,
 } from '@/lib/bi/queries';
 import { fmtInt, fmtPct, fmtBRL, fmtKPI, fmtVariacao } from '@/lib/bi/format';
 import './painel-bi.css';
@@ -122,10 +123,10 @@ function BlocoHeroi({ kpis }: { kpis: KpiResumo[] }) {
         </div>
         <Spark data={principal.tendencia} color="#14432F" />
       </div>
-      {secundario && secundario.valor !== null && (
+      {secundario && (
         <div className="bi-heroi-secundario">
           <p className="bi-heroi-rotulo">{secundario.rotulo}</p>
-          <div className="bi-heroi-numero">{fmtKPI(secundario.valor, secundario.unidade)}</div>
+          <div className="bi-heroi-numero">{secundario.valor===null?'Não apurada':fmtKPI(secundario.valor, secundario.unidade)}</div>
           <p className="bi-meta">{secundario.definicao}</p>
         </div>
       )}
@@ -503,6 +504,10 @@ export default function PainelBI({ institutions, courses, enrollments, session, 
   const [alertas, setAlertas] = useState<Alerta[] | null>(null);
   const [saude, setSaude] = useState<SaudeIndicador[] | null>(null);
   const [heatmap, setHeatmapData] = useState<CelulaHeatmap[] | null>(null);
+  const [coverage,setCoverage]=useState<Awaited<ReturnType<typeof getEnrollmentCoverage>>|null>(null);
+  const [offers,setOffers]=useState<ResumoOfertas|null>(null);
+  const [offersLoading,setOffersLoading]=useState(true);
+  const [offersError,setOffersError]=useState(false);
 
   // Error states (per block)
   const [erros, setErros] = useState<Record<string, string>>({});
@@ -576,6 +581,10 @@ export default function PainelBI({ institutions, courses, enrollments, session, 
     setHeatmapData(null);
     clearErro('heatmap');
     getHeatmap(f).then(setHeatmapData).catch(() => setErro('heatmap', 'Mapa de calor indisponível.'));
+    setCoverage(null);clearErro('coverage');
+    getEnrollmentCoverage(f).then(setCoverage).catch(()=>setErro('coverage','Não foi possível conferir a cobertura de matrículas.'));
+    setOffers(null);setOffersLoading(true);setOffersError(false);
+    getResumoOfertas(f).then(setOffers).catch(()=>setOffersError(true)).finally(()=>setOffersLoading(false));
   }, [instId, semestre, grau]);
 
   useEffect(() => { loadAll(); }, [loadAll]);
@@ -616,7 +625,7 @@ export default function PainelBI({ institutions, courses, enrollments, session, 
 
       <h1>Painel Executivo</h1>
       <p className="bi-meta">
-        Visão institucional · última atualização {fmtTime(lastUpdate)}
+        Visão institucional · última consulta ao portal {fmtTime(lastUpdate)} (não é a data dos relatórios)
       </p>
 
       {/* ---- Filtros ---- */}
@@ -649,6 +658,19 @@ export default function PainelBI({ institutions, courses, enrollments, session, 
         </button>
       </div>
 
+      <section className="bi-secao bi-coverage" aria-label="Interpretação e cobertura de matrículas">
+        <h2>Entenda os indicadores e a cobertura da fonte</h2>
+        {erros.coverage?<p role="alert">{erros.coverage}</p>:!coverage?<p role="status">Conferindo o universo de matrículas…</p>:
+        <div className="bi-coverage-grid">
+          <div><small>Semestre</small><strong>{coverage.semester||'Não informado'}</strong></div>
+          <div><small>Cursos com relatório de matrícula</small><strong>{coverage.coveredCourses} de {coverage.registeredCourses}</strong></div>
+          <div><small>Linhas do relatório</small><strong>{coverage.rows}</strong></div>
+          <div><small>Data da fonte mais recente</small><strong>{coverage.sourceAt?new Date(coverage.sourceAt).toLocaleDateString('pt-BR'):'Não informada'}</strong></div>
+        </div>}
+        <p><strong>Matrículas no recorte:</strong> soma dos quantitativos de status MATRICULADO nos cursos com relatório disponível. Não comprova pessoas únicas nem o total oficial da instituição.</p>
+        <p><strong>Ocupação de vagas ofertadas:</strong> exige vagas efetivamente ofertadas para o mesmo curso, turno, modalidade e período das matrículas. O cadastro atual não sustenta a taxa. Por isso exibimos <strong>Não apurada</strong>, não um percentual potencialmente enganoso. Não é ocupação física das salas.</p>
+        {coverage&&coverage.registeredCourses>coverage.coveredCourses&&<p className="bi-coverage-warning" role="status">Cobertura incompleta: {coverage.registeredCourses-coverage.coveredCourses} cadastro(s) de curso sem matrícula apurada neste recorte. Não confundir ausência de relatório com zero aluno.</p>}
+      </section>
       <ReprovacoesAnuais key={instId} reports={reports.filter(report => report.institution_id === instId)} />
 
       {/* ---- Layout principal ---- */}
@@ -685,10 +707,24 @@ export default function PainelBI({ institutions, courses, enrollments, session, 
             </div>
           </div>
 
-          {/* Cursos em risco */}
           <div className="bi-secao">
-            <h2>Cursos em Risco</h2>
-            {renderBloco('risco', risco, () => <TabelaRisco cursos={risco!} />, 120)}
+            <h2>Ofertas de disciplinas e resultados acadêmicos</h2>
+            <p className="bi-meta">Fonte: vertice_offering_outcomes · ocorrências em ofertas, não alunos únicos.</p>
+            {grau?<Vazio mensagem="Não há correspondência validada entre o grau cadastral e o código das ofertas. Selecione Todos os graus para consultar o recorte institucional."/>:
+             offersLoading?<Skeleton height={130}/>:
+             offersError?<Erro mensagem="Não foi possível consultar ofertas de disciplinas." onRetry={loadAll}/>:
+             !offers?<Vazio mensagem="Nenhuma oferta disponibilizada neste semestre."/>:
+             <>
+              <div className="bi-offer-metrics">
+                {([['Ofertas de disciplinas',offers.ofertas],['Matrículas em disciplinas',offers.matriculasDisciplina],['RF · ocorrências',offers.rf],['RN · ocorrências',offers.rn],['RA · ocorrências',offers.ra]] as [string,number][]).map(([label,value])=><div key={label}><small>{label}</small><strong>{fmtInt(value)}</strong></div>)}
+              </div>
+              <p className="bi-meta">RF/RN/RA são categorias registradas na fonte. A soma não equivale a estudantes distintos reprovados. A classificação das causas exige homologação.</p>
+              <div className="bi-offer-table"><table><thead><tr><th>Disciplina</th><th>Ofertas</th><th>Matrículas em disciplinas</th><th>RF</th><th>RN</th><th>RA</th></tr></thead><tbody>{offers.disciplinas.map(row=><tr key={row.nome}><td>{row.nome}</td><td>{fmtInt(row.ofertas)}</td><td>{fmtInt(row.matriculasDisciplina)}</td><td>{fmtInt(row.rf)}</td><td>{fmtInt(row.rn)}</td><td>{fmtInt(row.ra)}</td></tr>)}</tbody></table></div>
+             </>}
+          </div>
+          <div className="bi-secao">
+            <h2>Ocupação das vagas por curso · não apurada</h2>
+            <Vazio mensagem="Não há uma base de vagas efetivamente ofertadas, por curso, modalidade, turno e semestre, reconciliada com as matrículas. Sem essa referência não é responsável classificar cursos como deficitários ou ociosos."/>
           </div>
 
           {/* Heatmap */}
@@ -712,7 +748,8 @@ export default function PainelBI({ institutions, courses, enrollments, session, 
             {renderBloco('alertas', alertas, () => <PainelAlertas alertas={alertas!} />, 80)}
           </div>
           <div>
-            <h3>Saúde do Período</h3>
+            <h3>Indicadores disponíveis · período</h3>
+            <p className="bi-meta">Apenas resultados com dados e metodologia identificados.</p>
             {renderBloco('saude', saude, () => <SaudePeriodo indicadores={saude!} />, 80)}
           </div>
         </aside>
