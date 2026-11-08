@@ -30,12 +30,14 @@ export type AcademicReportRow = {
 };
 
 // ---------- queries ----------
-async function fetchAllFrom<T>(table: string, order = 'id'): Promise<T[]> {
+async function fetchAllFrom<T>(table: string, institutionId: string, order = 'id'): Promise<T[]> {
+  if (!institutionId) throw new Error('Selecione uma instituição autorizada antes de consultar dados acadêmicos.');
   const rows: T[] = [];
   for (let from = 0; ; from += 1000) {
     const { data, error } = await supabase
       .from(table)
       .select('*')
+      .eq('instituicao_id',institutionId)
       .order(order)
       .range(from, from + 999);
     if (error) throw error;
@@ -45,23 +47,24 @@ async function fetchAllFrom<T>(table: string, order = 'id'): Promise<T[]> {
   return rows;
 }
 
-export async function fetchSemestres() {
-  return fetchAllFrom<Semestre>('vertice_eorbit_semestres');
+export async function fetchSemestres(institutionId:string) {
+  return fetchAllFrom<Semestre>('vertice_eorbit_semestres',institutionId);
 }
-export async function fetchCursos() {
-  return fetchAllFrom<CursoInfo>('vertice_eorbit_cursos');
+export async function fetchCursos(institutionId:string) {
+  return fetchAllFrom<CursoInfo>('vertice_eorbit_cursos',institutionId);
 }
-export async function fetchQuantitativo() {
-  return fetchAllFrom<CursoQuantitativo>('vertice_eorbit_quantitativo');
+export async function fetchQuantitativo(institutionId:string) {
+  return fetchAllFrom<CursoQuantitativo>('vertice_eorbit_quantitativo',institutionId);
 }
 
 // Mapa course_id (UUID de vertice_courses) -> nome do curso, para os indicadores por curso.
-export async function fetchCourseNames(): Promise<Map<string, string>> {
+export async function fetchCourseNames(institutionId?:string): Promise<Map<string, string>> {
   const m = new Map<string, string>();
   for (let from = 0; ; from += 1000) {
     const { data, error } = await supabase
       .from('vertice_courses')
       .select('id,name')
+      .eq('institution_id',institutionId??'00000000-0000-0000-0000-000000000000')
       .order('id')
       .range(from, from + 999);
     if (error) throw error;
