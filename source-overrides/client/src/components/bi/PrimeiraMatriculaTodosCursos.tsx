@@ -101,7 +101,7 @@ export default function PrimeiraMatriculaTodosCursos({ reports, courses }: { rep
   return <section className="vxa-first" aria-labelledby="vxa-first-title">
     <div className="vxa-first-head">
       <div><small>VÉRTICE · LEITURA POR CURSO E INSTITUCIONAL</small><h3 id="vxa-first-title">Primeira matrícula e permanência — todos os cursos</h3>
-        <p>Escolha qualquer curso do cadastro. O sistema separa coortes identificadas de históricos de matrícula que ainda não demonstram primeiro vínculo.</p></div>
+        <p>Escolha qualquer curso do cadastro. O sistema separa turmas de ingresso identificadas de históricos de matrícula que ainda não demonstram primeiro vínculo.</p></div>
       <span className="vxa-first-counter">{format(scoped.length)} cadastros no recorte</span>
     </div>
     <div className="vxa-first-filters">
@@ -111,7 +111,7 @@ export default function PrimeiraMatriculaTodosCursos({ reports, courses }: { rep
           {courseList.map(c => <option key={c.id} value={c.id}>{c.code ? c.code + " · " : ""}{c.name}{c.code && (codeCounts.get(c.code) ?? 0) > 1 ? " · cadastro " + c.id.slice(0, 8) : ""}</option>)}
         </select>
       </label>
-      <label>Coorte
+      <label>Semestre de ingresso
         <select value={validSemester} onChange={e => setSemester(e.target.value)}>
           <option value="">Todos os semestres disponíveis</option>
           {semesters.map(s => <option value={s} key={s}>{s.replace("/0", "/")}</option>)}
@@ -119,26 +119,26 @@ export default function PrimeiraMatriculaTodosCursos({ reports, courses }: { rep
       </label>
     </div>
     <div className="vxa-first-metrics">
-      <article><small>Cadastros de curso no recorte</small><strong>{format(scoped.length)}</strong><span>Catálogo institucional, não coortes</span></article>
-      <article><small>Coorte de primeiro vínculo</small><strong>{format(withCohort)}</strong><span>Cursos com fonte nominal já agregada</span></article>
+      <article><small>Cadastros de curso no recorte</small><strong>{format(scoped.length)}</strong><span>Catálogo institucional, não turmas de ingresso</span></article>
+      <article><small>Turma com primeiro vínculo identificado</small><strong>{format(withCohort)}</strong><span>Cursos com fonte nominal já agregada</span></article>
       <article><small>Histórico quantitativo</small><strong>{format(withHistory)}</strong><span>Matrículas por semestre; não são ingressantes</span></article>
-      <article className="vxa-first-warning"><small>Coorte ainda indisponível</small><strong>{format(pending)}</strong><span>Cursos pendentes de cruzamento individual</span></article>
+      <article className="vxa-first-warning"><small>Primeiro ingresso ainda não identificado</small><strong>{format(pending)}</strong><span>Cursos pendentes de cruzamento individual</span></article>
     </div>
     <div className="vxa-first-card">
       <h4>Primeiros vínculos efetivamente identificados</h4>
-      <p className="vxa-first-description">Indicadores calculados <strong>somente sobre as coortes com base verificada</strong>. Quando um curso não possui relatório de primeiro vínculo, o resultado permanece indisponível — não é zero.</p>
+      <p className="vxa-first-description">Indicadores calculados <strong>somente somente sobre os grupos de ingresso com base verificada</strong>. Quando um curso não possui relatório de primeiro vínculo, o resultado permanece indisponível — não é zero.</p>
       <div className="vxa-first-metrics three">
-        <article><small>Ingressantes observados</small><strong>{format(entrants)}</strong><span>Coortes com semestre seguinte pesquisado</span></article>
+        <article><small>Ingressantes observados</small><strong>{format(entrants)}</strong><span>Grupos de ingresso com semestre seguinte pesquisado</span></article>
         <article><small>Sem vínculo seguinte</small><strong>{format(noNext)}</strong><span>Não caracteriza evasão automaticamente</span></article>
         <article className="vxa-first-warning"><small>Sem vínculo e sem AV1 positiva</small><strong>{format(needsReview)}</strong><span>{entrants !== null && needsReview !== null ? percentage(needsReview, entrants) : "Sem base"} dos ingressantes analisáveis; exige investigação</span></article>
       </div>
       {visibleRows.length ? <div className="vxa-scroll"><table className="vxa-first-table">
-        <thead><tr><th>Curso</th><th>Coorte</th><th>Ingressantes</th><th>Sem vínculo seguinte</th><th>Sem vínculo e sem AV1 positiva</th><th>% em investigação</th></tr></thead>
+        <thead><tr><th>Curso</th><th>Semestre de ingresso</th><th>Ingressantes</th><th>Sem vínculo seguinte</th><th>Sem vínculo e sem AV1 positiva</th><th>% em investigação</th></tr></thead>
         <tbody>{visibleRows.map(row => <tr key={row.id}>
           <td>{courseList.find(c => c.id === row.courseId)?.name ?? "Curso sem cadastro"}</td>
           <td>{row.term.replace("/0", "/")}</td><td>{format(row.entrants)}</td><td>{format(row.noNext)}</td>
           <td>{format(row.noNextNoAV1)}</td><td>{row.noNextNoAV1 !== null ? percentage(row.noNextNoAV1, row.entrants) : "—"}</td>
-        </tr>)}</tbody></table></div> : <p className="vxa-first-empty">Não há uma coorte nominal verificada para {selectedCourse ? selectedCourse.name : "este recorte"}. Aguardando conciliação de identificador estável, primeiro vínculo e matrícula por semestre.</p>}
+        </tr>)}</tbody></table></div> : <p className="vxa-first-empty">Não há um grupo de ingresso com registros individuais verificados para {selectedCourse ? selectedCourse.name : "este recorte"}. Aguardando conciliação de identificador estável, primeiro vínculo e matrícula por semestre.</p>}
       <p className="vxa-source">Fonte de primeiro vínculo: relatórios de tipo <code>cohorts</code> do banco Vértice, com data de extração {latestSource ? new Date(latestSource).toLocaleDateString("pt-BR") : "indisponível"}. AV1 positiva significa nota maior que zero localizada; não comprova presença nas duas avaliações. Sem identificador individual validado não é possível calcular evasão ou ausência em AV1/AV2 para os demais cursos.</p>
     </div>
     <div className="vxa-first-card">
@@ -155,7 +155,7 @@ export default function PrimeiraMatriculaTodosCursos({ reports, courses }: { rep
           return <div className="vxa-first-course" key={course.id}>
             <div><strong>{course.name}</strong><small>{course.code ? "Código " + course.code + " · " : ""}{course.code && (codeCounts.get(course.code) ?? 0) > 1 ? "Cadastro " + course.id.slice(0, 8) + " · " : ""}{hist?.size ? hist.size + " semestres de matrícula disponíveis" : "Sem histórico quantitativo vinculado"}</small></div>
             <div className="vxa-first-course-right">
-              <span className={hasCohort ? "vxa-first-verified" : "vxa-first-pending"}>{hasCohort ? "Coorte identificada" : "Primeiro vínculo pendente"}</span>
+              <span className={hasCohort ? "vxa-first-verified" : "vxa-first-pending"}>{hasCohort ? "Primeiro ingresso identificado" : "Primeiro vínculo pendente"}</span>
               <small>{last ? "Último quantitativo: " + last.replace("/0", "/") : "Sem semestre de referência"}</small>
             </div>
           </div>;
