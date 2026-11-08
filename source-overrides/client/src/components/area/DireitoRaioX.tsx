@@ -292,7 +292,6 @@ export default function DireitoRaioX({ institutionId }: Props) {
     return [...map.values()].map(p=>({...p,taxa:p.total>0&&p.reprov<=p.total?100*p.reprov/p.total:null}))
       .sort((a,b)=>b.reprov-a.reprov||b.ofertas-a.ofertas);
   })();
-  const topProf = rankingProf[0];
 
   const corTaxa = (t: number) => t > 40 ? "var(--danger)" : t > 25 ? "var(--warning)" : "var(--success)";
   const chipTaxa = (t: number) => t > 40 ? "drx-chip-red" : t > 25 ? "drx-chip-yellow" : "drx-chip-green";
@@ -481,7 +480,6 @@ export default function DireitoRaioX({ institutionId }: Props) {
           <div className="drx-ranking-list">
             {rankingProf.map((p,i)=>{
               const expanded=rankingSelecionado===p.professor;
-              const max=Math.max(1,p.reprov,p.total);
               const rfPct=p.reprov>0?100*p.falta/p.reprov:0;
               const rnPct=p.reprov>0?100*p.nota/p.reprov:0;
               const raPct=p.reprov>0?100*p.ambos/p.reprov:0;
