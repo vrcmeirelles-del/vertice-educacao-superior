@@ -149,3 +149,13 @@
 @media (max-width: 1200px) { .drx-kpis { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 768px) { .drx-kpis { grid-template-columns: repeat(2, 1fr); } .drx-header { flex-direction: column; align-items: flex-start; } .drx-turma-stats { flex-direction: column; align-items: flex-start; } }
 @media (max-width: 480px) { .drx-kpis { grid-template-columns: 1fr; } .drx-acc-trigger { padding: 12px 16px; } }
+
+/* ── Evasão: coorte, acumulada e comparação ── */
+.drx-evasao-resumo{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:14px;margin:4px 0 20px}
+.drx-evasao-card{background:#fff;border:1px solid #e3e8ef;border-left:4px solid var(--primary);border-radius:12px;padding:14px 18px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.drx-evasao-label{font-size:.74rem;letter-spacing:.06em;text-transform:uppercase;color:#6b7889;font-weight:600}
+.drx-evasao-valor{font-size:1.9rem;line-height:1.1;font-weight:700}
+.drx-evasao-sub{font-size:.8rem;color:#5d6b7c}
+.drx-evasao-h5{margin:22px 0 8px;font-size:.95rem;color:#243653}
+.drx-evasao-nota{margin:14px 0 0;font-size:.76rem;color:#6b7889;line-height:1.5}
+.drx-evasao-nota code{background:#f1f4f8;border-radius:4px;padding:1px 5px;font-size:.73rem}

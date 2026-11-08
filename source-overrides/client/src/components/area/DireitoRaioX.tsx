@@ -96,6 +96,44 @@ export default function DireitoRaioX({ institutionId }: Props) {
   const profCount = docenteEvo?.evolucao?.["2026/01"]?.professores || profData?.professores?.length || 0;
   const semFiltered = semData.filter(s => s.semestre >= "2023/01");
 
+  // Evasão por coorte de entrada. Cada linha de semData é a situação ATUAL da turma
+  // que entrou naquele semestre, não o fluxo ocorrido durante o semestre.
+  // Taxa correta = evadidos / (ativos + evadidos). A coluna taxa_evasao do banco
+  // divide pelos que ficaram, o que produz valores acima de 100%.
+  const coortes = semFiltered.map((s) => {
+    const evadidos = (s.trancado||0)+(s.abandono||0)+(s.cancelado||0)+(s.transferido||0)+(s.troca_curso||0);
+    const ativos = s.matriculados||0;
+    const base = ativos + evadidos;
+    return {
+      semestre: String(s.semestre), ano: String(s.semestre).slice(0,4),
+      vinculos: base, ativos, evadidos,
+      trancado: s.trancado||0, cancelado: s.cancelado||0, transferido: s.transferido||0,
+      vagas: s.vagas||0, ocupacao: parseFloat(s.taxa_ocupacao)||0,
+      taxa: base>0 ? (evadidos/base)*100 : 0,
+    };
+  }).filter(c => c.vinculos > 0);
+
+  // Evasão acumulada do curso, a partir do quantitativo geral do e-ORBIT.
+  const statusGeral = quantGeral?.status ?? {};
+  const ativosAcum = (statusGeral.MATRICULADO||0) + (statusGeral.PRE_MATRICULADO||0);
+  const evadidosAcum = (statusGeral.TRANCADO||0) + (statusGeral.CANCELADO||0) + (statusGeral.TRANSFERIDO||0) + (statusGeral.ABANDONO||0) + (statusGeral.TROCA_DE_CURSO||0);
+  const concluidosAcum = (statusGeral.GRADUADO||0) + (statusGeral.CONCLUIDO||0);
+  const baseAcum = totalGeral || (ativosAcum + evadidosAcum + concluidosAcum);
+  const taxaAcumulada = baseAcum > 0 ? (evadidosAcum/baseAcum)*100 : 0;
+
+  // Comparação por ano de entrada.
+  const anos = [...new Set(coortes.map(c => c.ano))].sort().map((ano) => {
+    const rows = coortes.filter(c => c.ano === ano);
+    const vinculos = rows.reduce((a,c)=>a+c.vinculos,0);
+    const evadidos = rows.reduce((a,c)=>a+c.evadidos,0);
+    const ativos = rows.reduce((a,c)=>a+c.ativos,0);
+    return { ano, vinculos, ativos, evadidos, taxa: vinculos>0 ? (evadidos/vinculos)*100 : 0 };
+  });
+
+  const corTaxa = (t: number) => t > 40 ? "var(--danger)" : t > 25 ? "var(--warning)" : "var(--success)";
+  const chipTaxa = (t: number) => t > 40 ? "drx-chip-red" : t > 25 ? "drx-chip-yellow" : "drx-chip-green";
+  const pp = (v: number) => `${v>0?"+":""}${v.toFixed(1)} p.p.`;
+
   return (
     <div className="drx">
       {/* ── Header ── */}
@@ -116,7 +154,8 @@ export default function DireitoRaioX({ institutionId }: Props) {
         {[
           {label:"Matriculados",value:matriculadosAtual,sub:crescimento !== "—" ? `${Number(crescimento)>0?"+":""}${crescimento}%` : "—",color:"var(--primary)",icon:"📊"},
           {label:"Vínculos Totais",value:totalGeral,sub:"desde 2023/01",color:"#6366f1",icon:"📋"},
-          {label:"Taxa de Evasão",value:`${taxaEvasao.toFixed(1)}%`,sub:taxaEvasao<=20?"Saudável":taxaEvasao<=50?"Atenção":"Crítica",color:taxaEvasao>50?"var(--danger)":taxaEvasao>20?"var(--warning)":"var(--success)",icon:taxaEvasao<=20?"✅":"⚠️"},
+          {label:"Evasão acumulada",value:`${taxaAcumulada.toFixed(1)}%`,sub:`${evadidosAcum} de ${baseAcum} vínculos encerrados`,color:corTaxa(taxaAcumulada),icon:taxaAcumulada>40?"⚠️":taxaAcumulada>25?"⚠️":"✅"},
+          {label:"Evasão da turma nova",value:`${(coortes[coortes.length-1]?.taxa ?? 0).toFixed(1)}%`,sub:`turma ${coortes[coortes.length-1]?.semestre ?? "—"} · menos tempo de exposição`,color:"#6366f1",icon:"🆕"},
           {label:"Corpo Docente",value:profCount,sub:"professores 2026/01",color:"#7c3aed",icon:"👨‍🏫"},
           {label:"Trancados",value:trancados,sub:totalGeral>0?`${((trancados/totalGeral)*100).toFixed(0)}% do total`:"",color:"var(--warning)",icon:"⏸️"},
           {label:"Cancelados",value:cancelados,sub:totalGeral>0?`${((cancelados/totalGeral)*100).toFixed(0)}% do total`:"",color:"var(--danger)",icon:"❌"},
@@ -293,7 +332,7 @@ export default function DireitoRaioX({ institutionId }: Props) {
                           <span>{parseFloat(s.taxa_ocupacao).toFixed(1)}%</span>
                         </div>
                       </td>
-                      <td><span className={`drx-chip ${parseFloat(s.taxa_evasao)>50?"drx-chip-red":parseFloat(s.taxa_evasao)>20?"drx-chip-yellow":"drx-chip-green"}`}>{parseFloat(s.taxa_evasao).toFixed(1)}%</span></td>
+                      <td>{(() => { const ev=(s.trancado||0)+(s.abandono||0)+(s.cancelado||0)+(s.transferido||0)+(s.troca_curso||0); const bs=(s.matriculados||0)+ev; const tx=bs>0?(ev/bs)*100:0; return <span className={`drx-chip ${chipTaxa(tx)}`}>{tx.toFixed(1)}%</span>; })()}</td>
                       <td>{i===0?"—":diff>0?<span className="drx-trend-up">▲+{diff}</span>:diff<0?<span className="drx-trend-down">▼{diff}</span>:<span>→</span>}</td>
                     </tr>
                   );
@@ -301,6 +340,84 @@ export default function DireitoRaioX({ institutionId }: Props) {
               </tbody>
             </table>
           </div>
+        </div>
+      )}
+
+      {/* ── Evasão: coorte, acumulada e comparação ── */}
+      {coortes.length > 0 && (
+        <div className="drx-section">
+          <div className="drx-section-header">
+            <h4>Evasão — por coorte, acumulada e comparada</h4>
+            <p className="drx-sub">Cada linha é a situação <strong>atual</strong> da turma que entrou naquele semestre, não o fluxo ocorrido durante ele. Turmas antigas tiveram mais tempo para perder vínculos, então a comparação direta entre uma turma de 2023 e a de 2026 não é de igual para igual.</p>
+          </div>
+
+          <div className="drx-evasao-resumo">
+            <div className="drx-evasao-card" style={{borderLeftColor: corTaxa(taxaAcumulada)}}>
+              <span className="drx-evasao-label">Evasão acumulada do curso</span>
+              <strong className="drx-evasao-valor" style={{color: corTaxa(taxaAcumulada)}}>{taxaAcumulada.toFixed(1)}%</strong>
+              <span className="drx-evasao-sub">{evadidosAcum} encerrados de {baseAcum} vínculos · {ativosAcum} ativos{concluidosAcum>0?` · ${concluidosAcum} concluídos`:""}</span>
+            </div>
+            <div className="drx-evasao-card" style={{borderLeftColor:"var(--warning)"}}>
+              <span className="drx-evasao-label">Composição da evasão</span>
+              <strong className="drx-evasao-valor" style={{color:"var(--warning)"}}>{statusGeral.TRANCADO||0}</strong>
+              <span className="drx-evasao-sub">trancados{baseAcum>0?` · ${(((statusGeral.TRANCADO||0)/baseAcum)*100).toFixed(0)}% de todos os vínculos`:""} · {statusGeral.CANCELADO||0} cancelados · {statusGeral.TRANSFERIDO||0} transferidos</span>
+            </div>
+          </div>
+
+          <h5 className="drx-evasao-h5">Semestre a semestre — turma de entrada</h5>
+          <div className="drx-table-wrap">
+            <table className="drx-table">
+              <thead><tr><th>Turma de entrada</th><th>Vínculos</th><th>Ativos</th><th>Evadidos</th><th>Taxa</th><th>Δ vs. turma anterior</th></tr></thead>
+              <tbody>
+                {coortes.map((c, i) => {
+                  const d = i === 0 ? null : c.taxa - coortes[i-1].taxa;
+                  return (
+                    <tr key={c.semestre}>
+                      <td><strong>{c.semestre}</strong></td>
+                      <td>{c.vinculos}</td>
+                      <td>{c.ativos}</td>
+                      <td>{c.evadidos}</td>
+                      <td><span className={`drx-chip ${chipTaxa(c.taxa)}`}>{c.taxa.toFixed(1)}%</span></td>
+                      <td>{d === null ? "—" : d < 0 ? <span className="drx-trend-down">▼ {pp(d)}</span> : d > 0 ? <span className="drx-trend-up">▲ {pp(d)}</span> : <span>→</span>}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          <h5 className="drx-evasao-h5">Comparação por ano de entrada</h5>
+          <div className="drx-table-wrap">
+            <table className="drx-table">
+              <thead><tr><th>Ano</th><th>Vínculos</th><th>Ativos</th><th>Evadidos</th><th>Taxa</th><th>Δ vs. ano anterior</th><th>Retenção</th></tr></thead>
+              <tbody>
+                {anos.map((a, i) => {
+                  const d = i === 0 ? null : a.taxa - anos[i-1].taxa;
+                  const ret = 100 - a.taxa;
+                  return (
+                    <tr key={a.ano}>
+                      <td><strong>{a.ano}</strong></td>
+                      <td>{a.vinculos}</td>
+                      <td>{a.ativos}</td>
+                      <td>{a.evadidos}</td>
+                      <td><span className={`drx-chip ${chipTaxa(a.taxa)}`}>{a.taxa.toFixed(1)}%</span></td>
+                      <td>{d === null ? "—" : d < 0 ? <span className="drx-trend-down">▼ {pp(d)}</span> : d > 0 ? <span className="drx-trend-up">▲ {pp(d)}</span> : <span>→</span>}</td>
+                      <td>
+                        <div className="drx-bar-wrap">
+                          <div className="drx-bar" style={{width:`${Math.max(0,Math.min(100,ret))}%`,background:corTaxa(a.taxa)}}/>
+                          <span>{ret.toFixed(1)}%</span>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          <p className="drx-evasao-nota">
+            Taxa = evadidos ÷ (ativos + evadidos), contando trancamento, abandono, cancelamento, transferência e troca de curso. A coluna <code>taxa_evasao</code> gravada no banco divide pelos que permaneceram e por isso chega a passar de 100%; este painel recalcula e não a utiliza.
+          </p>
         </div>
       )}
 
