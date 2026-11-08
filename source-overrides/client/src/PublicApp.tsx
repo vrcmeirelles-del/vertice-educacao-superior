@@ -1,5 +1,6 @@
 import React from "react";
 import CommercialDemo from "./pages/public/CommercialDemo";
+import PremiumBIPublic from "./pages/public/PremiumBIPublic";
 import PublicLayout from "./components/PublicLayout";
 import Home from "./pages/public/Home";
 import Aquisicoes from "./pages/public/Aquisicoes";
@@ -18,6 +19,7 @@ import { useLocation } from "wouter";
 
 export const publicComponents: Record<string, React.ComponentType> = {
   "/demonstracao": CommercialDemo,
+  "/bi-demonstrativo": PremiumBIPublic,
   "/": Home,
   "/aquisicoes": Aquisicoes,
   "/entrar": Login,
