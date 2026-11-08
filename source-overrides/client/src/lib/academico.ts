@@ -30,21 +30,27 @@ export type AcademicReportRow = {
 };
 
 // ---------- queries ----------
+// Dados e-ORBIT legados foram atribuídos à UNITOP, mas ainda usam chave anterior.
+// Nunca fazer fallback de outra IES, nem contornar RLS: consultas mantêm sessão do usuário.
+const UNITOP_CANONICAL = '1f5fd5b4-93c6-4626-834d-136884915587';
+const UNITOP_LEGACY = 'cda828bd-4f55-432a-a824-387716c3cb2b';
 async function fetchAllFrom<T>(table: string, institutionId: string, order = 'id'): Promise<T[]> {
   if (!institutionId) throw new Error('Selecione uma instituição autorizada antes de consultar dados acadêmicos.');
-  const rows: T[] = [];
-  for (let from = 0; ; from += 1000) {
-    const { data, error } = await supabase
-      .from(table)
-      .select('*')
-      .eq('instituicao_id',institutionId)
-      .order(order)
-      .range(from, from + 999);
-    if (error) throw error;
-    rows.push(...((data ?? []) as T[]));
-    if (!data || data.length < 1000) break;
-  }
-  return rows;
+  const fetchScoped = async (id:string):Promise<T[]> => {
+    const rows:T[]=[];
+    for(let from=0;;from+=1000){
+      const {data,error}=await supabase.from(table).select('*')
+        .eq('instituicao_id',id).order(order).range(from,from+999);
+      if(error)throw error;
+      rows.push(...((data??[]) as T[]));
+      if(!data||data.length<1000)break;
+    }
+    return rows;
+  };
+  const real=await fetchScoped(institutionId);
+  if(real.length||institutionId!==UNITOP_CANONICAL)return real;
+  // Apenas fonte com identidade legada UNITOP previamente identificada e protegida por RLS.
+  return fetchScoped(UNITOP_LEGACY);
 }
 
 export async function fetchSemestres(institutionId:string) {
