@@ -105,7 +105,7 @@ export default function NovoInstrumento({ institutionId, role, courses, onUpload
       ) : loading ? (
         <p role="status" className="area-muted">Carregando o Novo Instrumento…</p>
       ) : sub === "checklist" ? (
-        <ChecklistPanel {...shared} courses={courses} course={course} onCourse={setCourseId} />
+        <ChecklistPanel {...shared} courses={courses} course={course} onCourse={setCourseId} onUploadDocument={onUploadDocument} />
       ) : sub === "evidencias" ? (
         <EvidenciasPanel {...shared} courses={courses} course={course} onCourse={setCourseId} />
       ) : sub === "cronograma" ? (
@@ -251,7 +251,7 @@ function SeletorEscopo({ courses, value, onChange }: { courses: Row[]; value: st
 }
 
 // ================================================================ checklist
-function ChecklistPanel({ institutionId, role, data, reload, fail, courses, course, onCourse }: Shared & { courses: Row[]; course: Row | null; onCourse: (id: string) => void }) {
+function ChecklistPanel({ institutionId, role, data, reload, fail, courses, course, onCourse, onUploadDocument }: Shared & { courses: Row[]; course: Row | null; onCourse: (id: string) => void; onUploadDocument?: Props["onUploadDocument"] }) {
   const courseId = course ? String(course.id) : null;
   const edit = can.record(role);
   const objetos = useMemo(() => objetosDoEscopo(course), [course]);
@@ -442,7 +442,8 @@ function ChecklistPanel({ institutionId, role, data, reload, fail, courses, cour
                         <ObjetoLinhas key={o.code} o={o} row={row} status={status} ev={ev} aberto={aberto} edit={edit} ocupado={busy === o.code}
                           onToggle={() => setOpen(aberto ? null : o.code)}
                           onStatus={v => gravar(o, row, { status: v })}
-                          onSalvar={(notes, responsible) => gravar(o, row, { notes: notes || null, responsible: responsible || null })} />
+                          onSalvar={(notes, responsible) => gravar(o, row, { notes: notes || null, responsible: responsible || null })}
+                          onUpload={edit && course && onUploadDocument ? () => onUploadDocument(String(course.id), `Evidência · Objeto ${o.code} · ${o.title}`, `Novo Instrumento de Avaliação de Curso 2026 · ${String(course.name)} · Objeto ${o.code}: ${o.title}. Este envio não representa avaliação de conformidade.`) : undefined} />
                       );
                     })}
                   </tbody>
@@ -456,9 +457,9 @@ function ChecklistPanel({ institutionId, role, data, reload, fail, courses, cour
   );
 }
 
-function ObjetoLinhas({ o, row, status, ev, aberto, edit, ocupado, onToggle, onStatus, onSalvar }: {
+function ObjetoLinhas({ o, row, status, ev, aberto, edit, ocupado, onToggle, onStatus, onSalvar, onUpload }: {
   o: ObjetoInstrumento; row?: Row; status: Conformidade; ev: number; aberto: boolean; edit: boolean; ocupado: boolean;
-  onToggle: () => void; onStatus: (v: Conformidade) => void; onSalvar: (notes: string, responsible: string) => void;
+  onToggle: () => void; onStatus: (v: Conformidade) => void; onSalvar: (notes: string, responsible: string) => void; onUpload?: () => void;
 }) {
   const [notes, setNotes] = useState(String(row?.notes ?? ""));
   const [resp, setResp] = useState(String(row?.responsible ?? ""));
@@ -508,6 +509,7 @@ function ObjetoLinhas({ o, row, status, ev, aberto, edit, ocupado, onToggle, onS
           <td />
           <td colSpan={5}>
             <p className="area-muted small"><strong>Roteiro de verificação:</strong> {o.hint}</p>
+            {onUpload && <button type="button" className="corp-button small" onClick={onUpload}>Enviar arquivo deste objeto</button>}
             {(() => {
               const fontes = indicadoresDoObjeto2026(o.code);
               if (!fontes.length) return null;
