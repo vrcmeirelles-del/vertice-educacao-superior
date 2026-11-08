@@ -4,6 +4,7 @@ import "./avaliacao-institucional.css";
 import RepositoryFiles from "./RepositoryFiles";
 import AvaliacaoSimuladaPanel from "./AvaliacaoSimuladaPanel";
 import "./avaliacao-simulada.css";
+import "./novo-instrumento.css";
 import { isInstrumentFile, isInstrumentRequest, instrumentIndicators } from "@/lib/repository";
 import {
   REPOSITORY_PERIODS,
@@ -81,12 +82,12 @@ type ResumoSummary = { total: number; sent: number; validated: number; returned:
 type ResumoDimensao = { code: string; total: number; validados: number };
 
 function ResumoDocumental({ summary, dimensoes }: { summary: ResumoSummary; dimensoes: ResumoDimensao[] }) {
-  if (!summary.total && !summary.nsa) return null;
   const aguardando = Math.max(0, summary.sent - summary.validated - summary.returned);
   const semArquivo = Math.max(0, summary.total - summary.sent);
   return (
-    <div className="aval-resumo">
-      <div className="aval-resumo-main">
+    <section className="area-panel er-instrument-summary" aria-label="Panorama das dimensões do reconhecimento">
+      <div className="ni-summary">
+      <div className="ni-summary-main">
         <DonutRepo
           parts={[
             { value: summary.validated, color: COR_VALIDADO, label: "Validado" },
@@ -94,11 +95,11 @@ function ResumoDocumental({ summary, dimensoes }: { summary: ResumoSummary; dime
             { value: summary.returned, color: COR_DEVOLVIDO, label: "Devolvido" },
             { value: semArquivo, color: COR_SEM, label: "Sem arquivo" },
           ]}
-          center={`${summary.percent}%`}
+          center={summary.total ? `${summary.percent}%` : "N/A"}
           caption="Situação documental do Reconhecimento de Curso"
         />
         <div>
-          <strong style={{ fontSize: "1.15rem" }}>{summary.percent}% validado</strong>
+          <strong style={{ fontSize: "1.15rem" }}>{summary.total ? `${summary.percent}% validado` : "Sem exigências aplicáveis cadastradas"}</strong>
           <ul className="aval-legenda">
             <li><i style={{ background: COR_VALIDADO }} /> Validado <b>{summary.validated}</b></li>
             <li><i style={{ background: COR_AGUARDA }} /> Aguardando conferência <b>{aguardando}</b></li>
@@ -110,29 +111,29 @@ function ResumoDocumental({ summary, dimensoes }: { summary: ResumoSummary; dime
           </p>
         </div>
       </div>
-      <div className="aval-eixo-cards">
+      <div className="ni-dims">
         {dimensoes.map((d) => {
           const pct = d.total ? Math.round((d.validados * 100) / d.total) : 0;
           const cor = !d.total ? COR_SEM : pct >= 80 ? COR_VALIDADO : pct >= 50 ? COR_AGUARDA : COR_DEVOLVIDO;
           return (
-            <div key={d.code} className="aval-eixo-card">
+            <article key={d.code} className="ni-dim-card">
               <DonutRepo
                 parts={[{ value: pct, color: cor, label: "" }, { value: 100 - pct, color: "#e7ecf1", label: "" }]}
-                center={d.total ? `${pct}%` : "—"}
+                center={d.total ? `${pct}%` : "N/A"}
                 caption={`Dimensão ${d.code}`}
-                size={52}
+                size={64}
               />
               <div>
-                <strong>Dimensão {d.code}</strong>
-                <p className="area-muted" style={{ margin: 0, fontSize: ".78rem" }}>
-                  {d.total ? `${d.validados} de ${d.total} validados` : "sem exigência no semestre"}
-                </p>
+                <small>Dimensão {d.code}</small>
+                <strong>{REPOSITORY_DIMENSIONS[d.code] ?? "Indicadores do curso"}</strong>
+                <span className="area-muted small">{d.total ? `${d.validados} de ${d.total} documentos validados` : "Sem exigências classificadas neste semestre"}</span>
               </div>
-            </div>
+            </article>
           );
         })}
       </div>
-    </div>
+      </div>
+    </section>
   );
 }
 
@@ -273,6 +274,7 @@ export default function RepositoryTab(props: RepositoryProps) {
     return `${now.getFullYear()}-${now.getMonth() < 6 ? 1 : 2}`;
   });
   const [view, setView] = useState<View>("cobertura");
+  const [dimensaoFiltro, setDimensaoFiltro] = useState("todas");
   const classification = useCourseFilters(courses);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("todos");
@@ -358,6 +360,7 @@ export default function RepositoryTab(props: RepositoryProps) {
   const goCourse = (id: string) => {
     setCourseId(id);
     setView("cobertura");
+    setDimensaoFiltro("todas");
     setNotice("");
     setError("");
   };
@@ -501,7 +504,7 @@ export default function RepositoryTab(props: RepositoryProps) {
     </div>
   );
   return (
-    <div className="evidence-repo">
+    <div className="evidence-repo er-instrument-visual">
       <div className="er-top">
         <div className="er-brand">
           <span>V</span>
@@ -814,7 +817,7 @@ export default function RepositoryTab(props: RepositoryProps) {
                 {String(course.coordinator ?? "Não informada")}
               </p>
             )}
-            <nav className="er-tabs" aria-label="Seções do repositório">
+            <nav className="er-tabs ni-subtabs" aria-label="Seções do repositório">
               {(
                 [
                   ["cobertura", "Cobertura do semestre"],
@@ -872,11 +875,20 @@ export default function RepositoryTab(props: RepositoryProps) {
                   </div>
                 ) : (
                   <>
-                    <p className="er-card-note">Abra uma dimensão e um indicador para consultar seus documentos. Modelos, apoio e diversos ficam em “Outros documentos”. A presença de arquivo não equivale à validação.</p>
-                    {["1", "2", "3"].map(dim => {
+                    <p className="er-card-note">Abra uma dimensão e um indicador para consultar os documentos correspondentes. A presença de arquivo não equivale à validação. Os percentuais mostram apenas a cobertura documental validada, não o conceito do INEP.</p>
+                    <div className="er-toolbar er-dimension-filter">
+                      <label>Dimensão
+                        <select aria-label="Filtrar dimensão do reconhecimento" value={dimensaoFiltro} onChange={e => setDimensaoFiltro(e.target.value)}>
+                          <option value="todas">Todas as dimensões</option>
+                          {DIMENSOES_INSTRUMENTO.map(d => <option value={d} key={d}>Dimensão {d} · {REPOSITORY_DIMENSIONS[d]}</option>)}
+                        </select>
+                      </label>
+                      <span className="er-muted">Instrumento de reconhecimento · avaliação por curso</span>
+                    </div>
+                    {DIMENSOES_INSTRUMENTO.filter(dim => dimensaoFiltro === "todas" || dimensaoFiltro === dim).map(dim => {
                       const rows = scoped.filter(r => instrumentIndicators(r.indicator).some(i => i.startsWith(dim + ".")));
                       const codes = [...new Set(rows.flatMap(r => instrumentIndicators(r.indicator).filter(i => i.startsWith(dim + "."))))].sort((a,b) => Number(a.split(".")[1])-Number(b.split(".")[1]));
-                      return <details className="er-dimension" key={dim}><summary><strong>Dimensão {dim} — {REPOSITORY_DIMENSIONS[dim]}</strong><span>{codes.length} indicadores · {rows.length} documentos</span></summary>
+                      return <details className="er-dimension" key={dim} open={dimensaoFiltro === dim ? true : undefined}><summary><strong>Dimensão {dim} — {REPOSITORY_DIMENSIONS[dim]}</strong><span>{codes.length} indicadores · {rows.length} documentos</span></summary>
                         {!codes.length ? <p className="er-empty">Nenhum documento classificado nesta dimensão no semestre.</p> : codes.map(code => {
                           const items=rows.filter(r => instrumentIndicators(r.indicator).includes(code));
                           const pending=items.filter(r => r.not_applicable!==true && (!latest.has(r.id)||latest.get(r.id)?.status==="devolvido")).length;
