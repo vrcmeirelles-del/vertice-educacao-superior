@@ -103,6 +103,7 @@ export default function Workspace({
   useEffect(()=>{const sync=()=>{const t=new URLSearchParams(window.location.hash.slice(1)).get("aba") as Tab;if(TABS.some(([key])=>key===t))setTab(t);};window.addEventListener("hashchange",sync);window.addEventListener("popstate",sync);return()=>{window.removeEventListener("hashchange",sync);window.removeEventListener("popstate",sync);};},[]);
   const [data, setData] = useState<Data>(EMPTY);
   const [repositoryGoal,setRepositoryGoal]=useState("");
+  const [instrumentUpload,setInstrumentUpload]=useState<{courseId:string;title:string;reference:string}|null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -133,10 +134,17 @@ export default function Workspace({
   }, [reload]);
 
   const choose = (t: Tab) => {
+    if (t !== "repositorio") setInstrumentUpload(null);
     setTab(t);
     const p = new URLSearchParams(window.location.hash.slice(1));
     p.set("aba", t);
     window.history.replaceState(null, "", `#${p.toString()}`);
+  };
+
+  const openInstrumentUpload = (courseId: string, title: string, reference: string) => {
+    setRepositoryGoal("");
+    setInstrumentUpload({courseId,title,reference});
+    choose("repositorio");
   };
 
   const documents=repositorySummary(data.requests,data.files);
@@ -231,7 +239,7 @@ export default function Workspace({
       ) : tab === "metas" ? (
         error ? <p role="alert">Painel de metas indisponível enquanto houver falha no carregamento. Atualize os dados.</p> : <GoalsTab key={id} institutionId={id} role={role} data={data} reload={reload} onRepository={goal=>{setRepositoryGoal(goal);choose("repositorio");}} />
       ) : tab === "repositorio" ? (
-        <RepositoryTab institutionId={id} role={role} courses={data.courses} goals={data.goals} requests={data.requests} files={data.files} reload={reload} goalFilter={repositoryGoal} setGoalFilter={setRepositoryGoal}/>
+        <RepositoryTab institutionId={id} role={role} courses={data.courses} goals={data.goals} requests={data.requests} files={data.files} reload={reload} goalFilter={repositoryGoal} setGoalFilter={setRepositoryGoal} initialCourseId={instrumentUpload?.courseId} initialUpload={!!instrumentUpload} initialDocumentTitle={instrumentUpload?.title} initialDocumentInstructions={instrumentUpload?.reference}/>
       ) : tab === "reitor" ? (
         role === "master" || role === "gestor" ? <EbitdaCalculator reserved={{institutionId:id,name:String(institution.name)}}/> : <p>Os dados financeiros são reservados ao Gestor da instituição e ao Master.</p>
       ) : tab === "aprendizagem" ? (
@@ -239,9 +247,9 @@ export default function Workspace({
       ) : tab === "enade" ? (
         <Enade360 key={id} institutionId={id} courses={data.courses} actions={data.actions} goals={data.goals} role={role} onPlan={()=>choose("plano")}/>
       ) : tab === "novo_instrumento" ? (
-        <NovoInstrumento institutionId={id} role={role} courses={data.courses} />
+        <NovoInstrumento institutionId={id} role={role} courses={data.courses} onUploadDocument={openInstrumentUpload} />
       ) : tab === "avaliacao" ? (
-        <AvaliacaoInstitucional key={id} onRepository={() => choose("repositorio")} />
+        <AvaliacaoInstitucional key={id} onRepository={() => {setInstrumentUpload(null);choose("repositorio");}} onUploadDocument={(title,reference)=>openInstrumentUpload("institucional",title,reference)} />
       ) : tab === "resultado-curso" ? (
         role === "master" || role === "gestor" ? <ResultadoCursoBI institutionId={id} institutionName={String(institution.name)}/> : <p>O módulo de resultado por curso é reservado ao Gestor da instituição e ao Master.</p>
       ) : tab === "simulador" ? (
