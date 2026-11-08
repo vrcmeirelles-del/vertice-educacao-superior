@@ -312,7 +312,7 @@ export default function DireitoRaioX({ institutionId }: Props) {
           {label:"Matriculados",value:matriculadosAtual,sub:crescimento !== "—" ? `${Number(crescimento)>0?"+":""}${crescimento}%` : "—",color:"var(--primary)",icon:"📊"},
           {label:"Vínculos Totais",value:totalGeral,sub:"base histórica · desde 2023/01",color:"#6366f1",icon:"📋"},
           {label:"Saídas classificadas acumuladas",value:`${taxaAcumulada.toFixed(1)}%`,sub:`${evadidosAcum} de ${baseAcum} com saída classificada`,color:corTaxa(taxaAcumulada),icon:taxaAcumulada>40?"⚠️":taxaAcumulada>25?"⚠️":"✅"},
-          {label:"Saídas classificadas da coorte recente",value:`${(coortes[coortes.length-1]?.taxa ?? 0).toFixed(1)}%`,sub:`turma ${coortes[coortes.length-1]?.semestre ?? "—"} · menos tempo de exposição`,color:"#6366f1",icon:"🆕"},
+          {label:"Saídas classificadas da turma mais recente",value:`${(coortes[coortes.length-1]?.taxa ?? 0).toFixed(1)}%`,sub:`turma ${coortes[coortes.length-1]?.semestre ?? "—"} · menos tempo de exposição`,color:"#6366f1",icon:"🆕"},
           {label:"Corpo Docente",value:docenciaStatus==="ready"&&profCount!==null?profCount:"Sem dados",sub:"registrados em ofertas · 2026/02",color:"#7c3aed",icon:"👨‍🏫"},
           {label:"Trancados",value:trancados,sub:totalGeral>0?`${((trancados/totalGeral)*100).toFixed(0)}% do total`:"",color:"var(--warning)",icon:"⏸️"},
           {label:"Cancelados",value:cancelados,sub:totalGeral>0?`${((cancelados/totalGeral)*100).toFixed(0)}% do total`:"",color:"var(--danger)",icon:"❌"},
@@ -330,13 +330,13 @@ export default function DireitoRaioX({ institutionId }: Props) {
         <p>{({
           "Matriculados":"Estoque de vínculos classificados MATRICULADO no recorte de Direito. Não significa captação nem alunos únicos de toda a instituição.",
           "Vínculos Totais":"Base cumulativa de vínculos e situações informadas desde 2023/01, incluindo estados diferentes. Não é o total atual de matriculados.",
-          "Saídas classificadas acumuladas":"Indicador operacional composto por trancamentos, abandonos, cancelamentos, transferências e trocas de curso divididos pela base cumulativa. Transferência e trancamento não são necessariamente evasão definitiva. Não compara coortes com tempos de exposição distintos.",
-          "Saídas classificadas da coorte recente":"Percentual operacional de eventos de saída na coorte mais recente; por possuir menor tempo de acompanhamento, não deve ser comparado diretamente a coortes antigas.",
+          "Saídas classificadas acumuladas":"Indicador operacional composto por trancamentos, abandonos, cancelamentos, transferências e trocas de curso divididos pela base cumulativa. Transferência e trancamento não são necessariamente evasão definitiva. Não compara turmas de ingresso com tempos de acompanhamento diferentes.",
+          "Saídas classificadas da turma mais recente":"Percentual operacional de eventos de saída na turma de ingresso mais recente; por possuir menor tempo de acompanhamento, não deve ser comparado diretamente a turmas que ingressaram há mais tempo.",
           "Corpo Docente":"Nomes distintos identificados nas ofertas do curso de Direito, código 027, no semestre de 2026/02. Não equivale a vínculos empregatícios ativos, nem comprova titulação, jornada ou quantidade de contratos.",
           "Trancados":"Vínculos classificados como trancados; trancamento pode ser temporário e não comprova desligamento definitivo.",
           "Cancelados":"Vínculos classificados como cancelados. A soma de estados não substitui estudo longitudinal por matrícula."
         } as Record<string,string>)[selectedMetric]??"Indicador agregado da fonte acadêmica, sujeito à validação."}</p>
-        <p><strong>Como explorar:</strong> utilize a comparação de semestres e o quadro das coortes abaixo. Os valores são agregados e não identificam pessoas únicas automaticamente.</p>
+        <p><strong>Como explorar:</strong> utilize a comparação de semestres e o quadro das turmas de ingresso abaixo. Os valores são agregados e não identificam pessoas únicas automaticamente.</p>
       </section>}
       {/* ── Série Histórica Real — Accordion ── */}
       {serieReal?.semestres && (
@@ -518,25 +518,25 @@ export default function DireitoRaioX({ institutionId }: Props) {
 
       {/* ── Evolução Semestral ── */}
       {semFiltered.length>0&&<div className="drx-section" id="drx-evolucao">
-        <div className="drx-section-header"><h4>Evolução Semestral · análise comparativa</h4><p className="drx-sub">Os registros representam coortes de entrada observadas na extração e sua situação atual; não são necessariamente os estoques de matrículas de cada semestre histórico.</p></div>
+        <div className="drx-section-header"><h4>Evolução Semestral · análise comparativa</h4><p className="drx-sub">Os registros representam turmas de ingresso observadas na extração e sua situação atual; não são necessariamente os estoques de matrículas de cada semestre histórico.</p></div>
         <div className="drx-definitions">
-          <p><strong>Ocupação de vagas da coorte:</strong> matrículas ativas hoje dos ingressantes daquela turma ÷ vagas registradas para a respectiva turma de entrada × 100. Assim, 245 de 650 vagas correspondem a 37,7%. <strong>Não é ocupação de salas</strong> nem a taxa histórica de preenchimento na data do ingresso. Depende de validar que o denominador são vagas comparáveis.</p>
-          <p><strong>Taxa de saída da coorte:</strong> registros de trancamento, abandono, cancelamento, transferência e troca de curso ÷ base da coorte (ativos, pré-matriculados, concluídos e saídas). Trata-se de indicador amplo, não exclusivamente evasão definitiva.</p>
-          <p><strong>Δ:</strong> diferença absoluta em matrículas ativas das duas coortes. <strong>p.p.</strong> significa pontos percentuais, usados para comparar duas taxas. Coortes de entrada mais antigas tiveram mais tempo para alterações de situação.</p>
+          <p><strong>Relação entre matrículas atuais e vagas da turma de ingresso:</strong> matrículas ativas hoje dos ingressantes daquela turma ÷ vagas registradas para a respectiva turma de entrada × 100. Assim, 245 de 650 vagas correspondem a 37,7%. <strong>Não é ocupação de salas</strong> nem a taxa histórica de preenchimento na data do ingresso. Depende de validar que o denominador são vagas comparáveis.</p>
+          <p><strong>Taxa de saída da turma de ingresso:</strong> registros de trancamento, abandono, cancelamento, transferência e troca de curso ÷ base dos alunos dessa turma de ingresso (ativos, pré-matriculados, concluídos e saídas). Trata-se de indicador amplo, não exclusivamente evasão definitiva.</p>
+          <p><strong>Δ:</strong> diferença absoluta em matrículas ativas das duas turmas de ingresso. <strong>p.p.</strong> significa pontos percentuais, usados para comparar duas taxas. Turmas que ingressaram há mais tempo tiveram mais tempo para alterações de situação.</p>
         </div>
         <div className="drx-compare-controls">
-          <label>Coorte de referência<select value={displayedSem} onChange={e=>setSelectedSem(e.target.value)}>{periodLabels.map(sem=><option value={sem} key={sem}>{sem}</option>)}</select></label>
-          <label>Comparar com<select value={compareMode} onChange={e=>setCompareMode(e.target.value as CompareMode)}><option value="homologo">Mesmo semestre do ano anterior</option><option value="anterior">Coorte imediatamente anterior</option><option value="livre">Selecionar período</option></select></label>
+          <label>Turma de ingresso de referência<select value={displayedSem} onChange={e=>setSelectedSem(e.target.value)}>{periodLabels.map(sem=><option value={sem} key={sem}>{sem}</option>)}</select></label>
+          <label>Comparar com<select value={compareMode} onChange={e=>setCompareMode(e.target.value as CompareMode)}><option value="homologo">Mesmo semestre do ano anterior</option><option value="anterior">Turma que ingressou no semestre anterior</option><option value="livre">Selecionar período</option></select></label>
           {compareMode==="livre"&&<label>Outro semestre<select value={selectedOther} onChange={e=>setComparisonSem(e.target.value)}>{periodLabels.filter(sem=>sem!==displayedSem).map(sem=><option value={sem} key={sem}>{sem}</option>)}</select></label>}
         </div>
         <div className="drx-compare-cards">
-          <div><small>Coorte selecionada · {displayedSem}</small><strong>{selectedPeriod?valueNum(selectedPeriod.matriculados):"Sem dados"}</strong><span>Matriculados classificados como ativos</span></div>
-          <div><small>Coorte comparada · {comparisonLabel||"Indisponível"}</small><strong>{comparisonPeriod?valueNum(comparisonPeriod.matriculados):"Sem dados"}</strong><span>Mesmo indicador e critérios</span></div>
+          <div><small>Turma de ingresso selecionada · {displayedSem}</small><strong>{selectedPeriod?valueNum(selectedPeriod.matriculados):"Sem dados"}</strong><span>Matriculados classificados como ativos</span></div>
+          <div><small>Turma de ingresso comparada · {comparisonLabel||"Indisponível"}</small><strong>{comparisonPeriod?valueNum(comparisonPeriod.matriculados):"Sem dados"}</strong><span>Mesmo indicador e critérios</span></div>
           <div><small>Diferença absoluta</small><strong>{selectedPeriod&&comparisonPeriod?valueNum(selectedPeriod.matriculados)-valueNum(comparisonPeriod.matriculados):"—"}</strong><span>Vínculos ativos; não é captação líquida</span></div>
-          <div><small>Taxa operacional de saída · diferença</small><strong>{selectedMove?.rate!==null&&selectedMove?.rate!==undefined&&comparedMove?.rate!==null&&comparedMove?.rate!==undefined?(selectedMove.rate-comparedMove.rate).toFixed(1)+" p.p.":"—"}</strong><span>Coortes podem ter exposição temporal diferente</span></div>
+          <div><small>Taxa operacional de saída · diferença</small><strong>{selectedMove?.rate!==null&&selectedMove?.rate!==undefined&&comparedMove?.rate!==null&&comparedMove?.rate!==undefined?(selectedMove.rate-comparedMove.rate).toFixed(1)+" p.p.":"—"}</strong><span>Turmas de ingresso podem ter tempos de acompanhamento diferentes</span></div>
         </div>
         {selectedPeriod&&comparisonPeriod&&<div className="drx-compare-breakdown">
-          <h5>Confronto dos indicadores por coorte</h5>
+          <h5>Confronto dos indicadores por turma de ingresso</h5>
           <div className="drx-table-wrap"><table className="drx-table"><thead><tr><th>Medida</th><th>{displayedSem}</th><th>{comparisonLabel}</th><th>Variação / diferença</th></tr></thead><tbody>
             {([
               ["Matrículas ativas",valueNum(selectedPeriod.matriculados),valueNum(comparisonPeriod.matriculados)],
@@ -545,41 +545,41 @@ export default function DireitoRaioX({ institutionId }: Props) {
               ["Transferências",valueNum(selectedPeriod.transferido),valueNum(comparisonPeriod.transferido)],
               ["Vagas registradas",valueNum(selectedPeriod.vagas),valueNum(comparisonPeriod.vagas)]
             ] as [string,number,number][]).map(([name,now,old])=><tr key={name}><td>{name}</td><td>{now}</td><td>{old}</td><td>{now-old>0?"+":""}{now-old} ({pctChange(now,old)})</td></tr>)}
-            <tr><td>Ocupação observada da coorte*</td><td>{occupancy(selectedPeriod)===null?"Sem base":occupancy(selectedPeriod)!.toFixed(1)+"%"}</td><td>{occupancy(comparisonPeriod)===null?"Sem base":occupancy(comparisonPeriod)!.toFixed(1)+"%"}</td><td>{occupancy(selectedPeriod)!==null&&occupancy(comparisonPeriod)!==null?(occupancy(selectedPeriod)!-occupancy(comparisonPeriod)!).toFixed(1)+" p.p.":"—"}</td></tr>
-            <tr><td>Saídas classificadas / base da coorte</td><td>{selectedMove?.out} / {selectedMove?.denominator}</td><td>{comparedMove?.out} / {comparedMove?.denominator}</td><td>{selectedMove?.rate!==null&&selectedMove?.rate!==undefined&&comparedMove?.rate!==null&&comparedMove?.rate!==undefined?(selectedMove.rate-comparedMove.rate).toFixed(1)+" p.p.":"—"}</td></tr>
+            <tr><td>Relação matrículas/vagas da turma*</td><td>{occupancy(selectedPeriod)===null?"Sem base":occupancy(selectedPeriod)!.toFixed(1)+"%"}</td><td>{occupancy(comparisonPeriod)===null?"Sem base":occupancy(comparisonPeriod)!.toFixed(1)+"%"}</td><td>{occupancy(selectedPeriod)!==null&&occupancy(comparisonPeriod)!==null?(occupancy(selectedPeriod)!-occupancy(comparisonPeriod)!).toFixed(1)+" p.p.":"—"}</td></tr>
+            <tr><td>Saídas classificadas / base da turma de ingresso</td><td>{selectedMove?.out} / {selectedMove?.denominator}</td><td>{comparedMove?.out} / {comparedMove?.denominator}</td><td>{selectedMove?.rate!==null&&selectedMove?.rate!==undefined&&comparedMove?.rate!==null&&comparedMove?.rate!==undefined?(selectedMove.rate-comparedMove.rate).toFixed(1)+" p.p.":"—"}</td></tr>
           </tbody></table></div>
-          <p className="drx-evasao-nota">*Indicador recalculado a partir dos campos de matrícula e vagas; não mede ocupação física nem vagas originalmente preenchidas. A mudança de tamanho das coortes e do tempo de exposição limita interpretações causais.</p>
+          <p className="drx-evasao-nota">*Indicador recalculado a partir dos campos de matrícula e vagas; não mede ocupação física nem vagas originalmente preenchidas. A mudança de tamanho das turmas de ingresso e do tempo de exposição limita interpretações causais.</p>
         </div>}
-        {!comparisonPeriod&&<p className="drx-comparison-note">Não há base equivalente para o confronto selecionado. Escolha “Selecionar período” para analisar duas coortes disponíveis.</p>}
+        {!comparisonPeriod&&<p className="drx-comparison-note">Não há base equivalente para o confronto selecionado. Escolha “Selecionar período” para analisar duas turmas de ingresso disponíveis.</p>}
         <div className="drx-table-wrap">
           <table className="drx-table">
-            <thead><tr><th>Coorte de ingresso</th><th>Matrículas ativas*</th><th>Tranc.</th><th>Canc.</th><th>Transf.</th><th>Vagas registradas</th><th>Ocupação observada*</th><th>Saídas / base</th><th>Δ ativos vs. anterior</th></tr></thead>
+            <thead><tr><th>Turma de ingresso</th><th>Matrículas ativas*</th><th>Tranc.</th><th>Canc.</th><th>Transf.</th><th>Vagas registradas</th><th>Ocupação observada*</th><th>Saídas / base</th><th>Δ ativos vs. anterior</th></tr></thead>
             <tbody>{semFiltered.map((entry,i)=>{
               const prevEntry=i>0?semFiltered[i-1]:null;
               const mv=movement(entry),occ=occupancy(entry);
               const difference=prevEntry?valueNum(entry.matriculados)-valueNum(prevEntry.matriculados):null;
               return <tr key={entry.semestre} className={displayedSem===String(entry.semestre)?"drx-row-selected":undefined}>
-                <td><button type="button" className="drx-period-link" aria-pressed={displayedSem===String(entry.semestre)} title="Selecionar coorte para comparação" onClick={()=>setSelectedSem(String(entry.semestre))}>{entry.semestre} ↗</button></td>
+                <td><button type="button" className="drx-period-link" aria-pressed={displayedSem===String(entry.semestre)} title="Selecionar turma de ingresso para comparação" onClick={()=>setSelectedSem(String(entry.semestre))}>{entry.semestre} ↗</button></td>
                 <td>{entry.matriculados??"—"}</td><td>{entry.trancado??"—"}</td><td>{entry.cancelado??"—"}</td><td>{entry.transferido??"—"}</td><td>{entry.vagas??"—"}</td>
                 <td>{occ===null?<span className="drx-chip">Sem base</span>:<div className="drx-bar-wrap"><div className="drx-bar" style={{width:Math.min(100,occ)+"%",background:occ>=35?"var(--success)":occ>=15?"var(--warning)":"var(--danger)"}}/><span>{occ.toFixed(1)}%</span></div>}</td>
-                <td>{mv.rate===null?"Sem base":<span className={"drx-chip "+chipTaxa(mv.rate)} title={mv.out+" saídas classificadas entre "+mv.denominator+" vínculos da coorte"}>{mv.rate.toFixed(1)}%</span>}</td>
+                <td>{mv.rate===null?"Sem base":<span className={"drx-chip "+chipTaxa(mv.rate)} title={mv.out+" saídas classificadas entre "+mv.denominator+" vínculos da turma de ingresso"}>{mv.rate.toFixed(1)}%</span>}</td>
                 <td>{difference===null?"—":difference>0?<span className="drx-trend-up">▲ +{difference}</span>:difference<0?<span className="drx-trend-down">▼ {difference}</span>:"0"}</td>
               </tr>;
             })}</tbody>
           </table>
         </div>
-        <p className="drx-evasao-nota">*São situações observadas na extração para cada coorte de ingresso, e não necessariamente o quantitativo existente em cada semestre histórico. Clique no semestre para selecioná-lo e confrontar os dados.</p>
+        <p className="drx-evasao-nota">*São situações observadas na extração para cada turma de ingresso, e não necessariamente o quantitativo existente em cada semestre histórico. Clique no semestre para selecioná-lo e confrontar os dados.</p>
       </div>}
 
-      {/* ── Evasão por coorte e comparação por ano de ingresso ── */}
+      {/* ── Evasão por turma de ingresso e comparação por ano de ingresso ── */}
       {coortes.length>0&&<div className="drx-section" id="drx-coortes">
-        <div className="drx-section-header"><h4>Saídas classificadas, permanência e coortes de entrada</h4>
+        <div className="drx-section-header"><h4>Saídas classificadas, permanência e turmas de ingresso</h4>
           <p className="drx-sub">Fotografia da situação atual dos vínculos de cada turma ingressante, não as ocorrências geradas exclusivamente no semestre indicado.</p></div>
         <div className="drx-definitions">
-          <p><strong>Captação:</strong> novos ingressantes efetivamente matriculados pela primeira vez na instituição ou curso no período. Não é igual a total de matrículas ativas nem total de vagas. Este relatório de situações por coorte não comprova a primeira matrícula individual; portanto a captação líquida permanece <strong>não apurada</strong>.</p>
+          <p><strong>Captação:</strong> novos ingressantes efetivamente matriculados pela primeira vez na instituição ou curso no período. Não é igual a total de matrículas ativas nem total de vagas. Este relatório de situações por turma de ingresso não comprova a primeira matrícula individual; portanto a captação líquida permanece <strong>não apurada</strong>.</p>
           <p><strong>Renovação / retenção:</strong> renovação é a confirmação de vínculo na passagem de um semestre para o seguinte; taxa de retenção é a proporção da população elegível que permaneceu vinculada nessa transição, após excluir conclusões e outras situações conforme metodologia homologada. <strong>Não pode ser calculada como 100% menos a taxa de saída</strong> desta tabela.</p>
-          <p><strong>Taxa de saídas classificadas:</strong> (trancamentos + abandonos + cancelamentos + transferências + trocas de curso) ÷ base da coorte × 100. Trancamento e transferência não significam obrigatoriamente evasão definitiva. <strong>VS.</strong> significa “em comparação com”; <strong>Δ</strong> é diferença; <strong>p.p.</strong> são pontos percentuais de diferença entre taxas.</p>
-          <p><strong>Turma anterior:</strong> coorte que ingressou no semestre anterior, e não os mesmos estudantes acompanhados longitudinalmente. Compará-las na data de extração significa comparar tempos de exposição diferentes. Para inferir retenção real ou evolução de evasão em igual tempo de curso, serão necessários dados individuais ou snapshots das mesmas coortes em datas equivalentes.</p>
+          <p><strong>Taxa de saídas classificadas:</strong> (trancamentos + abandonos + cancelamentos + transferências + trocas de curso) ÷ base da turma de ingresso × 100. Trancamento e transferência não significam obrigatoriamente evasão definitiva. <strong>VS.</strong> significa “em comparação com”; <strong>Δ</strong> é diferença; <strong>p.p.</strong> são pontos percentuais de diferença entre taxas.</p>
+          <p><strong>Turma anterior:</strong> grupo que ingressou no semestre anterior, e não os mesmos estudantes acompanhados longitudinalmente. Compará-las na data de extração significa comparar tempos de exposição diferentes. Para inferir retenção real ou evolução de evasão em igual tempo de curso, serão necessários dados individuais ou snapshots das mesmas coortes em datas equivalentes.</p>
         </div>
         <div className="drx-evasao-resumo">
           <div className="drx-evasao-card" style={{borderLeftColor:corTaxa(taxaAcumulada)}}><span className="drx-evasao-label">Saídas classificadas acumuladas · indicador amplo</span><strong className="drx-evasao-valor" style={{color:corTaxa(taxaAcumulada)}}>{baseAcum>0?taxaAcumulada.toFixed(1)+"%":"Sem base"}</strong><span className="drx-evasao-sub">{evadidosAcum} saídas de {baseAcum} vínculos históricos. Não equivale à evasão definitiva auditada.</span></div>
@@ -587,21 +587,21 @@ export default function DireitoRaioX({ institutionId }: Props) {
           <div className="drx-evasao-card" style={{borderLeftColor:"#2563eb"}}><span className="drx-evasao-label">Taxa de renovação real</span><strong className="drx-evasao-valor">Não apurada</strong><span className="drx-evasao-sub">Aguardando continuidade de vínculo entre dois semestres e população elegível conciliada.</span></div>
           <div className="drx-evasao-card" style={{borderLeftColor:"#0f766e"}}><span className="drx-evasao-label">Captação efetiva</span><strong className="drx-evasao-valor">Não apurada</strong><span className="drx-evasao-sub">Aguardando identificação de primeiro vínculo de ingresso, transferências e reingressos.</span></div>
         </div>
-        <h5 className="drx-evasao-h5">Comparativo por coorte de ingresso · semestre a semestre</h5>
-        <div className="drx-table-wrap"><table className="drx-table"><thead><tr><th>Coorte</th><th>Base</th><th>Ativos</th><th>Saídas classificadas</th><th>Taxa</th><th>VS. coorte anterior</th><th>VS. igual semestre do ano anterior</th><th>Sem saída classificada*</th></tr></thead>
+        <h5 className="drx-evasao-h5">Comparativo por turma de ingresso · semestre a semestre</h5>
+        <div className="drx-table-wrap"><table className="drx-table"><thead><tr><th>Turma de ingresso</th><th>Base</th><th>Ativos</th><th>Saídas classificadas</th><th>Taxa</th><th>Comparação com a turma anterior</th><th>Comparação com o mesmo semestre do ano anterior</th><th>Sem saída classificada*</th></tr></thead>
         <tbody>{coortes.map((c,i)=>{
           const prior=i>0?coortes[i-1]:null;
           const homologous=coortes.find(x=>x.semestre===String(Number(c.ano)-1)+c.semestre.slice(4));
           const delta=prior?c.taxa-prior.taxa:null,deltaYear=homologous?c.taxa-homologous.taxa:null;
           return <tr key={c.semestre} className={displayedSem===c.semestre?"drx-row-selected":undefined}>
-            <td><button type="button" className="drx-period-link" title="Usar esta coorte na comparação detalhada acima" aria-pressed={displayedSem===c.semestre} onClick={()=>{setSelectedSem(c.semestre);setCompareMode("anterior");}}>{c.semestre} ↗</button></td>
+            <td><button type="button" className="drx-period-link" title="Usar esta turma de ingresso na comparação detalhada acima" aria-pressed={displayedSem===c.semestre} onClick={()=>{setSelectedSem(c.semestre);setCompareMode("anterior");}}>{c.semestre} ↗</button></td>
             <td>{c.vinculos}</td><td>{c.ativos}</td><td>{c.evadidos}</td><td><span className={"drx-chip "+chipTaxa(c.taxa)}>{c.taxa.toFixed(1)}%</span></td>
             <td>{delta===null?"Sem referência":(delta>0?"+":"")+delta.toFixed(1)+" p.p."}</td>
             <td>{deltaYear===null?"Sem referência":(deltaYear>0?"+":"")+deltaYear.toFixed(1)+" p.p."}</td>
             <td>{c.vinculos>0?(100-c.taxa).toFixed(1)+"%":"—"}</td>
           </tr>;
         })}</tbody></table></div>
-        <p className="drx-evasao-nota">*O complemento de saídas contempla ativos, pré-matriculados e concluintes; não é a taxa de renovação. “VS.” representa apenas comparação descritiva entre coortes, não comparação da mesma população ao longo do tempo.</p>
+        <p className="drx-evasao-nota">*O complemento de saídas contempla ativos, pré-matriculados e concluintes; não é a taxa de renovação. “VS.” representa apenas comparação descritiva entre turmas de ingresso, não comparação da mesma população ao longo do tempo.</p>
 
         <h5 className="drx-evasao-h5">Confronto por ano de entrada</h5>
         <div className="drx-compare-controls">
@@ -611,18 +611,18 @@ export default function DireitoRaioX({ institutionId }: Props) {
         {firstYearRow&&otherYearRow?<div className="drx-compare-breakdown">
           <div className="drx-table-wrap"><table className="drx-table"><thead><tr><th>Indicador</th><th>{firstYear}</th><th>{otherYear}</th><th>Diferença</th></tr></thead>
             <tbody>{([
-              ["Vínculos da base de coortes",firstYearRow.vinculos,otherYearRow.vinculos],
+              ["Vínculos da base das turmas de ingresso",firstYearRow.vinculos,otherYearRow.vinculos],
               ["Ativos",firstYearRow.ativos,otherYearRow.ativos],
               ["Saídas classificadas",firstYearRow.evadidos,otherYearRow.evadidos],
               ["Concluintes",firstYearRow.concluintes,otherYearRow.concluintes]
             ] as [string,number,number][]).map(([label,a,b])=><tr key={label}><td>{label}</td><td>{a}</td><td>{b}</td><td>{a-b>0?"+":""}{a-b}</td></tr>)}
             <tr><td>Taxa de saídas classificadas</td><td>{firstYearRow.taxa.toFixed(1)}%</td><td>{otherYearRow.taxa.toFixed(1)}%</td><td>{(firstYearRow.taxa-otherYearRow.taxa>0?"+":"")+(firstYearRow.taxa-otherYearRow.taxa).toFixed(1)} p.p.</td></tr>
             </tbody></table></div>
-          <p className="drx-comparison-note">Os anos agrupam coortes ingressantes em períodos diferentes. O confronto é descritivo, sem equivalência de idade da coorte; não mede melhoria causal nem renovação anual.</p>
+          <p className="drx-comparison-note">Os anos agrupam turmas que ingressaram em períodos diferentes. O confronto é descritivo, sem equivalência de tempo decorrido desde o ingresso; não mede melhoria causal nem renovação anual.</p>
         </div>:<p className="drx-comparison-note">Sem dois anos de origem comparáveis na fonte.</p>}
         <div className="drx-table-wrap"><table className="drx-table"><thead><tr><th>Ano de ingresso</th><th>Vínculos da base</th><th>Ativos</th><th>Saídas classificadas</th><th>Taxa de saída</th><th>Sem saída classificada*</th></tr></thead>
           <tbody>{anos.map(a=><tr key={a.ano} className={firstYear===a.ano?"drx-row-selected":undefined}><td><button type="button" className="drx-period-link" onClick={()=>setSelectedYear(a.ano)}>{a.ano} ↗</button></td><td>{a.vinculos}</td><td>{a.ativos}</td><td>{a.evadidos}</td><td>{a.taxa.toFixed(1)}%</td><td>{(100-a.taxa).toFixed(1)}%</td></tr>)}</tbody></table></div>
-        <p className="drx-evasao-nota">Taxa operacional = saídas classificadas ÷ base integral da coorte. Conclusão não é evasão. O painel preserva os dados originais; nenhuma inferência de captação ou renovação individual foi acrescentada.</p>
+        <p className="drx-evasao-nota">Taxa operacional = saídas classificadas ÷ base integral da turma de ingresso. Conclusão não é evasão. O painel preserva os dados originais; nenhuma inferência de captação ou renovação individual foi acrescentada.</p>
       </div>}
 
       {/* ── Diagnóstico nominal ── */}
