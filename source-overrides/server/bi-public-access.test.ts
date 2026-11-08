@@ -9,6 +9,10 @@ describe('BI Premium direto e público',()=>{
   expect(app).toContain('"/bi-demonstrativo": PremiumBIPublic');
   expect(prerender).toContain('"bi-demonstrativo",');
   expect(landing).toContain('Abrir o BI Premium interativo — acesso público');
+  const page=readFileSync(new URL('../client/index.html',import.meta.url),'utf8');
+  expect(page).toContain('connect-src');
+  expect(page).toContain('https://www.fatoeordem.com.br');
+  expect(page).not.toContain('connect-src *');
  });
  it('mantém dados do BI somente nas três IES fictícias',()=>{
   expect(demoInstitutionCourses('faculdade')).toHaveLength(6);
