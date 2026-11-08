@@ -1,0 +1,44 @@
+name: Verificar BI público da Vértice
+on:
+  push:
+    branches: [main, fix/bi-public-access-20261108]
+    paths:
+      - ".github/workflows/verify-public-bi.yml"
+      - "source-overrides/client/src/pages/public/PremiumBIPublic.tsx"
+      - "source-overrides/client/src/PublicApp.tsx"
+      - "source-overrides/client/src/App.tsx"
+      - "source-overrides/client/src/pages/public/CommercialDemo.tsx"
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  external-http:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Testar acesso externo sem cookies ou senha
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          const checks = [
+            'https://vertice-portal.onrender.com/',
+            'https://vertice-portal.onrender.com/demonstracao?perfil=faculdade&bi=1',
+            'https://vertice-portal.onrender.com/demonstracao?perfil=universidade&bi=1',
+            'https://vertice-portal.onrender.com/bi-demonstrativo'
+          ];
+          for (const url of checks) {
+            const response = await fetch(url,{redirect:'follow',signal:AbortSignal.timeout(25000)});
+            const content = await response.text();
+            console.log(JSON.stringify({url,status:response.status,final:response.url,contentType:response.headers.get('content-type'),bytes:content.length,head:content.slice(0,160)}));
+            assert.equal(response.status,200,'Rota pública inacessível: '+url);
+            assert.match(response.headers.get('content-type')||'',/text\/html/i);
+            assert.match(content,/<html/i);
+            assert.ok(!response.url.includes('/entrar'),'A rota pública não deve exigir senha');
+          }
+          NODE
