@@ -707,6 +707,7 @@ const ABAS: { id: Aba; label: string }[] = [
 export default function AcademicoBI({ institutionId, institutionName }: { institutionId: string; institutionName: string }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [reportsUnavailable,setReportsUnavailable]=useState(false);
   const [semestres, setSemestres] = useState<Semestre[]>([]);
   const [cursos, setCursos] = useState<CursoInfo[]>([]);
   const [quantitativo, setQuantitativo] = useState<CursoQuantitativo[]>([]);
@@ -726,8 +727,9 @@ export default function AcademicoBI({ institutionId, institutionName }: { instit
   async function loadData() {
     setLoading(true);
     setError('');
+    setReportsUnavailable(false);
     try {
-      const [s, c, q] = await Promise.all([fetchSemestres(), fetchCursos(), fetchQuantitativo()]);
+      const [s, c, q] = await Promise.all([fetchSemestres(institutionId), fetchCursos(institutionId), fetchQuantitativo(institutionId)]);
       setSemestres(s);
       setCursos(c);
       setQuantitativo(q);
@@ -746,7 +748,7 @@ export default function AcademicoBI({ institutionId, institutionName }: { instit
             fetchReports(institutionId, ['dossie_direito']),
             fetchReports(institutionId, ['cohorts']),
             fetchReports(institutionId, ['course_indicators']),
-            fetchCourseNames(),
+            fetchCourseNames(institutionId),
           ]);
           setProfs(parseProfReprova(rp));
           setDiscs(parseDiscReprova(rd));
@@ -755,7 +757,7 @@ export default function AcademicoBI({ institutionId, institutionName }: { instit
           setDossie(parseReprovaSemestre(dd));
           setCohorts(parseCohorts(co));
           setCourseIndicators(parseCourseIndicators(ci, nomes));
-        } catch { /* simulações ficam vazias, visão geral segue */ }
+        } catch { setReportsUnavailable(true); setProfs([]);setDiscs([]);setFluxo([]);setReprovaSem([]);setDossie([]);setCourseIndicators([]);setCohorts(null); }
       }
     } catch (e: any) {
       setError('Não foi possível carregar os dados acadêmicos: ' + (e.message ?? ''));
@@ -817,6 +819,8 @@ export default function AcademicoBI({ institutionId, institutionName }: { instit
     </nav>
 
     {error && <p role="alert" className="abi-error">{error}</p>}
+    {reportsUnavailable && <p role="status" className="abi-error">Relatórios acadêmicos complementares não disponibilizados para este recorte. Os módulos que dependem deles permanecem sem dados; nenhum resultado foi estimado.</p>}
+    {!error && quantitativo.length===0 && <p role="status" className="abi-empty">Não existem quantitativos acadêmicos disponíveis para a instituição selecionada. Confira a importação do e-ORBIT e o semestre de referência.</p>}
 
     {aba === 'geral' && <VisaoGeral bi={bi} semestreLabel={semestreLabel} modalidadeFilter={modalidadeFilter} setModalidadeFilter={setModalidadeFilter} modalities={modalities} />}
     {aba === 'comparador' && <Comparador quantitativo={quantitativo} cursos={cursos} semestres={semestres} />}
