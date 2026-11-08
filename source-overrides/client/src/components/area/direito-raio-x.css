@@ -263,3 +263,22 @@
 @media(max-width:880px){.drx .drx-ranking-item{grid-template-columns:minmax(0,1fr) auto;gap:12px}.drx .drx-ranking-person{grid-column:1}.drx .drx-ranking-numbers,.drx .drx-ranking-breakdown{grid-column:1/3;grid-row:auto}.drx .drx-ranking-detail-btn{grid-column:2;grid-row:1}.drx .drx-ranking-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){.drx .drx-ranking-summary{grid-template-columns:1fr; margin:10px 12px}.drx .drx-ranking-list{padding:0 12px 15px}.drx .drx-ranking-head{padding:0 12px 12px}.drx .drx-ranking-item{padding:12px;gap:12px}.drx .drx-ranking-place{width:30px;height:30px}.drx .drx-ranking-numbers strong{font-size:18px}.drx .drx-ranking-detail-btn{font-size:10px;padding:7px}.drx #drx-ranking-professores>.drx-detail{margin:0 12px 16px}}
 @media(prefers-reduced-motion:reduce){.drx .drx-ranking-detail-btn,.drx .drx-ranking-item{transition:none}}
+
+
+/* Auditoria longitudinal dos ingressos: grupos observados, não modalidades oficiais. */
+.drx .drx-ingresso-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:14px 22px 20px}
+.drx .drx-ingresso-kpi{display:flex;flex-direction:column;align-items:flex-start;gap:7px;text-align:left;border:1px solid #d5e7e3;background:linear-gradient(115deg,#f5fbf9,#fff);border-radius:12px;padding:14px;cursor:pointer;color:#234a45;min-width:0}
+.drx .drx-ingresso-kpi:nth-child(3){background:#fff8ea;border-color:#efdeb7}
+.drx .drx-ingresso-kpi:nth-child(5){background:#f3f2ff;border-color:#ddd9f5}
+.drx .drx-ingresso-kpi small{min-height:38px;font-size:11px;line-height:1.4;font-weight:650;color:#59736d}
+.drx .drx-ingresso-kpi strong{font-size:clamp(20px,2.5vw,30px);font-weight:800;color:#174f45;font-variant-numeric:tabular-nums}
+.drx .drx-ingresso-kpi span{font-size:10px;line-height:1.45;color:#647b73}
+.drx .drx-ingresso-kpi:hover{border-color:#0c9e8b;box-shadow:0 4px 14px #08766920}
+.drx .drx-ingresso-kpi[aria-pressed=true]{outline:2px solid #08937f;outline-offset:-2px;background:#e5f8f1}
+.drx .drx-ingresso-kpi:focus-visible{outline:3px solid #099b88;outline-offset:3px}
+.drx #drx-origem-ingressantes>.drx-table-wrap{margin:12px 20px}
+.drx #drx-origem-ingressantes .drx-table{min-width:800px}
+.drx #drx-origem-ingressantes .drx-table td{font-size:12px}
+@media(max-width:1200px){.drx .drx-ingresso-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:760px){.drx .drx-ingresso-kpis{grid-template-columns:repeat(2,minmax(0,1fr));margin:10px 12px}}
+@media(max-width:480px){.drx .drx-ingresso-kpis{grid-template-columns:1fr}}
