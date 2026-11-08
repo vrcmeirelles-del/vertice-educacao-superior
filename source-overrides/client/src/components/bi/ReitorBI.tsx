@@ -433,14 +433,14 @@ export default function ReitorBI({ institutions, courses, enrollments, session, 
       </SectionCard>
 
       {/* Evasão */}
-      <SectionCard title="Evasão por Coorte">
+      <SectionCard title="Saídas e permanência por turma de ingresso">
         {evasao ? <>
           <div className="rbi-kpi-strip rbi-kpi-strip-sm">
             <KPICard label="Evasão Média" value={evasao.evasaoMedia} unit="pct" direction="baixo" small />
             <KPICard label="Retenção Média" value={evasao.retencaoMedia} unit="pct" direction="cima" small />
-            <KPICard label="Coortes" value={evasao.totalCoortes} unit="qtd" small />
+            <KPICard label="Turmas de ingresso" value={evasao.totalCoortes} unit="qtd" small />
           </div>
-        </> : <p className="rbi-empty">Sem dados de coortes</p>}
+        </> : <p className="rbi-empty">Sem dados das turmas de ingresso</p>}
       </SectionCard>
 
       {/* Reprovações por tipo */}
