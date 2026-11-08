@@ -1,3 +1,4 @@
+import {syncInstitutionDirectory} from "@/lib/institution-directory";
 import { supabase } from "@/lib/supabase";
 
 // Papéis efetivos numa instituição. A permissão real é aplicada pelo banco (RLS);
@@ -258,6 +259,9 @@ export async function saveRow(table: string, values: Record<string, unknown>, id
     : supabase.from(table).insert(values).select().single();
   const { data, error } = await q;
   if (error) throw error;
+  if(table===TABLES.institutions){
+    await syncInstitutionDirectory(String(data.id));
+  }
   return data as Row;
 }
 
@@ -301,3 +305,5 @@ export function goalProgress(goal: Row, last?: number | null) {
 export function isLate(due: unknown, status: unknown) {
   return Boolean(due) && String(due) < today() && !["concluida", "cancelada", "resolvido"].includes(String(status));
 }
+
+

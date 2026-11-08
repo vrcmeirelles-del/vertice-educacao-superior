@@ -1,3 +1,4 @@
+import InstitutionDirectoryNotice from "./components/area/InstitutionDirectoryNotice";
 import IesPortal, { useIesRoute } from "./components/ies/IesPortal";
 import "./components/ebitda.css";
 import { lazy, Suspense, useEffect } from "react";
@@ -64,7 +65,7 @@ export default function App() {
   if (iesActive) return <ErrorBoundary>{iesSuspended ? <main className="ies-shell"><p role="status">Área institucional suspensa. Os links de convite foram removidos.</p></main> : <IesPortal key={iesRouteRevision} />}</ErrorBoundary>;
   return (
     <ErrorBoundary>
-      <DemoTelemetry />
+      <DemoTelemetry /><InstitutionDirectoryNotice />
       {["/master", "/gestor", "/admin-ies", "/painel-real"].includes(normalized) && <nav className="corp-container" aria-label="Cadastro institucional"><a className="corp-button" href="/master#ies=1">Cadastro e convites de instituições</a><a className="corp-button" href="/master/experience" style={{marginLeft:8}}>Convites Vértice Experience</a><a className="corp-button" href="/mobile" style={{ marginLeft: 8 }}>Abrir Vértice Mobile</a><a className="corp-button" href="/demonstracao?perfil=faculdade&bi=1" style={{ marginLeft: 8 }}>BI Premium • demonstração</a></nav>}
       {passwordCallback ? <PublicLayout><ResetPassword /></PublicLayout> : normalized === "/master/aquisicoes" ? <Suspense fallback={<p>Verificando acesso…</p>}><OwnerDashboard /></Suspense> : ["/master", "/gestor", "/admin-ies", "/painel-real", "/reitor/reservado"].includes(normalized) ? <PublicLayout><Suspense fallback={<p>Verificando acesso…</p>}><OwnerDashboard /></Suspense></PublicLayout> : isPublic ? (
         <PublicApp />
@@ -92,3 +93,4 @@ export default function App() {
     </ErrorBoundary>
   );
 }
+
