@@ -239,7 +239,7 @@ export default function Workspace({
       ) : tab === "enade" ? (
         <Enade360 key={id} institutionId={id} courses={data.courses} actions={data.actions} goals={data.goals} role={role} onPlan={()=>choose("plano")}/>
       ) : tab === "novo_instrumento" ? (
-        <NovoInstrumento institutionId={id} role={role} courses={data.courses} />
+        <NovoInstrumento institutionId={id} role={role} courses={data.courses} onOpenRecredenciamento={() => choose("avaliacao")} />
       ) : tab === "avaliacao" ? (
         <AvaliacaoInstitucional key={id} />
       ) : tab === "resultado-curso" ? (
