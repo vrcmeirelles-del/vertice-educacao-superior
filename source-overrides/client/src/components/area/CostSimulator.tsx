@@ -84,10 +84,27 @@ export default function CostSimulator({ institutionId }: { institutionId: string
     if (!semester) return;
     let active = true;
     (async () => {
-      const { data } = await supabase.rpc('vertice_cost_quantitativo', {
-        p_instituicao_id: 'cda828bd-4f55-432a-a824-387716c3cb2b',
-        p_semestre: semester,
-      }).catch(() => ({ data: null }));
+      // As tabelas vertice_eorbit_* foram carregadas com um identificador legado
+      // (cda828bd...) que nao existe em vertice_institutions. O painel e-ORBIT
+      // consulta com o id real da UNITOP e por isso nao acha nada; este modulo
+      // funcionava justamente por ter o legado fixo no codigo. Enquanto o
+      // re-chaveamento nao e aplicado no banco, tenta o id real primeiro e so
+      // cai no legado se ele nao devolver dados. Assim o modulo funciona antes
+      // e depois da correcao, e a ordem das duas mudancas deixa de importar.
+      const ID_LEGADO = 'cda828bd-4f55-432a-a824-387716c3cb2b';
+      async function quantitativoPor(id: string) {
+        try {
+          const r = await supabase.rpc('vertice_cost_quantitativo', {
+            p_instituicao_id: id,
+            p_semestre: semester,
+          });
+          return Array.isArray(r?.data) && r.data.length ? r.data : null;
+        } catch {
+          return null;
+        }
+      }
+      let data = await quantitativoPor(institutionId);
+      if (!data && institutionId !== ID_LEGADO) data = await quantitativoPor(ID_LEGADO);
       // Fallback: direct query
       if (!data) {
         const { data: q } = await supabase
