@@ -14,6 +14,7 @@ import {TABLES, isLate, saveRow, type Role, type Row} from '@/lib/area';
 import {listByInstitution} from '@/lib/area';
 import {listRepository} from '@/lib/repository-data';
 import GovernancaBI from '@/components/bi/GovernancaBI';
+import ExecutiveOverview from '@/components/bi/ExecutiveOverview';
 import '@/components/bi/governanca-bi.css';
 import {isInstrumentRequest,latestInstrumentDocuments} from '@/lib/repository';
 import GlobalRepository from '@/components/area/GlobalRepository';
@@ -83,6 +84,7 @@ function PortalBI({institutions,courses,enrollments,session}:{institutions:Insti
   let active=true;
   const set=(key:number,source:BiSource)=>{if(active)setSources(previous=>({...previous,[key]:source}));};
   if(id){
+   void listByInstitution(TABLES.actions,id).then(rows=>set(6,{items:rows.filter(r=>r.status!=='cancelada').map(r=>({label:String(r.title??r.what??r.action??'Ação registrada'),group:String(r.status??'Sem situação'),value:1,href:link('plano')}))})).catch(()=>set(6,{items:[],error:true}));
    void listByInstitution(TABLES.goals,id).then(rows=>set(0,{items:rows.map(row=>({label:String(row.title??row.name??'Meta'),group:({ativa:'Ativa',planejada:'Planejada',concluida:'Concluída',cancelada:'Cancelada'} as Record<string,string>)[String(row.status)]??String(row.status??'Sem situação'),value:1,href:link('metas')}))})).catch(()=>set(0,{items:[],error:true}));
    void Promise.all([listRepository('vertice_repository_requests',id),listRepository('vertice_repository_files',id)]).then(([requests,files])=>{
     const latest=latestInstrumentDocuments(files);
@@ -134,6 +136,32 @@ function PortalBI({institutions,courses,enrollments,session}:{institutions:Insti
   </article>;
  const cards:Record<number,BiSource>={...sources,1:{items:enrollmentItems}};
  const totalOf=(index:number)=>cards[index]?.error?null:cards[index]?.items?.reduce((sum,item)=>sum+item.value,0)??null;
+ const executivePeriods=semesters.slice().reverse().slice(-7).map(v=>({term:v,enrolled:countTerm(v)})).filter((v):v is {term:string;enrolled:number}=>v.enrolled!==null);
+ const executiveCourses=own.map(c=>{
+  const a=snapshots.filter(e=>e.course_id===c.id&&e.semester===term&&e.student_status==='MATRICULADO');
+  const b=snapshots.filter(e=>e.course_id===c.id&&e.semester===previousTerm&&e.student_status==='MATRICULADO');
+  const current=a.length?courseTotals(a).value:null;
+  const previous=b.length?courseTotals(b).value:null;
+  return current===null?null:{name:c.name,current,previous,growth:previous!==null&&previous>0?(current-previous)/previous*100:null,href:'/master#'+new URLSearchParams({instituicao:id,curso:c.id})};
+ }).filter((v):v is NonNullable<typeof v>=>v!==null);
+ const executiveDocs=(()=>{
+  const list=cards[2]?.items??[];
+  return ['Validado','Em análise','Devolvido','Pendente','Não se aplica'].map(status=>({status:status==='Não se aplica'?'NSA':status,count:list.filter(x=>x.group===status).length}));
+ })();
+ const executiveActions=(sources[6]?.items??[]).slice(0,8).map(i=>({name:i.label,status:i.group,due:'Não informado',owner:'Consultar 5W2H'}));
+ const executiveErrors=[0,2,3,6].filter(i=>sources[i]?.error).map(i=>({0:'Metas',2:'Documentação',3:'Arquivos',6:'Plano de ação'} as Record<number,string>)[i]);
+ const navigateExecutive=(what:string)=>{
+  if(what==='Matrículas')setPage(1);
+  else if(what==='Documentação')setPage(2);
+  else if(what==='Planos de ação')window.location.hash=new URLSearchParams({instituicao:id,aba:'plano'}).toString();
+  else setPage(0);
+ };
+ const executiveMetrics=[
+  {label:'Matrículas ativas no recorte',value:currentCount,note:term?'Semestre '+term:'Sem recorte',tone:'mint' as const,target:'Matrículas'},
+  {label:'Metas acompanhadas',value:totalOf(0),note:'Metas cadastradas na instituição',tone:'gold' as const,target:'Documentação'},
+  {label:'Documentos validados',value:executiveDocs.find(x=>x.status==='Validado')?.count??null,note:'Evidências com validação registrada',tone:'cyan' as const,target:'Documentação'},
+  {label:'Pendências documentais',value:cards[2]?.error?null:executiveDocs.filter(x=>!['Validado','NSA'].includes(x.status)).reduce((a,b)=>a+b.count,0),note:'Não validadas no repositório',tone:'rose' as const,target:'Documentação'}
+ ];
  const executiveIndicators=[
   {name:'Matrículas no recorte',value:currentCount,caption:term?'Semestre '+term:'Sem recorte',tone:'blue',index:1},
   {name:'Metas cadastradas',value:totalOf(0),caption:'Instituição selecionada',tone:'violet',index:0},
@@ -180,20 +208,21 @@ function PortalBI({institutions,courses,enrollments,session}:{institutions:Insti
   <option value={20000}>20 segundos</option><option value={30000}>30 segundos</option>
  </select></label></>}
  <button type="button" onClick={()=>setTick(previous=>previous+1)}>Consultar fontes</button></div>
- {page<0&&<div className="vx-overview">
-   <div className="vx-section-heading"><div><p className="vx-eyebrow">PANORAMA INSTITUCIONAL</p><h3>O que merece atenção?</h3></div><p>Selecione um cartão para aprofundar a análise.</p></div>
-   <div className="vx-kpi-grid">{executiveIndicators.map(k=><button key={k.name} type="button" className={'vx-kpi vx-'+k.tone} onClick={()=>setPage(k.index)} aria-label={k.name+': '+(k.value===null?'indisponível':biNumber.format(k.value))+'. Abrir análise'}>
-    <span>{k.name}</span><strong>{k.value===null?'—':biNumber.format(k.value)}</strong><small>{k.value===null?'Fonte pendente ou sem registros':k.caption}</small><em>Abrir análise →</em>
-   </button>)}</div>
-   <section className="vx-comparison" aria-label="Comparativo anual de matrículas">
-    <div><p className="vx-eyebrow">COMPARATIVO ANUAL · MESMO SEMESTRE</p><h3>{term??'Sem semestre'} × {previousTerm??'indisponível'}</h3><p>Fonte: matrículas registradas nos snapshots do portal. Sem projeções.</p></div>
-    <div className="vx-compare-values"><div><span>Período atual</span><strong>{currentCount===null?'—':biNumber.format(currentCount)}</strong></div><div><span>Período anterior equivalente</span><strong>{priorCount===null?'—':biNumber.format(priorCount)}</strong></div><div><span>Variação</span><strong>{annualVariation===null?'—':(annualVariation>0?'+':'')+annualVariation.toLocaleString('pt-BR',{maximumFractionDigits:1})+'%'}</strong></div></div>
-    {priorCount===null&&<p role="status" className="vx-data-note">Comparação indisponível: não há dados do semestre equivalente do ano anterior. Nenhum valor foi estimado.</p>}
-    <p className="vx-data-note">Validar os totais com a extração oficial do e-ORBIT antes de uso regulatório.</p>
-   </section>
-  </div>}
+ {page<0&&<ExecutiveOverview
+   institutionName={String(institutions.find(x=>x.id===id)?.name??'Instituição selecionada')}
+   term={term??''}
+   comparison={previousTerm??null}
+   metrics={executiveMetrics}
+   periods={executivePeriods}
+   courses={executiveCourses}
+   documentStatuses={executiveDocs}
+   actions={executiveActions}
+   diagnosticAvailable={false}
+   errors={executiveErrors}
+   onNavigate={navigateExecutive}
+ />}
  <div className="pbi-toolbar vx-bi-tabs"><button type="button" aria-pressed={page<0} onClick={()=>{setPage(-1);setTv(false);}}>Visão geral</button>{BI_NAMES.map((name,index)=><button type="button" key={name} aria-pressed={page===index} onClick={()=>setPage(index)}>{name}</button>)}</div>
- {page<0?<div className="pbi-grid">{BI_NAMES.slice(0,5).map((_,index)=>chart(index))}{captacaoLink}{costs}</div>:page===5?costs:chart(page)}
+ {page<0?null:page===5?<div className="pbi-grid">{captacaoLink}{costs}</div>:chart(page)}
  <dialog ref={dialog} onClose={()=>setDetail(null)}>{detail&&<><h3>{detail.title}</h3><p>{biNumber.format(detail.items.length)} registros</p><ul>{detail.items.map((item,index)=><li key={index}>{item.href?<a href={item.href} onClick={()=>dialog.current?.close()}>{item.label}</a>:item.label}{item.value!==1?' · '+biNumber.format(item.value):''}</li>)}</ul></>}<form method="dialog"><button>Fechar detalhes</button></form></dialog>
  </section>;
 }
