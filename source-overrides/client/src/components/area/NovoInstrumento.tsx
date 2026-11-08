@@ -9,6 +9,7 @@ import {
   type AndamentoStatus, type Conformidade, type DadosInstrumento, type ObjetoInstrumento, type Tema, type TipoInstrumento,
 } from "@/lib/novo-instrumento";
 import "./novo-instrumento.css";
+import CorrespondenciasInstitucionais from "./CorrespondenciasInstitucionais";
 import { indicadoresDoObjeto2026, GRAU_COR, GRAU_LABEL } from "@/lib/instrumento-mapping";
 import indicatorNames from "@/lib/repository-indicators.json";
 
@@ -90,7 +91,7 @@ export default function NovoInstrumento({ institutionId, role, courses }: Props)
       {!can.record(role) && tipo === "curso" && <p className="area-note">Seu perfil é de leitura: você acompanha o diagnóstico, mas não altera os registros.</p>}
       {error && <p role="alert" className="area-error">{error}</p>}
       {tipo === "institucional" ? (
-        <InstitucionalPanel role={role} />
+        <InstitucionalPanel institutionId={institutionId} role={role} />
       ) : loading ? (
         <p role="status" className="area-muted">Carregando o Novo Instrumento…</p>
       ) : sub === "checklist" ? (
@@ -111,7 +112,7 @@ export default function NovoInstrumento({ institutionId, role, courses }: Props)
 }
 
 // ================================================================ painel institucional (recredenciamento — 5 eixos)
-function InstitucionalPanel({ role }: { role: Role | null }) {
+function InstitucionalPanel({ institutionId, role }: { institutionId: string; role: Role | null }) {
   const [filtroEixo, setFiltroEixo] = useState(0);
   const [filtroTema, setFiltroTema] = useState("");
   const [busca, setBusca] = useState("");
@@ -130,6 +131,7 @@ function InstitucionalPanel({ role }: { role: Role | null }) {
         Os eixos e objetos abaixo são baseados no parecer CONIF/FDE (jul/2026) e na ata da 211ª reunião da CONAES.
         Serão atualizados quando a versão definitiva for publicada pelo INEP.
       </p>
+      <CorrespondenciasInstitucionais institutionId={institutionId} role={role} />
       <div className="ni-inst-eixos">
         {EIXOS_INSTITUCIONAL.map(([n, title]) => {
           const count = OBJETOS_INSTITUCIONAL.filter(o => o.eixo === n).length;
