@@ -254,6 +254,8 @@ export default function OwnerDashboard(){
  const [captacaoInstitutionId,setCaptacaoInstitutionId]=useState('');
  const [academicoInstitutionId,setAcademicoInstitutionId]=useState('');
  const [creating,setCreating]=useState(false);
+ const [institutionSearch,setInstitutionSearch]=useState('');
+ const [institutionSort,setInstitutionSort]=useState<'name'|'courses'|'pending'>('name');
  const [commercial,setCommercial]=useState(false);
  const [mgmt,setMgmt]=useState<{goals:Row[];actions:Row[];diagnosis:Row[]}>({goals:[],actions:[],diagnosis:[]});
  const roleIn=(id:string):Role|null=>master?'master':((members.find(m=>m.institution_id===id&&m.user_id===session?.user.id)?.role as Role)??null);
@@ -356,9 +358,61 @@ export default function OwnerDashboard(){
    stats={instStats(currentInst.id)}
    overview={<InstitutionView institution={currentInst} courses={courses} enrollments={enrollments} embedded onOpenCourse={id=>writeHash(currentInst.id,id)} onBack={()=>writeHash('','')}/>}/>
  :master&&route.repositories?<GlobalRepository institutions={institutions as unknown as Row[]} courses={courses as unknown as Row[]} onOpen={id=>writeHash(id,'',true)}/>
- :<><div className="area-list-head"><h2>Instituições</h2>{master&&!creating&&<button className="corp-button small" onClick={()=>setCreating(true)}>Nova instituição</button>}</div>
- {creating&&<RecordForm title="Nova instituição" fields={INSTITUTION_FIELDS} initial={{status:'ativa'}} onCancel={()=>setCreating(false)} onSubmit={async v=>{const row=await saveRow(TABLES.institutions,v);setCreating(false);await load();writeHash(row.id,'');}}/>}
- {!institutions.length?<p>Nenhuma instituição disponível para esta conta. O vínculo deve ser autorizado pela administração.</p>:<div className="table-scroll owner-inst-table"><table><thead><tr><th>Instituição</th><th>Seu perfil</th><th>Cursos cadastrados</th><th>Matriculados · última referência</th><th>Metas</th><th>Ações atrasadas</th><th>Achados abertos</th><th></th></tr></thead><tbody>{institutions.map(i=><tr key={i.id}><td>{i.name}{(i as unknown as Row).acronym?` · ${String((i as unknown as Row).acronym)}`:''}{(i as unknown as Row).status==='arquivada'&&' (arquivada)'}</td><td>{ROLE_LABEL[roleIn(i.id)??'leitor']}</td><td>{courses.filter(c=>c.institution_id===i.id).length||'Nenhum curso cadastrado'}</td><td>{instStats(i.id)?<>{instStats(i.id)!.enrolled.toLocaleString('pt-BR')}<small className="area-block">{instStats(i.id)!.semester} · {instStats(i.id)!.covered}/{instStats(i.id)!.total} cursos com dados</small></>:'Sem dados'}</td><td>{mgmt.goals.filter(x=>x.institution_id===i.id&&x.status!=='cancelada').length}</td><td>{mgmt.actions.filter(x=>x.institution_id===i.id&&isLate(x.due_date,x.status)).length}</td><td>{mgmt.diagnosis.filter(x=>x.institution_id===i.id&&x.status!=='resolvido').length}</td><td><button className="corp-button" onClick={()=>writeHash(i.id,'')}>Abrir área</button> <button className="corp-login-text-button" onClick={()=>writeHash(i.id,'',true)}>Repositório →</button> <button className="corp-login-text-button" onClick={()=>writeHash(i.id,'',false,true)}>Biblioteca INEP →</button> {['master','gestor'].includes(roleIn(i.id)??'')&&<button className="corp-login-text-button" onClick={()=>writeHash(i.id,'',false,false,true)}>Calcular EBITDA →</button>} <button className="corp-login-text-button" onClick={()=>{const p=new URLSearchParams();p.set('instituicao',i.id);p.set('aba','novo_instrumento');window.history.pushState(null,'','#'+p.toString());window.dispatchEvent(new HashChangeEvent('hashchange'));window.scrollTo({top:0});}}>Novo Instrumento →</button></td></tr>)}</tbody></table></div>}</>}
+ :<><section className="vx-inst-hub" aria-label="Instituições sob gestão">
+  <div className="vx-inst-hub-head">
+   <div><p className="vx-inst-eyebrow">GESTÃO DAS IES · BASE AUTENTICADA</p><h2>Instituições</h2><p>Visão consolidada por instituição, com cobertura das fontes e acesso rápido às áreas de trabalho.</p></div>
+   {master&&!creating&&<button className="vx-inst-create" type="button" onClick={()=>setCreating(true)}>＋ Nova instituição</button>}
+  </div>
+  {creating&&<RecordForm title="Nova instituição" fields={INSTITUTION_FIELDS} initial={{status:'ativa'}} onCancel={()=>setCreating(false)} onSubmit={async v=>{const row=await saveRow(TABLES.institutions,v);setCreating(false);await load();writeHash(row.id,'');}}/>}
+  <div className="vx-inst-controls">
+   <label>Buscar instituição<input type="search" placeholder="Nome, sigla ou CNPJ..." value={institutionSearch} onChange={e=>setInstitutionSearch(e.target.value)} /></label>
+   <label>Organizar por<select value={institutionSort} onChange={e=>setInstitutionSort(e.target.value as 'name'|'courses'|'pending')}><option value="name">Nome</option><option value="courses">Cursos cadastrados</option><option value="pending">Ações atrasadas</option></select></label>
+   <span>{institutions.length} instituição(ões) autorizada(s)</span>
+  </div>
+  {!institutions.length?<p className="vx-inst-empty">Nenhuma instituição disponível para esta conta. O vínculo deve ser autorizado pela administração.</p>:
+   <div className="vx-inst-grid">{institutions
+    .filter(i=>[i.name,(i as unknown as Row).acronym,(i as unknown as Row).cnpj].some(value=>String(value??'').toLocaleLowerCase('pt-BR').includes(institutionSearch.trim().toLocaleLowerCase('pt-BR'))))
+    .sort((a,b)=>institutionSort==='courses'?courses.filter(c=>c.institution_id===b.id).length-courses.filter(c=>c.institution_id===a.id).length:institutionSort==='pending'?mgmt.actions.filter(x=>x.institution_id===b.id&&isLate(x.due_date,x.status)).length-mgmt.actions.filter(x=>x.institution_id===a.id&&isLate(x.due_date,x.status)).length:String(a.name).localeCompare(String(b.name),'pt-BR'))
+    .map(i=>{
+      const ownCourses=courses.filter(c=>c.institution_id===i.id).length;
+      const ownGoals=mgmt.goals.filter(x=>x.institution_id===i.id&&x.status!=='cancelada').length;
+      const overdue=mgmt.actions.filter(x=>x.institution_id===i.id&&isLate(x.due_date,x.status)).length;
+      const findings=mgmt.diagnosis.filter(x=>x.institution_id===i.id&&x.status!=='resolvido').length;
+      const stats=instStats(i.id);
+      const coverage=stats&&stats.total>0?stats.covered/stats.total:null;
+      const incomplete=coverage!==null&&coverage<1;
+      const openInstrument=()=>{const p=new URLSearchParams({instituicao:i.id,aba:'novo_instrumento'});window.history.pushState(null,'','#'+p.toString());window.dispatchEvent(new HashChangeEvent('hashchange'));window.scrollTo({top:0});};
+      return <article className="vx-inst-card" key={i.id}>
+       <div className="vx-inst-card-heading">
+        <span className="vx-inst-building" aria-hidden="true">▥</span>
+        <div className="vx-inst-identity"><h3>{i.name}</h3><p>{String((i as unknown as Row).acronym??'Instituição de ensino superior')} · {ROLE_LABEL[roleIn(i.id)??'leitor']}</p></div>
+        {((i as unknown as Row).status==='arquivada')&&<span className="vx-inst-archived">Arquivada</span>}
+       </div>
+       <div className="vx-inst-indicators">
+        <div><small>Cursos cadastrados</small><strong>{ownCourses.toLocaleString('pt-BR')}</strong></div>
+        <div><small>Metas registradas</small><strong>{ownGoals.toLocaleString('pt-BR')}</strong></div>
+        <div className={overdue?'vx-inst-attention':''}><small>Ações atrasadas</small><strong>{overdue.toLocaleString('pt-BR')}</strong></div>
+        <div className={findings?'vx-inst-attention':''}><small>Achados abertos</small><strong>{findings.toLocaleString('pt-BR')}</strong></div>
+       </div>
+       <section className="vx-inst-enrollment" aria-label={"Cobertura das matrículas de "+i.name}>
+        <div className="vx-inst-enrollment-top"><div><small>Matrículas no recorte consultado</small><strong>{stats?stats.enrolled.toLocaleString('pt-BR'):'Sem dados'}</strong></div><span className={incomplete?'vx-inst-source-partial':'vx-inst-source-neutral'}>{!stats?'Sem fonte':incomplete?'Cobertura parcial':'Cobertura disponível'}</span></div>
+        {stats?<><p>{stats.semester} · {stats.covered} de {stats.total} cursos com dados no recorte</p>
+         <div className="vx-inst-coverage" role="progressbar" aria-label="Cobertura de cursos com matrícula" aria-valuenow={stats.covered} aria-valuemin={0} aria-valuemax={Math.max(1,stats.total)}><span style={{width:(coverage===null?0:Math.min(100,coverage*100))+'%'}}/></div>
+         {incomplete&&<p className="vx-inst-caution">Atenção: total parcial da base; não representa necessariamente o total oficial de estudantes da IES. Reconciliar com a extração de origem.</p>}</>:<p>Nenhum registro de matrícula disponibilizado para esta instituição.</p>}
+       </section>
+       <div className="vx-inst-card-actions">
+        <button type="button" className="vx-inst-primary" onClick={()=>writeHash(i.id,'')}>Abrir gestão da instituição <span aria-hidden="true">↗</span></button>
+        <div className="vx-inst-shortcuts">
+         <button type="button" onClick={()=>writeHash(i.id,'',true)}>Repositório</button>
+         <button type="button" onClick={()=>writeHash(i.id,'',false,true)}>Biblioteca INEP</button>
+         {['master','gestor'].includes(roleIn(i.id)??'')&&<button type="button" onClick={()=>writeHash(i.id,'',false,false,true)}>EBITDA</button>}
+         <button type="button" onClick={openInstrument}>Novo Instrumento</button>
+        </div>
+       </div>
+      </article>;
+    })}</div>}
+   {!!institutions.length&&!institutions.some(i=>[i.name,(i as unknown as Row).acronym,(i as unknown as Row).cnpj].some(value=>String(value??'').toLocaleLowerCase('pt-BR').includes(institutionSearch.trim().toLocaleLowerCase('pt-BR'))))&&<p className="vx-inst-empty">Nenhuma instituição corresponde à pesquisa.</p>}
+ </section></>}
  <p>Os dados desta área vêm do banco. Os exemplos da demonstração permanecem separados.</p><button className="corp-login-text-button" onClick={load}>Atualizar dados</button></>}
  </>}
  <button className="corp-login-text-button" onClick={async()=>{const {error}=await supabase.auth.signOut();if(error)setError('Não foi possível encerrar a sessão.');}}>Sair da conta</button></>}
