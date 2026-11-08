@@ -42,3 +42,26 @@
 @media(max-width:750px){.exe-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.exe-layout>.exe-card{grid-column:span 12!important}.exe-banner{flex-direction:column;align-items:flex-start}.exe-donut-wrap{justify-content:flex-start}}
 @media(max-width:450px){.exe-kpis{grid-template-columns:1fr}.exe-course-bars button{grid-template-columns:75px 1fr 48px}}
 @media(prefers-reduced-motion:reduce){.exe-board *{scroll-behavior:auto!important;transition:none!important}}
+
+/* Moldura com navegação lateral do BI, sem interferir nos demais módulos Master. */
+.portal-bi .exe-screen-layout{display:grid;grid-template-columns:213px minmax(0,1fr);gap:0;border:1px solid #cfe2df;border-radius:16px;overflow:hidden;box-shadow:0 12px 30px #073d361c}
+.portal-bi .exe-sidebar{background:linear-gradient(175deg,#063f3b,#064b45 70%,#07544a);color:#e8fff8;padding:20px 12px;display:flex;flex-direction:column;gap:17px}
+.portal-bi .exe-sidebar-brand{display:flex;align-items:center;gap:9px;padding:0 6px 17px;border-bottom:1px solid #ffffff35}
+.portal-bi .exe-sidebar-brand>b{font-size:22px;color:#062d2c;background:linear-gradient(125deg,#ffe48b,#d9a83e);height:38px;width:38px;border-radius:10px;display:grid;place-items:center}
+.portal-bi .exe-sidebar-brand strong{display:block;color:#fff;font-size:17px;line-height:1.05}
+.portal-bi .exe-sidebar-brand small{font-size:10px;color:#ace0d4}
+.portal-bi .exe-sidebar nav{display:grid;gap:5px}
+.portal-bi .exe-sidebar nav button{border:0!important;background:transparent!important;color:#def6ee!important;display:flex;align-items:center;gap:10px;padding:11px 9px!important;border-radius:9px!important;text-align:left;font-size:12px;line-height:1.25;font-weight:600;cursor:pointer}
+.portal-bi .exe-sidebar nav button:hover{background:#ffffff22!important}
+.portal-bi .exe-sidebar nav button[aria-current="page"]{background:linear-gradient(90deg,#0db59d,#087d75)!important;color:#fff!important;box-shadow:0 4px 12px #082e2c66}
+.portal-bi .exe-sidebar nav button span{font-size:20px;width:22px;text-align:center;flex:none;font-weight:500}
+.portal-bi .exe-sidebar-bottom{margin-top:auto;padding:17px 8px 0;border-top:1px solid #ffffff32;color:#ddf9f1;font-style:italic;font-size:16px;line-height:1.4}
+.portal-bi .exe-sidebar-bottom strong{display:block;color:#ffe28a;font-style:normal}
+.portal-bi .exe-sidebar-bottom small{display:block;color:#b3d9d3;font-size:10px;font-style:normal;margin-top:10px}
+.portal-bi .exe-screen-main{min-width:0;background:#f0f7f7;padding:18px}
+.portal-bi .exe-screen-main>.vx-bi-heading{padding:17px 19px;margin:0 0 13px;background:linear-gradient(90deg,#093c38,#07574f)}
+.portal-bi .exe-screen-main>.vx-bi-heading h2{font-size:24px}
+.portal-bi .exe-screen-main>.pbi-toolbar{margin:12px 0}
+@media(max-width:1040px){.portal-bi .exe-screen-layout{grid-template-columns:175px minmax(0,1fr)}.portal-bi .exe-screen-main{padding:12px}.portal-bi .exe-sidebar nav button{font-size:11px}}
+@media(max-width:750px){.portal-bi .exe-screen-layout{grid-template-columns:1fr}.portal-bi .exe-sidebar{padding:12px;gap:9px}.portal-bi .exe-sidebar-brand{padding-bottom:10px}.portal-bi .exe-sidebar nav{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}.portal-bi .exe-sidebar nav button{padding:8px 6px!important;font-size:10px}.portal-bi .exe-sidebar nav button span{font-size:15px;width:15px}.portal-bi .exe-sidebar-bottom{display:none}}
+@media(max-width:420px){.portal-bi .exe-sidebar nav{grid-template-columns:repeat(2,minmax(0,1fr))}}
