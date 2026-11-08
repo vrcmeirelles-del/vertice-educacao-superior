@@ -668,7 +668,7 @@ export default function PainelBI({ institutions, courses, enrollments, session, 
           <div><small>Data da fonte mais recente</small><strong>{coverage.sourceAt?new Date(coverage.sourceAt).toLocaleDateString('pt-BR'):'Não informada'}</strong></div>
         </div>}
         <p><strong>Matrículas no recorte:</strong> soma dos quantitativos de status MATRICULADO nos cursos com relatório disponível. Não comprova pessoas únicas nem o total oficial da instituição.</p>
-        <p><strong>Ocupação de vagas ofertadas:</strong> exige vagas efetivamente ofertadas para o mesmo curso, turno, modalidade e período das matrículas. O cadastro atual não sustenta a taxa. Por isso exibimos <strong>Não apurada</strong>, não um percentual potencialmente enganoso. Não é ocupação física das salas.</p>
+        <p><strong>Ocupação de vagas ofertadas:</strong> exige vagas efetivamente ofertadas para o mesmo curso, turno, modalidade e período das matrículas. O cadastro atual não sustenta a taxa. Por isso exibimos <strong>Não apurada</strong>, não um percentual potencialmente enganoso. Não é ocupação física das salas. {coverage&&`Somente ${coverage.coursesWithVacancies} de ${coverage.registeredCourses} cadastros possuem um número positivo de vagas, sem comprovação de período correspondente.`}</p>
         {coverage&&coverage.registeredCourses>coverage.coveredCourses&&<p className="bi-coverage-warning" role="status">Cobertura incompleta: {coverage.registeredCourses-coverage.coveredCourses} cadastro(s) de curso sem matrícula apurada neste recorte. Não confundir ausência de relatório com zero aluno.</p>}
       </section>
       <ReprovacoesAnuais key={instId} reports={reports.filter(report => report.institution_id === instId)} />
