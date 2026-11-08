@@ -1,0 +1,214 @@
+/* ══════════════════════════════════════════════════════════════
+   Vértice — camada de acabamento visual (carregada por último)
+   Objetivo: um sistema só — marinho + azul-petróleo, cantos suaves,
+   tipografia com respiro, formulários e botões consistentes.
+   Não altera conteúdo nem estrutura; só a pele.
+   ══════════════════════════════════════════════════════════════ */
+.corporate-site {
+  --navy: #243653;
+  --navy-deep: #1a2740;
+  --cyan: #328ea8;
+  --cyan-deep: #1f6f87;
+  --cyan-soft: #e8f3f7;
+  --pale: #f3f6f8;
+  --line: #dce4ea;
+  --line-strong: #c4d1db;
+  --ink-soft: #3d4f66;
+  --radius: 12px;
+  --radius-sm: 9px;
+  --shadow-sm: 0 1px 2px rgba(36, 54, 83, 0.06), 0 4px 14px rgba(36, 54, 83, 0.05);
+  --shadow-md: 0 10px 30px rgba(36, 54, 83, 0.12);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+.corporate-site ::selection { background: #cfe6ee; color: var(--navy-deep); }
+
+/* ── Tipografia ── */
+.corporate-site h1,
+.corporate-site h2,
+.corporate-site h3 { letter-spacing: -0.032em; line-height: 1.16; }
+.corporate-site p { text-wrap: pretty; }
+.corporate-site h1, .corporate-site h2 { text-wrap: balance; }
+
+/* ── Foco acessível (baixa especificidade: não briga com outros módulos) ── */
+.corporate-site :where(a, button, input, select, textarea, summary):focus-visible {
+  outline: 3px solid var(--cyan);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* ── Cabeçalho e navegação ── */
+.corp-header { border-bottom-color: var(--line); box-shadow: 0 1px 0 rgba(36, 54, 83, 0.03); }
+.corp-nav { height: 88px; }
+.vertex-brand { width: 214px; }
+.corp-navigation { font-size: 14.5px; gap: 26px; }
+.corp-navigation > a:not(.corp-button)::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 6px;
+  height: 2px;
+  background: var(--cyan);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.22s ease;
+}
+.corp-navigation > a:not(.corp-button):hover::after,
+.corp-navigation > a[aria-current="page"]::after { transform: scaleX(1); }
+@media (min-width: 951px) and (max-width: 1280px) {
+  .corp-navigation { top: 87px; }
+}
+
+/* ── Botões (um padrão só) ── */
+.corporate-site .corp-button {
+  border-radius: var(--radius-sm);
+  padding: 15px 24px;
+  gap: 14px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  box-shadow: 0 1px 2px rgba(36, 54, 83, 0.18), 0 6px 16px rgba(36, 54, 83, 0.14);
+  transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+.corporate-site .corp-button:hover {
+  background: var(--navy-deep);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(36, 54, 83, 0.2), 0 10px 22px rgba(36, 54, 83, 0.2);
+}
+.corporate-site .corp-button.small { padding: 11px 17px; gap: 10px; border-radius: 8px; box-shadow: none; }
+.corporate-site .corp-button.light { box-shadow: 0 1px 2px rgba(36, 54, 83, 0.1); border-color: var(--line); }
+.corporate-site .corp-button.accent,
+.corporate-site .corp-button-accent { background: var(--cyan-deep); }
+.corporate-site .corp-button.accent:hover,
+.corporate-site .corp-button-accent:hover { background: #17586c; }
+.corporate-site .corp-button:disabled { opacity: 0.55; cursor: not-allowed; transform: none; box-shadow: none; }
+
+/* ── Cabeçalho de página (hero interno) ── */
+.corp-page-head {
+  background: linear-gradient(180deg, #f7fafc 0%, #eef3f7 100%);
+  border-bottom: 1px solid var(--line);
+}
+.corp-eyebrow { color: var(--cyan-deep); }
+
+/* ── Ritmo de seção ── */
+.corp-section { padding-block: clamp(56px, 7.2vw, 96px); }
+
+/* ── Títulos dentro de cartões: escala própria (corrige h2 gigante em caixas) ── */
+.corporate-site .guide-steps h2,
+.corporate-site .reitor-calculator h2,
+.corporate-site .reitor-explanation h2,
+.corporate-site .reitor-private-note h2 { font-size: 23px; letter-spacing: -0.022em; margin: 0 0 12px; }
+.corporate-site .guide-group h2 { font-size: 26px; letter-spacing: -0.025em; }
+.corporate-site .reitor-calculator h3 { font-size: 18px; letter-spacing: -0.015em; }
+
+/* ── Guia e glossário ── */
+.corporate-site .guide-search input,
+.corporate-site .guide-search input:focus { border-color: var(--line-strong); border-radius: 10px; padding: 13px 16px; background: #fff; box-shadow: var(--shadow-sm); }
+.corporate-site .guide-search input:focus-visible { outline: 3px solid var(--cyan); outline-offset: 2px; }
+.corporate-site .guide-index a { border-color: var(--line); color: var(--ink-soft); transition: all 0.18s; }
+.corporate-site .guide-index a:hover { background: var(--cyan-soft); border-color: var(--cyan); color: var(--cyan-deep); }
+.corporate-site .guide-steps { background: linear-gradient(180deg, #f7fafc, #f0f5f8); border-color: var(--line); border-radius: var(--radius); box-shadow: var(--shadow-sm); padding: 24px 28px; }
+.corporate-site .guide-group h2 { border-bottom-color: var(--line); }
+
+/* ── Calculadora do Reitor: migra do verde para a paleta da marca ── */
+.corporate-site .reitor-calculator { color: var(--navy); }
+.corporate-site .reitor-explanation,
+.corporate-site .reitor-private-note {
+  background: linear-gradient(180deg, #f7fafc, #f0f5f8);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  padding: 28px 30px;
+}
+.corporate-site .reitor-explanation p,
+.corporate-site .reitor-private-note p { color: var(--ink-soft); }
+.corporate-site .reitor-formula { color: var(--cyan-deep); background: var(--cyan-soft); border-radius: 9px; padding: 11px 14px; display: block; margin-top: 8px; }
+.corporate-site .reitor-calculator fieldset { border-color: var(--line); border-radius: var(--radius); background: #fff; box-shadow: var(--shadow-sm); padding: 26px 28px; }
+.corporate-site .reitor-calculator legend { color: var(--navy); font-weight: 650; background: #fff; }
+.corporate-site .reitor-calculator label { color: var(--navy); }
+.corporate-site .reitor-calculator small,
+.corporate-site .reitor-help { color: #5d6e82; }
+.corporate-site .reitor-calculator .reitor-toggle { background: var(--cyan-soft); border: 1px solid #cfe3ec; border-radius: var(--radius-sm); }
+.corporate-site .reitor-result {
+  background: linear-gradient(160deg, var(--navy) 0%, var(--navy-deep) 100%);
+  border-left: 5px solid var(--cyan);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+}
+.corporate-site .reitor-result p,
+.corporate-site .reitor-result li { color: #d9e6ee; }
+.corporate-site .reitor-result .repo-secondary { color: var(--navy); border-radius: 9px; font-weight: 600; }
+.corporate-site .reitor-record { border-bottom-color: var(--line); }
+.corporate-site .reitor-record .repo-secondary { border-color: var(--line-strong); border-radius: 9px; }
+.corporate-site .reitor-calculator :focus-visible { outline-color: var(--cyan); }
+.corporate-site .reitor-details > summary,
+.corporate-site .reitor-method > summary,
+.corporate-site details > summary { cursor: pointer; }
+/* o texto já traz seu próprio ▶: esconde o marcador nativo duplicado */
+.corporate-site .reitor-calculator details > summary { list-style: none; }
+.corporate-site .reitor-calculator details > summary::-webkit-details-marker { display: none; }
+.corporate-site .reitor-details {
+  background: var(--cyan-soft);
+  border: 1px solid #cfe3ec;
+  border-radius: var(--radius-sm);
+  color: var(--cyan-deep);
+  padding: 4px 4px;
+}
+.corporate-site .reitor-details > summary { padding: 14px 18px; font-weight: 650; color: var(--cyan-deep); }
+
+/* ── Formulários (login, contato, briefing) — baixa especificidade ── */
+.corporate-site :where(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--navy);
+  padding: 13px 15px;
+  font: inherit;
+  transition: border-color 0.18s, box-shadow 0.18s;
+}
+.corporate-site :where(input, select, textarea):hover { border-color: #aebfcc; }
+.corporate-site :where(input:not([type="checkbox"]):not([type="radio"]), select, textarea):focus {
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 4px rgba(50, 142, 168, 0.16);
+  outline: none;
+}
+.corporate-site :where(label) { font-weight: 600; color: var(--navy); }
+.corporate-site :where(input[type="checkbox"]) { accent-color: var(--cyan-deep); width: 17px; height: 17px; }
+
+/* ── Login ── */
+.corp-login-card {
+  border-radius: 18px;
+  border-color: var(--line);
+  box-shadow: 0 20px 50px rgba(36, 54, 83, 0.12), 0 2px 6px rgba(36, 54, 83, 0.05);
+}
+.corp-login-card h3,
+.corp-login-card h4 { font-size: 15px; letter-spacing: -0.005em; margin: 18px 0 6px; }
+.corp-login-card h2 { font-size: 24px; }
+.corporate-site .corp-login-submit { width: 100%; border-radius: 10px; padding: 16px 24px; }
+.corporate-site .corp-login-submit:disabled { background: #8b97ab; opacity: 1; }
+.corp-login-trust { border-left: 3px solid var(--cyan); padding-left: 14px; }
+
+/* ── Rodapé ── */
+.corp-footer { border-top: 1px solid var(--line); }
+.footer-links a { transition: color 0.18s; }
+.footer-links a:hover { color: var(--cyan); }
+
+/* ── Demonstração: seletor alinhado à mesma grade do cabeçalho da página ── */
+.corporate-site .demo-institution-selector {
+  width: min(1240px, 100%);
+  margin-inline: auto;
+}
+
+/* ── Cartões genéricos da demonstração: hover consistente ── */
+.demo-profile, .demo-feature, .demo-track {
+  border-radius: var(--radius);
+}
+
+@media (max-width: 600px) {
+  .corp-nav { height: 76px; }
+  .vertex-brand { width: 176px; }
+  .corporate-site .guide-steps,
+  .corporate-site .reitor-explanation,
+  .corporate-site .reitor-private-note,
+  .corporate-site .reitor-calculator fieldset { padding: 20px 18px; }
+}

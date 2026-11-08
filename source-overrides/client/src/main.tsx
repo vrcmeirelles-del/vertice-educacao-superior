@@ -14,6 +14,7 @@ import "./index.css";
 import "./styles/corporate.css";
 import "./styles/management.css";
 import "./components/demo-showroom.css";
+import "./styles/vertice-polish.css";
 
 const queryClient = new QueryClient();
 const trpcClient = trpc.createClient({
