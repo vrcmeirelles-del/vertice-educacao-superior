@@ -55,6 +55,7 @@ function PortalBI({institutions,courses,enrollments,session}:{institutions:Insti
  const [page,setPage]=useState(-1),[tv,setTv]=useState(false),[tick,setTick]=useState(0);
  const [tvPaused,setTvPaused]=useState(false),[tvSpeed,setTvSpeed]=useState(15000);
  const [sources,setSources]=useState<Record<number,BiSource>>({});
+ const [actionRows,setActionRows]=useState<Row[]>([]);
  const [detail,setDetail]=useState<{title:string;items:BiItem[]}|null>(null);
  const [manual,setManual]=useState(['','','','']);
  const panel=useRef<HTMLElement>(null), dialog=useRef<HTMLDialogElement>(null);
@@ -84,7 +85,7 @@ function PortalBI({institutions,courses,enrollments,session}:{institutions:Insti
   let active=true;
   const set=(key:number,source:BiSource)=>{if(active)setSources(previous=>({...previous,[key]:source}));};
   if(id){
-   void listByInstitution(TABLES.actions,id).then(rows=>set(6,{items:rows.filter(r=>r.status!=='cancelada').map(r=>({label:String(r.title??r.what??r.action??'Ação registrada'),group:String(r.status??'Sem situação'),value:1,href:link('plano')}))})).catch(()=>set(6,{items:[],error:true}));
+   void listByInstitution(TABLES.actions,id).then(rows=>{if(active)setActionRows(rows);set(6,{items:rows.filter(r=>r.status!=='cancelada').map(r=>({label:String(r.what??'Ação registrada'),group:String(r.status??'Sem situação'),value:1,href:link('plano')}))});}).catch(()=>{if(active)setActionRows([]);set(6,{items:[],error:true});});
    void listByInstitution(TABLES.goals,id).then(rows=>set(0,{items:rows.map(row=>({label:String(row.title??row.name??'Meta'),group:({ativa:'Ativa',planejada:'Planejada',concluida:'Concluída',cancelada:'Cancelada'} as Record<string,string>)[String(row.status)]??String(row.status??'Sem situação'),value:1,href:link('metas')}))})).catch(()=>set(0,{items:[],error:true}));
    void Promise.all([listRepository('vertice_repository_requests',id),listRepository('vertice_repository_files',id)]).then(([requests,files])=>{
     const latest=latestInstrumentDocuments(files);
@@ -148,7 +149,7 @@ function PortalBI({institutions,courses,enrollments,session}:{institutions:Insti
   const list=cards[2]?.items??[];
   return ['Validado','Em análise','Devolvido','Pendente','Não se aplica'].map(status=>({status:status==='Não se aplica'?'NSA':status,count:list.filter(x=>x.group===status).length}));
  })();
- const executiveActions=(sources[6]?.items??[]).slice(0,8).map(i=>({name:i.label,status:i.group,due:'Não informado',owner:'Consultar 5W2H'}));
+ const executiveActions=actionRows.filter(r=>r.status!=='cancelada').slice().sort((a,b)=>String(a.due_date??'9999').localeCompare(String(b.due_date??'9999'))).slice(0,8).map(row=>({name:String(row.what??'Ação cadastrada'),status:String(row.status??'Sem situação'),due:row.due_date?String(row.due_date).split('-').reverse().join('/'): 'Sem prazo',owner:String(row.who??'Não informado')}));
  const executiveErrors=[0,2,3,6].filter(i=>sources[i]?.error).map(i=>({0:'Metas',2:'Documentação',3:'Arquivos',6:'Plano de ação'} as Record<number,string>)[i]);
  const navigateExecutive=(what:string)=>{
   if(what==='Matrículas')setPage(1);
@@ -159,7 +160,7 @@ function PortalBI({institutions,courses,enrollments,session}:{institutions:Insti
  const executiveMetrics=[
   {label:'Matrículas ativas no recorte',value:currentCount,note:term?'Semestre '+term:'Sem recorte',tone:'mint' as const,target:'Matrículas'},
   {label:'Metas acompanhadas',value:totalOf(0),note:'Metas cadastradas na instituição',tone:'gold' as const,target:'Documentação'},
-  {label:'Documentos validados',value:executiveDocs.find(x=>x.status==='Validado')?.count??null,note:'Evidências com validação registrada',tone:'cyan' as const,target:'Documentação'},
+  {label:'Documentos validados',value:cards[2]?executiveDocs.find(x=>x.status==='Validado')?.count??0:null,note:'Evidências com validação registrada',tone:'cyan' as const,target:'Documentação'},
   {label:'Pendências documentais',value:cards[2]?.error?null:executiveDocs.filter(x=>!['Validado','NSA'].includes(x.status)).reduce((a,b)=>a+b.count,0),note:'Não validadas no repositório',tone:'rose' as const,target:'Documentação'}
  ];
  const executiveIndicators=[
@@ -198,7 +199,7 @@ function PortalBI({institutions,courses,enrollments,session}:{institutions:Insti
  return <section ref={panel} className="portal-bi" aria-label="BI da Reitoria">
  <style>{'.portal-bi{background:#f1f8f7;color:#163e48;padding:clamp(16px,3vw,42px);overflow:auto}.portal-bi h2{margin:0;font-size:clamp(26px,4vw,48px)}.pbi-toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:18px 0}.portal-bi button,.portal-bi select,.portal-bi input{border:1px solid #d4d9ea;background:white;color:inherit;padding:9px;border-radius:8px}.portal-bi button[aria-pressed=true]{background:#0b857c;color:white}.pbi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,310px),1fr));gap:18px}.pbi-card{background:white;border:1px solid #e0e4f1;border-radius:16px;padding:20px;min-width:0}.pbi-card h3{margin:5px 0 18px;font-size:24px}.pbi-card small{color:#535b78}.pbi-donut{display:block;width:min(68%,220px);margin:auto}.pbi-donut circle[stroke-dasharray]{cursor:pointer}.pbi-columns{height:165px;display:flex;align-items:flex-end;gap:5px;padding:24px 0 0;margin:14px 0}.pbi-columns button{position:relative;flex:1;min-width:0;border:0;padding:0;border-radius:5px 5px 0 0}.pbi-columns span{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);font-size:11px}.pbi-legend{display:grid;gap:5px;max-height:260px;overflow:auto;margin-top:14px}.pbi-legend button{display:flex;gap:8px;align-items:center;text-align:left}.pbi-legend i{flex:none;width:11px;height:11px;border-radius:3px}.pbi-legend b{margin-left:auto}.pbi-card label{display:grid;gap:6px}.portal-bi dialog{max-width:min(720px,90vw);max-height:80vh;border:1px solid #d4d9ea;border-radius:16px;padding:24px;color:#1b2440}.portal-bi dialog::backdrop{background:#18142b99}.portal-bi:fullscreen .pbi-card{max-width:1400px;margin:auto}.portal-bi:fullscreen .pbi-donut{width:min(48vh,390px)}.portal-bi:fullscreen .pbi-columns{height:40vh}'}</style>
  <header className="vx-bi-heading"><div><p className="vx-eyebrow">VÉRTICE · INTELIGÊNCIA INSTITUCIONAL</p><h2>Visão Executiva da Reitoria</h2><p>Indicadores institucionais com acesso aos registros originais.</p></div><span className="vx-scope">Consulta ao portal · sem estimativas</span></header>
- <div className="pbi-toolbar"><label>Instituição <select value={id} onChange={event=>{setSources({});setManual(['','','','']);setId(event.target.value);}}>{institutions.map(institution=><option key={institution.id} value={institution.id}>{institution.name}</option>)}</select></label>
+ <div className="pbi-toolbar"><label>Instituição <select value={id} onChange={event=>{setSources({});setActionRows([]);setManual(['','','','']);setId(event.target.value);}}>{institutions.map(institution=><option key={institution.id} value={institution.id}>{institution.name}</option>)}</select></label>
  <label>Semestre de matrículas <select value={term??''} onChange={event=>setSemester(event.target.value)}>{!semesters.length&&<option value="">Sem referência</option>}{semesters.map(value=><option key={value}>{value}</option>)}</select></label>
  <button type="button" onClick={toggleTv}>{tv?'Sair do modo TV':'Modo TV • automático'}</button>
  {tv&&<><button type="button" onClick={()=>setTvPaused(old=>!old)} aria-pressed={tvPaused}>{tvPaused?'Retomar':'Pausar'}</button>
