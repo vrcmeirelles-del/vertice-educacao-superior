@@ -59,6 +59,11 @@ export default function DireitoRaioX({ institutionId }: Props) {
   const [buscaAluno, setBuscaAluno] = useState("");
   const [profRes, setProfRes] = useState<any[]>([]);
   const [profResErro, setProfResErro] = useState<string>("");
+  const [docenciaOfertas,setDocenciaOfertas]=useState<{semestre:string;nome:string;disciplina:string}[]>([]);
+  const [docenciaStatus,setDocenciaStatus]=useState<"loading"|"ready"|"error">("loading");
+  const [docenciaSem,setDocenciaSem]=useState("2026/02");
+  const [docenciaCompare,setDocenciaCompare]=useState("2025/02");
+  const [docenciaBusca,setDocenciaBusca]=useState("");
   const [selectedSem,setSelectedSem]=useState("");
   const [compareMode,setCompareMode]=useState<CompareMode>("homologo");
   const [comparisonSem,setComparisonSem]=useState("");
@@ -71,7 +76,21 @@ export default function DireitoRaioX({ institutionId }: Props) {
     let active = true;
     setSemData([]); setTurmaData([]); setProfData(null); setQuantGeral(null);
     setDocenteEvo(null); setSerieReal(null); setSourceStatus("pending_mapping");
-    setSourceDate(null); setLoading(true);
+    setSourceDate(null); setLoading(true);setDocenciaOfertas([]);setDocenciaStatus("loading");
+    (async()=>{
+      const {data,error}=await supabase.from("vertice_offering_outcomes")
+        .select("semester,teachers,discipline").eq("institution_id",institutionId).eq("course_code","027")
+        .gte("semester","2023/01").lte("semester","2026/02").order("semester",{ascending:true}).limit(1000);
+      if(!active)return;
+      if(error){setDocenciaStatus("error");return;}
+      const items=(data??[]).flatMap(row=>{
+        const name=String(row.teachers??"").trim();
+        if(!name)return [];
+        return [{semestre:String(row.semester),nome:name,disciplina:String(row.discipline??"Disciplina não identificada")}];
+      });
+      setDocenciaOfertas(items);
+      setDocenciaStatus("ready");
+    })();
     if (institutionId !== UNITOP_ID) { setLoading(false); return () => { active = false; }; }
     (async () => {
       const pr = await supabase.from("vertice_eorbit_professor_resultados")
@@ -150,7 +169,23 @@ export default function DireitoRaioX({ institutionId }: Props) {
   const totalGeral = quantGeral?.total_geral || 0;
   const trancados = quantGeral?.status?.TRANCADO || 0;
   const cancelados = quantGeral?.status?.CANCELADO || 0;
-  const profCount = docenteEvo?.evolucao?.["2026/01"]?.professores || profData?.professores?.length || 0;
+  const historicoDocente=(()=>{
+    const semesters=["2023/01","2023/02","2024/01","2024/02","2025/01","2025/02","2026/01","2026/02"];
+    return semesters.map(semestre=>{
+      const rows=docenciaOfertas.filter(r=>r.semestre===semestre);
+      const names=new Map<string,{nome:string;disciplinas:Set<string>;ofertas:number}>();
+      for(const r of rows){
+        const key=r.nome.toLocaleUpperCase("pt-BR").replace(/\\s+/g," ").trim();
+        if(!names.has(key))names.set(key,{nome:r.nome,disciplinas:new Set(),ofertas:0});
+        const person=names.get(key)!;person.disciplinas.add(r.disciplina);person.ofertas++;
+      }
+      return {semestre,docentes:[...names.values()].sort((a,b)=>a.nome.localeCompare(b.nome,"pt-BR")),ofertas:rows.length,disponivel:rows.length>0};
+    });
+  })();
+  const profCount=historicoDocente.find(x=>x.semestre==="2026/02")?.docentes.length??null;
+  const docenciaAtual=historicoDocente.find(x=>x.semestre===docenciaSem)??historicoDocente[7];
+  const docenciaAnterior=historicoDocente.find(x=>x.semestre===docenciaCompare)??historicoDocente[5];
+  const docenciaFiltrada=docenciaAtual.docentes.filter(d=>[d.nome,...d.disciplinas].join(" ").toLocaleLowerCase("pt-BR").includes(docenciaBusca.toLocaleLowerCase("pt-BR")));
   const semFiltered = semData.filter(s => s.semestre >= "2023/01");
 
   // Evasão por coorte de entrada. Cada linha de semData é a situação ATUAL da turma
@@ -278,7 +313,7 @@ export default function DireitoRaioX({ institutionId }: Props) {
           {label:"Vínculos Totais",value:totalGeral,sub:"base histórica · desde 2023/01",color:"#6366f1",icon:"📋"},
           {label:"Saídas classificadas acumuladas",value:`${taxaAcumulada.toFixed(1)}%`,sub:`${evadidosAcum} de ${baseAcum} com saída classificada`,color:corTaxa(taxaAcumulada),icon:taxaAcumulada>40?"⚠️":taxaAcumulada>25?"⚠️":"✅"},
           {label:"Saídas classificadas da coorte recente",value:`${(coortes[coortes.length-1]?.taxa ?? 0).toFixed(1)}%`,sub:`turma ${coortes[coortes.length-1]?.semestre ?? "—"} · menos tempo de exposição`,color:"#6366f1",icon:"🆕"},
-          {label:"Corpo Docente",value:profCount,sub:"professores 2026/01",color:"#7c3aed",icon:"👨‍🏫"},
+          {label:"Corpo Docente",value:docenciaStatus==="ready"&&profCount!==null?profCount:"Sem dados",sub:"registrados em ofertas · 2026/02",color:"#7c3aed",icon:"👨‍🏫"},
           {label:"Trancados",value:trancados,sub:totalGeral>0?`${((trancados/totalGeral)*100).toFixed(0)}% do total`:"",color:"var(--warning)",icon:"⏸️"},
           {label:"Cancelados",value:cancelados,sub:totalGeral>0?`${((cancelados/totalGeral)*100).toFixed(0)}% do total`:"",color:"var(--danger)",icon:"❌"},
         ].map((kpi,i) => (
@@ -297,7 +332,7 @@ export default function DireitoRaioX({ institutionId }: Props) {
           "Vínculos Totais":"Base cumulativa de vínculos e situações informadas desde 2023/01, incluindo estados diferentes. Não é o total atual de matriculados.",
           "Saídas classificadas acumuladas":"Indicador operacional composto por trancamentos, abandonos, cancelamentos, transferências e trocas de curso divididos pela base cumulativa. Transferência e trancamento não são necessariamente evasão definitiva. Não compara coortes com tempos de exposição distintos.",
           "Saídas classificadas da coorte recente":"Percentual operacional de eventos de saída na coorte mais recente; por possuir menor tempo de acompanhamento, não deve ser comparado diretamente a coortes antigas.",
-          "Corpo Docente":"Quantidade registrada na fonte docente identificada no período indicado, não equivalente a docentes ativos hoje sem revalidação.",
+          "Corpo Docente":"Nomes distintos identificados nas ofertas do curso de Direito, código 027, no semestre de 2026/02. Não equivale a vínculos empregatícios ativos, nem comprova titulação, jornada ou quantidade de contratos.",
           "Trancados":"Vínculos classificados como trancados; trancamento pode ser temporário e não comprova desligamento definitivo.",
           "Cancelados":"Vínculos classificados como cancelados. A soma de estados não substitui estudo longitudinal por matrícula."
         } as Record<string,string>)[selectedMetric]??"Indicador agregado da fonte acadêmica, sujeito à validação."}</p>
@@ -642,29 +677,43 @@ export default function DireitoRaioX({ institutionId }: Props) {
         )}
       </div>
 
-      {/* ── Corpo Docente ── */}
-      {profData && (
-        <div className="drx-section">
-          <div className="drx-section-header"><h4>Corpo Docente — 2026/01</h4><p className="drx-sub">{profData.professores?.length || 0} professores atuantes</p></div>
-          <div className="drx-table-wrap">
-            <table className="drx-table"><thead><tr><th>Professor</th><th>Disciplinas</th></tr></thead>
-              <tbody>{(profData.professores || []).map((p: any, i: number) => (<tr key={i}><td><strong>{p.nome}</strong></td><td>{(p.disciplinas || []).join("; ")}</td></tr>))}</tbody>
-            </table>
-          </div>
+      {/* ── Docência registrada nas ofertas: histórico 2023/01–2026/02 ── */}
+      <section className="drx-section" id="drx-docencia">
+        <div className="drx-section-header"><h4>Corpo Docente — histórico de 2023/01 a 2026/02</h4>
+          <p className="drx-sub">Fonte: ofertas de disciplinas de Direito (curso 027). São <strong>nomes docentes distintos registrados nas ofertas</strong>, não contratos de trabalho ou quadro funcional confirmado.</p>
         </div>
-      )}
-
-      {/* ── Evolução Docente ── */}
-      {docenteEvo && (
-        <div className="drx-section">
-          <div className="drx-section-header"><h4>Evolução do Corpo Docente</h4></div>
-          <div className="drx-docente-grid">
-            {Object.entries(docenteEvo.evolucao || {}).map(([sem, data]: [string, any]) => (
-              <div key={sem} className="drx-docente-card"><span className="drx-docente-sem">{sem}</span><strong className="drx-docente-num">{data.professores}</strong><span className="drx-docente-label">professores</span></div>
-            ))}
+        {docenciaStatus==="loading"?<p role="status" className="drx-comparison-note">Consultando registros das ofertas docentes…</p>:
+        docenciaStatus==="error"?<p role="alert" className="drx-comparison-note">Não foi possível consultar os dados de docência; verifique o acesso autorizado à fonte.</p>:<>
+          <div className="drx-docente-grid drx-docente-click-grid">
+            {historicoDocente.map((row,i)=>{
+              const anterior=i>0?historicoDocente[i-1]:null;
+              const delta=anterior?.disponivel&&row.disponivel?row.docentes.length-anterior.docentes.length:null;
+              return <button key={row.semestre} type="button" className="drx-docente-card drx-docente-select" aria-pressed={docenciaSem===row.semestre} onClick={()=>{setDocenciaSem(row.semestre);setDocenciaBusca("");}}>
+                <span className="drx-docente-sem">{row.semestre}</span>
+                <strong className="drx-docente-num">{row.disponivel?row.docentes.length:"—"}</strong>
+                <span className="drx-docente-label">{row.disponivel?"nomes docentes distintos":"Fonte não disponibilizada"}</span>
+                <span className="drx-docente-label">{row.disponivel?row.ofertas+" ofertas de disciplinas":"Sem contagem"}</span>
+                {delta!==null&&<span className={delta>=0?"drx-trend-up":"drx-trend-down"}>{delta>=0?"+":""}{delta} vs. semestre anterior</span>}
+              </button>;
+            })}
           </div>
-        </div>
-      )}
+          <div className="drx-compare-controls">
+            <label>Semestre para detalhar<select value={docenciaSem} onChange={e=>{setDocenciaSem(e.target.value);setDocenciaBusca("");}}>{historicoDocente.map(x=><option key={x.semestre} value={x.semestre}>{x.semestre}</option>)}</select></label>
+            <label>Comparar com<select value={docenciaCompare} onChange={e=>setDocenciaCompare(e.target.value)}>{historicoDocente.filter(x=>x.semestre!==docenciaSem).map(x=><option key={x.semestre} value={x.semestre}>{x.semestre}</option>)}</select></label>
+            <label>Buscar docente ou disciplina<input type="search" value={docenciaBusca} onChange={e=>setDocenciaBusca(e.target.value)} placeholder="Nome ou disciplina"/></label>
+          </div>
+          <div className="drx-compare-cards">
+            <div><small>Nomes docentes · {docenciaSem}</small><strong>{docenciaAtual.disponivel?docenciaAtual.docentes.length:"Sem dados"}</strong><span>{docenciaAtual.ofertas} ofertas cadastradas</span></div>
+            <div><small>Nomes docentes · {docenciaCompare}</small><strong>{docenciaAnterior.disponivel?docenciaAnterior.docentes.length:"Sem dados"}</strong><span>{docenciaAnterior.ofertas} ofertas cadastradas</span></div>
+            <div><small>Diferença de docentes distintos</small><strong>{docenciaAtual.disponivel&&docenciaAnterior.disponivel?(docenciaAtual.docentes.length-docenciaAnterior.docentes.length>0?"+":"")+(docenciaAtual.docentes.length-docenciaAnterior.docentes.length):"—"}</strong><span>Não mede admissões nem demissões</span></div>
+            <div><small>Diferença nas ofertas</small><strong>{docenciaAtual.disponivel&&docenciaAnterior.disponivel?(docenciaAtual.ofertas-docenciaAnterior.ofertas>0?"+":"")+(docenciaAtual.ofertas-docenciaAnterior.ofertas):"—"}</strong><span>Registros de disciplinas ofertadas</span></div>
+          </div>
+          {docenciaAtual.disponivel?<div className="drx-table-wrap"><table className="drx-table"><thead><tr><th>Professor · {docenciaSem}</th><th>Disciplinas registradas</th><th>Ofertas vinculadas</th><th>Também em {docenciaCompare}?</th></tr></thead>
+            <tbody>{docenciaFiltrada.map(d=><tr key={d.nome}><td><strong>{d.nome}</strong></td><td>{[...d.disciplinas].join("; ")}</td><td>{d.ofertas}</td><td>{docenciaAnterior.disponivel?docenciaAnterior.docentes.some(x=>x.nome.toLocaleUpperCase("pt-BR")===d.nome.toLocaleUpperCase("pt-BR"))?"Sim":"Não":"Indisponível"}</td></tr>)}</tbody>
+          </table>{!docenciaFiltrada.length&&<p className="drx-comparison-note">Nenhum professor ou disciplina corresponde à pesquisa neste semestre.</p>}</div>:<p className="drx-comparison-note">Não há registro individual de docência para o período selecionado.</p>}
+          <p className="drx-evasao-nota">Critério: cada nome é contado uma única vez por semestre, mesmo com várias disciplinas ou ofertas. A lista deriva de registros do sistema acadêmico e pode requerer conferência de homônimos, grafia, cadastro funcional e vínculo docente. Uma variação no número de nomes não comprova contratação, desligamento ou retenção do professor.</p>
+        </>}
+      </section>
 
       {/* ── Status Geral ── */}
       {quantGeral && (
