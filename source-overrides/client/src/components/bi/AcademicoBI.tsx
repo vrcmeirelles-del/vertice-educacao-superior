@@ -822,7 +822,7 @@ export default function AcademicoBI({ institutionId, institutionName }: { instit
     {reportsUnavailable && <p role="status" className="abi-error">Relatórios acadêmicos complementares não disponibilizados para este recorte. Os módulos que dependem deles permanecem sem dados; nenhum resultado foi estimado.</p>}
     {!error && quantitativo.length===0 && <p role="status" className="abi-empty">Não existem quantitativos acadêmicos disponíveis para a instituição selecionada. Confira a importação do e-ORBIT e o semestre de referência.</p>}
 
-    {aba === 'geral' && <VisaoGeral bi={bi} semestreLabel={semestreLabel} modalidadeFilter={modalidadeFilter} setModalidadeFilter={setModalidadeFilter} modalities={modalities} />}
+    {aba === 'geral' && !error && quantitativo.length>0 && <VisaoGeral bi={bi} semestreLabel={semestreLabel} modalidadeFilter={modalidadeFilter} setModalidadeFilter={setModalidadeFilter} modalities={modalities} />}
     {aba === 'comparador' && <Comparador quantitativo={quantitativo} cursos={cursos} semestres={semestres} />}
     {aba === 'raiox' && <RaioX profs={profs} discs={discs} dossieDireito={dossie} cursos={courseIndicators} reprovaTipo={reprovaTipo} />}
     {aba === 'evasao' && <EvasaoRenovacao report={cohorts} cursos={courseIndicators} />}
