@@ -46,12 +46,13 @@ function writeHash(inst:string,course:string,repositories=false,library=false,re
 type BiItem = {label:string; group:string; value:number; href?:string};
 type BiSource = {items:BiItem[]; error?:boolean};
 const BI_NAMES=['Metas','Matrículas','Documentação','Reconhecimento de Curso','Aquisições','Captação e permanência'];
-const BI_COLORS=['#6554cf','#168878','#d76d34','#377acf','#c0447f','#82720b','#39714b'];
+const BI_COLORS=['#0b9185','#daa94e','#e5765e','#368aa6','#6bbf9f','#b58b3b','#116d78'];
 const biNumber=new Intl.NumberFormat('pt-BR');
 const biMoney=new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'});
 function PortalBI({institutions,courses,enrollments,session}:{institutions:Institution[];courses:Course[];enrollments:Enrollment[];session:Session}){
  const [id,setId]=useState(institutions[0]?.id??'');
  const [page,setPage]=useState(-1),[tv,setTv]=useState(false),[tick,setTick]=useState(0);
+ const [tvPaused,setTvPaused]=useState(false),[tvSpeed,setTvSpeed]=useState(15000);
  const [sources,setSources]=useState<Record<number,BiSource>>({});
  const [detail,setDetail]=useState<{title:string;items:BiItem[]}|null>(null);
  const [manual,setManual]=useState(['','','','']);
@@ -105,14 +106,26 @@ function PortalBI({institutions,courses,enrollments,session}:{institutions:Insti
   return()=>{active=false;};
  },[id,tick,session.access_token,courses]);
  useEffect(()=>{
-  if(!tv||detail)return;
-  const timer=window.setTimeout(()=>{setPage(previous=>(previous+1)%BI_NAMES.length);setTick(previous=>previous+1);},600000);
-  return()=>window.clearTimeout(timer);
- },[tv,page,detail]);
+  if(!tv||tvPaused||detail)return;
+  const timer=window.setInterval(()=>{
+   if(document.visibilityState==='visible')setPage(previous=>(previous+1)%BI_NAMES.length);
+  },tvSpeed);
+  return()=>window.clearInterval(timer);
+ },[tv,tvPaused,tvSpeed,detail]);
+ useEffect(()=>{
+  const hidden=()=>{if(document.hidden)setTvPaused(true);};
+  const exit=()=>{if(!document.fullscreenElement&&tv){setTv(false);setTvPaused(false);}};
+  document.addEventListener('visibilitychange',hidden);
+  document.addEventListener('fullscreenchange',exit);
+  return()=>{document.removeEventListener('visibilitychange',hidden);document.removeEventListener('fullscreenchange',exit);};
+ },[tv]);
  useEffect(()=>{if(detail&&!dialog.current?.open)dialog.current?.showModal();},[detail]);
  function toggleTv(){
-  if(tv){setTv(false);if(document.fullscreenElement===panel.current)void document.exitFullscreen().catch(()=>{});return;}
-  setTv(true);if(page<0)setPage(0);void panel.current?.requestFullscreen?.().catch(()=>{});
+  if(tv){setTv(false);setTvPaused(false);if(document.fullscreenElement===panel.current)void document.exitFullscreen().catch(()=>{});return;}
+  setTv(true);setTvPaused(false);if(page<0)setPage(0);void panel.current?.requestFullscreen?.().catch(()=>{});
+ }
+ function tvMove(direction:number){
+  setPage(current=>(current<0?0:(current+direction+BI_NAMES.length)%BI_NAMES.length));
  }
  const captacaoLink=<article className="pbi-card" key="captacao-link" style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'12px',cursor:'pointer'}} onClick={()=>{window.location.hash='captacao=1';window.dispatchEvent(new HashChangeEvent('hashchange'));}}>
    <h3 style={{margin:0,fontSize:'18px',color:'#328ea8'}}>📊 BI de Captação</h3>
@@ -155,11 +168,17 @@ function PortalBI({institutions,courses,enrollments,session}:{institutions:Insti
  {['Investimento em captação (R$)','Matrículas atribuídas à campanha','Despesas de permanência (R$)','Alunos acompanhados'].map((label,i)=><label key={label}>{label}<input type="number" min="0" step={i%2?'1':'0.01'} value={manual[i]} onChange={event=>{const value=event.target.value;setManual(previous=>previous.map((old,index)=>index===i?value:old));}}/></label>)}
  <p>Por matrícula confirmada <strong>{ratio(manual[0],manual[1])}</strong></p><p>Por aluno acompanhado <strong>{ratio(manual[2],manual[3])}</strong></p></div></article>;
  return <section ref={panel} className="portal-bi" aria-label="BI da Reitoria">
- <style>{'.portal-bi{background:#f5f6fb;color:#1b2440;padding:clamp(16px,3vw,42px);overflow:auto}.portal-bi h2{margin:0;font-size:clamp(26px,4vw,48px)}.pbi-toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:18px 0}.portal-bi button,.portal-bi select,.portal-bi input{border:1px solid #d4d9ea;background:white;color:inherit;padding:9px;border-radius:8px}.portal-bi button[aria-pressed=true]{background:#5140ad;color:white}.pbi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,310px),1fr));gap:18px}.pbi-card{background:white;border:1px solid #e0e4f1;border-radius:16px;padding:20px;min-width:0}.pbi-card h3{margin:5px 0 18px;font-size:24px}.pbi-card small{color:#535b78}.pbi-donut{display:block;width:min(68%,220px);margin:auto}.pbi-donut circle[stroke-dasharray]{cursor:pointer}.pbi-columns{height:165px;display:flex;align-items:flex-end;gap:5px;padding:24px 0 0;margin:14px 0}.pbi-columns button{position:relative;flex:1;min-width:0;border:0;padding:0;border-radius:5px 5px 0 0}.pbi-columns span{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);font-size:11px}.pbi-legend{display:grid;gap:5px;max-height:260px;overflow:auto;margin-top:14px}.pbi-legend button{display:flex;gap:8px;align-items:center;text-align:left}.pbi-legend i{flex:none;width:11px;height:11px;border-radius:3px}.pbi-legend b{margin-left:auto}.pbi-card label{display:grid;gap:6px}.portal-bi dialog{max-width:min(720px,90vw);max-height:80vh;border:1px solid #d4d9ea;border-radius:16px;padding:24px;color:#1b2440}.portal-bi dialog::backdrop{background:#18142b99}.portal-bi:fullscreen .pbi-card{max-width:1400px;margin:auto}.portal-bi:fullscreen .pbi-donut{width:min(48vh,390px)}.portal-bi:fullscreen .pbi-columns{height:40vh}'}</style>
+ <style>{'.portal-bi{background:#f1f8f7;color:#163e48;padding:clamp(16px,3vw,42px);overflow:auto}.portal-bi h2{margin:0;font-size:clamp(26px,4vw,48px)}.pbi-toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:18px 0}.portal-bi button,.portal-bi select,.portal-bi input{border:1px solid #d4d9ea;background:white;color:inherit;padding:9px;border-radius:8px}.portal-bi button[aria-pressed=true]{background:#0b857c;color:white}.pbi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,310px),1fr));gap:18px}.pbi-card{background:white;border:1px solid #e0e4f1;border-radius:16px;padding:20px;min-width:0}.pbi-card h3{margin:5px 0 18px;font-size:24px}.pbi-card small{color:#535b78}.pbi-donut{display:block;width:min(68%,220px);margin:auto}.pbi-donut circle[stroke-dasharray]{cursor:pointer}.pbi-columns{height:165px;display:flex;align-items:flex-end;gap:5px;padding:24px 0 0;margin:14px 0}.pbi-columns button{position:relative;flex:1;min-width:0;border:0;padding:0;border-radius:5px 5px 0 0}.pbi-columns span{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);font-size:11px}.pbi-legend{display:grid;gap:5px;max-height:260px;overflow:auto;margin-top:14px}.pbi-legend button{display:flex;gap:8px;align-items:center;text-align:left}.pbi-legend i{flex:none;width:11px;height:11px;border-radius:3px}.pbi-legend b{margin-left:auto}.pbi-card label{display:grid;gap:6px}.portal-bi dialog{max-width:min(720px,90vw);max-height:80vh;border:1px solid #d4d9ea;border-radius:16px;padding:24px;color:#1b2440}.portal-bi dialog::backdrop{background:#18142b99}.portal-bi:fullscreen .pbi-card{max-width:1400px;margin:auto}.portal-bi:fullscreen .pbi-donut{width:min(48vh,390px)}.portal-bi:fullscreen .pbi-columns{height:40vh}'}</style>
  <header className="vx-bi-heading"><div><p className="vx-eyebrow">VÉRTICE · INTELIGÊNCIA INSTITUCIONAL</p><h2>Visão Executiva da Reitoria</h2><p>Indicadores institucionais com acesso aos registros originais.</p></div><span className="vx-scope">Consulta ao portal · sem estimativas</span></header>
  <div className="pbi-toolbar"><label>Instituição <select value={id} onChange={event=>{setSources({});setManual(['','','','']);setId(event.target.value);}}>{institutions.map(institution=><option key={institution.id} value={institution.id}>{institution.name}</option>)}</select></label>
  <label>Semestre de matrículas <select value={term??''} onChange={event=>setSemester(event.target.value)}>{!semesters.length&&<option value="">Sem referência</option>}{semesters.map(value=><option key={value}>{value}</option>)}</select></label>
- <button type="button" onClick={toggleTv}>{tv?'Pausar modo TV':'Modo TV · 10 min'}</button>
+ <button type="button" onClick={toggleTv}>{tv?'Sair do modo TV':'Modo TV • automático'}</button>
+ {tv&&<><button type="button" onClick={()=>setTvPaused(old=>!old)} aria-pressed={tvPaused}>{tvPaused?'Retomar':'Pausar'}</button>
+ <button type="button" onClick={()=>tvMove(-1)}>Anterior</button><button type="button" onClick={()=>tvMove(1)}>Próxima</button>
+ <label>Trocar a cada <select value={tvSpeed} onChange={e=>setTvSpeed(Number(e.target.value))}>
+  <option value={10000}>10 segundos</option><option value={15000}>15 segundos</option>
+  <option value={20000}>20 segundos</option><option value={30000}>30 segundos</option>
+ </select></label></>}
  <button type="button" onClick={()=>setTick(previous=>previous+1)}>Consultar fontes</button></div>
  {page<0&&<div className="vx-overview">
    <div className="vx-section-heading"><div><p className="vx-eyebrow">PANORAMA INSTITUCIONAL</p><h3>O que merece atenção?</h3></div><p>Selecione um cartão para aprofundar a análise.</p></div>
