@@ -1,6 +1,6 @@
 import React,{useEffect,useMemo,useRef,useState,type ReactNode} from 'react';
 import {demoInstitutionProfiles,type DemoCourse,type DemoInstitutionMode} from '@/lib/demo-showroom';
-import './premium-bi.css';
+
 
 export type BiPage='overview'|'matriculas'|'reprovacoes'|'captacao'|'regulacao'|'aprendizagem';
 type Term='2025/1'|'2025/2'|'2026/1'|'2026/2'|'2027/1';
