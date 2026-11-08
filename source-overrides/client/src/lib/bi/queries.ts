@@ -14,6 +14,7 @@ import type {
   CelulaHeatmap, SaudeIndicador,
 } from './types';
 import { fmtInt, fmtPct, fmtBRL } from './format';
+import {latestEnrollmentSnapshots,courseTotals} from '@/components/InstitutionArea';
 
 // ---------------------------------------------------------------- helpers
 async function fetchAll<T>(table: string, filters: Record<string, unknown>, order = 'id'): Promise<T[]> {
@@ -69,30 +70,35 @@ async function getEnrollments(filtro: FiltroBI): Promise<Enrollment[]> {
   );
   const courses = await getCourses(filtro);
   const ids = new Set(courses.map(c => c.id));
-  return all.filter(e => ids.has(e.course_id) && e.student_status === 'MATRICULADO');
+  return latestEnrollmentSnapshots(all.filter(e => ids.has(e.course_id) && e.student_status === 'MATRICULADO'));
 }
 
-function enrolledBySemester(enrollments: Enrollment[]): Map<string, number> {
-  const bySem = new Map<string, Map<string, Enrollment[]>>();
-  for (const e of enrollments) {
-    if (!bySem.has(e.semester)) bySem.set(e.semester, new Map());
-    const byCourse = bySem.get(e.semester)!;
-    if (!byCourse.has(e.course_id)) byCourse.set(e.course_id, []);
-    byCourse.get(e.course_id)!.push(e);
+function courseSemesterTotals(enrollments:Enrollment[]):Map<string,Map<string,number>>{
+  const grouped=new Map<string,Map<string,Enrollment[]>>();
+  for(const row of enrollments){
+    if(!grouped.has(row.semester))grouped.set(row.semester,new Map());
+    const courses=grouped.get(row.semester)!;
+    courses.set(row.course_id,[...(courses.get(row.course_id)??[]),row]);
   }
-  const result = new Map<string, number>();
-  for (const [sem, byCourse] of bySem) {
-    let total = 0;
-    for (const rows of byCourse.values()) {
-      const classes = rows.filter(r => r.class_label !== '__TOTAL_CURSO__');
-      const reported = rows.find(r => r.reported_total !== null)?.reported_total ?? null;
-      const sum = classes.reduce((s, r) => s + r.enrolled, 0);
-      const totalRow = rows.find(r => r.class_label === '__TOTAL_CURSO__');
-      total += reported ?? (classes.length ? sum : totalRow?.enrolled ?? 0);
-    }
-    result.set(sem, total);
-  }
-  return result;
+  return new Map([...grouped].map(([semester,byCourse])=>[
+    semester,new Map([...byCourse].map(([id,rows])=>[id,courseTotals(rows).value]))
+  ]));
+}
+function enrolledBySemester(enrollments:Enrollment[]):Map<string,number>{
+  return new Map([...courseSemesterTotals(enrollments)].map(([semester,courses])=>[
+    semester,[...courses.values()].reduce((sum,n)=>sum+n,0)
+  ]));
+}
+/** Declara explicitamente o universo efetivamente coberto por relatórios. */
+export async function getEnrollmentCoverage(filtro:FiltroBI){
+  const [all,courses]=await Promise.all([getEnrollments(filtro),getCourses(filtro)]);
+  const terms=[...new Set(all.map(e=>e.semester))].sort();
+  const semester=filtro.semestre??terms.at(-1)??'';
+  const rows=all.filter(e=>e.semester===semester);
+  const covered=new Set(rows.map(e=>e.course_id)).size;
+  const snapshotAt=rows.map(e=>String(e.source_report_at??'')).filter(Boolean).sort().at(-1)??null;
+  return {semester,registeredCourses:courses.length,coveredCourses:covered,sourceAt:snapshotAt,
+    rows:rows.length,scope:'Recorte de matrículas em cursos com relatório disponível; não representa necessariamente estudantes únicos ou total institucional.'};
 }
 
 // ---------------------------------------------------------------- semestres disponíveis
@@ -123,9 +129,9 @@ export async function getKPIs(filtro: FiltroBI): Promise<KpiResumo[]> {
     : '';
   const homologousValue = homologousSem && bySem.has(homologousSem) ? bySem.get(homologousSem)! : null;
 
-  // Vagas ofertadas (soma de vacancies dos cursos ativos)
-  const vagasOfertadas = courses.reduce((s, c) => s + (Number(c.vacancies) || 0), 0);
-  const ocupacao = matriculados !== null && vagasOfertadas > 0 ? (matriculados / vagasOfertadas) * 100 : null;
+  // As vagas cadastrais não são ofertas de vagas por semestre/turno e
+  // não constituem denominador comparável às matrículas do recorte.
+  const ocupacao: number | null = null;
 
   // A variação de matrículas não identifica quem evadiu, transferiu ou concluiu.
   // Evasão e retenção só podem ser apuradas por coortes e vínculos individuais conciliados.
@@ -155,7 +161,7 @@ export async function getKPIs(filtro: FiltroBI): Promise<KpiResumo[]> {
   const kpis: KpiResumo[] = [
     {
       chave: 'matriculados',
-      rotulo: 'Alunos Matriculados',
+      rotulo: 'Matrículas no recorte da base',
       valor: matriculados,
       unidade: 'qtd',
       variacaoPct: variacao(matriculados, homologousValue),
@@ -167,11 +173,11 @@ export async function getKPIs(filtro: FiltroBI): Promise<KpiResumo[]> {
       atingimentoMeta: null,
       tendencia: tendenciaMatriculas,
       direcaoDesejada: 'cima',
-      definicao: 'Soma de matrículas ativas no semestre, por curso, conforme snapshots do sistema.',
+      definicao: 'Soma dos registros de matrícula com status MATRICULADO nos cursos com relatório disponível no semestre. O universo da instituição pode ser maior; o registro agregado não comprova estudantes únicos.',
     },
     {
       chave: 'ocupacao',
-      rotulo: 'Ocupação de Vagas',
+      rotulo: 'Ocupação de vagas ofertadas · não apurada',
       valor: ocupacao,
       unidade: 'pct',
       variacaoPct: null,
@@ -179,7 +185,7 @@ export async function getKPIs(filtro: FiltroBI): Promise<KpiResumo[]> {
       atingimentoMeta: null,
       tendencia: [],
       direcaoDesejada: 'cima',
-      definicao: 'Matriculados ÷ vagas ofertadas (campo vacancies dos cursos ativos).',
+      definicao: 'Não apurada: vagas do cadastro não comprovam vagas efetivamente ofertadas para o mesmo curso, turno, modalidade e semestre. Requer oferta de vagas validada e matrículas comparáveis.',
     },
     {
       chave: 'evasao',
@@ -291,11 +297,7 @@ export async function getComposicaoPorCurso(filtro: FiltroBI): Promise<FatiaCate
   const currentSem = filtro.semestre ?? [...new Set(enrollments.map(e => e.semester))].sort().at(-1) ?? '';
   const semEnrollments = enrollments.filter(e => e.semester === currentSem);
 
-  const byCourse = new Map<string, number>();
-  for (const e of semEnrollments) {
-    if (e.class_label === '__TOTAL_CURSO__') continue;
-    byCourse.set(e.course_id, (byCourse.get(e.course_id) ?? 0) + e.enrolled);
-  }
+  const byCourse = courseSemesterTotals(semEnrollments).get(currentSem)??new Map<string,number>();
 
   const total = [...byCourse.values()].reduce((s, v) => s + v, 0);
   const result: FatiaCategoria[] = [...byCourse.entries()]
@@ -311,55 +313,9 @@ export async function getComposicaoPorCurso(filtro: FiltroBI): Promise<FatiaCate
 }
 
 // ---------------------------------------------------------------- cursos em risco (ocupação < 60%)
-export async function getCursosRisco(filtro: FiltroBI): Promise<CursoRisco[]> {
-  const courses = await getCourses(filtro);
-  const enrollments = await getEnrollments(filtro);
-  const semesters = [...new Set(enrollments.map(e => e.semester))].sort();
-  const currentSem = filtro.semestre ?? semesters.at(-1) ?? '';
-  const prevSem = semesters[semesters.indexOf(currentSem) - 1] ?? null;
-
-  const bySem = enrolledBySemester(enrollments);
-  const result: CursoRisco[] = [];
-
-  for (const c of courses) {
-    const vacancies = Number(c.vacancies) || 0;
-    if (vacancies <= 0) continue;
-
-    const currentEnrollments = enrollments
-      .filter(e => e.course_id === c.id && e.semester === currentSem && e.class_label !== '__TOTAL_CURSO__')
-      .reduce((s, e) => s + e.enrolled, 0);
-
-    const ocupacao = (currentEnrollments / vacancies) * 100;
-
-    // Tendência vs semestre anterior
-    const prevEnrollments = prevSem
-      ? enrollments
-          .filter(e => e.course_id === c.id && e.semester === prevSem && e.class_label !== '__TOTAL_CURSO__')
-          .reduce((s, e) => s + e.enrolled, 0)
-      : null;
-
-    const tendencia = prevEnrollments === null ? 'estavel' as const
-      : currentEnrollments > prevEnrollments ? 'subindo' as const
-      : currentEnrollments < prevEnrollments ? 'caindo' as const
-      : 'estavel' as const;
-
-    const sinal = ocupacao < 40 ? 'critico' as const
-      : ocupacao < 60 ? 'atencao' as const
-      : 'ok' as const;
-
-    if (sinal !== 'ok') {
-      result.push({
-        id: c.id,
-        nome: c.name,
-        grau: c.degree ?? '',
-        ocupacaoPct: Math.round(ocupacao * 10) / 10,
-        tendencia,
-        sinal,
-      });
-    }
-  }
-
-  return result.sort((a, b) => (a.ocupacaoPct ?? 0) - (b.ocupacaoPct ?? 0));
+export async function getCursosRisco(_filtro:FiltroBI):Promise<CursoRisco[]>{
+  // Não inferir risco por taxa de ocupação sem vagas ofertadas homologadas por período.
+  return [];
 }
 
 // ---------------------------------------------------------------- alertas
@@ -476,12 +432,12 @@ export async function getHeatmap(filtro: FiltroBI): Promise<CelulaHeatmap[]> {
   const courses = await getCourses(filtro);
   const cells: CelulaHeatmap[] = [];
 
-  const grouped = new Map<string, Map<string, number>>();
-  for (const e of enrollments) {
-    if (e.class_label === '__TOTAL_CURSO__') continue;
-    if (!grouped.has(e.course_id)) grouped.set(e.course_id, new Map());
-    const sem = grouped.get(e.course_id)!;
-    sem.set(e.semester, (sem.get(e.semester) ?? 0) + e.enrolled);
+  const grouped=new Map<string,Map<string,number>>();
+  for(const [semester,courseRows] of courseSemesterTotals(enrollments)){
+    for(const [id,total] of courseRows){
+      if(!grouped.has(id))grouped.set(id,new Map());
+      grouped.get(id)!.set(semester,total);
+    }
   }
 
   for (const [courseId, sems] of grouped) {
