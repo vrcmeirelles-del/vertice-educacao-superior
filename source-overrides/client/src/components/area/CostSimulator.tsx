@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/lib/supabase";
 import "./cost-simulator.css";
+import CostEvidence from "./CostEvidence";
 
 type Params = {
   hora_aula_graduado: number; hora_aula_especialista: number;
@@ -26,7 +27,7 @@ const DEFAULT_PARAMS: Params = {
   overhead_pct: 0.35, ticket_presencial: 1200,
   ticket_semipresencial: 800, ticket_ead: 400,
   meses_letivos: 6, fator_dsr: 5.25, ch_semanal_media: 16,
-  fonte_cct: 'CCT 2026/2028 SINTEPP-TO',
+  fonte_cct: 'CCT pendente de validação documental',
 };
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -49,7 +50,7 @@ type CourseResult = {
   turmas_estimadas: number; professores_estimados: number;
 };
 
-export default function CostSimulator({ institutionId }: { institutionId: string }) {
+export default function CostSimulator({ institutionId, onUploadDocument }: { institutionId: string; onUploadDocument?: (courseId:string,title:string,reference:string)=>void }) {
   const [params, setParams] = useState<Params>(DEFAULT_PARAMS);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<Params>(DEFAULT_PARAMS);
@@ -58,6 +59,8 @@ export default function CostSimulator({ institutionId }: { institutionId: string
   const [semesters, setSemesters] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [classrooms,setClassrooms]=useState<{name:string;students:number|null;vinculos:number|null}[]>([]);
+  const [roomStatus,setRoomStatus]=useState('Consultando turmas da instituição.');
 
   useEffect(() => {
     let active = true;
@@ -68,8 +71,9 @@ export default function CostSimulator({ institutionId }: { institutionId: string
       if (active && p) { setParams(p as unknown as Params); setDraft(p as unknown as Params); }
 
       // Load semesters
-      const { data: sems } = await supabase.from('vertice_eorbit_semestres')
-        .select('semestre').order('semestre', { ascending: false });
+      const legacy=institutionId==='1f5fd5b4-93c6-4626-834d-136884915587'?'cda828bd-4f55-432a-a824-387716c3cb2b':null;
+      let {data:sems}=await supabase.from('vertice_eorbit_semestres').select('semestre').eq('instituicao_id',institutionId).order('semestre',{ascending:false});
+      if(!sems?.length&&legacy){const r=await supabase.from('vertice_eorbit_semestres').select('semestre').eq('instituicao_id',legacy).order('semestre',{ascending:false});sems=r.data;}
       if (active && sems) {
         const list = sems.map((s: { semestre: string }) => s.semestre);
         setSemesters(list);
@@ -104,12 +108,13 @@ export default function CostSimulator({ institutionId }: { institutionId: string
         }
       }
       let data = await quantitativoPor(institutionId);
-      if (!data && institutionId !== ID_LEGADO) data = await quantitativoPor(ID_LEGADO);
+      if (!data && institutionId === '1f5fd5b4-93c6-4626-834d-136884915587') data = await quantitativoPor(ID_LEGADO);
       // Fallback: direct query
       if (!data) {
         const { data: q } = await supabase
           .from('vertice_eorbit_quantitativo')
           .select('*, semestre:vertice_eorbit_semestres!inner(semestre), curso:vertice_eorbit_cursos!inner(nome)')
+          .eq('instituicao_id',institutionId==='1f5fd5b4-93c6-4626-834d-136884915587'?ID_LEGADO:institutionId)
           .eq('vertice_eorbit_semestres.semestre', semester);
         if (active && q) {
           setQuants(q.map((r: any) => ({
@@ -128,6 +133,33 @@ export default function CostSimulator({ institutionId }: { institutionId: string
     })();
     return () => { active = false; };
   }, [semester, institutionId]);
+
+
+  // Ensalamento realizado: não misturar turmas com o dimensionamento ideal simulado.
+  useEffect(()=>{
+    let active=true;setClassrooms([]);setRoomStatus('Consultando a fonte acadêmica de turmas.');
+    if(!semester){setRoomStatus('Sem período disponibilizado.');return()=>{active=false;};}
+    void (async()=>{
+      try {
+        const id=institutionId==='1f5fd5b4-93c6-4626-834d-136884915587'?'cda828bd-4f55-432a-a824-387716c3cb2b':institutionId;
+        const {data:sems,error:semError}=await supabase.from('vertice_eorbit_semestres').select('id').eq('instituicao_id',id).eq('semestre',semester).limit(1);
+        if(semError)throw semError;
+        if(!sems?.length){if(active)setRoomStatus('Nenhum semestre acadêmico autorizado encontrado.');return;}
+        const {data:quants,error:quantError}=await supabase.from('vertice_eorbit_quantitativo').select('id').eq('instituicao_id',id).eq('semestre_id',sems[0].id).limit(1000);
+        if(quantError)throw quantError;
+        const ids=(quants??[]).map(x=>x.id);
+        if(!ids.length){if(active)setRoomStatus('Nenhum quantitativo disponível para relacionar turmas.');return;}
+        const all:{name:string;students:number|null;vinculos:number|null}[]=[];
+        for(let offset=0;offset<ids.length;offset+=150){
+          const {data,error}=await supabase.from('vertice_eorbit_turmas').select('turma_nome,matriculados,total_vinculos').in('quantitativo_id',ids.slice(offset,offset+150)).limit(1000);
+          if(error)throw error;
+          all.push(...(data??[]).map(x=>({name:String(x.turma_nome??'Turma não identificada'),students:x.matriculados===null?null:Number(x.matriculados),vinculos:x.total_vinculos===null?null:Number(x.total_vinculos)})));
+        }
+        if(active){setClassrooms(all);setRoomStatus(all.length?'Turmas individualizadas disponíveis; a ocupação física ainda exige sala, capacidade e turno.':'Ensalamento individualizado não disponibilizado para este semestre.');}
+      }catch{if(active)setRoomStatus('Ensalamento real indisponível ou não autorizado nesta instituição.');}
+    })();
+    return()=>{active=false;};
+  },[institutionId,semester]);
 
   const results = useMemo<CourseResult[]>(() => {
     return quants.map(q => {
@@ -202,7 +234,7 @@ export default function CostSimulator({ institutionId }: { institutionId: string
         <div>
           <p className="cost-sim-eyebrow">SIMULADOR DE RESULTADO · CUSTO ESTIMADO</p>
           <h3>Cada curso está se pagando?</h3>
-          <p className="cost-sim-sub">Estimativa baseada em matrículas reais × parâmetros da CCT e do reitor. Não substitui análise contábil.</p>
+          <p className="cost-sim-sub">Cenário estimativo com premissas declaradas. CCT, mensalidades e fontes acadêmicas dependem de conferência documental; não substitui análise contábil.</p>
         </div>
         <div className="cost-sim-header-actions">
           <select value={semester} onChange={e => setSemester(e.target.value)}>
@@ -217,7 +249,7 @@ export default function CostSimulator({ institutionId }: { institutionId: string
       {editing && (
         <div className="cost-sim-params">
           <h4>Parâmetros do simulador</h4>
-          <p className="cost-sim-sub">Fonte: {params.fonte_cct}</p>
+          <p className="cost-sim-sub">Fonte declarada: {params.fonte_cct}. Confira piso, categoria, abrangência e vigência da CCT antes de utilizar o cálculo.</p>
           <div className="cost-sim-params-grid">
             <label>Hora-aula Graduado<input type="number" step="0.01" value={draft.hora_aula_graduado} onChange={e => setDraft({ ...draft, hora_aula_graduado: +e.target.value })} /></label>
             <label>Hora-aula Especialista<input type="number" step="0.01" value={draft.hora_aula_especialista} onChange={e => setDraft({ ...draft, hora_aula_especialista: +e.target.value })} /></label>
@@ -239,6 +271,21 @@ export default function CostSimulator({ institutionId }: { institutionId: string
           </button>
         </div>
       )}
+
+
+      <section className="cost-sim-params" aria-label="Ensalamento real da instituição">
+        <h4>Ensalamento real · base acadêmica da IES</h4>
+        <p className="cost-sim-sub">{roomStatus} O ensalamento ideal usado no cenário de custos não equivale ao número de salas/turmas efetivamente ofertadas.</p>
+        <div className="cost-sim-kpis">
+          <div className="cost-sim-kpi"><small>Turmas individualizadas na fonte</small><strong>{classrooms.length?NUM.format(classrooms.length):'Sem dados'}</strong></div>
+          <div className="cost-sim-kpi"><small>Matrículas em turmas</small><strong>{classrooms.some(x=>x.students!==null)?NUM.format(classrooms.reduce((sum,x)=>sum+(x.students??0),0)):'Sem dados'}</strong></div>
+          <div className="cost-sim-kpi"><small>Capacidade das salas</small><strong>Não disponibilizada</strong></div>
+          <div className="cost-sim-kpi"><small>Ocupação física real</small><strong>Não apurada</strong></div>
+        </div>
+        {classrooms.length>0&&<div className="cost-sim-table-wrap"><table className="cost-sim-table"><thead><tr><th>Turma</th><th>Matrículas</th><th>Vínculos em disciplinas</th><th>Sala e turno</th></tr></thead><tbody>{classrooms.slice(0,70).map((c,i)=><tr key={i}><td>{c.name}</td><td>{c.students===null?'Não informado':NUM.format(c.students)}</td><td>{c.vinculos===null?'Não informado':NUM.format(c.vinculos)}</td><td>Não disponibilizado</td></tr>)}</tbody></table></div>}
+      </section>
+      <CostEvidence institutionId={institutionId} onUpload={onUploadDocument}/>
+      {!results.length&&<p className="area-note">Sem quantitativos acadêmicos suficientes neste semestre. Não é possível calcular resultados estimados por curso.</p>}
 
       {/* KPIs resumo */}
       <div className="cost-sim-kpis">
@@ -302,7 +349,7 @@ export default function CostSimulator({ institutionId }: { institutionId: string
 
       <p className="cost-sim-footer">
         Estimativa com base em parâmetros declarados. Custo docente usa mix médio de titulação (10% grad, 40% esp, 40% mestre, 10% doutor).
-        Pisos conforme {params.fonte_cct}. Não inclui coordenação, infraestrutura específica ou inadimplência.
+        Pisos parametrizados segundo a fonte declarada ({params.fonte_cct}), ainda sujeitos à validação da CCT. Não inclui coordenação, infraestrutura específica ou inadimplência.
       </p>
     </section>
   );
