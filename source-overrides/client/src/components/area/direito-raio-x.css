@@ -207,3 +207,15 @@
 @media(max-width:720px){.drx .drx-definitions{grid-template-columns:1fr}.drx .drx-compare-cards{grid-template-columns:1fr 1fr}}
 @media(max-width:470px){.drx .drx-compare-cards{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){.drx .drx-kpi-action{transition:none}.drx .drx-kpi-action:hover{transform:none}}
+
+
+/* Histórico de docentes por ofertas: navegação completa 2023-2026. */
+.drx .drx-docente-click-grid{grid-template-columns:repeat(4,minmax(0,1fr));padding:0 22px 20px}
+.drx .drx-docente-select{display:flex;flex-direction:column;align-items:center;gap:5px;font:inherit;color:inherit;cursor:pointer;min-height:155px;padding:14px 10px}
+.drx .drx-docente-select[aria-pressed="true"]{border:2px solid #0b8a7b;background:#eaf9f4;box-shadow:0 4px 14px #0a756a21}
+.drx .drx-docente-select:focus-visible{outline:3px solid #0c9885;outline-offset:3px}
+.drx .drx-docente-select .drx-docente-label{line-height:1.3}
+.drx .drx-docente-select .drx-trend-up,.drx .drx-docente-select .drx-trend-down{font-size:11px;font-weight:750}
+.drx .drx-compare-controls input[type="search"]{min-height:38px;border:1px solid #bfcfd0;border-radius:8px;padding:7px 10px;background:#fff;color:#203d40;font-size:12px}
+@media(max-width:1050px){.drx .drx-docente-click-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:580px){.drx .drx-docente-click-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:0 10px 14px}.drx .drx-docente-select{min-height:130px}}
