@@ -39,6 +39,7 @@ import { FIELD_HELP, TAB_FAQ, TAB_HELP, withHelp } from "@/lib/help";
 import PainelEorbit from "../eorbit/PainelEorbit";
 import ResultadoCursoBI from "../bi/ResultadoCursoBI";
 import CostSimulator from "./CostSimulator";
+import CostEvidence from "./CostEvidence";
 import DireitoRaioX from "./DireitoRaioX";
 import "./area.css";
 
@@ -286,7 +287,7 @@ export default function Workspace({
       ) : tab === "backups" ? (
         role==="master"||role==="gestor" ? <AcademicBackups key={id} institutionId={id} institutionName={String(institution.name)}/> : <p>O acesso aos backups acadêmicos é restrito à gestão da instituição com segundo fator de autenticação.</p>
       ) : tab === "base" ? (
-        role === 'master' || role === 'gestor' ? <OrganizationBase key={id} institution={institution} data={data} dataError={!!error} onGo={choose}/> : <p>A Base da organização é reservada ao Master e ao Gestor.</p>
+        role === 'master' || role === 'gestor' ? <><OrganizationBase key={id} institution={institution} data={data} dataError={!!error} onGo={choose}/><CostEvidence institutionId={id} onUpload={openInstrumentUpload} compact/></> : <p>A Base da organização é reservada ao Master e ao Gestor.</p>
       ) : tab === "ia" ? (
         role !== "master" && role !== "gestor" ? <p role="alert">A análise por IA é restrita à alta gestão da instituição.</p> : error ? <p role="alert">Atualize os dados antes de iniciar uma análise.</p> : <DocumentAI key={id} institutionId={id} courses={data.courses} requests={data.requests} files={data.files} onGo={choose}/>
       ) : tab === "analise" ? (
@@ -300,7 +301,7 @@ export default function Workspace({
       ) : tab === "eorbit" ? (
         <PainelEorbit key={id} instituicaoId={id} instituicaoNome={String(institution.name)} />
       ) : tab === "cadastro" ? (
-        <RegistryTab institution={institution} role={role} courses={data.courses} reload={reload} onChanged={onChanged} />
+        <><RegistryTab institution={institution} role={role} courses={data.courses} reload={reload} onChanged={onChanged} />{(role==='master'||role==='gestor')&&<CostEvidence institutionId={id} onUpload={openInstrumentUpload}/>}</>
       ) : tab === "metas" ? (
         error ? <p role="alert">Painel de metas indisponível enquanto houver falha no carregamento. Atualize os dados.</p> : <GoalsTab key={id} institutionId={id} role={role} data={data} reload={reload} onRepository={goal=>{setRepositoryGoal(goal);choose("repositorio");}} />
       ) : tab === "repositorio" ? (
@@ -318,7 +319,7 @@ export default function Workspace({
       ) : tab === "resultado-curso" ? (
         role === "master" || role === "gestor" ? <ResultadoCursoBI institutionId={id} institutionName={String(institution.name)}/> : <p>O módulo de resultado por curso é reservado ao Gestor da instituição e ao Master.</p>
       ) : tab === "simulador" ? (
-        role === "master" || role === "gestor" ? <CostSimulator institutionId={id}/> : <p>O simulador de custo é reservado ao Gestor da instituição e ao Master.</p>
+        role === "master" || role === "gestor" ? <CostSimulator institutionId={id} onUploadDocument={openInstrumentUpload}/> : <p>O simulador de custo é reservado ao Gestor da instituição e ao Master.</p>
       ) : tab === "raio-x-direito" ? (
         id === "1f5fd5b4-93c6-4626-834d-136884915587"
           ? <DireitoRaioX institutionId={id}/>
