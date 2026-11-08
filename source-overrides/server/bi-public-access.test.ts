@@ -4,7 +4,7 @@ import {demoInstitutionCourses} from '../client/src/lib/demo-showroom';
 describe('BI Premium direto e público',()=>{
  it('registra a rota comercial pública e gera HTML estático acessível',()=>{
   const app=readFileSync(new URL('../client/src/PublicApp.tsx',import.meta.url),'utf8');
-  const prerender=readFileSync(new URL('../../scripts/prerender.tsx',import.meta.url),'utf8');
+  const prerender=readFileSync(new URL('../scripts/prerender.tsx',import.meta.url),'utf8');
   const landing=readFileSync(new URL('../client/src/pages/public/CommercialDemo.tsx',import.meta.url),'utf8');
   expect(app).toContain('"/bi-demonstrativo": PremiumBIPublic');
   expect(prerender).toContain('"bi-demonstrativo",');
