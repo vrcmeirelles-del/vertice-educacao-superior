@@ -219,3 +219,47 @@
 .drx .drx-compare-controls input[type="search"]{min-height:38px;border:1px solid #bfcfd0;border-radius:8px;padding:7px 10px;background:#fff;color:#203d40;font-size:12px}
 @media(max-width:1050px){.drx .drx-docente-click-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:580px){.drx .drx-docente-click-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:0 10px 14px}.drx .drx-docente-select{min-height:130px}}
+
+
+/* Ranking docente: nomes legíveis, distribuição de ocorrências e detalhamento contextual. */
+.drx #drx-ranking-professores .drx-section-header{padding-bottom:16px}
+.drx .drx-ranking-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:12px 24px 18px}
+.drx .drx-ranking-summary>div{display:flex;flex-direction:column;gap:5px;border:1px solid #d6e7e5;border-radius:12px;padding:16px;background:linear-gradient(125deg,#f4fbf8,#fff)}
+.drx .drx-ranking-summary>div:nth-child(2){background:linear-gradient(125deg,#f0f7ff,#fff)}
+.drx .drx-ranking-summary>div:nth-child(3){background:linear-gradient(125deg,#fff6ee,#fff)}
+.drx .drx-ranking-summary small{font-size:11px;color:#56706f}
+.drx .drx-ranking-summary strong{font-size:28px;font-weight:800;color:#1b514b;font-variant-numeric:tabular-nums}
+.drx .drx-ranking-summary span{font-size:11px;color:#738580;line-height:1.4}
+.drx .drx-ranking-head{padding:0 24px 12px}
+.drx .drx-ranking-head h5{font-size:16px;color:#1c4443;margin:0 0 5px}
+.drx .drx-ranking-head p{font-size:12px;color:#697c7c;line-height:1.5;margin:0}
+.drx .drx-ranking-list{display:grid;gap:10px;padding:0 24px 20px}
+.drx .drx-ranking-item{display:grid;grid-template-columns:minmax(215px,1.5fr) minmax(240px,1fr) minmax(230px,1fr) auto;gap:16px;align-items:center;border:1px solid #dce8e7;border-left:4px solid #0b9686;border-radius:13px;padding:16px;background:white;box-shadow:0 3px 10px #153a3610;min-width:0}
+.drx .drx-ranking-item.expanded{border-color:#26a18e;background:#f4fcf9;box-shadow:0 4px 14px #16785d18}
+.drx .drx-ranking-person{display:flex;align-items:center;gap:13px;min-width:0}
+.drx .drx-ranking-place{display:grid;place-items:center;flex:none;width:38px;height:38px;background:#e5f3ef;color:#116b60;font-size:15px;font-weight:800;border-radius:10px}
+.drx .drx-ranking-identity{min-width:0;display:flex;flex-direction:column;gap:5px}
+.drx .drx-ranking-identity strong{font-size:13px;line-height:1.4;color:#173e43;overflow-wrap:break-word;word-break:normal}
+.drx .drx-ranking-identity span{font-size:11px;line-height:1.35;color:#697c83}
+.drx .drx-ranking-numbers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.drx .drx-ranking-numbers>div{min-width:0}
+.drx .drx-ranking-numbers small{display:block;color:#6a7c82;font-size:10px;line-height:1.3;min-height:26px}
+.drx .drx-ranking-numbers strong{font-size:21px;font-weight:800;color:#1c4845;font-variant-numeric:tabular-nums}
+.drx .drx-ranking-number-important strong{color:#b3553b}
+.drx .drx-ranking-breakdown{display:grid;gap:8px;min-width:0}
+.drx .drx-ranking-bar{display:flex;height:9px;background:#edf0f1;border-radius:20px;overflow:hidden}
+.drx .drx-ranking-bar span{height:100%}
+.drx .drx-ranking-categories{display:flex;flex-wrap:wrap;gap:5px 12px}
+.drx .drx-ranking-categories>span{display:inline-flex;align-items:center;gap:5px;font-size:10px;color:#5b7072;white-space:nowrap}
+.drx .drx-ranking-categories b{font-size:11px;color:#263f42}
+.drx .drx-ranking-categories i{display:inline-block;width:7px;height:7px;flex:none;border-radius:50%}
+.drx .drx-rf{background:#d96d50}.drx .drx-rn{background:#d9a23f}.drx .drx-ra{background:#796fc9}
+.drx .drx-ranking-detail-btn{border:1px solid #aed8cf;background:#e9f8f4;color:#0e7165;font-size:11px;font-weight:800;padding:10px 12px;border-radius:9px;cursor:pointer;white-space:nowrap}
+.drx .drx-ranking-detail-btn:hover,.drx .drx-ranking-detail-btn[aria-expanded=true]{background:#0b7d70;color:#fff;border-color:#0b7d70}
+.drx .drx-ranking-detail-btn span{padding-left:4px}
+.drx .drx-ranking-detail-btn:focus-visible{outline:3px solid #0b9989;outline-offset:3px}
+.drx #drx-ranking-professores>.drx-detail{margin:0 24px 18px}
+@media(max-width:1250px){.drx .drx-ranking-item{grid-template-columns:minmax(210px,1.3fr) minmax(250px,1fr) auto}.drx .drx-ranking-breakdown{grid-column:2/3;grid-row:2}.drx .drx-ranking-detail-btn{grid-column:3;grid-row:1/3}}
+@media(max-width:880px){.drx .drx-ranking-item{grid-template-columns:minmax(0,1fr) auto;gap:12px}.drx .drx-ranking-person{grid-column:1}.drx .drx-ranking-numbers,.drx .drx-ranking-breakdown{grid-column:1/3;grid-row:auto}.drx .drx-ranking-detail-btn{grid-column:2;grid-row:1}.drx .drx-ranking-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.drx .drx-ranking-summary{grid-template-columns:1fr; margin:10px 12px}.drx .drx-ranking-list{padding:0 12px 15px}.drx .drx-ranking-head{padding:0 12px 12px}.drx .drx-ranking-item{padding:12px;gap:12px}.drx .drx-ranking-place{width:30px;height:30px}.drx .drx-ranking-numbers strong{font-size:18px}.drx .drx-ranking-detail-btn{font-size:10px;padding:7px}.drx #drx-ranking-professores>.drx-detail{margin:0 12px 16px}}
+@media(prefers-reduced-motion:reduce){.drx .drx-ranking-detail-btn,.drx .drx-ranking-item{transition:none}}
