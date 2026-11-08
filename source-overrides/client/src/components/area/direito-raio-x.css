@@ -149,3 +149,150 @@
 @media (max-width: 1200px) { .drx-kpis { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 768px) { .drx-kpis { grid-template-columns: repeat(2, 1fr); } .drx-header { flex-direction: column; align-items: flex-start; } .drx-turma-stats { flex-direction: column; align-items: flex-start; } }
 @media (max-width: 480px) { .drx-kpis { grid-template-columns: 1fr; } .drx-acc-trigger { padding: 12px 16px; } }
+
+/* ── Evasão: coorte, acumulada e comparação ── */
+.drx-evasao-resumo{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:14px;margin:4px 0 20px}
+.drx-evasao-card{background:#fff;border:1px solid #e3e8ef;border-left:4px solid var(--primary);border-radius:12px;padding:14px 18px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.drx-evasao-label{font-size:.74rem;letter-spacing:.06em;text-transform:uppercase;color:#6b7889;font-weight:600}
+.drx-evasao-valor{font-size:1.9rem;line-height:1.1;font-weight:700}
+.drx-evasao-sub{font-size:.8rem;color:#5d6b7c}
+.drx-evasao-h5{margin:22px 0 8px;font-size:.95rem;color:#243653}
+.drx-evasao-nota{margin:14px 0 0;font-size:.76rem;color:#6b7889;line-height:1.5}
+.drx-evasao-nota code{background:#f1f4f8;border-radius:4px;padding:1px 5px;font-size:.73rem}
+
+/* ── Diagnóstico nominal ── */
+.drx-alunos-bloqueado{margin:0;padding:14px 16px;background:#fff7ed;border:1px solid #fed7aa;border-left:4px solid #ea580c;border-radius:10px;color:#7c3a10;font-size:.84rem;line-height:1.55}
+.drx-roster-topo{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;justify-content:space-between;margin:4px 0 14px}
+.drx-roster-busca{display:flex;flex-direction:column;gap:5px;font-size:.78rem;color:#5d6b7c;font-weight:600}
+.drx-roster-busca input{min-width:240px;padding:8px 11px;border:1px solid #cbd5df;border-radius:8px;font:inherit;color:#243653}
+.drx-roster-contagem{font-size:.8rem;color:#5d6b7c}
+.drx-traj{display:flex;flex-wrap:wrap;gap:4px;max-width:420px}
+.drx-traj-passo{font-size:.68rem;padding:2px 7px;border-radius:5px;white-space:nowrap;border:1px solid transparent}
+.drx-traj-ok{background:#ecfdf5;color:#166534;border-color:#bbf7d0}
+.drx-traj-rep{background:#fef2f2;color:#991b1b;border-color:#fecaca}
+.drx-traj-out{background:#f3f4f6;color:#4b5563;border-color:#e5e7eb}
+
+
+/* Raio-X Direito: leitura comparativa por coorte, acessível e responsiva */
+.drx .drx-kpi-action{display:flex;flex-direction:column;align-items:flex-start;text-align:left;width:100%;font:inherit;color:inherit;cursor:pointer}
+.drx .drx-kpi-action:hover{box-shadow:0 6px 20px #1b435825;transform:translateY(-2px)}
+.drx .drx-kpi-action[aria-pressed=true]{outline:2px solid #087a72;outline-offset:-2px;background:#f0faf8}
+.drx .drx-kpi-open{font-size:10px;color:#147b73;margin-top:8px;font-weight:700}
+.drx .drx-detail{border:1px solid #abd9d1;border-left:4px solid #08796e;border-radius:12px;background:#f3fcf9;margin:8px 0 20px;padding:16px 20px;color:#294c4a}
+.drx .drx-detail p{font-size:13px;line-height:1.65;margin:8px 0}
+.drx .drx-compare-top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.drx .drx-compare-top h4{margin:0;font-size:16px}
+.drx .drx-compare-top button{background:white;border:1px solid #b5dad3;border-radius:8px;padding:7px 12px;cursor:pointer}
+.drx .drx-definitions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:13px 0 20px}
+.drx .drx-definitions p{background:#f6fafb;border:1px solid #dbe9e9;border-radius:10px;padding:12px 14px;font-size:12px;line-height:1.6;margin:0;color:#405f63}
+.drx .drx-definitions strong{color:#174e4a}
+.drx .drx-compare-controls{display:flex;align-items:end;gap:12px;flex-wrap:wrap;background:#f2f8f8;border:1px solid #dce8e7;padding:14px;border-radius:11px;margin:14px 0}
+.drx .drx-compare-controls label{display:grid;gap:5px;font-size:12px;font-weight:650;color:#456469;flex:1 1 185px}
+.drx .drx-compare-controls select{min-height:38px;border:1px solid #bfcfd0;border-radius:8px;padding:7px 10px;background:#fff;color:#203d40;font-size:12px}
+.drx .drx-compare-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:14px 0}
+.drx .drx-compare-cards>div{background:linear-gradient(120deg,#f0faf7,#e0f5ed);border:1px solid #cbe8df;border-radius:11px;padding:13px;display:grid;gap:6px;min-width:0}
+.drx .drx-compare-cards>div:nth-child(2){background:#f2f7fb;border-color:#d7e5f1}
+.drx .drx-compare-cards>div:nth-child(4){background:#fff9e9;border-color:#ecdfc1}
+.drx .drx-compare-cards small{font-size:10px;color:#496b66}
+.drx .drx-compare-cards strong{font-size:clamp(18px,2vw,25px);font-variant-numeric:tabular-nums;color:#195d52}
+.drx .drx-compare-cards span{font-size:10px;color:#627f78}
+.drx .drx-compare-breakdown{border:1px solid #d8e9e5;padding:14px;border-radius:11px;margin:14px 0;background:white}
+.drx .drx-compare-breakdown h5{color:#1d4e4b;font-size:14px;margin:0 0 9px}
+.drx .drx-period-link{background:transparent;border:0;color:#0b776c;font-weight:800;cursor:pointer;text-decoration:underline;text-underline-offset:3px;padding:5px 3px;white-space:nowrap}
+.drx .drx-period-link:hover{color:#064a42}
+.drx .drx-row-selected td{background:#e6f7f1!important}
+.drx .drx-comparison-note{font-size:12px;line-height:1.6;color:#775d29;border:1px solid #f0deb2;background:#fff8e9;border-radius:8px;padding:12px;margin:11px 0}
+.drx .drx-period-link:focus-visible,.drx .drx-kpi-action:focus-visible,.drx .drx-compare-controls select:focus-visible{outline:3px solid #0c9385;outline-offset:3px}
+@media(max-width:1050px){.drx .drx-compare-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:720px){.drx .drx-definitions{grid-template-columns:1fr}.drx .drx-compare-cards{grid-template-columns:1fr 1fr}}
+@media(max-width:470px){.drx .drx-compare-cards{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.drx .drx-kpi-action{transition:none}.drx .drx-kpi-action:hover{transform:none}}
+
+
+/* Histórico de docentes por ofertas: navegação completa 2023-2026. */
+.drx .drx-docente-click-grid{grid-template-columns:repeat(4,minmax(0,1fr));padding:0 22px 20px}
+.drx .drx-docente-select{display:flex;flex-direction:column;align-items:center;gap:5px;font:inherit;color:inherit;cursor:pointer;min-height:155px;padding:14px 10px}
+.drx .drx-docente-select[aria-pressed="true"]{border:2px solid #0b8a7b;background:#eaf9f4;box-shadow:0 4px 14px #0a756a21}
+.drx .drx-docente-select:focus-visible{outline:3px solid #0c9885;outline-offset:3px}
+.drx .drx-docente-select .drx-docente-label{line-height:1.3}
+.drx .drx-docente-select .drx-trend-up,.drx .drx-docente-select .drx-trend-down{font-size:11px;font-weight:750}
+.drx .drx-compare-controls input[type="search"]{min-height:38px;border:1px solid #bfcfd0;border-radius:8px;padding:7px 10px;background:#fff;color:#203d40;font-size:12px}
+@media(max-width:1050px){.drx .drx-docente-click-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:580px){.drx .drx-docente-click-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:0 10px 14px}.drx .drx-docente-select{min-height:130px}}
+
+
+/* Ranking docente: nomes legíveis, distribuição de ocorrências e detalhamento contextual. */
+.drx #drx-ranking-professores .drx-section-header{padding-bottom:16px}
+.drx .drx-ranking-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:12px 24px 18px}
+.drx .drx-ranking-summary>div{display:flex;flex-direction:column;gap:5px;border:1px solid #d6e7e5;border-radius:12px;padding:16px;background:linear-gradient(125deg,#f4fbf8,#fff)}
+.drx .drx-ranking-summary>div:nth-child(2){background:linear-gradient(125deg,#f0f7ff,#fff)}
+.drx .drx-ranking-summary>div:nth-child(3){background:linear-gradient(125deg,#fff6ee,#fff)}
+.drx .drx-ranking-summary small{font-size:11px;color:#56706f}
+.drx .drx-ranking-summary strong{font-size:28px;font-weight:800;color:#1b514b;font-variant-numeric:tabular-nums}
+.drx .drx-ranking-summary span{font-size:11px;color:#738580;line-height:1.4}
+.drx .drx-ranking-head{padding:0 24px 12px}
+.drx .drx-ranking-head h5{font-size:16px;color:#1c4443;margin:0 0 5px}
+.drx .drx-ranking-head p{font-size:12px;color:#697c7c;line-height:1.5;margin:0}
+.drx .drx-ranking-list{display:grid;gap:10px;padding:0 24px 20px}
+.drx .drx-ranking-item{display:grid;grid-template-columns:minmax(215px,1.5fr) minmax(240px,1fr) minmax(230px,1fr) auto;gap:16px;align-items:center;border:1px solid #dce8e7;border-left:4px solid #0b9686;border-radius:13px;padding:16px;background:white;box-shadow:0 3px 10px #153a3610;min-width:0}
+.drx .drx-ranking-item.expanded{border-color:#26a18e;background:#f4fcf9;box-shadow:0 4px 14px #16785d18}
+.drx .drx-ranking-person{display:flex;align-items:center;gap:13px;min-width:0}
+.drx .drx-ranking-place{display:grid;place-items:center;flex:none;width:38px;height:38px;background:#e5f3ef;color:#116b60;font-size:15px;font-weight:800;border-radius:10px}
+.drx .drx-ranking-identity{min-width:0;display:flex;flex-direction:column;gap:5px}
+.drx .drx-ranking-identity strong{font-size:13px;line-height:1.4;color:#173e43;overflow-wrap:break-word;word-break:normal}
+.drx .drx-ranking-identity span{font-size:11px;line-height:1.35;color:#697c83}
+.drx .drx-ranking-numbers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.drx .drx-ranking-numbers>div{min-width:0}
+.drx .drx-ranking-numbers small{display:block;color:#6a7c82;font-size:10px;line-height:1.3;min-height:26px}
+.drx .drx-ranking-numbers strong{font-size:21px;font-weight:800;color:#1c4845;font-variant-numeric:tabular-nums}
+.drx .drx-ranking-number-important strong{color:#b3553b}
+.drx .drx-ranking-breakdown{display:grid;gap:8px;min-width:0}
+.drx .drx-ranking-bar{display:flex;height:9px;background:#edf0f1;border-radius:20px;overflow:hidden}
+.drx .drx-ranking-bar span{height:100%}
+.drx .drx-ranking-categories{display:flex;flex-wrap:wrap;gap:5px 12px}
+.drx .drx-ranking-categories>span{display:inline-flex;align-items:center;gap:5px;font-size:10px;color:#5b7072;white-space:nowrap}
+.drx .drx-ranking-categories b{font-size:11px;color:#263f42}
+.drx .drx-ranking-categories i{display:inline-block;width:7px;height:7px;flex:none;border-radius:50%}
+.drx .drx-rf{background:#d96d50}.drx .drx-rn{background:#d9a23f}.drx .drx-ra{background:#796fc9}
+.drx .drx-ranking-detail-btn{border:1px solid #aed8cf;background:#e9f8f4;color:#0e7165;font-size:11px;font-weight:800;padding:10px 12px;border-radius:9px;cursor:pointer;white-space:nowrap}
+.drx .drx-ranking-detail-btn:hover,.drx .drx-ranking-detail-btn[aria-expanded=true]{background:#0b7d70;color:#fff;border-color:#0b7d70}
+.drx .drx-ranking-detail-btn span{padding-left:4px}
+.drx .drx-ranking-detail-btn:focus-visible{outline:3px solid #0b9989;outline-offset:3px}
+.drx #drx-ranking-professores>.drx-detail{margin:0 24px 18px}
+@media(max-width:1250px){.drx .drx-ranking-item{grid-template-columns:minmax(210px,1.3fr) minmax(250px,1fr) auto}.drx .drx-ranking-breakdown{grid-column:2/3;grid-row:2}.drx .drx-ranking-detail-btn{grid-column:3;grid-row:1/3}}
+@media(max-width:880px){.drx .drx-ranking-item{grid-template-columns:minmax(0,1fr) auto;gap:12px}.drx .drx-ranking-person{grid-column:1}.drx .drx-ranking-numbers,.drx .drx-ranking-breakdown{grid-column:1/3;grid-row:auto}.drx .drx-ranking-detail-btn{grid-column:2;grid-row:1}.drx .drx-ranking-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.drx .drx-ranking-summary{grid-template-columns:1fr; margin:10px 12px}.drx .drx-ranking-list{padding:0 12px 15px}.drx .drx-ranking-head{padding:0 12px 12px}.drx .drx-ranking-item{padding:12px;gap:12px}.drx .drx-ranking-place{width:30px;height:30px}.drx .drx-ranking-numbers strong{font-size:18px}.drx .drx-ranking-detail-btn{font-size:10px;padding:7px}.drx #drx-ranking-professores>.drx-detail{margin:0 12px 16px}}
+@media(prefers-reduced-motion:reduce){.drx .drx-ranking-detail-btn,.drx .drx-ranking-item{transition:none}}
+
+
+/* Auditoria longitudinal dos ingressos: grupos observados, não modalidades oficiais. */
+.drx .drx-ingresso-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:14px 22px 20px}
+.drx .drx-ingresso-kpi{display:flex;flex-direction:column;align-items:flex-start;gap:7px;text-align:left;border:1px solid #d5e7e3;background:linear-gradient(115deg,#f5fbf9,#fff);border-radius:12px;padding:14px;cursor:pointer;color:#234a45;min-width:0}
+.drx .drx-ingresso-kpi:nth-child(3){background:#fff8ea;border-color:#efdeb7}
+.drx .drx-ingresso-kpi:nth-child(5){background:#f3f2ff;border-color:#ddd9f5}
+.drx .drx-ingresso-kpi small{min-height:38px;font-size:11px;line-height:1.4;font-weight:650;color:#59736d}
+.drx .drx-ingresso-kpi strong{font-size:clamp(20px,2.5vw,30px);font-weight:800;color:#174f45;font-variant-numeric:tabular-nums}
+.drx .drx-ingresso-kpi span{font-size:10px;line-height:1.45;color:#647b73}
+.drx .drx-ingresso-kpi:hover{border-color:#0c9e8b;box-shadow:0 4px 14px #08766920}
+.drx .drx-ingresso-kpi[aria-pressed=true]{outline:2px solid #08937f;outline-offset:-2px;background:#e5f8f1}
+.drx .drx-ingresso-kpi:focus-visible{outline:3px solid #099b88;outline-offset:3px}
+.drx #drx-origem-ingressantes>.drx-table-wrap{margin:12px 20px}
+.drx #drx-origem-ingressantes .drx-table{min-width:800px}
+.drx #drx-origem-ingressantes .drx-table td{font-size:12px}
+@media(max-width:1200px){.drx .drx-ingresso-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:760px){.drx .drx-ingresso-kpis{grid-template-columns:repeat(2,minmax(0,1fr));margin:10px 12px}}
+@media(max-width:480px){.drx .drx-ingresso-kpis{grid-template-columns:1fr}}
+
+
+/* Drill-down seguro por oferta acadêmica: sem inferência nominal a partir de turma agregada. */
+.drx .drx-offering-expand-row td{padding:0!important;background:#f4fbf8!important}
+.drx .drx-offering-detail{padding:19px 22px;border-left:4px solid #128a7c;background:#f4fbf8;display:grid;gap:14px}
+.drx .drx-offering-detail h5{margin:0 0 5px;color:#164c44;font-size:15px}
+.drx .drx-offering-detail p{font-size:12px;line-height:1.6;color:#4b6964;margin:0}
+.drx .drx-offering-overview{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+.drx .drx-offering-overview span{display:flex;flex-direction:column;gap:5px;background:#fff;border:1px solid #d8e8e3;border-radius:9px;padding:12px}
+.drx .drx-offering-overview strong{color:#1b6256;font-weight:800;font-size:21px}
+.drx .drx-offering-overview small{font-size:10px;color:#607a72}
+.drx .drx-offering-detail .drx-comparison-note{color:#75571f;background:#fff8e7;border:1px solid #ead7a6;padding:12px}
+.drx .drx-offering-source{font-size:11px!important;overflow-wrap:anywhere}
+@media(max-width:700px){.drx .drx-offering-overview{grid-template-columns:repeat(2,minmax(0,1fr))}.drx .drx-offering-detail{padding:12px}}
