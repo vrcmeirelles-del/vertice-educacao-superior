@@ -42,12 +42,40 @@ import CostSimulator from "./CostSimulator";
 import DireitoRaioX from "./DireitoRaioX";
 import "./area.css";
 
-const TAB_GROUPS: {label:string; tabs:Tab[]}[] = [
-  {label:'Gestão', tabs:['base','metas','plano','diagnostico','equipe']},
-  {label:'Regulação', tabs:['emec','repositorio','enade','avaliacao','novo_instrumento','biblioteca']},
-  {label:'Acadêmico', tabs:['geral','cadastro','visao','eorbit','backups','auditoria']},
-  {label:'Inteligência', tabs:['analise','ia','fontes','reitor','resultado-curso','simulador','raio-x-direito']},
+const TAB_GROUPS: {label:string;subtitle:string;icon:string;tabs:Tab[]}[] = [
+  {label:'Gestão',subtitle:'Planejamento, metas e governança',icon:'▦',tabs:['base','metas','plano','diagnostico','equipe']},
+  {label:'Regulação',subtitle:'Instrumentos e evidências MEC/INEP',icon:'◇',tabs:['emec','repositorio','enade','avaliacao','novo_instrumento','biblioteca']},
+  {label:'Acadêmico',subtitle:'Cursos, estudantes e desempenho',icon:'▤',tabs:['geral','cadastro','visao','eorbit','backups','auditoria']},
+  {label:'Inteligência',subtitle:'Análises, integrações e decisões',icon:'◎',tabs:['analise','ia','fontes','reitor','resultado-curso','simulador','raio-x-direito','aprendizagem']},
 ];
+
+const TAB_DETAILS: Partial<Record<Tab,{icon:string;description:string}>> = {
+  base:{icon:'⌂',description:'Estrutura e identificação institucional'},
+  metas:{icon:'◎',description:'Metas, avanços e indicadores'},
+  plano:{icon:'☷',description:'Ações, responsáveis e prazos'},
+  diagnostico:{icon:'◈',description:'Achados e oportunidades de melhoria'},
+  equipe:{icon:'♙',description:'Pessoas e atribuições'},
+  emec:{icon:'▣',description:'Processos e registros regulatórios'},
+  repositorio:{icon:'▤',description:'Documentos e validação das evidências'},
+  biblioteca:{icon:'▥',description:'Acervo de referência regulatória'},
+  avaliacao:{icon:'◇',description:'Instrumento institucional de 2017'},
+  novo_instrumento:{icon:'✧',description:'Propostas e checklists de avaliação'},
+  enade:{icon:'▦',description:'Indicadores e aprendizagem acadêmica'},
+  geral:{icon:'▥',description:'Panorama dos cursos e matrículas'},
+  visao:{icon:'↗',description:'Séries históricas e comparativos'},
+  cadastro:{icon:'▧',description:'Oferta e dados cadastrais dos cursos'},
+  eorbit:{icon:'⌘',description:'Dados acadêmicos espelhados'},
+  backups:{icon:'▣',description:'Cópias e registros de origem'},
+  auditoria:{icon:'▥',description:'Reprovações por curso e período'},
+  fontes:{icon:'⇧',description:'Recebimento de extrações autorizadas'},
+  ia:{icon:'✧',description:'Análise assistida dos documentos'},
+  analise:{icon:'◫',description:'Diagnósticos para a gestão'},
+  reitor:{icon:'◉',description:'Indicadores econômicos e financeiros'},
+  'resultado-curso':{icon:'▤',description:'Resultado e desempenho por curso'},
+  simulador:{icon:'▦',description:'Custos e cenários informados'},
+  'raio-x-direito':{icon:'⌕',description:'Análise dedicada ao curso de Direito'},
+  aprendizagem:{icon:'↔',description:'Acompanhamento da aprendizagem'},
+};
 
 const TABS: [Tab, string][] = [
   ["base", "Base da organização"],
@@ -106,6 +134,11 @@ export default function Workspace({
   const [instrumentUpload,setInstrumentUpload]=useState<{courseId:string;title:string;reference:string}|null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [moduleSearch,setModuleSearch]=useState("");
+  const [favoriteTabs,setFavoriteTabs]=useState<Tab[]>([]);
+  const [onlyFavorites,setOnlyFavorites]=useState(false);
+  const toggleFavorite=(key:Tab)=>setFavoriteTabs(items=>items.includes(key)?items.filter(item=>item!==key):[...items,key]);
+
 
   const reload = useCallback(async () => {
     setError("");
@@ -194,22 +227,54 @@ export default function Workspace({
           window.dispatchEvent(new Event("vertice-open-assistant"));
         }}>Abrir agente de IA</button>
        </div>}
-      <div role="tablist" aria-label="Áreas da instituição" className="area-tabs area-tabs-grouped">
-        {TAB_GROUPS.map(group => {
-          const groupTabs = visible.filter(([k]) => group.tabs.includes(k));
-          if (!groupTabs.length) return null;
-          return <div key={group.label} className="area-tab-group">
-            <span className="area-tab-group-label">{group.label}</span>
-            <div className="area-tab-group-items">
-              {groupTabs.map(([k, l]) => (
-                <button key={k} role="tab" aria-selected={tab === k} className={tab === k ? "active" : ""} onClick={() => choose(k)}>
-                  {l}
-                </button>
-              ))}
-            </div>
-          </div>;
-        })}
-      </div>
+      <section className="vx-modules" aria-label="Central de Gestão Institucional">
+        <header className="vx-modules-head">
+          <div>
+            <p className="vx-modules-eyebrow">VÉRTICE · MÓDULOS INSTITUCIONAIS</p>
+            <h3>Central de Gestão Institucional</h3>
+            <p>Escolha um módulo para consultar dados, documentos e ferramentas disponíveis à sua instituição.</p>
+          </div>
+          <div className="vx-modules-tools">
+            <label className="vx-modules-search">
+              <span>Buscar módulo</span>
+              <input type="search" value={moduleSearch} onChange={e=>setModuleSearch(e.target.value)} placeholder="Ex.: matrículas, recredenciamento..." aria-label="Buscar módulo" />
+            </label>
+            <button type="button" className={onlyFavorites?"vx-modules-fav-filter selected":"vx-modules-fav-filter"} aria-pressed={onlyFavorites} onClick={()=>setOnlyFavorites(value=>!value)}>
+              {onlyFavorites?"★ Exibindo favoritos":"☆ Favoritos"}
+            </button>
+            {(moduleSearch||onlyFavorites)&&<button type="button" className="vx-modules-clear" onClick={()=>{setModuleSearch("");setOnlyFavorites(false);}}>Limpar</button>}
+          </div>
+        </header>
+        <div className="vx-modules-grid" role="tablist" aria-label="Áreas da instituição">
+          {TAB_GROUPS.map(group => {
+            const q=moduleSearch.trim().toLocaleLowerCase("pt-BR");
+            const groupTabs = visible.filter(([k,l])=>group.tabs.includes(k)&&(!onlyFavorites||favoriteTabs.includes(k))&&(!q||[l,group.label,TAB_DETAILS[k]?.description??""].join(" ").toLocaleLowerCase("pt-BR").includes(q)));
+            if(!groupTabs.length)return null;
+            return <div className="vx-module-group" key={group.label}>
+              <div className="vx-module-group-head">
+                <span className="vx-module-group-icon" aria-hidden="true">{group.icon}</span>
+                <div><h4>{group.label}</h4><p>{group.subtitle}</p></div>
+                <span className="vx-module-counter">{groupTabs.length}</span>
+              </div>
+              <div className="vx-module-links">
+                {groupTabs.map(([k,l])=>{
+                  const active=tab===k,starred=favoriteTabs.includes(k),details=TAB_DETAILS[k];
+                  return <div className={active?"vx-module-entry selected":"vx-module-entry"} key={k}>
+                    <button type="button" role="tab" aria-selected={active} className="vx-module-link" onClick={()=>choose(k)}>
+                      <span className="vx-module-entry-icon" aria-hidden="true">{details?.icon??"◈"}</span>
+                      <span className="vx-module-entry-copy"><strong>{l}</strong><small>{details?.description??"Abrir módulo institucional"}</small></span>
+                      <span className="vx-module-arrow" aria-hidden="true">›</span>
+                    </button>
+                    <button type="button" className="vx-module-star" aria-label={(starred?"Remover ":"Adicionar ")+l+(starred?" dos favoritos":" aos favoritos")} aria-pressed={starred} title={starred?"Remover dos favoritos":"Adicionar aos favoritos"} onClick={()=>toggleFavorite(k)}>{starred?"★":"☆"}</button>
+                  </div>;
+                })}
+              </div>
+            </div>;
+          })}
+        </div>
+        {!TAB_GROUPS.some(group=>visible.some(([k,l])=>group.tabs.includes(k)&&(!onlyFavorites||favoriteTabs.includes(k))&&(!moduleSearch.trim()||[l,group.label,TAB_DETAILS[k]?.description??""].join(" ").toLocaleLowerCase("pt-BR").includes(moduleSearch.trim().toLocaleLowerCase("pt-BR")))))&&
+          <div className="vx-modules-empty"><strong>Nenhum módulo encontrado.</strong><p>Revise a pesquisa ou desative o filtro de favoritos. Os módulos exibidos respeitam seu perfil de acesso.</p></div>}
+      </section>
       {error && <p role="alert" className="area-error">{error}</p>}
       {TAB_HELP[tab] && tab!=="repositorio" && <TabHelp id={tab} />}
       {tab === "visao" ? (
