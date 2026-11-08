@@ -54,6 +54,20 @@
 
 .drx-footer { font-size: 11px; color: var(--muted-foreground); margin: 12px 0; line-height: 1.6; }
 
+/* Clickable turma rows */
+.drx-table tbody tr[style*="cursor"] { transition: background .15s; }
+.drx-table tbody tr[style*="cursor"]:hover { background: #eef4ff; }
+.drx-row-active { background: #e8f0fe !important; border-left: 3px solid var(--primary); }
+
+/* Alunos panel */
+.drx-alunos-panel { background: #f8fafc; border-top: 1px solid var(--border); padding: 8px; animation: drx-slide .2s ease; }
+@keyframes drx-slide { from { opacity:0; max-height:0; } to { opacity:1; max-height:2000px; } }
+.drx-table-inner { font-size: 11px; }
+.drx-table-inner th { font-size: 10px; padding: 6px 8px; }
+.drx-table-inner td { padding: 5px 8px; border-bottom: 1px solid #eee; }
+.drx-ghost-row { background: #fef2f2; }
+.drx-ghost-row td { color: #991b1b; }
+
 @media (max-width: 1024px) { .drx-kpis { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 768px) { .drx-kpis { grid-template-columns: repeat(2, 1fr); } .drx-header { flex-direction: column; align-items: flex-start; } }
 @media (max-width: 480px) { .drx-kpis { grid-template-columns: 1fr; } }
