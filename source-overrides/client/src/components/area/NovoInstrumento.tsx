@@ -21,7 +21,7 @@ const SUBS: [Sub, string][] = [
   ["cpa", "CPA"],
 ];
 
-type Props = { institutionId: string; role: Role | null; courses: Row[] };
+type Props = { institutionId: string; role: Role | null; courses: Row[]; onUploadDocument?: (courseId:string,title:string,reference:string)=>void };
 type Shared = {
   institutionId: string;
   role: Role | null;
@@ -30,7 +30,7 @@ type Shared = {
   fail: (e: unknown) => void;
 };
 
-export default function NovoInstrumento({ institutionId, role, courses }: Props) {
+export default function NovoInstrumento({ institutionId, role, courses, onUploadDocument }: Props) {
   const [sub, setSub] = useState<Sub>("checklist");
   const [data, setData] = useState<DadosInstrumento>(VAZIO);
   const [loading, setLoading] = useState(true);
@@ -80,6 +80,16 @@ export default function NovoInstrumento({ institutionId, role, courses }: Props)
           hash.set("instrumento", "institucional");
           window.history.replaceState(null, "", "#" + hash.toString());
         }}>Abrir proposta de Recredenciamento 2026</button>}
+        {tipo === "curso" && <label className="area-search ni-scope">Curso para o envio
+          <select aria-label="Curso para o envio de documento" value={courseId} onChange={e => setCourseId(e.target.value)}>
+            <option value="">Selecione o curso…</option>
+            {courses.map(c=><option key={c.id} value={String(c.id)}>{String(c.display_name??c.name)}</option>)}
+          </select>
+        </label>}
+        {onUploadDocument && can.record(role) && <button type="button" className="corp-button" disabled={tipo==="curso"&&!course} title={tipo==="curso"&&!course?"Selecione um curso antes de enviar":undefined} onClick={()=>{
+          if(tipo==="institucional")onUploadDocument("institucional","Evidência · Proposta de Recredenciamento 2026","Proposta preliminar de Recredenciamento Institucional 2026 · escopo institucional; vínculo e conformidade dependem de validação.");
+          else if(course)onUploadDocument(String(course.id),`Evidência · Novo Instrumento 2026 · ${String(course.name)}`,`Novo Instrumento de Avaliação de Curso 2026 · curso ${String(course.name)}. Identifique o objeto específico na descrição do documento.`);
+        }}>Enviar arquivo de evidência</button>}
       </div>
       {tipo === "curso" && <div role="tablist" aria-label="Novo Instrumento INEP" className="area-tabs ni-subtabs">
         {SUBS.map(([k, l]) => (
@@ -91,7 +101,7 @@ export default function NovoInstrumento({ institutionId, role, courses }: Props)
       {!can.record(role) && tipo === "curso" && <p className="area-note">Seu perfil é de leitura: você acompanha o diagnóstico, mas não altera os registros.</p>}
       {error && <p role="alert" className="area-error">{error}</p>}
       {tipo === "institucional" ? (
-        <InstitucionalPanel institutionId={institutionId} role={role} />
+        <InstitucionalPanel institutionId={institutionId} role={role} onUploadDocument={onUploadDocument} />
       ) : loading ? (
         <p role="status" className="area-muted">Carregando o Novo Instrumento…</p>
       ) : sub === "checklist" ? (
@@ -112,7 +122,7 @@ export default function NovoInstrumento({ institutionId, role, courses }: Props)
 }
 
 // ================================================================ painel institucional (recredenciamento — 5 eixos)
-function InstitucionalPanel({ institutionId, role }: { institutionId: string; role: Role | null }) {
+function InstitucionalPanel({ institutionId, role, onUploadDocument }: { institutionId: string; role: Role | null; onUploadDocument?: Props["onUploadDocument"] }) {
   const [linkedDocs, setLinkedDocs] = useState<DocumentoVinculado[]>([]);
   const [filtroEixo, setFiltroEixo] = useState(0);
   const [filtroTema, setFiltroTema] = useState("");
@@ -159,6 +169,7 @@ function InstitucionalPanel({ institutionId, role }: { institutionId: string; ro
             </summary>
             <div className="ni-obj-body">
               <p className="area-muted"><strong>Roteiro de verificação (Vértice):</strong> {o.hint}</p>
+              {onUploadDocument && can.record(role) && <button type="button" className="corp-button small" onClick={()=>onUploadDocument("institucional",`Evidência · ${o.code} · ${o.title}`,`Proposta preliminar de Recredenciamento 2026 · Eixo ${o.eixo} · Objeto ${o.code} · ${o.title}. Não implica conceito de conformidade.`)}>Enviar documento deste objeto</button>}
               <div className="ni-linked-evidence"><strong>Documentos reutilizados do instrumento vigente</strong>
                 {linkedDocs.filter(d=>d.object_code===o.code).length ? <ul>{linkedDocs.filter(d=>d.object_code===o.code).map(d=><li key={d.source_file_id}>{d.file_name} <small>· vínculo confirmado; conformidade ainda sujeita à avaliação</small></li>)}</ul> : <p className="area-muted small">Nenhum vínculo documental confirmado para este objeto.</p>}
               </div>
