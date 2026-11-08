@@ -147,6 +147,67 @@ export function objetosDoEscopo(course?: Row | null): ObjetoInstrumento[] {
   return p ? [...OBJETOS_BASE, ...dimensao4(p)] : OBJETOS_BASE;
 }
 
+// ================================================================ instrumento institucional (recredenciamento)
+// 5 eixos da proposta de avaliação institucional externa em construção pelo INEP.
+// [Não verificado] Baseado no parecer CONIF/FDE jul/2026 e na ata da 211ª reunião da CONAES.
+// Os títulos e objetos serão atualizados quando a versão definitiva for publicada.
+
+export type Dimensao = 1 | 2 | 3 | 4 | 5;
+export type EixoInstitucional = { code: string; eixo: number; title: string; hint: string; temas: Tema[]; provisorio?: boolean };
+
+export const EIXOS_INSTITUCIONAL: [number, string][] = [
+  [1, "Planejamento e Avaliação Institucional"],
+  [2, "Responsabilidade Social"],
+  [3, "Desenvolvimento Institucional e Políticas Acadêmicas"],
+  [4, "Políticas de Gestão"],
+  [5, "Infraestrutura"],
+];
+
+const EI1: EixoInstitucional[] = [
+  { code: "E1.1", eixo: 1, title: "Plano de Desenvolvimento Institucional (PDI)", hint: "PDI vigente, coerente com a missão, objetivos e metas da IES.", temas: ["autoavaliacao"], provisorio: true },
+  { code: "E1.2", eixo: 1, title: "Comissão Própria de Avaliação (CPA)", hint: "Constituição, composição, plano de trabalho, instrumentos e resultados.", temas: ["autoavaliacao"], provisorio: true },
+  { code: "E1.3", eixo: 1, title: "Autoavaliação institucional e meta-avaliação", hint: "Ciclos de autoavaliação, uso de indicadores, ciência de dados e devolutivas.", temas: ["autoavaliacao", "ia"], provisorio: true },
+  { code: "E1.4", eixo: 1, title: "Monitoramento de indicadores de qualidade", hint: "Painel de indicadores (CC, CPC, IGC, ENADE) com série histórica e plano de melhoria.", temas: ["autoavaliacao"], provisorio: true },
+  { code: "E1.5", eixo: 1, title: "Planejamento estratégico e orçamentário", hint: "Articulação entre PDI, PPI, orçamento e plano de ação.", temas: ["sustentabilidade", "autoavaliacao"], provisorio: true },
+];
+const EI2: EixoInstitucional[] = [
+  { code: "E2.1", eixo: 2, title: "Responsabilidade social e compromisso com os ODS", hint: "Política de responsabilidade social vinculada à Agenda 2030.", temas: ["sustentabilidade", "inclusao"], provisorio: true },
+  { code: "E2.2", eixo: 2, title: "Inclusão, diversidade e equidade", hint: "Políticas de inclusão, cotas, ações afirmativas e acessibilidade.", temas: ["inclusao", "acessibilidade"], provisorio: true },
+  { code: "E2.3", eixo: 2, title: "Extensão e relação com a comunidade", hint: "Programas de extensão, impacto social e parcerias territoriais.", temas: ["sustentabilidade", "interdisciplinaridade"], provisorio: true },
+  { code: "E2.4", eixo: 2, title: "Educação ambiental e sustentabilidade", hint: "Política ambiental, práticas sustentáveis e integração curricular.", temas: ["sustentabilidade"], provisorio: true },
+];
+const EI3: EixoInstitucional[] = [
+  { code: "E3.1", eixo: 3, title: "Projeto Pedagógico Institucional (PPI)", hint: "Coerência do PPI com o PDI, as DCN e a identidade da IES.", temas: ["interdisciplinaridade"], provisorio: true },
+  { code: "E3.2", eixo: 3, title: "Políticas de ensino", hint: "Inovação pedagógica, metodologias ativas, integração ensino-pesquisa-extensão.", temas: ["ia", "interdisciplinaridade"], provisorio: true },
+  { code: "E3.3", eixo: 3, title: "Políticas de pesquisa e inovação", hint: "Programas de IC, grupos de pesquisa, produção e impacto.", temas: ["interdisciplinaridade"], provisorio: true },
+  { code: "E3.4", eixo: 3, title: "Políticas de extensão", hint: "Curricularização, creditação, registro e impacto social.", temas: ["sustentabilidade", "inclusao"], provisorio: true },
+  { code: "E3.5", eixo: 3, title: "Políticas de gestão de pessoas", hint: "Plano de carreira, formação continuada e avaliação docente.", temas: ["autoavaliacao"], provisorio: true },
+  { code: "E3.6", eixo: 3, title: "Acompanhamento de egressos (institucional)", hint: "Sistema centralizado, indicadores de empregabilidade e retroalimentação dos PPCs.", temas: ["autoavaliacao", "ia"], provisorio: true },
+  { code: "E3.7", eixo: 3, title: "Internacionalização", hint: "Acordos, mobilidade, dupla diplomação e cooperação internacional.", temas: ["interdisciplinaridade"], provisorio: true },
+];
+const EI4: EixoInstitucional[] = [
+  { code: "E4.1", eixo: 4, title: "Governança e estrutura organizacional", hint: "Organograma, regimentos, colegiados e fluxos decisórios.", temas: ["autoavaliacao"], provisorio: true },
+  { code: "E4.2", eixo: 4, title: "Transformação digital e sistemas de informação", hint: "ERP, BI, integração de dados, portais e automação de processos.", temas: ["ia"], provisorio: true },
+  { code: "E4.3", eixo: 4, title: "LGPD e proteção de dados", hint: "Política de privacidade, encarregado (DPO), mapeamento de dados e consentimentos.", temas: ["ia"], provisorio: true },
+  { code: "E4.4", eixo: 4, title: "Sustentabilidade financeira", hint: "Equilíbrio receita-despesa, reservas, investimento e projeção.", temas: ["sustentabilidade"], provisorio: true },
+  { code: "E4.5", eixo: 4, title: "Comunicação institucional", hint: "Canais, ouvidoria, transparência e atendimento.", temas: ["acessibilidade"], provisorio: true },
+];
+const EI5: EixoInstitucional[] = [
+  { code: "E5.1", eixo: 5, title: "Estruturas de aprendizagem", hint: "Salas, laboratórios e ambientes flexíveis; manutenção e adequação.", temas: ["acessibilidade"], provisorio: true },
+  { code: "E5.2", eixo: 5, title: "Ambiente híbrido de aprendizagem (Biblioteca)", hint: "Acervo físico e digital, base de dados, acesso remoto e acessibilidade.", temas: ["acessibilidade", "ia"], provisorio: true },
+  { code: "E5.3", eixo: 5, title: "Acessibilidade arquitetônica e digital", hint: "Design universal, rotas acessíveis, tecnologias assistivas e sinalização.", temas: ["acessibilidade", "inclusao"], provisorio: true },
+  { code: "E5.4", eixo: 5, title: "Infraestrutura tecnológica", hint: "Rede, datacenter, nuvem, segurança e suporte técnico.", temas: ["ia"], provisorio: true },
+  { code: "E5.5", eixo: 5, title: "Polos EaD (quando aplicável)", hint: "Polos com infraestrutura, tutoria e avaliação conforme Decreto nº 12.456/2025.", temas: ["acessibilidade"], provisorio: true },
+];
+
+export const OBJETOS_INSTITUCIONAL: EixoInstitucional[] = [...EI1, ...EI2, ...EI3, ...EI4, ...EI5];
+
+export type TipoInstrumento = "curso" | "institucional";
+export const TIPOS_INSTRUMENTO: [TipoInstrumento, string][] = [
+  ["curso", "Avaliação de Curso (Dimensões 1–4)"],
+  ["institucional", "Recredenciamento Institucional (5 Eixos)"],
+];
+
 // ================================================================ cálculo
 export type Resumo = {
   total: number;
