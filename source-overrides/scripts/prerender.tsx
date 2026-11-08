@@ -91,6 +91,7 @@ const demos = [
   "reitor/reservado",
   "painel",
   "painel-real",
+  "bi-demonstrativo",
   "diagnostico",
   "regulador",
   "admin-ies",

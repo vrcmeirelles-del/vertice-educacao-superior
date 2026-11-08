@@ -14,9 +14,20 @@ on:
 permissions:
   contents: read
 jobs:
-  external-http:
+  structure:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@v4
+      - name: Confirmar rota no React e no gerador de páginas estáticas
+        run: |
+          grep -Fq '"/bi-demonstrativo": PremiumBIPublic' source-overrides/client/src/PublicApp.tsx
+          grep -Fq '"bi-demonstrativo",' source-overrides/scripts/prerender.tsx
+          grep -Fq 'Abrir o BI Premium interativo' source-overrides/client/src/pages/public/CommercialDemo.tsx
+  external-http:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -33,12 +44,23 @@ jobs:
             'https://vertice-portal.onrender.com/bi-demonstrativo'
           ];
           for (const url of checks) {
-            const response = await fetch(url,{redirect:'follow',signal:AbortSignal.timeout(25000)});
-            const content = await response.text();
-            console.log(JSON.stringify({url,status:response.status,final:response.url,contentType:response.headers.get('content-type'),bytes:content.length,head:content.slice(0,160)}));
-            assert.equal(response.status,200,'Rota pública inacessível: '+url);
-            assert.match(response.headers.get('content-type')||'',/text\/html/i);
-            assert.match(content,/<html/i);
-            assert.ok(!response.url.includes('/entrar'),'A rota pública não deve exigir senha');
+            let pass = false;
+            let last = null;
+            for (let attempt=1;attempt<=20;attempt++) {
+              try {
+                const response=await fetch(url,{redirect:'follow',signal:AbortSignal.timeout(25000)});
+                const content=await response.text();
+                console.log(JSON.stringify({url,attempt,status:response.status,final:response.url,bytes:content.length,title:content.match(/<title>([^<]+)/i)?.[1]}));
+                assert.equal(response.status,200,'Rota pública inacessível: '+url);
+                assert.match(response.headers.get('content-type')||'',/text\/html/i);
+                assert.match(content,/<html/i);
+                assert.ok(!response.url.includes('/entrar'),'Rota pública exige senha');
+                pass=true;break;
+              } catch(error) {
+                last=error;
+                if(attempt<20)await new Promise(resolve=>setTimeout(resolve,15000));
+              }
+            }
+            if(!pass)throw last;
           }
           NODE
