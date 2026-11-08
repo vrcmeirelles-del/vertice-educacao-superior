@@ -64,6 +64,10 @@ export default function DireitoRaioX({ institutionId }: Props) {
   const [docenciaSem,setDocenciaSem]=useState("2026/02");
   const [docenciaCompare,setDocenciaCompare]=useState("2025/02");
   const [docenciaBusca,setDocenciaBusca]=useState("");
+  const [ingressoSem,setIngressoSem]=useState("2026/01");
+  const [ingressoCategory,setIngressoCategory]=useState<"primeiro"|"avancado"|"continuidade"|"realocado"|"todos">("todos");
+  const [ingressoBusca,setIngressoBusca]=useState("");
+
   const [rankingSemestre,setRankingSemestre]=useState("todos");
   const [rankingSelecionado,setRankingSelecionado]=useState<string|null>(null);
   const [selectedSem,setSelectedSem]=useState("");
@@ -272,6 +276,63 @@ export default function DireitoRaioX({ institutionId }: Props) {
   const trajetoriasFiltradas = termoBusca
     ? trajetorias.filter(a => a.nome.toLowerCase().includes(termoBusca) || a.matricula.toLowerCase().includes(termoBusca))
     : trajetorias;
+
+  // Auditoria do primeiro registro observado por matrícula. Não é prova de via oficial de ingresso.
+  // Usa exatamente a relação nominal já protegida por RLS e MFA no Raio-X; não amplia permissões.
+  const ingressoAuditoria=(()=>{
+    type Passagem={sem:string;periodo:number;turma:string;situacao:string};
+    type Aluno={matricula:string;nome:string;passagens:Passagem[];primeiroSem:string;primeiroPeriodo:number;multiturma:boolean;periodosConflitantes:boolean};
+    const byStudent=new Map<string,{matricula:string;nome:string;passagens:Passagem[]}>();
+    for(const r of roster){
+      const matricula=String(r.matricula??"").trim();
+      const sem=SEM_POR_ID[Number(r.semestre_id)]??"";
+      const periodo=Number(r.periodo);
+      if(!matricula||!sem||!Number.isInteger(periodo)||periodo<1||periodo>12)continue;
+      let aluno=byStudent.get(matricula);
+      if(!aluno){aluno={matricula,nome:String(r.nome_aluno??"Não identificado"),passagens:[]};byStudent.set(matricula,aluno);}
+      const turma=String(r.turma_nome??"Sem identificação");
+      if(!aluno.passagens.some(p=>p.sem===sem&&p.periodo===periodo&&p.turma===turma)){
+        aluno.passagens.push({sem,periodo,turma,situacao:String(r.situacao??"Não informado")});
+      }
+    }
+    const alunos:Aluno[]=[...byStudent.values()].map(a=>{
+      const passagens=a.passagens.sort((p,q)=>p.sem.localeCompare(q.sem)||p.periodo-q.periodo);
+      const primeiroSem=passagens[0]?.sem??"";
+      const primeiras=passagens.filter(p=>p.sem===primeiroSem);
+      const semPeriods=new Map<string,Set<number>>(),semTurmas=new Map<string,Set<string>>();
+      for(const p of passagens){
+        if(!semPeriods.has(p.sem))semPeriods.set(p.sem,new Set());
+        if(!semTurmas.has(p.sem))semTurmas.set(p.sem,new Set());
+        semPeriods.get(p.sem)!.add(p.periodo);semTurmas.get(p.sem)!.add(p.turma);
+      }
+      return {...a,passagens,primeiroSem,primeiroPeriodo:Math.min(...primeiras.map(p=>p.periodo)),
+        multiturma:[...semTurmas.values()].some(set=>set.size>1),
+        periodosConflitantes:[...semPeriods.values()].some(set=>set.size>1)};
+    });
+    const semestres=["2023/01","2023/02","2024/01","2024/02","2025/01","2025/02","2026/01","2026/02"];
+    const indicadores=semestres.map(sem=>{
+      const presentes=alunos.filter(a=>a.passagens.some(p=>p.sem===sem));
+      const novos=presentes.filter(a=>a.primeiroSem===sem);
+      const continuando=presentes.filter(a=>a.primeiroSem<sem);
+      const realocados=presentes.filter(a=>new Set(a.passagens.filter(p=>p.sem===sem).map(p=>p.turma)).size>1);
+      const conflitos=presentes.filter(a=>new Set(a.passagens.filter(p=>p.sem===sem).map(p=>p.periodo)).size>1);
+      return {sem,disponivel:presentes.length>0,presentes:presentes.length,
+        primeiro:novos.filter(a=>a.primeiroPeriodo===1).length,
+        avancado:novos.filter(a=>a.primeiroPeriodo>1).length,
+        continuidade:continuando.length,realocado:realocados.length,conflitos:conflitos.length};
+    });
+    return {alunos,indicadores};
+  })();
+  const ingressoAtual=ingressoAuditoria.indicadores.find(x=>x.sem===ingressoSem)??ingressoAuditoria.indicadores[6];
+  const ingressoSelecionados=ingressoAuditoria.alunos.filter(a=>{
+    const noSem=a.passagens.filter(p=>p.sem===ingressoSem);
+    if(!noSem.length)return false;
+    if(ingressoCategory==="primeiro"&&!(a.primeiroSem===ingressoSem&&a.primeiroPeriodo===1))return false;
+    if(ingressoCategory==="avancado"&&!(a.primeiroSem===ingressoSem&&a.primeiroPeriodo>1))return false;
+    if(ingressoCategory==="continuidade"&&!(a.primeiroSem<ingressoSem))return false;
+    if(ingressoCategory==="realocado"&&new Set(noSem.map(p=>p.turma)).size<=1)return false;
+    return [a.nome,a.matricula,...noSem.map(p=>p.turma)].join(" ").toLocaleLowerCase("pt-BR").includes(ingressoBusca.toLocaleLowerCase("pt-BR"));
+  }).sort((a,b)=>a.nome.localeCompare(b.nome,"pt-BR"));
 
   // Ranking de professores: soma de todas as disciplinas/turmas/semestres desde 2023/01.
   // Professor × oferta × semestre: classificação por ocorrências documentadas, não pessoas únicas.
@@ -524,6 +585,60 @@ export default function DireitoRaioX({ institutionId }: Props) {
           <div className="drx-legend">*Índice bruto = (RF + RN + RA) ÷ matrículas em disciplinas × 100, quando as categorias não excedem o denominador. Não é taxa de alunos únicos reprovados. O total depende da quantidade de ofertas atribuídas ao docente; reprovações por falta também dependem da frequência dos estudantes. Comparações de qualidade docente exigem análise contextual, cobertura e validação das categorias.</div>
         </>}
       </div>
+
+      {/* ── Origem observada dos ingressantes: análise longitudinal por matrícula ── */}
+      <section className="drx-section" id="drx-origem-ingressantes">
+        <div className="drx-section-header"><h4>De onde vieram os ingressantes? · 1º período e outras turmas</h4>
+          <p className="drx-sub">Cruzamento por matrícula acadêmica nos registros individuais do curso de Direito. Primeiro registro observado não comprova modalidade oficial de ingresso; transferência externa precisa de histórico ou documento de origem.</p>
+        </div>
+        {rosterErro?<p className="drx-alunos-bloqueado" role="alert">Auditoria individual indisponível: {rosterErro}</p>:
+        ingressoAuditoria.alunos.length===0?<p className="drx-alunos-empty">Não existem registros nominais autorizados para distinguir os períodos de ingresso.</p>:<>
+          <div className="drx-definitions">
+            <p><strong>Primeira vez localizado no 1º período:</strong> matrícula encontrada pela primeira vez em turma do primeiro período. É um indício de ingresso inicial, não prova de captação por vestibular.</p>
+            <p><strong>Primeira vez localizado em período avançado:</strong> aluno cujo primeiro registro disponível já está no 2º período ou posterior. Pode ser transferência externa, reingresso, aproveitamento de estudos ou lacuna histórica. <strong>Classificação pendente de validação.</strong></p>
+            <p><strong>Continuidade:</strong> a mesma matrícula foi identificada em semestre anterior. Se avançou de período, isso pode corresponder à progressão curricular regular e não a uma nova captação.</p>
+            <p><strong>Mais de uma turma no semestre:</strong> o mesmo registro de matrícula aparece em turmas distintas no período. Indica possível remanejamento ou lançamento múltiplo; só o histórico administrativo comprova realocação efetiva.</p>
+          </div>
+          <div className="drx-compare-controls">
+            <label>Semestre observado<select value={ingressoSem} onChange={e=>{setIngressoSem(e.target.value);setIngressoCategory("todos");setIngressoBusca("");}}>
+              {ingressoAuditoria.indicadores.map(d=><option key={d.sem} value={d.sem}>{d.sem}{!d.disponivel?" · dados nominais não disponibilizados":""}</option>)}
+            </select></label>
+            <label>Localizar matrícula ou turma<input type="search" value={ingressoBusca} onChange={e=>setIngressoBusca(e.target.value)} placeholder="Nome, matrícula ou turma" /></label>
+          </div>
+          <div className="drx-ingresso-kpis">
+            {([
+              ["todos","Matrículas distintas no semestre",ingressoAtual.presentes],
+              ["primeiro","Primeiro registro no 1º período",ingressoAtual.primeiro],
+              ["avancado","Primeiro registro em período avançado",ingressoAtual.avancado],
+              ["continuidade","Localizadas em semestre anterior",ingressoAtual.continuidade],
+              ["realocado","Em mais de uma turma no semestre",ingressoAtual.realocado]
+            ] as [typeof ingressoCategory,string,number][]).map(([key,label,value])=>
+              <button type="button" key={key} aria-pressed={ingressoCategory===key} className="drx-ingresso-kpi" onClick={()=>setIngressoCategory(key)}><small>{label}</small><strong>{ingressoAtual.disponivel?value:"—"}</strong><span>{key==="avancado"?"Não equivale a transferência comprovada":key==="realocado"?"Conferir o histórico de turma":"Consultar relação de matrículas"} ↗</span></button>
+            )}
+          </div>
+          <div className="drx-table-wrap"><table className="drx-table">
+            <thead><tr><th>Semestre</th><th>Matrículas distintas</th><th>Primeiro registro no 1º período</th><th>Primeiro registro em período avançado</th><th>Vínculo localizado anteriormente</th><th>Em mais de uma turma</th><th>Período conflitante*</th></tr></thead>
+            <tbody>{ingressoAuditoria.indicadores.map(d=><tr key={d.sem} className={ingressoSem===d.sem?"drx-row-selected":undefined}>
+              <td><button type="button" className="drx-period-link" onClick={()=>setIngressoSem(d.sem)}>{d.sem} ↗</button></td>
+              <td>{d.disponivel?d.presentes:"Sem dados"}</td><td>{d.disponivel?d.primeiro:"—"}</td><td>{d.disponivel?d.avancado:"—"}</td><td>{d.disponivel?d.continuidade:"—"}</td><td>{d.disponivel?d.realocado:"—"}</td><td>{d.disponivel?d.conflitos:"—"}</td>
+            </tr>)}</tbody>
+          </table></div>
+          <h5 className="drx-evasao-h5">Relação individual no recorte · {ingressoSem}</h5>
+          {!ingressoAtual.disponivel?<p className="drx-comparison-note">A base nominal ainda não contém este semestre. Não é possível classificar transferências ou ingressantes em 2026/02 sem atualizar a fonte.</p>:
+          <div className="drx-table-wrap"><table className="drx-table"><thead><tr><th>Matrícula</th><th>Aluno</th><th>Primeiro semestre localizado</th><th>Primeiro período localizado</th><th>Turma(s) neste semestre</th><th>Período(s) neste semestre</th><th>Situação interpretativa</th></tr></thead>
+            <tbody>{ingressoSelecionados.slice(0,80).map(a=>{
+              const passages=a.passagens.filter(p=>p.sem===ingressoSem);
+              const classes=[...new Set(passages.map(p=>p.turma))];
+              const periods=[...new Set(passages.map(p=>p.periodo))];
+              const categoria=a.primeiroSem===ingressoSem?(a.primeiroPeriodo===1?"Primeiro registro no 1º período":"Primeiro registro em período avançado"): "Vínculo anterior localizado";
+              return <tr key={a.matricula}><td>{a.matricula}</td><td>{a.nome}</td><td>{a.primeiroSem}</td><td>{a.primeiroPeriodo}º</td><td>{classes.join(" · ")}</td><td>{periods.join("º · ")}º</td><td>{categoria}{classes.length>1?" · múltiplas turmas":""}{periods.length>1?" · verificar período":""}</td></tr>;
+            })}</tbody></table>
+            {ingressoSelecionados.length>80&&<p className="drx-evasao-nota">Exibindo 80 dos {ingressoSelecionados.length} registros; refine a busca ou o filtro para analisar os demais.</p>}
+            {ingressoSelecionados.length===0&&<p className="drx-evasao-nota">Nenhum registro corresponde ao filtro selecionado.</p>}
+          </div>}
+          <p className="drx-evasao-nota">*No mesmo semestre, uma matrícula pode ter registros em mais de um período ou turma. Isso exige conciliação; o relatório não substitui a identificação formal da modalidade de ingresso no e-ORBIT. A deduplicação utiliza matrícula do curso, não CPF, e não identifica transferências externas com certeza. Dados individuais restritos aos perfis autorizados pela proteção já existente no Raio-X.</p>
+        </>}
+      </section>
 
       {/* ── Crescimento Real ── */}
       {serieReal?.resumo_serie_historica && (
