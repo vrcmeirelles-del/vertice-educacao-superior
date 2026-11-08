@@ -59,7 +59,7 @@ export default function DireitoRaioX({ institutionId }: Props) {
   const [buscaAluno, setBuscaAluno] = useState("");
   const [profRes, setProfRes] = useState<any[]>([]);
   const [profResErro, setProfResErro] = useState<string>("");
-  const [docenciaOfertas,setDocenciaOfertas]=useState<{semestre:string;nome:string;disciplina:string;rf:number;rn:number;ra:number;matriculas:number}[]>([]);
+  const [docenciaOfertas,setDocenciaOfertas]=useState<{id:string;semestre:string;curso:string;turma:string;periodo:string;nome:string;disciplina:string;rf:number;rn:number;ra:number;matriculas:number}[]>([]);
   const [docenciaStatus,setDocenciaStatus]=useState<"loading"|"ready"|"error">("loading");
   const [docenciaSem,setDocenciaSem]=useState("2026/02");
   const [docenciaCompare,setDocenciaCompare]=useState("2025/02");
@@ -70,6 +70,7 @@ export default function DireitoRaioX({ institutionId }: Props) {
 
   const [rankingSemestre,setRankingSemestre]=useState("todos");
   const [rankingSelecionado,setRankingSelecionado]=useState<string|null>(null);
+  const [ofertaSelecionada,setOfertaSelecionada]=useState<string|null>(null);
   const [selectedSem,setSelectedSem]=useState("");
   const [compareMode,setCompareMode]=useState<CompareMode>("homologo");
   const [comparisonSem,setComparisonSem]=useState("");
@@ -85,14 +86,14 @@ export default function DireitoRaioX({ institutionId }: Props) {
     setSourceDate(null); setLoading(true);setDocenciaOfertas([]);setDocenciaStatus("loading");
     (async()=>{
       const {data,error}=await supabase.from("vertice_offering_outcomes")
-        .select("semester,teachers,discipline,rf,rn,ra,discipline_enrollments").eq("institution_id",institutionId).eq("course_code","027")
+        .select("id,semester,course_code,class_label,academic_period,teachers,discipline,rf,rn,ra,discipline_enrollments").eq("institution_id",institutionId).eq("course_code","027")
         .gte("semester","2023/01").lte("semester","2026/02").order("semester",{ascending:true}).limit(1000);
       if(!active)return;
       if(error){setDocenciaStatus("error");return;}
       const items=(data??[]).flatMap(row=>{
         const name=String(row.teachers??"").trim();
         if(!name)return [];
-        return [{semestre:String(row.semester),nome:name,disciplina:String(row.discipline??"Disciplina não identificada"),rf:Math.max(0,Number(row.rf)||0),rn:Math.max(0,Number(row.rn)||0),ra:Math.max(0,Number(row.ra)||0),matriculas:Math.max(0,Number(row.discipline_enrollments)||0)}];
+        return [{id:String(row.id),semestre:String(row.semester),curso:String(row.course_code??"027"),turma:String(row.class_label??""),periodo:String(row.academic_period??""),nome:name,disciplina:String(row.discipline??"Disciplina não identificada"),rf:Math.max(0,Number(row.rf)||0),rn:Math.max(0,Number(row.rn)||0),ra:Math.max(0,Number(row.ra)||0),matriculas:Math.max(0,Number(row.discipline_enrollments)||0)}];
       });
       setDocenciaOfertas(items);
       setDocenciaStatus("ready");
@@ -566,7 +567,7 @@ export default function DireitoRaioX({ institutionId }: Props) {
                     <span><i className="drx-ra"/> Ambas (RA) <b>{p.ambos}</b></span>
                   </div>
                 </div>
-                <button type="button" className="drx-ranking-detail-btn" aria-expanded={expanded} onClick={()=>setRankingSelecionado(current=>current===p.professor?null:p.professor)}>{expanded?"Fechar detalhes":"Ver disciplinas"} <span aria-hidden="true">{expanded?"⌃":"⌄"}</span></button>
+                <button type="button" className="drx-ranking-detail-btn" aria-expanded={expanded} onClick={()=>(setRankingSelecionado(current=>current===p.professor?null:p.professor),setOfertaSelecionada(null))}>{expanded?"Fechar detalhes":"Ver disciplinas"} <span aria-hidden="true">{expanded?"⌃":"⌄"}</span></button>
               </article>;
             })}
           </div>
@@ -576,9 +577,29 @@ export default function DireitoRaioX({ institutionId }: Props) {
             const key=(v:string)=>v.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().trim();
             const linhas=docenciaOfertas.filter(x=>key(x.nome)===key(professor.professor)&&(rankingSemestre==="todos"||x.semestre===rankingSemestre));
             return <div className="drx-detail" aria-live="polite">
-              <div className="drx-compare-top"><h4>{professor.professor} · disciplinas e períodos</h4><button type="button" onClick={()=>setRankingSelecionado(null)}>Fechar</button></div>
-              <div className="drx-table-wrap"><table className="drx-table"><thead><tr><th>Semestre</th><th>Disciplina</th><th>Matrículas em disciplina</th><th>RF</th><th>RN</th><th>RA</th><th>Ocorrências</th></tr></thead>
-                <tbody>{linhas.sort((a,b)=>a.semestre.localeCompare(b.semestre)).map((d,i)=><tr key={d.semestre+d.disciplina+i}><td>{d.semestre}</td><td>{d.disciplina}</td><td>{d.matriculas}</td><td>{d.rf}</td><td>{d.rn}</td><td>{d.ra}</td><td>{d.rf+d.rn+d.ra}</td></tr>)}</tbody>
+              <div className="drx-compare-top"><h4>{professor.professor} · disciplinas e períodos</h4><button type="button" onClick={()=>{setRankingSelecionado(null);setOfertaSelecionada(null);}}>Fechar</button></div>
+              <div className="drx-table-wrap"><table className="drx-table"><thead><tr><th>Semestre</th><th>Disciplina / turma</th><th>Matrículas em disciplina</th><th>RF</th><th>RN</th><th>RA</th><th>Ocorrências</th><th>Alunos</th></tr></thead>
+                <tbody>{linhas.sort((a,b)=>a.semestre.localeCompare(b.semestre)).map(d=><React.Fragment key={d.id}>
+                <tr className={ofertaSelecionada===d.id?"drx-row-selected":undefined}>
+                  <td>{d.semestre}</td>
+                  <td><strong>{d.disciplina}</strong><small className="drx-note"> {d.turma?" · Turma: "+d.turma:" · Turma não identificada na fonte"}</small></td>
+                  <td>{d.matriculas}</td><td>{d.rf}</td><td>{d.rn}</td><td>{d.ra}</td><td>{d.rf+d.rn+d.ra}</td>
+                  <td><button type="button" className="drx-period-link" aria-expanded={ofertaSelecionada===d.id} onClick={()=>setOfertaSelecionada(current=>current===d.id?null:d.id)}>{ofertaSelecionada===d.id?"Ocultar alunos":"Consultar alunos"} ↗</button></td>
+                </tr>
+                {ofertaSelecionada===d.id&&<tr className="drx-offering-expand-row"><td colSpan={8}>
+                  <div className="drx-offering-detail" role="region" aria-label={"Identificação nominal para "+d.disciplina+" "+d.semestre}>
+                    <div><h5>Alunos da oferta · {d.disciplina}</h5><p>{d.semestre} · Curso {d.curso}{d.turma?" · Turma "+d.turma:""} · {d.periodo?"Período "+d.periodo:"Período não informado"}</p></div>
+                    <div className="drx-offering-overview">
+                      <span><strong>{d.matriculas}</strong><small>Matrículas em disciplina</small></span>
+                      <span><strong>{d.rf}</strong><small>RF por falta</small></span>
+                      <span><strong>{d.rn}</strong><small>RN por nota</small></span>
+                      <span><strong>{d.ra}</strong><small>RA ambas</small></span>
+                    </div>
+                    <p className="drx-comparison-note"><strong>Identificação nominal pendente.</strong> A fonte atual fornece quantitativos da oferta, mas não uma relação individual confirmada de alunos e situações RF/RN/RA para esta disciplina. Não é seguro associar os nomes de uma turma geral às ocorrências desta oferta.</p>
+                    <p className="drx-offering-source">Referência técnica da oferta: {d.id}. Quando houver integração autorizada, esta referência deverá ser conciliada com curso, semestre, turma, disciplina, matrícula e situação final de cada estudante. A consulta nominal ficará restrita aos perfis acadêmicos autorizados.</p>
+                  </div>
+                </td></tr>}
+              </React.Fragment>)}</tbody>
               </table></div>
             </div>;
           })()}
