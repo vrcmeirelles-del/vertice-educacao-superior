@@ -249,8 +249,9 @@ export default function CostSimulator({ institutionId, onUploadDocument }: { ins
       {editing && (
         <div className="cost-sim-params">
           <h4>Parâmetros do simulador</h4>
-          <p className="cost-sim-sub">Fonte declarada: {params.fonte_cct}. Confira piso, categoria, abrangência e vigência da CCT antes de utilizar o cálculo.</p>
+          <p className="cost-sim-sub">Fonte declarada: {params.fonte_cct}. Esta referência não implica validação automática. Confira a CCT registrada no MTE, a categoria profissional, a base territorial, os aditivos e a vigência.</p>
           <div className="cost-sim-params-grid">
+            <label>Fonte da CCT / registro oficial<input type="text" maxLength={300} value={draft.fonte_cct} onChange={e=>setDraft({...draft,fonte_cct:e.target.value})} placeholder="Ex.: CCT · registro MTE · vigência · abrangência" /></label>
             <label>Hora-aula Graduado<input type="number" step="0.01" value={draft.hora_aula_graduado} onChange={e => setDraft({ ...draft, hora_aula_graduado: +e.target.value })} /></label>
             <label>Hora-aula Especialista<input type="number" step="0.01" value={draft.hora_aula_especialista} onChange={e => setDraft({ ...draft, hora_aula_especialista: +e.target.value })} /></label>
             <label>Hora-aula Mestre<input type="number" step="0.01" value={draft.hora_aula_mestre} onChange={e => setDraft({ ...draft, hora_aula_mestre: +e.target.value })} /></label>
