@@ -48,7 +48,7 @@ function Evidencias({ titulo, itens }: { titulo: string; itens: string[] }) {
   );
 }
 
-function Indicador({ indicador }: { indicador: IndicadorAvaliacao }) {
+function Indicador({ indicador, onUploadDocument }: { indicador: IndicadorAvaliacao; onUploadDocument?: (title:string, reference:string)=>void }) {
   const [nivel, setNivel] = useState<keyof Criterio>("5");
   return (
     <details className="aval-indicador">
@@ -59,6 +59,7 @@ function Indicador({ indicador }: { indicador: IndicadorAvaliacao }) {
         {indicador.applicability && <span className="aval-badge restrito">Aplicabilidade restrita</span>}
       </summary>
       <div className="aval-corpo">
+        {onUploadDocument && <button type="button" className="corp-button small" onClick={() => onUploadDocument(`Evidência · Indicador ${indicador.code} · ${indicador.title}`,`Recredenciamento Institucional 2017 · Eixo ${indicador.axis} · Indicador ${indicador.code}: ${indicador.title}`)} style={{marginBottom:12}}>Enviar documento para este indicador</button>}
         {indicador.applicability && (
           <p className="aval-nota">
             <strong>Aplicabilidade.</strong> {indicador.applicability}
@@ -101,7 +102,7 @@ function Indicador({ indicador }: { indicador: IndicadorAvaliacao }) {
   );
 }
 
-export default function AvaliacaoInstitucional({ onRepository }: { onRepository?: () => void }) {
+export default function AvaliacaoInstitucional({ onRepository, onUploadDocument }: { onRepository?: () => void; onUploadDocument?: (title:string,reference:string)=>void }) {
   const [busca, setBusca] = useState("");
   const [eixo, setEixo] = useState("");
   const [somenteRestritos, setSomenteRestritos] = useState(false);
@@ -120,7 +121,10 @@ export default function AvaliacaoInstitucional({ onRepository }: { onRepository?
         <div>
           <p className="aval-kicker">Avaliação institucional externa</p>
           <h3 id="aval-title">Recredenciamento Institucional · Instrumento 2017</h3>
-          {onRepository && <button type="button" className="corp-button small" onClick={onRepository} style={{ margin: "10px 0" }}>Registrar documento no Repositório Institucional</button>}
+          <div style={{display:"flex",gap:10,flexWrap:"wrap",margin:"10px 0"}}>
+            {onUploadDocument && <button type="button" className="corp-button small" onClick={() => onUploadDocument("Evidência de Recredenciamento Institucional · Instrumento 2017","Recredenciamento Institucional 2017 · documento institucional. Selecione um indicador específico quando possível.")}>Enviar documento</button>}
+            {onRepository && <button type="button" className="corp-button small" onClick={onRepository}>Consultar Repositório Institucional</button>}
+          </div>
           <p>
             {instrumento.instrument}, edição {instrumento.edition}. Cinco eixos,{" "}
             {instrumento.total} indicadores, com o critério de conceito 5 transcrito do
@@ -250,7 +254,7 @@ export default function AvaliacaoInstitucional({ onRepository }: { onRepository?
       ) : (
         <div className="aval-lista">
           {resultados.map((indicador) => (
-            <Indicador key={indicador.code} indicador={indicador} />
+            <Indicador key={indicador.code} indicador={indicador} onUploadDocument={onUploadDocument} />
           ))}
         </div>
       )}
