@@ -44,15 +44,16 @@ function detectModality(name: string): 'ead' | 'semipresencial' | 'presencial' {
 type CourseResult = {
   curso: string; modalidade: 'ead' | 'semipresencial' | 'presencial';
   matriculados: number; vinculos: number; evasao: number;
-  ensalamento_ideal: number; ocupacao: number;
+  ensalamento_ideal: number; turmas_estimadas: number;
   receita: number; custo_docente: number; overhead: number; custo_total: number;
   resultado: number; margem: number;
-  turmas_estimadas: number; professores_estimados: number;
+  professores_estimados: number;
 };
 
 export default function CostSimulator({ institutionId, onUploadDocument }: { institutionId: string; onUploadDocument?: (courseId:string,title:string,reference:string)=>void }) {
   const [params, setParams] = useState<Params>(DEFAULT_PARAMS);
   const [editing, setEditing] = useState(false);
+  const [resultFilter,setResultFilter]=useState<"todos"|"superavit"|"deficit"|"equilibrio">("todos");
   const [draft, setDraft] = useState<Params>(DEFAULT_PARAMS);
   const [quants, setQuants] = useState<Quant[]>([]);
   const [semester, setSemester] = useState('');
@@ -177,8 +178,8 @@ export default function CostSimulator({ institutionId, onUploadDocument }: { ins
 
       const matriculados = q.total_matriculados;
       const evasao = q.trancado + q.abandono + q.cancelado;
-      const ocupacao = ideal > 0 ? matriculados / ideal : 0;
-      const turmas_estimadas = Math.max(1, Math.ceil(matriculados / ideal));
+      // Não é taxa de ocupação: o denominador é a lotação ideal de UMA turma hipotética.
+      const turmas_estimadas = ideal > 0 && matriculados > 0 ? Math.ceil(matriculados / ideal) : 0;
 
       // Receita estimada
       const receita = matriculados * ticket * params.meses_letivos;
@@ -193,7 +194,7 @@ export default function CostSimulator({ institutionId, onUploadDocument }: { ins
       const salario_mensal = params.ch_semanal_media * hora_media * params.fator_dsr;
       const custo_docente = professores_estimados * salario_mensal * (1 + params.encargos_pct) * params.meses_letivos;
 
-      // Overhead
+      // Custos indiretos simulados: fração da receita estimada, não despesa realizada.
       const overhead = receita * params.overhead_pct;
 
       const custo_total = custo_docente + overhead;
@@ -202,7 +203,7 @@ export default function CostSimulator({ institutionId, onUploadDocument }: { ins
 
       return {
         curso: q.curso, modalidade: mod, matriculados, vinculos: q.total_vinculos,
-        evasao, ensalamento_ideal: ideal, ocupacao, receita, custo_docente,
+        evasao, ensalamento_ideal: ideal, receita, custo_docente,
         overhead, custo_total, resultado, margem, turmas_estimadas, professores_estimados,
       };
     }).sort((a, b) => b.resultado - a.resultado);
@@ -267,7 +268,7 @@ export default function CostSimulator({ institutionId, onUploadDocument }: { ins
             <label>Hora-aula Mestre<input type="number" step="0.01" value={draft.hora_aula_mestre} onChange={e => setDraft({ ...draft, hora_aula_mestre: +e.target.value })} /></label>
             <label>Hora-aula Doutor<input type="number" step="0.01" value={draft.hora_aula_doutor} onChange={e => setDraft({ ...draft, hora_aula_doutor: +e.target.value })} /></label>
             <label>Encargos sobre folha (%)<input type="number" step="0.01" value={Math.round(draft.encargos_pct * 100)} onChange={e => setDraft({ ...draft, encargos_pct: +e.target.value / 100 })} /></label>
-            <label>Overhead operacional (%)<input type="number" step="1" value={Math.round(draft.overhead_pct * 100)} onChange={e => setDraft({ ...draft, overhead_pct: +e.target.value / 100 })} /></label>
+            <label title="Percentual hipotético de custos indiretos aplicado à receita estimada; não é despesa efetivamente auditada.">Custos indiretos operacionais (%)<input type="number" step="1" value={Math.round(draft.overhead_pct * 100)} onChange={e => setDraft({ ...draft, overhead_pct: +e.target.value / 100 })} /></label>
             <label>Ticket presencial (R$/mês)<input type="number" step="10" value={draft.ticket_presencial} onChange={e => setDraft({ ...draft, ticket_presencial: +e.target.value })} /></label>
             <label>Ticket semipresencial (R$/mês)<input type="number" step="10" value={draft.ticket_semipresencial} onChange={e => setDraft({ ...draft, ticket_semipresencial: +e.target.value })} /></label>
             <label>Ticket EAD (R$/mês)<input type="number" step="10" value={draft.ticket_ead} onChange={e => setDraft({ ...draft, ticket_ead: +e.target.value })} /></label>
@@ -305,16 +306,16 @@ export default function CostSimulator({ institutionId, onUploadDocument }: { ins
           <strong>{results.length}</strong>
           <span>{NUM.format(totals.matriculados)} matriculados</span>
         </div>
-        <div className="cost-sim-kpi" style={{ borderLeftColor: 'var(--success)' }}>
-          <small>Superávit estimado</small>
+        <button type="button" className="cost-sim-kpi cost-sim-kpi-action" style={{ borderLeftColor: 'var(--success)' }} aria-pressed={resultFilter==="superavit"} onClick={()=>setResultFilter(f=>f==="superavit"?"todos":"superavit")}>
+          <small>Superávit estimado · ver cursos ↗</small>
           <strong style={{ color: 'var(--success)' }}>{totals.lucro}</strong>
-          <span>cursos com resultado positivo</span>
-        </div>
-        <div className="cost-sim-kpi" style={{ borderLeftColor: 'var(--danger)' }}>
-          <small>Déficit estimado</small>
+          <span>registros de curso com saldo simulado positivo</span>
+        </button>
+        <button type="button" className="cost-sim-kpi cost-sim-kpi-action" style={{ borderLeftColor: 'var(--danger)' }} aria-pressed={resultFilter==="deficit"} onClick={()=>setResultFilter(f=>f==="deficit"?"todos":"deficit")}>
+          <small>Déficit estimado · ver cursos ↗</small>
           <strong style={{ color: 'var(--danger)' }}>{totals.prejuizo}</strong>
-          <span>cursos com resultado negativo</span>
-        </div>
+          <span>registros de curso com saldo simulado negativo</span>
+        </button>
         <div className="cost-sim-kpi" style={{ borderLeftColor: totals.resultado >= 0 ? 'var(--success)' : 'var(--danger)' }}>
           <small>Resultado líquido estimado</small>
           <strong style={{ color: totals.resultado >= 0 ? 'var(--success)' : 'var(--danger)' }}>{BRL.format(totals.resultado)}</strong>
@@ -323,7 +324,14 @@ export default function CostSimulator({ institutionId, onUploadDocument }: { ins
       </div>}
 
       {/* Tabela de cursos */}
-      {results.length>0&&<div className="cost-sim-table-wrap">
+      {results.length>0&&<div className="cost-sim-list">
+        <div className="cost-sim-list-head"><div><h4>Detalhamento por curso · {semester}</h4><p>Os filtros abaixo usam o saldo projetado do cenário, não lucro ou prejuízo contabilizado.</p></div><div className="cost-sim-result-filters" role="group" aria-label="Filtrar cursos por resultado simulado">
+        <button type="button" aria-pressed={resultFilter==="todos"} onClick={()=>setResultFilter("todos")}>Todos ({results.length})</button>
+        <button type="button" aria-pressed={resultFilter==="superavit"} onClick={()=>setResultFilter("superavit")}>Superávit ({totals.lucro})</button>
+        <button type="button" aria-pressed={resultFilter==="deficit"} onClick={()=>setResultFilter("deficit")}>Déficit ({totals.prejuizo})</button>
+        {totals.empate>0&&<button type="button" aria-pressed={resultFilter==="equilibrio"} onClick={()=>setResultFilter("equilibrio")}>Equilíbrio ({totals.empate})</button>}
+        </div></div>
+        <div className="cost-sim-table-wrap">
         <table className="cost-sim-table">
           <thead>
             <tr>
@@ -331,22 +339,22 @@ export default function CostSimulator({ institutionId, onUploadDocument }: { ins
               <th>Curso</th>
               <th>Mod.</th>
               <th>Matr.</th>
-              <th>Ocupação</th>
+              <th title="Número de turmas hipotéticas = matrículas do curso divididas pelo tamanho ideal de cada turma, arredondado para cima. Não é ocupação física.">Turmas necessárias · estimativa</th>
               <th>Receita est.</th>
               <th>Custo docente</th>
-              <th>Overhead</th>
+              <th title="Custo indireto operacional projetado = receita estimada multiplicada pelo percentual informado nos parâmetros. Não representa despesa efetivamente registrada.">Custos indiretos est.</th>
               <th>Resultado</th>
               <th>Margem</th>
             </tr>
           </thead>
           <tbody>
-            {results.map((c, i) => (
+            {results.filter(c=>resultFilter==="superavit"?c.resultado>0:resultFilter==="deficit"?c.resultado<0:resultFilter==="equilibrio"?c.resultado===0:true).map((c, i) => (
               <tr key={c.curso + i} className={c.resultado > 0 ? 'cost-row-ok' : c.resultado < 0 ? 'cost-row-bad' : ''}>
                 <td><span className={`cost-dot ${c.resultado > 0 ? 'green' : c.resultado < 0 ? 'red' : 'gray'}`} /></td>
                 <td className="cost-curso">{c.curso}</td>
                 <td><span className={`cost-mod cost-mod-${c.modalidade}`}>{c.modalidade === 'presencial' ? 'Pres' : c.modalidade === 'semipresencial' ? 'Semi' : 'EAD'}</span></td>
                 <td>{NUM.format(c.matriculados)}</td>
-                <td><div className="cost-bar-wrap"><div className="cost-bar" style={{ width: Math.min(100, c.ocupacao * 100) + '%', background: c.ocupacao >= 0.8 ? 'var(--success)' : c.ocupacao >= 0.5 ? 'var(--warning)' : 'var(--danger)' }} /><span>{Math.round(c.ocupacao * 100)}%</span></div></td>
+                <td><strong>{c.turmas_estimadas>0?NUM.format(c.turmas_estimadas):"Sem base"}</strong><small className="cost-cell-note">{NUM.format(c.matriculados)} matrículas ÷ {NUM.format(c.ensalamento_ideal)} por turma ideal</small></td>
                 <td>{BRL.format(c.receita)}</td>
                 <td>{BRL.format(c.custo_docente)}</td>
                 <td>{BRL.format(c.overhead)}</td>
@@ -356,10 +364,10 @@ export default function CostSimulator({ institutionId, onUploadDocument }: { ins
             ))}
           </tbody>
         </table>
-      </div>}
+      </div></div>}
 
       <p className="cost-sim-footer">
-        Estimativa com base em parâmetros declarados. Custo docente usa mix médio de titulação (10% grad, 40% esp, 40% mestre, 10% doutor).
+        A coluna de turmas representa necessidade hipotética segundo o tamanho ideal; ocupação real exige a quantidade e capacidade das salas/turmas ofertadas. Custos indiretos operacionais = receita estimada × percentual parametrizado (não despesas reais). Custo docente pressupõe mix de titulação 10% grad, 40% esp, 40% mestre e 10% doutor.
         Pisos parametrizados segundo a fonte declarada ({params.fonte_cct}), ainda sujeitos à validação da CCT. Não inclui coordenação, infraestrutura específica ou inadimplência.
       </p>
     </section>
