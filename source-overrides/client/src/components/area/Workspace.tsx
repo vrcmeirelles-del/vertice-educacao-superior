@@ -64,7 +64,7 @@ const TABS: [Tab, string][] = [
   ["metas", "Metas e indicadores"],
   ["repositorio", "Reconhecimento de Curso"],
   ["biblioteca", "Biblioteca INEP"],
-  ["avaliacao", "Recredenciamento Institucional"],
+  ["avaliacao", "Recredenciamento · Instrumento 2017"],
   ["novo_instrumento", "Novo Instrumento"],
   ["enade", "ENADE 360°"],
   ["aprendizagem", "Aprendizagem Conectada"],
@@ -239,7 +239,7 @@ export default function Workspace({
       ) : tab === "enade" ? (
         <Enade360 key={id} institutionId={id} courses={data.courses} actions={data.actions} goals={data.goals} role={role} onPlan={()=>choose("plano")}/>
       ) : tab === "novo_instrumento" ? (
-        <NovoInstrumento institutionId={id} role={role} courses={data.courses} onOpenRecredenciamento={() => choose("avaliacao")} />
+        <NovoInstrumento institutionId={id} role={role} courses={data.courses} />
       ) : tab === "avaliacao" ? (
         <AvaliacaoInstitucional key={id} />
       ) : tab === "resultado-curso" ? (
