@@ -1279,6 +1279,13 @@ function UploadDialog(
       if (readError || !data) throw error;
     }
     setPending(null);
+    // Após registrar o arquivo institucional, solicita correspondências para a proposta de 2026.
+    // Falha na IA não desfaz nem invalida o upload do documento original.
+    if (props.institutional) {
+      try {
+        await supabase.functions.invoke("vertice-instrumento-sync", { body: { institution_id: props.institutionId, file_id: String(values.id) } });
+      } catch { /* sincronização pendente: o painel permite reprocessar */ }
+    }
     await props.reload();
     props.onSent(uploadSemester);
   }
