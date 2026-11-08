@@ -31,8 +31,8 @@ async function fetchAll<T>(table: string, filters: Record<string, unknown>, orde
   return rows;
 }
 
-function variacao(atual: number, anterior: number | null): number | null {
-  if (anterior === null || anterior === 0) return null;
+function variacao(atual: number | null, anterior: number | null): number | null {
+  if (atual === null || anterior === null || anterior === 0) return null;
   return ((atual - anterior) / Math.abs(anterior)) * 100;
 }
 
