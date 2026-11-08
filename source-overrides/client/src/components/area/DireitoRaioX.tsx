@@ -472,18 +472,45 @@ export default function DireitoRaioX({ institutionId }: Props) {
         {docenciaStatus==="loading"?<p className="drx-alunos-loading" role="status">Consultando ocorrências por professor…</p>:
         docenciaStatus==="error"?<p className="drx-alunos-bloqueado" role="alert">A fonte de ofertas não está acessível no momento. Nenhum resultado foi estimado.</p>:
         rankingProf.length===0?<p className="drx-alunos-empty">Não existem ocorrências atribuídas a professores no período escolhido.</p>:<>
-          {topProf&&<div className="drx-alunos-summary">
-            <span><strong>{topProf.professor}</strong> possui o maior número de ocorrências no recorte: <strong>{topProf.reprov}</strong> em {topProf.total} matrículas em disciplinas, distribuídas por {topProf.ofertas} ofertas.</span>
-          </div>}
-          <div className="drx-table-wrap"><table className="drx-table">
-            <thead><tr><th>Posição</th><th>Professor</th><th>Ofertas</th><th>Matrículas em disciplinas</th><th>RF · falta</th><th>RN · nota</th><th>RA · ambas</th><th>Ocorrências</th><th>Índice bruto*</th><th>Detalhes</th></tr></thead>
-            <tbody>{rankingProf.map((p,i)=><tr key={p.professor} className={rankingSelecionado===p.professor?"drx-row-selected":undefined}>
-              <td>{i+1}</td><td><strong>{p.professor}</strong><small className="drx-note"> · {p.disc.size} disciplina(s)</small></td>
-              <td>{p.ofertas}</td><td>{p.total}</td><td>{p.falta}</td><td>{p.nota}</td><td>{p.ambos}</td>
-              <td><strong>{p.reprov}</strong></td><td>{p.taxa===null?"Não apurado":p.taxa.toFixed(1)+"%"}</td>
-              <td><button type="button" className="drx-period-link" aria-expanded={rankingSelecionado===p.professor} onClick={()=>setRankingSelecionado(current=>current===p.professor?null:p.professor)}>Ver disciplinas ↗</button></td>
-            </tr>)}</tbody>
-          </table></div>
+          <div className="drx-ranking-summary">
+            <div><small>Professores com registros</small><strong>{rankingProf.length}</strong><span>Em ofertas de disciplinas do período</span></div>
+            <div><small>Matrículas em disciplinas</small><strong>{rankingProf.reduce((n,p)=>n+p.total,0).toLocaleString("pt-BR")}</strong><span>Não representa alunos únicos</span></div>
+            <div><small>Ocorrências RF + RN + RA</small><strong>{rankingProf.reduce((n,p)=>n+p.reprov,0).toLocaleString("pt-BR")}</strong><span>Somatório atribuído às ofertas</span></div>
+          </div>
+          <div className="drx-ranking-head"><h5>Relação por professor</h5><p>Organizada pelo número de ocorrências registradas, não por qualidade docente. Selecione um professor para consultar disciplinas e semestres.</p></div>
+          <div className="drx-ranking-list">
+            {rankingProf.map((p,i)=>{
+              const expanded=rankingSelecionado===p.professor;
+              const max=Math.max(1,p.reprov,p.total);
+              const rfPct=p.reprov>0?100*p.falta/p.reprov:0;
+              const rnPct=p.reprov>0?100*p.nota/p.reprov:0;
+              const raPct=p.reprov>0?100*p.ambos/p.reprov:0;
+              return <article key={p.professor} className={expanded?"drx-ranking-item expanded":"drx-ranking-item"}>
+                <div className="drx-ranking-person">
+                  <span className="drx-ranking-place" title={"Posição "+(i+1)+" por ocorrências"}>{String(i+1).padStart(2,"0")}</span>
+                  <div className="drx-ranking-identity"><strong>{p.professor}</strong><span>{p.disc.size} disciplina(s) · {p.ofertas} ofertas no período</span></div>
+                </div>
+                <div className="drx-ranking-numbers">
+                  <div><small>Matrículas em disciplinas</small><strong>{p.total.toLocaleString("pt-BR")}</strong></div>
+                  <div className="drx-ranking-number-important"><small>Ocorrências</small><strong>{p.reprov.toLocaleString("pt-BR")}</strong></div>
+                  <div><small>Índice bruto*</small><strong>{p.taxa===null?"—":p.taxa.toFixed(1)+"%"}</strong></div>
+                </div>
+                <div className="drx-ranking-breakdown">
+                  <div className="drx-ranking-bar" role="img" aria-label={p.falta+" RF por falta; "+p.nota+" RN por nota; "+p.ambos+" RA ambas"}>
+                    {p.falta>0&&<span style={{width:rfPct+"%",background:"#d96d50"}}/>}
+                    {p.nota>0&&<span style={{width:rnPct+"%",background:"#d9a23f"}}/>}
+                    {p.ambos>0&&<span style={{width:raPct+"%",background:"#796fc9"}}/>}
+                  </div>
+                  <div className="drx-ranking-categories">
+                    <span><i className="drx-rf"/> Falta (RF) <b>{p.falta}</b></span>
+                    <span><i className="drx-rn"/> Nota (RN) <b>{p.nota}</b></span>
+                    <span><i className="drx-ra"/> Ambas (RA) <b>{p.ambos}</b></span>
+                  </div>
+                </div>
+                <button type="button" className="drx-ranking-detail-btn" aria-expanded={expanded} onClick={()=>setRankingSelecionado(current=>current===p.professor?null:p.professor)}>{expanded?"Fechar detalhes":"Ver disciplinas"} <span aria-hidden="true">{expanded?"⌃":"⌄"}</span></button>
+              </article>;
+            })}
+          </div>
           {rankingSelecionado&&(()=>{
             const professor=rankingProf.find(p=>p.professor===rankingSelecionado);
             if(!professor)return null;
