@@ -114,7 +114,7 @@ export async function getKPIs(filtro: FiltroBI): Promise<KpiResumo[]> {
   const prevSem = semesters[semesters.indexOf(currentSem) - 1] ?? null;
 
   const bySem = enrolledBySemester(enrollments);
-  const matriculados = bySem.get(currentSem) ?? 0;
+  const matriculados = bySem.has(currentSem) ? bySem.get(currentSem)! : null;
   const matriculadosPrev = prevSem ? (bySem.get(prevSem) ?? null) : null;
   // Comparação homóloga: primeiro semestre contra primeiro, segundo contra segundo.
   // Usar rótulo explícito e não inventar zero quando o período não está disponível.
@@ -125,13 +125,12 @@ export async function getKPIs(filtro: FiltroBI): Promise<KpiResumo[]> {
 
   // Vagas ofertadas (soma de vacancies dos cursos ativos)
   const vagasOfertadas = courses.reduce((s, c) => s + (Number(c.vacancies) || 0), 0);
-  const ocupacao = vagasOfertadas > 0 ? (matriculados / vagasOfertadas) * 100 : null;
+  const ocupacao = matriculados !== null && vagasOfertadas > 0 ? (matriculados / vagasOfertadas) * 100 : null;
 
-  // Evasão aproximada: (anterior - atual) / anterior
-  const evasao = matriculadosPrev !== null && matriculadosPrev > 0
-    ? ((matriculadosPrev - matriculados) / matriculadosPrev) * 100
-    : null;
-  const retencao = evasao !== null ? 100 - evasao : null;
+  // A variação de matrículas não identifica quem evadiu, transferiu ou concluiu.
+  // Evasão e retenção só podem ser apuradas por coortes e vínculos individuais conciliados.
+  const evasao: number | null = null;
+  const retencao: number | null = null;
 
   // Captação (leads e matrículas)
   const captacaoSnaps = await fetchAll<Row>('vertice_captacao_snapshots', { institution_id: filtro.instituicaoId }, 'mes');
@@ -184,27 +183,27 @@ export async function getKPIs(filtro: FiltroBI): Promise<KpiResumo[]> {
     },
     {
       chave: 'evasao',
-      rotulo: 'Evasão Estimada',
-      valor: evasao !== null ? Math.max(0, evasao) : null,
+      rotulo: 'Evasão · não apurada',
+      valor: evasao,
       unidade: 'pct',
       variacaoPct: null,
       meta: null,
       atingimentoMeta: null,
       tendencia: [],
       direcaoDesejada: 'baixo',
-      definicao: 'Aproximação: (matriculados semestre anterior − matriculados atual) ÷ matriculados anterior. Critério: snapshot de matrícula ativa.',
+      definicao: 'Não apurada: exige coortes e estados individuais conciliados. Redução de matrículas não equivale a evasão.',
     },
     {
       chave: 'retencao',
       rotulo: 'Retenção',
-      valor: retencao !== null ? Math.min(100, retencao) : null,
+      valor: retencao,
       unidade: 'pct',
       variacaoPct: null,
       meta: null,
       atingimentoMeta: null,
       tendencia: [],
       direcaoDesejada: 'cima',
-      definicao: '1 − evasão. Percentual de alunos que permaneceram.',
+      definicao: 'Não apurada: exige acompanhamento longitudinal dos estudantes e critérios institucionais homologados.',
     },
     {
       chave: 'conversao',
