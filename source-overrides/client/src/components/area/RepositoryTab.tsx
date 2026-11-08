@@ -263,11 +263,11 @@ export default function RepositoryTab(props: RepositoryProps) {
   const manager = can.manageGoals(role);
   const [userId, setUserId] = useState("");
   const [courseId, setCourseId] = useState<string | null>(() =>
-    goalFilter
-      ? String(
-          goals.find((g) => g.id === goalFilter)?.course_id ?? "institucional",
-        )
-      : null,
+    props.initialCourseId
+      ? props.initialCourseId
+      : goalFilter
+        ? String(goals.find((g) => g.id === goalFilter)?.course_id ?? "institucional")
+        : null,
   );
   const [semester, setSemester] = useState(() => {
     const now = new Date();
@@ -280,7 +280,7 @@ export default function RepositoryTab(props: RepositoryProps) {
   const [filter, setFilter] = useState("todos");
   const [configuring, setConfiguring] = useState(false);
   const [managing, setManaging] = useState(false);
-  const [upload, setUpload] = useState<string | null>(null);
+  const [upload, setUpload] = useState<string | null>(() => props.initialUpload ? (can.manageGoals(role) ? "novo" : "") : null);
   const [nsaRequest, setNsaRequest] = useState<Row | null>(null);
   const [reviewing, setReviewing] = useState<Row | null>(null);
   const [notice, setNotice] = useState("");
@@ -1229,7 +1229,7 @@ function UploadDialog(
   const [file, setFile] = useState<File | null>(null);
   const [reference, setReference] = useState("");
   const [note, setNote] = useState("");
-  const [customTitle, setCustomTitle] = useState("");
+  const [customTitle, setCustomTitle] = useState(props.initialDocumentTitle ?? "");
   const [goalId, setGoalId] = useState(props.goalFilter);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -1333,7 +1333,7 @@ function UploadDialog(
               ? repositoryDocumentCode(template.codigo, props.course)
               : null,
             indicator: template?.indicadores.join(", ") ?? null,
-            instructions: template?.finalidade ?? null,
+            instructions: template?.finalidade ?? props.initialDocumentInstructions ?? null,
             goal_id: goal?.id ?? null,
             assigned_to: goal?.owner_user_id ?? null,
             due_date: goal?.due_date ?? null,
