@@ -535,83 +535,59 @@ export default function DireitoRaioX({ institutionId }: Props) {
         <p className="drx-evasao-nota">*São situações observadas na extração para cada coorte de ingresso, e não necessariamente o quantitativo existente em cada semestre histórico. Clique no semestre para selecioná-lo e confrontar os dados.</p>
       </div>}
 
-      {/* ── Evasão: coorte, acumulada e comparação ── */}
-      {coortes.length > 0 && (
-        <div className="drx-section">
-          <div className="drx-section-header">
-            <h4>Evasão — por coorte, acumulada e comparada</h4>
-            <p className="drx-sub">Cada linha é a situação <strong>atual</strong> da turma que entrou naquele semestre, não o fluxo ocorrido durante ele. Turmas antigas tiveram mais tempo para perder vínculos, então a comparação direta entre uma turma de 2023 e a de 2026 não é de igual para igual.</p>
-          </div>
-
-          <div className="drx-evasao-resumo">
-            <div className="drx-evasao-card" style={{borderLeftColor: corTaxa(taxaAcumulada)}}>
-              <span className="drx-evasao-label">Evasão acumulada do curso</span>
-              <strong className="drx-evasao-valor" style={{color: corTaxa(taxaAcumulada)}}>{taxaAcumulada.toFixed(1)}%</strong>
-              <span className="drx-evasao-sub">{evadidosAcum} encerrados de {baseAcum} vínculos · {ativosAcum} ativos{concluidosAcum>0?` · ${concluidosAcum} concluídos`:""}</span>
-            </div>
-            <div className="drx-evasao-card" style={{borderLeftColor:"var(--warning)"}}>
-              <span className="drx-evasao-label">Composição da evasão</span>
-              <strong className="drx-evasao-valor" style={{color:"var(--warning)"}}>{statusGeral.TRANCADO||0}</strong>
-              <span className="drx-evasao-sub">trancados{baseAcum>0?` · ${(((statusGeral.TRANCADO||0)/baseAcum)*100).toFixed(0)}% de todos os vínculos`:""} · {statusGeral.CANCELADO||0} cancelados · {statusGeral.TRANSFERIDO||0} transferidos</span>
-            </div>
-          </div>
-
-          <h5 className="drx-evasao-h5">Semestre a semestre — turma de entrada</h5>
-          <div className="drx-table-wrap">
-            <table className="drx-table">
-              <thead><tr><th>Turma de entrada</th><th>Vínculos</th><th>Ativos</th><th>Evadidos</th><th>Taxa</th><th>Δ vs. turma anterior</th></tr></thead>
-              <tbody>
-                {coortes.map((c, i) => {
-                  const d = i === 0 ? null : c.taxa - coortes[i-1].taxa;
-                  return (
-                    <tr key={c.semestre}>
-                      <td><strong>{c.semestre}</strong></td>
-                      <td>{c.vinculos}</td>
-                      <td>{c.ativos}</td>
-                      <td>{c.evadidos}</td>
-                      <td><span className={`drx-chip ${chipTaxa(c.taxa)}`}>{c.taxa.toFixed(1)}%</span></td>
-                      <td>{d === null ? "—" : d < 0 ? <span className="drx-trend-down">▼ {pp(d)}</span> : d > 0 ? <span className="drx-trend-up">▲ {pp(d)}</span> : <span>→</span>}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          <h5 className="drx-evasao-h5">Comparação por ano de entrada</h5>
-          <div className="drx-table-wrap">
-            <table className="drx-table">
-              <thead><tr><th>Ano</th><th>Vínculos</th><th>Ativos</th><th>Evadidos</th><th>Taxa</th><th>Δ vs. ano anterior</th><th>Retenção</th></tr></thead>
-              <tbody>
-                {anos.map((a, i) => {
-                  const d = i === 0 ? null : a.taxa - anos[i-1].taxa;
-                  const ret = 100 - a.taxa;
-                  return (
-                    <tr key={a.ano}>
-                      <td><strong>{a.ano}</strong></td>
-                      <td>{a.vinculos}</td>
-                      <td>{a.ativos}</td>
-                      <td>{a.evadidos}</td>
-                      <td><span className={`drx-chip ${chipTaxa(a.taxa)}`}>{a.taxa.toFixed(1)}%</span></td>
-                      <td>{d === null ? "—" : d < 0 ? <span className="drx-trend-down">▼ {pp(d)}</span> : d > 0 ? <span className="drx-trend-up">▲ {pp(d)}</span> : <span>→</span>}</td>
-                      <td>
-                        <div className="drx-bar-wrap">
-                          <div className="drx-bar" style={{width:`${Math.max(0,Math.min(100,ret))}%`,background:corTaxa(a.taxa)}}/>
-                          <span>{ret.toFixed(1)}%</span>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          <p className="drx-evasao-nota">
-            Taxa = evadidos ÷ coorte inteira, onde evadidos = trancamento, abandono, cancelamento, transferência e troca de curso, e a coorte inteira inclui ativos, pré-matriculados, concluintes e evadidos. Concluir o curso não é evadir. É a mesma fórmula gravada na coluna <code>taxa_evasao</code> do banco.
-          </p>
+      {/* ── Evasão por coorte e comparação por ano de ingresso ── */}
+      {coortes.length>0&&<div className="drx-section" id="drx-coortes">
+        <div className="drx-section-header"><h4>Saídas classificadas, permanência e coortes de entrada</h4>
+          <p className="drx-sub">Fotografia da situação atual dos vínculos de cada turma ingressante, não as ocorrências geradas exclusivamente no semestre indicado.</p></div>
+        <div className="drx-definitions">
+          <p><strong>Captação:</strong> novos ingressantes efetivamente matriculados pela primeira vez na instituição ou curso no período. Não é igual a total de matrículas ativas nem total de vagas. Este relatório de situações por coorte não comprova a primeira matrícula individual; portanto a captação líquida permanece <strong>não apurada</strong>.</p>
+          <p><strong>Renovação / retenção:</strong> renovação é a confirmação de vínculo na passagem de um semestre para o seguinte; taxa de retenção é a proporção da população elegível que permaneceu vinculada nessa transição, após excluir conclusões e outras situações conforme metodologia homologada. <strong>Não pode ser calculada como 100% menos a taxa de saída</strong> desta tabela.</p>
+          <p><strong>Taxa de saídas classificadas:</strong> (trancamentos + abandonos + cancelamentos + transferências + trocas de curso) ÷ base da coorte × 100. Trancamento e transferência não significam obrigatoriamente evasão definitiva. <strong>VS.</strong> significa “em comparação com”; <strong>Δ</strong> é diferença; <strong>p.p.</strong> são pontos percentuais de diferença entre taxas.</p>
+          <p><strong>Turma anterior:</strong> coorte que ingressou no semestre anterior, e não os mesmos estudantes acompanhados longitudinalmente. Compará-las na data de extração significa comparar tempos de exposição diferentes. Para inferir retenção real ou evolução de evasão em igual tempo de curso, serão necessários dados individuais ou snapshots das mesmas coortes em datas equivalentes.</p>
         </div>
-      )}
+        <div className="drx-evasao-resumo">
+          <div className="drx-evasao-card" style={{borderLeftColor:corTaxa(taxaAcumulada)}}><span className="drx-evasao-label">Saídas classificadas acumuladas · indicador amplo</span><strong className="drx-evasao-valor" style={{color:corTaxa(taxaAcumulada)}}>{baseAcum>0?taxaAcumulada.toFixed(1)+"%":"Sem base"}</strong><span className="drx-evasao-sub">{evadidosAcum} saídas de {baseAcum} vínculos históricos. Não equivale à evasão definitiva auditada.</span></div>
+          <div className="drx-evasao-card" style={{borderLeftColor:"var(--warning)"}}><span className="drx-evasao-label">Trancamentos na base</span><strong className="drx-evasao-valor" style={{color:"var(--warning)"}}>{statusGeral.TRANCADO??0}</strong><span className="drx-evasao-sub">{statusGeral.CANCELADO??0} cancelamentos e {statusGeral.TRANSFERIDO??0} transferências registrados.</span></div>
+          <div className="drx-evasao-card" style={{borderLeftColor:"#2563eb"}}><span className="drx-evasao-label">Taxa de renovação real</span><strong className="drx-evasao-valor">Não apurada</strong><span className="drx-evasao-sub">Aguardando continuidade de vínculo entre dois semestres e população elegível conciliada.</span></div>
+          <div className="drx-evasao-card" style={{borderLeftColor:"#0f766e"}}><span className="drx-evasao-label">Captação efetiva</span><strong className="drx-evasao-valor">Não apurada</strong><span className="drx-evasao-sub">Aguardando identificação de primeiro vínculo de ingresso, transferências e reingressos.</span></div>
+        </div>
+        <h5 className="drx-evasao-h5">Comparativo por coorte de ingresso · semestre a semestre</h5>
+        <div className="drx-table-wrap"><table className="drx-table"><thead><tr><th>Coorte</th><th>Base</th><th>Ativos</th><th>Saídas classificadas</th><th>Taxa</th><th>VS. coorte anterior</th><th>VS. igual semestre do ano anterior</th><th>Sem saída classificada*</th></tr></thead>
+        <tbody>{coortes.map((c,i)=>{
+          const prior=i>0?coortes[i-1]:null;
+          const homologous=coortes.find(x=>x.semestre===String(Number(c.ano)-1)+c.semestre.slice(4));
+          const delta=prior?c.taxa-prior.taxa:null,deltaYear=homologous?c.taxa-homologous.taxa:null;
+          return <tr key={c.semestre} className={displayedSem===c.semestre?"drx-row-selected":undefined}>
+            <td><button type="button" className="drx-period-link" title="Usar esta coorte na comparação detalhada acima" aria-pressed={displayedSem===c.semestre} onClick={()=>{setSelectedSem(c.semestre);setCompareMode("anterior");}}>{c.semestre} ↗</button></td>
+            <td>{c.vinculos}</td><td>{c.ativos}</td><td>{c.evadidos}</td><td><span className={"drx-chip "+chipTaxa(c.taxa)}>{c.taxa.toFixed(1)}%</span></td>
+            <td>{delta===null?"Sem referência":(delta>0?"+":"")+delta.toFixed(1)+" p.p."}</td>
+            <td>{deltaYear===null?"Sem referência":(deltaYear>0?"+":"")+deltaYear.toFixed(1)+" p.p."}</td>
+            <td>{c.vinculos>0?(100-c.taxa).toFixed(1)+"%":"—"}</td>
+          </tr>;
+        })}</tbody></table></div>
+        <p className="drx-evasao-nota">*O complemento de saídas contempla ativos, pré-matriculados e concluintes; não é a taxa de renovação. “VS.” representa apenas comparação descritiva entre coortes, não comparação da mesma população ao longo do tempo.</p>
+
+        <h5 className="drx-evasao-h5">Confronto por ano de entrada</h5>
+        <div className="drx-compare-controls">
+          <label>Ano de referência<select value={firstYear} onChange={e=>setSelectedYear(e.target.value)}>{yearsAvailable.map(year=><option key={year} value={year}>{year}</option>)}</select></label>
+          <label>Ano de comparação<select value={otherYear} onChange={e=>setComparisonYear(e.target.value)}>{yearsAvailable.map(year=><option key={year} value={year}>{year}</option>)}</select></label>
+        </div>
+        {firstYearRow&&otherYearRow?<div className="drx-compare-breakdown">
+          <div className="drx-table-wrap"><table className="drx-table"><thead><tr><th>Indicador</th><th>{firstYear}</th><th>{otherYear}</th><th>Diferença</th></tr></thead>
+            <tbody>{([
+              ["Vínculos da base de coortes",firstYearRow.vinculos,otherYearRow.vinculos],
+              ["Ativos",firstYearRow.ativos,otherYearRow.ativos],
+              ["Saídas classificadas",firstYearRow.evadidos,otherYearRow.evadidos],
+              ["Concluintes",firstYearRow.concluintes,otherYearRow.concluintes]
+            ] as [string,number,number][]).map(([label,a,b])=><tr key={label}><td>{label}</td><td>{a}</td><td>{b}</td><td>{a-b>0?"+":""}{a-b}</td></tr>)}
+            <tr><td>Taxa de saídas classificadas</td><td>{firstYearRow.taxa.toFixed(1)}%</td><td>{otherYearRow.taxa.toFixed(1)}%</td><td>{(firstYearRow.taxa-otherYearRow.taxa>0?"+":"")+(firstYearRow.taxa-otherYearRow.taxa).toFixed(1)} p.p.</td></tr>
+            </tbody></table></div>
+          <p className="drx-comparison-note">Os anos agrupam coortes ingressantes em períodos diferentes. O confronto é descritivo, sem equivalência de idade da coorte; não mede melhoria causal nem renovação anual.</p>
+        </div>:<p className="drx-comparison-note">Sem dois anos de origem comparáveis na fonte.</p>}
+        <div className="drx-table-wrap"><table className="drx-table"><thead><tr><th>Ano de ingresso</th><th>Vínculos da base</th><th>Ativos</th><th>Saídas classificadas</th><th>Taxa de saída</th><th>Sem saída classificada*</th></tr></thead>
+          <tbody>{anos.map(a=><tr key={a.ano} className={firstYear===a.ano?"drx-row-selected":undefined}><td><button type="button" className="drx-period-link" onClick={()=>setSelectedYear(a.ano)}>{a.ano} ↗</button></td><td>{a.vinculos}</td><td>{a.ativos}</td><td>{a.evadidos}</td><td>{a.taxa.toFixed(1)}%</td><td>{(100-a.taxa).toFixed(1)}%</td></tr>)}</tbody></table></div>
+        <p className="drx-evasao-nota">Taxa operacional = saídas classificadas ÷ base integral da coorte. Conclusão não é evasão. O painel preserva os dados originais; nenhuma inferência de captação ou renovação individual foi acrescentada.</p>
+      </div>}
 
       {/* ── Diagnóstico nominal ── */}
       <div className="drx-section">
