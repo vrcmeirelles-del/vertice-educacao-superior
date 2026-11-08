@@ -9,6 +9,19 @@ const SEM_IDS: Record<string,number> = {"2023/01":41,"2023/02":42,"2024/01":43,"
 const GHOST_SITS = new Set(["CA","RF","AC","AB","TR"]);
 const SIT_LABELS: Record<string,string> = {AD:"Aprovado Direto",AF:"Aprovado Final",RF:"Reprov. Falta",RN:"Reprov. Nota",RA:"Reprov. Ambos",TR:"Transferido",CA:"Cancelado",AC:"Abandono",CR:"Concluído c/ Ressalva",AB:"Abandono"};
 
+type CompareMode = "anterior"|"homologo"|"livre";
+const valueNum=(v:unknown):number=>typeof v==="number"&&Number.isFinite(v)?v:Number(v)||0;
+function movement(s:any){
+  const withdrawn=valueNum(s?.trancado),abandoned=valueNum(s?.abandono),canceled=valueNum(s?.cancelado),transferred=valueNum(s?.transferido),changed=valueNum(s?.troca_curso);
+  const out=withdrawn+abandoned+canceled+transferred+changed;
+  const active=valueNum(s?.matriculados),pre=valueNum(s?.pre_matriculado),finished=valueNum(s?.concluido)+valueNum(s?.graduado);
+  const denominator=active+pre+finished+out;
+  return {out,active,pre,finished,denominator,rate:denominator>0?100*out/denominator:null};
+}
+function occupancy(s:any){
+  const enrolled=valueNum(s?.matriculados),vacancies=valueNum(s?.vagas);
+  return vacancies>0?100*enrolled/vacancies:null;
+}
 const SEM_POR_ID: Record<number,string> = Object.fromEntries(
   Object.entries(SEM_IDS).map(([sem, id]) => [id, sem]),
 ) as Record<number,string>;
@@ -46,6 +59,13 @@ export default function DireitoRaioX({ institutionId }: Props) {
   const [buscaAluno, setBuscaAluno] = useState("");
   const [profRes, setProfRes] = useState<any[]>([]);
   const [profResErro, setProfResErro] = useState<string>("");
+  const [selectedSem,setSelectedSem]=useState("");
+  const [compareMode,setCompareMode]=useState<CompareMode>("homologo");
+  const [comparisonSem,setComparisonSem]=useState("");
+  const [selectedMetric,setSelectedMetric]=useState("");
+  const [selectedYear,setSelectedYear]=useState("");
+  const [comparisonYear,setComparisonYear]=useState("");
+
 
   useEffect(() => {
     let active = true;
@@ -171,6 +191,22 @@ export default function DireitoRaioX({ institutionId }: Props) {
     return { ano, vinculos, ativos, evadidos, concluintes, taxa: vinculos>0 ? (evadidos/vinculos)*100 : 0 };
   });
 
+  const periodLabels=semFiltered.map(s=>String(s.semestre)).sort();
+  const displayedSem=periodLabels.includes(selectedSem)?selectedSem:(periodLabels.at(-1)??"");
+  const selectedPeriod=semFiltered.find(s=>String(s.semestre)===displayedSem);
+  const prevIndex=periodLabels.indexOf(displayedSem)-1;
+  const previousLabel=prevIndex>=0?periodLabels[prevIndex]:"";
+  const homologousLabel=displayedSem?String(Number(displayedSem.slice(0,4))-1)+displayedSem.slice(4):"";
+  const comparisonLabel=compareMode==="anterior"?previousLabel:compareMode==="homologo"?periodLabels.includes(homologousLabel)?homologousLabel:"":periodLabels.includes(comparisonSem)?comparisonSem:"";
+  const comparisonPeriod=semFiltered.find(s=>String(s.semestre)===comparisonLabel);
+  const selectedMove=selectedPeriod?movement(selectedPeriod):null;
+  const comparedMove=comparisonPeriod?movement(comparisonPeriod):null;
+  const yearsAvailable=anos.map(x=>x.ano);
+  const firstYear=yearsAvailable.includes(selectedYear)?selectedYear:(yearsAvailable.at(-1)??"");
+  const otherYear=yearsAvailable.includes(comparisonYear)?comparisonYear:(yearsAvailable.at(-2)??"");
+  const firstYearRow=anos.find(a=>a.ano===firstYear),otherYearRow=anos.find(a=>a.ano===otherYear);
+  const pctChange=(current:number,previous:number)=>previous>0?((current-previous)/previous*100).toFixed(1)+"%":"Não comparável";
+
   // Diagnostico nominal: um aluno aparece em varias turmas/semestres.
   // Agrupa por matricula (ou nome, quando nao ha matricula) para montar a trajetoria.
   const trajetorias = (() => {
@@ -245,15 +281,27 @@ export default function DireitoRaioX({ institutionId }: Props) {
           {label:"Trancados",value:trancados,sub:totalGeral>0?`${((trancados/totalGeral)*100).toFixed(0)}% do total`:"",color:"var(--warning)",icon:"⏸️"},
           {label:"Cancelados",value:cancelados,sub:totalGeral>0?`${((cancelados/totalGeral)*100).toFixed(0)}% do total`:"",color:"var(--danger)",icon:"❌"},
         ].map((kpi,i) => (
-          <div key={i} className="drx-kpi" style={{"--kpi-color":kpi.color} as React.CSSProperties}>
+          <button type="button" key={i} className="drx-kpi drx-kpi-action" aria-pressed={selectedMetric===kpi.label} onClick={()=>setSelectedMetric(current=>current===kpi.label?"":kpi.label)} style={{"--kpi-color":kpi.color} as React.CSSProperties} title="Abrir explicação e detalhamento deste indicador">
             <div className="drx-kpi-icon">{kpi.icon}</div>
             <small>{kpi.label}</small>
             <strong>{kpi.value}</strong>
-            <span>{kpi.sub}</span>
-          </div>
+            <span>{kpi.sub}</span><span className="drx-kpi-open">Consultar definição e dados ↗</span>
+          </button>
         ))}
       </div>
 
+      {selectedMetric&&<section className="drx-detail" aria-live="polite"><div className="drx-compare-top"><h4>{selectedMetric} · interpretação</h4><button type="button" onClick={()=>setSelectedMetric("")}>Fechar</button></div>
+        <p>{({
+          "Matriculados":"Estoque de vínculos classificados MATRICULADO no recorte de Direito. Não significa captação nem alunos únicos de toda a instituição.",
+          "Vínculos Totais":"Base cumulativa de vínculos e situações informadas desde 2023/01, incluindo estados diferentes. Não é o total atual de matriculados.",
+          "Evasão acumulada":"Indicador operacional composto por trancamentos, abandonos, cancelamentos, transferências e trocas de curso divididos pela base cumulativa. Transferência e trancamento não são necessariamente evasão definitiva. Não compara coortes com tempos de exposição distintos.",
+          "Evasão da turma nova":"Percentual operacional de eventos de saída na coorte mais recente; por possuir menor tempo de acompanhamento, não deve ser comparado diretamente a coortes antigas.",
+          "Corpo Docente":"Quantidade registrada na fonte docente identificada no período indicado, não equivalente a docentes ativos hoje sem revalidação.",
+          "Trancados":"Vínculos classificados como trancados; trancamento pode ser temporário e não comprova desligamento definitivo.",
+          "Cancelados":"Vínculos classificados como cancelados. A soma de estados não substitui estudo longitudinal por matrícula."
+        } as Record<string,string>)[selectedMetric]??"Indicador agregado da fonte acadêmica, sujeito à validação."}</p>
+        <p><strong>Como explorar:</strong> utilize a comparação de semestres e o quadro das coortes abaixo. Os valores são agregados e não identificam pessoas únicas automaticamente.</p>
+      </section>}
       {/* ── Série Histórica Real — Accordion ── */}
       {serieReal?.semestres && (
         <div className="drx-section">
