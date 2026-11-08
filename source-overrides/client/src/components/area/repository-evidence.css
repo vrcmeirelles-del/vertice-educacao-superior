@@ -695,3 +695,95 @@
 .er-dimension,.er-indicator{border:1px solid var(--er-border,#ddd);border-radius:12px;margin:12px 0;background:#fff}.er-dimension>summary,.er-indicator>summary{cursor:pointer;padding:18px;display:flex;gap:16px;justify-content:space-between;align-items:center;list-style:revert}.er-dimension>summary span,.er-indicator>summary span{font-size:12px;color:#596579}.er-dimension[open]{padding-bottom:10px}.er-indicator{margin:10px 16px}.er-file-details{font-size:12px;color:#596579;margin-top:8px;max-width:55ch}.er-file-details summary{cursor:pointer}.er-file-details p{white-space:pre-wrap;overflow-wrap:anywhere}.er-classify{display:grid;gap:12px;padding:18px;background:#f5f7fa}.er-classify label{display:grid;gap:6px}.er-classify input,.er-classify select,.er-classify textarea{padding:8px;border:1px solid #ccd3df;border-radius:6px}@media(max-width:650px){.er-dimension>summary,.er-indicator>summary{align-items:flex-start;flex-direction:column;gap:6px}}
 
 .er-dimension>summary::before,.er-indicator>summary::before{content:"▸";color:#0e5330}.er-dimension[open]>summary::before,.er-indicator[open]>summary::before{content:"▾"}
+
+
+/* Reconhecimento de Curso: mesma linguagem visual do Novo Instrumento,
+   mantendo semântica documental (validação ≠ conceito regulatório). */
+.er-instrument-visual {
+  --er-navy: #243653;
+  --er-blue: #328ea8;
+  --er-line: #dce5ed;
+  --er-muted: #5c6c7c;
+  --er-bg: #f6f8fa;
+}
+.er-instrument-visual .er-top {
+  background: linear-gradient(110deg, #243653, #24566c);
+}
+.er-instrument-visual .er-brand > span {
+  background: #328ea8;
+}
+.er-instrument-visual .er-content > .er-instrument-summary {
+  padding: 20px;
+  margin: 0 0 20px;
+}
+.er-instrument-summary .ni-summary {
+  grid-template-columns: minmax(260px, 1fr) minmax(0, 1.6fr);
+  gap: 20px;
+  margin: 0;
+}
+.er-instrument-summary .ni-summary-main {
+  margin: 0;
+}
+.er-instrument-summary .ni-dims {
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+.er-instrument-summary .ni-dim-card {
+  background: #fff;
+  border-color: #dce5ed;
+  box-shadow: 0 2px 8px rgba(36,54,83,.05);
+  min-width: 0;
+}
+.er-instrument-summary .ni-dim-card strong {
+  font-size: .91rem;
+  line-height: 1.3;
+}
+.er-instrument-visual .er-tabs.ni-subtabs {
+  display: flex;
+  flex-wrap: wrap;
+  overflow: visible;
+  gap: 5px;
+  background: #e8edf2;
+  border: 0;
+  padding: 5px;
+  border-radius: 10px;
+  margin: 0 0 16px;
+}
+.er-instrument-visual .er-tabs.ni-subtabs button {
+  border: 0;
+  border-radius: 7px;
+  padding: 9px 12px;
+  font-size: .86rem;
+}
+.er-instrument-visual .er-tabs.ni-subtabs button.active {
+  background: #fff;
+  color: #243653;
+  box-shadow: 0 1px 5px #24365325;
+}
+.er-instrument-visual .er-dimension-filter {
+  padding: 12px 16px;
+  background: #f0f5f7;
+  border: 1px solid #dce5ed;
+  border-radius: 10px;
+}
+.er-instrument-visual .er-dimension {
+  border-color: #dce5ed;
+  box-shadow: 0 2px 8px #2436530b;
+}
+.er-instrument-visual .er-dimension > summary {
+  background: #f3f7f9;
+  border-radius: 10px;
+}
+.er-instrument-visual .er-indicator {
+  border-color: #e2e8ee;
+}
+.er-instrument-visual .er-dimension > summary::before,
+.er-instrument-visual .er-indicator > summary::before {
+  color: #328ea8;
+}
+@media (max-width: 960px) {
+  .er-instrument-summary .ni-summary { grid-template-columns: 1fr; }
+}
+@media (max-width: 680px) {
+  .er-instrument-summary .ni-dims { grid-template-columns: 1fr; }
+  .er-instrument-visual .er-tabs.ni-subtabs button { flex: 1 1 auto; }
+}
