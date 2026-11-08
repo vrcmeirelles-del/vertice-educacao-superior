@@ -20,7 +20,7 @@ const SUBS: [Sub, string][] = [
   ["cpa", "CPA"],
 ];
 
-type Props = { institutionId: string; role: Role | null; courses: Row[]; onOpenRecredenciamento?: () => void };
+type Props = { institutionId: string; role: Role | null; courses: Row[] };
 type Shared = {
   institutionId: string;
   role: Role | null;
@@ -29,7 +29,7 @@ type Shared = {
   fail: (e: unknown) => void;
 };
 
-export default function NovoInstrumento({ institutionId, role, courses, onOpenRecredenciamento }: Props) {
+export default function NovoInstrumento({ institutionId, role, courses }: Props) {
   const [sub, setSub] = useState<Sub>("checklist");
   const [data, setData] = useState<DadosInstrumento>(VAZIO);
   const [loading, setLoading] = useState(true);
