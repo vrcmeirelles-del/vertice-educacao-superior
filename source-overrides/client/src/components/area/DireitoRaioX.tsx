@@ -57,8 +57,6 @@ export default function DireitoRaioX({ institutionId }: Props) {
   const [roster, setRoster] = useState<any[]>([]);
   const [rosterErro, setRosterErro] = useState<string>("");
   const [buscaAluno, setBuscaAluno] = useState("");
-  const [profRes, setProfRes] = useState<any[]>([]);
-  const [profResErro, setProfResErro] = useState<string>("");
   const [docenciaOfertas,setDocenciaOfertas]=useState<{id:string;semestre:string;curso:string;turma:string;periodo:string;nome:string;disciplina:string;rf:number;rn:number;ra:number;matriculas:number}[]>([]);
   const [docenciaStatus,setDocenciaStatus]=useState<"loading"|"ready"|"error">("loading");
   const [docenciaSem,setDocenciaSem]=useState("2026/02");
@@ -99,15 +97,6 @@ export default function DireitoRaioX({ institutionId }: Props) {
       setDocenciaStatus("ready");
     })();
     if (institutionId !== UNITOP_ID) { setLoading(false); return () => { active = false; }; }
-    (async () => {
-      const pr = await supabase.from("vertice_eorbit_professor_resultados")
-        .select("professor,disciplina,turma_nome,semestre_id,total,aprovados,reprov_nota,reprov_falta,reprov_ambos,outros")
-        .eq("instituicao_id", UNITOP_ID).eq("curso_id", 46);
-      if (active) {
-        if (pr.error) { setProfResErro(motivoBloqueio(pr.error).replace("dados nominais","resultados por professor")); setProfRes([]); }
-        else { setProfResErro(""); setProfRes(pr.data ?? []); }
-      }
-    })();
     (async () => {
       try {
         const [courseStats, classStats, source, nominal] = await Promise.all([
