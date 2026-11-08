@@ -86,7 +86,7 @@ export default function NovoInstrumento({ institutionId, role, courses }: Props)
             {l}
           </button>
         ))}
-      </div>
+      </div>}
       {!can.record(role) && tipo === "curso" && <p className="area-note">Seu perfil é de leitura: você acompanha o diagnóstico, mas não altera os registros.</p>}
       {error && <p role="alert" className="area-error">{error}</p>}
       {tipo === "institucional" ? (
