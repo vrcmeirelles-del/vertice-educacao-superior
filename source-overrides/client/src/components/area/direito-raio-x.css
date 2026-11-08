@@ -159,3 +159,15 @@
 .drx-evasao-h5{margin:22px 0 8px;font-size:.95rem;color:#243653}
 .drx-evasao-nota{margin:14px 0 0;font-size:.76rem;color:#6b7889;line-height:1.5}
 .drx-evasao-nota code{background:#f1f4f8;border-radius:4px;padding:1px 5px;font-size:.73rem}
+
+/* ── Diagnóstico nominal ── */
+.drx-alunos-bloqueado{margin:0;padding:14px 16px;background:#fff7ed;border:1px solid #fed7aa;border-left:4px solid #ea580c;border-radius:10px;color:#7c3a10;font-size:.84rem;line-height:1.55}
+.drx-roster-topo{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;justify-content:space-between;margin:4px 0 14px}
+.drx-roster-busca{display:flex;flex-direction:column;gap:5px;font-size:.78rem;color:#5d6b7c;font-weight:600}
+.drx-roster-busca input{min-width:240px;padding:8px 11px;border:1px solid #cbd5df;border-radius:8px;font:inherit;color:#243653}
+.drx-roster-contagem{font-size:.8rem;color:#5d6b7c}
+.drx-traj{display:flex;flex-wrap:wrap;gap:4px;max-width:420px}
+.drx-traj-passo{font-size:.68rem;padding:2px 7px;border-radius:5px;white-space:nowrap;border:1px solid transparent}
+.drx-traj-ok{background:#ecfdf5;color:#166534;border-color:#bbf7d0}
+.drx-traj-rep{background:#fef2f2;color:#991b1b;border-color:#fecaca}
+.drx-traj-out{background:#f3f4f6;color:#4b5563;border-color:#e5e7eb}

@@ -9,6 +9,21 @@ const SEM_IDS: Record<string,number> = {"2023/01":41,"2023/02":42,"2024/01":43,"
 const GHOST_SITS = new Set(["CA","RF","AC","AB","TR"]);
 const SIT_LABELS: Record<string,string> = {AD:"Aprovado Direto",AF:"Aprovado Final",RF:"Reprov. Falta",RN:"Reprov. Nota",RA:"Reprov. Ambos",TR:"Transferido",CA:"Cancelado",AC:"Abandono",CR:"Concluído c/ Ressalva",AB:"Abandono"};
 
+const SEM_POR_ID: Record<number,string> = Object.fromEntries(
+  Object.entries(SEM_IDS).map(([sem, id]) => [id, sem]),
+) as Record<number,string>;
+
+// Um 403 do PostgREST significa falta de GRANT na tabela, nao ausencia de registro.
+// Exibir "nenhum registro" nesse caso esconde o defeito real.
+function motivoBloqueio(error: any): string {
+  const code = String(error?.code ?? "");
+  const msg = String(error?.message ?? "");
+  if (code === "42501" || /permission denied/i.test(msg)) {
+    return "Sem permissão de leitura nos dados nominais. Falta GRANT SELECT em vertice_eorbit_alunos para o papel authenticated — a regra de acesso (sessão com segundo fator e papel gestor/reitor/diretor/master) continua valendo e não foi afrouxada.";
+  }
+  return `Não foi possível ler os dados nominais${msg ? `: ${msg}` : "."}`;
+}
+
 export default function DireitoRaioX({ institutionId }: Props) {
   const [semData, setSemData] = useState<any[]>([]);
   const [turmaData, setTurmaData] = useState<any[]>([]);
@@ -25,6 +40,10 @@ export default function DireitoRaioX({ institutionId }: Props) {
   const [openTurma, setOpenTurma] = useState<string|null>(null);
   const [turmaAlunos, setTurmaAlunos] = useState<Record<string, any[]>>({});
   const [loadingTurma, setLoadingTurma] = useState<string|null>(null);
+  const [turmaErro, setTurmaErro] = useState<Record<string,string>>({});
+  const [roster, setRoster] = useState<any[]>([]);
+  const [rosterErro, setRosterErro] = useState<string>("");
+  const [buscaAluno, setBuscaAluno] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -34,13 +53,16 @@ export default function DireitoRaioX({ institutionId }: Props) {
     if (institutionId !== UNITOP_ID) { setLoading(false); return () => { active = false; }; }
     (async () => {
       try {
-        const [courseStats, classStats, source] = await Promise.all([
+        const [courseStats, classStats, source, nominal] = await Promise.all([
           supabase.from("vertice_course_semester_stats").select("*").eq("institution_id", institutionId).ilike("curso", "%DIREITO%").order("semestre"),
           supabase.from("vertice_turma_stats").select("*").eq("institution_id", institutionId).ilike("curso", "%DIREITO%").order("semestre"),
           supabase.from("vertice_eorbit_direito_raio_x").select("tipo,dados,data_extracao,created_at").eq("institution_id", institutionId).order("created_at"),
+          supabase.from("vertice_eorbit_alunos").select("nome_aluno,matricula,situacao,turma_nome,semestre_id,periodo").eq("curso_id", 46).order("nome_aluno"),
         ]);
         if (!active) return;
         if (courseStats.error || classStats.error || source.error) { setSourceStatus("error"); return; }
+        if (nominal.error) { setRosterErro(motivoBloqueio(nominal.error)); setRoster([]); }
+        else { setRosterErro(""); setRoster(nominal.data ?? []); }
         setSemData(courseStats.data ?? []);
         setTurmaData(classStats.data ?? []);
         const rx = source.data ?? [];
@@ -72,11 +94,16 @@ export default function DireitoRaioX({ institutionId }: Props) {
     if (!semId) return;
     setLoadingTurma(key);
     try {
-      const { data } = await supabase.from("vertice_eorbit_alunos")
+      const { data, error } = await supabase.from("vertice_eorbit_alunos")
         .select("nome_aluno,matricula,situacao")
         .eq("semestre_id", semId).eq("curso_id", 46).eq("turma_nome", turma)
         .order("nome_aluno");
-      if (data) setTurmaAlunos(prev => ({...prev, [key]: data}));
+      if (error) {
+        setTurmaErro(prev => ({...prev, [key]: motivoBloqueio(error)}));
+      } else {
+        setTurmaErro(prev => { const n = {...prev}; delete n[key]; return n; });
+        setTurmaAlunos(prev => ({...prev, [key]: data ?? []}));
+      }
     } finally { setLoadingTurma(null); }
   }, [openTurma, turmaAlunos]);
 
@@ -132,6 +159,34 @@ export default function DireitoRaioX({ institutionId }: Props) {
     const concluintes = rows.reduce((a,c)=>a+c.concluintes,0);
     return { ano, vinculos, ativos, evadidos, concluintes, taxa: vinculos>0 ? (evadidos/vinculos)*100 : 0 };
   });
+
+  // Diagnostico nominal: um aluno aparece em varias turmas/semestres.
+  // Agrupa por matricula (ou nome, quando nao ha matricula) para montar a trajetoria.
+  const trajetorias = (() => {
+    const mapa = new Map<string, {nome: string; matricula: string; passagens: {sem: string; turma: string; situacao: string; periodo: string}[]}>();
+    for (const r of roster) {
+      const chave = String(r.matricula || r.nome_aluno || "").trim() || "—";
+      if (!mapa.has(chave)) mapa.set(chave, { nome: String(r.nome_aluno ?? "—"), matricula: String(r.matricula ?? "—"), passagens: [] });
+      mapa.get(chave)!.passagens.push({
+        sem: SEM_POR_ID[Number(r.semestre_id)] ?? String(r.semestre_id),
+        turma: String(r.turma_nome ?? "—"),
+        situacao: String(r.situacao ?? "—"),
+        periodo: String(r.periodo ?? ""),
+      });
+    }
+    return [...mapa.values()].map(a => {
+      const passagens = a.passagens.sort((x,y) => x.sem.localeCompare(y.sem));
+      const ultima = passagens[passagens.length-1];
+      const reprovacoes = passagens.filter(p => p.situacao === "RF" || p.situacao === "RN" || p.situacao === "RA").length;
+      const inativo = ultima ? GHOST_SITS.has(ultima.situacao) : false;
+      return { ...a, passagens, ultima, reprovacoes, inativo, semestres: passagens.length };
+    }).sort((x,y) => y.reprovacoes - x.reprovacoes || x.nome.localeCompare(y.nome));
+  })();
+
+  const termoBusca = buscaAluno.trim().toLowerCase();
+  const trajetoriasFiltradas = termoBusca
+    ? trajetorias.filter(a => a.nome.toLowerCase().includes(termoBusca) || a.matricula.toLowerCase().includes(termoBusca))
+    : trajetorias;
 
   const corTaxa = (t: number) => t > 40 ? "var(--danger)" : t > 25 ? "var(--warning)" : "var(--success)";
   const chipTaxa = (t: number) => t > 40 ? "drx-chip-red" : t > 25 ? "drx-chip-yellow" : "drx-chip-green";
@@ -236,6 +291,8 @@ export default function DireitoRaioX({ institutionId }: Props) {
                               <div className="drx-alunos-panel">
                                 {isLoading ? (
                                   <div className="drx-alunos-loading"><div className="drx-spinner"/>Buscando alunos…</div>
+                                ) : turmaErro[turmaKey] ? (
+                                  <p className="drx-alunos-bloqueado">{turmaErro[turmaKey]}</p>
                                 ) : alunos.length === 0 ? (
                                   <p className="drx-alunos-empty">Nenhum registro nominal encontrado para esta turma.</p>
                                 ) : (
@@ -423,6 +480,58 @@ export default function DireitoRaioX({ institutionId }: Props) {
           </p>
         </div>
       )}
+
+      {/* ── Diagnóstico nominal ── */}
+      <div className="drx-section">
+        <div className="drx-section-header">
+          <h4>Diagnóstico nominal — trajetória por aluno</h4>
+          <p className="drx-sub">Um aluno aparece em vários semestres. Aqui cada linha é um aluno, com a passagem por turma e a situação em cada semestre. Ordenado por quem acumula mais reprovações. Camada 2: exige sessão com segundo fator e papel restrito.</p>
+        </div>
+        {rosterErro ? (
+          <p className="drx-alunos-bloqueado">{rosterErro}</p>
+        ) : roster.length === 0 ? (
+          <p className="drx-alunos-empty">Nenhum registro nominal disponível para o curso.</p>
+        ) : (
+          <>
+            <div className="drx-roster-topo">
+              <label className="drx-roster-busca">
+                Buscar aluno
+                <input type="search" value={buscaAluno} onChange={e => setBuscaAluno(e.target.value)} placeholder="Nome ou matrícula" />
+              </label>
+              <span className="drx-roster-contagem">
+                {trajetoriasFiltradas.length} de {trajetorias.length} alunos · {trajetorias.filter(a => a.reprovacoes > 0).length} com ao menos uma reprovação · {trajetorias.filter(a => a.inativo).length} inativos na última passagem
+              </span>
+            </div>
+            <div className="drx-table-wrap">
+              <table className="drx-table">
+                <thead><tr><th>Aluno</th><th>Matrícula</th><th>Semestres</th><th>Reprovações</th><th>Situação atual</th><th>Trajetória</th></tr></thead>
+                <tbody>
+                  {trajetoriasFiltradas.slice(0, 200).map((a, i) => (
+                    <tr key={`${a.matricula}-${i}`}>
+                      <td><strong>{a.nome}</strong></td>
+                      <td>{a.matricula}</td>
+                      <td>{a.semestres}</td>
+                      <td>{a.reprovacoes > 0 ? <span className="drx-chip drx-chip-red">{a.reprovacoes}</span> : <span className="drx-chip drx-chip-green">0</span>}</td>
+                      <td>{a.ultima ? <span className={`drx-sit ${a.inativo ? "drx-sit-bad" : "drx-sit-ok"}`}>{SIT_LABELS[a.ultima.situacao] ?? a.ultima.situacao}</span> : "—"}</td>
+                      <td>
+                        <div className="drx-traj">
+                          {a.passagens.map((p, j) => (
+                            <span key={j} className={`drx-traj-passo ${p.situacao === "RF" || p.situacao === "RN" || p.situacao === "RA" ? "drx-traj-rep" : GHOST_SITS.has(p.situacao) ? "drx-traj-out" : "drx-traj-ok"}`} title={`${p.sem} · ${p.turma} · ${SIT_LABELS[p.situacao] ?? p.situacao}`}>
+                              {p.sem} {p.turma}
+                            </span>
+                          ))}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {trajetoriasFiltradas.length > 200 && <p className="drx-evasao-nota">Exibindo os 200 primeiros de {trajetoriasFiltradas.length}. Use a busca para localizar um aluno.</p>}
+            <p className="drx-evasao-nota">Situação por semestre, não por disciplina. O cruzamento aluno × disciplina × nota ainda não existe no banco e depende de nova extração do e-ORBIT.</p>
+          </>
+        )}
+      </div>
 
       {/* ── Corpo Docente ── */}
       {profData && (
