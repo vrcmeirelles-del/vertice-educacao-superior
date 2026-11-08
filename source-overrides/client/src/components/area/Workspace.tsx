@@ -241,7 +241,7 @@ export default function Workspace({
       ) : tab === "novo_instrumento" ? (
         <NovoInstrumento institutionId={id} role={role} courses={data.courses} />
       ) : tab === "avaliacao" ? (
-        <AvaliacaoInstitucional key={id} />
+        <AvaliacaoInstitucional key={id} onRepository={() => choose("repositorio")} />
       ) : tab === "resultado-curso" ? (
         role === "master" || role === "gestor" ? <ResultadoCursoBI institutionId={id} institutionName={String(institution.name)}/> : <p>O módulo de resultado por curso é reservado ao Gestor da instituição e ao Master.</p>
       ) : tab === "simulador" ? (
