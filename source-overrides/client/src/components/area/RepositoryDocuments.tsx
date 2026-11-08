@@ -48,6 +48,10 @@ export type RepositoryProps = {
   reload: () => Promise<void>;
   initialCourseId?: string;
   requestFocus?: string;
+  /** Abrir o mesmo formulário de upload a partir dos instrumentos, preservando o escopo. */
+  initialUpload?: boolean;
+  initialDocumentTitle?: string;
+  initialDocumentInstructions?: string;
 };
 export default function RepositoryDocuments({
   institutionId,
