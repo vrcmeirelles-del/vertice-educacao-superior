@@ -1,6 +1,7 @@
 import "@/lib/ies/preAuthGuard";
 import "@/lib/master-invitation-bootstrap";
 import './pages/public/commercial-demo.css';
+import './components/bi/premium-bi.css';
 import "./styles/aquisicoes.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { httpBatchLink } from "@trpc/client";
