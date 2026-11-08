@@ -101,12 +101,11 @@ export function aggregateBI(leads: Lead[], custos: CustoCaptacao[], snapshots: C
   // Funil
   const funnelMap = new Map<string, number>();
   for (const l of leads) funnelMap.set(l.etapa_funil, (funnelMap.get(l.etapa_funil) ?? 0) + 1);
-  // Funil acumulado (cada etapa inclui os anteriores)
-  let accumulated = 0;
-  const funnel: FunnelStage[] = FUNIL_ORDER.map(stage => {
-    accumulated += funnelMap.get(stage) ?? 0;
-    return { stage: FUNIL_LABELS[stage] ?? stage, count: accumulated };
-  }).reverse();
+  // Contagem por estágio registrado. Não presumir que um lead percorreu etapas anteriores.
+  const funnel: FunnelStage[] = FUNIL_ORDER.map(stage => ({
+    stage: FUNIL_LABELS[stage] ?? stage,
+    count: funnelMap.get(stage) ?? 0,
+  }));
 
   // Leads por origem
   const origemMap = new Map<string, number>();
