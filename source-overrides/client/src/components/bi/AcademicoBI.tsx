@@ -628,7 +628,7 @@ function EvasaoRenovacao({ report, cursos }: { report: CohortsReport | null; cur
 
   return <div className="abi-sim">
     <div className="abi-cmp-summary">
-      <article className="abi-cmp-tile"><span className="abi-kpi-label">Base analisada</span><strong>{fmt.format(r.ingressantes)}</strong><small>vínculos nas coortes apuradas</small></article>
+      <article className="abi-cmp-tile"><span className="abi-kpi-label">Base analisada</span><strong>{fmt.format(r.ingressantes)}</strong><small>vínculos nos grupos de ingresso apurados</small></article>
       <article className="abi-cmp-tile"><span className="abi-kpi-label">Taxa de renovação</span><strong style={{ color: GREEN }}>{fmtPct(r.taxaRenovacao)}</strong><small>{fmt.format(r.renovaram)} renovaram</small></article>
       <article className="abi-cmp-tile"><span className="abi-kpi-label">Taxa de evasão</span><strong style={{ color: RED }}>{fmtPct(r.taxaEvasao)}</strong><small>{fmt.format(r.evadiram)} não renovaram</small></article>
       <article className="abi-cmp-tile"><span className="abi-kpi-label">Retornaram após intervalo</span><strong style={{ color: COLORS[0] }}>{fmt.format(r.retornaram)}</strong><small>saíram e voltaram</small></article>
@@ -651,9 +651,9 @@ function EvasaoRenovacao({ report, cursos }: { report: CohortsReport | null; cur
     </article>
 
     <article className="abi-card abi-card-wide">
-      <h3>Renovação por coorte de ingresso</h3>
+      <h3>Renovação por turma de ingresso</h3>
       <table className="abi-table">
-        <thead><tr><th>Coorte</th><th>Ingressantes</th><th>Renovaram</th><th>Evadiram</th><th>— com desemp.</th><th>— sem desemp.</th><th>Renovação</th></tr></thead>
+        <thead><tr><th>Turma de ingresso</th><th>Ingressantes</th><th>Renovaram</th><th>Evadiram</th><th>— com desemp.</th><th>— sem desemp.</th><th>Renovação</th></tr></thead>
         <tbody>{report.coortes.map(c => {
           const base = c.nextLink + c.noNext || 1;
           const tx = c.nextLink / base * 100;
