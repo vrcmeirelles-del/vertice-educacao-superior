@@ -97,7 +97,7 @@ export async function getEnrollmentCoverage(filtro:FiltroBI){
   const rows=all.filter(e=>e.semester===semester);
   const covered=new Set(rows.map(e=>e.course_id)).size;
   const snapshotAt=rows.map(e=>String(e.source_report_at??'')).filter(Boolean).sort().at(-1)??null;
-  return {semester,registeredCourses:courses.length,coveredCourses:covered,sourceAt:snapshotAt,
+  return {semester,registeredCourses:courses.length,coveredCourses:covered,coursesWithVacancies: courses.filter(c=>Number(c.vacancies)>0).length,sourceAt:snapshotAt,
     rows:rows.length,scope:'Recorte de matrículas em cursos com relatório disponível; não representa necessariamente estudantes únicos ou total institucional.'};
 }
 
@@ -121,13 +121,15 @@ export async function getKPIs(filtro: FiltroBI): Promise<KpiResumo[]> {
 
   const bySem = enrolledBySemester(enrollments);
   const matriculados = bySem.has(currentSem) ? bySem.get(currentSem)! : null;
-  const matriculadosPrev = prevSem ? (bySem.get(prevSem) ?? null) : null;
+  const coverageByTerm=courseSemesterTotals(enrollments);
+  const comparable=(a:string,b:string|null)=>Boolean(a&&b)&&[...(coverageByTerm.get(a)?.keys()??[])].sort().join('|')===[...(coverageByTerm.get(b!)?.keys()??[])].sort().join('|')&&Boolean(coverageByTerm.get(a)?.size);
+  const matriculadosPrev = prevSem&&comparable(currentSem,prevSem) ? (bySem.get(prevSem) ?? null) : null;
   // Comparação homóloga: primeiro semestre contra primeiro, segundo contra segundo.
   // Usar rótulo explícito e não inventar zero quando o período não está disponível.
   const homologousSem = /^(\d{4})\/(0?[12])$/.test(currentSem)
     ? currentSem.replace(/^(\d{4})\//, (_match, year: string) => `${Number(year) - 1}/`)
     : '';
-  const homologousValue = homologousSem && bySem.has(homologousSem) ? bySem.get(homologousSem)! : null;
+  const homologousValue = homologousSem&&comparable(currentSem,homologousSem)&&bySem.has(homologousSem) ? bySem.get(homologousSem)! : null;
 
   // As vagas cadastrais não são ofertas de vagas por semestre/turno e
   // não constituem denominador comparável às matrículas do recorte.
@@ -173,7 +175,7 @@ export async function getKPIs(filtro: FiltroBI): Promise<KpiResumo[]> {
       atingimentoMeta: null,
       tendencia: tendenciaMatriculas,
       direcaoDesejada: 'cima',
-      definicao: 'Soma dos registros de matrícula com status MATRICULADO nos cursos com relatório disponível no semestre. O universo da instituição pode ser maior; o registro agregado não comprova estudantes únicos.',
+      definicao: 'Soma dos registros de matrícula com status MATRICULADO nos cursos com relatório disponível no semestre. O universo da instituição pode ser maior; o registro agregado não comprova estudantes únicos. Percentuais de variação são calculados somente quando a lista de cursos cobertos nos dois períodos é igual.',
     },
     {
       chave: 'ocupacao',
@@ -285,7 +287,7 @@ export async function getFunil(filtro: FiltroBI): Promise<EtapaFunil[]> {
     return {
       etapa: rotulos[e] ?? e,
       volume,
-      conversaoPct: anterior !== null && anterior > 0 ? (volume / anterior) * 100 : null,
+      conversaoPct: null, // Etapas fotografadas não comprovam transições entre as mesmas pessoas.
     };
   });
 }
@@ -395,8 +397,8 @@ export async function getSaudePeriodo(filtro: FiltroBI): Promise<SaudeIndicador[
   if (mat?.valor !== null && mat?.valor !== undefined) {
     const sinal = mat.variacaoPct !== null
       ? (mat.variacaoPct >= 0 ? 'ok' : mat.variacaoPct > -5 ? 'atencao' : 'critico')
-      : 'ok';
-    indicadores.push({ rotulo: 'Matrículas', sinal: sinal as any, valor: fmtInt(mat.valor) });
+      : 'atencao';
+    indicadores.push({ rotulo: mat.variacaoPct===null?'Matrículas · comparativo não validado':'Matrículas · variação em cobertura homogênea', sinal: sinal as any, valor: fmtInt(mat.valor) });
   }
 
   const evasao = find('evasao');
