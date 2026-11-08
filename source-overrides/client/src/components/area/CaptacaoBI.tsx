@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   fetchLeads, fetchCustos, fetchSnapshots,
-  aggregateBI, getDemoData,
+  aggregateBI,
   type Lead, type CustoCaptacao, type CaptacaoSnapshot,
   type FunnelStage, type OrigemData, type EvolucaoMensal,
   type CustoCanal, type CursoMatricula, type ConversaoOrigem,
@@ -36,9 +36,9 @@ function KPITiles({ kpis, snapshots }: { kpis: KPIs; snapshots: CaptacaoSnapshot
   const sparkCac = snapshots.map(s => s.total_matriculas > 0 ? Number(s.investimento_total) / s.total_matriculas : 0);
   const tiles = [
     { label: 'Total de Leads', value: fmt.format(kpis.totalLeads), spark: sparkLeads, color: COLORS[0] },
-    { label: 'MatrÃ­culas Captadas', value: fmt.format(kpis.totalMat), spark: sparkMat, color: COLORS[2] },
+    { label: 'Matrículas Captadas', value: fmt.format(kpis.totalMat), spark: sparkMat, color: COLORS[2] },
     { label: 'Investimento Total', value: fmtMoney.format(kpis.totalInvest), spark: sparkInvest, color: COLORS[1] },
-    { label: 'CAC MÃ©dio', value: kpis.cac > 0 ? fmtMoney.format(kpis.cac) : 'â', spark: sparkCac, color: COLORS[3] },
+    { label: 'CAC Médio', value: kpis.cac > 0 ? fmtMoney.format(kpis.cac) : '—', spark: sparkCac, color: COLORS[3] },
   ];
   return <div className="cbi-kpis">{tiles.map(t => (
     <article className="cbi-kpi" key={t.label}>
@@ -53,7 +53,7 @@ function KPITiles({ kpis, snapshots }: { kpis: KPIs; snapshots: CaptacaoSnapshot
 function FunnelChart({ data }: { data: FunnelStage[] }) {
   const max = Math.max(...data.map(d => d.count), 1);
   return <article className="cbi-card">
-    <h3>Funil de CaptaÃ§Ã£o</h3>
+    <h3>Funil de Captação</h3>
     <div className="cbi-funnel">{data.map((d, i) => (
       <div className="cbi-funnel-row" key={d.stage}>
         <span className="cbi-funnel-label">{d.stage}</span>
@@ -89,7 +89,7 @@ function HBarChart({ title, data, valueKey, labelKey, formatValue, subtitle }: {
   </article>;
 }
 
-/* ---------- EvoluÃ§Ã£o Mensal (dual line SVG) ---------- */
+/* ---------- Evolução Mensal (dual line SVG) ---------- */
 function EvolucaoChart({ data }: { data: EvolucaoMensal[] }) {
   if (!data.length) return null;
   const w = 560, h = 200, px = 40, py = 20;
@@ -104,10 +104,10 @@ function EvolucaoChart({ data }: { data: EvolucaoMensal[] }) {
   const [hover, setHover] = useState<number | null>(null);
 
   return <article className="cbi-card cbi-card-wide">
-    <h3>EvoluÃ§Ã£o Mensal</h3>
+    <h3>Evolução Mensal</h3>
     <div className="cbi-legend-row">
       <span className="cbi-legend-item"><i style={{ background: COLORS[0] }} />Leads</span>
-      <span className="cbi-legend-item"><i style={{ background: COLORS[2] }} />MatrÃ­culas</span>
+      <span className="cbi-legend-item"><i style={{ background: COLORS[2] }} />Matrículas</span>
     </div>
     <svg viewBox={`0 0 ${w} ${h}`} className="cbi-line-chart" onMouseLeave={() => setHover(null)}>
       {/* Grid */}
@@ -135,7 +135,7 @@ function EvolucaoChart({ data }: { data: EvolucaoMensal[] }) {
           <line x1={toX(hover)} y1={py} x2={toX(hover)} y2={h - py} stroke="#243653" strokeWidth="1" strokeDasharray="3 3" />
           <rect x={toX(hover) - 48} y={toY(data[hover].leads) - 28} width={96} height={22} rx={4} fill="#243653" />
           <text x={toX(hover)} y={toY(data[hover].leads) - 13} textAnchor="middle" fontSize="11" fill="white">
-            L: {fmt.format(data[hover].leads)} Â· M: {fmt.format(data[hover].mat)}
+            L: {fmt.format(data[hover].leads)} · M: {fmt.format(data[hover].mat)}
           </text>
         </g>
       )}
@@ -161,7 +161,7 @@ function DonutChart({ title, data, valueKey, labelKey }: {
           stroke={COLORS[i % COLORS.length]} strokeWidth="24"
           strokeDasharray={`${pct} ${100 - pct}`} strokeDashoffset={-start}
           transform="rotate(-90 90 90)">
-          <title>{d[labelKey]} Â· {fmt.format(Number(d[valueKey]))}</title>
+          <title>{d[labelKey]} · {fmt.format(Number(d[valueKey]))}</title>
         </circle>;
       })}
       <text x="90" y="90" textAnchor="middle" dominantBaseline="middle" fontSize="24" fontWeight="700" fill="#243653">
@@ -180,7 +180,7 @@ function DonutChart({ title, data, valueKey, labelKey }: {
 function ConversaoChart({ data }: { data: ConversaoOrigem[] }) {
   const max = Math.max(...data.map(d => d.rate), 1);
   return <article className="cbi-card">
-    <h3>Taxa de ConversÃ£o por Origem</h3>
+    <h3>Taxa de Conversão por Origem</h3>
     <div className="cbi-hbars">{data.map((d, i) => (
       <div className="cbi-hbar-row" key={d.canal}>
         <span className="cbi-hbar-label">{d.canal}</span>
@@ -204,21 +204,21 @@ function ImportDialog({ institutionId, onImported, dialogRef }: {
 
   async function handleImport() {
     if (!csv.trim()) return;
-    setStatus('Importandoâ¦');
+    setStatus('Importando…');
     try {
       const lines = csv.trim().split('\n');
       const header = lines[0].split(',').map(h => h.trim().toLowerCase());
       const idxOrigem = header.indexOf('origem');
       const idxCurso = header.indexOf('curso');
       const idxEtapa = header.indexOf('etapa');
-      if (idxOrigem < 0) throw new Error('Coluna "origem" obrigatÃ³ria');
+      if (idxOrigem < 0) throw new Error('Coluna "origem" obrigatória');
 
       const { supabase: sb } = await import('@/lib/supabase');
       const batch = lines.slice(1).filter(l => l.trim()).map(line => {
         const cols = line.split(',').map(c => c.trim());
         return {
           institution_id: institutionId,
-          origem: cols[idxOrigem] || 'NÃ£o informado',
+          origem: cols[idxOrigem] || 'Não informado',
           curso: idxCurso >= 0 ? cols[idxCurso] || null : null,
           etapa_funil: idxEtapa >= 0 ? cols[idxEtapa] || 'lead' : 'lead',
           periodo: null,
@@ -233,14 +233,14 @@ function ImportDialog({ institutionId, onImported, dialogRef }: {
       setCsv('');
       onImported();
     } catch (e: any) {
-      setStatus('Erro: ' + (e.message ?? 'falha na importaÃ§Ã£o'));
+      setStatus('Erro: ' + (e.message ?? 'falha na importação'));
     }
   }
 
   return <dialog ref={dialogRef} className="cbi-dialog" onClose={() => setStatus('')}>
     <h3>Importar Leads (CSV)</h3>
-    <p>Colunas: <code>origem</code> (obrigatÃ³ria), <code>curso</code>, <code>etapa</code> (lead/contato/visita/inscricao/matricula)</p>
-    <textarea rows={8} value={csv} onChange={e => setCsv(e.target.value)} placeholder="origem,curso,etapa&#10;Google Ads,Direito,lead&#10;Instagram,AdministraÃ§Ã£o,contato" />
+    <p>Colunas: <code>origem</code> (obrigatória), <code>curso</code>, <code>etapa</code> (lead/contato/visita/inscricao/matricula)</p>
+    <textarea rows={8} value={csv} onChange={e => setCsv(e.target.value)} placeholder="origem,curso,etapa&#10;Google Ads,Direito,lead&#10;Instagram,Administração,contato" />
     <div className="cbi-dialog-actions">
       <button type="button" onClick={handleImport}>Importar</button>
       <form method="dialog"><button>Fechar</button></form>
@@ -256,12 +256,14 @@ export default function CaptacaoBI({ institutionId, institutionName }: { institu
   const [leads, setLeads] = useState<Lead[]>([]);
   const [custos, setCustos] = useState<CustoCaptacao[]>([]);
   const [snapshots, setSnapshots] = useState<CaptacaoSnapshot[]>([]);
-  const [useDemo, setUseDemo] = useState(false);
+  const [updatedAt, setUpdatedAt] = useState<string | null>(null);
+  const loadRequestId = useRef(0);
   const [tv, setTv] = useState(false);
   const panelRef = useRef<HTMLElement>(null);
   const importRef = useRef<HTMLDialogElement>(null);
 
   async function loadData() {
+    const requestId = ++loadRequestId.current;
     setLoading(true);
     setError('');
     try {
@@ -270,31 +272,28 @@ export default function CaptacaoBI({ institutionId, institutionName }: { institu
         fetchCustos(institutionId),
         fetchSnapshots(institutionId),
       ]);
-      if (!l.length && !c.length && !s.length) {
-        // Sem dados reais â mostrar demo
-        const demo = getDemoData();
-        setLeads(demo.leads);
-        setCustos(demo.custos);
-        setSnapshots(demo.snapshots);
-        setUseDemo(true);
-      } else {
-        setLeads(l);
-        setCustos(c);
-        setSnapshots(s);
-        setUseDemo(false);
-      }
+      if (requestId !== loadRequestId.current) return;
+      // Nunca substituir dados ausentes ou consultas com falha por indicadores fictícios.
+      setLeads(l);
+      setCustos(c);
+      setSnapshots(s);
+      setUpdatedAt(new Date().toISOString());
     } catch {
-      // Tabelas podem nÃ£o existir ainda â usar demo
-      const demo = getDemoData();
-      setLeads(demo.leads);
-      setCustos(demo.custos);
-      setSnapshots(demo.snapshots);
-      setUseDemo(true);
+      if (requestId !== loadRequestId.current) return;
+      setLeads([]);
+      setCustos([]);
+      setSnapshots([]);
+      setUpdatedAt(null);
+      setError('Não foi possível consultar os dados reais de captação. Tente atualizar.');
+    } finally {
+      if (requestId === loadRequestId.current) setLoading(false);
     }
-    setLoading(false);
   }
 
-  useEffect(() => { loadData(); }, [institutionId]);
+  useEffect(() => {
+    void loadData();
+    return () => { loadRequestId.current += 1; };
+  }, [institutionId]);
 
   useEffect(() => {
     if (!tv) return;
@@ -313,14 +312,15 @@ export default function CaptacaoBI({ institutionId, institutionName }: { institu
   };
 
   const bi = aggregateBI(leads, custos, snapshots);
+  const noData = leads.length === 0 && custos.length === 0 && snapshots.length === 0;
 
-  if (loading) return <section className="cbi-root"><p role="status">Carregando BI de captaÃ§Ã£oâ¦</p></section>;
+  if (loading) return <section className="cbi-root"><p role="status">Carregando BI de captação…</p></section>;
 
   return <section ref={panelRef} className={`cbi-root ${tv ? 'cbi-tv' : ''}`}>
     <div className="cbi-header">
       <div>
-        <h2>BI de CaptaÃ§Ã£o</h2>
-        <p>{institutionName} {useDemo && <span className="cbi-demo-badge">Dados demonstrativos</span>}</p>
+        <h2>BI de Captação</h2>
+        <p>{institutionName}</p>
       </div>
       <div className="cbi-actions">
         <button type="button" onClick={() => importRef.current?.showModal()}>Importar CSV</button>
@@ -330,18 +330,29 @@ export default function CaptacaoBI({ institutionId, institutionName }: { institu
     </div>
 
     {error && <p role="alert" className="cbi-error">{error}</p>}
+    {updatedAt && <p className="cbi-status">Última consulta ao Supabase: {new Date(updatedAt).toLocaleString('pt-BR')}</p>}
 
-    <KPITiles kpis={bi.kpis} snapshots={snapshots} />
-
-    <div className="cbi-grid">
-      <FunnelChart data={bi.funnel} />
-      <HBarChart title="Leads por Origem" data={bi.origens} valueKey="leads" labelKey="canal" />
-      <EvolucaoChart data={bi.evolucao} />
-      <HBarChart title="Custo por Canal" data={bi.custosCanal} valueKey="investimento" labelKey="canal"
-        formatValue={v => fmtMoney.format(v)} subtitle="Investimento total por canal" />
-      <DonutChart title="MatrÃ­culas por Curso" data={bi.cursos} valueKey="mat" labelKey="curso" />
-      <ConversaoChart data={bi.conversao} />
-    </div>
+    {noData ? (
+      <section className="cbi-card" aria-live="polite">
+        <h3>{error ? 'Indicadores indisponíveis' : 'Nenhum dado real de captação'}</h3>
+        <p>{error
+          ? 'Os indicadores não foram exibidos porque a consulta falhou. Atualize para tentar novamente.'
+          : 'Ainda não existem leads, custos ou registros mensais para esta instituição. Importe um CSV ou integre uma fonte de dados para visualizar os indicadores.'}</p>
+      </section>
+    ) : (
+      <>
+        <KPITiles kpis={bi.kpis} snapshots={snapshots} />
+        <div className="cbi-grid">
+          <FunnelChart data={bi.funnel} />
+          <HBarChart title="Leads por Origem" data={bi.origens} valueKey="leads" labelKey="canal" />
+          <EvolucaoChart data={bi.evolucao} />
+          <HBarChart title="Custo por Canal" data={bi.custosCanal} valueKey="investimento" labelKey="canal"
+            formatValue={v => fmtMoney.format(v)} subtitle="Investimento total por canal" />
+          <DonutChart title="Matrículas por Curso" data={bi.cursos} valueKey="mat" labelKey="curso" />
+          <ConversaoChart data={bi.conversao} />
+        </div>
+      </>
+    )}
 
     <ImportDialog institutionId={institutionId} onImported={loadData} dialogRef={importRef} />
   </section>;

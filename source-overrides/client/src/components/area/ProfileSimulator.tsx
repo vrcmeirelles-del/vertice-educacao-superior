@@ -7,7 +7,7 @@ import {
 const TAB_LABELS: Record<Tab, string> = {
   backups: "Backups Acadêmicos",
   fontes: "Importar dados de sites",
-  auditoria: "BI · Permanência e Reprovações",
+  auditoria: "BI · Reprovações de Todos os Cursos",
   avaliacao: "Recredenciamento Institucional",
   enade: "ENADE 360°",
   aprendizagem: "Aprendizagem Conectada",
@@ -23,7 +23,7 @@ const TAB_LABELS: Record<Tab, string> = {
   cadastro: "Cadastro e cursos",
   emec: "e-MEC · Regulação",
   metas: "Metas e indicadores",
-  repositorio: "Repositório",
+  repositorio: "Reconhecimento de Curso",
   biblioteca: "Biblioteca INEP",
   reitor: "Área do reitor · EBITDA",
   eorbit: "e-ORBIT",

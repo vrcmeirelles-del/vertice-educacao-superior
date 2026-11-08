@@ -20,7 +20,7 @@ type SubTab = "quantitativo" | "compliance" | "diario" | "enade" | "docentes" | 
 const SUB_TABS: [SubTab, string][] = [
   ["quantitativo", "Quantitativo"],
   ["compliance", "Compliance"],
-  ["diario", "DiÃ¡rio de Classe"],
+  ["diario", "Diário de Classe"],
   ["enade", "ENADE"],
   ["docentes", "Corpo Docente"],
   ["vestibular", "Vestibular"],
@@ -43,14 +43,14 @@ export default function PainelEorbit({ institutionId }: { institutionId: string 
 
   const semOpts = semestres.map(s => s.semestre).filter((v, i, a) => a.indexOf(v) === i).sort();
 
-  if (loading) return <div className="eorbit-loading">Carregando dados do e-ORBITâ¦</div>;
+  if (loading) return <div className="eorbit-loading">Carregando dados do e-ORBIT…</div>;
 
   return (
     <div className="eorbit-root">
       <div className="eorbit-header">
         <div>
           <h2>Painel e-ORBIT</h2>
-          <p>Dados acadÃªmicos extraÃ­dos do sistema e-ORBIT da instituiÃ§Ã£o</p>
+          <p>Dados acadêmicos extraídos do sistema e-ORBIT da instituição</p>
         </div>
       </div>
 
@@ -89,7 +89,7 @@ function QuantitativoTab({ institutionId, semestre }: { institutionId: string; s
   const [loading, setLoading] = useState(true);
   useEffect(() => { setLoading(true); fetchEorbitQuantitativo(institutionId, semestre || undefined).then(d => { setData(d); setLoading(false); }); }, [institutionId, semestre]);
 
-  if (loading) return <div className="eorbit-loading">Carregandoâ¦</div>;
+  if (loading) return <div className="eorbit-loading">Carregando…</div>;
   if (!data.length) return <div className="eorbit-empty">Nenhum dado de quantitativo encontrado.</div>;
 
   const totalMat = data.reduce((s, d) => s + d.matriculados, 0);
@@ -112,13 +112,13 @@ function QuantitativoTab({ institutionId, semestre }: { institutionId: string; s
       <div className="eorbit-kpis">
         <KPI label="Matriculados" value={fmt.format(totalMat)} />
         <KPI label="Capacidade" value={fmt.format(totalCap)} />
-        <KPI label="Vagas DisponÃ­veis" value={fmt.format(totalVagas)} />
-        <KPI label="Taxa de OcupaÃ§Ã£o" value={fmtPct(ocupacao)} sub={ocupacao >= 80 ? "Bom" : ocupacao >= 60 ? "Regular" : "AtenÃ§Ã£o"} />
+        <KPI label="Vagas Disponíveis" value={fmt.format(totalVagas)} />
+        <KPI label="Taxa de Ocupação" value={fmtPct(ocupacao)} sub={ocupacao >= 80 ? "Bom" : ocupacao >= 60 ? "Regular" : "Atenção"} />
       </div>
 
       <div className="eorbit-grid">
         <article className="eorbit-card eorbit-card-wide">
-          <h3>Matriculados Ã Capacidade por Curso</h3>
+          <h3>Matriculados × Capacidade por Curso</h3>
           <svg viewBox={`0 0 600 ${cursoTotals.length * 36 + 20}`} className="eorbit-line-chart" style={{ maxHeight: Math.max(cursoTotals.length * 36 + 20, 120) }}>
             {cursoTotals.map((c, i) => {
               const y = i * 36 + 10;
@@ -126,7 +126,7 @@ function QuantitativoTab({ institutionId, semestre }: { institutionId: string; s
               const wMat = (c.matriculados / maxMat) * 420;
               return (
                 <g key={c.curso}>
-                  <text x="0" y={y + 14} fontSize="11" fill="#757a80" textAnchor="start">{c.curso.length > 18 ? c.curso.slice(0, 18) + "â¦" : c.curso}</text>
+                  <text x="0" y={y + 14} fontSize="11" fill="#757a80" textAnchor="start">{c.curso.length > 18 ? c.curso.slice(0, 18) + "…" : c.curso}</text>
                   <rect x="140" y={y} width={wCap} height="12" rx="3" fill="#e1e4e8" />
                   <rect x="140" y={y} width={wMat} height="12" rx="3" fill={COLORS[i % COLORS.length]} />
                   <text x={140 + Math.max(wCap, wMat) + 6} y={y + 11} fontSize="10" fill="#243653" fontWeight="600">
@@ -154,7 +154,7 @@ function QuantitativoTab({ institutionId, semestre }: { institutionId: string; s
                     <td>{fmt.format(d.matriculados)}</td>
                     <td>{fmt.format(d.capacidade)}</td>
                     <td>{fmt.format(d.vagas_disponiveis)}</td>
-                    <td>{d.capacidade > 0 ? fmtPct((d.matriculados / d.capacidade) * 100) : "â"}</td>
+                    <td>{d.capacidade > 0 ? fmtPct((d.matriculados / d.capacidade) * 100) : "—"}</td>
                   </tr>
                 ))}
               </tbody>
@@ -173,7 +173,7 @@ function ComplianceTab({ institutionId, semestre }: { institutionId: string; sem
   const [loading, setLoading] = useState(true);
   useEffect(() => { setLoading(true); fetchEorbitCompliance(institutionId, semestre || undefined).then(d => { setData(d); setLoading(false); }); }, [institutionId, semestre]);
 
-  if (loading) return <div className="eorbit-loading">Carregandoâ¦</div>;
+  if (loading) return <div className="eorbit-loading">Carregando…</div>;
   if (!data.length) return <div className="eorbit-empty">Nenhum dado de compliance encontrado.</div>;
 
   const media = data.reduce((s, d) => s + d.nota, 0) / data.length;
@@ -185,7 +185,7 @@ function ComplianceTab({ institutionId, semestre }: { institutionId: string; sem
     <>
       <div className="eorbit-kpis">
         <KPI label="Indicadores Avaliados" value={String(data.length)} />
-        <KPI label="Nota MÃ©dia" value={media.toFixed(2)} />
+        <KPI label="Nota Média" value={media.toFixed(2)} />
         {conceitoCount.map(c => (
           <KPI key={c.conceito} label={`Conceito ${c.conceito}`} value={String(c.count)} />
         ))}
@@ -196,7 +196,7 @@ function ComplianceTab({ institutionId, semestre }: { institutionId: string; sem
           <h3>Indicadores de Compliance</h3>
           <div className="eorbit-table-wrap">
             <table className="eorbit-table">
-              <thead><tr><th>Indicador</th>{data[0]?.dimensao && <th>DimensÃ£o</th>}<th>Nota</th><th>Conceito</th><th style={{ minWidth: 120 }}>Barra</th></tr></thead>
+              <thead><tr><th>Indicador</th>{data[0]?.dimensao && <th>Dimensão</th>}<th>Nota</th><th>Conceito</th><th style={{ minWidth: 120 }}>Barra</th></tr></thead>
               <tbody>
                 {data.sort((a, b) => b.nota - a.nota).map(d => (
                   <tr key={d.id}>
@@ -218,7 +218,7 @@ function ComplianceTab({ institutionId, semestre }: { institutionId: string; sem
 
         {byDimensao && (
           <article className="eorbit-card">
-            <h3>MÃ©dia por DimensÃ£o</h3>
+            <h3>Média por Dimensão</h3>
             <div className="eorbit-hbars">
               {Object.entries(byDimensao).map(([dim, rows], i) => {
                 const avg = rows.reduce((s, r) => s + r.nota, 0) / rows.length;
@@ -237,7 +237,7 @@ function ComplianceTab({ institutionId, semestre }: { institutionId: string; sem
         )}
 
         <article className="eorbit-card">
-          <h3>DistribuiÃ§Ã£o de Conceitos</h3>
+          <h3>Distribuição de Conceitos</h3>
           <DonutChart data={conceitoCount.map(c => ({ label: `Conceito ${c.conceito}`, value: c.count, color: conceitoColor(c.conceito) }))} />
         </article>
       </div>
@@ -245,7 +245,7 @@ function ComplianceTab({ institutionId, semestre }: { institutionId: string; sem
   );
 }
 
-// ================================================================ DiÃ¡rio de Classe
+// ================================================================ Diário de Classe
 function DiarioTab({ institutionId, semestre }: { institutionId: string; semestre: string }) {
   const [data, setData] = useState<DiarioClasse[]>([]);
   const [freq, setFreq] = useState<FrequenciaConteudo[]>([]);
@@ -258,8 +258,8 @@ function DiarioTab({ institutionId, semestre }: { institutionId: string; semestr
     ]).then(([d, f]) => { setData(d); setFreq(f); setLoading(false); });
   }, [institutionId, semestre]);
 
-  if (loading) return <div className="eorbit-loading">Carregandoâ¦</div>;
-  if (!data.length && !freq.length) return <div className="eorbit-empty">Nenhum dado de diÃ¡rio de classe encontrado.</div>;
+  if (loading) return <div className="eorbit-loading">Carregando…</div>;
+  if (!data.length && !freq.length) return <div className="eorbit-empty">Nenhum dado de diário de classe encontrado.</div>;
 
   const avgPreen = data.length ? data.reduce((s, d) => s + d.percentual_preenchimento, 0) / data.length : 0;
   const totalAulasPrev = data.reduce((s, d) => s + d.aulas_previstas, 0);
@@ -269,7 +269,7 @@ function DiarioTab({ institutionId, semestre }: { institutionId: string; semestr
     <>
       <div className="eorbit-kpis">
         <KPI label="Disciplinas" value={String(data.length)} />
-        <KPI label="Preenchimento MÃ©dio" value={fmtPct(avgPreen)} sub={avgPreen >= 80 ? "Bom" : avgPreen >= 60 ? "Regular" : "Baixo"} />
+        <KPI label="Preenchimento Médio" value={fmtPct(avgPreen)} sub={avgPreen >= 80 ? "Bom" : avgPreen >= 60 ? "Regular" : "Baixo"} />
         <KPI label="Aulas Previstas" value={fmt.format(totalAulasPrev)} />
         <KPI label="Aulas Registradas" value={fmt.format(totalAulasReg)} />
       </div>
@@ -306,10 +306,10 @@ function DiarioTab({ institutionId, semestre }: { institutionId: string; semestr
 
         {freq.length > 0 && (
           <article className="eorbit-card eorbit-card-wide">
-            <h3>ConteÃºdo ProgramÃ¡tico â ExecuÃ§Ã£o</h3>
+            <h3>Conteúdo Programático — Execução</h3>
             <div className="eorbit-table-wrap">
               <table className="eorbit-table">
-                <thead><tr><th>Disciplina</th><th>Curso</th><th>Previsto</th><th>Ministrado</th><th>% ExecuÃ§Ã£o</th></tr></thead>
+                <thead><tr><th>Disciplina</th><th>Curso</th><th>Previsto</th><th>Ministrado</th><th>% Execução</th></tr></thead>
                 <tbody>
                   {freq.sort((a, b) => a.percentual - b.percentual).slice(0, 20).map(f => (
                     <tr key={f.id}>
@@ -338,7 +338,7 @@ function EnadeTab({ institutionId }: { institutionId: string }) {
   const [loading, setLoading] = useState(true);
   useEffect(() => { setLoading(true); fetchEorbitEnade(institutionId).then(d => { setData(d); setLoading(false); }); }, [institutionId]);
 
-  if (loading) return <div className="eorbit-loading">Carregandoâ¦</div>;
+  if (loading) return <div className="eorbit-loading">Carregando…</div>;
   if (!data.length) return <div className="eorbit-empty">Nenhum dado do ENADE encontrado.</div>;
 
   const byCurso = groupBy(data, "curso");
@@ -359,14 +359,14 @@ function EnadeTab({ institutionId }: { institutionId: string }) {
     <>
       <div className="eorbit-kpis">
         <KPI label="Cursos Avaliados" value={String(cursos.length)} />
-        <KPI label="Ãltimo Ciclo" value={String(ultimoAno)} />
-        <KPI label="Conceito MÃ©dio" value={mediaConceito.toFixed(1)} sub={`Ciclo ${ultimoAno}`} />
+        <KPI label="Último Ciclo" value={String(ultimoAno)} />
+        <KPI label="Conceito Médio" value={mediaConceito.toFixed(1)} sub={`Ciclo ${ultimoAno}`} />
         <KPI label="Total de Registros" value={String(data.length)} />
       </div>
 
       <div className="eorbit-grid">
         <article className="eorbit-card eorbit-card-wide">
-          <h3>EvoluÃ§Ã£o do Conceito ENADE por Curso</h3>
+          <h3>Evolução do Conceito ENADE por Curso</h3>
           <div className="eorbit-legend">
             {cursos.map((c, i) => (
               <span key={c} className="eorbit-legend-item"><i style={{ background: COLORS[i % COLORS.length] }} />{c}</span>
@@ -402,17 +402,17 @@ function EnadeTab({ institutionId }: { institutionId: string }) {
         </article>
 
         <article className="eorbit-card">
-          <h3>Dados por Curso â Ãltimo Ciclo ({ultimoAno})</h3>
+          <h3>Dados por Curso — Último Ciclo ({ultimoAno})</h3>
           <div className="eorbit-table-wrap">
             <table className="eorbit-table">
-              <thead><tr><th>Curso</th><th>Conceito</th><th>ContÃ­nuo</th><th>Participantes</th></tr></thead>
+              <thead><tr><th>Curso</th><th>Conceito</th><th>Contínuo</th><th>Participantes</th></tr></thead>
               <tbody>
                 {ultimosDados.sort((a, b) => (b.conceito_enade ?? 0) - (a.conceito_enade ?? 0)).map(d => (
                   <tr key={d.id}>
                     <td>{d.curso}</td>
-                    <td><span className="eorbit-conceito" style={{ background: d.conceito_enade ? ["#d43d51", "#eb6834", "#eda100", "#2678a8", "#1baf7a"][Math.min(d.conceito_enade - 1, 4)] : "#757a80" }}>{d.conceito_enade ?? "â"}</span></td>
-                    <td>{d.conceito_continuo?.toFixed(3) ?? "â"}</td>
-                    <td>{d.num_participantes ?? "â"}</td>
+                    <td><span className="eorbit-conceito" style={{ background: d.conceito_enade ? ["#d43d51", "#eb6834", "#eda100", "#2678a8", "#1baf7a"][Math.min(d.conceito_enade - 1, 4)] : "#757a80" }}>{d.conceito_enade ?? "—"}</span></td>
+                    <td>{d.conceito_continuo?.toFixed(3) ?? "—"}</td>
+                    <td>{d.num_participantes ?? "—"}</td>
                   </tr>
                 ))}
               </tbody>
@@ -430,7 +430,7 @@ function DocentesTab({ institutionId, semestre }: { institutionId: string; semes
   const [loading, setLoading] = useState(true);
   useEffect(() => { setLoading(true); fetchEorbitProfessores(institutionId, semestre || undefined).then(d => { setData(d); setLoading(false); }); }, [institutionId, semestre]);
 
-  if (loading) return <div className="eorbit-loading">Carregandoâ¦</div>;
+  if (loading) return <div className="eorbit-loading">Carregando…</div>;
   if (!data.length) return <div className="eorbit-empty">Nenhum dado de corpo docente encontrado.</div>;
 
   const byTitulacao = groupBy(data, "titulacao");
@@ -447,13 +447,13 @@ function DocentesTab({ institutionId, semestre }: { institutionId: string; semes
     <>
       <div className="eorbit-kpis">
         <KPI label="Total de Docentes" value={String(data.length)} />
-        <KPI label="IQCD" value={iqcd.toFixed(2)} sub="Ãndice de qualificaÃ§Ã£o" />
+        <KPI label="IQCD" value={iqcd.toFixed(2)} sub="Índice de qualificação" />
         {titCounts.slice(0, 3).map(t => <KPI key={t.label} label={t.label + "s"} value={String(t.value)} />)}
       </div>
 
       <div className="eorbit-grid">
         <article className="eorbit-card">
-          <h3>TitulaÃ§Ã£o</h3>
+          <h3>Titulação</h3>
           <DonutChart data={titCounts.map((t, i) => ({ label: t.label, value: t.value, color: COLORS[i % COLORS.length] }))} />
         </article>
 
@@ -466,14 +466,14 @@ function DocentesTab({ institutionId, semestre }: { institutionId: string; semes
           <h3>Lista de Docentes</h3>
           <div className="eorbit-table-wrap">
             <table className="eorbit-table">
-              <thead><tr><th>Nome</th><th>TitulaÃ§Ã£o</th><th>Regime</th><th>Curso</th></tr></thead>
+              <thead><tr><th>Nome</th><th>Titulação</th><th>Regime</th><th>Curso</th></tr></thead>
               <tbody>
                 {data.sort((a, b) => a.nome.localeCompare(b.nome)).map(d => (
                   <tr key={d.id}>
                     <td>{d.nome}</td>
                     <td>{titulacaoLabel(d.titulacao)}</td>
                     <td>{regimeLabel(d.regime)}</td>
-                    <td>{d.curso ?? "â"}</td>
+                    <td>{d.curso ?? "—"}</td>
                   </tr>
                 ))}
               </tbody>
@@ -491,7 +491,7 @@ function VestibularTab({ institutionId, semestre }: { institutionId: string; sem
   const [loading, setLoading] = useState(true);
   useEffect(() => { setLoading(true); fetchEorbitVestibularCursos(institutionId, semestre || undefined).then(d => { setData(d); setLoading(false); }); }, [institutionId, semestre]);
 
-  if (loading) return <div className="eorbit-loading">Carregandoâ¦</div>;
+  if (loading) return <div className="eorbit-loading">Carregando…</div>;
   if (!data.length) return <div className="eorbit-empty">Nenhum dado de vestibular encontrado.</div>;
 
   const totalInscritos = data.reduce((s, d) => s + d.inscritos, 0);
@@ -514,7 +514,7 @@ function VestibularTab({ institutionId, semestre }: { institutionId: string; sem
       <div className="eorbit-kpis">
         <KPI label="Total de Inscritos" value={fmt.format(totalInscritos)} />
         <KPI label="Vagas Ofertadas" value={fmt.format(totalVagas)} />
-        <KPI label="ConcorrÃªncia" value={concorrencia.toFixed(2) + ":1"} />
+        <KPI label="Concorrência" value={concorrencia.toFixed(2) + ":1"} />
         <KPI label="Matriculados" value={fmt.format(totalMat)} />
       </div>
 
@@ -546,8 +546,8 @@ function VestibularTab({ institutionId, semestre }: { institutionId: string; sem
                     <td>{d.semestre}</td>
                     <td>{fmt.format(d.vagas_ofertadas)}</td>
                     <td>{fmt.format(d.inscritos)}</td>
-                    <td>{d.vagas_ofertadas > 0 ? (d.inscritos / d.vagas_ofertadas).toFixed(2) : "â"}</td>
-                    <td>{d.matriculados != null ? fmt.format(d.matriculados) : "â"}</td>
+                    <td>{d.vagas_ofertadas > 0 ? (d.inscritos / d.vagas_ofertadas).toFixed(2) : "—"}</td>
+                    <td>{d.matriculados != null ? fmt.format(d.matriculados) : "—"}</td>
                   </tr>
                 ))}
               </tbody>
@@ -575,7 +575,7 @@ function BibliotecaTab({ institutionId }: { institutionId: string }) {
     ]).then(([c, d, r]) => { setCdd(c); setDecada(d); setResumo(r); setLoading(false); });
   }, [institutionId]);
 
-  if (loading) return <div className="eorbit-loading">Carregandoâ¦</div>;
+  if (loading) return <div className="eorbit-loading">Carregando…</div>;
   if (!cdd.length && !decada.length && !resumo.length) return <div className="eorbit-empty">Nenhum dado de biblioteca encontrado.</div>;
 
   const r = resumo[0];
@@ -592,7 +592,7 @@ function BibliotecaTab({ institutionId }: { institutionId: string }) {
   return (
     <>
       <div className="eorbit-kpis">
-        {r && <KPI label="Total de TÃ­tulos" value={fmt.format(r.total_titulos)} />}
+        {r && <KPI label="Total de Títulos" value={fmt.format(r.total_titulos)} />}
         {r && <KPI label="Total de Exemplares" value={fmt.format(r.total_exemplares)} />}
         {r?.acervo_digital != null && <KPI label="Acervo Digital" value={fmt.format(r.acervo_digital)} />}
         <KPI label="Classes CDD" value={String(cdd.length)} />
@@ -604,7 +604,7 @@ function BibliotecaTab({ institutionId }: { institutionId: string }) {
           <div className="eorbit-hbars">
             {cdd.sort((a, b) => b.quantidade - a.quantidade).slice(0, 12).map((c, i) => (
               <div className="eorbit-hbar-row" key={c.id}>
-                <span className="eorbit-hbar-label" title={c.descricao}>{c.classe_cdd} â {c.descricao.length > 20 ? c.descricao.slice(0, 20) + "â¦" : c.descricao}</span>
+                <span className="eorbit-hbar-label" title={c.descricao}>{c.classe_cdd} — {c.descricao.length > 20 ? c.descricao.slice(0, 20) + "…" : c.descricao}</span>
                 <div className="eorbit-hbar-track">
                   <div className="eorbit-hbar-fill" style={{ width: (c.quantidade / maxCDD) * 100 + "%", background: COLORS[i % COLORS.length] }} />
                 </div>
@@ -616,7 +616,7 @@ function BibliotecaTab({ institutionId }: { institutionId: string }) {
 
         {sortedDecada.length > 0 && (
           <article className="eorbit-card">
-            <h3>Acervo por DÃ©cada de PublicaÃ§Ã£o</h3>
+            <h3>Acervo por Década de Publicação</h3>
             <svg viewBox={`0 0 ${barW} ${barH}`} className="eorbit-line-chart">
               {sortedDecada.map((d, i) => {
                 const x = barPx + i * barStep + (barStep - barColW) / 2;
@@ -681,7 +681,7 @@ function DonutChart({ data }: { data: { label: string; value: number; color: str
       <div className="eorbit-donut-legend">
         {data.map(d => (
           <span key={d.label} className="eorbit-donut-legend-item">
-            <i style={{ background: d.color }} />{d.label}: {d.value} ({total > 0 ? ((d.value / total) * 100).toFixed(0) + "%" : "â"})
+            <i style={{ background: d.color }} />{d.label}: {d.value} ({total > 0 ? ((d.value / total) * 100).toFixed(0) + "%" : "—"})
           </span>
         ))}
       </div>
