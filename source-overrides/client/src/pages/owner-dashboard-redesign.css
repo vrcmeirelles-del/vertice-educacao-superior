@@ -74,3 +74,56 @@
 .portal-bi button.vx-kpi {padding:18px !important;border:1px solid var(--border-light) !important;border-left:4px solid var(--vx-tone) !important;border-top:1px solid var(--border-light) !important;background:var(--card) !important;color:var(--foreground) !important;border-radius:var(--radius) !important}
 .portal-bi button.vx-kpi:hover {box-shadow:var(--shadow-md)}
 .portal-bi .vx-bi-tabs button[aria-pressed=true]{background:var(--card);color:var(--foreground);box-shadow:var(--shadow-sm)}
+
+
+/* MASTER: cartões executivos de instituições, em substituição à tabela excessivamente larga. */
+.vx-inst-hub{margin:22px 0 26px;color:#193b3b}
+.vx-inst-hub-head{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:18px}
+.vx-inst-eyebrow{font-size:10px;letter-spacing:.13em;font-weight:800;color:#0a8779;margin:0 0 7px}
+.vx-inst-hub-head h2{font-size:clamp(23px,3vw,34px);color:#203b42;margin:0 0 6px;font-weight:800}
+.vx-inst-hub-head p:not(.vx-inst-eyebrow){color:#65787f;font-size:13px;margin:0}
+.vx-inst-hub .vx-inst-create{border:0;border-radius:11px;background:#183c3b;color:white;padding:12px 16px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px #103e3b35}
+.vx-inst-controls{display:flex;align-items:end;gap:12px;flex-wrap:wrap;margin:0 0 18px;background:#f4f8f8;border:1px solid #dbe8e6;border-radius:13px;padding:12px 15px}
+.vx-inst-controls label{font-size:11px;font-weight:650;color:#466567;display:grid;gap:5px}
+.vx-inst-controls label:first-child{flex:1 1 280px}
+.vx-inst-controls input,.vx-inst-controls select{padding:10px 12px;border-radius:8px;border:1px solid #c8d8d7;background:#fff;color:#1c4543;min-width:170px;font-size:13px}
+.vx-inst-controls input{width:100%}
+.vx-inst-controls>span{font-size:11px;color:#5a7773;margin-left:auto;margin-bottom:10px}
+.vx-inst-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.vx-inst-card{min-width:0;background:#fff;border:1px solid #d7e5e4;border-radius:16px;overflow:hidden;box-shadow:0 5px 18px #10473e13;display:flex;flex-direction:column}
+.vx-inst-card-heading{display:flex;gap:12px;align-items:center;padding:18px 19px;border-bottom:1px solid #edf3f1;background:linear-gradient(115deg,#fff,#f6fcf9)}
+.vx-inst-building{width:48px;height:48px;border-radius:13px;display:grid;place-items:center;background:linear-gradient(140deg,#c7eee1,#e1f7ed);color:#0d8272;font-size:29px;flex:none}
+.vx-inst-identity{min-width:0;flex:1}
+.vx-inst-identity h3{font-size:17px;color:#193b3a;margin:0 0 5px;line-height:1.3;overflow-wrap:anywhere}
+.vx-inst-identity p{font-size:11px;color:#69807f;margin:0}
+.vx-inst-archived{font-size:10px;color:#7b6c56;background:#f6eee1;border-radius:20px;padding:5px 8px}
+.vx-inst-indicators{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:16px 17px 5px}
+.vx-inst-indicators>div{border:1px solid #e6eeec;background:#f7faf9;padding:12px 10px;border-radius:10px;min-width:0}
+.vx-inst-indicators>div:nth-child(2){background:#fff8ed;border-color:#f0e6d3}
+.vx-inst-indicators>div:nth-child(3){background:#fef8f1;border-color:#f1e4d4}
+.vx-inst-indicators>div:nth-child(4){background:#f7f7fb;border-color:#e8e6f1}
+.vx-inst-indicators small{display:block;font-size:10px;color:#617575;line-height:1.3;min-height:28px}
+.vx-inst-indicators strong{font-size:clamp(18px,2vw,26px);display:block;margin:4px 0 0;font-variant-numeric:tabular-nums;color:#1c4c46}
+.vx-inst-indicators .vx-inst-attention strong{color:#bb6339}
+.vx-inst-enrollment{margin:10px 17px 0;padding:14px;background:#f3f8f8;border:1px solid #e1ebea;border-radius:11px}
+.vx-inst-enrollment-top{display:flex;align-items:center;gap:14px;justify-content:space-between}
+.vx-inst-enrollment small{font-size:11px;color:#597274;font-weight:650;display:block}
+.vx-inst-enrollment strong{font-size:clamp(24px,3vw,34px);color:#184f49;font-variant-numeric:tabular-nums}
+.vx-inst-enrollment-top>span{font-size:10px;font-weight:750;border-radius:30px;padding:7px 9px;white-space:nowrap}
+.vx-inst-source-partial{background:#fff0d3;color:#916215}
+.vx-inst-source-neutral{background:#e4f5ec;color:#237553}
+.vx-inst-enrollment p{font-size:11px;color:#607779;margin:7px 0;line-height:1.5}
+.vx-inst-coverage{height:7px;background:#d8e6e5;border-radius:99px;overflow:hidden;margin:10px 0 4px}
+.vx-inst-coverage span{height:100%;background:linear-gradient(90deg,#07917f,#37c5a8);display:block}
+.vx-inst-enrollment .vx-inst-caution{background:#fff6e7;padding:9px 11px;border-radius:7px;color:#80591d;border:1px solid #f2e0bf;margin-top:11px}
+.vx-inst-card-actions{padding:14px 17px 18px;margin-top:auto}
+.vx-inst-primary{width:100%;display:flex;justify-content:space-between;align-items:center;padding:12px 15px;border-radius:10px;border:0;background:#0b6d63;color:white;font-weight:750;font-size:13px;cursor:pointer}
+.vx-inst-primary:hover{background:#08584f}
+.vx-inst-shortcuts{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}
+.vx-inst-shortcuts button{font-size:11px;font-weight:650;border-radius:7px;background:#eff6f4;border:1px solid #d7e8e3;color:#216b60;padding:8px 10px;cursor:pointer}
+.vx-inst-shortcuts button:hover{background:#dff2ec;border-color:#9ecdc0}
+.vx-inst-hub button:focus-visible,.vx-inst-controls input:focus-visible,.vx-inst-controls select:focus-visible{outline:3px solid #08a58a;outline-offset:2px}
+.vx-inst-empty{padding:22px;background:#f5faf9;border:1px dashed #a9ceca;border-radius:12px;font-size:13px;color:#5a7172}
+@media(max-width:1080px){.vx-inst-grid{grid-template-columns:1fr}}
+@media(max-width:650px){.vx-inst-controls{align-items:stretch}.vx-inst-controls label{flex:1 1 100%;width:100%}.vx-inst-controls select{width:100%}.vx-inst-indicators{grid-template-columns:repeat(2,minmax(0,1fr))}.vx-inst-card-heading{padding:14px}.vx-inst-enrollment{margin:10px 12px 0}.vx-inst-card-actions{padding:12px}}
+@media(prefers-reduced-motion:reduce){.vx-inst-hub *{transition:none!important}}
