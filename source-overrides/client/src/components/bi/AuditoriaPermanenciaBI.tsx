@@ -155,7 +155,7 @@ export default function AuditoriaPermanenciaBI({institutionId,institutionName}:{
         </div>
         {visibleSeries.length>0?<div className="vxa-scroll"><table><thead><tr><th>Semestre</th><th>RF</th><th>RN</th><th>RA</th><th>Reprovações</th><th>Vínculos disciplina</th></tr></thead>
           <tbody>{visibleSeries.map((s,i)=><tr key={i}><td>{s.semester}</td><td>{fmt(s.RF)}</td><td>{fmt(s.RN)}</td><td>{fmt(s.RA)}</td><td>{fmt(s.failures)}</td><td>{fmt(s.discipline_enrollments)}</td></tr>)}</tbody></table></div>:<p>Série de reprovações não disponibilizada para este curso.</p>}
-        {selectedCohorts.length>0&&<p className="vxa-source">Há {fmt(selectedCohorts.length)} coortes históricas de primeiro vínculo disponíveis para este curso.</p>}
+        {selectedCohorts.length>0&&<p className="vxa-source">Há {fmt(selectedCohorts.length)} turmas de ingresso com histórico de primeiro vínculo disponíveis para este curso.</p>}
         <p className="vxa-source">Fonte: vertice_academic_reports, tipo course_indicators (série de reprovações). RF/RN/RA seguem a codificação original. Não é possível descontar matrículas sem participação ou medir aprovação posterior sem o histórico individual.</p>
         <h3>Impacto nos indicadores — taxas brutas e ajustes pendentes</h3>
         <p>Estas taxas históricas abrangem vínculos em disciplinas da instituição e <strong>não são taxas de alunos únicos</strong>. O denominador ajustado só será calculado quando for possível verificar individualmente as condições de primeiro vínculo, gratuidade e ausência real nas duas avaliações.</p>
