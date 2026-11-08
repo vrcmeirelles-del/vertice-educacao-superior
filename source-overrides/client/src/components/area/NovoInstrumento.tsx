@@ -9,7 +9,7 @@ import {
   type AndamentoStatus, type Conformidade, type DadosInstrumento, type ObjetoInstrumento, type Tema, type TipoInstrumento,
 } from "@/lib/novo-instrumento";
 import "./novo-instrumento.css";
-import CorrespondenciasInstitucionais from "./CorrespondenciasInstitucionais";
+import CorrespondenciasInstitucionais, { type DocumentoVinculado } from "./CorrespondenciasInstitucionais";
 import { indicadoresDoObjeto2026, GRAU_COR, GRAU_LABEL } from "@/lib/instrumento-mapping";
 import indicatorNames from "@/lib/repository-indicators.json";
 
@@ -113,6 +113,7 @@ export default function NovoInstrumento({ institutionId, role, courses }: Props)
 
 // ================================================================ painel institucional (recredenciamento — 5 eixos)
 function InstitucionalPanel({ institutionId, role }: { institutionId: string; role: Role | null }) {
+  const [linkedDocs, setLinkedDocs] = useState<DocumentoVinculado[]>([]);
   const [filtroEixo, setFiltroEixo] = useState(0);
   const [filtroTema, setFiltroTema] = useState("");
   const [busca, setBusca] = useState("");
@@ -131,7 +132,7 @@ function InstitucionalPanel({ institutionId, role }: { institutionId: string; ro
         Os eixos e objetos abaixo são baseados no parecer CONIF/FDE (jul/2026) e na ata da 211ª reunião da CONAES.
         Serão atualizados quando a versão definitiva for publicada pelo INEP.
       </p>
-      <CorrespondenciasInstitucionais institutionId={institutionId} role={role} />
+      <CorrespondenciasInstitucionais institutionId={institutionId} role={role} onLinksUpdated={setLinkedDocs} />
       <div className="ni-inst-eixos">
         {EIXOS_INSTITUCIONAL.map(([n, title]) => {
           const count = OBJETOS_INSTITUCIONAL.filter(o => o.eixo === n).length;
@@ -158,6 +159,9 @@ function InstitucionalPanel({ institutionId, role }: { institutionId: string; ro
             </summary>
             <div className="ni-obj-body">
               <p className="area-muted"><strong>Roteiro de verificação (Vértice):</strong> {o.hint}</p>
+              <div className="ni-linked-evidence"><strong>Documentos reutilizados do instrumento vigente</strong>
+                {linkedDocs.filter(d=>d.object_code===o.code).length ? <ul>{linkedDocs.filter(d=>d.object_code===o.code).map(d=><li key={d.source_file_id}>{d.file_name} <small>· vínculo confirmado; conformidade ainda sujeita à avaliação</small></li>)}</ul> : <p className="area-muted small">Nenhum vínculo documental confirmado para este objeto.</p>}
+              </div>
               {o.temas.length > 0 && <p className="area-muted">Temas: {o.temas.map(t => TEMAS.find(([k])=>k===t)?.[1] ?? t).join(", ")}</p>}
             </div>
           </details>
