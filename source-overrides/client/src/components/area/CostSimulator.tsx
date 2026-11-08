@@ -287,8 +287,8 @@ export default function CostSimulator({ institutionId, onUploadDocument }: { ins
       <CostEvidence institutionId={institutionId} onUpload={onUploadDocument}/>
       {!results.length&&<p className="area-note">Sem quantitativos acadêmicos suficientes neste semestre. Não é possível calcular resultados estimados por curso.</p>}
 
-      {/* KPIs resumo */}
-      <div className="cost-sim-kpis">
+      {/* KPIs resumo · resultados estimados somente com quantitativos disponíveis */}
+      {results.length>0&&<div className="cost-sim-kpis">
         <div className="cost-sim-kpi" style={{ borderLeftColor: 'var(--primary)' }}>
           <small>Cursos analisados</small>
           <strong>{results.length}</strong>
@@ -309,10 +309,10 @@ export default function CostSimulator({ institutionId, onUploadDocument }: { ins
           <strong style={{ color: totals.resultado >= 0 ? 'var(--success)' : 'var(--danger)' }}>{BRL.format(totals.resultado)}</strong>
           <span>Margem: {PCT.format(totals.margem)}</span>
         </div>
-      </div>
+      </div>}
 
       {/* Tabela de cursos */}
-      <div className="cost-sim-table-wrap">
+      {results.length>0&&<div className="cost-sim-table-wrap">
         <table className="cost-sim-table">
           <thead>
             <tr>
@@ -345,7 +345,7 @@ export default function CostSimulator({ institutionId, onUploadDocument }: { ins
             ))}
           </tbody>
         </table>
-      </div>
+      </div>}
 
       <p className="cost-sim-footer">
         Estimativa com base em parâmetros declarados. Custo docente usa mix médio de titulação (10% grad, 40% esp, 40% mestre, 10% doutor).
