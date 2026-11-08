@@ -102,3 +102,10 @@
 .ni-crosswalk-actions button {cursor:pointer;padding:6px 9px;border:1px solid #d1dbe4;border-radius:7px;background:#fff;color:#243653;font-size:.81rem}
 .ni-crosswalk-actions button:first-child {background:#e5f4ed;border-color:#a0d5bd;color:#1c7654}
 .ni-crosswalk-actions button:disabled {opacity:.5;cursor:wait}
+
+.ni-linked-evidence {margin:12px 0;padding:12px 14px;border:1px solid #d5e8df;border-radius:9px;background:#f4faf7}
+.ni-linked-evidence>strong {font-size:.86rem;color:#20624b}
+.ni-linked-evidence ul {margin:8px 0 0;padding-left:20px}
+.ni-linked-evidence li {font-size:.87rem;margin:5px 0}
+.ni-linked-evidence li small {color:#5a6d65}
+.ni-linked-evidence p {margin:6px 0 0}
