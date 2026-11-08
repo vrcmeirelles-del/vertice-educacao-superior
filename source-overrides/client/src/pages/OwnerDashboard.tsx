@@ -24,6 +24,7 @@ import CaptacaoBI from '@/components/area/CaptacaoBI';
 import './owner-dashboard-redesign.css';
 import AcademicoBI from '@/components/bi/AcademicoBI';
 import PainelBI from '@/components/bi/PainelBI';
+import BIFrame from '@/components/bi/BIFrame';
 import ProfileSimulator from '@/components/area/ProfileSimulator';
 
 type Membership={user_id:string;institution_id:string;role:string};
@@ -337,7 +338,7 @@ export default function OwnerDashboard(){
   <div className="vx-module-card" style={{borderLeft:'3px solid '+(mgmt.goals.filter(x=>x.status!=='cancelada').length>0?'#b45309':'#00a86b')}}><small style={{color:'#676e7a'}}>Metas ativas</small><strong style={{fontSize:28}}>{mgmt.goals.filter(x=>x.status!=='cancelada').length}</strong></div>
   <div className="vx-module-card" style={{borderLeft:'3px solid '+(mgmt.actions.filter(x=>isLate(x.due_date,x.status)).length>0?'#d83a52':'#00a86b')}}><small style={{color:'#676e7a'}}>Ações atrasadas</small><strong style={{fontSize:28,color:mgmt.actions.filter(x=>isLate(x.due_date,x.status)).length>0?'#d83a52':'#00a86b'}}>{mgmt.actions.filter(x=>isLate(x.due_date,x.status)).length}</strong></div>
  </div>}
- {route.governanca?<GovernancaBI institutionId={institutions[0]?.id??''} institutionName={String(institutions[0]?.name??'Instituição')} courses={courses}/>:route.painelBi?<PainelBI institutions={institutions} courses={courses} enrollments={enrollments} session={session} reports={reports}/>:route.academico?<AcademicoBI institutionId={institutions[0]?.id??''} institutionName={institutions[0]?.name??'Instituição'}/>:route.captacao?<section aria-label="BI de Captação institucional">
+ {route.governanca?<GovernancaBI institutionId={institutions[0]?.id??''} institutionName={String(institutions[0]?.name??'Instituição')} courses={courses}/>:route.painelBi?<BIFrame view="executivo" source="Supabase · matrículas, indicadores de curso e relatórios acadêmicos"><PainelBI institutions={institutions} courses={courses} enrollments={enrollments} session={session} reports={reports}/></BIFrame>:route.academico?<BIFrame view="academico" institutionName={institutions[0]?.name??'Instituição não selecionada'} source="e-ORBIT e relatórios acadêmicos importados · cobertura sujeita à conciliação"><AcademicoBI institutionId={institutions[0]?.id??''} institutionName={institutions[0]?.name??'Instituição'}/></BIFrame>:route.captacao?<BIFrame view="captacao" institutionName={selectedCaptacaoInstitution?.name} source="Leads, custos de captação e snapshots · Supabase"><section aria-label="BI de Captação institucional">
     <label htmlFor="captacao-instituicao" style={{display:'grid',gap:'8px',marginBottom:'16px',maxWidth:'560px'}}>
       <strong>Instituição para análise de captação</strong>
       <select id="captacao-instituicao" value={selectedCaptacaoInstitution?.id??''} onChange={e=>setCaptacaoInstitutionId(e.target.value)}>
@@ -348,7 +349,7 @@ export default function OwnerDashboard(){
     {selectedCaptacaoInstitution
       ? <CaptacaoBI key={selectedCaptacaoInstitution.id} institutionId={selectedCaptacaoInstitution.id} institutionName={selectedCaptacaoInstitution.name}/>
       : <p role="status">Selecione uma instituição autorizada para consultar somente seus indicadores reais de captação.</p>}
-  </section>:route.bi?<PortalBI institutions={institutions} courses={courses} enrollments={enrollments} session={session}/>:master&&route.masters?<MasterDirectory/>:currentInst&&currentCourse?<CourseView key={currentCourse.id} course={currentCourse} institution={currentInst} enrollments={enrollments.filter(row => courses.some(course => course.id === row.course_id && course.institution_id === currentInst.id))} reports={reports} onBack={()=>writeHash(currentInst.id,'')} onPlan={can.record(roleIn(currentInst.id)) ? draft => { storeActionDraft(currentInst.id,draft); window.location.hash = new URLSearchParams({instituicao:currentInst.id,aba:'plano'}).toString(); } : undefined}/>
+  </section></BIFrame>:route.bi?<PortalBI institutions={institutions} courses={courses} enrollments={enrollments} session={session}/>:master&&route.masters?<MasterDirectory/>:currentInst&&currentCourse?<CourseView key={currentCourse.id} course={currentCourse} institution={currentInst} enrollments={enrollments.filter(row => courses.some(course => course.id === row.course_id && course.institution_id === currentInst.id))} reports={reports} onBack={()=>writeHash(currentInst.id,'')} onPlan={can.record(roleIn(currentInst.id)) ? draft => { storeActionDraft(currentInst.id,draft); window.location.hash = new URLSearchParams({instituicao:currentInst.id,aba:'plano'}).toString(); } : undefined}/>
  :currentInst?<Workspace key={currentInst.id} institution={currentInst as unknown as Row} role={roleIn(currentInst.id)} onBack={()=>writeHash('','')} onChanged={load}
    stats={instStats(currentInst.id)}
    overview={<InstitutionView institution={currentInst} courses={courses} enrollments={enrollments} embedded onOpenCourse={id=>writeHash(currentInst.id,id)} onBack={()=>writeHash('','')}/>}/>
