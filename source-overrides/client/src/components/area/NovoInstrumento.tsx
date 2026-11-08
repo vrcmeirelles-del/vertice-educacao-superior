@@ -3,9 +3,10 @@ import { can, deleteRow, explain, fmtDate, saveRow, today, type Role, type Row }
 import { supabase } from "@/lib/supabase";
 import {
   ANDAMENTO, ANDAMENTO_BADGE, ANDAMENTO_COR, CICLO_BASE, CONFORMIDADE, CONFORMIDADE_BADGE, CONFORMIDADE_COR, DIMENSOES_INSTRUMENTO,
+  EIXOS_INSTITUCIONAL, OBJETOS_INSTITUCIONAL, TIPOS_INSTRUMENTO,
   FASES, ITENS_CPA, MARCOS, NI_TABLES, PERFIL_ROTULO, TEMAS, VAZIO, carregarInstrumento, cicloRotulo, garantirLinhaChecklist,
   mesmoEscopo, objetosDoEscopo, perfilArea, resumir, semearChecklist, semearCiclo, semearCpa, statusValido, urlSegura, usuarioAtual,
-  type AndamentoStatus, type Conformidade, type DadosInstrumento, type ObjetoInstrumento, type Tema,
+  type AndamentoStatus, type Conformidade, type DadosInstrumento, type ObjetoInstrumento, type Tema, type TipoInstrumento,
 } from "@/lib/novo-instrumento";
 import "./novo-instrumento.css";
 import { indicadoresDoObjeto2026, GRAU_COR, GRAU_LABEL } from "@/lib/instrumento-mapping";
@@ -34,6 +35,7 @@ export default function NovoInstrumento({ institutionId, role, courses, onOpenRe
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [courseId, setCourseId] = useState("");
+  const [tipo, setTipo] = useState<TipoInstrumento>(() => new URLSearchParams(window.location.hash.slice(1)).get("instrumento") === "institucional" ? "institucional" : "curso");
 
   const reload = useCallback(async () => {
     try {
@@ -58,23 +60,38 @@ export default function NovoInstrumento({ institutionId, role, courses, onOpenRe
 
   return (
     <div className="ni">
-      <div className="area-panel" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
-        <div>
-          <strong>Instrumentos de avaliação do INEP</strong>
-          <p className="area-muted small" style={{ margin: "4px 0 0" }}>Este checklist organiza a preparação para a avaliação de cursos. O recredenciamento avalia a instituição por cinco eixos e possui instrumento independente.</p>
-        </div>
-        {onOpenRecredenciamento && <button className="corp-button" type="button" onClick={onOpenRecredenciamento}>Abrir Recredenciamento Institucional</button>}
+      <div className="area-panel ni-instrument-picker">
+        <div><strong>Instrumentos de avaliação · preparação regulatória</strong><p className="area-muted small">Selecione o instrumento específico. A proposta de recredenciamento de 2026 é preliminar; a versão histórica de 2017 permanece disponível em outra aba.</p></div>
+        <label className="area-search ni-scope">Instrumento
+          <select aria-label="Selecionar instrumento" value={tipo} onChange={e => {
+            const next = e.target.value as TipoInstrumento;
+            setTipo(next);
+            const hash = new URLSearchParams(window.location.hash.slice(1));
+            if (next === "institucional") hash.set("instrumento", "institucional"); else hash.delete("instrumento");
+            window.history.replaceState(null, "", "#" + hash.toString());
+          }}>
+            {TIPOS_INSTRUMENTO.map(([key, label]) => <option key={key} value={key}>{label}</option>)}
+          </select>
+        </label>
+        {tipo === "curso" && <button className="corp-button" type="button" onClick={() => {
+          setTipo("institucional");
+          const hash = new URLSearchParams(window.location.hash.slice(1));
+          hash.set("instrumento", "institucional");
+          window.history.replaceState(null, "", "#" + hash.toString());
+        }}>Abrir proposta de Recredenciamento 2026</button>}
       </div>
-      <div role="tablist" aria-label="Novo Instrumento INEP" className="area-tabs ni-subtabs">
+      {tipo === "curso" && <div role="tablist" aria-label="Novo Instrumento INEP" className="area-tabs ni-subtabs">
         {SUBS.map(([k, l]) => (
           <button key={k} role="tab" aria-selected={sub === k} className={sub === k ? "active" : ""} onClick={() => setSub(k)}>
             {l}
           </button>
         ))}
       </div>
-      {!can.record(role) && <p className="area-note">Seu perfil é de leitura: você acompanha o diagnóstico, mas não altera os registros.</p>}
+      {!can.record(role) && tipo === "curso" && <p className="area-note">Seu perfil é de leitura: você acompanha o diagnóstico, mas não altera os registros.</p>}
       {error && <p role="alert" className="area-error">{error}</p>}
-      {loading ? (
+      {tipo === "institucional" ? (
+        <InstitucionalPanel role={role} />
+      ) : loading ? (
         <p role="status" className="area-muted">Carregando o Novo Instrumento…</p>
       ) : sub === "checklist" ? (
         <ChecklistPanel {...shared} courses={courses} course={course} onCourse={setCourseId} />
@@ -89,6 +106,61 @@ export default function NovoInstrumento({ institutionId, role, courses, onOpenRe
         O roteiro de verificação é uma orientação do Vértice para organizar as evidências. Confira os títulos e os critérios no instrumento
         publicado pelo INEP. O diagnóstico registra a avaliação interna e não substitui a avaliação oficial.
       </p>
+    </div>
+  );
+}
+
+// ================================================================ painel institucional (recredenciamento — 5 eixos)
+function InstitucionalPanel({ role }: { role: Role | null }) {
+  const [filtroEixo, setFiltroEixo] = useState(0);
+  const [filtroTema, setFiltroTema] = useState("");
+  const [busca, setBusca] = useState("");
+  const objetos = useMemo(() => {
+    let list = OBJETOS_INSTITUCIONAL;
+    if (filtroEixo) list = list.filter(o => o.eixo === filtroEixo);
+    if (filtroTema) list = list.filter(o => o.temas.includes(filtroTema as Tema));
+    if (busca) { const q = busca.toLowerCase(); list = list.filter(o => o.code.includes(q) || o.title.toLowerCase().includes(q) || o.hint.toLowerCase().includes(q)); }
+    return list;
+  }, [filtroEixo, filtroTema, busca]);
+
+  return (
+    <div className="ni-inst-panel">
+      <p className="area-note" style={{marginBottom:12}}>
+        <strong>[Não verificado]</strong> Instrumento institucional de recredenciamento em fase de consulta pública.
+        Os eixos e objetos abaixo são baseados no parecer CONIF/FDE (jul/2026) e na ata da 211ª reunião da CONAES.
+        Serão atualizados quando a versão definitiva for publicada pelo INEP.
+      </p>
+      <div className="ni-inst-eixos">
+        {EIXOS_INSTITUCIONAL.map(([n, title]) => {
+          const count = OBJETOS_INSTITUCIONAL.filter(o => o.eixo === n).length;
+          return (
+            <button type="button" key={n} aria-pressed={filtroEixo === n} className={`ni-inst-eixo-card ${filtroEixo === n ? 'active' : ''}`} onClick={() => setFiltroEixo(filtroEixo === n ? 0 : n)}>
+              <span className="ni-inst-eixo-num">Eixo {n}</span>
+              <strong>{title}</strong>
+              <span className="area-muted">{count} objeto{count !== 1 ? 's' : ''}</span>
+            </button>
+          );
+        })}
+      </div>
+      <div className="ni-filters" style={{marginTop:12}}>
+        <label className="area-search"><input placeholder="Buscar objeto" value={busca} onChange={e => setBusca(e.target.value)} /></label>
+        <label className="area-search">Tema transversal <select value={filtroTema} onChange={e => setFiltroTema(e.target.value)}><option value="">Todos</option>{TEMAS.map(([k,l])=><option key={k} value={k}>{l}</option>)}</select></label>
+      </div>
+      <p className="area-muted" style={{marginTop:8}}>{objetos.length} objeto(s) exibido(s)</p>
+      <div className="ni-obj-list">
+        {objetos.map(o => (
+          <details key={o.code} className="ni-obj-row">
+            <summary>
+              <span className="ni-obj-code">{o.code}</span>
+              <span className="ni-obj-title">{o.title}{o.provisorio ? <small className="badge gray">título a confirmar</small> : null}</span>
+            </summary>
+            <div className="ni-obj-body">
+              <p className="area-muted"><strong>Roteiro de verificação (Vértice):</strong> {o.hint}</p>
+              {o.temas.length > 0 && <p className="area-muted">Temas: {o.temas.map(t => TEMAS.find(([k])=>k===t)?.[1] ?? t).join(", ")}</p>}
+            </div>
+          </details>
+        ))}
+      </div>
     </div>
   );
 }
