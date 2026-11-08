@@ -118,6 +118,18 @@ Deno.serve(async req=>{
   const {url,serviceKey}=cfg();
   const admin=createClient(url,serviceKey,{auth:{persistSession:false}});
   const actor=await authenticate(req,inst,admin);
+  if(operation==="sync_institution"){
+   const {data:ies,error}=await admin.from("vertice_institutions")
+    .select("id,name,acronym,city,state,status,updated_at").eq("id",inst).maybeSingle();
+   if(error||!ies)throw fail("Instituição não cadastrada na Vértice.",404);
+   if(/(?:teste|fict[ií]ci|demonstrativ)/i.test(ies.name||""))throw fail("Instituição demonstrativa não integra o catálogo público.",403);
+   if(!ies.name||!ies.city||!ies.state)throw fail("IES salva. Complete nome, município e UF para sincronizar o cadastro.",422);
+   const result=await remote("/api/internal/vertice/institution-directory","POST",{
+    institutionId:inst,authorizedBy:actor,name:ies.name,acronym:ies.acronym||"",
+    city:ies.city,state:ies.state,active:ies.status==="ativa",updatedAt:ies.updated_at
+   });
+   return send({ok:true,...result,notice:"Identificação institucional sincronizada; vínculos e permissões acadêmicas preservados."},200,origin);
+  }
   if(operation==="provision_tenant"){
    if(typeof body.enabled!=="boolean"||body.reviewed!==true)
     throw fail("Confirme a ativação institucional e o escopo do compartilhamento.");
@@ -248,3 +260,4 @@ Deno.serve(async req=>{
   return send({error:e.message||"Falha na integração."},e.status||500,origin);
  }
 });
+

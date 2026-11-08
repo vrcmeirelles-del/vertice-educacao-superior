@@ -258,6 +258,9 @@ export async function saveRow(table: string, values: Record<string, unknown>, id
     : supabase.from(table).insert(values).select().single();
   const { data, error } = await q;
   if (error) throw error;
+  if(table===TABLES.institutions){
+    await syncInstitutionDirectory(String(data.id));
+  }
   return data as Row;
 }
 
@@ -300,4 +303,16 @@ export function goalProgress(goal: Row, last?: number | null) {
 
 export function isLate(due: unknown, status: unknown) {
   return Boolean(due) && String(due) < today() && !["concluida", "cancelada", "resolvido"].includes(String(status));
+}
+
+
+/** A falha remota não desfaz um cadastro que já foi salvo na Vértice. */
+export async function syncInstitutionDirectory(institutionId:string){
+ let ok=false;
+ try {
+  const {data,error}=await supabase.functions.invoke("vertice-learning-bridge",{body:{operation:"sync_institution",institutionId}});
+  ok=!error&&data?.ok===true;
+ }catch{}
+ window.dispatchEvent(new CustomEvent("vertice:institution-directory",{detail:{institutionId,ok}}));
+ return ok;
 }
