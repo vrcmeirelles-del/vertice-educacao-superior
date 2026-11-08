@@ -58,7 +58,7 @@ async function getCourses(filtro: FiltroBI): Promise<Course[]> {
 // ---------------------------------------------------------------- matrículas
 type Enrollment = Row & {
   course_id: string; semester: string; student_status: string;
-  class_label: string; enrolled: number; capacity: number;
+  class_label: string; enrolled: number; capacity: number; source_report_at:string;
   reported_total: number | null;
 };
 
@@ -448,6 +448,34 @@ export async function getHeatmap(filtro: FiltroBI): Promise<CelulaHeatmap[]> {
   }
 
   return cells;
+}
+
+// ---------------------------------------------------------------- ocorrências acadêmicas observadas (ofertas)
+export type ResumoOfertas={
+  semestre:string;ofertas:number;matriculasDisciplina:number;rf:number;rn:number;ra:number;
+  disciplinas:{nome:string;ofertas:number;matriculasDisciplina:number;rf:number;rn:number;ra:number}[];
+};
+export async function getResumoOfertas(filtro:FiltroBI):Promise<ResumoOfertas|null>{
+  const semesters=await getSemestres(filtro.instituicaoId);
+  const semester=filtro.semestre||semesters[0];
+  if(!semester)return null;
+  // A fonte agrega resultados por oferta; não permite contar alunos únicos.
+  const all=await fetchAll<Row>('vertice_offering_outcomes',{institution_id:filtro.instituicaoId,semester});
+  if(!all.length)return null;
+  const n=(v:unknown)=>typeof v==='number'&&Number.isFinite(v)&&v>=0?v:0;
+  const groups=new Map<string,{nome:string;ofertas:number;matriculasDisciplina:number;rf:number;rn:number;ra:number}>();
+  const total={semestre:semester,ofertas:0,matriculasDisciplina:0,rf:0,rn:0,ra:0,disciplinas:[] as ResumoOfertas['disciplinas']};
+  for(const o of all){
+    const label=String(o.discipline??'Sem identificação').trim()||'Sem identificação';
+    const row=groups.get(label)??{nome:label,ofertas:0,matriculasDisciplina:0,rf:0,rn:0,ra:0};
+    row.ofertas++;total.ofertas++;
+    for(const [key,source] of [['matriculasDisciplina','discipline_enrollments'],['rf','rf'],['rn','rn'],['ra','ra']] as const){
+      const value=n(o[source]);row[key]+=value;total[key]+=value;
+    }
+    groups.set(label,row);
+  }
+  total.disciplinas=[...groups.values()].sort((a,b)=>(b.rf+b.rn+b.ra)-(a.rf+a.rn+a.ra)).slice(0,12);
+  return total;
 }
 
 // ---------------------------------------------------------------- exportação CSV
