@@ -159,7 +159,7 @@ Deno.serve(async req=>{
   const token=await graphToken();
   const summary:Record<string,unknown>[]=[],logs:Record<string,unknown>[]=[];
   for(const inst of targets){
-   const ctx={token,bearer:readBearer,apikey,force};
+   const ctx={token,bearer:readBearer,apikey:cron?svc():apikey,force};
    const results=await pool(MAP,4,([t,d])=>syncOne(inst,t,d,ctx));
    for(const r of results){logs.push({...r.log,origem,acionado_por:userId});}
    const count=(s:string)=>results.filter(r=>r.res.status===s).length;
