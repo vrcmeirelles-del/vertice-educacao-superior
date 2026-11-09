@@ -181,7 +181,7 @@ export default function Workspace({
     choose("repositorio");
   };
 
-  const recognitionRequests=data.requests.filter(r=>r.repository_section!=="recredenciamento_2017");
+  const recognitionRequests=data.requests.filter(r=>!["recredenciamento_2017","novo_instrumento_2026_institucional","novo_instrumento_2026_curso"].includes(String(r.repository_section??"")));
   const recognitionRequestIds=new Set(recognitionRequests.map(r=>String(r.id)));
   const recognitionFiles=data.files.filter(f=>recognitionRequestIds.has(String(f.request_id)));
   const documents=repositorySummary(recognitionRequests,recognitionFiles);
@@ -308,7 +308,7 @@ export default function Workspace({
       ) : tab === "metas" ? (
         error ? <p role="alert">Painel de metas indisponível enquanto houver falha no carregamento. Atualize os dados.</p> : <GoalsTab key={id} institutionId={id} role={role} data={data} reload={reload} onRepository={goal=>{setRepositoryGoal(goal);choose("repositorio");}} />
       ) : tab === "repositorio" ? (
-        <RepositoryTab institutionId={id} role={role} courses={data.courses} goals={data.goals} requests={data.requests.filter(r=>r.repository_section!=="recredenciamento_2017")} files={data.files.filter(f=>data.requests.some(r=>r.id===f.request_id&&r.repository_section!=="recredenciamento_2017"))} reload={reload} goalFilter={repositoryGoal} setGoalFilter={setRepositoryGoal} initialCourseId={instrumentUpload?.courseId} initialUpload={!!instrumentUpload} initialDocumentTitle={instrumentUpload?.title} initialDocumentInstructions={instrumentUpload?.reference}/>
+        <RepositoryTab institutionId={id} role={role} courses={data.courses} goals={data.goals} requests={data.requests.filter(r=>!["recredenciamento_2017","novo_instrumento_2026_institucional","novo_instrumento_2026_curso"].includes(String(r.repository_section??"")))} files={data.files.filter(f=>data.requests.some(r=>r.id===f.request_id&&!["recredenciamento_2017","novo_instrumento_2026_institucional","novo_instrumento_2026_curso"].includes(String(r.repository_section??""))))} reload={reload} goalFilter={repositoryGoal} setGoalFilter={setRepositoryGoal} initialCourseId={instrumentUpload?.courseId} initialUpload={!!instrumentUpload} initialDocumentTitle={instrumentUpload?.title} initialDocumentInstructions={instrumentUpload?.reference}/>
       ) : tab === "reitor" ? (
         role === "master" || role === "gestor" ? <EbitdaCalculator reserved={{institutionId:id,name:String(institution.name)}}/> : <p>Os dados financeiros são reservados ao Gestor da instituição e ao Master.</p>
       ) : tab === "aprendizagem" ? (
@@ -441,7 +441,7 @@ function OverviewTab({ data, stats, onGo }: { data: Data; stats?: { enrolled: nu
     dims.get(k)!.push(Number(d.score));
   }
   const highOpen = data.diagnosis.filter(d => d.priority === "alta" && d.status !== "resolvido").length;
-  const recognition=data.requests.filter(r=>r.repository_section!=="recredenciamento_2017");
+  const recognition=data.requests.filter(r=>!["recredenciamento_2017","novo_instrumento_2026_institucional","novo_instrumento_2026_curso"].includes(String(r.repository_section??"")));
   const activeIds=new Set(recognition.map(r=>String(r.id)));
   const docs=repositorySummary(recognition,data.files.filter(f=>activeIds.has(String(f.request_id))));
   const activeCourses = data.courses.filter(c => (c.status ?? "ativo") === "ativo").length;
