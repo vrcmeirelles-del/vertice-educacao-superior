@@ -35,11 +35,17 @@ export function useRecredenciamentoDocs2017(institutionId:string){
       if(a.error)throw a.error;
       const rs=(a.data??[]) as Req[];
       const ids=new Set(rs.map(r=>r.id));
-      const f=await supabase.from("vertice_repository_files")
-        .select("id,request_id,file_name,storage_path,status,review_note,reference,created_at,size_bytes")
-        .eq("institution_id",institutionId).order("created_at",{ascending:false}).limit(1500);
-      if(f.error)throw f.error;
-      setRequests(rs);setFiles(((f.data??[]) as Doc[]).filter(x=>ids.has(x.request_id)));
+      const idsArray=[...ids];
+      const chunks:Array<Doc>=[];
+      for(let start=0;start<idsArray.length;start+=80){
+        const fileResult=await supabase.from("vertice_repository_files")
+          .select("id,request_id,file_name,storage_path,status,review_note,reference,created_at,size_bytes")
+          .eq("institution_id",institutionId).in("request_id",idsArray.slice(start,start+80))
+          .order("created_at",{ascending:false}).limit(1000);
+        if(fileResult.error)throw fileResult.error;
+        chunks.push(...((fileResult.data??[]) as Doc[]));
+      }
+      setRequests(rs);setFiles(chunks.sort((x,y)=>y.created_at.localeCompare(x.created_at)));
     }catch(e){setError(e instanceof Error?e.message:"Não foi possível carregar o repositório de recredenciamento.");}
     finally{setBusy(false);}
   },[institutionId]);
@@ -140,6 +146,10 @@ export function Recred2017IndicatorDocs({institutionId,role,indicador,state}:{
         setMessage("Não aplicabilidade registrada com justificativa.");
       }else{
         if(!file)throw new Error("Selecione o arquivo.");
+        if(req.not_applicable){
+          const unmark=await supabase.rpc("vertice_repository_set_nsa",{target:req.id,marked:false,note:null});
+          if(unmark.error)throw unmark.error;
+        }
         const {ext,mime}=documentFile(file);
         const {data:auth,error:authError}=await supabase.auth.getUser();
         if(authError||!auth.user)throw new Error("Sessão autenticada necessária.");
