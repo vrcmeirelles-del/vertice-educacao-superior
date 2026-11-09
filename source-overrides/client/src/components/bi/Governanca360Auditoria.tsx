@@ -17,7 +17,7 @@ const LEGACY_UNITOP="cda828bd-4f55-432a-a824-387716c3cb2b";
 const CANONICAL_UNITOP="1f5fd5b4-93c6-4626-834d-136884915587";
 const normalizeTerm=(s:string)=>s.replace(/-/g,"/");
 const fmt=(v:number|null)=>v===null?"Indisponível":new Intl.NumberFormat("pt-BR").format(v);
-type Table="vertice_courses"|"vertice_enrollment_snapshots"|"vertice_offering_outcomes"|"vertice_goals"|"vertice_goal_measurements"|"vertice_actions"|"vertice_diagnosis_items"|"vertice_repository_requests"|"vertice_repository_files"|"vertice_captacao_leads"|"vertice_captacao_custos"|"vertice_enade360_records"|"vertice_eorbit_quantitativo";
+type Table="vertice_courses"|"vertice_enrollment_snapshots"|"vertice_offering_outcomes"|"vertice_goals"|"vertice_goal_measurements"|"vertice_actions"|"vertice_diagnosis_items"|"vertice_repository_requests"|"vertice_repository_files"|"vertice_captacao_leads"|"vertice_captacao_custos"|"vertice_enade360_records"|"vertice_eorbit_quantitativo"|"vertice_memberships"|"vertice_invites"|"vertice_source_uploads"|"vertice_source_analyses";
 export default function Governanca360Auditoria({institutionId}:{institutionId:string}){
  const [audit,setAudit]=useState<Audit|null>(null);
  const [loading,setLoading]=useState(true);
@@ -29,7 +29,7 @@ export default function Governanca360Auditoria({institutionId}:{institutionId:st
    // Cada consulta tem isolamento por IES. A chave legada só se aplica à UNITOP,
    // desde que a política RLS também permita ler a origem acadêmica.
    const count=async(table:Table,extra?:{eq?:[string,string];is?:[string,null]})=>{
-     let q=supabase.from(table).select("id",{count:"exact",head:true}).eq("institution_id",institutionId);
+     let q=supabase.from(table).select(table==="vertice_memberships"?"user_id":"id",{count:"exact",head:true}).eq("institution_id",institutionId);
      if(extra?.eq)q=q.eq(extra.eq[0],extra.eq[1]);
      if(extra?.is)q=q.is(extra.is[0],extra.is[1]);
      const r=await q;
@@ -44,7 +44,11 @@ export default function Governanca360Auditoria({institutionId}:{institutionId:st
     count("vertice_captacao_leads"),
     count("vertice_captacao_custos"),
     count("vertice_enade360_records"),
-    count("vertice_offering_outcomes",{eq:["semester","2026/02"]})
+    count("vertice_offering_outcomes",{eq:["semester","2026/02"]}),
+    count("vertice_memberships"),
+    count("vertice_invites"),
+    count("vertice_source_uploads"),
+    count("vertice_source_analyses")
    ]);
    const metric=(i:number,name:string,source:string):Metric=>{
     const r=counts[i];
@@ -58,7 +62,11 @@ export default function Governanca360Auditoria({institutionId}:{institutionId:st
     metric(4,"Leads de captação","vertice_captacao_leads"),
     metric(5,"Custos de captação","vertice_captacao_custos"),
     metric(6,"Resultados ENADE 360","vertice_enade360_records"),
-    metric(7,"Ofertas de disciplina em 2026/2","vertice_offering_outcomes")
+    metric(7,"Ofertas de disciplina em 2026/2","vertice_offering_outcomes"),
+    metric(8,"Membros vinculados à IES","vertice_memberships"),
+    metric(9,"Convites da IES","vertice_invites"),
+    metric(10,"Arquivos de origem enviados","vertice_source_uploads"),
+    metric(11,"Análises de origem","vertice_source_analyses")
    ];
    const result=await Promise.allSettled([
     supabase.from("vertice_goals").select("id,status,owner_user_id").eq("institution_id",institutionId).limit(2000),
@@ -102,6 +110,8 @@ export default function Governanca360Auditoria({institutionId}:{institutionId:st
    sourceErrors.forEach((message,index)=>add("origem-adicional-"+index,"atencao","Origem histórica indisponível",message+" O painel não atribui zero a esta fonte.","Conferir conciliação de identidade da IES e permissões de acesso à origem."));
    if(metrics[4].count===0&&metrics[5].count===0)add("captacao-ausente","atencao","Captação sem alimentação estruturada","Nenhum lead ou custo de campanha cadastrado nesta fonte para a IES.", "Conectar CRM/captação com opt-in e fonte legitimamente autorizada.");
    if(metrics[6].count===0)add("enade-ausente","atencao","ENADE 360 sem desempenho validado","Não existem resultados cadastrados na tabela de desempenho ENADE 360.", "Importar resultados homologados por curso e período; não deduzir notas de outras avaliações.");
+   if(metrics[8].count===0&&metrics[9].count!==null&&metrics[9].count>0)add("convites-sem-vinculo","atencao","Convites sem membro institucional ativo","Há "+fmt(metrics[9].count)+" convite(s) nesta IES, mas nenhum membro vinculado na tabela de acesso. Isso não indica que o convidado aceitou ou recusou.","Conferir convites e consentimento; registrar acesso apenas após validação da identidade e do perfil.");
+   if(metrics[10].count!==null&&metrics[10].count>0&&metrics[11].count===0)add("fontes-sem-analise","atencao","Fontes enviadas sem análise registrada","Existem "+fmt(metrics[10].count)+" arquivo(s) de origem e nenhuma análise registrada no módulo de fontes.","Conferir o pipeline, o estado da ingestão, a autorização e os relatórios produzidos.");
    if(reqs.length && !reqs.some(r=>String(r.repository_section).startsWith("novo_instrumento_2026")))add("novo-instrumento-sem-envio","informativo","Novo Instrumento sem documentos cadastrados","Formulários estão disponíveis, mas nenhum pedido deste instrumento aparece neste recorte.", "Solicitar evidências e registrar a análise manual antes de declarar cobertura.");
    findings.sort((a,b)=>({critico:0,atencao:1,informativo:2}[a.severity]-{critico:0,atencao:1,informativo:2}[b.severity]));
    setAudit({metrics,findings,scannedAt:new Date().toISOString(),coverage:{
