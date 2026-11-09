@@ -105,7 +105,7 @@ function Indicador({ indicador, institutionId, role, documents }: { indicador: I
 }
 
 export default function AvaliacaoInstitucional({ institutionId,role }: { institutionId:string;role:Role|null }) {
-  const documents=useRecredenciamentoDocs2017(institutionId);
+  const documents=useRecredenciamentoDocs2017(institutionId,role);
   const [busca, setBusca] = useState("");
   const [eixo, setEixo] = useState("");
   const [somenteRestritos, setSomenteRestritos] = useState(false);
