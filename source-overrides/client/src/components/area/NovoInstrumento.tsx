@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { can, deleteRow, explain, fmtDate, saveRow, today, type Role, type Row } from "@/lib/area";
 import { supabase } from "@/lib/supabase";
 import {
@@ -10,6 +10,7 @@ import {
 } from "@/lib/novo-instrumento";
 import "./novo-instrumento.css";
 import CorrespondenciasInstitucionais, { type DocumentoVinculado } from "./CorrespondenciasInstitucionais";
+import {useNovoInstrumentoDocs2026,NovoDocumentosResumo2026,NovoObjetoDocumentos2026} from "./NovoInstrumentoDocumental2026";
 import { indicadoresDoObjeto2026, GRAU_COR, GRAU_LABEL } from "@/lib/instrumento-mapping";
 import indicatorNames from "@/lib/repository-indicators.json";
 
@@ -124,6 +125,7 @@ export default function NovoInstrumento({ institutionId, role, courses, onUpload
 // ================================================================ painel institucional (recredenciamento — 5 eixos)
 function InstitucionalPanel({ institutionId, role, onUploadDocument }: { institutionId: string; role: Role | null; onUploadDocument?: Props["onUploadDocument"] }) {
   const [linkedDocs, setLinkedDocs] = useState<DocumentoVinculado[]>([]);
+  const documents=useNovoInstrumentoDocs2026(institutionId,role,"institucional",null);
   const [filtroEixo, setFiltroEixo] = useState(0);
   const [filtroTema, setFiltroTema] = useState("");
   const [busca, setBusca] = useState("");
@@ -142,6 +144,7 @@ function InstitucionalPanel({ institutionId, role, onUploadDocument }: { institu
         Os eixos e objetos abaixo são baseados no parecer CONIF/FDE (jul/2026) e na ata da 211ª reunião da CONAES.
         Serão atualizados quando a versão definitiva for publicada pelo INEP.
       </p>
+      <NovoDocumentosResumo2026 state={documents}/>
       <CorrespondenciasInstitucionais institutionId={institutionId} role={role} onLinksUpdated={setLinkedDocs} />
       <div className="ni-inst-eixos">
         {EIXOS_INSTITUCIONAL.map(([n, title]) => {
@@ -169,7 +172,7 @@ function InstitucionalPanel({ institutionId, role, onUploadDocument }: { institu
             </summary>
             <div className="ni-obj-body">
               <p className="area-muted"><strong>Roteiro de verificação (Vértice):</strong> {o.hint}</p>
-              {onUploadDocument && can.record(role) && <button type="button" className="corp-button small" onClick={()=>onUploadDocument("institucional",`Evidência · ${o.code} · ${o.title}`,`Proposta preliminar de Recredenciamento 2026 · Eixo ${o.eixo} · Objeto ${o.code} · ${o.title}. Não implica conceito de conformidade.`)}>Enviar documento deste objeto</button>}
+              <NovoObjetoDocumentos2026 state={documents} role={role} object={{code:o.code,title:o.title,hint:o.hint}}/>
               <div className="ni-linked-evidence"><strong>Documentos reutilizados do instrumento vigente</strong>
                 {linkedDocs.filter(d=>d.object_code===o.code).length ? <ul>{linkedDocs.filter(d=>d.object_code===o.code).map(d=><li key={d.source_file_id}>{d.file_name} <small>· vínculo confirmado; conformidade ainda sujeita à avaliação</small></li>)}</ul> : <p className="area-muted small">Nenhum vínculo documental confirmado para este objeto.</p>}
               </div>
@@ -252,6 +255,7 @@ function SeletorEscopo({ courses, value, onChange }: { courses: Row[]; value: st
 
 // ================================================================ checklist
 function ChecklistPanel({ institutionId, role, data, reload, fail, courses, course, onCourse, onUploadDocument }: Shared & { courses: Row[]; course: Row | null; onCourse: (id: string) => void; onUploadDocument?: Props["onUploadDocument"] }) {
+  const documents=useNovoInstrumentoDocs2026(institutionId,role,"curso",course?String(course.id):null);
   const courseId = course ? String(course.id) : null;
   const edit = can.record(role);
   const objetos = useMemo(() => objetosDoEscopo(course), [course]);
@@ -421,6 +425,7 @@ function ChecklistPanel({ institutionId, role, data, reload, fail, courses, cour
         )}
         {dim === "4" && course && !perfilArea(course) && <p className="area-note">A dimensão 4 não está catalogada para este curso. Confira a classificação regulatória antes de cadastrar objetos específicos.</p>}
         <p aria-live="polite" className="area-muted small">{filtrados.length} objeto(s) exibido(s)</p>
+        <NovoDocumentosResumo2026 state={documents}/>
         {porDim.map(({ d, nome }) => {
           const lista = filtrados.filter(i => i.o.dimension === d);
           if (!lista.length) return null;
@@ -443,7 +448,7 @@ function ChecklistPanel({ institutionId, role, data, reload, fail, courses, cour
                           onToggle={() => setOpen(aberto ? null : o.code)}
                           onStatus={v => gravar(o, row, { status: v })}
                           onSalvar={(notes, responsible) => gravar(o, row, { notes: notes || null, responsible: responsible || null })}
-                          onUpload={edit && course && onUploadDocument ? () => onUploadDocument(String(course.id), `Evidência · Objeto ${o.code} · ${o.title}`, `Novo Instrumento de Avaliação de Curso 2026 · ${String(course.name)} · Objeto ${o.code}: ${o.title}. Este envio não representa avaliação de conformidade.`) : undefined} />
+                          onUpload={undefined} onDocumentPanel={course? <NovoObjetoDocumentos2026 state={documents} role={role} object={{code:o.code,title:o.title,hint:o.hint}}/>:null} />
                       );
                     })}
                   </tbody>
@@ -457,9 +462,9 @@ function ChecklistPanel({ institutionId, role, data, reload, fail, courses, cour
   );
 }
 
-function ObjetoLinhas({ o, row, status, ev, aberto, edit, ocupado, onToggle, onStatus, onSalvar, onUpload }: {
+function ObjetoLinhas({ o, row, status, ev, aberto, edit, ocupado, onToggle, onStatus, onSalvar, onUpload, onDocumentPanel }: {
   o: ObjetoInstrumento; row?: Row; status: Conformidade; ev: number; aberto: boolean; edit: boolean; ocupado: boolean;
-  onToggle: () => void; onStatus: (v: Conformidade) => void; onSalvar: (notes: string, responsible: string) => void; onUpload?: () => void;
+  onToggle: () => void; onStatus: (v: Conformidade) => void; onSalvar: (notes: string, responsible: string) => void; onUpload?: () => void; onDocumentPanel?: ReactNode;
 }) {
   const [notes, setNotes] = useState(String(row?.notes ?? ""));
   const [resp, setResp] = useState(String(row?.responsible ?? ""));
@@ -510,6 +515,7 @@ function ObjetoLinhas({ o, row, status, ev, aberto, edit, ocupado, onToggle, onS
           <td colSpan={5}>
             <p className="area-muted small"><strong>Roteiro de verificação:</strong> {o.hint}</p>
             {onUpload && <button type="button" className="corp-button small" onClick={onUpload}>Enviar arquivo deste objeto</button>}
+            {onDocumentPanel}
             {(() => {
               const fontes = indicadoresDoObjeto2026(o.code);
               if (!fontes.length) return null;
