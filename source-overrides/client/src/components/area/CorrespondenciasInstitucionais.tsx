@@ -5,7 +5,7 @@ import { OBJETOS_INSTITUCIONAL } from "@/lib/novo-instrumento";
 
 type LinkRow = { id: string; source_file_id: string; target_object_code: string; suggestion_status: "sugerido" | "confirmado" | "descartado"; confidence: number; method: string; rationale: string; created_at: string };
 type FileRow = { id: string; file_name: string; storage_path: string; request_id: string; status: string };
-type RequestRow = { id: string; title: string; course_id: string | null };
+type RequestRow = { id: string; title: string; course_id: string | null; repository_section:string|null };
 const titleByCode = new Map(OBJETOS_INSTITUCIONAL.map(o => [o.code, o.title]));
 
 export type DocumentoVinculado = { object_code: string; file_name: string; source_file_id: string };
@@ -24,7 +24,7 @@ export default function CorrespondenciasInstitucionais({ institutionId, role, on
     const [a,b,c] = await Promise.all([
       supabase.from("vertice_instrumento_correspondencias").select("id,source_file_id,target_object_code,suggestion_status,confidence,method,rationale,created_at").eq("institution_id",institutionId).order("created_at",{ascending:false}).limit(300),
       supabase.from("vertice_repository_files").select("id,file_name,storage_path,request_id,status").eq("institution_id",institutionId).order("created_at",{ascending:false}).limit(600),
-      supabase.from("vertice_repository_requests").select("id,title,course_id").eq("institution_id",institutionId).is("course_id",null)
+      supabase.from("vertice_repository_requests").select("id,title,course_id,repository_section").eq("institution_id",institutionId).is("course_id",null)
     ]);
     if(a.error || b.error || c.error) throw new Error("Não foi possível carregar os vínculos institucionais.");
     setLinks((a.data??[]) as LinkRow[]);
@@ -72,7 +72,7 @@ export default function CorrespondenciasInstitucionais({ institutionId, role, on
   }
 
   const fileById=useMemo(()=>new Map(files.map(f=>[f.id,f])),[files]);
-  const reqById=useMemo(()=>new Map(requests.map(r=>[r.id,r])),[requests]);
+  const reqById=useMemo(()=>new Map(requests.filter(r=>!String(r.repository_section??"").startsWith("novo_instrumento_2026")).map(r=>[r.id,r])),[requests]);
   const institutionFileIds=useMemo(()=>new Set(files.filter(f=>reqById.has(f.request_id)).map(f=>f.id)),[files,reqById]);
   const visible=links.filter(x=>institutionFileIds.has(x.source_file_id)&&(showDiscarded||x.suggestion_status!=="descartado"));
   const suggested=visible.filter(x=>x.suggestion_status==="sugerido").length;
