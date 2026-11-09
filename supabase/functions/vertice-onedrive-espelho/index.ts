@@ -133,8 +133,18 @@ Deno.serve(async req=>{
   if(!apikey)throw E("backend_unavailable",503);
   const force=body.force===true;
   let targets:string[],origem:string,userId:string|null=null;
-  if(bearer==="Bearer "+(Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")??"\u0000")){
-   origem="agendado";targets=Object.keys(IES);
+  const cronSecret=req.headers.get("x-cron-secret");
+  let cron=false;
+  if(cronSecret){
+   const k=svc();
+   const cr=await fetch(Deno.env.get("SUPABASE_URL")+"/rest/v1/rpc/vertice_espelho_cron_ok",{method:"POST",
+    headers:{apikey:k,Authorization:"Bearer "+k,"Content-Type":"application/json"},body:JSON.stringify({p_secret:cronSecret}),signal:AbortSignal.timeout(10000)});
+   cron=cr.ok&&(await cr.json())===true;
+   if(!cron)throw E("access_denied",403);
+  }
+  let readBearer=bearer;
+  if(cron){
+   origem="agendado";targets=Object.keys(IES);readBearer="Bearer "+svc();
   }else{
    const ur=await fetch(Deno.env.get("SUPABASE_URL")+"/auth/v1/user",{headers:{Authorization:bearer,apikey},signal:AbortSignal.timeout(10000)});
    const user=await ur.json().catch(()=>null);
@@ -149,7 +159,7 @@ Deno.serve(async req=>{
   const token=await graphToken();
   const summary:Record<string,unknown>[]=[],logs:Record<string,unknown>[]=[];
   for(const inst of targets){
-   const ctx={token,bearer,apikey,force};
+   const ctx={token,bearer:readBearer,apikey,force};
    const results=await pool(MAP,4,([t,d])=>syncOne(inst,t,d,ctx));
    for(const r of results){logs.push({...r.log,origem,acionado_por:userId});}
    const count=(s:string)=>results.filter(r=>r.res.status===s).length;
