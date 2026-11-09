@@ -1,16 +1,19 @@
 import {useEffect,useState} from "react";
 import {supabase} from "@/lib/supabase";
 
-type Conexao={id:string;tipo:string;fornecedor:string;rotulo:string;escopo:string;status:string;ultimo_teste_em:string|null;ultimo_sync_em:string|null;ultimo_erro:string|null;config:Record<string,unknown>};
+type Conexao={id:string;tipo:string;fornecedor:string;rotulo:string;escopo:string;escopo_financeiro:string;aprovado_em:string|null;status:string;ultimo_teste_em:string|null;ultimo_sync_em:string|null;ultimo_erro:string|null;config:Record<string,unknown>};
 const TIPOS:Record<string,string>={
   api:"API do sistema acadêmico",
   sql:"Banco SQL direto (somente leitura)",
   agente:"Agente instalado na rede da IES",
   onedrive:"Pasta OneDrive / SharePoint da IES"
 };
-const STATUS:Record<string,string>={pendente:"Pendente",ativa:"Conectada",erro:"Com erro",pausada:"Pausada"};
+const FIN:Record<string,string>={nenhum:"sem acesso financeiro/contábil",pessoal:"gasto com pessoal",completo:"financeiro e contábil completos"};
+const STATUS:Record<string,string>={pendente:"Pendente",aguardando_aprovacao:"Aguardando aprovação do master",ativa:"Conectada",erro:"Com erro",pausada:"Pausada"};
 const ERROS:Record<string,string>={
   aceite_obrigatorio:"Marque o aceite para continuar.",
+  aceite_financeiro_obrigatorio:"Confirme a autorização do acesso financeiro/contábil.",
+  somente_master:"Só o master pode aprovar esta conexão.",
   access_denied:"Seu perfil não pode gerenciar conexões desta instituição (exige gestor com segundo fator).",
   authentication_required:"Sessão expirada. Entre novamente.",
   url_invalida:"Use um endereço https:// sem usuário e senha na URL.",
@@ -29,17 +32,17 @@ async function chamar(body:Record<string,unknown>){
   return data as {id:string;status:string;teste:string;token_agente?:string|null};
 }
 
-export default function ConexoesDados({institutionId,institutionName}:{institutionId:string;institutionName:string}){
+export default function ConexoesDados({institutionId,institutionName,role}:{institutionId:string;institutionName:string;role?:string}){
   const [lista,setLista]=useState<Conexao[]>([]);
   const [busy,setBusy]=useState(false);
   const [msg,setMsg]=useState("");
   const [token,setToken]=useState("");
-  const [f,setF]=useState({tipo:"api",fornecedor:"",rotulo:"",escopo:"agregado",base_url:"",test_path:"/",header_name:"Authorization",scheme:"Bearer",engine:"postgres",host:"",port:"",database:"",user:"",link:"",secret:"",aceite:false});
+  const [f,setF]=useState({tipo:"api",fornecedor:"",rotulo:"",escopo:"agregado",fin:"nenhum",aceiteFin:false,base_url:"",test_path:"/",header_name:"Authorization",scheme:"Bearer",engine:"postgres",host:"",port:"",database:"",user:"",link:"",secret:"",aceite:false});
   const set=(k:string,v:string|boolean)=>setF(p=>({...p,[k]:v}));
 
   const carregar=async()=>{
     const {data}=await supabase.from("vertice_data_connections")
-      .select("id,tipo,fornecedor,rotulo,escopo,status,ultimo_teste_em,ultimo_sync_em,ultimo_erro,config")
+      .select("id,tipo,fornecedor,rotulo,escopo,escopo_financeiro,aprovado_em,status,ultimo_teste_em,ultimo_sync_em,ultimo_erro,config")
       .eq("institution_id",institutionId).order("created_at",{ascending:false});
     setLista((data as Conexao[])??[]);
   };
@@ -54,8 +57,8 @@ export default function ConexoesDados({institutionId,institutionName}:{instituti
   const criar=async()=>{
     setBusy(true);setMsg("");setToken("");
     try{
-      const r=await chamar({action:"criar",institution_id:institutionId,tipo:f.tipo,fornecedor:f.fornecedor,rotulo:f.rotulo,escopo:f.escopo,config:montarConfig(),secret:f.secret||undefined,aceite:f.aceite});
-      setF(p=>({...p,secret:"",aceite:false}));
+      const r=await chamar({action:"criar",institution_id:institutionId,tipo:f.tipo,fornecedor:f.fornecedor,rotulo:f.rotulo,escopo:f.escopo,escopo_financeiro:f.fin,aceite_financeiro:f.fin!=="nenhum"?f.aceiteFin:undefined,config:montarConfig(),secret:f.secret||undefined,aceite:f.aceite});
+      setF(p=>({...p,secret:"",aceite:false,aceiteFin:false}));
       if(r.token_agente)setToken(r.token_agente);
       setMsg(r.status==="erro"?"Conexão criada, mas o teste falhou: "+msgErro(r.teste):"Conexão criada. "+r.teste+".");
       carregar();
@@ -80,19 +83,30 @@ export default function ConexoesDados({institutionId,institutionName}:{instituti
 
       {lista.length>0&&<ul style={{listStyle:"none",padding:0,margin:"0 0 16px"}}>
         {lista.map(c=><li key={c.id} style={{padding:"8px 0",borderTop:"1px solid var(--line, #d9dde3)"}}>
-          <strong>{c.rotulo}</strong> · {TIPOS[c.tipo]??c.tipo} · {c.fornecedor} · {c.escopo==="nominal"?"agregados + nominais":"só agregados"}<br/>
+          <strong>{c.rotulo}</strong> · {TIPOS[c.tipo]??c.tipo} · {c.fornecedor} · {c.escopo==="nominal"?"agregados + nominais":"só agregados"} · {FIN[c.escopo_financeiro]??c.escopo_financeiro}<br/>
           Situação: <strong>{STATUS[c.status]??c.status}</strong>
           {c.ultimo_teste_em&&<> · testada em {new Date(c.ultimo_teste_em).toLocaleString("pt-BR")}</>}
           {c.ultimo_sync_em?<> · sincronizada em {new Date(c.ultimo_sync_em).toLocaleString("pt-BR")}</>:<> · ainda sem sincronização de dados</>}
           {c.ultimo_erro&&<><br/><span role="alert">Último erro: {msgErro(c.ultimo_erro)}</span></>}
           <div style={{marginTop:6,display:"flex",gap:8,flexWrap:"wrap"}}>
             <button type="button" disabled={busy} onClick={()=>agir(c.id,"testar")}>Testar</button>
+            {c.status==="aguardando_aprovacao"&&role==="master"&&<button type="button" disabled={busy} onClick={()=>agir(c.id,"aprovar")}>Aprovar</button>}
             {c.status==="pausada"?<button type="button" disabled={busy} onClick={()=>agir(c.id,"retomar")}>Retomar</button>:<button type="button" disabled={busy} onClick={()=>agir(c.id,"pausar")}>Pausar</button>}
             {(c.tipo==="api"||c.tipo==="sql"||c.tipo==="agente")&&<button type="button" disabled={busy} onClick={()=>agir(c.id,"revogar")}>Apagar credencial</button>}
           </div>
         </li>)}
       </ul>}
 
+      <div role="note" style={{margin:"0 0 16px",padding:12,border:"1px solid var(--line, #d9dde3)",borderRadius:8}}>
+        <strong>Cautela antes de vincular</strong>
+        <ul style={{margin:"6px 0 0",paddingLeft:18}}>
+          <li>Use um acesso <strong>somente leitura</strong>, criado só para a Vértice. Nunca a senha de administrador.</li>
+          <li>Conexões com <strong>dados nominais de alunos</strong> ou com <strong>financeiro e contábil completos</strong> só começam a valer depois da aprovação do master.</li>
+          <li>Ao vincular, a IES responde pela base legal do tratamento (LGPD) e a Vértice atua como operadora. Tudo fica registrado em log.</li>
+          <li>CPF, RG e documentos pessoais nunca são extraídos.</li>
+          <li>Você pode pausar ou apagar a credencial a qualquer momento.</li>
+        </ul>
+      </div>
       <h4 style={{margin:"0 0 8px"}}>Nova conexão</h4>
       <label style={{display:"block",margin:"8px 0"}}>Tipo<br/>
         <select value={f.tipo} onChange={e=>set("tipo",e.target.value)}>{Object.entries(TIPOS).map(([k,v])=><option key={k} value={k}>{v}</option>)}</select></label>
@@ -123,10 +137,20 @@ export default function ConexoesDados({institutionId,institutionName}:{instituti
           <option value="nominal">Agregados + nominais de alunos (acesso restrito)</option>
         </select></label>
       {f.escopo==="nominal"&&<p role="note">Dados nominais ficam sob acesso restrito. CPF, RG, documentos e dados financeiros de alunos nunca são extraídos.</p>}
+      <label style={{display:"block",margin:"8px 0"}}>Parte financeira e contábil: a IES autoriza o acesso?<br/>
+        <select value={f.fin} onChange={e=>set("fin",e.target.value)}>
+          <option value="nenhum">Não autorizo acesso financeiro/contábil</option>
+          <option value="pessoal">Autorizo somente o gasto com pessoal</option>
+          <option value="completo">Autorizo financeiro e contábil completos (exige aprovação do master)</option>
+        </select></label>
+      <p role="note" style={{margin:"4px 0 8px"}}>O gasto com pessoal é importante para analisar, ainda que parcialmente, a viabilidade econômica do curso. Sem ele, o Simulador de Custo e o Resultado por Curso trabalham apenas com parâmetros estimados. Ele é lido de forma agregada por curso e titulação, sem identificar o salário de cada pessoa.</p>
+      {f.fin!=="nenhum"&&<label style={{display:"block",margin:"8px 0"}}>
+        <input type="checkbox" checked={f.aceiteFin} onChange={e=>set("aceiteFin",e.target.checked)}/> Confirmo, como gestor de {institutionName}, que autorizo o acesso a {f.fin==="pessoal"?"dados de gasto com pessoal":"dados financeiros e contábeis"} e que sei que essas informações serão usadas nas análises da Vértice.
+      </label>}
       <label style={{display:"block",margin:"8px 0"}}>
         <input type="checkbox" checked={f.aceite} onChange={e=>set("aceite",e.target.checked)}/> Declaro que {institutionName} autoriza a Vértice, como operadora, a ler estes dados para fins de gestão acadêmica e regulatória, e que a credencial informada é de acesso somente leitura.
       </label>
-      <button type="button" disabled={busy||!f.aceite||!f.fornecedor||!f.rotulo} onClick={criar}>{busy?"Processando…":"Vincular e testar"}</button>
+      <button type="button" disabled={busy||!f.aceite||!f.fornecedor||!f.rotulo||(f.fin!=="nenhum"&&!f.aceiteFin)} onClick={criar}>{busy?"Processando…":"Vincular e testar"}</button>
 
       {msg&&<p role="status" style={{margin:"8px 0 0"}}>{msg}</p>}
       {token&&<p role="alert" style={{margin:"8px 0 0",wordBreak:"break-all"}}>Token do agente (aparece só agora, copie e guarde): <code>{token}</code></p>}

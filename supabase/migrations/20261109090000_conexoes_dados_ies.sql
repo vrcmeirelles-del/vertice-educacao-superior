@@ -1,0 +1,4 @@
+-- Registro das migrações aplicadas no Supabase em 09/11/2026 (conexoes_dados_ies e conexoes_aprovacao_e_financeiro).
+-- Tabelas: vertice_data_connections, vertice_data_connection_runs. RPCs: vertice_connection_authorize, vertice_connection_master,
+-- vertice_connection_store_secret/read_secret/drop_secret (service_role). Colunas de aprovação e escopo financeiro (nenhum|pessoal|completo).
+-- O SQL executado está no histórico de migrações do projeto.

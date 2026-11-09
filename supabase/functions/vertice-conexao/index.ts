@@ -74,6 +74,7 @@ async function registrar(conn:string,inst:string,acao:string,status:string,detal
  await sb("/rest/v1/vertice_data_connection_runs",{method:"POST",headers:{Prefer:"return=minimal"},
   body:JSON.stringify({connection_id:conn,institution_id:inst,acao,status,detalhe:detalhe.slice(0,300),acionado_por:user})});
 }
+const precisaAprovacao=(c:{escopo:string;escopo_financeiro:string})=>c.escopo==="nominal"||c.escopo_financeiro==="completo";
 const tokenAgente=()=>"vag_"+Array.from(crypto.getRandomValues(new Uint8Array(32))).map(b=>b.toString(16).padStart(2,"0")).join("");
 
 Deno.serve(async req=>{
@@ -100,7 +101,7 @@ Deno.serve(async req=>{
   let conn:any=null;
   if(action!=="criar"){
    const id=body.id;if(typeof id!=="string"||!UUID.test(id))throw E("invalid_request");
-   const r=await sb("/rest/v1/vertice_data_connections?id=eq."+id+"&select=id,institution_id,tipo,config,escopo,status");
+   const r=await sb("/rest/v1/vertice_data_connections?id=eq."+id+"&select=id,institution_id,tipo,config,escopo,escopo_financeiro,status,aprovado_em,ultimo_teste_em,ultimo_erro");
    conn=(await r.json())?.[0];if(!conn)throw E("nao_encontrada",404);
    inst=conn.institution_id;
   }
@@ -109,10 +110,22 @@ Deno.serve(async req=>{
    headers:{apikey,Authorization:bearer,"Content-Type":"application/json"},body:JSON.stringify({p_institution:inst}),signal:AbortSignal.timeout(10000)});
   if(!ar.ok||(await ar.json())!==true)throw E("access_denied",403);
 
+  if(action==="aprovar"){
+   const mr=await fetch(URLBASE()+"/rest/v1/rpc/vertice_connection_master",{method:"POST",headers:{apikey,Authorization:bearer,"Content-Type":"application/json"},body:"{}",signal:AbortSignal.timeout(10000)});
+   if(!mr.ok||(await mr.json())!==true)throw E("somente_master",403);
+   const status=(conn.tipo==="api"||conn.tipo==="sql")&&conn.ultimo_teste_em&&!conn.ultimo_erro?"ativa":"pendente";
+   await sb("/rest/v1/vertice_data_connections?id=eq."+conn.id,{method:"PATCH",headers:{Prefer:"return=minimal"},
+    body:JSON.stringify({aprovado_por:user.id,aprovado_em:new Date().toISOString(),status,updated_at:new Date().toISOString()})});
+   await registrar(conn.id,inst,"aprovar","ok","Aprovada pelo master (escopo "+conn.escopo+", financeiro "+conn.escopo_financeiro+")",user.id);
+   return respond({id:conn.id,status});
+  }
   if(action==="criar"){
    const tipo=String(body.tipo);if(!TIPOS.has(tipo))throw E("tipo_invalido");
    if(body.aceite!==true)throw E("aceite_obrigatorio");
    const escopo=body.escopo==="nominal"?"nominal":"agregado";
+   const fin=body.escopo_financeiro==="completo"?"completo":body.escopo_financeiro==="pessoal"?"pessoal":"nenhum";
+   if(fin!=="nenhum"&&body.aceite_financeiro!==true)throw E("aceite_financeiro_obrigatorio");
+   const aprov=precisaAprovacao({escopo,escopo_financeiro:fin});
    const fornecedor=str(body.fornecedor,2,60,"fornecedor_invalido"),rotulo=str(body.rotulo,2,80,"rotulo_invalido");
    const config=validarConfig(tipo,body.config);
    let secret:string|null=null,mostrar:string|null=null;
@@ -120,16 +133,17 @@ Deno.serve(async req=>{
    else if(tipo==="api"||tipo==="sql"){secret=str(body.secret,4,2000,"credencial_obrigatoria");}
    const now=new Date().toISOString();
    const ins=await sb("/rest/v1/vertice_data_connections",{method:"POST",headers:{Prefer:"return=representation"},
-    body:JSON.stringify({institution_id:inst,tipo,fornecedor,rotulo,config,escopo,status:"pendente",aceite_operador_em:now,aceite_por:user.id,created_by:user.id})});
+    body:JSON.stringify({institution_id:inst,tipo,fornecedor,rotulo,config,escopo,escopo_financeiro:fin,aceite_financeiro_em:fin!=="nenhum"?now:null,status:"pendente",aceite_operador_em:now,aceite_por:user.id,created_by:user.id})});
    const row=(await ins.json())?.[0];if(!ins.ok||!row)throw E("falha_ao_criar",500);
    if(secret){
     const sr=await sb("/rest/v1/rpc/vertice_connection_store_secret",{method:"POST",body:JSON.stringify({p_conn:row.id,p_secret:secret})});
     if(!sr.ok){await sb("/rest/v1/vertice_data_connections?id=eq."+row.id,{method:"DELETE"});throw E("falha_ao_guardar_credencial",500);}
    }
-   await registrar(row.id,inst,"criar","ok","Conexão criada ("+tipo+", escopo "+escopo+")",user.id);
+   await registrar(row.id,inst,"criar","ok","Conexão criada ("+tipo+", escopo "+escopo+", financeiro "+fin+")",user.id);
    let resultado="";let status="pendente";let erro:string|null=null;
    try{resultado=await testar(tipo,config,secret);if(tipo==="api"||tipo==="sql")status="ativa";}
    catch(e){erro=(e as Error).message;status="erro";resultado=erro;}
+   if(aprov&&status!=="erro")status="aguardando_aprovacao";
    await sb("/rest/v1/vertice_data_connections?id=eq."+row.id,{method:"PATCH",headers:{Prefer:"return=minimal"},
     body:JSON.stringify({status,ultimo_teste_em:new Date().toISOString(),ultimo_erro:erro,updated_at:new Date().toISOString()})});
    await registrar(row.id,inst,"testar",erro?"erro":"ok",resultado,user.id);
@@ -141,13 +155,15 @@ Deno.serve(async req=>{
    let resultado="",erro:string|null=null,status=conn.status;
    try{resultado=await testar(conn.tipo,conn.config,typeof secret==="string"?secret:null);if(conn.tipo==="api"||conn.tipo==="sql")status="ativa";}
    catch(e){erro=(e as Error).message;status="erro";resultado=erro;}
+   if(precisaAprovacao(conn)&&!conn.aprovado_em&&status!=="erro")status="aguardando_aprovacao";
+   if(conn.status==="pausada")status="pausada";
    await sb("/rest/v1/vertice_data_connections?id=eq."+conn.id,{method:"PATCH",headers:{Prefer:"return=minimal"},
     body:JSON.stringify({status,ultimo_teste_em:new Date().toISOString(),ultimo_erro:erro,updated_at:new Date().toISOString()})});
    await registrar(conn.id,inst,"testar",erro?"erro":"ok",resultado,user.id);
    return respond({id:conn.id,status,teste:resultado});
   }
   if(action==="pausar"||action==="retomar"){
-   const status=action==="pausar"?"pausada":"pendente";
+   const status=action==="pausar"?"pausada":(precisaAprovacao(conn)&&!conn.aprovado_em?"aguardando_aprovacao":"pendente");
    await sb("/rest/v1/vertice_data_connections?id=eq."+conn.id,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({status,updated_at:new Date().toISOString()})});
    await registrar(conn.id,inst,action,"ok","",user.id);
    return respond({id:conn.id,status});

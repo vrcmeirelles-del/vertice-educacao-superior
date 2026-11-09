@@ -293,7 +293,7 @@ export default function Workspace({
       ) : tab === "fontes" ? (
         role==="master"||role==="gestor" ? <SourceUpload key={id} institutionId={id} institutionName={String(institution.name)} onBackups={()=>choose("backups")}/> : <p>O recebimento de extrações é restrito à gestão autorizada da IES.</p>
       ) : tab === "conexoes" ? (
-        role==="master"||role==="gestor" ? <ConexoesDados key={"cx"+id} institutionId={id} institutionName={String(institution.name)}/> : <p>As conexões de dados são restritas à gestão da IES.</p>
+        role==="master"||role==="gestor" ? <ConexoesDados key={"cx"+id} institutionId={id} institutionName={String(institution.name)} role={role}/> : <p>As conexões de dados são restritas à gestão da IES.</p>
       ) : tab === "backups" ? (
         role==="master"||role==="gestor" ? <AcademicBackups key={id} institutionId={id} institutionName={String(institution.name)}/> : <p>O acesso aos backups acadêmicos é restrito à gestão da instituição com segundo fator de autenticação.</p>
       ) : tab === "base" ? (
