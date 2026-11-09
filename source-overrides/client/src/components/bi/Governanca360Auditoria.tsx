@@ -6,7 +6,7 @@ import "./governanca-360-auditoria.css";
 type Metric={name:string;count:number|null;source:string;error?:string};
 type Finding={id:string;severity:"critico"|"atencao"|"informativo";title:string;detail:string;action:string};
 type Audit={metrics:Metric[];findings:Finding[];scannedAt:string;coverage:{
-  snapshots:number|null;coursesSnapshot:number|null;gradeTotal:number|null;gradeCourses:number|null;
+  snapshots:number|null;coursesSnapshot:number|null;gradeTotal:number|null;gradeCourses:number|null;historicalTotal:number|null;historicalCourses:number|null;
   snapshotRows:number|null;gradeRows:number|null;goals:number|null;goalsUnassigned:number|null;
   goalsMeasured:number|null;actions:number|null;requests:number|null;files:number|null;
   docsWithoutFile:number|null;docAwaiting:number|null;docValidated:number|null;diagnoses:number|null;
@@ -65,16 +65,18 @@ export default function Governanca360Auditoria({institutionId}:{institutionId:st
     supabase.from("vertice_repository_requests").select("id,repository_section,course_id,not_applicable,active").eq("institution_id",institutionId).limit(2000),
     supabase.from("vertice_repository_files").select("request_id,status,created_at").eq("institution_id",institutionId).order("created_at",{ascending:false}).limit(2000),
     supabase.from("vertice_enrollment_snapshots").select("course_id,semester,class_label,enrolled").eq("institution_id",institutionId).eq("semester","2026/02").eq("student_status","MATRICULADO").limit(2000),
-    institutionId===CANONICAL_UNITOP?supabase.from("vertice_eorbit_quantitativo").select("curso_id,total_matriculados,total_vinculos,semestre:vertice_eorbit_semestres!inner(semestre)").eq("instituicao_id",LEGACY_UNITOP).eq("vertice_eorbit_semestres.semestre","2026/02").limit(2000):Promise.resolve({data:[],error:null})
+    institutionId===CANONICAL_UNITOP?supabase.from("vertice_eorbit_quantitativo").select("curso_id,total_matriculados,total_vinculos,semestre:vertice_eorbit_semestres!inner(semestre)").eq("instituicao_id",LEGACY_UNITOP).eq("vertice_eorbit_semestres.semestre","2026/02").limit(2000):Promise.resolve({data:[],error:null}),
+    supabase.from("vertice_course_semester_stats").select("codigo,matriculados").eq("institution_id",institutionId).eq("semestre","2026/02").limit(2000)
    ]);
    const vals=result.map((r,i)=>{
      if(r.status==="rejected")throw new Error("Fonte "+i+": "+String(r.reason));
      if(r.value.error)throw new Error("Fonte "+i+": "+r.value.error.message);
      return r.value.data??[];
    });
-   const [goals,reqs,files,snapshots,grades]=vals as any[][];
+   const [goals,reqs,files,snapshots,grades,semesterStats]=vals as any[][];
    const snapCount=snapshots.reduce((n,e)=>n+Math.max(0,Number(e.enrolled)||0),0);
    const gradeCount=grades.reduce((n,g)=>n+Math.max(0,Number(g.total_matriculados)||0),0);
+   const statsCount=semesterStats.reduce((n,r)=>n+Math.max(0,Number(r.matriculados)||0),0);
    const latest=new Map<string,any>();
    for(const f of files)if(!latest.has(String(f.request_id)))latest.set(String(f.request_id),f);
    const findings:Finding[]=[];
@@ -87,7 +89,7 @@ export default function Governanca360Auditoria({institutionId}:{institutionId:st
    if(goals.length&&metrics[1].count===0)add("acoes-inexistentes","critico","Planejamento não convertido em 5W2H","Nenhuma ação cadastrada, embora existam metas. Isso não comprova que não há ações fora do portal.", "Vincular achados e metas a planos com evidência, responsável, custo e prazo.");
    if(latestStatus("enviado"))add("fila-revisao","critico","Fila documental sem decisão","O arquivo mais recente de "+fmt(latestStatus("enviado"))+" exigências segue como enviado, aguardando validação.", "Priorizar triagem, análise e parecer por responsáveis de cada IES.");
    if(withoutFile)add("exigencias-vazias","atencao","Exigências sem evidência",fmt(withoutFile)+" exigências ativas sem arquivo ligado ao registro consultado.", "Filtrar por curso, semestre e indicador; distinguir sem envio de NSA.");
-   if(institutionId===CANONICAL_UNITOP && grades.length && snapshots.length && gradeCount!==snapCount)add("matriculas-divergentes","critico","Divergência de matrículas entre fontes","2026/2: "+fmt(gradeCount)+" matrículas informadas por grade no e-ORBIT vs. "+fmt(snapCount)+" nas linhas de snapshots. As bases não têm cobertura equivalente.", "Conciliar curso × semestre × grade antes de divulgar o total institucional e atualizar BIs.");
+   if(institutionId===CANONICAL_UNITOP && grades.length && snapshots.length && gradeCount!==snapCount)add("matriculas-divergentes","critico","Três bases de matrículas divergentes","2026/2: e-ORBIT por grade "+fmt(gradeCount)+"; estatística histórica por curso "+fmt(statsCount)+"; snapshots do portal "+fmt(snapCount)+". As coberturas não são equivalentes.", "Definir a fonte oficial, conciliar curso × semestre × grade e versionar a reconciliação antes de publicar KPIs.");
    if(institutionId===CANONICAL_UNITOP && !grades.length)add("eorbit-restrito","atencao","Fonte e-ORBIT não disponível nesta sessão","Não houve linhas de quantitativos da origem legada na consulta autenticada. Isso pode indicar falta de acesso ou cobertura.", "Verificar a permissão à origem e a correspondência entre IES canônica e chave legada.");
    for(const m of metrics)if(m.error)add("fonte-"+m.source,"atencao","Fonte não consultada: "+m.name,"A consulta retornou erro. O valor não foi convertido em zero.", "Conferir políticas RLS, ingestão e autenticação da fonte.");
    if((metrics[4].count??0)===0&&(metrics[5].count??0)===0)add("captacao-ausente","atencao","Captação sem alimentação estruturada","Nenhum lead ou custo de campanha cadastrado nesta fonte para a IES.", "Conectar CRM/captação com opt-in e fonte legitimamente autorizada.");
@@ -98,6 +100,7 @@ export default function Governanca360Auditoria({institutionId}:{institutionId:st
     snapshots:snapshots.length?snapCount:null,coursesSnapshot:snapshots.length?new Set(snapshots.map(e=>e.course_id)).size:null,
     gradeTotal:grades.length?gradeCount:null,gradeCourses:grades.length?new Set(grades.map(g=>g.curso_id)).size:null,
     snapshotRows:snapshots.length?snapshots.length:null,gradeRows:grades.length?grades.length:null,
+    historicalTotal:semesterStats.length?statsCount:null,historicalCourses:semesterStats.length?new Set(semesterStats.map(r=>r.codigo)).size:null,
     goals:goals.length,goalsUnassigned:unassigned,goalsMeasured:metrics[3].count,actions:metrics[1].count,
     requests:reqs.length,files:files.length,docsWithoutFile:withoutFile,docAwaiting:latestStatus("enviado"),docValidated:latestStatus("validado"),
     diagnoses:metrics[2].count,captacaoLeads:metrics[4].count,captacaoCosts:metrics[5].count,
@@ -122,6 +125,7 @@ export default function Governanca360Auditoria({institutionId}:{institutionId:st
     <div className="gov-audit-panel"><h4>Matrículas · reconciliação de 2026/2</h4>
       <div className="gov-audit-comparison">
        <div><small>Snapshots do portal</small><strong>{fmt(audit.coverage.snapshots)}</strong><span>{fmt(audit.coverage.coursesSnapshot)} cursos cobertos</span></div>
+       <div><small>Série histórica por curso</small><strong>{fmt(audit.coverage.historicalTotal)}</strong><span>{fmt(audit.coverage.historicalCourses)} códigos de curso</span></div>
        <div><small>e-ORBIT · por grade</small><strong>{fmt(audit.coverage.gradeTotal)}</strong><span>{fmt(audit.coverage.gradeCourses)} cursos de origem</span></div>
       </div>
       <p>Os indicadores pertencem a recortes diferentes. Nem matrículas em disciplinas nem vínculos agregados comprovam pessoas únicas.</p>
