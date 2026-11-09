@@ -224,6 +224,15 @@ export default function Workspace({
           <span className={openFindings > 0 ? "kpi-warn" : "kpi-success"}><b>{openFindings}</b> achados abertos</span>
         </div>
       </div>
+      {id==="4224e2fc-6a96-4761-820f-6f8e809ca1c1" && (
+        <div className="area-panel" style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:16,flexWrap:"wrap",borderLeft:"5px solid #298d87",background:"linear-gradient(100deg,#eaf7f4,#f7fbfd)"}}>
+          <div>
+            <strong style={{color:"#145b5f",fontSize:"1.08rem"}}>UNICALDAS · BI institucional e regulatório</strong>
+            <p className="area-muted" style={{margin:"6px 0 0",maxWidth:720}}>Painel interativo com informações do cadastro e das consultas e-MEC já disponíveis. A cobertura regulatória é parcial; matrículas, notas, reprovações e evasão aguardam a restauração e validação do GIZ.</p>
+          </div>
+          <button type="button" className="corp-button" onClick={()=>choose("emec")}>Abrir BI da UNICALDAS →</button>
+        </div>
+      )}
       {data.courses.some(c=>c.registration_note)&&<p className="area-note">Há cadastros com o mesmo nome e código, mas com históricos próprios. Eles aparecem como Base 1 e Base 2, com suas quantidades de exigências e metas, para você escolher o acervo correto. Nenhum documento ou vínculo foi descartado.</p>}
       {can.manageGoals(role)&&Boolean(institution.cnpj)&&<CnpjConnections institutionId={id}/>}
       {(role==="master"||role==="gestor")&&

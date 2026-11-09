@@ -1,0 +1,50 @@
+.uni-bi{margin:22px 0 26px;border:1px solid #c9dbe7;border-radius:20px;padding:18px;background:linear-gradient(125deg,#f2f8fb,#fefefe 48%,#f0f8f5);box-shadow:0 16px 34px #183a4a12;color:#1d354a}
+.uni-bi-hero{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:22px 24px;background:linear-gradient(108deg,#123e57,#1c6475 52%,#257967);color:#fff;border-radius:15px}
+.uni-bi-kicker{letter-spacing:.14em;font-size:.71rem;font-weight:800;color:#b5e7df}
+.uni-bi-hero h4{font-size:clamp(1.35rem,2.2vw,2rem);color:white;margin:8px 0;line-height:1.14}
+.uni-bi-hero p{margin:5px 0 0;color:#e2f6f6;max-width:800px;line-height:1.5;font-size:.9rem}
+.uni-bi-hero a{white-space:nowrap;border:1px solid #c3e7e1a6;border-radius:10px;padding:11px 15px;text-decoration:none;font-weight:700;color:#fff;background:#ffffff16}
+.uni-bi-hero a:hover,.uni-bi-hero a:focus-visible{background:#ffffff32}
+.uni-bi-tabs{display:flex;flex-wrap:wrap;gap:8px;margin:16px 2px}
+.uni-bi-tabs button{border:1px solid #cedde4;background:#fff;color:#315369;border-radius:9px;padding:9px 14px;font-weight:700;cursor:pointer}
+.uni-bi-tabs button[aria-pressed=true]{background:#176a72;color:#fff;border-color:#176a72}
+.uni-bi-tabs button:focus-visible,.uni-bi-bars button:focus-visible,.uni-bi-alert-list button:focus-visible{outline:3px solid #d5a23f;outline-offset:3px}
+.uni-bi-tabs .uni-bi-refresh{margin-left:auto;background:#e9f3f6}
+.uni-bi-tabs button:disabled{opacity:.5;cursor:default}
+.uni-bi-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.uni-bi-kpis article{padding:18px 16px;background:white;border:1px solid #dce7ee;border-top:4px solid #3e8ea0;border-radius:12px;min-width:0;box-shadow:0 3px 10px #173b4a09}
+.uni-bi-kpis article:nth-child(2){border-top-color:#497ac3}
+.uni-bi-kpis article:nth-child(3){border-top-color:#419978}
+.uni-bi-kpis article:nth-child(4),.uni-bi-kpis article.uni-bi-attention{border-top-color:#d39349}
+.uni-bi-kpis span{font-size:.8rem;font-weight:700;color:#5d7585;display:block}
+.uni-bi-kpis strong{display:block;font-size:clamp(1.65rem,2.65vw,2.5rem);line-height:1.2;color:#173950;margin:8px 0}
+.uni-bi-kpis small{color:#607887;font-size:.77rem;line-height:1.3;display:block}
+.uni-bi-panels{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+.uni-bi-panel{border:1px solid #dce7ee;background:#fff;border-radius:13px;padding:20px;min-width:0}
+.uni-bi-panel h5{margin:0 0 7px;font-size:1.05rem;color:#1d3a52}
+.uni-bi-panel>p{margin:5px 0 12px;color:#5b7080;font-size:.87rem}
+.uni-bi-bars{display:grid;gap:13px;margin-top:16px}
+.uni-bi-bars button{padding:0;border:0;background:none;text-align:left;cursor:pointer;color:inherit;width:100%;border-radius:4px}
+.uni-bi-bars button:hover .uni-bi-bar-label{color:#16647d}
+.uni-bi-bar-label{display:flex;justify-content:space-between;align-items:center;gap:9px;margin-bottom:6px;font-size:.9rem;font-weight:600}
+.uni-bi-bar-label b{font-variant-numeric:tabular-nums;color:#2e556c}
+.uni-bi-track{height:12px;border-radius:999px;background:#eaf0f4;display:block;overflow:hidden}
+.uni-bi-fill{display:block;height:100%;border-radius:999px;min-width:0;background:#347d9b;transition:width .28s ease}
+.uni-bi-fill.tone-1{background:#5677be}.uni-bi-fill.tone-2{background:#33a28c}.uni-bi-fill.tone-3{background:#7b74b4}.uni-bi-fill.tone-4{background:#df9b45}.uni-bi-fill.tone-5{background:#a86a9d}
+.uni-bi-alert-list{padding:0;margin:8px 0 12px;list-style:none;display:grid;gap:9px}
+.uni-bi-alert-list li{border:1px solid #f0dec0;background:#fffaf2;border-radius:9px}
+.uni-bi-alert-list button{display:flex;align-items:start;gap:10px;width:100%;border:0;background:none;text-align:left;padding:10px 12px;color:#765221;font-size:.87rem;line-height:1.35;cursor:pointer}
+.uni-bi-dot{flex:none;width:8px;height:8px;border-radius:50%;background:#c58a3a;margin-top:5px}
+.uni-bi-panel .uni-bi-disclaimer,.uni-bi-disclaimer{font-size:.78rem;color:#6f7985;line-height:1.55}
+.uni-bi-course-panel{margin-top:14px}
+.uni-bi-degree{display:block}
+.uni-bi-gaps{margin:12px 0 0;padding-left:20px;max-height:420px;overflow:auto;font-size:.9rem;line-height:1.5}
+.uni-bi-gaps li{margin:0 0 10px}
+.uni-bi-stage{display:flex;justify-content:space-between;gap:18px;padding:12px 0;border-bottom:1px solid #e4ebef;font-size:.9rem}
+.uni-bi-stage b{white-space:nowrap;color:#1d644f}
+.uni-bi-stage .uni-bi-pending{color:#9d6032}
+.uni-bi-error{padding:12px;margin:14px 0;background:#fff8e6;color:#845b20;border-radius:9px;font-size:.86rem}
+.uni-bi-footer{margin:16px 2px 2px!important;font-size:.8rem!important;color:#5b7382!important}
+@media(max-width:960px){.uni-bi-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.uni-bi-panels{grid-template-columns:1fr}}
+@media(max-width:640px){.uni-bi{padding:10px}.uni-bi-hero{padding:17px;display:block}.uni-bi-hero a{display:inline-block;margin-top:14px}.uni-bi-kpis{gap:8px}.uni-bi-kpis article{padding:13px 11px}.uni-bi-tabs .uni-bi-refresh{margin-left:0}.uni-bi-panel{padding:14px}}
+@media print{.uni-bi-tabs,.uni-bi-hero a{display:none}.uni-bi{box-shadow:none;border:1px solid #ccc}.uni-bi-hero{background:#eee;color:#222}.uni-bi-hero h4,.uni-bi-hero p{color:#222}}
