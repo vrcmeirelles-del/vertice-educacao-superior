@@ -1,0 +1,49 @@
+/* Recredenciamento 2017: mesma disciplina documental, acervo privado separado. */
+.rec17-overview{border:1px solid #d5e5e2;border-radius:13px;padding:18px 20px;margin:14px 0 20px;background:linear-gradient(130deg,#f0faf7,#fff);color:#254c46}
+.rec17-overview header{display:flex;gap:14px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;background:none;border:0;padding:0}
+.rec17-overview h4{margin:0 0 6px;font-weight:800;color:#154b42;font-size:18px}
+.rec17-overview p{margin:0;font-size:12px;line-height:1.55;color:#5c766f;max-width:760px}
+.rec17-overview header button{background:#fff;border:1px solid #badbd2;border-radius:8px;padding:9px 13px;color:#126c5d;font-weight:750;cursor:pointer;font-size:12px}
+.rec17-summary{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px;margin:15px 0}
+.rec17-summary>div{border:1px solid #dce9e5;border-radius:9px;background:white;padding:11px 13px}
+.rec17-summary small{font-size:10px;line-height:1.35;color:#627e76;display:block;min-height:27px}
+.rec17-summary strong{font-weight:800;font-size:24px;color:#1b6252;font-variant-numeric:tabular-nums}
+.rec17-overview .rec17-help,.rec17-indicator-docs .rec17-help{font-size:11px;color:#5b756f;line-height:1.5;margin:8px 0 13px}
+.rec17-indicator-docs{margin:18px 0 6px;border:1px solid #ccdedb;border-radius:11px;padding:15px;background:#f9fcfb}
+.rec17-indicator-head{display:flex;align-items:center;justify-content:space-between;gap:9px;flex-wrap:wrap}
+.rec17-indicator-head h5{font-size:14px;font-weight:800;color:#195348;margin:0}
+.rec17-indicator-head>span{font-size:11px;color:#167360;background:#e5f5ee;padding:5px 9px;border-radius:99px}
+.rec17-kind{margin:12px 0 16px}
+.rec17-kind>strong{display:block;font-size:12px;color:#2a5751;margin:0 0 7px}
+.rec17-kind>p{font-size:11px;color:#6b807b;margin:0}
+.rec17-rows{display:grid;gap:7px}
+.rec17-row{display:grid;grid-template-columns:minmax(230px,1fr) auto auto;align-items:center;gap:11px;border:1px solid #dfe8e7;border-radius:9px;background:white;padding:10px 12px;min-width:0}
+.rec17-row-main{display:grid;gap:4px;min-width:0}
+.rec17-row-main strong{font-size:12px;line-height:1.5;overflow-wrap:anywhere;color:#244942}
+.rec17-row-main small{font-size:10px;line-height:1.5;color:#6c7d7b;overflow-wrap:anywhere}
+.rec17-status{font-size:10px;font-weight:750;white-space:nowrap;border-radius:99px;padding:6px 9px}
+.rec17-status-pendente{background:#edf1f3;color:#60717a}
+.rec17-status-enviado{background:#fff5d9;color:#8b6422}
+.rec17-status-validado{background:#ddf5e6;color:#1c7047}
+.rec17-status-devolvido{background:#fbe5e1;color:#a63e34}
+.rec17-status-nsa{background:#edf0f9;color:#5c618b}
+.rec17-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap}
+.rec17-actions button,.rec17-editor-actions button{border:1px solid #b8d4cb;background:#edf8f4;padding:7px 9px;border-radius:7px;color:#17675b;font-size:11px;font-weight:750;cursor:pointer}
+.rec17-actions button:hover{background:#daf0e7}
+.rec17-editor{border:1px solid #b6d8d0;background:#fff;border-radius:11px;padding:17px;display:grid;gap:12px;margin:12px 0}
+.rec17-editor h5{margin:0;font-size:15px;color:#19564c}
+.rec17-editor p{font-size:12px;color:#506c68;margin:0}
+.rec17-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.rec17-editor label{display:grid;gap:6px;font-size:11px;font-weight:700;color:#385b54}
+.rec17-editor select,.rec17-editor input:not([type=file]),.rec17-editor textarea{font:inherit;font-size:12px;border:1px solid #c2d6d2;border-radius:8px;padding:10px;background:#fff;color:#203e3a;width:100%}
+.rec17-editor textarea{min-height:74px;resize:vertical}
+.rec17-editor input[type=file]{font-size:12px;max-width:100%}
+.rec17-editor-actions{display:flex;justify-content:flex-end;gap:8px}
+.rec17-editor-actions button:last-child{background:#0b7d6e;color:#fff;border-color:#0b7d6e}
+.rec17-editor button:disabled{opacity:.5;cursor:not-allowed}
+.rec17-success,.rec17-error{padding:10px;border-radius:8px;font-size:12px;margin:9px 0}
+.rec17-success{background:#e7f7ed;color:#206640}
+.rec17-error{background:#fff1ec;color:#9c4737}
+@media(max-width:1050px){.rec17-summary{grid-template-columns:repeat(3,minmax(0,1fr))}.rec17-row{grid-template-columns:minmax(0,1fr) auto}.rec17-actions{grid-column:1/-1;justify-content:flex-start}}
+@media(max-width:650px){.rec17-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.rec17-row{grid-template-columns:1fr}.rec17-actions{grid-column:auto}.rec17-form-grid{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.rec17-indicator-docs *{animation:none!important;transition:none!important}}
