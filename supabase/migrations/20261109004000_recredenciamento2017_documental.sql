@@ -31,4 +31,23 @@ create policy vertice_recred2017_storage_insert on storage.objects
  and r.id::text=split_part(name,'/',2)
  and r.repository_section='recredenciamento_2017')
 );
+-- Assegura que evidências do Recredenciamento 2017 não sejam inseridas no bucket de Reconhecimento.
+alter policy vertice_repo_storage_read on storage.objects
+ using (
+  bucket_id='vertice-repositorios'
+  and vertice_private.repository_path_allowed(name,false)
+  and exists(select 1 from public.vertice_repository_requests r
+    where r.id::text=split_part(name,'/',2)
+    and r.institution_id::text=split_part(name,'/',1)
+    and coalesce(r.repository_section,'instrumento')<>'recredenciamento_2017')
+ );
+alter policy vertice_repo_storage_insert on storage.objects
+ with check (
+  bucket_id='vertice-repositorios'
+  and vertice_private.repository_path_allowed(name,true)
+  and exists(select 1 from public.vertice_repository_requests r
+    where r.id::text=split_part(name,'/',2)
+    and r.institution_id::text=split_part(name,'/',1)
+    and coalesce(r.repository_section,'instrumento')<>'recredenciamento_2017')
+ );
 commit;
