@@ -92,23 +92,28 @@ export default function GovernancaBI({ institutionId, institutionName, courses }
         .select("*")
         .eq("institution_id", institutionId);
 
-      // Carregar documentos do repositório
-      const { data: reqs, error: reqError } = await supabase
-        .from("vertice_repository_requests")
-        .select("id, course_id, indicator, not_applicable, active, repository_section")
-        .eq("institution_id", institutionId)
-        .eq("active", true);
-
-      const { data: files, error: fileError } = await supabase
-        .from("vertice_repository_files")
-        .select("request_id, status, created_at")
-        .eq("institution_id", institutionId);
-
-      if(avError||niError||reqError||fileError)throw new Error("Uma das fontes regulatórias não está disponível nesta sessão; não é seguro calcular os indicadores como zero.");
+      // Paginação obrigatória: a UNITOP possui mais de mil exigências.
+      // PostgREST devolve, por padrão, só a primeira página da consulta.
+      const readAll=async(table:"vertice_repository_requests"|"vertice_repository_files",columns:string)=>{
+        const rows:Record<string,unknown>[]=[];
+        for(let offset=0;offset<100000;offset+=800){
+          const result=await supabase.from(table).select(columns).eq("institution_id",institutionId)
+            .order("id",{ascending:true}).range(offset,offset+799);
+          if(result.error)throw result.error;
+          rows.push(...(result.data??[]));
+          if(!result.data||result.data.length<800)break;
+        }
+        return rows;
+      };
+      const [reqs,files]=await Promise.all([
+        readAll("vertice_repository_requests","id,course_id,indicator,not_applicable,active,repository_section"),
+        readAll("vertice_repository_files","id,request_id,status,created_at")
+      ]);
+      if(avError||niError)throw new Error("Uma das fontes regulatórias não está disponível nesta sessão; não é seguro calcular os indicadores como zero.");
       const avsRows = avs ?? [];
       const niRows = ni ?? [];
-      const reqRows = reqs ?? [];
-      const fileRows = files ?? [];
+      const reqRows = reqs.filter(r=>r.active===true);
+      const fileRows = files;
 
       const latest=new Map<string,{request_id:string;status:string;created_at:string}>();
       for(const f of [...fileRows].sort((a,b)=>String(b.created_at).localeCompare(String(a.created_at))))if(!latest.has(String(f.request_id)))latest.set(String(f.request_id),f);
