@@ -16,6 +16,14 @@ type Audit={metrics:Metric[];findings:Finding[];scannedAt:string;coverage:{
 const LEGACY_UNITOP="cda828bd-4f55-432a-a824-387716c3cb2b";
 const CANONICAL_UNITOP="1f5fd5b4-93c6-4626-834d-136884915587";
 const normalizeTerm=(s:string)=>s.replace(/-/g,"/");
+const MODULE_BY_FINDING:Record<string,string>={
+ "metas-responsavel":"metas","metas-sem-afericao":"metas","acoes-inexistentes":"plano",
+ "fila-revisao":"repositorio","exigencias-vazias":"repositorio","matriculas-divergentes":"visao",
+ "eorbit-restrito":"eorbit","enade-ausente":"enade","aprendizagem-sem-feed":"aprendizagem",
+ "correspondencias-pendentes":"novo_instrumento","fontes-sem-analise":"fontes",
+ "convites-sem-vinculo":"equipe","novo-instrumento-sem-envio":"novo_instrumento"
+};
+
 const fmt=(v:number|null)=>v===null?"Indisponível":new Intl.NumberFormat("pt-BR").format(v);
 type Table="vertice_courses"|"vertice_enrollment_snapshots"|"vertice_offering_outcomes"|"vertice_goals"|"vertice_goal_measurements"|"vertice_actions"|"vertice_diagnosis_items"|"vertice_repository_requests"|"vertice_repository_files"|"vertice_captacao_leads"|"vertice_captacao_custos"|"vertice_enade360_records"|"vertice_eorbit_quantitativo"|"vertice_memberships"|"vertice_invites"|"vertice_source_uploads"|"vertice_source_analyses"|"vertice_learning_course_metrics"|"vertice_instrumento_correspondencias"|"vertice_emec_snapshots"|"vertice_ebitda_calculations"|"vertice_cost_parameters"|"vertice_inep_library";
 export default function Governanca360Auditoria({institutionId}:{institutionId:string}){
@@ -165,7 +173,7 @@ export default function Governanca360Auditoria({institutionId}:{institutionId:st
     </div>
    </div>
    <div className="gov-audit-findings"><h4>Desconexões e providências identificadas</h4>{audit.findings.length===0?<p>Nenhuma das regras verificadas apontou inconsistências. Isso não dispensa auditoria documental e regulatória.</p>:audit.findings.map(f=><article key={f.id}>
-    <span className={"gov-audit-severity "+f.severity}>{f.severity==="critico"?"Crítico":f.severity==="atencao"?"Atenção":"Informativo"}</span><div><strong>{f.title}</strong><p>{f.detail}</p><small>Providência: {f.action}</small></div>
+    <span className={"gov-audit-severity "+f.severity}>{f.severity==="critico"?"Crítico":f.severity==="atencao"?"Atenção":"Informativo"}</span><div><strong>{f.title}</strong><p>{f.detail}</p><small>Providência: {f.action}</small>{MODULE_BY_FINDING[f.id]&&<a className="gov-audit-action-link" href={"/master#instituicao="+encodeURIComponent(institutionId)+"&aba="+MODULE_BY_FINDING[f.id]}>Abrir módulo relacionado ↗</a>}</div>
    </article>)}</div>
    <footer>Última verificação desta sessão: {new Date(audit.scannedAt).toLocaleString("pt-BR")}. Dados com visibilidade sujeita às permissões da IES; nenhuma situação desconhecida é apresentada como zero. Não é um parecer oficial do MEC/INEP.</footer>
   </>}
