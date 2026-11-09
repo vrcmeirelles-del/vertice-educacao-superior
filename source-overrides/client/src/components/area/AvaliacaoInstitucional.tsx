@@ -10,6 +10,8 @@ import {
   type IndicadorAvaliacao,
 } from "@/lib/avaliacao-institucional";
 import "./avaliacao-institucional.css";
+import {Recred2017Overview,Recred2017IndicatorDocs,useRecredenciamentoDocs2017,type RecredDocsState} from "./RecredenciamentoDocumental2017";
+import type {Role} from "@/lib/area";
 
 const TOTAL_RESTRITOS = instrumento.indicators.filter((i) => i.applicability).length;
 
@@ -48,7 +50,7 @@ function Evidencias({ titulo, itens }: { titulo: string; itens: string[] }) {
   );
 }
 
-function Indicador({ indicador, onUploadDocument }: { indicador: IndicadorAvaliacao; onUploadDocument?: (title:string, reference:string)=>void }) {
+function Indicador({ indicador, institutionId, role, documents }: { indicador: IndicadorAvaliacao; institutionId:string; role:Role|null; documents:RecredDocsState }) {
   const [nivel, setNivel] = useState<keyof Criterio>("5");
   return (
     <details className="aval-indicador">
@@ -59,7 +61,7 @@ function Indicador({ indicador, onUploadDocument }: { indicador: IndicadorAvalia
         {indicador.applicability && <span className="aval-badge restrito">Aplicabilidade restrita</span>}
       </summary>
       <div className="aval-corpo">
-        {onUploadDocument && <button type="button" className="corp-button small" onClick={() => onUploadDocument(`Evidência · Indicador ${indicador.code} · ${indicador.title}`,`Recredenciamento Institucional 2017 · Eixo ${indicador.axis} · Indicador ${indicador.code}: ${indicador.title}`)} style={{marginBottom:12}}>Enviar documento para este indicador</button>}
+        <Recred2017IndicatorDocs institutionId={institutionId} role={role} indicador={indicador} state={documents}/>
         {indicador.applicability && (
           <p className="aval-nota">
             <strong>Aplicabilidade.</strong> {indicador.applicability}
@@ -102,7 +104,8 @@ function Indicador({ indicador, onUploadDocument }: { indicador: IndicadorAvalia
   );
 }
 
-export default function AvaliacaoInstitucional({ onRepository, onUploadDocument }: { onRepository?: () => void; onUploadDocument?: (title:string,reference:string)=>void }) {
+export default function AvaliacaoInstitucional({ institutionId,role }: { institutionId:string;role:Role|null }) {
+  const documents=useRecredenciamentoDocs2017(institutionId);
   const [busca, setBusca] = useState("");
   const [eixo, setEixo] = useState("");
   const [somenteRestritos, setSomenteRestritos] = useState(false);
@@ -121,10 +124,7 @@ export default function AvaliacaoInstitucional({ onRepository, onUploadDocument 
         <div>
           <p className="aval-kicker">Avaliação institucional externa</p>
           <h3 id="aval-title">Recredenciamento Institucional · Instrumento 2017</h3>
-          <div style={{display:"flex",gap:10,flexWrap:"wrap",margin:"10px 0"}}>
-            {onUploadDocument && <button type="button" className="corp-button small" onClick={() => onUploadDocument("Evidência de Recredenciamento Institucional · Instrumento 2017","Recredenciamento Institucional 2017 · documento institucional. Selecione um indicador específico quando possível.")}>Enviar documento</button>}
-            {onRepository && <button type="button" className="corp-button small" onClick={onRepository}>Consultar Repositório Institucional</button>}
-          </div>
+          <p className="aval-nota">Evidências cadastradas por indicador no acervo exclusivo de Recredenciamento 2017. O Reconhecimento de Curso utiliza outro repositório.</p>
           <p>
             {instrumento.instrument}, edição {instrumento.edition}. Cinco eixos,{" "}
             {instrumento.total} indicadores, com o critério de conceito 5 transcrito do
@@ -140,6 +140,7 @@ export default function AvaliacaoInstitucional({ onRepository, onUploadDocument 
         e não substitui a avaliação oficial. As notas que você digitar não são gravadas.
       </p>
 
+      <Recred2017Overview state={documents}/>
       <div className="aval-resumo">
         <div className="aval-resumo-main">
           <DonutAval parts={[
@@ -254,7 +255,7 @@ export default function AvaliacaoInstitucional({ onRepository, onUploadDocument 
       ) : (
         <div className="aval-lista">
           {resultados.map((indicador) => (
-            <Indicador key={indicador.code} indicador={indicador} onUploadDocument={onUploadDocument} />
+            <Indicador key={indicador.code} indicador={indicador} institutionId={institutionId} role={role} documents={documents} />
           ))}
         </div>
       )}
