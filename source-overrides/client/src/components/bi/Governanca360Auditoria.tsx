@@ -17,7 +17,7 @@ const LEGACY_UNITOP="cda828bd-4f55-432a-a824-387716c3cb2b";
 const CANONICAL_UNITOP="1f5fd5b4-93c6-4626-834d-136884915587";
 const normalizeTerm=(s:string)=>s.replace(/-/g,"/");
 const fmt=(v:number|null)=>v===null?"Indisponível":new Intl.NumberFormat("pt-BR").format(v);
-type Table="vertice_courses"|"vertice_enrollment_snapshots"|"vertice_offering_outcomes"|"vertice_goals"|"vertice_goal_measurements"|"vertice_actions"|"vertice_diagnosis_items"|"vertice_repository_requests"|"vertice_repository_files"|"vertice_captacao_leads"|"vertice_captacao_custos"|"vertice_enade360_records"|"vertice_eorbit_quantitativo"|"vertice_memberships"|"vertice_invites"|"vertice_source_uploads"|"vertice_source_analyses"|"vertice_learning_course_metrics"|"vertice_instrumento_correspondencias";
+type Table="vertice_courses"|"vertice_enrollment_snapshots"|"vertice_offering_outcomes"|"vertice_goals"|"vertice_goal_measurements"|"vertice_actions"|"vertice_diagnosis_items"|"vertice_repository_requests"|"vertice_repository_files"|"vertice_captacao_leads"|"vertice_captacao_custos"|"vertice_enade360_records"|"vertice_eorbit_quantitativo"|"vertice_memberships"|"vertice_invites"|"vertice_source_uploads"|"vertice_source_analyses"|"vertice_learning_course_metrics"|"vertice_instrumento_correspondencias"|"vertice_emec_snapshots"|"vertice_ebitda_calculations"|"vertice_cost_parameters"|"vertice_inep_library";
 export default function Governanca360Auditoria({institutionId}:{institutionId:string}){
  const [audit,setAudit]=useState<Audit|null>(null);
  const [loading,setLoading]=useState(true);
@@ -50,7 +50,11 @@ export default function Governanca360Auditoria({institutionId}:{institutionId:st
     count("vertice_source_uploads"),
     count("vertice_source_analyses"),
     count("vertice_learning_course_metrics"),
-    count("vertice_instrumento_correspondencias")
+    count("vertice_instrumento_correspondencias"),
+    count("vertice_emec_snapshots"),
+    count("vertice_ebitda_calculations"),
+    count("vertice_cost_parameters"),
+    count("vertice_inep_library")
    ]);
    const metric=(i:number,name:string,source:string):Metric=>{
     const r=counts[i];
@@ -70,7 +74,11 @@ export default function Governanca360Auditoria({institutionId}:{institutionId:st
     metric(10,"Arquivos de origem enviados","vertice_source_uploads"),
     metric(11,"Análises de origem","vertice_source_analyses"),
     metric(12,"Desempenho integrado Fato & Ordem","vertice_learning_course_metrics"),
-    metric(13,"Correspondências 2017–2026","vertice_instrumento_correspondencias")
+    metric(13,"Correspondências 2017–2026","vertice_instrumento_correspondencias"),
+    metric(14,"Registros e-MEC","vertice_emec_snapshots"),
+    metric(15,"Apurações EBITDA","vertice_ebitda_calculations"),
+    metric(16,"Premissas de custos cadastradas","vertice_cost_parameters"),
+    metric(17,"Documentos Biblioteca INEP","vertice_inep_library")
    ];
    const result=await Promise.allSettled([
     supabase.from("vertice_goals").select("id,status,owner_user_id").eq("institution_id",institutionId).limit(2000),
