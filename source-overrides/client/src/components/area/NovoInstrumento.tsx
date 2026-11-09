@@ -87,10 +87,7 @@ export default function NovoInstrumento({ institutionId, role, courses, onUpload
             {courses.map(c=><option key={c.id} value={String(c.id)}>{String(c.display_name??c.name)}</option>)}
           </select>
         </label>}
-        {onUploadDocument && can.record(role) && <button type="button" className="corp-button" disabled={tipo==="curso"&&!course} title={tipo==="curso"&&!course?"Selecione um curso antes de enviar":undefined} onClick={()=>{
-          if(tipo==="institucional")onUploadDocument("institucional","Evidência · Proposta de Recredenciamento 2026","Proposta preliminar de Recredenciamento Institucional 2026 · escopo institucional; vínculo e conformidade dependem de validação.");
-          else if(course)onUploadDocument(String(course.id),`Evidência · Novo Instrumento 2026 · ${String(course.name)}`,`Novo Instrumento de Avaliação de Curso 2026 · curso ${String(course.name)}. Identifique o objeto específico na descrição do documento.`);
-        }}>Enviar arquivo de evidência</button>}
+        <p className="area-muted small ni-instrument-upload-hint">Para enviar evidências com rastreabilidade, abra o objeto de avaliação. Os documentos são armazenados no acervo privado específico de 2026.</p>
       </div>
       {tipo === "curso" && <div role="tablist" aria-label="Novo Instrumento INEP" className="area-tabs ni-subtabs">
         {SUBS.map(([k, l]) => (
@@ -425,7 +422,7 @@ function ChecklistPanel({ institutionId, role, data, reload, fail, courses, cour
         )}
         {dim === "4" && course && !perfilArea(course) && <p className="area-note">A dimensão 4 não está catalogada para este curso. Confira a classificação regulatória antes de cadastrar objetos específicos.</p>}
         <p aria-live="polite" className="area-muted small">{filtrados.length} objeto(s) exibido(s)</p>
-        <NovoDocumentosResumo2026 state={documents}/>
+        {course && <NovoDocumentosResumo2026 state={documents}/>}
         {porDim.map(({ d, nome }) => {
           const lista = filtrados.filter(i => i.o.dimension === d);
           if (!lista.length) return null;
