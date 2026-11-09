@@ -1,0 +1,64 @@
+.vcds{color:#19344a;display:grid;gap:22px;margin:20px 0 32px;font-family:inherit}
+.vcds *{box-sizing:border-box}
+.vcds-hero{position:relative;overflow:hidden;border-radius:20px;padding:clamp(23px,4vw,42px);background:linear-gradient(114deg,#0f2b42 0%,#11576a 58%,#0b8178 110%);color:#fff}
+.vcds-hero:after{content:"";position:absolute;right:-120px;top:-155px;width:380px;height:380px;border:1px solid #a3ebdb66;border-radius:50%;pointer-events:none}
+.vcds-eyebrow{display:block;font-size:11px;font-weight:800;letter-spacing:.12em;color:#0a7776}
+.vcds-hero .vcds-eyebrow{color:#abeee3}
+.vcds-hero h2{position:relative;z-index:1;font-size:clamp(26px,3.6vw,44px);max-width:950px;line-height:1.14;letter-spacing:-.04em;color:#fff;margin:13px 0 16px;font-weight:780}
+.vcds-hero h2 em{font-style:normal;color:#7ce8dc}
+.vcds-hero p{position:relative;z-index:1;font-size:clamp(14px,1.5vw,17px);line-height:1.67;max-width:940px;color:#e5f6f5;margin:0 0 25px}
+.vcds-actions,.vcds-copy-title,.vcds-admin,.vcds-copy-footer{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.vcds .corp-button{display:inline-flex;align-items:center;gap:9px;text-decoration:none;justify-content:center;border-radius:10px;min-height:42px;padding:10px 15px;font-weight:750}
+.vcds .vcds-outline{color:#115c66;background:#fff;border:1px solid #bdd8df}
+.vcds .vcds-outline:hover{background:#eaf6f7}
+.vcds-problems{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.vcds-problems article{background:#fff;border:1px solid #dae7ed;border-top:3px solid #16948c;border-radius:13px;padding:18px;min-width:0;box-shadow:0 5px 17px #0f395009}
+.vcds-problems svg{color:#11847c;margin-bottom:10px}
+.vcds-problems strong{display:block;font-size:14px;color:#193b4c}
+.vcds-problems p{color:#5e7280;font-size:12px;line-height:1.55;margin:8px 0 0}
+.vcds-product-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.vcds-product-grid article{background:#fff;border:1px solid #dce7ef;border-radius:17px;padding:clamp(18px,2.2vw,28px);display:flex;flex-direction:column;gap:13px;min-width:0}
+.vcds-product-grid article:first-child{background:linear-gradient(160deg,#f6faff,#fff 58%)}
+.vcds-product-grid article:nth-child(2){background:linear-gradient(160deg,#edfcf7,#fff 58%)}
+.vcds-product-title{display:flex;gap:13px;align-items:center}
+.vcds-product-title svg{flex:none;color:#087f83}
+.vcds-product-title span{font-size:10px;letter-spacing:.09em;font-weight:780;color:#678091}
+.vcds-product-title h3{font-size:clamp(18px,2vw,24px);margin:4px 0;color:#173a4d}
+.vcds-product-grid article>p{font-size:14px;line-height:1.6;margin:0;color:#4f6777}
+.vcds-product-grid ul{margin:0 0 6px;padding-left:19px;display:grid;gap:9px;font-size:13px;color:#365568;flex:1}
+.vcds-product-grid li::marker{color:#168f87}
+.vcds-product-grid article>a{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:800;color:#006f77;text-decoration:underline;text-underline-offset:3px;align-self:flex-start}
+.vcds-qualification{display:flex;gap:13px;align-items:flex-start;padding:16px;background:#eef8f7;border:1px solid #c2e2df;border-radius:13px}
+.vcds-qualification svg{flex:none;color:#13837b}
+.vcds-qualification p{font-size:12px;line-height:1.6;color:#355a64;margin:0}
+.vcds-links,.vcds-copy{background:#fff;border:1px solid #dce9ed;border-radius:17px;padding:clamp(18px,2.8vw,29px)}
+.vcds-links header h3,.vcds-copy h3{font-size:clamp(21px,2.4vw,29px);letter-spacing:-.025em;color:#17394a;margin:7px 0 8px}
+.vcds-links header p,.vcds-copy-title p{color:#5b7281;font-size:13px;line-height:1.6;max-width:940px;margin:0 0 16px}
+.vcds-modes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:20px 0}
+.vcds-mode{display:grid;align-content:start;gap:12px;min-width:0;background:#f4f8fb;border:1px solid #dce7ee;border-radius:13px;padding:17px}
+.vcds-mode strong{font-size:17px}
+.vcds-mode>span{font-size:12px;color:#627888;min-height:36px}
+.vcds-mode a{display:flex;align-items:center;justify-content:space-between;gap:8px;color:#13677c;background:#fff;border:1px solid #dae6ed;border-radius:9px;padding:10px 12px;text-decoration:none;font-size:12px;font-weight:780}
+.vcds-mode a:hover{background:#eaf8f7}
+.vcds-mode button{background:transparent;border:0;color:#0f6973;text-decoration:underline;font-size:12px;text-align:left;display:flex;align-items:center;gap:6px;font-weight:730;padding:7px 0}
+.vcds-admin{border:1px solid #cce1e5;border-radius:12px;padding:17px;background:#f7fbfc;justify-content:space-between;align-items:center}
+.vcds-admin>div{max-width:690px;flex:1;min-width:200px}
+.vcds-admin strong{font-size:15px;color:#214459}
+.vcds-admin p{font-size:12px;line-height:1.65;margin:6px 0;color:#5b7687}
+.vcds-token{display:grid;gap:8px;font-weight:700;font-size:12px;color:#38566c;margin:19px 0 0}
+.vcds-token input,.vcds-copy input,.vcds-copy textarea{display:block;width:100%;font:inherit;border:1px solid #bacdd9;border-radius:9px;padding:12px;background:#fff;color:#234355}
+.vcds-token small{font-weight:400;color:#63798a}
+.vcds-token input[aria-invalid=true]{border-color:#c44949}
+.vcds-copy{background:#f9fbfd}
+.vcds-copy-title{align-items:flex-start;justify-content:space-between}
+.vcds-copy-title>div{flex:1;min-width:200px}
+.vcds-copy-title>button{align-self:center}
+.vcds-copy label{display:grid;gap:7px;font-size:12px;font-weight:770;color:#365870;margin-top:13px}
+.vcds-copy textarea{font-size:13px;line-height:1.65;resize:vertical;min-height:260px;white-space:pre-wrap}
+.vcds-copy-footer{font-size:11px;color:#587486;justify-content:flex-start;margin-top:14px}
+.vcds-copy-footer span{display:inline-flex;align-items:center;gap:6px}
+.vcds-copy-footer svg{color:#0c8b7d}
+.vcds-status{margin-top:12px;color:#106b5c;font-size:13px;font-weight:700}
+@media(max-width:1050px){.vcds-problems{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:780px){.vcds-product-grid{grid-template-columns:1fr}.vcds-modes{grid-template-columns:1fr}.vcds-mode>span{min-height:0}}
+@media(max-width:510px){.vcds-problems{grid-template-columns:1fr}.vcds-hero{padding:23px 18px}.vcds-hero h2{font-size:28px}.vcds-actions .corp-button,.vcds-copy-title .corp-button{width:100%}.vcds-copy,.vcds-links{padding:18px 13px}}
