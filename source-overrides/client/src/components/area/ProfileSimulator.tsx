@@ -7,6 +7,7 @@ import {
 const TAB_LABELS: Record<Tab, string> = {
   backups: "Backups Acadêmicos",
   fontes: "Importar dados de sites",
+  conexoes: "Conexões de dados",
   auditoria: "BI · Reprovações de Todos os Cursos",
   avaliacao: "Recredenciamento Institucional",
   enade: "ENADE 360°",

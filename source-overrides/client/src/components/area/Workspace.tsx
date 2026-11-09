@@ -41,6 +41,7 @@ import ResultadoCursoBI from "../bi/ResultadoCursoBI";
 import CostSimulator from "./CostSimulator";
 import CostEvidence from "./CostEvidence";
 import OneDriveEspelho from "./OneDriveEspelho";
+import ConexoesDados from "./ConexoesDados";
 import DireitoRaioX from "./DireitoRaioX";
 import "./area.css";
 
@@ -48,7 +49,7 @@ const TAB_GROUPS: {label:string;subtitle:string;icon:string;tabs:Tab[]}[] = [
   {label:'Gestão',subtitle:'Planejamento, metas e governança',icon:'▦',tabs:['base','metas','plano','diagnostico','equipe']},
   {label:'Regulação',subtitle:'Instrumentos e evidências MEC/INEP',icon:'◇',tabs:['emec','repositorio','enade','avaliacao','novo_instrumento','biblioteca']},
   {label:'Acadêmico',subtitle:'Cursos, estudantes e desempenho',icon:'▤',tabs:['geral','cadastro','visao','eorbit','backups','auditoria']},
-  {label:'Inteligência',subtitle:'Análises, integrações e decisões',icon:'◎',tabs:['analise','ia','fontes','reitor','resultado-curso','simulador','raio-x-direito','aprendizagem']},
+  {label:'Inteligência',subtitle:'Análises, integrações e decisões',icon:'◎',tabs:['analise','ia','fontes','conexoes','reitor','resultado-curso','simulador','raio-x-direito','aprendizagem']},
 ];
 
 const TAB_DETAILS: Partial<Record<Tab,{icon:string;description:string}>> = {
@@ -70,6 +71,7 @@ const TAB_DETAILS: Partial<Record<Tab,{icon:string;description:string}>> = {
   backups:{icon:'▣',description:'Cópias e registros de origem'},
   auditoria:{icon:'▥',description:'Reprovações por curso e período'},
   fontes:{icon:'⇧',description:'Recebimento de extrações autorizadas'},
+  conexoes:{icon:'⇄',description:'Vincular o banco ou sistema da IES'},
   ia:{icon:'✧',description:'Análise assistida dos documentos'},
   analise:{icon:'◫',description:'Diagnósticos para a gestão'},
   reitor:{icon:'◉',description:'Indicadores econômicos e financeiros'},
@@ -82,6 +84,7 @@ const TAB_DETAILS: Partial<Record<Tab,{icon:string;description:string}>> = {
 const TABS: [Tab, string][] = [
   ["base", "Base da organização"],
   ["fontes", "Importar dados de sites"],
+  ["conexoes", "Conexões de dados"],
   ["backups", "Backups Acadêmicos"],
   ["ia", "Análise Documental"],
   ["geral", "Visão geral"],
@@ -289,6 +292,8 @@ export default function Workspace({
         <p role="status">Carregando…</p>
       ) : tab === "fontes" ? (
         role==="master"||role==="gestor" ? <SourceUpload key={id} institutionId={id} institutionName={String(institution.name)} onBackups={()=>choose("backups")}/> : <p>O recebimento de extrações é restrito à gestão autorizada da IES.</p>
+      ) : tab === "conexoes" ? (
+        role==="master"||role==="gestor" ? <ConexoesDados key={"cx"+id} institutionId={id} institutionName={String(institution.name)}/> : <p>As conexões de dados são restritas à gestão da IES.</p>
       ) : tab === "backups" ? (
         role==="master"||role==="gestor" ? <AcademicBackups key={id} institutionId={id} institutionName={String(institution.name)}/> : <p>O acesso aos backups acadêmicos é restrito à gestão da instituição com segundo fator de autenticação.</p>
       ) : tab === "base" ? (
