@@ -43,7 +43,7 @@ export default function MasterCommercialSuite({mode,name,email,verticeInvite,onC
   "",
   "A VÉRTICE organiza a gestão: indicadores, matrículas, captação, permanência, evidências para processos regulatórios, acompanhamento de metas e planos de ação 5W2H, com visões para coordenação e reitoria.",
   "",
-  "O FATO & ORDEM apoia o desenvolvimento dos estudantes: estudos e simulados, OAB, Carreiras Jurídicas, CFC e ENADE, devolutivas e acompanhamento longitudinal por competência, respeitando a disponibilidade e validação das bases de questões.",
+  "O FATO & ORDEM apoia o desenvolvimento dos estudantes: estudos e simulados, OAB, Carreiras Jurídicas, CFC, ENADE e Enamed (Medicina), devolutivas e acompanhamento longitudinal por competência, respeitando a disponibilidade e validação das bases de questões.",
   "",
   "JUNTOS, a proposta é conectar currículo, disciplinas e evidências de aprendizagem para apoiar intervenções pedagógicas e decisões institucionais. A integração real de resultados individuais depende de credenciamento, matrícula verificada e autorizações adequadas; os links abaixo mostram cenários fictícios.",
   "",
@@ -94,7 +94,7 @@ export default function MasterCommercialSuite({mode,name,email,verticeInvite,onC
     <div className="vcds-product-title"><BookOpenCheck size={26}/><div><span>PRÁTICA E INTELIGÊNCIA PEDAGÓGICA</span><h3>Fato & Ordem</h3></div></div>
     <p>Promove estudo orientado por questões, devolutivas e acompanhamento da evolução do estudante.</p>
     <ul>
-     <li>Preparação para OAB e Carreiras Jurídicas, CFC e ENADE conforme o acervo disponível</li>
+     <li>Preparação para OAB, Carreiras Jurídicas, CFC, ENADE e Enamed (Medicina), conforme o acervo validado disponível</li>
      <li>Questões objetivas, discursivas e imagens nos módulos que comportam esses recursos</li>
      <li>Mapeamento de erros, temas, confiança e competências nas atividades registradas</li>
      <li>Práticas e simulados com espaço para acompanhamento docente</li>
