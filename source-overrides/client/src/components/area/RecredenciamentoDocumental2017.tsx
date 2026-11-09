@@ -7,7 +7,7 @@ import "./recredenciamento-documentos-2017.css";
 
 export const REC2017_BUCKET="vertice-recredenciamento-2017";
 export const REC2017_SECTION="recredenciamento_2017";
-type Req={id:string;institution_id:string;indicator:string|null;document_code:string|null;title:string;instructions:string|null;semester:string|null;not_applicable:boolean|null;nsa_reason:string|null;due_date:string|null;assignee_email:string|null;active:boolean};
+type Req={id:string;institution_id:string;indicator:string|null;document_code:string|null;title:string;instructions:string|null;semester:string|null;not_applicable:boolean|null;nsa_reason:string|null;due_date:string|null;assignee_email:string|null;assigned_to:string|null;active:boolean};
 type Doc={id:string;request_id:string;file_name:string;storage_path:string;status:string;review_note:string|null;reference:string|null;created_at:string;size_bytes:number};
 type Kind="obrig"|"compl"|"resultado";
 type Item={id:string;kind:Kind;position:number;title:string};
@@ -29,7 +29,7 @@ export function useRecredenciamentoDocs2017(institutionId:string){
     setBusy(true);setError("");
     try{
       const a=await supabase.from("vertice_repository_requests")
-        .select("id,institution_id,indicator,document_code,title,instructions,semester,not_applicable,nsa_reason,due_date,assignee_email,active")
+        .select("id,institution_id,indicator,document_code,title,instructions,semester,not_applicable,nsa_reason,due_date,assignee_email,assigned_to,active")
         .eq("institution_id",institutionId).eq("repository_section",REC2017_SECTION)
         .order("created_at",{ascending:false}).limit(1000);
       if(a.error)throw a.error;
@@ -92,7 +92,8 @@ export function Recred2017IndicatorDocs({institutionId,role,indicador,state}:{
   const [note,setNote]=useState("");
   const [semester,setSemester]=useState(dateDefault());
   const [deadline,setDeadline]=useState("");
-  const [assignee,setAssignee]=useState("");
+  const [assigneeId,setAssigneeId]=useState("");
+  const [members,setMembers]=useState<{user_id:string;email:string;role:string}[]>([]);
   const [nsa,setNsa]=useState(false);
   const [justification,setJustification]=useState("");
   const [review,setReview]=useState<Doc|null>(null);
@@ -102,6 +103,7 @@ export function Recred2017IndicatorDocs({institutionId,role,indicador,state}:{
   const [message,setMessage]=useState("");
   const [error,setError]=useState("");
   const input=useRef<HTMLInputElement>(null);
+  useEffect(()=>{let active=true;if(manager){void supabase.rpc("vertice_team",{target:institutionId}).then(({data,error})=>{if(active&&!error)setMembers((data??[]) as {user_id:string;email:string;role:string}[]);});}return()=>{active=false;};},[institutionId,manager]);
   const items=useMemo(()=>itemsOf(indicador,period),[indicador,period]);
   const byCode=useMemo(()=>new Map(state.requests.filter(r=>r.active!==false).map(r=>[r.document_code??"",r])),[state.requests]);
   const latest=useMemo(()=>{
@@ -118,7 +120,7 @@ export function Recred2017IndicatorDocs({institutionId,role,indicador,state}:{
     const req=byCode.get(item.id);
     setSelected(item);setFile(null);setNsa(false);setError("");setMessage("");
     setReference("");setNote("");setJustification("");setDeadline(req?.due_date??"");
-    setAssignee(req?.assignee_email??"");setSemester(period);
+    setAssigneeId(req?.assigned_to??"");setSemester(period);
   };
   async function ensureRequest(item:Item){
     const old=byCode.get(item.id);if(old)return old;
@@ -127,9 +129,10 @@ export function Recred2017IndicatorDocs({institutionId,role,indicador,state}:{
       repository_section:REC2017_SECTION,document_code:item.id,
       indicator:indicador.code,semester,title:item.title,
       instructions:KINDS[item.kind]+" · Eixo "+indicador.axis+" · Indicador "+indicador.code,
-      due_date:deadline||null,assignee_email:assignee.trim()||null,
+      due_date:deadline||null,assigned_to:assigneeId||null,
+      assignee_email:members.find(m=>m.user_id===assigneeId)?.email??null,
       active:true
-    }).select("id,document_code,institution_id,indicator,title,instructions,semester,not_applicable,nsa_reason,due_date,assignee_email,active").single();
+    }).select("id,document_code,institution_id,indicator,title,instructions,semester,not_applicable,nsa_reason,due_date,assignee_email,assigned_to,active").single();
     if(e||!data)throw e??new Error("Exigência não cadastrada");
     return data as Req;
   }
@@ -231,7 +234,7 @@ export function Recred2017IndicatorDocs({institutionId,role,indicador,state}:{
           {Array.from({length:12},(_,i)=>{const year=2023+Math.floor(i/2);const v=year+"-"+(i%2+1);return <option value={v} key={v}>{year}/{i%2+1}</option>;})}
         </select></label>
         <label>Data limite (opcional)<input type="date" value={deadline} onChange={e=>setDeadline(e.target.value)} disabled={Boolean(byCode.get(selected.id))||actionBusy}/></label>
-        <label>Responsável indicado (e-mail opcional)<input type="email" value={assignee} onChange={e=>setAssignee(e.target.value)} disabled={Boolean(byCode.get(selected.id))||actionBusy}/></label>
+        <label>Responsável autorizado (opcional)<select value={assigneeId} onChange={e=>setAssigneeId(e.target.value)} disabled={Boolean(byCode.get(selected.id))||actionBusy}><option value="">Gestão institucional</option>{members.filter(m=>["gestor","equipe"].includes(m.role)).map(m=><option key={m.user_id} value={m.user_id}>{m.email} · {m.role}</option>)}</select></label>
         <label>Tipo de entrega<select value={nsa?"nsa":"arquivo"} onChange={e=>setNsa(e.target.value==="nsa")} disabled={actionBusy}>
           <option value="arquivo">Enviar arquivo</option><option value="nsa">Não se aplica (NSA)</option>
         </select></label>
