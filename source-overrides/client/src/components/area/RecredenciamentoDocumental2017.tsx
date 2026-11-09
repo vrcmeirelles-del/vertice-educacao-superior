@@ -170,7 +170,9 @@ export function Recred2017IndicatorDocs({institutionId,role,indicador,state}:{
           reference:reference.trim()||null,upload_note:note.trim()||null
         }).select("id").single();
         if(registration.error)throw new Error("Arquivo enviado, mas o registro da entrega falhou. Informe à gestão para conciliar o envio: "+registration.error.message);
-        setMessage("Arquivo recebido; aguardando análise da gestão.");
+        // Mantém a ponte assistida 2017 → proposta 2026. Apenas sugestão; nenhum conceito ou documento é automaticamente validado.
+        try{await supabase.functions.invoke("vertice-instrumento-sync",{body:{institution_id:institutionId,file_id:id}});}catch{/* Disponível para reprocessamento no Novo Instrumento. */}
+        setMessage("Arquivo recebido; aguardando análise da gestão. A correspondência com a proposta de 2026 poderá ser conferida separadamente.");
       }
       await state.reload();
       setSelected(null);setFile(null);
