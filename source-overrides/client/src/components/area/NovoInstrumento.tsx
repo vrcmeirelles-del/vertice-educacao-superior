@@ -559,6 +559,8 @@ function ObjetoLinhas({ o, row, status, ev, aberto, edit, ocupado, onToggle, onS
 // ================================================================ evidências
 function EvidenciasPanel({ institutionId, role, data, reload, fail, courses, course, onCourse }: Shared & { courses: Row[]; course: Row | null; onCourse: (id: string) => void }) {
   const courseId = course ? String(course.id) : null;
+  const documents=useNovoInstrumentoDocs2026(institutionId,role,"curso",courseId);
+  const [docObject,setDocObject]=useState("");
   const edit = can.record(role);
   const objetos = useMemo(() => objetosDoEscopo(course), [course]);
   const rows = useMemo(() => data.checklist.filter(r => mesmoEscopo(r, courseId)), [data.checklist, courseId]);
@@ -599,8 +601,21 @@ function EvidenciasPanel({ institutionId, role, data, reload, fail, courses, cou
   return (
     <>
       <div className="area-panel">
+        <div className="area-panel-head"><h3>Documentos oficiais de trabalho · proposta 2026</h3><SeletorEscopo courses={courses} value={courseId??""} onChange={onCourse}/></div>
+        {!course?<p className="area-note">Selecione um curso para consultar documentos, versões, prazos, responsáveis e decisões da gestão.</p>:<>
+          <NovoDocumentosResumo2026 state={documents}/>
+          <label className="area-search">Objeto para consultar evidências
+            <select value={docObject} onChange={e=>setDocObject(e.target.value)}>
+              <option value="">Selecione um objeto…</option>
+              {objetos.map(o=><option key={o.code} value={o.code}>{o.code} · {o.title}</option>)}
+            </select>
+          </label>
+          {docObject&&objetos.filter(o=>o.code===docObject).map(o=><NovoObjetoDocumentos2026 key={o.code} state={documents} role={role} object={{code:o.code,title:o.title,hint:o.hint}}/>)}
+        </>}
+      </div>
+      <div className="area-panel">
         <div className="area-panel-head">
-          <h3>Repositório de evidências</h3>
+          <h3>Referências e links complementares</h3>
           <SeletorEscopo courses={courses} value={courseId ?? ""} onChange={onCourse} />
         </div>
         <div className="area-stat-grid">
