@@ -33,3 +33,5 @@
 .gov-audit-error{padding:12px;background:#fff0e8;border:1px solid #f1c9b9;color:#9d4b35;border-radius:8px;font-size:12px}
 @media(max-width:950px){.gov-audit-columns{grid-template-columns:1fr}.gov-audit-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:550px){.gov-audit{padding:11px}.gov-audit-comparison{grid-template-columns:1fr}.gov-audit-findings article{flex-direction:column}.gov-audit-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.gov-audit-action-link{display:inline-block;margin:9px 0 0;padding:7px 9px;border:1px solid #afd6cb;border-radius:7px;background:#e8f7f1;color:#086a5e;font-size:11px;font-weight:800;text-decoration:none}.gov-audit-action-link:hover{background:#d2eee4}.gov-audit-action-link:focus-visible{outline:3px solid #0f8b80;outline-offset:3px}
