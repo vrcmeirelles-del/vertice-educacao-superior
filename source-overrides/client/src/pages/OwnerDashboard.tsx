@@ -288,7 +288,7 @@ export default function OwnerDashboard(){
    ]);
    if(results.some(r=>r.error))throw new Error('data unavailable');
    const snapshots=await fetchAllSnapshots();
-   setMaster(Boolean(results[0].data?.length));setInstitutions(results[1].data as Institution[]);setCourses(results[2].data as Course[]);setMembers(results[3].data as Membership[]);
+   setMaster(Boolean(results[0].data?.length));setInstitutions(results[1].data as Institution[]);setCourses(Array.from(new Map((results[2].data as Course[]).map(c=>[c.id,c])).values()));setMembers(results[3].data as Membership[]);
    setEnrollments(latestEnrollmentSnapshots(snapshots));
    setReports(results[4].data as AcademicReport[]);
    const [g,a,d]=await Promise.all([
