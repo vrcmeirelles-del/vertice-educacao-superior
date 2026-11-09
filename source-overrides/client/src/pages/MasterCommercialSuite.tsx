@@ -51,7 +51,7 @@ export default function MasterCommercialSuite({mode,name,email,verticeInvite,onC
   "Vértice: "+verticeLink,
   "Fato & Ordem: "+foLink,
   "",
-  "Vamos conversar sobre os desafios da sua IES e conhecer, em uma demonstração guiada, como essas duas soluções podem apoiar sua equipe?",
+  "Agende uma demonstração guiada e descubra como a Vértice e o Fato & Ordem podem apoiar as prioridades acadêmicas e estratégicas da sua instituição.",
   "",
   "Responda a esta mensagem para alinharmos uma apresentação e os próximos passos.",
   "",
