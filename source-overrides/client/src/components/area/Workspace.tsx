@@ -40,6 +40,7 @@ import PainelEorbit from "../eorbit/PainelEorbit";
 import ResultadoCursoBI from "../bi/ResultadoCursoBI";
 import CostSimulator from "./CostSimulator";
 import CostEvidence from "./CostEvidence";
+import OneDriveEspelho from "./OneDriveEspelho";
 import DireitoRaioX from "./DireitoRaioX";
 import "./area.css";
 
@@ -291,7 +292,7 @@ export default function Workspace({
       ) : tab === "backups" ? (
         role==="master"||role==="gestor" ? <AcademicBackups key={id} institutionId={id} institutionName={String(institution.name)}/> : <p>O acesso aos backups acadêmicos é restrito à gestão da instituição com segundo fator de autenticação.</p>
       ) : tab === "base" ? (
-        role === 'master' || role === 'gestor' ? <><OrganizationBase key={id} institution={institution} data={data} dataError={!!error} onGo={choose}/><CostEvidence institutionId={id} onUpload={openInstrumentUpload} compact/></> : <p>A Base da organização é reservada ao Master e ao Gestor.</p>
+        role === 'master' || role === 'gestor' ? <><OrganizationBase key={id} institution={institution} data={data} dataError={!!error} onGo={choose}/><CostEvidence institutionId={id} onUpload={openInstrumentUpload} compact/><OneDriveEspelho key={"od"+id} institutionId={id} institutionName={String(institution.name)}/></> : <p>A Base da organização é reservada ao Master e ao Gestor.</p>
       ) : tab === "ia" ? (
         role !== "master" && role !== "gestor" ? <p role="alert">A análise por IA é restrita à alta gestão da instituição.</p> : error ? <p role="alert">Atualize os dados antes de iniciar uma análise.</p> : <DocumentAI key={id} institutionId={id} courses={data.courses} requests={recognitionRequests} files={recognitionFiles} onGo={choose}/>
       ) : tab === "analise" ? (
