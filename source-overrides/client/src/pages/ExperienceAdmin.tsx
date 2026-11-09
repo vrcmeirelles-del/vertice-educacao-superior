@@ -7,7 +7,7 @@ import {demoInstitutionProfiles,type DemoInstitutionMode} from '@/lib/demo-showr
 
 const roleLabels:Record<ExperienceRole,string>={mantenedor:'Mantenedor',reitor:'Reitor / dirigente',coordenador:'Coordenador de curso'};
 const time=(x:string|null)=>x?new Date(x).toLocaleString('pt-BR'):'—';
-export default function ExperienceAdmin(){
+export default function ExperienceAdmin({embedded=false}:{embedded?:boolean}={}){
  const [access,setAccess]=useState<'loading'|'ready'|'denied'>('loading');
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const [invites,setInvites]=useState<ExperienceInvite[]>([]),[link,setLink]=useState('');
@@ -60,23 +60,29 @@ export default function ExperienceAdmin(){
    const anchor=document.createElement('a');anchor.href=url;anchor.download='Vertice-Experience-Relatorio-Comercial.csv';anchor.click();
    window.setTimeout(()=>URL.revokeObjectURL(url),2000);
  }
+ const Frame: 'main'|'section' = embedded ? 'section' : 'main';
  const summary=useMemo(()=>({
     total:invites.length,opened:invites.filter(i=>i.opens>0).length,
     active:invites.filter(i=>!i.revoked_at&&Date.parse(i.expires_at)>Date.now()).length,
     usage:invites.reduce((sum,i)=>sum+i.saves,0)
  }),[invites]);
- if(access==='loading')return <main className="corp-container corp-section" role="status"><h1>Verificando seu acesso Master…</h1></main>;
- if(access==='denied')return <main className="corp-container corp-section" style={{maxWidth:850,margin:'0 auto',padding:'45px 18px'}}>
+ if(access==='loading')return <Frame className="corp-container corp-section" role="status"><h1>Verificando seu acesso Master…</h1></Frame>;
+ if(access==='denied')return <Frame className="corp-container corp-section" style={{maxWidth:850,margin:'0 auto',padding:'45px 18px'}}>
    <span className="corp-eyebrow">VÉRTICE EXPERIENCE · ADMINISTRAÇÃO</span>
    <h1><LockKeyhole size={27} style={{verticalAlign:'middle'}}/> Acesso restrito ao Master</h1>
    <p>Esta página exige e-mail confirmado, autenticação multifator e autorização global de Master. Nenhum convite foi criado.</p>
    <Link href="/entrar" className="corp-button">Entrar ou confirmar segundo fator</Link>
- </main>;
- return <main className="corp-container corp-section" style={{maxWidth:1350,margin:'0 auto',padding:'32px 18px 60px'}}>
+ </Frame>;
+ return <Frame id="convites-demonstrativos" className={embedded?"":"corp-container corp-section"} style={{maxWidth:1350,margin:'0 auto',padding:embedded?'18px 0 36px':'32px 18px 60px'}}>
    <header style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:20}}>
      <div><span className="corp-eyebrow">VÉRTICE EXPERIENCE · MASTER</span><h1>Convites e inteligência comercial</h1><p>Ambientes fictícios por perfil, com validade, revogação e acompanhamento da visita.</p></div>
-     <Link href="/master" className="corp-button">Voltar ao painel Master<ExternalLink size={16}/></Link>
+     {!embedded&&<Link href="/master" className="corp-button">Voltar ao painel Master<ExternalLink size={16}/></Link>}
    </header>
+   <nav aria-label="Cenários públicos para demonstrar" style={{display:"flex",flexWrap:"wrap",gap:10,margin:"16px 0"}}>
+    <a className="corp-button small" href="/demonstracao?perfil=faculdade" target="_blank" rel="noopener noreferrer">Prévia Faculdade <ExternalLink size={14}/></a>
+    <a className="corp-button small" href="/demonstracao?perfil=centro" target="_blank" rel="noopener noreferrer">Prévia Centro Universitário <ExternalLink size={14}/></a>
+    <a className="corp-button small" href="/demonstracao?perfil=universidade" target="_blank" rel="noopener noreferrer">Prévia Universidade <ExternalLink size={14}/></a>
+   </nav>
    <div className="ds-kpis" style={{margin:'25px 0'}}>
      <article className="ds-metric"><span>Convites cadastrados</span><strong>{summary.total}</strong><small>Últimos 100 registros</small></article>
      <article className="ds-metric"><span>Convites ativos</span><strong>{summary.active}</strong><small>Não expirados nem revogados</small></article>
@@ -132,5 +138,5 @@ export default function ExperienceAdmin(){
    </div>
    {error&&<p role="alert" style={{color:'#ad2634',marginTop:20}}>{error}</p>}
    {notice&&<p role="status" style={{marginTop:20}}>{notice}</p>}
- </main>;
+ </Frame>;
 }
