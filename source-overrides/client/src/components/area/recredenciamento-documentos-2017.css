@@ -52,3 +52,11 @@
 .rec17-period-filter{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin:12px 0;font-size:11px;font-weight:750;color:#2b5b51}
 .rec17-period-filter select{padding:8px 11px;border:1px solid #b7d6cd;border-radius:8px;background:#fff;color:#1c544b;font-size:12px}
 .rec17-period-filter select:focus-visible{outline:3px solid #0a9b87;outline-offset:2px}
+
+
+.rec17-history{grid-column:1/-1;background:#f6faf9;border:1px solid #cbded8;border-radius:9px;padding:12px;display:grid;gap:7px;min-width:0}
+.rec17-history>strong{font-size:12px;color:#1b5147}
+.rec17-history>div{display:flex;align-items:center;gap:9px;flex-wrap:wrap;background:#fff;border:1px solid #e0e9e6;border-radius:7px;padding:8px 10px}
+.rec17-history>div span{flex:1;min-width:175px;overflow-wrap:anywhere;font-size:11px;color:#4d6964}
+.rec17-history>div small{width:100%;font-size:10px;color:#58736e}
+.rec17-history button{border:1px solid #b5d7cc;background:#e9f7f1;border-radius:7px;padding:5px 8px;font-size:10px;color:#126a59;cursor:pointer}
