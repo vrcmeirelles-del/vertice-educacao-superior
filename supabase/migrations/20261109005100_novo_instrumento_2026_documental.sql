@@ -56,4 +56,24 @@ bucket_id='vertice-repositorios' and vertice_private.repository_path_allowed(nam
 and exists(select 1 from public.vertice_repository_requests r where r.id::text=split_part(name,'/',2)
 and r.institution_id::text=split_part(name,'/',1)
 and coalesce(r.repository_section,'instrumento') not in('recredenciamento_2017','novo_instrumento_2026_institucional','novo_instrumento_2026_curso')));
+-- Garante associação institucional correta para os pedidos do Novo Instrumento.
+create or replace function vertice_private.validate_ni26_request_scope()
+returns trigger language plpgsql security invoker set search_path='' as $
+begin
+ if new.repository_section='novo_instrumento_2026_institucional' and new.course_id is not null then
+  raise exception 'Documentação institucional 2026 não aceita curso' using errcode='23514';
+ end if;
+ if new.repository_section='novo_instrumento_2026_curso' and
+  (new.course_id is null or not exists(
+   select 1 from public.vertice_courses c
+   where c.id=new.course_id and c.institution_id=new.institution_id))
+ then
+  raise exception 'Curso não pertence à instituição da documentação 2026' using errcode='23514';
+ end if;
+ return new;
+end $;
+drop trigger if exists vertice_ni26_scope_integrity on public.vertice_repository_requests;
+create trigger vertice_ni26_scope_integrity
+before insert or update of course_id,institution_id,repository_section on public.vertice_repository_requests
+for each row execute function vertice_private.validate_ni26_request_scope();
 commit;
