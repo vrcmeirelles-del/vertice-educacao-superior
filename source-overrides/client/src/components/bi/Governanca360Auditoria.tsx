@@ -68,9 +68,16 @@ export default function Governanca360Auditoria({institutionId}:{institutionId:st
     institutionId===CANONICAL_UNITOP?supabase.from("vertice_eorbit_quantitativo").select("curso_id,total_matriculados,total_vinculos,semestre:vertice_eorbit_semestres!inner(semestre)").eq("instituicao_id",LEGACY_UNITOP).eq("vertice_eorbit_semestres.semestre","2026/02").limit(2000):Promise.resolve({data:[],error:null}),
     supabase.from("vertice_course_semester_stats").select("codigo,matriculados").eq("institution_id",institutionId).eq("semestre","2026/02").limit(2000)
    ]);
+   const sourceErrors:string[]=[];
    const vals=result.map((r,i)=>{
-     if(r.status==="rejected")throw new Error("Fonte "+i+": "+String(r.reason));
-     if(r.value.error)throw new Error("Fonte "+i+": "+r.value.error.message);
+     if(r.status==="rejected"){
+       if(i>=4){sourceErrors.push("A origem adicional "+i+" não pôde ser consultada.");return [];}
+       throw new Error("Fonte essencial "+i+": "+String(r.reason));
+     }
+     if(r.value.error){
+       if(i>=4){sourceErrors.push("Origem adicional "+i+": "+r.value.error.message);return [];}
+       throw new Error("Fonte essencial "+i+": "+r.value.error.message);
+     }
      return r.value.data??[];
    });
    const [goals,reqs,files,snapshots,grades,semesterStats]=vals as any[][];
@@ -92,7 +99,8 @@ export default function Governanca360Auditoria({institutionId}:{institutionId:st
    if(institutionId===CANONICAL_UNITOP && grades.length && snapshots.length && gradeCount!==snapCount)add("matriculas-divergentes","critico","Três bases de matrículas divergentes","2026/2: e-ORBIT por grade "+fmt(gradeCount)+"; estatística histórica por curso "+fmt(statsCount)+"; snapshots do portal "+fmt(snapCount)+". As coberturas não são equivalentes.", "Definir a fonte oficial, conciliar curso × semestre × grade e versionar a reconciliação antes de publicar KPIs.");
    if(institutionId===CANONICAL_UNITOP && !grades.length)add("eorbit-restrito","atencao","Fonte e-ORBIT não disponível nesta sessão","Não houve linhas de quantitativos da origem legada na consulta autenticada. Isso pode indicar falta de acesso ou cobertura.", "Verificar a permissão à origem e a correspondência entre IES canônica e chave legada.");
    for(const m of metrics)if(m.error)add("fonte-"+m.source,"atencao","Fonte não consultada: "+m.name,"A consulta retornou erro. O valor não foi convertido em zero.", "Conferir políticas RLS, ingestão e autenticação da fonte.");
-   if((metrics[4].count??0)===0&&(metrics[5].count??0)===0)add("captacao-ausente","atencao","Captação sem alimentação estruturada","Nenhum lead ou custo de campanha cadastrado nesta fonte para a IES.", "Conectar CRM/captação com opt-in e fonte legitimamente autorizada.");
+   sourceErrors.forEach((message,index)=>add("origem-adicional-"+index,"atencao","Origem histórica indisponível",message+" O painel não atribui zero a esta fonte.","Conferir conciliação de identidade da IES e permissões de acesso à origem."));
+   if(metrics[4].count===0&&metrics[5].count===0)add("captacao-ausente","atencao","Captação sem alimentação estruturada","Nenhum lead ou custo de campanha cadastrado nesta fonte para a IES.", "Conectar CRM/captação com opt-in e fonte legitimamente autorizada.");
    if(metrics[6].count===0)add("enade-ausente","atencao","ENADE 360 sem desempenho validado","Não existem resultados cadastrados na tabela de desempenho ENADE 360.", "Importar resultados homologados por curso e período; não deduzir notas de outras avaliações.");
    if(reqs.length && !reqs.some(r=>String(r.repository_section).startsWith("novo_instrumento_2026")))add("novo-instrumento-sem-envio","informativo","Novo Instrumento sem documentos cadastrados","Formulários estão disponíveis, mas nenhum pedido deste instrumento aparece neste recorte.", "Solicitar evidências e registrar a análise manual antes de declarar cobertura.");
    findings.sort((a,b)=>({critico:0,atencao:1,informativo:2}[a.severity]-{critico:0,atencao:1,informativo:2}[b.severity]));
