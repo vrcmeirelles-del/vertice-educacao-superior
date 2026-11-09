@@ -42,7 +42,7 @@ export default function ConexoesDados({institutionId,institutionName,role}:{inst
   const [msg,setMsg]=useState("");
   const [token,setToken]=useState("");
   const [origens,setOrigens]=useState<Origem[]>([]);
-  const [f,setF]=useState({tipo:"api",fornecedor:"",rotulo:"",escopo:"agregado",fin:"nenhum",aceiteFin:false,base_url:"",test_path:"/",header_name:"Authorization",scheme:"Bearer",engine:"postgres",host:"",port:"",database:"",user:"",link:"",secret:"",aceite:false});
+  const [f,setF]=useState({tipo:"api",fornecedor:"",rotulo:"",escopo:"agregado",fin:"nenhum",aceiteFin:false,datasets:"",base_url:"",test_path:"/",header_name:"Authorization",scheme:"Bearer",engine:"postgres",host:"",port:"",database:"",user:"",link:"",secret:"",aceite:false});
   const set=(k:string,v:string|boolean)=>setF(p=>({...p,[k]:v}));
 
   const carregar=async()=>{
@@ -59,7 +59,14 @@ export default function ConexoesDados({institutionId,institutionName,role}:{inst
   useEffect(()=>{setMsg("");setToken("");carregar();carregarOrigens();},[institutionId]);
 
   const montarConfig=()=>{
-    if(f.tipo==="api")return {base_url:f.base_url,test_path:f.test_path||"/",header_name:f.header_name||"Authorization",scheme:f.scheme};
+    if(f.tipo==="api"){
+      const CAT:Record<string,string>={agregado:"academico_agregado",nominal:"academico_nominal",pessoal:"pessoal",financeiro:"financeiro"};
+      const datasets=f.datasets.split("\n").map(l=>l.trim()).filter(Boolean).map(l=>{
+        const [nome,path,cat,array_key]=l.split(";").map(x=>x.trim());
+        return {nome,path,categoria:CAT[(cat||"agregado").toLowerCase()]??cat,array_key:array_key||undefined};
+      });
+      return {base_url:f.base_url,test_path:f.test_path||"/",header_name:f.header_name||"Authorization",scheme:f.scheme,datasets};
+    }
     if(f.tipo==="sql")return {engine:f.engine,host:f.host,port:f.port?Number(f.port):undefined,database:f.database,user:f.user};
     if(f.tipo==="onedrive")return {link:f.link};
     return {};
@@ -78,7 +85,7 @@ export default function ConexoesDados({institutionId,institutionName,role}:{inst
   const agir=async(id:string,action:string)=>{
     if(action==="revogar"&&!window.confirm("Apagar a credencial do cofre? A conexão será pausada e precisará ser refeita."))return;
     setBusy(true);setMsg("");
-    try{const r=await chamar({action,id});setMsg(action==="testar"?(r.status==="erro"?"Teste falhou: "+msgErro(r.teste):r.teste+"."):"Feito.");carregar();}
+    try{const r=await chamar({action,id});setMsg(action==="testar"?(r.status==="erro"?"Teste falhou: "+msgErro(r.teste):r.teste+"."):action==="sincronizar"?"Sincronização concluída: "+((r as any).total??0)+" registro(s) lidos. Rotina automática toda segunda, antes das outras sincronizações.":"Feito.");carregar();}
     catch(e){setMsg(msgErro((e as Error).message));}
     setBusy(false);
   };
@@ -100,6 +107,7 @@ export default function ConexoesDados({institutionId,institutionName,role}:{inst
           {c.ultimo_erro&&<><br/><span role="alert">Último erro: {msgErro(c.ultimo_erro)}</span></>}
           <div style={{marginTop:6,display:"flex",gap:8,flexWrap:"wrap"}}>
             <button type="button" disabled={busy} onClick={()=>agir(c.id,"testar")}>Testar</button>
+            {c.tipo==="api"&&c.status==="ativa"&&<button type="button" disabled={busy} onClick={()=>agir(c.id,"sincronizar")}>Sincronizar agora</button>}
             {c.status==="aguardando_aprovacao"&&role==="master"&&<button type="button" disabled={busy} onClick={()=>agir(c.id,"aprovar")}>Aprovar</button>}
             {c.status==="pausada"?<button type="button" disabled={busy} onClick={()=>agir(c.id,"retomar")}>Retomar</button>:<button type="button" disabled={busy} onClick={()=>agir(c.id,"pausar")}>Pausar</button>}
             {(c.tipo==="api"||c.tipo==="sql"||c.tipo==="agente")&&<button type="button" disabled={busy} onClick={()=>agir(c.id,"revogar")}>Apagar credencial</button>}
@@ -127,6 +135,9 @@ export default function ConexoesDados({institutionId,institutionName,role}:{inst
         {campo("Caminho de teste","test_path","/")}
         {campo("Cabeçalho da chave","header_name","Authorization")}
         {campo("Prefixo (vazio se a chave vai pura)","scheme","Bearer")}
+        <label style={{display:"block",margin:"8px 0"}}>Conjuntos de dados a puxar (um por linha: nome;/caminho;categoria;chave-da-lista opcional)<br/>
+          <textarea value={f.datasets} rows={4} placeholder={"cursos;/cursos;agregado\nmatriculas;/matriculas;agregado;dados\nfolha_por_curso;/folha/curso;pessoal"} onChange={e=>set("datasets",e.target.value)} style={{width:"100%",maxWidth:480}}/></label>
+        <p role="note" style={{margin:"0 0 8px"}}>Categorias: <strong>agregado</strong>, <strong>nominal</strong> (exige escopo nominal e aprovação do master), <strong>pessoal</strong> (exige autorização de gasto com pessoal) e <strong>financeiro</strong> (exige financeiro completo e aprovação). Campos como CPF, RG, e-mail, telefone e endereço são descartados sempre; nome e matrícula só ficam na categoria nominal.</p>
         {campo("Chave / token da API","secret","","password")}
       </>}
       {f.tipo==="sql"&&<>

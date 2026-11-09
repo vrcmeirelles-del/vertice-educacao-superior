@@ -1,0 +1,2 @@
+-- Registro da migração conexoes_registros_sync (aplicada no Supabase em 09/11/2026):
+-- tabela vertice_connection_records (payload jsonb por conjunto/categoria, deduplicada por hash) usada pelo conector genérico de API.

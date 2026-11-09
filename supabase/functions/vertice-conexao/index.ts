@@ -4,6 +4,9 @@
 const ORIGINS=new Set(["https://www.verticesuperior.com.br","https://verticesuperior.com.br","https://vertice-portal.onrender.com","https://vertice-educacao-superior.onrender.com","https://vertice-educacao-superior-site.onrender.com"]);
 const UUID=/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
 const TIPOS=new Set(["api","sql","agente","onedrive"]);
+const CATEGORIAS=new Set(["academico_agregado","academico_nominal","pessoal","financeiro"]);
+const SEMPRE_FORA=/(cpf|(^|_)rg($|_)|e[-_]?mail|telefone|celular|phone|senha|password|token|secret|endereco|logradouro)/i;
+const IDENTIDADE=/(nome|matricula|docente_id|professor_id|id_professor|id_docente)/i;
 const ENGINES:Record<string,number>={postgres:5432,mysql:3306,sqlserver:1433};
 const E=(code:string,status=400)=>Object.assign(new Error(code),{status});
 const svc=()=>{const k=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");if(!k)throw E("backend_unavailable",503);return k;};
@@ -37,7 +40,14 @@ function validarConfig(tipo:string,c:any){
   if(!path.startsWith("/"))throw E("config_invalida");
   const header=typeof c.header_name==="string"&&/^[A-Za-z][A-Za-z0-9-]{1,40}$/.test(c.header_name)?c.header_name:"Authorization";
   const scheme=typeof c.scheme==="string"?c.scheme.slice(0,20):"Bearer";
-  return {base_url:u.origin+u.pathname.replace(/\/$/,""),test_path:path,header_name:header,scheme};
+  const datasets=Array.isArray(c.datasets)?c.datasets.slice(0,20).map((d:any)=>{
+   const nome=str(d?.nome,2,60,"config_invalida").toLowerCase().replace(/[^a-z0-9_]+/g,"_");
+   const dp=str(d?.path,1,300,"config_invalida");if(!dp.startsWith("/"))throw E("config_invalida");
+   const categoria=String(d?.categoria);if(!CATEGORIAS.has(categoria))throw E("config_invalida");
+   const array_key=typeof d?.array_key==="string"&&/^[A-Za-z0-9_.-]{1,60}$/.test(d.array_key)?d.array_key:undefined;
+   return {nome,path:dp,categoria,array_key};
+  }):[];
+  return {base_url:u.origin+u.pathname.replace(/\/$/,""),test_path:path,header_name:header,scheme,datasets};
  }
  if(tipo==="sql"){
   const engine=String(c.engine);if(!(engine in ENGINES))throw E("config_invalida");
@@ -70,9 +80,64 @@ async function sb(path:string,init:RequestInit={}){
  const k=svc();
  return fetch(URLBASE()+path,{...init,headers:{apikey:k,Authorization:"Bearer "+k,"Content-Type":"application/json",...(init.headers??{})},signal:AbortSignal.timeout(15000)});
 }
-async function registrar(conn:string,inst:string,acao:string,status:string,detalhe:string,user:string){
+async function registrar(conn:string,inst:string,acao:string,status:string,detalhe:string,user:string|null){
  await sb("/rest/v1/vertice_data_connection_runs",{method:"POST",headers:{Prefer:"return=minimal"},
   body:JSON.stringify({connection_id:conn,institution_id:inst,acao,status,detalhe:detalhe.slice(0,300),acionado_por:user})});
+}
+function limpar(v:any,cat:string,depth=0):any{
+ if(Array.isArray(v))return depth>4?[]:v.map(x=>limpar(x,cat,depth+1));
+ if(v&&typeof v==="object"){
+  if(depth>4)return null;
+  const o:Record<string,unknown>={};
+  for(const [k,val] of Object.entries(v)){
+   if(SEMPRE_FORA.test(k))continue;
+   if(cat!=="academico_nominal"&&IDENTIDADE.test(k))continue;
+   o[k]=limpar(val,cat,depth+1);
+  }
+  return o;
+ }
+ return v;
+}
+const hex=(b:ArrayBuffer)=>Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,"0")).join("");
+function permitido(conn:any,cat:string){
+ const aprov=!!conn.aprovado_em;
+ if(cat==="academico_agregado")return true;
+ if(cat==="academico_nominal")return conn.escopo==="nominal"&&aprov;
+ if(cat==="pessoal")return conn.escopo_financeiro==="pessoal"||(conn.escopo_financeiro==="completo"&&aprov);
+ if(cat==="financeiro")return conn.escopo_financeiro==="completo"&&aprov;
+ return false;
+}
+async function sincronizar(conn:any,por:string|null){
+ const cfg=conn.config??{};const u=new URL(cfg.base_url);await hostSeguro(u.hostname);
+ const secret=await (await sb("/rest/v1/rpc/vertice_connection_read_secret",{method:"POST",body:JSON.stringify({p_conn:conn.id})})).json();
+ const h:Record<string,string>={Accept:"application/json"};
+ if(typeof secret==="string"&&secret)h[cfg.header_name]=String(cfg.header_name).toLowerCase()==="authorization"?cfg.scheme+" "+secret:secret;
+ const resumo:Record<string,unknown>[]=[];let total=0;
+ for(const d of (cfg.datasets??[])){
+  if(!permitido(conn,d.categoria)){resumo.push({conjunto:d.nome,status:"nao_autorizado"});continue;}
+  try{
+   const r=await fetch(cfg.base_url+d.path,{headers:h,redirect:"manual",signal:AbortSignal.timeout(30000)});
+   if(!r.ok)throw E("api_respondeu_"+r.status);
+   const j=await r.json();
+   let arr:any=d.array_key?d.array_key.split(".").reduce((a:any,k:string)=>a?.[k],j):j;
+   if(!Array.isArray(arr))arr=Object.values(j??{}).find(Array.isArray)??[];
+   const rows=arr.slice(0,5000).map((x:any)=>limpar(x,d.categoria));
+   let gravadas=0;
+   for(let i=0;i<rows.length;i+=500){
+    const lote=await Promise.all(rows.slice(i,i+500).map(async(x:any)=>({connection_id:conn.id,institution_id:conn.institution_id,dataset:d.nome,categoria:d.categoria,
+     row_hash:hex(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(x)))),payload:x})));
+    const ir=await sb("/rest/v1/vertice_connection_records?on_conflict=connection_id,dataset,row_hash",{method:"POST",headers:{Prefer:"resolution=ignore-duplicates,return=minimal"},body:JSON.stringify(lote)});
+    if(!ir.ok)throw E("falha_ao_gravar",500);
+    gravadas+=lote.length;
+   }
+   total+=gravadas;resumo.push({conjunto:d.nome,status:"ok",linhas:gravadas});
+  }catch(e){resumo.push({conjunto:d.nome,status:"erro",erro:(e as Error).message});}
+ }
+ const erros=resumo.filter(r=>r.status==="erro").length;
+ await sb("/rest/v1/vertice_data_connections?id=eq."+conn.id,{method:"PATCH",headers:{Prefer:"return=minimal"},
+  body:JSON.stringify({ultimo_sync_em:new Date().toISOString(),ultimo_erro:erros?"sincronizacao_parcial":null,updated_at:new Date().toISOString()})});
+ await registrar(conn.id,conn.institution_id,"sincronizar",erros?"erro":"ok",JSON.stringify(resumo).slice(0,300),por);
+ return {total,conjuntos:resumo};
 }
 const precisaAprovacao=(c:{escopo:string;escopo_financeiro:string})=>c.escopo==="nominal"||c.escopo_financeiro==="completo";
 const tokenAgente=()=>"vag_"+Array.from(crypto.getRandomValues(new Uint8Array(32))).map(b=>b.toString(16).padStart(2,"0")).join("");
@@ -93,6 +158,16 @@ Deno.serve(async req=>{
   if(!body||typeof body!=="object"||Array.isArray(body))throw E("invalid_request");
   const apikey=Deno.env.get("SUPABASE_ANON_KEY")??JSON.parse(Deno.env.get("SUPABASE_PUBLISHABLE_KEYS")??"{}").default;
   if(!apikey)throw E("backend_unavailable",503);
+  const cronSecret=req.headers.get("x-cron-secret");
+  if(cronSecret){
+   const k=svc();
+   const cr=await fetch(URLBASE()+"/rest/v1/rpc/vertice_espelho_cron_ok",{method:"POST",headers:{apikey:k,Authorization:"Bearer "+k,"Content-Type":"application/json"},body:JSON.stringify({p_secret:cronSecret}),signal:AbortSignal.timeout(10000)});
+   if(!cr.ok||(await cr.json())!==true)throw E("access_denied",403);
+   const lr=await sb("/rest/v1/vertice_data_connections?tipo=eq.api&status=eq.ativa&select=id,institution_id,config,escopo,escopo_financeiro,aprovado_em");
+   const out:unknown[]=[];
+   for(const c of (await lr.json())??[]){try{out.push({id:c.id,...await sincronizar(c,null)});}catch(e){out.push({id:c.id,erro:(e as Error).message});}}
+   return respond({origem:"agendado",conexoes:out});
+  }
   const ur=await fetch(URLBASE()+"/auth/v1/user",{headers:{Authorization:bearer,apikey},signal:AbortSignal.timeout(10000)});
   const user=await ur.json().catch(()=>null);
   if(!ur.ok||!user?.id||user.is_anonymous)throw E("authentication_required",401);
@@ -161,6 +236,12 @@ Deno.serve(async req=>{
     body:JSON.stringify({status,ultimo_teste_em:new Date().toISOString(),ultimo_erro:erro,updated_at:new Date().toISOString()})});
    await registrar(conn.id,inst,"testar",erro?"erro":"ok",resultado,user.id);
    return respond({id:conn.id,status,teste:resultado});
+  }
+  if(action==="sincronizar"){
+   if(conn.tipo!=="api")throw E("sincronizacao_indisponivel_para_este_tipo");
+   if(conn.status!=="ativa")throw E("conexao_nao_ativa");
+   const r=await sincronizar(conn,user.id);
+   return respond({id:conn.id,...r});
   }
   if(action==="pausar"||action==="retomar"){
    const status=action==="pausar"?"pausada":(precisaAprovacao(conn)&&!conn.aprovado_em?"aguardando_aprovacao":"pendente");
