@@ -561,6 +561,7 @@ function EvidenciasPanel({ institutionId, role, data, reload, fail, courses, cou
   const courseId = course ? String(course.id) : null;
   const documents=useNovoInstrumentoDocs2026(institutionId,role,"curso",courseId);
   const [docObject,setDocObject]=useState("");
+  useEffect(()=>setDocObject(""),[courseId]);
   const edit = can.record(role);
   const objetos = useMemo(() => objetosDoEscopo(course), [course]);
   const rows = useMemo(() => data.checklist.filter(r => mesmoEscopo(r, courseId)), [data.checklist, courseId]);
@@ -601,7 +602,7 @@ function EvidenciasPanel({ institutionId, role, data, reload, fail, courses, cou
   return (
     <>
       <div className="area-panel">
-        <div className="area-panel-head"><h3>Documentos oficiais de trabalho · proposta 2026</h3><SeletorEscopo courses={courses} value={courseId??""} onChange={onCourse}/></div>
+        <div className="area-panel-head"><h3>Documentos de trabalho · proposta 2026</h3><SeletorEscopo courses={courses} value={courseId??""} onChange={onCourse}/></div>
         {!course?<p className="area-note">Selecione um curso para consultar documentos, versões, prazos, responsáveis e decisões da gestão.</p>:<>
           <NovoDocumentosResumo2026 state={documents}/>
           <label className="area-search">Objeto para consultar evidências
