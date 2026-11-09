@@ -181,7 +181,10 @@ export default function Workspace({
     choose("repositorio");
   };
 
-  const documents=repositorySummary(data.requests,data.files);
+  const recognitionRequests=data.requests.filter(r=>r.repository_section!=="recredenciamento_2017");
+  const recognitionRequestIds=new Set(recognitionRequests.map(r=>String(r.id)));
+  const recognitionFiles=data.files.filter(f=>recognitionRequestIds.has(String(f.request_id)));
+  const documents=repositorySummary(recognitionRequests,recognitionFiles);
   const late = data.actions.filter(a => isLate(a.due_date, a.status)).length;
   const openFindings = data.diagnosis.filter(d => d.status !== "resolvido").length;
   const activeGoals = data.goals.filter(g => g.status === "ativa" || g.status === "planejada").length;
@@ -438,7 +441,9 @@ function OverviewTab({ data, stats, onGo }: { data: Data; stats?: { enrolled: nu
     dims.get(k)!.push(Number(d.score));
   }
   const highOpen = data.diagnosis.filter(d => d.priority === "alta" && d.status !== "resolvido").length;
-  const docs=repositorySummary(data.requests,data.files);
+  const recognition=data.requests.filter(r=>r.repository_section!=="recredenciamento_2017");
+  const activeIds=new Set(recognition.map(r=>String(r.id)));
+  const docs=repositorySummary(recognition,data.files.filter(f=>activeIds.has(String(f.request_id))));
   const activeCourses = data.courses.filter(c => (c.status ?? "ativo") === "ativo").length;
   const fmt1 = (n: number) => n.toLocaleString("pt-BR", { maximumFractionDigits: 1 });
 
