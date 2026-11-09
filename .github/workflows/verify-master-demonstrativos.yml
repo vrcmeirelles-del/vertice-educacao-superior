@@ -5,6 +5,9 @@ on:
     paths:
       - "source-overrides/client/src/pages/OwnerDashboard.tsx"
       - "source-overrides/client/src/pages/ExperienceAdmin.tsx"
+      - "source-overrides/client/src/pages/MasterCommercialSuite.tsx"
+      - "source-overrides/client/src/pages/master-commercial-suite.css"
+      - "source-overrides/server/master-commercial-suite.test.ts"
       - "source-overrides/server/master-demo-invitations.test.ts"
       - ".github/workflows/verify-master-demonstrativos.yml"
 permissions:
@@ -25,13 +28,14 @@ jobs:
           unzip -qo vertice-servidor-source.zip -d .master-build
           cp -a source-overrides/. .master-build/
           test -f .master-build/server/master-demo-invitations.test.ts
+          test -f .master-build/server/master-commercial-suite.test.ts
           test -f .master-build/client/src/pages/ExperienceAdmin.tsx
       - name: Instalar dependências
         working-directory: .master-build
         run: npm ci --legacy-peer-deps --no-audit --no-fund
       - name: Testar navegação e escopo Master
         working-directory: .master-build
-        run: npx vitest run server/master-demo-invitations.test.ts
+        run: npx vitest run server/master-demo-invitations.test.ts server/master-commercial-suite.test.ts
       - name: Compilar portal real
         working-directory: .master-build
         run: npm run build:static
@@ -41,3 +45,5 @@ jobs:
           test -f .master-build/dist/public/index.html
           grep -Rql 'Convites demonstrativos' .master-build/dist/public/assets
           grep -Rql 'Gerar convite comercial' .master-build/dist/public/assets
+          grep -Rql 'Captação sem permanência' .master-build/dist/public/assets
+          grep -Rql 'Fato & Ordem' .master-build/dist/public/assets
