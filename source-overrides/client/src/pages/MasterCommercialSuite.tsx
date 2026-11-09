@@ -65,7 +65,7 @@ export default function MasterCommercialSuite({mode,name,email,verticeInvite,onC
   <header className="vcds-hero">
    <span className="vcds-eyebrow">APRESENTAÇÃO INSTITUCIONAL · DUAS SOLUÇÕES, UMA VISÃO DE APRENDIZAGEM</span>
    <h2>A nota está no sistema. <em>Mas a aprendizagem está comprovada?</em></h2>
-   <p>Uma IES pode conhecer suas matrículas, controlar suas avaliações e ainda descobrir tarde demais a evasão, a fragilidade em competências essenciais ou a ausência de evidências para uma decisão da reitoria. **Vértice + Fato & Ordem** aproximam a gestão acadêmica do desenvolvimento efetivo do estudante.</p>
+   <p>Uma IES pode conhecer suas matrículas, controlar suas avaliações e ainda descobrir tarde demais a evasão, a fragilidade em competências essenciais ou a ausência de evidências para uma decisão da reitoria. <strong>Vértice + Fato & Ordem</strong> aproximam a gestão acadêmica do desenvolvimento efetivo do estudante.</p>
    <div className="vcds-actions">
     <button className="corp-button" type="button" onClick={onCreateVertice}>Preparar convite comercial <ArrowRight size={16}/></button>
     <button className="corp-button vcds-outline" type="button" onClick={()=>void copy(body,"Apresentação com chamada para ação")}><ClipboardCopy size={16}/> Copiar apresentação persuasiva</button>
