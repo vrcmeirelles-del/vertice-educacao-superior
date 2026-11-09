@@ -26,6 +26,7 @@ import AcademicoBI from '@/components/bi/AcademicoBI';
 import PainelBI from '@/components/bi/PainelBI';
 import BIFrame from '@/components/bi/BIFrame';
 import ProfileSimulator from '@/components/area/ProfileSimulator';
+import ExperienceAdmin from './ExperienceAdmin';
 
 type Membership={user_id:string;institution_id:string;role:string};
 const SNAPSHOT_COLUMNS='id,course_id,semester,class_label,enrolled,capacity,available,source_report_at,reported_total,student_status';
@@ -42,7 +43,7 @@ async function fetchDashboardRows(table:string,order:string,ascending=true,colum
  for(let from=0;;from+=1000){const {data,error}=await supabase.from(table).select(columns).order(order,{ascending}).order('id').range(from,from+999);if(error)throw error;rows.push(...((data??[]) as unknown as Row[]));if(!data||data.length<1000)break;}
  return {data:rows,error:null};
 }
-function readHash(){const p=new URLSearchParams(typeof window==='undefined'?'':window.location.hash.slice(1));return {inst:p.get('instituicao')??'',course:p.get('curso')??'',repositories:p.get('repositorios')==='1',bi:p.get('bi')==='1',captacao:p.get('captacao')==='1',academico:p.get('academico')==='1',painelBi:p.get('painel-bi')==='1',perfis:p.get('perfis')==='1',masters:p.get('masters')==='1',governanca:p.get('governanca')==='1'};}
+function readHash(){const p=new URLSearchParams(typeof window==='undefined'?'':window.location.hash.slice(1));return {inst:p.get('instituicao')??'',course:p.get('curso')??'',repositories:p.get('repositorios')==='1',bi:p.get('bi')==='1',captacao:p.get('captacao')==='1',academico:p.get('academico')==='1',painelBi:p.get('painel-bi')==='1',perfis:p.get('perfis')==='1',masters:p.get('masters')==='1',demonstrativos:p.get('demonstrativos')==='1',governanca:p.get('governanca')==='1'};}
 function writeHash(inst:string,course:string,repositories=false,library=false,reitor=false,masters=false){const p=new URLSearchParams();if(masters)p.set('masters','1');if(inst)p.set('instituicao',inst);if(course)p.set('curso',course);if(repositories){if(inst)p.set('aba','repositorio');else p.set('repositorios','1');}if(library)p.set('aba','biblioteca');if(reitor)p.set('aba','reitor');const h=p.toString();window.history.pushState(null,'',h?`#${h}`:window.location.pathname);window.dispatchEvent(new HashChangeEvent('hashchange'));window.scrollTo({top:0});}
 
 type BiItem = {label:string; group:string; value:number; href?:string};
@@ -313,7 +314,7 @@ export default function OwnerDashboard(){
   const {error}=await supabase.auth.mfa.challengeAndVerify({factorId:factor,code});if(error)throw error;setCode('');setQr('');await load();
  }catch{setError('Código não validado. Confira o autenticador e tente novamente.');}finally{setBusy(false);}}
  if(acquisitionsRoute&&!loading&&session&&aal==='aal2')return <GreenHost/>;
- return <main className="corp-container corp-section"><h1>{window.location.pathname.startsWith('/reitor')?'Área reservada do reitor':master&&route.repositories?'Repositórios · visão master':master?'Painel Vértice':'Painel de gestão'}</h1>
+ return <main className="corp-container corp-section"><h1>{window.location.pathname.startsWith('/reitor')?'Área reservada do reitor':master&&route.repositories?'Repositórios · visão master':master&&route.demonstrativos?'Convites demonstrativos · Master':master?'Painel Vértice':'Painel de gestão'}</h1>
  {loading?<p role="status">Verificando acesso…</p>:!session?<><p>Entre para acessar sua conta.</p><Link className="corp-button" href={window.location.pathname.startsWith('/reitor')?'/entrar?destino=reitor':'/entrar'}>Entrar</Link></>:<>
  <p>Conectado como <strong>{session.user.email}</strong>.</p>
  {aal!=='aal2'?<section className="corp-login-card"><h2>Proteja seu acesso</h2><p>O segundo fator é obrigatório para consultar os dados das instituições.</p>
@@ -329,15 +330,18 @@ export default function OwnerDashboard(){
  </div>
  {master&&<div className="vx-module-grid vx-module-grid-sm" aria-label="Visões do master">
   <a className="vx-module-card" href="/master/aquisicoes"><span className="vx-module-icon" style={{background:'#fef2f2',color:'#d83a52'}}>🏦</span><strong>Aquisições</strong><small>Due diligence e mandatos</small></a>
-  <button className={`vx-module-card ${!commercial&&!route.bi&&!route.repositories&&!route.perfis&&!route.masters&&!currentInst?'vx-module-active':''}`} onClick={()=>{setCommercial(false);writeHash('','');}}><span className="vx-module-icon" style={{background:'#eff6ff',color:'#0073ea'}}>🏢</span><strong>Gestão das IES</strong><small>Instituições e cursos</small></button>
+  <button className={`vx-module-card ${!commercial&&!route.bi&&!route.repositories&&!route.perfis&&!route.masters&&!route.demonstrativos&&!currentInst?'vx-module-active':''}`} onClick={()=>{setCommercial(false);writeHash('','');}}><span className="vx-module-icon" style={{background:'#eff6ff',color:'#0073ea'}}>🏢</span><strong>Gestão das IES</strong><small>Instituições e cursos</small></button>
   <button className={`vx-module-card ${!commercial&&route.repositories?'vx-module-active':''}`} onClick={()=>{setCommercial(false);writeHash('','',true);}}><span className="vx-module-icon" style={{background:'#ecfdf5',color:'#00a86b'}}>📋</span><strong>Reconhecimento</strong><small>Documentos de todas as IES</small></button>
   <button className={`vx-module-card ${route.perfis?'vx-module-active':''}`} onClick={()=>{setCommercial(false);window.location.hash='perfis=1';window.dispatchEvent(new HashChangeEvent('hashchange'));}}><span className="vx-module-icon" style={{background:'#f5f5f5',color:'#6b7280'}}>👤</span><strong>Perfis de acesso</strong><small>Gestores e equipe</small></button>
   <button className={`vx-module-card ${route.governanca?'vx-module-active':''}`} onClick={()=>{setCommercial(false);window.location.hash='governanca=1';window.dispatchEvent(new HashChangeEvent('hashchange'));}}><span className="vx-module-icon" style={{background:'#faf5ff',color:'#7c3aed'}}>⚖️</span><strong>Governança</strong><small>Regulatória integrada</small></button>
   <button className={`vx-module-card ${commercial?'vx-module-active':''}`} onClick={()=>setCommercial(true)}><span className="vx-module-icon" style={{background:'#fffbeb',color:'#b45309'}}>🔍</span><strong>Demonstração</strong><small>Inteligência comercial</small></button>
+  <a className={`vx-module-card ${!commercial&&route.demonstrativos?'vx-module-active':''}`} href="/master#demonstrativos=1" onClick={()=>setCommercial(false)}>
+   <span className="vx-module-icon" style={{background:'#eefcf9',color:'#087c73'}}>✉</span><strong>Convites demonstrativos</strong><small>Gerar, acompanhar e revogar acessos Experience</small>
+  </a>
   <button className={`vx-module-card ${!commercial&&!route.perfis&&!route.painelBi&&!route.captacao&&!route.bi&&route.masters&&!route.governanca?'vx-module-active':''}`} onClick={()=>{setCommercial(false);writeHash('','',false,false,false,true);}}><span className="vx-module-icon" style={{background:'#f0f9ff',color:'#0369a1'}}>🔑</span><strong>Masters</strong><small>Administradores do sistema</small></button>
  </div>}
- {route.perfis&&master?<ProfileSimulator/>:master&&commercial?<DemoLeads/>:<>
- {!route.bi&&!route.captacao&&!route.academico&&!route.painelBi&&!currentInst&&!route.repositories&&!route.masters&&<div className="vx-module-grid vx-kpi-row">
+ {route.perfis&&master?<ProfileSimulator/>:master&&route.demonstrativos?<ExperienceAdmin embedded/>:master&&commercial?<DemoLeads/>:<>
+ {!route.bi&&!route.captacao&&!route.academico&&!route.painelBi&&!currentInst&&!route.repositories&&!route.masters&&!route.demonstrativos&&<div className="vx-module-grid vx-kpi-row">
   <div className="vx-module-card" style={{borderLeft:'3px solid #0073ea'}}><small style={{color:'#676e7a'}}>Instituições</small><strong style={{fontSize:28}}>{institutions.length}</strong></div>
   <div className="vx-module-card" style={{borderLeft:'3px solid #7c3aed'}}><small style={{color:'#676e7a'}}>Cursos</small><strong style={{fontSize:28}}>{courses.length}</strong></div>
   <div className="vx-module-card" style={{borderLeft:'3px solid #00a86b'}}><small style={{color:'#676e7a'}}>Vínculos</small><strong style={{fontSize:28}}>{members.length}</strong></div>
