@@ -6,7 +6,7 @@ const codes = new Set(CATALOG.map(o=>o.code));
 const cors = {"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"authorization,apikey,content-type,x-client-info","Access-Control-Allow-Methods":"POST,OPTIONS"};
 function respond(data:unknown,status=200){return new Response(JSON.stringify(data),{status,headers:{...cors,"Content-Type":"application/json","Cache-Control":"no-store"}})}
 type Doc={id:string;file_name:string;status:string;request_id:string};
-type Req={id:string;title:string;indicator:string|null;instructions:string|null;course_id:string|null};
+type Req={id:string;title:string;indicator:string|null;instructions:string|null;course_id:string|null;repository_section:string|null};
 type Suggestion={file_id:string;object_code:string;confidence:number;rationale:string};
 function fallback(rows:{file:Doc;request:Req}[]):Suggestion[]{
  const stop=new Set(["para","com","dos","das","uma","sobre","pela","institucional","instituição","documento","avaliação"]);
@@ -44,9 +44,9 @@ Deno.serve(async request=>{
   if(filesErr)return respond({error:"access_denied"},403);
   if(!files?.length)return respond({processed:0,created:0,method:"none"});
   const ids=[...new Set(files.map(f=>f.request_id))];
-  const {data:reqs,error:reqErr}=await supabase.from("vertice_repository_requests").select("id,title,indicator,instructions,course_id").eq("institution_id",institution).in("id",ids).is("course_id",null);
+  const {data:reqs,error:reqErr}=await supabase.from("vertice_repository_requests").select("id,title,indicator,instructions,course_id,repository_section").eq("institution_id",institution).in("id",ids).is("course_id",null);
   if(reqErr)return respond({error:"access_denied"},403);
-  const requestMap=new Map((reqs??[]).map(r=>[r.id,r]));
+  const requestMap=new Map((reqs??[]).filter(r=>!String(r.repository_section??"").startsWith("novo_instrumento_2026")).map(r=>[r.id,r]));
   const eligible=files.filter(f=>requestMap.has(f.request_id)).map(f=>({file:f as Doc,request:requestMap.get(f.request_id) as Req}));
   if(!eligible.length)return respond({processed:0,created:0,method:"none",note:"Nenhum arquivo vinculado ao acervo institucional."});
   const {data:existing,error:linksErr}=await supabase.from("vertice_instrumento_correspondencias").select("source_file_id,target_object_code").eq("institution_id",institution).in("source_file_id",eligible.map(e=>e.file.id));
