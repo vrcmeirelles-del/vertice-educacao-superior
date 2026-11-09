@@ -13,9 +13,9 @@ type Kind="obrig"|"compl"|"resultado";
 type Item={id:string;kind:Kind;position:number;title:string};
 const KINDS:Record<Kind,string>={obrig:"Evidência obrigatória",compl:"Evidência complementar",resultado:"Evidência de resultado"};
 const STATUS:Record<string,string>={enviado:"Aguardando validação",validado:"Validado",devolvido:"Devolvido para ajustes"};
-const codeFor=(indicator:string,kind:Kind,index:number)=>"R2017:"+indicator+":"+kind+":"+index;
-const itemsOf=(indicator:IndicadorAvaliacao):Item[]=>
-  (["obrig","compl","resultado"] as Kind[]).flatMap(kind=>(indicator[kind]??[]).map((title,index)=>({id:codeFor(indicator.code,kind,index),kind,position:index,title})));
+const codeFor=(indicator:string,kind:Kind,index:number,semester:string)=>"R2017:"+indicator+":"+kind+":"+index+":"+semester;
+const itemsOf=(indicator:IndicadorAvaliacao,semester:string):Item[]=>
+  (["obrig","compl","resultado"] as Kind[]).flatMap(kind=>(indicator[kind]??[]).map((title,index)=>({id:codeFor(indicator.code,kind,index,semester),kind,position:index,title})));
 const dateDefault=()=>{const today=new Date();return today.getFullYear()+"-"+(today.getMonth()<6?"1":"2");};
 const statusClass=(v:string)=>v==="validado"?"rec17-status-validado":v==="devolvido"?"rec17-status-devolvido":v==="nsa"?"rec17-status-nsa":v==="enviado"?"rec17-status-enviado":"rec17-status-pendente";
 
@@ -79,6 +79,7 @@ export function Recred2017IndicatorDocs({institutionId,role,indicador,state}:{
   institutionId:string;role:Role|null;indicador:IndicadorAvaliacao;state:RecredDocsState
 }){
   const manager=can.manageGoals(role);
+  const [period,setPeriod]=useState("2026-2");
   const [selected,setSelected]=useState<Item|null>(null);
   const [file,setFile]=useState<File|null>(null);
   const [reference,setReference]=useState("");
@@ -95,7 +96,7 @@ export function Recred2017IndicatorDocs({institutionId,role,indicador,state}:{
   const [message,setMessage]=useState("");
   const [error,setError]=useState("");
   const input=useRef<HTMLInputElement>(null);
-  const items=useMemo(()=>itemsOf(indicador),[indicador]);
+  const items=useMemo(()=>itemsOf(indicador,period),[indicador,period]);
   const byCode=useMemo(()=>new Map(state.requests.filter(r=>r.active!==false).map(r=>[r.document_code??"",r])),[state.requests]);
   const latest=useMemo(()=>{
     const by=new Map<string,Doc>();
@@ -111,7 +112,7 @@ export function Recred2017IndicatorDocs({institutionId,role,indicador,state}:{
     const req=byCode.get(item.id);
     setSelected(item);setFile(null);setNsa(false);setError("");setMessage("");
     setReference("");setNote("");setJustification("");setDeadline(req?.due_date??"");
-    setAssignee(req?.assignee_email??"");setSemester(req?.semester?.replace("/","-")??dateDefault());
+    setAssignee(req?.assignee_email??"");setSemester(period);
   };
   async function ensureRequest(item:Item){
     const old=byCode.get(item.id);if(old)return old;
@@ -187,6 +188,7 @@ export function Recred2017IndicatorDocs({institutionId,role,indicador,state}:{
     <div className="rec17-indicator-head"><h5>Formulários e evidências do indicador {indicador.code}</h5>
       <span>{validated}/{total} validadas · {pending} em análise</span></div>
     <p className="rec17-help">Cada evidência possui cadastro próprio, histórico de arquivos, decisão da gestão e justificativa de NSA. Nenhuma entrega altera automaticamente o conceito institucional simulado.</p>
+    <label className="rec17-period-filter">Semestre da documentação <select value={period} onChange={e=>{setPeriod(e.target.value);setSelected(null);setReview(null);}}>{Array.from({length:12},(_,i)=>{const year=2023+Math.floor(i/2);const val=year+"-"+(i%2+1);return <option key={val} value={val}>{year}/{i%2+1}</option>;})}</select></label>
     {(["obrig","compl","resultado"] as Kind[]).map(kind=>{
       const list=items.filter(x=>x.kind===kind);
       return <div key={kind} className="rec17-kind">
