@@ -121,21 +121,31 @@ Deno.serve(async req=>{
   const raw=await req.text();if(raw.length>2048)throw E("request_too_large",413);
   const body=raw?JSON.parse(raw):{};
   if(!body||typeof body!=="object"||Array.isArray(body))throw E("invalid_request");
-  const apikey=Deno.env.get("SUPABASE_ANON_KEY")??JSON.parse(Deno.env.get("SUPABASE_PUBLISHABLE_KEYS")??"{}").default;
+  let apikey=Deno.env.get("SUPABASE_ANON_KEY")??JSON.parse(Deno.env.get("SUPABASE_PUBLISHABLE_KEYS")??"{}").default;
   if(!apikey)throw E("backend_unavailable",503);
-  const ur=await fetch(Deno.env.get("SUPABASE_URL")+"/auth/v1/user",{headers:{Authorization:bearer,apikey},signal:AbortSignal.timeout(10000)});
-  const user=await ur.json().catch(()=>null);
-  if(!ur.ok||!user?.id||user.is_anonymous)throw E("authentication_required",401);
   const inst=body.institution_id;
   if(typeof inst!=="string"||!UUID.test(inst)||(inst!==UNITOP&&inst!==UNICALDAS))throw E("invalid_request");
-  const ar=await fetch(Deno.env.get("SUPABASE_URL")+"/rest/v1/rpc/vertice_source_drive_authorize",{method:"POST",
-   headers:{apikey,Authorization:bearer,"Content-Type":"application/json"},body:JSON.stringify({p_institution:inst}),signal:AbortSignal.timeout(10000)});
-  if(!ar.ok||(await ar.json())!==true)throw E("access_denied",403);
+  const cronSecret=req.headers.get("x-cron-secret");
+  let readBearer=bearer;
+  if(cronSecret){
+   const sk=svc();
+   const cr=await fetch(Deno.env.get("SUPABASE_URL")+"/rest/v1/rpc/vertice_espelho_cron_ok",{method:"POST",
+    headers:{apikey:sk,Authorization:"Bearer "+sk,"Content-Type":"application/json"},body:JSON.stringify({p_secret:cronSecret}),signal:AbortSignal.timeout(10000)});
+   if(!cr.ok||(await cr.json())!==true)throw E("access_denied",403);
+   readBearer="Bearer "+sk;apikey=sk;
+  }else{
+   const ur=await fetch(Deno.env.get("SUPABASE_URL")+"/auth/v1/user",{headers:{Authorization:bearer,apikey},signal:AbortSignal.timeout(10000)});
+   const user=await ur.json().catch(()=>null);
+   if(!ur.ok||!user?.id||user.is_anonymous)throw E("authentication_required",401);
+   const ar=await fetch(Deno.env.get("SUPABASE_URL")+"/rest/v1/rpc/vertice_source_drive_authorize",{method:"POST",
+    headers:{apikey,Authorization:bearer,"Content-Type":"application/json"},body:JSON.stringify({p_institution:inst}),signal:AbortSignal.timeout(10000)});
+   if(!ar.ok||(await ar.json())!==true)throw E("access_denied",403);
+  }
   const limit=Math.min(Math.max(Number(body.limit)||20,1),40),retry=body.retry===true;
 
-  const files=await pages("vertice_repository_files?institution_id=eq."+inst+"&select=id,file_name,status,document_category,instrument_indicators,storage_path,size_bytes,mime_type,request_id&order=created_at.asc",bearer,apikey);
-  const reqs=new Map((await pages("vertice_repository_requests?institution_id=eq."+inst+"&select=id,course_id,indicator,document_code",bearer,apikey)).map(r=>[r.id,r]));
-  const courses=new Map((await pages("vertice_courses?institution_id=eq."+inst+"&select=id,code,name",bearer,apikey)).map(c=>[c.id,c]));
+  const files=await pages("vertice_repository_files?institution_id=eq."+inst+"&select=id,file_name,status,document_category,instrument_indicators,storage_path,size_bytes,mime_type,request_id&order=created_at.asc",readBearer,apikey);
+  const reqs=new Map((await pages("vertice_repository_requests?institution_id=eq."+inst+"&select=id,course_id,indicator,document_code",readBearer,apikey)).map(r=>[r.id,r]));
+  const courses=new Map((await pages("vertice_courses?institution_id=eq."+inst+"&select=id,code,name",readBearer,apikey)).map(c=>[c.id,c]));
   const k=svc();
   const logs=new Map<string,any>();
   for(const r of await pages("vertice_onedrive_documentos?institution_id=eq."+inst+"&select=file_id,status",("Bearer "+k),k))logs.set(r.file_id,r);
