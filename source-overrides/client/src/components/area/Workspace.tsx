@@ -211,6 +211,7 @@ export default function Workspace({
           </p>
         </div>
         <a className="area-guide-link" href="/guia.html" target="_blank" rel="noopener">Guia e glossário ↗</a>
+        {can.manageGoals(role)&&<button type="button" className="corp-button small" onClick={()=>{window.location.hash="governanca=1&instituicao="+encodeURIComponent(String(id));window.dispatchEvent(new HashChangeEvent("hashchange"));}}>Governança 360 · Auditar integrações ↗</button>}
         <div className="area-kpis">
           <span className="kpi-neutral"><b>{data.courses.length}</b> cursos</span>
           <span className={activeGoals > 0 ? "kpi-info" : "kpi-neutral"}><b>{activeGoals}</b> metas em curso</span>
