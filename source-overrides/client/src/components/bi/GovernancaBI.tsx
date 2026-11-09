@@ -197,9 +197,10 @@ export default function GovernancaBI({ institutionId, institutionName, courses }
     ? cursosComAvs.reduce((s, d) => s + (d.ccAtual ?? 0), 0) / cursosComAvs.length
     : null;
   const cursosRisco = data.filter(d => d.ccAtual !== null && d.ccAtual < 3).length;
-  const coberturaMedia = data.length
-    ? Math.round(data.reduce((s, d) => s + d.coberturaDoc, 0) / data.length)
-    : 0;
+  const cursosComDocs=data.filter(d=>d.docsTotal>0);
+  const coberturaMedia = cursosComDocs.length
+    ? Math.round(cursosComDocs.reduce((s, d) => s + d.coberturaDoc, 0) / cursosComDocs.length)
+    : null;
 
   if (loading) return <p role="status" className="area-muted">Carregando governança regulatória…</p>;
   if(loadError)return <section role="alert" className="area-error"><p>{loadError}</p><button type="button" onClick={()=>void load()}>Tentar novamente</button></section>;
@@ -211,7 +212,7 @@ export default function GovernancaBI({ institutionId, institutionName, courses }
         <div>
           <span className="gov-eyebrow">Governança regulatória 360</span>
           <h2>{institutionName}</h2>
-          <p className="gov-sub">Visão consolidada para a reitoria · {data.length} curso(s) acompanhado(s)</p>
+          <p className="gov-sub">Visão interna de indicadores regulatórios · {data.length} cursos com registros nas fontes consultadas; não representa conceito oficial do MEC.</p>
         </div>
         <button className="gov-tv-btn" onClick={() => { setTv(!tv); if (!tv) document.documentElement.requestFullscreen?.(); else document.exitFullscreen?.(); }}>
           {tv ? "Sair do modo TV" : "📺 Modo TV"}
@@ -229,21 +230,21 @@ export default function GovernancaBI({ institutionId, institutionName, courses }
               { value: data.length - cursosComAvs.length, color: "#a9b6c4", label: "s/n" },
             ]}
             center={formatarConceito(ccMedioIES)}
-            caption="CC médio da IES"
+            caption="Média de conceitos simulados dos cursos avaliados"
             size={100}
           />
           <div>
             <strong className="gov-kpi-value">{formatarConceito(ccMedioIES)}</strong>
-            <span className="gov-kpi-label">CC médio (2017)</span>
+            <span className="gov-kpi-label">Média dos conceitos simulados (2017)</span>
             <span className="gov-kpi-detail">{faixaConceito(ccMedioIES)}</span>
           </div>
         </div>
         <div className="gov-kpi-simple">
-          <strong style={{ color: cursosRisco > 0 ? "#c0594f" : "#4f9a76" }}>{cursosRisco}</strong>
+          <strong style={{ color: cursosRisco > 0 ? "#c0594f" : "#4f9a76" }}>{cursosComAvs.length?cursosRisco:"Sem dados"}</strong>
           <span>curso(s) com CC {'<'} 3</span>
         </div>
         <div className="gov-kpi-simple">
-          <strong>{coberturaMedia}%</strong>
+          <strong>{coberturaMedia===null?'Sem dados':coberturaMedia+'%'}</strong>
           <span>cobertura documental média</span>
         </div>
         <div className="gov-kpi-simple">
@@ -259,13 +260,13 @@ export default function GovernancaBI({ institutionId, institutionName, courses }
             <tr>
               <th>Curso</th>
               <th>Coordenação</th>
-              <th>CC atual</th>
-              <th>CC viável</th>
+              <th>Conceito simulado (2017)</th>
+              <th>Conceito viável estimado</th>
               <th>D1</th>
               <th>D2</th>
               <th>D3</th>
               <th>Docs</th>
-              <th>NI 2026</th>
+              <th>Proposta 2026</th>
               <th>Alertas</th>
             </tr>
           </thead>
@@ -295,14 +296,11 @@ export default function GovernancaBI({ institutionId, institutionName, courses }
                   );
                 })}
                 <td>
-                  <div className="gov-docs-bar">
-                    <div className="gov-docs-fill" style={{ width: `${c.coberturaDoc}%`, background: c.coberturaDoc >= 80 ? "#4f9a76" : c.coberturaDoc >= 50 ? "#d1a54a" : "#c0594f" }} />
-                  </div>
-                  <span className="gov-docs-label">{c.coberturaDoc}% · {c.docsPendentes} pend.</span>
+                  {c.docsTotal>0?<><div className="gov-docs-bar"><div className="gov-docs-fill" style={{ width: `${c.coberturaDoc}%`, background: c.coberturaDoc >= 80 ? "#4f9a76" : c.coberturaDoc >= 50 ? "#d1a54a" : "#c0594f" }} /></div><span className="gov-docs-label">{c.coberturaDoc}% de exigências com arquivo · {c.docsPendentes} sem envio</span></>:<span className="gov-docs-label">Sem exigências cadastradas</span>}
                 </td>
                 <td>
                   {c.objetosTotal > 0 ? (
-                    <span className="gov-ni">{c.pctConforme2026}% conf.</span>
+                    <span className="gov-ni">{c.pctConforme2026}% com situação conforme · simulado</span>
                   ) : (
                     <span className="gov-ni gov-ni-empty">—</span>
                   )}
@@ -313,7 +311,7 @@ export default function GovernancaBI({ institutionId, institutionName, courses }
                       ⚠️ {c.alertas2017.length}
                     </span>
                   ) : (
-                    <span className="gov-ok">✓</span>
+                    <span className="gov-ok">{c.indicadoresAvaliados>0?"Sem alertas neste recorte":"Não avaliado"}</span>
                   )}
                 </td>
               </tr>
@@ -332,7 +330,7 @@ export default function GovernancaBI({ institutionId, institutionName, courses }
         </div>
         <p className="gov-disclaimer">
           Avaliação simulada interna. O CC é calculado conforme o instrumento INEP de Reconhecimento de Curso (2017).
-          A conformidade do Novo Instrumento (2026) é independente e segue os objetos de avaliação do instrumento publicado.
+          A análise da proposta de Novo Instrumento (2026) é preliminar e independente dos conceitos de 2017; não há instrumento definitivo confirmado nesta tela.
           Nenhum dado substitui a avaliação oficial do INEP/MEC.
         </p>
       </div>
