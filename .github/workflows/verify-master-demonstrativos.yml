@@ -1,0 +1,43 @@
+name: Master - Convites Demonstrativos
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "source-overrides/client/src/pages/OwnerDashboard.tsx"
+      - "source-overrides/client/src/pages/ExperienceAdmin.tsx"
+      - "source-overrides/server/master-demo-invitations.test.ts"
+      - ".github/workflows/verify-master-demonstrativos.yml"
+permissions:
+  contents: read
+jobs:
+  master-demo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Compor fontes e overrides usados pelo Render
+        shell: bash
+        run: |
+          mkdir -p .master-build
+          unzip -qo vertice-servidor-source.zip -d .master-build
+          cp -a source-overrides/. .master-build/
+          test -f .master-build/server/master-demo-invitations.test.ts
+          test -f .master-build/client/src/pages/ExperienceAdmin.tsx
+      - name: Instalar dependências
+        working-directory: .master-build
+        run: npm ci --legacy-peer-deps --no-audit --no-fund
+      - name: Testar navegação e escopo Master
+        working-directory: .master-build
+        run: npx vitest run server/master-demo-invitations.test.ts
+      - name: Compilar portal real
+        working-directory: .master-build
+        run: npm run build:static
+      - name: Verificar artefato de publicação
+        shell: bash
+        run: |
+          test -f .master-build/dist/public/index.html
+          grep -Rql 'Convites demonstrativos' .master-build/dist/public/assets
+          grep -Rql 'Gerar convite comercial' .master-build/dist/public/assets
