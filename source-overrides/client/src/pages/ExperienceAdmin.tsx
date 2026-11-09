@@ -4,6 +4,8 @@ import {Copy,ExternalLink,LockKeyhole,RefreshCw,ShieldCheck,Trash2} from 'lucide
 import {supabase} from '@/lib/supabase';
 import {experienceApi,type ExperienceInvite,type ExperienceRole} from '@/lib/experience-access';
 import {demoInstitutionProfiles,type DemoInstitutionMode} from '@/lib/demo-showroom';
+import MasterCommercialSuite from './MasterCommercialSuite';
+import './master-commercial-suite.css';
 
 const roleLabels:Record<ExperienceRole,string>={mantenedor:'Mantenedor',reitor:'Reitor / dirigente',coordenador:'Coordenador de curso'};
 const time=(x:string|null)=>x?new Date(x).toLocaleString('pt-BR'):'—';
@@ -11,6 +13,7 @@ export default function ExperienceAdmin({embedded=false}:{embedded?:boolean}={})
  const [access,setAccess]=useState<'loading'|'ready'|'denied'>('loading');
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const [invites,setInvites]=useState<ExperienceInvite[]>([]),[link,setLink]=useState('');
+ const [lastRecipient,setLastRecipient]=useState({name:'',email:''});
  const [email,setEmail]=useState(''),[name,setName]=useState('');
  const [mode,setMode]=useState<DemoInstitutionMode>('faculdade'),[role,setRole]=useState<ExperienceRole>('reitor'),[hours,setHours]=useState(72);
  const call=useCallback(async (action:string,data:Record<string,unknown>={})=>{
@@ -41,7 +44,7 @@ export default function ExperienceAdmin({embedded=false}:{embedded?:boolean}={})
    e.preventDefault();setBusy(true);setError('');setNotice('');setLink('');
    try{
      const result=await call('admin:create',{email:email.trim().toLowerCase(),name:name.trim(),mode,role,hours});
-     setLink(result.link);setNotice('Convite criado. O link é mostrado uma única vez e deve ser enviado diretamente ao destinatário. Nenhuma mensagem foi enviada automaticamente.');
+     setLink(result.link);setLastRecipient({name:name.trim(),email:email.trim().toLowerCase()});setNotice('Convite criado. O link é mostrado uma única vez e deve ser enviado diretamente ao destinatário. Nenhuma mensagem foi enviada automaticamente.');
      setEmail('');setName('');await load();
    }catch(e){setError((e as Error).message);}finally{setBusy(false);}
  }
@@ -83,6 +86,8 @@ export default function ExperienceAdmin({embedded=false}:{embedded?:boolean}={})
     <a className="corp-button small" href="/demonstracao?perfil=centro" target="_blank" rel="noopener noreferrer">Prévia Centro Universitário <ExternalLink size={14}/></a>
     <a className="corp-button small" href="/demonstracao?perfil=universidade" target="_blank" rel="noopener noreferrer">Prévia Universidade <ExternalLink size={14}/></a>
    </nav>
+   <MasterCommercialSuite mode={mode} name={name||lastRecipient.name} email={email||lastRecipient.email} verticeInvite={link}
+      onCreateVertice={()=>document.getElementById('vertice-invite-form')?.scrollIntoView({behavior:'smooth',block:'center'})}/>
    <div className="ds-kpis" style={{margin:'25px 0'}}>
      <article className="ds-metric"><span>Convites cadastrados</span><strong>{summary.total}</strong><small>Últimos 100 registros</small></article>
      <article className="ds-metric"><span>Convites ativos</span><strong>{summary.active}</strong><small>Não expirados nem revogados</small></article>
@@ -93,7 +98,7 @@ export default function ExperienceAdmin({embedded=false}:{embedded?:boolean}={})
      <section className="ds-card" style={{padding:22}}>
        <h2 style={{marginTop:0}}>Gerar convite comercial</h2>
        <p>Envie acesso à Faculdade, Centro Universitário ou Universidade Vértice sem conceder acesso a dados de clientes.</p>
-       <form onSubmit={create} style={{display:'grid',gap:13}}>
+       <form id="vertice-invite-form" onSubmit={create} style={{display:'grid',gap:13,scrollMarginTop:110}}>
          <label>Nome do destinatário (opcional)<input value={name} maxLength={120} onChange={e=>setName(e.target.value)} placeholder="Ex.: dirigente convidado"/></label>
          <label>E-mail do destinatário<input type="email" required maxLength={254} value={email} onChange={e=>setEmail(e.target.value)} placeholder="gestor@instituicao.edu.br"/></label>
          <label>Organização acadêmica<select value={mode} onChange={e=>setMode(e.target.value as DemoInstitutionMode)}>
