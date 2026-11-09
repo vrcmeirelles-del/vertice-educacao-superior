@@ -16,6 +16,7 @@ import { DIMENSOES, calcularResumo, formatarConceito, corConceito, faixaConceito
 import { MAPPING_2017_2026 } from "@/lib/instrumento-mapping";
 import "./governanca-bi.css";
 import Governanca360Auditoria from "./Governanca360Auditoria";
+import UnicaldasRegulatoryBI from "./UnicaldasRegulatoryBI";
 
 // ================================================================ tipos
 type CourseStatus = {
@@ -207,11 +208,12 @@ export default function GovernancaBI({ institutionId, institutionName, courses }
     ? Math.round(cursosComDocs.reduce((s, d) => s + d.coberturaDoc, 0) / cursosComDocs.length)
     : null;
 
-  if (loading) return <><Governanca360Auditoria institutionId={institutionId}/><p role="status" className="area-muted">Carregando as avaliações regulatórias do recorte…</p></>;
-  if(loadError)return <><Governanca360Auditoria institutionId={institutionId}/><section role="alert" className="area-error"><p>{loadError}</p><button type="button" onClick={()=>void load()}>Tentar novamente</button></section></>;
+  if (loading) return <><UnicaldasRegulatoryBI institutionId={institutionId}/><Governanca360Auditoria institutionId={institutionId}/><p role="status" className="area-muted">Carregando as avaliações regulatórias do recorte…</p></>;
+  if(loadError)return <><UnicaldasRegulatoryBI institutionId={institutionId}/><Governanca360Auditoria institutionId={institutionId}/><section role="alert" className="area-error"><p>{loadError}</p><button type="button" onClick={()=>void load()}>Tentar novamente</button></section></>;
 
   return (
     <section className={`gov ${tv ? "gov-tv" : ""}`} aria-label="Governança Regulatória">
+      <UnicaldasRegulatoryBI institutionId={institutionId}/>
       <Governanca360Auditoria institutionId={institutionId}/>
       <header className="gov-header">
         <div>
