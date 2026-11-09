@@ -305,7 +305,7 @@ export default function Workspace({
       ) : tab === "metas" ? (
         error ? <p role="alert">Painel de metas indisponível enquanto houver falha no carregamento. Atualize os dados.</p> : <GoalsTab key={id} institutionId={id} role={role} data={data} reload={reload} onRepository={goal=>{setRepositoryGoal(goal);choose("repositorio");}} />
       ) : tab === "repositorio" ? (
-        <RepositoryTab institutionId={id} role={role} courses={data.courses} goals={data.goals} requests={data.requests} files={data.files} reload={reload} goalFilter={repositoryGoal} setGoalFilter={setRepositoryGoal} initialCourseId={instrumentUpload?.courseId} initialUpload={!!instrumentUpload} initialDocumentTitle={instrumentUpload?.title} initialDocumentInstructions={instrumentUpload?.reference}/>
+        <RepositoryTab institutionId={id} role={role} courses={data.courses} goals={data.goals} requests={data.requests.filter(r=>r.repository_section!=="recredenciamento_2017")} files={data.files.filter(f=>data.requests.some(r=>r.id===f.request_id&&r.repository_section!=="recredenciamento_2017"))} reload={reload} goalFilter={repositoryGoal} setGoalFilter={setRepositoryGoal} initialCourseId={instrumentUpload?.courseId} initialUpload={!!instrumentUpload} initialDocumentTitle={instrumentUpload?.title} initialDocumentInstructions={instrumentUpload?.reference}/>
       ) : tab === "reitor" ? (
         role === "master" || role === "gestor" ? <EbitdaCalculator reserved={{institutionId:id,name:String(institution.name)}}/> : <p>Os dados financeiros são reservados ao Gestor da instituição e ao Master.</p>
       ) : tab === "aprendizagem" ? (
@@ -315,7 +315,7 @@ export default function Workspace({
       ) : tab === "novo_instrumento" ? (
         <NovoInstrumento institutionId={id} role={role} courses={data.courses} onUploadDocument={openInstrumentUpload} />
       ) : tab === "avaliacao" ? (
-        <AvaliacaoInstitucional key={id} onRepository={() => {setInstrumentUpload(null);choose("repositorio");}} onUploadDocument={(title,reference)=>openInstrumentUpload("institucional",title,reference)} />
+        <AvaliacaoInstitucional key={id} institutionId={id} role={role}/>
       ) : tab === "resultado-curso" ? (
         role === "master" || role === "gestor" ? <ResultadoCursoBI institutionId={id} institutionName={String(institution.name)}/> : <p>O módulo de resultado por curso é reservado ao Gestor da instituição e ao Master.</p>
       ) : tab === "simulador" ? (
