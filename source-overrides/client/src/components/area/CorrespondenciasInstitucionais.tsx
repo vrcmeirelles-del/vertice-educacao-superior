@@ -63,7 +63,9 @@ export default function CorrespondenciasInstitucionais({ institutionId, role, on
   async function download(file:FileRow) {
     setError("");
     try {
-      const {data,error}=await supabase.storage.from("vertice-repositorios").download(file.storage_path);
+      const sourceRequest=requests.find(r=>r.id===file.request_id);
+      const bucket=sourceRequest?.repository_section==="recredenciamento_2017"?"vertice-recredenciamento-2017":"vertice-repositorios";
+      const {data,error}=await supabase.storage.from(bucket).download(file.storage_path);
       if(error || !data)throw error??new Error("Arquivo indisponível");
       const url=URL.createObjectURL(data);
       const a=document.createElement("a");a.href=url;a.download=file.file_name;a.click();
