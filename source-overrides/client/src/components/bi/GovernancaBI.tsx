@@ -15,6 +15,7 @@ import { type Row } from "@/lib/area";
 import { DIMENSOES, calcularResumo, formatarConceito, corConceito, faixaConceito, listarIndicadores } from "@/lib/avaliacao-simulada";
 import { MAPPING_2017_2026 } from "@/lib/instrumento-mapping";
 import "./governanca-bi.css";
+import Governanca360Auditoria from "./Governanca360Auditoria";
 
 // ================================================================ tipos
 type CourseStatus = {
@@ -72,41 +73,46 @@ function Donut({ parts, center, caption, size = 80 }: { parts: Parte[]; center: 
 export default function GovernancaBI({ institutionId, institutionName, courses }: Props) {
   const [data, setData] = useState<CourseStatus[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError,setLoadError]=useState("");
   const [tv, setTv] = useState(false);
   const indicadores = useMemo(() => listarIndicadores(), []);
 
   const load = useCallback(async () => {
+    setLoading(true);setLoadError("");
     try {
       // Carregar avaliações simuladas (2017)
-      const { data: avs } = await supabase
+      const { data: avs, error: avError } = await supabase
         .from("vertice_avaliacao_simulada")
         .select("*")
         .eq("institution_id", institutionId);
 
       // Carregar checklist do novo instrumento (2026)
-      const { data: ni } = await supabase
+      const { data: ni, error: niError } = await supabase
         .from("vertice_instrumento_checklist")
         .select("*")
         .eq("institution_id", institutionId);
 
       // Carregar documentos do repositório
-      const { data: reqs } = await supabase
+      const { data: reqs, error: reqError } = await supabase
         .from("vertice_repository_requests")
-        .select("id, course_id, indicator, not_applicable, active")
+        .select("id, course_id, indicator, not_applicable, active, repository_section")
         .eq("institution_id", institutionId)
         .eq("active", true);
 
-      const { data: files } = await supabase
+      const { data: files, error: fileError } = await supabase
         .from("vertice_repository_files")
-        .select("request_id, status")
+        .select("request_id, status, created_at")
         .eq("institution_id", institutionId);
 
+      if(avError||niError||reqError||fileError)throw new Error("Uma das fontes regulatórias não está disponível nesta sessão; não é seguro calcular os indicadores como zero.");
       const avsRows = avs ?? [];
       const niRows = ni ?? [];
       const reqRows = reqs ?? [];
       const fileRows = files ?? [];
 
-      const statuses: CourseStatus[] = courses.map(course => {
+      const latest=new Map<string,{request_id:string;status:string;created_at:string}>();
+      for(const f of [...fileRows].sort((a,b)=>String(b.created_at).localeCompare(String(a.created_at))))if(!latest.has(String(f.request_id)))latest.set(String(f.request_id),f);
+      const statuses: CourseStatus[] = courses.filter(c=>String(c.institution_id)===institutionId).map(course => {
         const cid = String(course.id);
         const cname = String(course.name ?? "Curso");
         const coord = String(course.coordinator ?? "Não informada");
@@ -118,9 +124,9 @@ export default function GovernancaBI({ institutionId, institutionName, courses }
           conceitosMap.set(String(r.indicador), r.conceito_atual != null ? Number(r.conceito_atual) : null);
         }
         const resumo = calcularResumo(conceitosMap, indicadores);
-        const ccViavel = courseAvs.length > 0
-          ? courseAvs.reduce((s, r) => s + (r.conceito_viavel != null ? Number(r.conceito_viavel) : 0), 0) / courseAvs.filter(r => r.conceito_viavel != null).length
-          : null;
+        const avaliadosViaveis=courseAvs.filter(r=>r.conceito_viavel!=null);
+        const ccViavel = avaliadosViaveis.length
+          ? avaliadosViaveis.reduce((s,r)=>s+Number(r.conceito_viavel),0)/avaliadosViaveis.length : null;
 
         // Alertas 2017
         const alertas: string[] = [];
@@ -131,7 +137,7 @@ export default function GovernancaBI({ institutionId, institutionName, courses }
         }
 
         // 2026 — novo instrumento
-        const courseNi = niRows.filter(r => r.course_id === cid || r.course_id === null);
+        const courseNi = niRows.filter(r => r.course_id === cid);
         const conformes = courseNi.filter(r => r.status === "conforme").length;
         const parciais = courseNi.filter(r => r.status === "parcial").length;
         const naoConf = courseNi.filter(r => r.status === "nao_conforme").length;
@@ -139,12 +145,13 @@ export default function GovernancaBI({ institutionId, institutionName, courses }
         const totalNi = courseNi.length;
 
         // Documentos
-        const courseReqs = reqRows.filter(r => r.course_id === cid && !r.not_applicable);
-        const reqIds = new Set(courseReqs.map(r => r.id));
-        const courseDocs = fileRows.filter(f => reqIds.has(String(f.request_id)));
-        const validados = courseDocs.filter(f => f.status === "validado").length;
-        const enviados = courseDocs.filter(f => f.status === "enviado").length;
-        const pendentes = courseReqs.length - courseDocs.length;
+        // Nunca misturar recredenciamento institucional nem proposta 2026 com reconhecimento 2017.
+        const courseReqs=reqRows.filter(r=>r.course_id===cid&&!r.not_applicable&&
+          !["recredenciamento_2017","novo_instrumento_2026_curso","novo_instrumento_2026_institucional"].includes(String(r.repository_section??"")));
+        const current=courseReqs.map(r=>latest.get(String(r.id)));
+        const validados=current.filter(f=>f?.status==="validado").length;
+        const enviados=current.filter(f=>f?.status==="enviado").length;
+        const pendentes=current.filter(f=>!f).length;
 
         return {
           courseId: cid,
@@ -153,7 +160,7 @@ export default function GovernancaBI({ institutionId, institutionName, courses }
           indicadoresAvaliados: resumo.totalAvaliados,
           indicadoresTotal: resumo.totalIndicadores,
           ccAtual: resumo.conceitoCurso,
-          ccViavel: ccViavel && !isNaN(ccViavel) ? ccViavel : null,
+          ccViavel: ccViavel!==null&&Number.isFinite(ccViavel) ? ccViavel : null,
           dimMedias: resumo.dimensoes.map(d => ({ dim: d.dimensao, media: d.media })),
           alertas2017: alertas.slice(0, 5),
           objetosTotal: totalNi,
@@ -171,9 +178,8 @@ export default function GovernancaBI({ institutionId, institutionName, courses }
       }).filter(c => c.indicadoresAvaliados > 0 || c.objetosTotal > 0 || c.docsTotal > 0);
 
       setData(statuses);
-    } finally {
-      setLoading(false);
-    }
+    } catch(e){setData([]);setLoadError(e instanceof Error?e.message:"Não foi possível consultar as fontes regulatórias.");}
+    finally {setLoading(false); }
   }, [institutionId, courses, indicadores]);
 
   useEffect(() => { void load(); }, [load]);
@@ -196,9 +202,11 @@ export default function GovernancaBI({ institutionId, institutionName, courses }
     : 0;
 
   if (loading) return <p role="status" className="area-muted">Carregando governança regulatória…</p>;
+  if(loadError)return <section role="alert" className="area-error"><p>{loadError}</p><button type="button" onClick={()=>void load()}>Tentar novamente</button></section>;
 
   return (
     <section className={`gov ${tv ? "gov-tv" : ""}`} aria-label="Governança Regulatória">
+      <Governanca360Auditoria institutionId={institutionId}/>
       <header className="gov-header">
         <div>
           <span className="gov-eyebrow">Governança regulatória 360</span>
