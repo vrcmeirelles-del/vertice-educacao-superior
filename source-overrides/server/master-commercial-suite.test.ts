@@ -49,7 +49,7 @@ describe("Convites comerciais Master: Vértice + Fato & Ordem",()=>{
   for(const term of [
    "Captação sem permanência","Nota sem evidência externa",
    "Gestão regulatória dispersa","Intervenção pedagógica tardia",
-   "Vértice Educação Superior","Fato & Ordem","OAB","CFC","ENADE",
+   "Vértice Educação Superior","Fato & Ordem","OAB","CFC","ENADE","Enamed (Medicina)",
    "matrícula confirmada","Agende","Responda a esta mensagem"
   ]){expect(pack).toContain(term);}
   expect(css).toContain(".vcds-modes");
