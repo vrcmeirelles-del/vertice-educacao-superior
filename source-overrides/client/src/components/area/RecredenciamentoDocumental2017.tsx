@@ -89,6 +89,7 @@ export function Recred2017IndicatorDocs({institutionId,role,indicador,state}:{
   const manager=can.manageGoals(role);
   const [period,setPeriod]=useState("2026-2");
   const [selected,setSelected]=useState<Item|null>(null);
+  const [historyCode,setHistoryCode]=useState<string|null>(null);
   const [file,setFile]=useState<File|null>(null);
   const [reference,setReference]=useState("");
   const [note,setNote]=useState("");
@@ -206,7 +207,7 @@ export function Recred2017IndicatorDocs({institutionId,role,indicador,state}:{
     <div className="rec17-indicator-head"><h5>Formulários e evidências do indicador {indicador.code}</h5>
       <span>{validated}/{total} validadas · {pending} em análise</span></div>
     <p className="rec17-help">Cada evidência possui cadastro próprio, histórico de arquivos, decisão da gestão e justificativa de NSA. Nenhuma entrega altera automaticamente o conceito institucional simulado.</p>
-    <label className="rec17-period-filter">Semestre da documentação <select value={period} onChange={e=>{setPeriod(e.target.value);setSelected(null);setReview(null);}}>{Array.from({length:12},(_,i)=>{const year=2023+Math.floor(i/2);const val=year+"-"+(i%2+1);return <option key={val} value={val}>{year}/{i%2+1}</option>;})}</select></label>
+    <label className="rec17-period-filter">Semestre da documentação <select value={period} onChange={e=>{setPeriod(e.target.value);setSelected(null);setReview(null);setHistoryCode(null);}}>{Array.from({length:12},(_,i)=>{const year=2023+Math.floor(i/2);const val=year+"-"+(i%2+1);return <option key={val} value={val}>{year}/{i%2+1}</option>;})}</select></label>
     {(["obrig","compl","resultado"] as Kind[]).map(kind=>{
       const list=items.filter(x=>x.kind===kind);
       return <div key={kind} className="rec17-kind">
@@ -214,6 +215,7 @@ export function Recred2017IndicatorDocs({institutionId,role,indicador,state}:{
         {!list.length?<p>Não há item descrito nessa categoria para este indicador.</p>:
         <div className="rec17-rows">{list.map(item=>{
           const req=byCode.get(item.id),f=req?latest.get(req.id):undefined,status=statusOf(item);
+          const history=req?state.files.filter(d=>d.request_id===req.id):[];
           return <div className="rec17-row" key={item.id}>
             <div className="rec17-row-main"><strong>{item.title}</strong>
               <small>{req?.semester?"Referência "+req.semester+" · ":""}{req?.assignee_email?"Responsável: "+req.assignee_email+" · ":""}{req?.due_date?"Prazo "+req.due_date:""}</small>
@@ -222,10 +224,12 @@ export function Recred2017IndicatorDocs({institutionId,role,indicador,state}:{
             </div>
             <span className={"rec17-status "+statusClass(status)}>{status==="pendente"?"Sem envio":status==="nsa"?"Não se aplica":STATUS[status]??status}</span>
             <div className="rec17-actions">
-              {f&&<button type="button" onClick={()=>void download(f)}>Baixar</button>}
+              {f&&<button type="button" onClick={()=>void download(f)}>Baixar última versão</button>}
+              {history.length>0&&<button type="button" aria-expanded={historyCode===item.id} onClick={()=>setHistoryCode(current=>current===item.id?null:item.id)}>Histórico ({history.length})</button>}
               {manager&&f?.status==="enviado"&&<button type="button" onClick={()=>{setReview(f);setReviewNote("");setDecision("validado");}}>Analisar</button>}
               {manager&&<button type="button" onClick={()=>openForm(item)}>{f?"Nova versão":"Enviar documento"}</button>}
             </div>
+            {historyCode===item.id&&history.length>0&&<div className="rec17-history" role="region" aria-label={"Histórico documental: "+item.title}><strong>Versões registradas</strong>{history.map(d=><div key={d.id}><span>{d.file_name} · {new Date(d.created_at).toLocaleDateString("pt-BR")} · {STATUS[d.status]??d.status}</span><button type="button" onClick={()=>void download(d)}>Baixar</button>{manager&&d.status==="enviado"&&<button type="button" onClick={()=>{setReview(d);setDecision("validado");setReviewNote("");}}>Analisar</button>}{d.review_note&&<small>Parecer: {d.review_note}</small>}</div>)}</div>}
           </div>;
         })}</div>}
       </div>;
