@@ -19,9 +19,10 @@ const itemsOf=(indicator:IndicadorAvaliacao,semester:string):Item[]=>
 const dateDefault=()=>{const today=new Date();return today.getFullYear()+"-"+(today.getMonth()<6?"1":"2");};
 const statusClass=(v:string)=>v==="validado"?"rec17-status-validado":v==="devolvido"?"rec17-status-devolvido":v==="nsa"?"rec17-status-nsa":v==="enviado"?"rec17-status-enviado":"rec17-status-pendente";
 
-export function useRecredenciamentoDocs2017(institutionId:string){
+export function useRecredenciamentoDocs2017(institutionId:string,role:Role|null){
   const [requests,setRequests]=useState<Req[]>([]);
   const [files,setFiles]=useState<Doc[]>([]);
+  const [members,setMembers]=useState<{user_id:string;email:string;role:string}[]>([]);
   const [busy,setBusy]=useState(false);
   const [error,setError]=useState("");
   const reload=useCallback(async()=>{
@@ -50,6 +51,7 @@ export function useRecredenciamentoDocs2017(institutionId:string){
     finally{setBusy(false);}
   },[institutionId]);
   useEffect(()=>{void reload();},[reload]);
+  useEffect(()=>{let active=true;setMembers([]);if(can.manageGoals(role)){void supabase.rpc("vertice_team",{target:institutionId}).then(({data,error})=>{if(active&&!error)setMembers((data??[]) as {user_id:string;email:string;role:string}[]);});}return()=>{active=false;};},[institutionId,role]);
   const summary=useMemo(()=>{
     const latest=new Map<string,Doc>();
     for(const f of files)if(!latest.has(f.request_id))latest.set(f.request_id,f);
@@ -60,7 +62,7 @@ export function useRecredenciamentoDocs2017(institutionId:string){
       returned:requests.filter(r=>latest.get(r.id)?.status==="devolvido").length,
       nsa:requests.filter(r=>r.not_applicable).length};
   },[requests,files]);
-  return {requests,files,busy,error,reload,summary};
+  return {requests,files,members,busy,error,reload,summary};
 }
 export type RecredDocsState=ReturnType<typeof useRecredenciamentoDocs2017>;
 
@@ -93,7 +95,7 @@ export function Recred2017IndicatorDocs({institutionId,role,indicador,state}:{
   const [semester,setSemester]=useState(dateDefault());
   const [deadline,setDeadline]=useState("");
   const [assigneeId,setAssigneeId]=useState("");
-  const [members,setMembers]=useState<{user_id:string;email:string;role:string}[]>([]);
+
   const [nsa,setNsa]=useState(false);
   const [justification,setJustification]=useState("");
   const [review,setReview]=useState<Doc|null>(null);
@@ -103,8 +105,9 @@ export function Recred2017IndicatorDocs({institutionId,role,indicador,state}:{
   const [message,setMessage]=useState("");
   const [error,setError]=useState("");
   const input=useRef<HTMLInputElement>(null);
-  useEffect(()=>{let active=true;if(manager){void supabase.rpc("vertice_team",{target:institutionId}).then(({data,error})=>{if(active&&!error)setMembers((data??[]) as {user_id:string;email:string;role:string}[]);});}return()=>{active=false;};},[institutionId,manager]);
+
   const items=useMemo(()=>itemsOf(indicador,period),[indicador,period]);
+  const members=state.members;
   const byCode=useMemo(()=>new Map(state.requests.filter(r=>r.active!==false).map(r=>[r.document_code??"",r])),[state.requests]);
   const latest=useMemo(()=>{
     const by=new Map<string,Doc>();
