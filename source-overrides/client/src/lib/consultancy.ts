@@ -193,6 +193,12 @@ export const publicPages = [
       "Conheça as frentes de estratégia, qualidade acadêmica, captação, permanência, sustentabilidade, pesquisa e desenvolvimento de lideranças.",
   },
   {
+    path: "/plataforma",
+    title: "O painel da Vértice | Módulos em operação",
+    description:
+      "Regulação e avaliação, captação, inteligência acadêmica, custo por curso, metas e governança de dados: os módulos do painel da Vértice e como entram na instituição.",
+  },
+  {
     path: "/metodo",
     title: "Nosso método de gestão | Vértice Educação Superior",
     description:
@@ -214,7 +220,7 @@ export const publicPages = [
     path: "/caso-real",
     title: "Caso real e método | Vértice Educação Superior",
     description:
-      "Como a experiência no contexto UNITOP/Direito fundamenta a lógica diagnóstica e as frentes de atuação da Vértice.",
+      "Como a experiência em um curso de Direito sob pressão regulatória fundamenta a lógica diagnóstica e as frentes de atuação da Vértice.",
   },
   {
     path: "/guia",

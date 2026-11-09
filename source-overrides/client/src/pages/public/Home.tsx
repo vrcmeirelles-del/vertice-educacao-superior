@@ -171,9 +171,14 @@ export default function Home() {
             </Link>
           ))}
         </div>
-        <Link className="corp-text-link see-all" href="/servicos.html">
-          Conheça as seis frentes de atuação <ArrowRight size={17} />
-        </Link>
+        <div className="corp-actions see-all">
+          <Link className="corp-text-link" href="/servicos.html">
+            Conheça as seis frentes de atuação <ArrowRight size={17} />
+          </Link>
+          <Link className="corp-text-link" href="/plataforma.html">
+            Veja os módulos do painel <ArrowRight size={17} />
+          </Link>
+        </div>
       </section>
       <section className="corp-method-band">
         <div className="corp-container method-composition">

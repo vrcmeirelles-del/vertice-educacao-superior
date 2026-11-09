@@ -7,7 +7,7 @@ const steps = [
   {
     step: "01 · CONTEXTO",
     title: "Um curso real, com pressão regulatória concreta",
-    text: "O trabalho desenvolvido junto ao curso de Direito do Centro Universitário UNITOP partiu de documentos reais: projeto pedagógico, matriz curricular, registros do NDE, atas de colegiado e evidências de corpo docente.",
+    text: "O trabalho desenvolvido junto ao curso de Direito de um centro universitário privado partiu de documentos reais: projeto pedagógico, matriz curricular, registros do NDE, atas de colegiado e evidências de corpo docente.",
   },
   {
     step: "02 · DIAGNÓSTICO",
@@ -65,7 +65,7 @@ export default function CaseStudy() {
             <h2>Do documento ao plano de ação.</h2>
           </div>
           <p>
-            Cinco etapas aplicadas no contexto UNITOP/Direito, hoje organizadas
+            Cinco etapas aplicadas em um curso de Direito, hoje organizadas
             como método replicável para outras instituições.
           </p>
         </div>

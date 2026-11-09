@@ -7,7 +7,7 @@ type HelpMap = Record<string, string>;
 export const FIELD_HELP: Record<"institution" | "course" | "goal" | "measurement" | "action" | "diagnosis", HelpMap> = {
   institution: {
     name: "Nome oficial, exatamente como aparece no cadastro e-MEC.",
-    acronym: "Como a instituição é conhecida no dia a dia. Ex.: UNITOP.",
+    acronym: "Como a instituição é conhecida no dia a dia. Ex.: a sigla usada nos documentos oficiais.",
     cnpj: "Informe o CNPJ completo, com ou sem pontuação. Novos CNPJs também podem conter letras. O cadastro abre a Base da organização; não concede acesso a outros clientes ou mandatos.",
     emec_code: "Código da instituição no cadastro e-MEC. Consulte em emec.mec.gov.br.",
     maintainer: "Pessoa jurídica responsável pela instituição (a mantenedora), quando houver.",
@@ -214,7 +214,7 @@ export const TAB_FAQ: Record<string, { label: string; items: { q: string; a: str
   visao: {
     label: "Matrículas",
     items: [
-      { q: "De onde vêm estes números?", a: "De relatórios importados do sistema acadêmico da instituição (no caso da UNITOP, o e-ORBIT). Eles não são digitados no painel e são preservados como na origem." },
+      { q: "De onde vêm estes números?", a: "De relatórios importados do sistema acadêmico da própria instituição. Eles não são digitados no painel e são preservados como na origem." },
       { q: "Por que o total do relatório e a soma das turmas às vezes diferem?", a: "Porque a própria origem pode trazer divergências. O painel mostra os dois valores e sinaliza a diferença, para conferência com a secretaria." },
       { q: "Matriculado é o mesmo que aluno único?", a: "Não necessariamente. Os quantitativos são por turma; um mesmo aluno pode aparecer em mais de uma. Retenção e evasão exigem cruzamento individual." },
     ],

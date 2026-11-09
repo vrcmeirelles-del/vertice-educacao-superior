@@ -5,6 +5,7 @@ import PublicLayout from "./components/PublicLayout";
 import Home from "./pages/public/Home";
 import Aquisicoes from "./pages/public/Aquisicoes";
 import Services from "./pages/public/Services";
+import Platform from "./pages/public/Platform";
 import Method from "./pages/public/Method";
 import About from "./pages/public/About";
 import Founder from "./pages/public/Founder";
@@ -25,6 +26,7 @@ export const publicComponents: Record<string, React.ComponentType> = {
   "/entrar": Login,
   "/redefinir-senha": ResetPassword,
   "/servicos": Services,
+  "/plataforma": Platform,
   "/metodo": Method,
   "/sobre": About,
   "/fundador": Founder,

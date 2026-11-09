@@ -9,6 +9,7 @@ import { supabase } from "@/lib/supabase";
 const links = [
   { href: "/reitor", label: "Área do reitor" },
   { href: "/servicos.html", label: "Soluções" },
+  { href: "/plataforma.html", label: "O painel" },
   { href: "/aquisicoes", label: "Aquisições" },
   { href: "/metodo.html", label: "Nosso método" },
   { href: "/caso-real.html", label: "Caso real" },

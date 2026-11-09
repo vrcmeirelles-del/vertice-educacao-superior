@@ -78,9 +78,14 @@ export default function Services() {
             a compreensão da demanda. Não há garantia de crescimento, conceito
             de avaliação ou aprovação regulatória.
           </p>
-          <Link href="/metodo.html" className="corp-text-link">
-            Veja como as etapas se conectam <ArrowRight size={17} />
-          </Link>
+          <div className="corp-actions">
+            <Link href="/metodo.html" className="corp-text-link">
+              Veja como as etapas se conectam <ArrowRight size={17} />
+            </Link>
+            <Link href="/plataforma.html" className="corp-text-link">
+              Conheça o painel que sustenta o acompanhamento <ArrowRight size={17} />
+            </Link>
+          </div>
         </div>
       </section>
       <section className="corp-container corp-section"><span className="corp-eyebrow">AQUISIÇÕES E INCORPORAÇÕES</span><h2>Due diligence para compra e venda de instituições de ensino.</h2><p>Investigação de evidências em dez frentes, análise de riscos e acompanhamento das condições da operação.</p><Link className="corp-button" href="/aquisicoes">Conhecer o serviço de Aquisições →</Link></section>

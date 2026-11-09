@@ -23,10 +23,10 @@ export type TypicalSituation = {
 export const founder = {
   name: "Virgílio Meirelles",
   shortName: "Virgílio Meirelles",
-  role: "Advogado e Consultor Estratégico",
+  role: "Mestre, advogado e consultor em gestão e regulação do ensino superior",
   headline: "Da clareza regulatória à solidez institucional.",
   intro:
-    "A Vértice aplica a mesma lógica de leitura diagnóstica utilizada em contextos complexos, como o Centro Universitário UNITOP/Direito, generalizando-a para outras instituições. O foco é a sustentabilidade operacional, a auditoria acadêmica e a governança de dados.",
+    "A Vértice nasce da experiência acadêmica de 20 anos do professor Virgílio Meirelles — sala de aula, coordenação de curso de Direito, formação em avaliação institucional e atuação jurídica junto a instituições de ensino. O método vem daí: ler o documento como quem já precisou escrevê-lo, e olhar o indicador como quem já teve de responder por ele diante de um avaliador.",
   formation: [] as string[],
   areas: [
     "Governança Acadêmica",
@@ -36,22 +36,54 @@ export const founder = {
   ],
   credentials: [
     {
-      label: "Experiência Prática",
+      label: "Da sala de aula à regulação",
       detail:
-        "Gestão de cursos de Direito e coordenação de processos de reconhecimento.",
+        "Vinte anos de magistério superior e coordenação de curso. O diagnóstico parte de quem já ocupou o lugar de quem executa.",
     },
     {
-      label: "Visão Sistêmica",
-      detail: "Integração entre áreas acadêmicas, financeiras e regulatórias.",
+      label: "Formação em avaliação institucional",
+      detail:
+        "Domínio dos instrumentos de avaliação de cursos e de recredenciamento, e da lógica com que são aplicados.",
+    },
+    {
+      label: "Dupla formação: Direito e Pedagogia",
+      detail:
+        "O requisito regulatório lido junto com o projeto pedagógico, não contra ele.",
+    },
+    {
+      label: "Visão sistêmica",
+      detail:
+        "Integração entre o acadêmico, o regulatório e o financeiro. Indicador isolado não sustenta decisão.",
     },
   ] as { label: string; detail: string }[],
   trajectory: [
     {
-      period: "Atualmente",
-      role: "Coordenador de Curso de Direito",
-      institution: "Centro Universitário UNITOP",
+      period: "Desde 2008",
+      role: "Magistério superior",
+      institution: "Cursos de Direito e de formação pedagógica",
       summary:
-        "Liderança em processos de regulação, NDE e planejamento estratégico.",
+        "Docência, atuação em NDE e colegiado e participação na construção de projetos pedagógicos de curso.",
+    },
+    {
+      period: "Atualmente",
+      role: "Coordenação de curso de Direito",
+      institution: "Centro universitário privado",
+      summary:
+        "Condução de processos de reconhecimento e renovação, planejamento estratégico de curso e gestão de corpo docente.",
+    },
+    {
+      period: "Formação",
+      role: "Formação jurídica e acadêmica",
+      institution: "Direito (2003) e Pedagogia",
+      summary:
+        "Especializações em Direito Civil e Processual Civil e em Psicopedagogia. Mestre em Planejamento e Desenvolvimento Regional. Advogado inscrito na OAB/TO 4017-B.",
+    },
+    {
+      period: "Produção",
+      role: "Produção autoral e técnica",
+      institution: "Direito, educação e gestão acadêmica",
+      summary:
+        "Obras publicadas e produção técnica voltada à gestão e à regulação do ensino superior.",
     },
   ] as TrajectoryEntry[],
   publications: [] as PublicationEntry[],
