@@ -1,0 +1,3 @@
+-- Registro da migração proveniencia_dados_legado_v1 (aplicada no Supabase em 09/11/2026):
+-- tabela vertice_data_provenance (fonte, método, status legado|oficial|aposentado, congelado) e carga inicial
+-- dos conjuntos da primeira versão (extração v1). O SQL executado está no histórico de migrações do projeto.

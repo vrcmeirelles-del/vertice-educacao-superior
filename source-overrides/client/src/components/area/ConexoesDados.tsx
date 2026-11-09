@@ -32,11 +32,16 @@ async function chamar(body:Record<string,unknown>){
   return data as {id:string;status:string;teste:string;token_agente?:string|null};
 }
 
+type Origem={tabela:string;conjunto:string;fonte:string;metodo:string;status:string;linhas:number|null;congelado:boolean};
+const METODO:Record<string,string>={extracao_v1:"Extração v1 (legado)",api:"API",banco_leitura:"Banco somente leitura",agente:"Agente",pasta_autorizada:"Pasta autorizada",manual:"Manual"};
+const ORIGEM_STATUS:Record<string,string>={legado:"Legado v1",oficial:"Oficial",aposentado:"Aposentado"};
+
 export default function ConexoesDados({institutionId,institutionName,role}:{institutionId:string;institutionName:string;role?:string}){
   const [lista,setLista]=useState<Conexao[]>([]);
   const [busy,setBusy]=useState(false);
   const [msg,setMsg]=useState("");
   const [token,setToken]=useState("");
+  const [origens,setOrigens]=useState<Origem[]>([]);
   const [f,setF]=useState({tipo:"api",fornecedor:"",rotulo:"",escopo:"agregado",fin:"nenhum",aceiteFin:false,base_url:"",test_path:"/",header_name:"Authorization",scheme:"Bearer",engine:"postgres",host:"",port:"",database:"",user:"",link:"",secret:"",aceite:false});
   const set=(k:string,v:string|boolean)=>setF(p=>({...p,[k]:v}));
 
@@ -46,7 +51,12 @@ export default function ConexoesDados({institutionId,institutionName,role}:{inst
       .eq("institution_id",institutionId).order("created_at",{ascending:false});
     setLista((data as Conexao[])??[]);
   };
-  useEffect(()=>{setMsg("");setToken("");carregar();},[institutionId]);
+  const carregarOrigens=async()=>{
+    const {data}=await supabase.from("vertice_data_provenance").select("tabela,conjunto,fonte,metodo,status,linhas,congelado")
+      .eq("institution_id",institutionId).order("tabela").order("conjunto");
+    setOrigens((data as Origem[])??[]);
+  };
+  useEffect(()=>{setMsg("");setToken("");carregar();carregarOrigens();},[institutionId]);
 
   const montarConfig=()=>{
     if(f.tipo==="api")return {base_url:f.base_url,test_path:f.test_path||"/",header_name:f.header_name||"Authorization",scheme:f.scheme};
@@ -154,6 +164,15 @@ export default function ConexoesDados({institutionId,institutionName,role}:{inst
 
       {msg&&<p role="status" style={{margin:"8px 0 0"}}>{msg}</p>}
       {token&&<p role="alert" style={{margin:"8px 0 0",wordBreak:"break-all"}}>Token do agente (aparece só agora, copie e guarde): <code>{token}</code></p>}
+      {origens.length>0&&<div style={{marginTop:20}}>
+        <h4 style={{margin:"0 0 4px"}}>Origem dos dados já carregados</h4>
+        <p style={{margin:"0 0 8px"}}>Dados da primeira versão da Vértice (extração do e-ORBIT e planilhas). Ficam congelados: não recebem novas cargas por esse caminho e serão substituídos, conjunto por conjunto, quando a conexão oficial estiver ativa.</p>
+        <ul style={{listStyle:"none",padding:0,margin:0}}>
+          {origens.map(o=><li key={o.tabela+o.conjunto} style={{padding:"4px 0",borderTop:"1px solid var(--line, #d9dde3)"}}>
+            <strong>{o.conjunto?o.tabela.replace("vertice_","")+" · "+o.conjunto:o.tabela.replace("vertice_","")}</strong> — {o.fonte} · {METODO[o.metodo]??o.metodo} · <strong>{ORIGEM_STATUS[o.status]??o.status}</strong>{o.congelado&&" · congelado"}{o.linhas!=null&&" · "+o.linhas+" linha(s)"}
+          </li>)}
+        </ul>
+      </div>}
       <p style={{margin:"12px 0 0",fontSize:"0.9em"}}>Situação atual: o portal registra, protege e testa a conexão. A leitura contínua dos dados de cada sistema é ativada conector por conector.</p>
     </section>
   );
