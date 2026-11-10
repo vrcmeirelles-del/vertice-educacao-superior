@@ -26,6 +26,7 @@ import InepLibrary from "./InepLibrary";
 import AvaliacaoInstitucional from "./AvaliacaoInstitucional";
 import NovoInstrumento from "./NovoInstrumento";
 import Enade360 from "./Enade360";
+import EnadeEligibility from "./EnadeEligibility";
 import LearningConnected from "./LearningConnected";
 import AuditoriaPermanenciaBI from "../bi/AuditoriaPermanenciaBI";
 import ManagementReview from "./ManagementReview";
@@ -331,7 +332,8 @@ export default function Workspace({
       ) : tab === "aprendizagem" ? (
         <LearningConnected key={id} institutionId={id} courses={data.courses} role={role}/>
       ) : tab === "enade" ? (
-        <Enade360 key={id} institutionId={id} courses={data.courses} actions={data.actions} goals={data.goals} role={role} onPlan={()=>choose("plano")}/>
+        <><Enade360 key={id} institutionId={id} courses={data.courses} actions={data.actions} goals={data.goals} role={role} onPlan={()=>choose("plano")}/>
+        <EnadeEligibility institutionId={id} courses={data.courses} role={role}/></>
       ) : tab === "novo_instrumento" ? (
         <NovoInstrumento institutionId={id} role={role} courses={data.courses} onUploadDocument={openInstrumentUpload} />
       ) : tab === "avaliacao" ? (
