@@ -1,12 +1,8 @@
-import {useEffect,useState} from 'react';
+import {useLearningDemoFeed} from '@/lib/learning-demo-feed';
+import {useState} from 'react';
 import PremiumBI from '@/components/bi/PremiumBI';
 import {demoInstitutionCourses,demoInstitutionProfiles,type DemoInstitutionMode} from '@/lib/demo-showroom';
 
-type Feed={
- origin:string;kind:string;synthetic:boolean;mode:DemoInstitutionMode;
- summary:{students:number;courses:number;exam:number|null;engagement:number|null};
- courses:Array<{id:string;name:string;students:number;exam:number|null}>;
-};
 const MODES:DemoInstitutionMode[]=['faculdade','centro','universidade'];
 function readMode():DemoInstitutionMode{
  if(typeof window==='undefined')return 'faculdade';
@@ -16,29 +12,8 @@ function readMode():DemoInstitutionMode{
 }
 export default function PremiumBIPublic(){
  const [mode,setMode]=useState<DemoInstitutionMode>(readMode);
- const [feed,setFeed]=useState<Feed|null>(null);
- const [status,setStatus]=useState('Consultando a integração fictícia com o Fato & Ordem...');
+ const {feed,status}=useLearningDemoFeed(mode);
  const courses=demoInstitutionCourses(mode);
- useEffect(()=>{
-  let active=true;
-  const controller=new AbortController();
-  setFeed(null);setStatus('Consultando a integração fictícia com o Fato & Ordem...');
-  fetch('https://www.fatoeordem.com.br/api/public/institutional-demo-feed?mode='+encodeURIComponent(mode),{
-    mode:'cors',credentials:'omit',cache:'no-store',signal:controller.signal,
-  }).then(async response=>{
-    if(!response.ok)throw new Error('feed indisponível');
-    return response.json() as Promise<Feed>;
-  }).then(data=>{
-    if(!active)return;
-    if(data.origin!=='fato-e-ordem'||data.kind!=='synthetic_demo'||data.synthetic!==true||
-       data.mode!==mode||!Array.isArray(data.courses)||data.courses.length!==courses.length||
-       data.summary.courses!==courses.length)throw new Error('origem sintética não validada');
-    setFeed(data);setStatus('Indicadores fictícios de aprendizagem recebidos do Fato & Ordem.');
-  }).catch(()=>{
-    if(active)setStatus('O feed demonstrativo do Fato & Ordem não está disponível. Os demais gráficos continuam sendo fictícios.');
-  });
-  return()=>{active=false;controller.abort();};
- },[mode]);
  function select(next:DemoInstitutionMode){
   setMode(next);
   const url=new URL(window.location.href);
@@ -51,22 +26,22 @@ export default function PremiumBIPublic(){
    <div>
     <span className="corp-eyebrow">ACESSO LIVRE • VÉRTICE EDUCAÇÃO SUPERIOR</span>
     <h1 style={{margin:'8px 0 5px',fontSize:'clamp(27px,4vw,43px)'}}>BI Executivo Premium Demonstrativo</h1>
-    <p style={{margin:0,maxWidth:850,color:'#536f75'}}>Explore os indicadores como um gestor: toque nas barras, selecione cursos, compare semestres ou ative o Modo TV. Não é necessário cadastrar-se.</p>
+    <p style={{margin:0,maxWidth:850,color:'#536175'}}>Explore os indicadores como um gestor: toque nas barras, selecione cursos, compare semestres ou ative o Modo TV. Não é necessário cadastrar-se.</p>
    </div>
    <a href="/demonstracao" className="corp-button" style={{textDecoration:'none'}}>Conhecer a experiência completa da Vértice</a>
   </div>
-  <div role="note" style={{background:'#ecf9f5',border:'1px solid #a1d9cb',borderRadius:12,padding:'13px 16px',marginBottom:15,color:'#286559'}}>
+  <div role="note" style={{background:'#ecf1f9',border:'1px solid #a1b8d9',borderRadius:12,padding:'13px 16px',marginBottom:15,color:'#284165'}}>
     <strong>Ambiente comercial sem senha: dados 100% fictícios.</strong> Nenhuma informação real de estudantes, docentes, instituições clientes ou processos do MEC é exibida aqui.
   </div>
   <div style={{display:'flex',gap:10,flexWrap:'wrap',marginBottom:18}}>
    {MODES.map(m=><button key={m} type="button" aria-pressed={m===mode} onClick={()=>select(m)} style={{
-     padding:'11px 17px',borderRadius:10,border:m===mode?'2px solid #087e76':'1px solid #bad6d5',
-     background:m===mode?'#0c7f78':'white',color:m===mode?'white':'#285762',
+     padding:'11px 17px',borderRadius:10,border:m===mode?'2px solid #08397e':'1px solid #bac6d6',
+     background:m===mode?'#0c3c7f':'white',color:m===mode?'white':'#284062',
      fontWeight:800,cursor:'pointer'
    }}>{demoInstitutionProfiles[m].name}</button>)}
   </div>
-  <PremiumBI key={mode} mode={mode} courses={courses} foFeed={feed}/>
-  <p role="status" style={{fontSize:12,color:'#607b81',marginTop:14}}>{status}</p>
-  <p style={{fontSize:12,color:'#607b81'}}>Para acessar os indicadores reais de uma instituição contratante, é necessária autenticação e autorização institucional. Esta apresentação não abre áreas administrativas.</p>
+  <PremiumBI key={mode} mode={mode} courses={courses} foFeed={feed} initialPage={typeof window!=='undefined'&&new URLSearchParams(window.location.search).get('area')==='aprendizagem'?'aprendizagem':'overview'}/>
+  <p role="status" style={{fontSize:12,color:'#606e81',marginTop:14}}>{status}</p>
+  <p style={{fontSize:12,color:'#606e81'}}>Para acessar os indicadores reais de uma instituição contratante, é necessária autenticação e autorização institucional. Esta apresentação não abre áreas administrativas.</p>
  </main>;
 }

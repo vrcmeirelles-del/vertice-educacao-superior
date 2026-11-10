@@ -9,7 +9,7 @@ type Row={id:string;name:string;students:number;capacity:number;occupancy:number
 const PAGES:{id:BiPage;label:string;icon:string}[]=[
  {id:'overview',label:'Visão Geral',icon:'⌂'},{id:'matriculas',label:'Matrículas',icon:'▥'},
  {id:'captacao',label:'Captação',icon:'◎'},{id:'reprovacoes',label:'Desempenho Acadêmico',icon:'▤'},
- {id:'regulacao',label:'Regulação (MEC/INEP)',icon:'◇'},{id:'aprendizagem',label:'Integrações',icon:'↗'}
+ {id:'regulacao',label:'Regulação (MEC/INEP)',icon:'◇'},{id:'aprendizagem',label:'Fato & Ordem',icon:'↗'}
 ];
 const TERMS:Term[]=['2025/1','2025/2','2026/1','2026/2','2027/1'];
 const FACTOR:Record<Term,number>={'2025/1':0.82,'2025/2':0.87,'2026/1':0.92,'2026/2':1,'2027/1':1.08};
@@ -42,12 +42,12 @@ function Timeline({labels,values,onSelect}:{labels:string[];values:number[];onSe
  const pos=values.map((v,i)=>({x:40+i*475/(values.length-1),y:184-v/high*142}));
  const line=pos.map(p=>p.x+','+p.y).join(' ');
  return <svg className="vp-line" viewBox="0 0 555 218" role="img" aria-label={labels.map((v,i)=>v+': '+fmt(values[i])).join('; ')}>
-  {[0,1,2,3,4].map(i=><line key={i} x1="34" x2="525" y1={184-i*35} y2={184-i*35} stroke="#e4eeee"/>)}
-  <polygon points={'40,184 '+line+' 515,184'} fill="#20bdad2d"/>
-  <polyline points={line} fill="none" stroke="#0a8d82" strokeWidth="4" strokeLinecap="round"/>
+  {[0,1,2,3,4].map(i=><line key={i} x1="34" x2="525" y1={184-i*35} y2={184-i*35} stroke="#e4e8ee"/>)}
+  <polygon points={'40,184 '+line+' 515,184'} fill="#2061bd2d"/>
+  <polyline points={line} fill="none" stroke="#0a418d" strokeWidth="4" strokeLinecap="round"/>
   {pos.map((p,i)=><g key={i} role="button" tabIndex={0} aria-label={'Abrir '+labels[i]} onClick={()=>onSelect(i)} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onSelect(i);}}}>
-   <circle cx={p.x} cy={p.y} r="6" fill="#099f8f" stroke="white" strokeWidth="2"/><title>{labels[i]+': '+fmt(values[i])}</title></g>)}
-  {pos.map((p,i)=><text key={i} x={p.x} y="207" textAnchor="middle" fill="#6b8387" fontSize="12">{labels[i]}</text>)}
+   <circle cx={p.x} cy={p.y} r="6" fill="#09489f" stroke="white" strokeWidth="2"/><title>{labels[i]+': '+fmt(values[i])}</title></g>)}
+  {pos.map((p,i)=><text key={i} x={p.x} y="207" textAnchor="middle" fill="#6b7787" fontSize="12">{labels[i]}</text>)}
  </svg>;
 }
 function Donut({parts,center,label}:{parts:Array<{value:number;color:string;name:string}>;center:string;label:string}){
@@ -100,9 +100,9 @@ export default function PremiumBI({mode,courses,foFeed,initialPage='overview'}:P
   return <button key={t} type="button" onClick={()=>{setTerm(t);setPage('reprovacoes');detailOf('Reprovações '+t,pct(nota)+' por nota e '+pct(falta)+' por falta.');}}>
    <strong>{pct(whole)}</strong><span className="vp-column" style={{height:String(Math.max(52,whole*9))+'px'}}><b style={{height:String(whole?falta/whole*100:0)+'%'}}/><i style={{height:String(whole?nota/whole*100:0)+'%'}}/></span><small>{t}</small>
   </button>;
- })}</div><div className="vp-legend"><span><i style={{background:'#0c8f6d'}}/>Reprovação por nota</span><span><i style={{background:'#dfa42e'}}/>Reprovação por falta</span></div></>;
+ })}</div><div className="vp-legend"><span><i style={{background:'#0c438f'}}/>Reprovação por nota</span><span><i style={{background:'#dfa42e'}}/>Reprovação por falta</span></div></>;
  const donut=<Donut label="Conformidade geral" center={pct(92)} parts={[
-  {name:'Dimensão 1',value:64,color:'#14a885'},{name:'Dimensão 2',value:24,color:'#e9b53a'},{name:'Dimensão 3',value:12,color:'#d84343'}]}/>;
+  {name:'Dimensão 1',value:64,color:'#1452a8'},{name:'Dimensão 2',value:24,color:'#e9b53a'},{name:'Dimensão 3',value:12,color:'#d84343'}]}/>;
  const mec=<div>{[
   {label:'Conformes / sem pendências',value:reg.ok},{label:'Em atenção / ajustes recomendados',value:reg.warn},{label:'Críticos / de alta prioridade',value:reg.crit}
  ].map((v,i)=><button className={'vp-reg s-'+i} key={v.label} type="button" onClick={()=>detailOf(v.label,fmt(v.value)+' itens documentais fictícios.')}><i className={'signal-'+i}/>{v.label}<strong>{fmt(v.value)}</strong></button>)}</div>;
@@ -124,7 +124,7 @@ export default function PremiumBI({mode,courses,foFeed,initialPage='overview'}:P
    {name:'Quais ações priorizar',copy:'Reduzir evasão, ajustar indicadores e sustentar a captação.',view:'regulacao' as BiPage,icon:'◎'}
   ].map(x=><button className="vp-insight" key={x.name} type="button" onClick={()=>{setPage(x.view);detailOf(x.name,x.copy);}}><b>{x.icon}</b><span><strong>{x.name}</strong><small>{x.copy}</small></span><i>›</i></button>)}</div>;
  const fo=<div className="vp-fo-card vp-span-3"><h3><b>⛓</b>Integração com Fato & Ordem</h3>
-  {foValid?<><p><strong style={{color:'#fff'}}>{fmt(foFeed!.summary.students)} alunos fictícios</strong> sincronizados do ambiente demonstrativo.</p><span className="vp-fo-badge">▦ OAB, CFC e ENADE em acompanhamento demonstrativo.</span></>
+  {foValid?<><p><strong style={{color:'#fff'}}>{fmt(foFeed!.summary.students)} alunos fictícios</strong> recebidos do cenário demonstrativo Fato & Ordem.</p><span className="vp-fo-badge">▦ OAB, CFC e ENADE em acompanhamento demonstrativo.</span></>
   :<><p>Feed demonstrativo não confirmado nesta sessão. Nenhum número é apresentado como sincronizado.</p><span className="vp-fo-badge">▦ OAB, CFC e ENADE em acompanhamento demonstrativo.</span></>}
   <p style={{fontSize:11,opacity:.8}}>Cenário sintético — sem dados reais de alunos.</p></div>;
  const table=<div className="vp-table-scroll"><table className="vp-table"><thead><tr><th>Curso</th><th>Matrículas</th><th>Ocupação</th><th>Nota</th><th>Falta</th><th>Detalhes</th></tr></thead><tbody>{rows.map(r=><tr key={r.id} tabIndex={0} role="button" onClick={()=>chooseCourse(r.id)} onKeyDown={e=>{if(e.key==='Enter')chooseCourse(r.id);}}><td>{r.name}</td><td>{fmt(r.students)}</td><td>{pct(r.occupancy)}</td><td>{pct(r.note)}</td><td>{pct(r.absence)}</td><td>Ver ›</td></tr>)}</tbody></table></div>;

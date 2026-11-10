@@ -11,7 +11,7 @@ describe('vitrine comercial pública',()=>{
   expect(html).toContain('Faculdades');
   expect(html).not.toContain('Instituições que confiam');
   expect(html).not.toMatch(/UNITOP|UNICALDAS|CPF|supabase\.co\/rest/);
-  expect(html).toContain('/showcase/reitoria.png');
+  expect(html).toContain('/showcase/reitoria.webp');
   expect(html).toContain('/contato.html?frente=demonstracao');
  });
  it('recusa protocolos executáveis, credenciais e URLs incompletas',()=>{
