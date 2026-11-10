@@ -256,6 +256,41 @@ Deno.serve(async req=>{
     publishedGroups:metrics.published_groups,remainingPages:more,
     notice:"Sincronização autenticada sem CPF nem texto de resposta; acertos não são notas oficiais."},200,origin);
   }
+  if(operation==="batch_link"){
+   if(env("VERTICE_BRIDGE_API_KEY").length<32||env("VERTICE_BRIDGE_IDENTITY_KEY").length<32)
+    throw fail("Integração ainda sem chaves de servidor.",503);
+   const courseId=course(body.courseId);
+   const students=Array.isArray(body.students)?body.students:[];
+   if(!students.length||students.length>2000)throw fail("Envie entre 1 e 2000 registros por lote.");
+   // Build CPF list — validate each
+   const validated=[];
+   for(const s of students){
+    const cpf=normalizeCpf(s.cpf);
+    if(!validCpf(cpf))continue;
+    validated.push({cpf,name:str(s.name,200),curso:str(s.curso,200),turma:str(s.turma,100)});
+   }
+   if(!validated.length)throw fail("Nenhum CPF válido no lote.");
+   // Call F&O batch-link endpoint
+   const result=await remote("/api/internal/vertice/batch-link","POST",{
+    institutionId:inst,courseId,
+    students:validated.map(v=>({cpf:v.cpf}))
+   });
+   // Save entries in Vértice for audit trail
+   const importId=str(body.importId,70);
+   if(importId&&UUID.test(importId)){
+    const entries=validated.map(v=>({
+     import_id:importId,institution_id:inst,
+     student_name:v.name,cpf_hash:"redacted",
+     course_label:v.curso,turma:v.turma,
+     status:result.linked>0?"matched":"not_found"
+    }));
+    // Batch insert entries (ignore errors — audit is best-effort)
+    await admin.from("vertice_roster_entries").insert(entries).then(()=>{});
+   }
+   return send({ok:true,total:result.total,matched:result.matched,
+    linked:result.linked,skipped:result.skipped,
+    notice:result.notice||`${result.linked} alunos vinculados.`},200,origin);
+  }
   throw fail("Operação desconhecida.",404);
  }catch(error){
   const e=error as {status?:number;message?:string};
