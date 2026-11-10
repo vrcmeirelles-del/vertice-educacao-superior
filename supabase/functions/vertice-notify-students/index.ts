@@ -173,19 +173,23 @@ async function sendWhatsApp(phone:string,body:string):Promise<{ok:boolean;error?
 }
 
 async function sendSMS(phone:string,body:string):Promise<{ok:boolean;error?:string}>{
- const token=env("ZENVIA_API_TOKEN");
- const sender=env("ZENVIA_SENDER")||"FatoOrdem";
- if(!token)return{ok:false,error:"ZENVIA_API_TOKEN não configurada"};
+ const accountSid=env("TWILIO_ACCOUNT_SID");
+ const authToken=env("TWILIO_AUTH_TOKEN");
+ const from=env("TWILIO_PHONE_NUMBER");
+ if(!accountSid||!authToken||!from)return{ok:false,error:"Twilio não configurado"};
  const to=phone.replace(/\D/g,"");
  if(to.length<10)return{ok:false,error:"Telefone inválido"};
- const number=to.startsWith("55")?to:"55"+to;
+ const number=to.startsWith("+")?to:to.startsWith("55")?"+"+to:"+55"+to;
  try{
-  const res=await fetch("https://api.zenvia.com/v2/channels/sms/messages",{
-   method:"POST",headers:{"X-API-TOKEN":token,"Content-Type":"application/json"},
-   body:JSON.stringify({from:sender,to:number,contents:[{type:"text",text:body}]}),
+  const credentials=btoa(accountSid+":"+authToken);
+  const params=new URLSearchParams({To:number,From:from,Body:body});
+  const res=await fetch(`https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`,{
+   method:"POST",
+   headers:{"Authorization":"Basic "+credentials,"Content-Type":"application/x-www-form-urlencoded"},
+   body:params.toString(),
    signal:AbortSignal.timeout(15000)
   });
-  if(!res.ok)return{ok:false,error:"Zenvia HTTP "+res.status};
+  if(!res.ok){const err=await res.json().catch(()=>({}));return{ok:false,error:"Twilio HTTP "+res.status+": "+(err.message||"")};}
   return{ok:true};
  }catch(e){return{ok:false,error:(e as Error).message};}
 }
