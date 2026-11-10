@@ -15,7 +15,7 @@ permissions:
   contents: read
 jobs:
   preparation:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
       fail-fast: false
@@ -64,6 +64,7 @@ jobs:
         if: matrix.node == '22'
         env:
           PLAYWRIGHT_MODULE: ${{ github.workspace }}/scripts/tests/runtime/node_modules/playwright/index.mjs
+          CAPTACAO_SCREENSHOT_DIR: ${{ runner.temp }}/captacao-screenshots
         run: |
           node scripts/tests/runtime/node_modules/playwright/cli.js install --with-deps chromium
           node scripts/prepare-captacao-ui.mjs .captacao-build
@@ -75,3 +76,11 @@ jobs:
             sleep 1
           done
           node scripts/tests/captacao-ui.test.mjs
+      - name: Guardar evidências visuais sintéticas
+        if: always() && matrix.node == '22'
+        uses: actions/upload-artifact@v4
+        with:
+          name: captacao-ui-sintetica
+          path: ${{ runner.temp }}/captacao-screenshots
+          if-no-files-found: ignore
+          retention-days: 7

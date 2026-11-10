@@ -1,8 +1,15 @@
 import assert from 'node:assert/strict';
+import { mkdirSync } from 'node:fs';
+import path from 'node:path';
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const browser = await chromium.launch({ headless:true, ...(process.env.CHROMIUM_PATH ? {executablePath:process.env.CHROMIUM_PATH} : {}) });
 const page = await browser.newPage({ viewport:{width:1365,height:1000} });
 const errors=[];
+async function screenshot(name) {
+ if(!process.env.CAPTACAO_SCREENSHOT_DIR) return;
+ mkdirSync(process.env.CAPTACAO_SCREENSHOT_DIR,{recursive:true});
+ await page.screenshot({path:path.join(process.env.CAPTACAO_SCREENSHOT_DIR,name+'.png'),fullPage:true});
+}
 page.on('pageerror',error=>errors.push(error.message));
 // All fixtures are synthetic. Any attempted external request is blocked.
 await page.route('**/*',route=>new URL(route.request().url()).hostname==='127.0.0.1'?route.continue():route.abort());
@@ -13,6 +20,7 @@ try {
  await fresh();
  await page.getByRole('button',{name:'Conexões',exact:true}).focus();await page.keyboard.press('Enter');
  await expectVisible(page.getByRole('heading',{name:'Conta sintética A',exact:true}));
+ await screenshot('desktop-conexoes');
  assert.equal(await page.getByText('Preparação salva · não autorizada',{exact:true}).count(),1);
  assert.equal(await page.getByText('Última sincronização com provedores: não informada',{exact:false}).count(),1);
  await page.getByRole('button',{name:'Preparar conta',exact:true}).click();
@@ -34,6 +42,7 @@ try {
  await page.getByLabel('Página HTTPS de destino, sem parâmetros',{exact:true}).fill('https://ies.example.invalid/vestibular');
  await page.getByRole('button',{name:'Salvar preparação',exact:true}).click();
  await expectVisible(page.getByRole('heading',{name:'Campanha sintética',exact:true}));
+ await screenshot('desktop-campanhas');
  const link=await page.getByLabel('Link de destino com identificação da campanha').inputValue();
  assert.equal(new URL(link).origin,'https://ies.example.invalid');assert.equal(new URL(link).searchParams.get('utm_source'),'meta');
  assert.equal(link.includes('Campanha'),false);assert.equal(link.includes('bb000000'),false);
@@ -75,9 +84,11 @@ try {
  console.log('PASS UI: query failure does not become zero/empty success; denied operator cannot manage');
  await fresh();await page.setViewportSize({width:390,height:844});await page.getByRole('button',{name:'Conexões',exact:true}).click();await expectVisible(page.getByRole('heading',{name:'Conta sintética A',exact:true}));
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),true);
+ await screenshot('mobile-conexoes');
  await page.getByRole('button',{name:'Preparar conta',exact:true}).click();
+ await screenshot('mobile-formulario');
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),true);
  if(process.env.CAPTACAO_SCREENSHOT) await page.screenshot({path:process.env.CAPTACAO_SCREENSHOT,fullPage:true});
  assert.deepEqual(errors,[]);
  console.log('PASS UI: 390px mobile cards/editor, no horizontal overflow or browser errors');
-} finally { await browser.close(); }
+} catch(error) { await screenshot('failure');throw error; } finally { await browser.close(); }
