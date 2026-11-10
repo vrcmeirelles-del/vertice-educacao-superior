@@ -27,3 +27,6 @@
 .roster-details table{width:100%;font-size:13px;border-collapse:collapse}
 .roster-details th,.roster-details td{padding:6px 10px;text-align:left;border-bottom:1px solid var(--border,#e8ecf0)}
 .muted{color:var(--muted,#94a3b8);font-style:italic}
+.roster-actions{display:flex;gap:6px}
+.roster-delete{color:#991b1b!important;border-color:#fecaca!important}
+.roster-delete:hover{background:#fee2e2!important}

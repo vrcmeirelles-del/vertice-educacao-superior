@@ -138,22 +138,26 @@ export default function RosterUpload({institutionId,courses,role}:{
         }).select("id").single();
         if(impErr||!imp)throw impErr||new Error("Falha ao registrar importação.");
 
-        // Send in chunks of 300 to avoid Edge Function body size limits
-        let groupLinked=0,groupMatched=0,groupSkipped=0;
+        // Send in chunks of 200 to avoid Edge Function body size limits
+        let groupLinked=0,groupMatched=0,groupSkipped=0;let groupError="";
         const allStudents=group.students.map(r=>({cpf:r.cpf,name:r.name,curso:r.curso,turma:r.turma,email:r.email,telefone:r.telefone}));
-        for(let i=0;i<allStudents.length;i+=300){
-          const chunk=allStudents.slice(i,i+300);
-          setMessage(`Enviando lote ${Math.floor(i/300)+1} de ${Math.ceil(allStudents.length/300)} (${group.cursoLabel})...`);
-          const {data:result,error:fnErr}=await supabase.functions.invoke("vertice-learning-bridge",{
-            body:{operation:"batch_link",institutionId,courseId:group.matchedId,
-              importId:imp.id,students:chunk}
-          });
-          if(fnErr)throw fnErr;
-          groupLinked+=(result?.linked??0);groupMatched+=(result?.matched??0);groupSkipped+=(result?.skipped??0);
+        for(let i=0;i<allStudents.length;i+=200){
+          const chunk=allStudents.slice(i,i+200);
+          setMessage(`${group.cursoLabel}: lote ${Math.floor(i/200)+1}/${Math.ceil(allStudents.length/200)} (${number(i)}/${number(allStudents.length)})...`);
+          try{
+            const {data:result,error:fnErr}=await supabase.functions.invoke("vertice-learning-bridge",{
+              body:{operation:"batch_link",institutionId,courseId:group.matchedId,
+                importId:imp.id,students:chunk}
+            });
+            if(fnErr){groupError=fnErr.message||"Edge Function error";continue;}
+            groupLinked+=(result?.linked??0);groupMatched+=(result?.matched??0);groupSkipped+=(result?.skipped??0);
+          }catch(err){groupError=(err as Error).message;continue;}
         }
 
         await supabase.from("vertice_roster_imports").update({
-          status:"done",matched:groupMatched,linked:groupLinked,
+          status:groupError&&!groupLinked?"error":"done",
+          error_message:groupError||null,
+          matched:groupMatched,linked:groupLinked,
           skipped:groupSkipped,completed_at:new Date().toISOString()
         }).eq("id",imp.id);
 
@@ -224,9 +228,25 @@ export default function RosterUpload({institutionId,courses,role}:{
           <td><strong>{number(imp.linked)}</strong></td>
           <td>{number(imp.skipped)}</td>
           <td><span className={"roster-badge roster-"+imp.status}>{imp.status==="done"?"Concluído":imp.status==="processing"?"Processando":imp.status==="error"?"Erro":"Pendente"}</span></td>
-          <td><button className="corp-button small outline" type="button" onClick={()=>void loadEntries(imp.id)}>Detalhes</button></td>
+          <td className="roster-actions">
+            <button className="corp-button small outline" type="button" onClick={()=>void loadEntries(imp.id)}>Detalhes</button>
+            <button className="corp-button small outline roster-delete" type="button" disabled={busy} onClick={async()=>{
+              if(!window.confirm("Excluir esta importação?"))return;
+              setBusy(true);
+              await supabase.from("vertice_roster_entries").delete().eq("import_id",imp.id);
+              await supabase.from("vertice_roster_imports").delete().eq("id",imp.id);
+              setBusy(false);void loadImports();
+            }}>Excluir</button>
+          </td>
         </tr>)}</tbody>
       </table>
+      <button className="corp-button small outline roster-delete" type="button" disabled={busy} onClick={async()=>{
+        if(!window.confirm("Excluir TODAS as importações desta instituição?"))return;
+        setBusy(true);
+        await supabase.from("vertice_roster_entries").delete().eq("institution_id",institutionId);
+        await supabase.from("vertice_roster_imports").delete().eq("institution_id",institutionId);
+        setBusy(false);setImports([]);setMessage("Histórico limpo.");
+      }}>Limpar todo o histórico</button>
     </div>}
 
     {viewImport&&entries.length>0&&<div className="roster-details">
