@@ -138,19 +138,26 @@ export default function RosterUpload({institutionId,courses,role}:{
         }).select("id").single();
         if(impErr||!imp)throw impErr||new Error("Falha ao registrar importação.");
 
-        const {data:result,error:fnErr}=await supabase.functions.invoke("vertice-learning-bridge",{
-          body:{operation:"batch_link",institutionId,courseId:group.matchedId,
-            importId:imp.id,
-            students:group.students.map(r=>({cpf:r.cpf,name:r.name,curso:r.curso,turma:r.turma,email:r.email,telefone:r.telefone}))}
-        });
-        if(fnErr)throw fnErr;
+        // Send in chunks of 300 to avoid Edge Function body size limits
+        let groupLinked=0,groupMatched=0,groupSkipped=0;
+        const allStudents=group.students.map(r=>({cpf:r.cpf,name:r.name,curso:r.curso,turma:r.turma,email:r.email,telefone:r.telefone}));
+        for(let i=0;i<allStudents.length;i+=300){
+          const chunk=allStudents.slice(i,i+300);
+          setMessage(`Enviando lote ${Math.floor(i/300)+1} de ${Math.ceil(allStudents.length/300)} (${group.cursoLabel})...`);
+          const {data:result,error:fnErr}=await supabase.functions.invoke("vertice-learning-bridge",{
+            body:{operation:"batch_link",institutionId,courseId:group.matchedId,
+              importId:imp.id,students:chunk}
+          });
+          if(fnErr)throw fnErr;
+          groupLinked+=(result?.linked??0);groupMatched+=(result?.matched??0);groupSkipped+=(result?.skipped??0);
+        }
 
         await supabase.from("vertice_roster_imports").update({
-          status:"done",matched:result?.matched??0,linked:result?.linked??0,
-          skipped:result?.skipped??0,completed_at:new Date().toISOString()
+          status:"done",matched:groupMatched,linked:groupLinked,
+          skipped:groupSkipped,completed_at:new Date().toISOString()
         }).eq("id",imp.id);
 
-        totalLinked+=(result?.linked??0);totalMatched+=(result?.matched??0);totalSkipped+=(result?.skipped??0);
+        totalLinked+=groupLinked;totalMatched+=groupMatched;totalSkipped+=groupSkipped;
       }
       setMessage(`✅ Importação concluída: ${number(totalLinked)} vinculados, ${number(totalMatched)} encontrados, ${number(totalSkipped)} não encontrados.`);
       setPreview([]);setFileName("");setCourseOverrides({});
