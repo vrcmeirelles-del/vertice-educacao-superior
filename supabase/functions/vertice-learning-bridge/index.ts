@@ -267,7 +267,7 @@ Deno.serve(async req=>{
    for(const s of students){
     const cpf=normalizeCpf(s.cpf);
     if(!validCpf(cpf))continue;
-    validated.push({cpf,name:str(s.name,200),curso:str(s.curso,200),turma:str(s.turma,100)});
+    validated.push({cpf,name:str(s.name,200),curso:str(s.curso,200),turma:str(s.turma,100),email:str(s.email,250),telefone:str(s.telefone,30)});
    }
    if(!validated.length)throw fail("Nenhum CPF válido no lote.");
    // Call F&O batch-link endpoint
@@ -282,6 +282,7 @@ Deno.serve(async req=>{
      import_id:importId,institution_id:inst,
      student_name:v.name,cpf_hash:"redacted",
      course_label:v.curso,turma:v.turma,
+     email:v.email,telefone:v.telefone,
      status:result.linked>0?"matched":"not_found"
     }));
     // Batch insert entries (ignore errors — audit is best-effort)

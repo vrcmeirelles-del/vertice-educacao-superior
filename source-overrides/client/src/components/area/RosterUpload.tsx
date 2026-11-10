@@ -1,28 +1,51 @@
-import {useCallback,useEffect,useRef,useState} from "react";
+import {useCallback,useEffect,useMemo,useRef,useState} from "react";
 import {supabase} from "@/lib/supabase";
 import type {Role,Row} from "@/lib/area";
 import "./roster-upload.css";
 
 type ImportRecord={id:string;filename:string;total_rows:number;matched:number;linked:number;skipped:number;status:string;error_message:string|null;created_at:string;completed_at:string|null;course_id:string};
 type EntryRecord={id:string;student_name:string;status:string;course_label:string;turma:string};
+type StudentRow={name:string;cpf:string;curso:string;turma:string;email:string;telefone:string;periodo:string};
+type CourseGroup={cursoLabel:string;matchedId:string|null;matchedName:string|null;count:number;students:StudentRow[]};
+
 const MANAGEMENT:Role[]=["master","reitor","gestor","diretor_geral","diretor_pedagogico","procurador"];
 const number=(n:number)=>new Intl.NumberFormat("pt-BR").format(n);
 const date=(v:string)=>{try{return new Intl.DateTimeFormat("pt-BR",{dateStyle:"short",timeStyle:"short"}).format(new Date(v));}catch{return"—";}};
+const maskCpf=(c:string)=>{const d=c.replace(/\D/gu,"");return d.length===11?d.slice(0,3)+".***.**"+d.slice(7,9)+"-"+d.slice(9):c;};
+const maskEmail=(e:string)=>{if(!e)return"—";const p=e.split("@");return p[0].slice(0,3)+"***@"+(p[1]||"");};
+const maskPhone=(p:string)=>{if(!p)return"—";const d=p.replace(/\D/gu,"");return d.length>=10?"("+d.slice(0,2)+") *****-"+d.slice(-4):p;};
 
-function parseCsv(text:string):{name:string;cpf:string;curso:string;turma:string}[]{
+function parseCsv(text:string):StudentRow[]{
   const lines=text.split(/\r?\n/).filter(l=>l.trim());
   if(!lines.length)return[];
   const sep=lines[0].includes(";")?";":lines[0].includes("\t")?"\t":",";
   const header=lines[0].split(sep).map(h=>h.trim().toLowerCase().replace(/[" ]/gu,""));
-  const iName=header.findIndex(h=>/nome|aluno|student/u.test(h));
-  const iCpf=header.findIndex(h=>/cpf|documento|doc/u.test(h));
-  const iCurso=header.findIndex(h=>/curso|course|programa/u.test(h));
-  const iTurma=header.findIndex(h=>/turma|class|grupo|period/u.test(h));
+  const find=(pat:RegExp)=>header.findIndex(h=>pat.test(h));
+  const iName=find(/nome|aluno|student/u);
+  const iCpf=find(/cpf|documento|doc/u);
+  const iCurso=find(/curso|course|programa/u);
+  const iTurma=find(/turma|class|grupo/u);
+  const iEmail=find(/email|e-mail|correio/u);
+  const iTel=find(/telefone|celular|phone|fone|whatsapp|whats/u);
+  const iPeriodo=find(/periodo|período|semestre/u);
   if(iCpf<0)throw new Error("Coluna de CPF não encontrada. Use cabeçalho com 'CPF'.");
   return lines.slice(1).map(line=>{
     const cols=line.split(sep).map(c=>c.trim().replace(/^"|"$/gu,""));
-    return{name:cols[iName]||"",cpf:cols[iCpf]||"",curso:cols[iCurso]||"",turma:cols[iTurma]||""};
+    return{
+      name:cols[iName]||"",cpf:cols[iCpf]||"",curso:cols[iCurso]||"",
+      turma:cols[iTurma]||"",email:iEmail>=0?cols[iEmail]||"":"",
+      telefone:iTel>=0?cols[iTel]||"":"",periodo:iPeriodo>=0?cols[iPeriodo]||"":""
+    };
   }).filter(r=>r.cpf.replace(/\D/gu,"").length>=11);
+}
+
+function matchCourse(label:string,courses:Row[]):string|null{
+  const norm=(s:string)=>s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/gu,"").trim();
+  const target=norm(label);
+  if(!target)return null;
+  for(const c of courses){if(norm(String(c.display_name??c.name))===target)return String(c.id);}
+  for(const c of courses){const n=norm(String(c.display_name??c.name));if(n.includes(target)||target.includes(n))return String(c.id);}
+  return null;
 }
 
 export default function RosterUpload({institutionId,courses,role}:{
@@ -34,11 +57,11 @@ export default function RosterUpload({institutionId,courses,role}:{
   const [imports,setImports]=useState<ImportRecord[]>([]);
   const [entries,setEntries]=useState<EntryRecord[]>([]);
   const [viewImport,setViewImport]=useState<string|null>(null);
-  const [selectedCourse,setSelectedCourse]=useState("");
   const [busy,setBusy]=useState(false);
   const [message,setMessage]=useState("");
-  const [preview,setPreview]=useState<{name:string;cpf:string;curso:string;turma:string}[]>([]);
+  const [preview,setPreview]=useState<StudentRow[]>([]);
   const [fileName,setFileName]=useState("");
+  const [courseOverrides,setCourseOverrides]=useState<Record<string,string>>({});
   const fileRef=useRef<HTMLInputElement>(null);
 
   const loadImports=useCallback(async()=>{
@@ -50,6 +73,28 @@ export default function RosterUpload({institutionId,courses,role}:{
 
   useEffect(()=>{if(canManage)void loadImports();},[canManage,loadImports]);
 
+  const courseNames=useMemo(()=>new Map(courses.map(c=>[String(c.id),String(c.display_name??c.name)])),[courses]);
+
+  // Group students by curso from spreadsheet and auto-match to Vertice courses
+  const courseGroups=useMemo(()=>{
+    const map=new Map<string,StudentRow[]>();
+    for(const r of preview){
+      const key=r.curso.trim()||"(sem curso)";
+      const arr=map.get(key)||[];arr.push(r);map.set(key,arr);
+    }
+    const groups:CourseGroup[]=[];
+    for(const [label,students] of map){
+      const override=courseOverrides[label];
+      const autoMatch=matchCourse(label,courses);
+      const matchedId=override||autoMatch||null;
+      groups.push({cursoLabel:label,matchedId,matchedName:matchedId?courseNames.get(matchedId)||null:null,count:students.length,students});
+    }
+    return groups.sort((a,b)=>b.count-a.count);
+  },[preview,courses,courseNames,courseOverrides]);
+
+  const hasContacts=preview.some(r=>r.email||r.telefone);
+  const allMapped=courseGroups.every(g=>g.matchedId);
+
   const loadEntries=async(importId:string)=>{
     setViewImport(importId);
     const {data}=await supabase.from("vertice_roster_entries")
@@ -59,7 +104,7 @@ export default function RosterUpload({institutionId,courses,role}:{
   };
 
   const onFile=(event:React.ChangeEvent<HTMLInputElement>)=>{
-    setMessage("");setPreview([]);
+    setMessage("");setPreview([]);setCourseOverrides({});
     const file=event.target.files?.[0];
     if(!file)return;
     setFileName(file.name);
@@ -70,39 +115,45 @@ export default function RosterUpload({institutionId,courses,role}:{
         const rows=parseCsv(text);
         if(!rows.length)throw new Error("Nenhum registro com CPF válido encontrado.");
         setPreview(rows);
-        setMessage(`${number(rows.length)} alunos encontrados na planilha. Selecione o curso e clique em Importar.`);
+        const cursosDetectados=[...new Set(rows.map(r=>r.curso).filter(Boolean))];
+        const comEmail=rows.filter(r=>r.email).length;
+        const comTel=rows.filter(r=>r.telefone).length;
+        setMessage(`${number(rows.length)} alunos em ${cursosDetectados.length||1} curso(s).${comEmail?` ${number(comEmail)} com e-mail.`:""}${comTel?` ${number(comTel)} com telefone.`:""}`);
       }catch(err){setMessage((err as Error).message);}
     };
     reader.readAsText(file,"UTF-8");
   };
 
   const doImport=async()=>{
-    if(!preview.length||!selectedCourse){setMessage("Selecione o curso e carregue a planilha.");return;}
+    if(!preview.length){setMessage("Carregue a planilha primeiro.");return;}
+    if(!allMapped){setMessage("Mapeie todos os cursos antes de importar.");return;}
     setBusy(true);setMessage("Enviando roster para vinculação...");
     try{
-      // 1. Create import record
-      const {data:imp,error:impErr}=await supabase.from("vertice_roster_imports").insert({
-        institution_id:institutionId,course_id:selectedCourse,uploaded_by:userId,
-        filename:fileName,total_rows:preview.length,status:"processing"
-      }).select("id").single();
-      if(impErr||!imp)throw impErr||new Error("Falha ao registrar importação.");
+      let totalLinked=0,totalMatched=0,totalSkipped=0;
+      for(const group of courseGroups){
+        if(!group.matchedId)continue;
+        const {data:imp,error:impErr}=await supabase.from("vertice_roster_imports").insert({
+          institution_id:institutionId,course_id:group.matchedId,uploaded_by:userId,
+          filename:fileName+" ["+group.cursoLabel+"]",total_rows:group.count,status:"processing"
+        }).select("id").single();
+        if(impErr||!imp)throw impErr||new Error("Falha ao registrar importação.");
 
-      // 2. Call Edge Function to do batch-link via bridge
-      const {data:result,error:fnErr}=await supabase.functions.invoke("vertice-learning-bridge",{
-        body:{operation:"batch_link",institutionId,courseId:selectedCourse,
-          importId:imp.id,
-          students:preview.map(r=>({cpf:r.cpf,name:r.name,curso:r.curso,turma:r.turma}))}
-      });
-      if(fnErr)throw fnErr;
+        const {data:result,error:fnErr}=await supabase.functions.invoke("vertice-learning-bridge",{
+          body:{operation:"batch_link",institutionId,courseId:group.matchedId,
+            importId:imp.id,
+            students:group.students.map(r=>({cpf:r.cpf,name:r.name,curso:r.curso,turma:r.turma,email:r.email,telefone:r.telefone}))}
+        });
+        if(fnErr)throw fnErr;
 
-      // 3. Update import record
-      await supabase.from("vertice_roster_imports").update({
-        status:"done",matched:result?.matched??0,linked:result?.linked??0,
-        skipped:result?.skipped??0,completed_at:new Date().toISOString()
-      }).eq("id",imp.id);
+        await supabase.from("vertice_roster_imports").update({
+          status:"done",matched:result?.matched??0,linked:result?.linked??0,
+          skipped:result?.skipped??0,completed_at:new Date().toISOString()
+        }).eq("id",imp.id);
 
-      setMessage(`✅ Importação concluída: ${number(result?.linked??0)} vinculados, ${number(result?.matched??0)} encontrados na plataforma, ${number(result?.skipped??0)} não encontrados.`);
-      setPreview([]);setFileName("");
+        totalLinked+=(result?.linked??0);totalMatched+=(result?.matched??0);totalSkipped+=(result?.skipped??0);
+      }
+      setMessage(`✅ Importação concluída: ${number(totalLinked)} vinculados, ${number(totalMatched)} encontrados, ${number(totalSkipped)} não encontrados.`);
+      setPreview([]);setFileName("");setCourseOverrides({});
       if(fileRef.current)fileRef.current.value="";
       void loadImports();
     }catch(err){setMessage("❌ Erro: "+(err as Error).message);}
@@ -110,33 +161,46 @@ export default function RosterUpload({institutionId,courses,role}:{
   };
 
   if(!canManage)return null;
-  const courseNames=new Map(courses.map(c=>[String(c.id),String(c.display_name??c.name)]));
 
   return <section className="roster-upload">
     <header><h4>Importar turma — vinculação institucional</h4>
-      <p>Suba a planilha da turma (CSV ou TXT com colunas <strong>Nome, CPF, Curso, Turma</strong>). O sistema localiza automaticamente quem já tem conta no Fato & Ordem e vincula para acompanhamento acadêmico.</p>
+      <p>Suba a planilha com colunas <strong>Nome, CPF, Curso, Turma</strong> (e opcionalmente <strong>E-mail, Telefone, Período</strong>). O sistema detecta os cursos automaticamente e vincula ao Fato & Ordem.</p>
     </header>
 
     <div className="roster-form">
-      <label>Curso de destino
-        <select value={selectedCourse} onChange={e=>setSelectedCourse(e.target.value)} required>
-          <option value="">Selecione o curso</option>
-          {courses.map(c=><option key={String(c.id)} value={String(c.id)}>{String(c.display_name??c.name)}</option>)}
-        </select>
-      </label>
-      <label>Planilha de alunos (.csv, .txt)
+      <label>Planilha de alunos (.csv, .txt, .tsv)
         <input ref={fileRef} type="file" accept=".csv,.txt,.tsv" onChange={onFile}/>
       </label>
     </div>
 
+    {courseGroups.length>0&&<div className="roster-course-map">
+      <h5>Cursos detectados na planilha</h5>
+      <p className="muted">O sistema tentou mapear automaticamente. Corrija manualmente se necessário.</p>
+      <table><thead><tr><th>Curso (planilha)</th><th>Alunos</th><th>Curso Vértice (destino)</th><th>Status</th></tr></thead>
+        <tbody>{courseGroups.map(g=><tr key={g.cursoLabel}>
+          <td><strong>{g.cursoLabel}</strong></td>
+          <td>{number(g.count)}</td>
+          <td><select value={g.matchedId||""} onChange={e=>setCourseOverrides(prev=>({...prev,[g.cursoLabel]:e.target.value}))}>
+            <option value="">— Selecione o curso —</option>
+            {courses.map(c=><option key={String(c.id)} value={String(c.id)}>{String(c.display_name??c.name)}</option>)}
+          </select></td>
+          <td>{g.matchedId?<span className="roster-badge roster-done">✅ Mapeado</span>:<span className="roster-badge roster-pending">⚠️ Pendente</span>}</td>
+        </tr>)}</tbody>
+      </table>
+    </div>}
+
     {preview.length>0&&<div className="roster-preview">
-      <p><strong>{number(preview.length)} registros</strong> prontos para importação{selectedCourse?` → ${courseNames.get(selectedCourse)||"curso selecionado"}`:""}</p>
-      <div className="roster-scroll"><table><thead><tr><th>Nome</th><th>CPF</th><th>Curso (planilha)</th><th>Turma</th></tr></thead>
-        <tbody>{preview.slice(0,10).map((r,i)=><tr key={i}><td>{r.name}</td><td>{r.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,"$1.***.**$3-$4")}</td><td>{r.curso}</td><td>{r.turma}</td></tr>)}
-        {preview.length>10&&<tr><td colSpan={4} className="muted">…e mais {number(preview.length-10)} registros</td></tr>}
+      <p><strong>{number(preview.length)} registros</strong> em {courseGroups.length} curso(s){allMapped?" — todos mapeados":" — mapeie os cursos acima"}</p>
+      <div className="roster-scroll"><table><thead><tr><th>Nome</th><th>CPF</th><th>Curso</th><th>Turma</th>{hasContacts&&<><th>E-mail</th><th>Telefone</th></>}<th>Período</th></tr></thead>
+        <tbody>{preview.slice(0,15).map((r,i)=><tr key={i}>
+          <td>{r.name}</td><td>{maskCpf(r.cpf)}</td><td>{r.curso}</td><td>{r.turma}</td>
+          {hasContacts&&<><td>{maskEmail(r.email)}</td><td>{maskPhone(r.telefone)}</td></>}
+          <td>{r.periodo||"—"}</td>
+        </tr>)}
+        {preview.length>15&&<tr><td colSpan={hasContacts?7:5} className="muted">…e mais {number(preview.length-15)} registros</td></tr>}
         </tbody></table></div>
-      <button className="corp-button" disabled={busy||!selectedCourse} onClick={()=>void doImport()}>
-        {busy?"Importando…":`Importar ${number(preview.length)} alunos`}
+      <button className="corp-button" disabled={busy||!allMapped} onClick={()=>void doImport()}>
+        {busy?"Importando…":`Importar ${number(preview.length)} alunos (${courseGroups.length} curso${courseGroups.length>1?"s":""})`}
       </button>
     </div>}
 

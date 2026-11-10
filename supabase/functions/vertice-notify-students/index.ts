@@ -235,7 +235,7 @@ Deno.serve(async req=>{
 
   // Also get contact info from roster entries
   const {data:contacts}=await admin.from("vertice_roster_entries")
-   .select("student_name,course_label,turma")
+   .select("student_name,course_label,turma,email,telefone")
    .eq("institution_id",campaign.institution_id);
 
   const contactMap=new Map((contacts||[]).map(c=>[c.student_name?.toUpperCase().trim(),c]));
@@ -258,10 +258,11 @@ Deno.serve(async req=>{
     ano:String(student.enade_ano||new Date().getFullYear()),
    };
 
-   // Try to find contact info — for now use body.contacts override or roster
+   // Resolve contact info: body override > roster entries > empty
    const contactOverride=(body.contacts as Record<string,{email?:string;phone?:string}>)?.[student.matricula];
-   const email=contactOverride?.email||"";
-   const phone=contactOverride?.phone||"";
+   const rosterContact=contactMap.get(student.student_name?.toUpperCase().trim());
+   const email=contactOverride?.email||rosterContact?.email||"";
+   const phone=contactOverride?.phone||rosterContact?.telefone||"";
 
    if(channels.has("email")&&email){
     const result=await sendEmail(email,fillTemplate(template.subject,vars),fillTemplate(template.email,vars));
