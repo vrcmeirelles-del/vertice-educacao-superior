@@ -1,0 +1,29 @@
+.api-connector{background:var(--card-bg,#fff);border:1px solid var(--border,#e2e8f0);border-radius:12px;padding:24px;display:grid;gap:18px}
+.api-connector header{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+.api-connector header h4{margin:0 0 6px;font-size:18px}
+.api-connector header p{margin:0;color:var(--muted,#64748b);font-size:14px;line-height:1.5}
+.api-status{background:var(--bg-muted,#f8fafc);border:1px solid var(--border,#e2e8f0);border-radius:10px;padding:16px;display:grid;gap:12px}
+.api-status dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:0}
+.api-status dl>div{display:grid;gap:2px}
+.api-status dt{font-size:12px;font-weight:700;text-transform:uppercase;color:var(--muted,#64748b)}
+.api-status dd{margin:0;font-size:14px}
+.api-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600}
+.api-success{background:#dcfce7;color:#166534}
+.api-error{background:#fee2e2;color:#991b1b}
+.api-running{background:#fef9c3;color:#854d0e}
+.api-never{background:#f1f5f9;color:#475569}
+.api-form{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.api-form label{display:grid;gap:6px;font-size:13px;font-weight:600}
+.api-form label.wide{grid-column:1/-1}
+.api-form input,.api-form select,.api-form textarea{padding:10px;border:1px solid var(--border,#ccd5de);border-radius:8px;font-size:14px;background:var(--card-bg,#fff);font-family:inherit}
+.api-form textarea{font-family:monospace;font-size:13px}
+.api-check{flex-direction:row!important;align-items:center;gap:10px!important;display:flex!important}
+.api-check input[type="checkbox"]{width:20px;height:20px;flex:none}
+.api-actions{grid-column:1/-1;display:flex;gap:10px}
+.api-message{padding:12px 16px;border-radius:10px;font-size:14px;background:#eef7f8;border:1px solid #accfd4}
+.api-logs{display:grid;gap:10px}
+.api-logs h5{margin:0;font-size:15px}
+.api-logs table{width:100%;font-size:13px;border-collapse:collapse}
+.api-logs th,.api-logs td{padding:6px 10px;text-align:left;border-bottom:1px solid var(--border,#e8ecf0)}
+.api-logs th{font-weight:700}
+.api-error-cell{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted,#94a3b8);font-size:12px}
