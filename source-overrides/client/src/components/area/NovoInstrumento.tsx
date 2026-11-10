@@ -521,9 +521,9 @@ function ObjetoLinhas({ o, row, status, ev, aberto, edit, ocupado, onToggle, onS
                 <div className="ni-espelhamento">
                   <strong>🔗 Instrumento 2017 — Reconhecimento</strong>
                   {fontes.map(f => (
-                    <div key={f.ind} className="ni-espelhamento-item">
+                    <div key={f.ind2017} className="ni-espelhamento-item">
                       <span className="ni-espelhamento-tag" style={{ borderColor: GRAU_COR[f.grau] }}>
-                        <b>{f.ind}</b> {names[f.ind] ?? "Indicador"}
+                        <b>{f.ind2017}</b> {names[f.ind2017] ?? "Indicador"}
                       </span>
                       <span className="ni-espelhamento-grau" style={{ color: GRAU_COR[f.grau] }}>{GRAU_LABEL[f.grau]}</span>
                     </div>

@@ -14,7 +14,7 @@ import type {
   CelulaHeatmap, SaudeIndicador,
 } from './types';
 import { fmtInt, fmtPct, fmtBRL } from './format';
-import {latestEnrollmentSnapshots,courseTotals} from '@/components/InstitutionArea';
+import {latestEnrollmentSnapshots,courseTotals,type Enrollment as EnrollmentSnapshot} from '@/components/InstitutionArea';
 
 // ---------------------------------------------------------------- helpers
 async function fetchAll<T>(table: string, filters: Record<string, unknown>, order = 'id'): Promise<T[]> {
@@ -56,11 +56,7 @@ async function getCourses(filtro: FiltroBI): Promise<Course[]> {
 }
 
 // ---------------------------------------------------------------- matrículas
-type Enrollment = Row & {
-  course_id: string; semester: string; student_status: string;
-  class_label: string; enrolled: number; capacity: number; source_report_at:string;
-  reported_total: number | null;
-};
+type Enrollment = EnrollmentSnapshot;
 
 async function getEnrollments(filtro: FiltroBI): Promise<Enrollment[]> {
   const all = await fetchAll<Enrollment>(

@@ -5,7 +5,7 @@ import SourceCuration from "./SourceCuration";
 import ApprovedSourcesBI from "./ApprovedSourcesBI";
 import OneDriveFolderImporter from "./OneDriveFolderImporter";
 
-type UploadRow={drive_url?:string|null;id:string;source_kind:string;source_name:string;source_url:string|null;reference_period:string|null;extracted_on:string|null;original_name:string;bytes:number;storage_path:string;upload_status:string;review_status:string;created_at:string;description:string|null};
+type UploadRow={institution_id:string;drive_url?:string|null;id:string;source_kind:string;source_name:string;source_url:string|null;reference_period:string|null;extracted_on:string|null;original_name:string;bytes:number;storage_path:string;upload_status:string;review_status:string;created_at:string;description:string|null};
 const SOURCES:ReadonlyArray<readonly [string,string,string]>=[
  ["eorbit","e-ORBIT","Sistema acadêmico e-ORBIT"],
  ["emec","e-MEC","Cadastro e-MEC"],

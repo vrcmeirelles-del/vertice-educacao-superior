@@ -28,7 +28,7 @@ export default function CostEvidence({institutionId,onUpload,compact=false}:{ins
   setReqs((r.data??[]) as Request[]);setDocs((f.data??[]) as Doc[]);setLoading(false);
  },[institutionId]);
  useEffect(()=>{void refresh();},[refresh]);
- const types=new Map(TYPES);
+ const types=new Map<string,string>(TYPES);
  const reqMap=new Map(reqs.filter(r=>r.title.startsWith(PREFIX)).map(r=>[r.id,r]));
  const rows=docs.filter(d=>reqMap.has(d.request_id)).map(d=>({...d,request:reqMap.get(d.request_id)!}));
  async function download(d:Doc){

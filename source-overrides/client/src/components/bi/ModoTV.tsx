@@ -7,10 +7,9 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import type { Institution, Course, Enrollment } from '@/components/InstitutionArea';
-import type { Row } from '@/lib/area';
 import ReitorBI from './ReitorBI';
 import AcademicoBI from './AcademicoBI';
-import PainelBI from './PainelBI';
+import PainelBI, {type BIReport} from './PainelBI';
 import CaptacaoBI from '@/components/area/CaptacaoBI';
 import './modo-tv.css';
 
@@ -32,7 +31,7 @@ const INTERVALS = [
 
 export default function ModoTV({ institutions, courses, enrollments, session, reports, onClose }: {
   institutions: Institution[]; courses: Course[]; enrollments: Enrollment[];
-  session: Session; reports: Row[]; onClose: () => void;
+  session: Session; reports: BIReport[]; onClose: () => void;
 }) {
   const [selected, setSelected] = useState<Set<BiPanel>>(new Set(['reitor', 'academico', 'captacao', 'executivo']));
   const [interval, setInterval_] = useState(120);
