@@ -7,7 +7,7 @@
  * (reprovações, fluxo, cohorts, course_indicators), goals, actions, diagnosis,
  * ebitda_calculations, repository.
  */
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, type ReactElement } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { Session } from '@supabase/supabase-js';
 import type { Row } from '@/lib/area';
@@ -16,14 +16,15 @@ import { TABLES } from '@/lib/area';
 import { getKPIs, getSerieTemporal, getFunil, getComposicaoPorCurso, getCursosRisco, getAlertas, getSaudePeriodo, getHeatmap } from '@/lib/bi/queries';
 import type { KpiResumo, SerieTemporal as STipo, EtapaFunil, FatiaCategoria, CursoRisco, Alerta, CelulaHeatmap, SaudeIndicador } from '@/lib/bi/types';
 import { fmtInt, fmtPct, fmtBRL } from '@/lib/bi/format';
-import { getResumoQuantitativo, getResumoCompliance, getProfessores, getEnade, getBibliotecaResumo, getVestibularEditais, getVestibularCursos } from '@/lib/eorbit/queries';
-import type { ResumoQuantitativo, ResumoCompliance, Professor, Enade, BibliotecaResumo, VestibularEdital, VestibularCurso } from '@/lib/eorbit/types';
+import { getSemestres as getEorbitSemestres, getResumoQuantitativo, getResumoCompliance, getProfessores, getEnade, getBibliotecaResumo, getVestibularEditais, getVestibularCursos } from '@/lib/eorbit/queries';
+import type { ResumoQuantitativo, Professor, Enade, BibliotecaResumo, VestibularEdital, VestibularCurso } from '@/lib/eorbit/types';
 import { fetchReports, parseCohorts, resumirEvasao, parseProfReprova, parseDiscReprova, parseFluxo, parseCourseIndicators, agregarReprovaTipo, fetchCourseNames } from '@/lib/academico';
 import type { EvasaoResumo, ProfReprova, DiscReprova, FluxoSemestre, ReprovaTipoSem } from '@/lib/academico';
 import type { Institution, Course, Enrollment } from '@/components/InstitutionArea';
 import { courseTotals, latestEnrollmentSnapshots } from '@/components/InstitutionArea';
 import { listRepository } from '@/lib/repository-data';
 import { isInstrumentRequest, latestInstrumentDocuments } from '@/lib/repository';
+import { latestSemesterSummary, reitorCompliance, sourceDate, type ReitorCompliance } from '@/lib/bi/reitor-summary';
 import './reitor-bi.css';
 
 // ─── types ───
@@ -155,6 +156,7 @@ export default function ReitorBI({ institutions, courses, enrollments, session, 
 
   // academic
   const [quantitativo, setQuantitativo] = useState<ResumoQuantitativo | null>(null);
+  const [closedCohorts, setClosedCohorts] = useState(0);
   const [evasao, setEvasao] = useState<EvasaoResumo | null>(null);
   const [topProfs, setTopProfs] = useState<ProfReprova[]>([]);
   const [topDiscs, setTopDiscs] = useState<DiscReprova[]>([]);
@@ -162,7 +164,7 @@ export default function ReitorBI({ institutions, courses, enrollments, session, 
   const [reprovaTipo, setReprovaTipo] = useState<{ porSemestre: ReprovaTipoSem[]; totalRf: number; totalRn: number; totalRa: number } | null>(null);
 
   // compliance
-  const [compliance, setCompliance] = useState<ResumoCompliance | null>(null);
+  const [compliance, setCompliance] = useState<ReitorCompliance | null>(null);
 
   // infra
   const [professores, setProfessores] = useState<Professor[]>([]);
@@ -204,24 +206,27 @@ export default function ReitorBI({ institutions, courses, enrollments, session, 
         fetchReports(instId, ['course_indicators']),
       ]);
       const cohortData = parseCohorts(cohortRep);
-      if (cohortData) setEvasao(resumirEvasao(cohortData.coortes));
+      const closed = cohortData?.coortes.filter(row => row.noNext > 0 || row.nextLink > 0) ?? [];
+      setEvasao(closed.length ? resumirEvasao(closed) : null);
+      setClosedCohorts(closed.length);
       setTopProfs(parseProfReprova(profRep).slice(0, 10));
       setTopDiscs(parseDiscReprova(discRep).slice(0, 10));
       setFluxo(parseFluxo(fluxoRep));
       const indicators = parseCourseIndicators(indRep, courseNames);
       setReprovaTipo(agregarReprovaTipo(indicators));
 
-      // eorbit
+      // eorbit: load the period catalog required by the summary queries.
+      const semesters = await getEorbitSemestres(instId).catch(() => []);
       const [quant, compl, profs, en, bib, vest, vc] = await Promise.all([
-        getResumoQuantitativo(instId, null).catch(() => null),
-        getResumoCompliance(instId, null).catch(() => null),
+        getResumoQuantitativo(instId, semesters).catch(() => null),
+        getResumoCompliance(instId, semesters).catch(() => null),
         getProfessores(instId).catch(() => []),
         getEnade(instId).catch(() => []),
         getBibliotecaResumo(instId).catch(() => null),
         getVestibularEditais(instId).catch(() => []),
         getVestibularCursos(instId).catch(() => []),
       ]);
-      setQuantitativo(quant); setCompliance(compl); setProfessores(profs);
+      setQuantitativo(latestSemesterSummary(quant ?? [])); setCompliance(reitorCompliance(compl ?? [])); setProfessores(profs);
       setEnade(en); setBiblioteca(bib); setVestibular(vest); setVestCursos(vc);
 
       // management
@@ -372,7 +377,7 @@ export default function ReitorBI({ institutions, courses, enrollments, session, 
             <ul className="rbi-alerts">
               {alertas.slice(0, 8).map((a, i) => (
                 <li key={i} className={`rbi-alert rbi-alert-${a.severidade}`}>
-                  <strong>{a.titulo}</strong>
+                  <strong>{a.severidade === 'critico' ? 'Crítico' : a.severidade === 'atencao' ? 'Atenção' : 'Regular'}</strong>
                   <span>{a.descricao}</span>
                 </li>
               ))}
@@ -401,10 +406,10 @@ export default function ReitorBI({ institutions, courses, enrollments, session, 
         {/* Cursos em risco */}
         <SectionCard title="Cursos em Risco">
           {risco.length ? (
-            <MiniTable headers={['Curso', 'Ocupação', 'Matriculados', 'Vagas']} rows={risco.slice(0, 8).map(r => [
-              r.nome, fmtPct(r.ocupacaoPct), r.matriculados, r.vagas,
+            <MiniTable headers={['Curso', 'Ocupação', 'Sinal']} rows={risco.slice(0, 8).map(r => [
+              r.nome, r.ocupacaoPct === null ? 'Não informada' : fmtPct(r.ocupacaoPct), r.sinal,
             ])} />
-          ) : <p className="rbi-good">✓ Todos os cursos acima do limiar</p>}
+          ) : <p className="rbi-empty">Risco por ocupação não calculado: falta base de vagas comparável.</p>}
         </SectionCard>
       </div>
     </>;
@@ -415,11 +420,10 @@ export default function ReitorBI({ institutions, courses, enrollments, session, 
       {/* Quantitativo */}
       <SectionCard title="Quantitativo Geral">
         {quantitativo ? <>
+          <p>Semestre: {quantitativo.semestre}. Este resumo não informa quantidade de turmas ou cursos.</p>
           <div className="rbi-kpi-strip rbi-kpi-strip-sm">
-            <KPICard label="Vínculos" value={quantitativo.total_vinculos} unit="qtd" small />
-            <KPICard label="Matriculados" value={quantitativo.total_matriculados} unit="qtd" small />
-            <KPICard label="Turmas" value={quantitativo.total_turmas} unit="qtd" small />
-            <KPICard label="Cursos" value={quantitativo.total_cursos} unit="qtd" small />
+            <KPICard label="Vínculos" value={quantitativo.totalVinculos} unit="qtd" small />
+            <KPICard label="Matriculados" value={quantitativo.totalMatriculados} unit="qtd" small />
           </div>
         </> : <p className="rbi-empty">Sem dados do e-Orbit</p>}
       </SectionCard>
@@ -436,9 +440,9 @@ export default function ReitorBI({ institutions, courses, enrollments, session, 
       <SectionCard title="Saídas e permanência por turma de ingresso">
         {evasao ? <>
           <div className="rbi-kpi-strip rbi-kpi-strip-sm">
-            <KPICard label="Evasão Média" value={evasao.evasaoMedia} unit="pct" direction="baixo" small />
-            <KPICard label="Retenção Média" value={evasao.retencaoMedia} unit="pct" direction="cima" small />
-            <KPICard label="Turmas de ingresso" value={evasao.totalCoortes} unit="qtd" small />
+            <KPICard label="Taxa de evasão" value={evasao.taxaEvasao} unit="pct" direction="baixo" small />
+            <KPICard label="Taxa de renovação" value={evasao.taxaRenovacao} unit="pct" direction="cima" small />
+            <KPICard label="Turmas de ingresso apuradas" value={closedCohorts} unit="qtd" small />
           </div>
         </> : <p className="rbi-empty">Sem dados das turmas de ingresso</p>}
       </SectionCard>
@@ -459,7 +463,7 @@ export default function ReitorBI({ institutions, courses, enrollments, session, 
       {/* Top professores com reprovação */}
       <SectionCard title="Top 10 Professores — Reprovação">
         {topProfs.length ? (
-          <BarH data={topProfs.map(p => ({ label: p.professor, value: p.total }))} colors={PALETTE} />
+          <BarH data={topProfs.map(p => ({ label: p.nome, value: p.total }))} colors={PALETTE} />
         ) : <p className="rbi-empty">Sem dados</p>}
       </SectionCard>
 
@@ -475,10 +479,10 @@ export default function ReitorBI({ institutions, courses, enrollments, session, 
         {saude.length ? (
           <div className="rbi-health-grid">
             {saude.map(s => (
-              <div key={s.indicador} className={`rbi-health-item rbi-health-${s.status}`}>
-                <span className="rbi-health-icon">{s.status === 'ok' ? '🟢' : s.status === 'atencao' ? '🟡' : '🔴'}</span>
-                <span className="rbi-health-label">{s.indicador}</span>
-                <span className="rbi-health-val">{typeof s.valor === 'number' ? fmt.format(s.valor) : s.valor}</span>
+              <div key={s.rotulo} className={`rbi-health-item rbi-health-${s.sinal}`}>
+                <span className="rbi-health-icon">{s.sinal === 'ok' ? '🟢' : s.sinal === 'atencao' ? '🟡' : '🔴'}</span>
+                <span className="rbi-health-label">{s.rotulo}</span>
+                <span className="rbi-health-val">{s.valor}</span>
               </div>
             ))}
           </div>
@@ -519,15 +523,15 @@ export default function ReitorBI({ institutions, courses, enrollments, session, 
       {/* Vestibular */}
       <SectionCard title="Editais de Vestibular">
         {vestibular.length ? (
-          <MiniTable headers={['Edital', 'Ano', 'Status']}
-            rows={vestibular.slice(0, 8).map(v => [String(v.descricao ?? v.codigo ?? '—'), String(v.ano ?? '—'), String(v.status ?? '—')])} />
+          <MiniTable headers={['Edital', 'Data de início', 'Situação']}
+            rows={vestibular.slice(0, 8).map(v => [String(v.descricao ?? v.codigo ?? '—'), sourceDate(v.data_inicio), String(v.situacao ?? '—')])} />
         ) : <p className="rbi-empty">Sem editais</p>}
       </SectionCard>
 
       {/* Vagas por curso */}
       <SectionCard title="Vagas por Curso (Vestibular)">
         {vestCursos.length ? (
-          <BarH data={vestCursos.slice(0, 10).map(v => ({ label: String(v.nome_curso ?? v.curso_id ?? '—'), value: Number(v.vagas ?? 0) }))} colors={PALETTE} />
+          <BarH data={vestCursos.slice(0, 10).map(v => ({ label: v.curso_nome || 'Curso não informado', value: Number(v.vagas ?? 0) }))} colors={PALETTE} />
         ) : <p className="rbi-empty">Sem dados</p>}
       </SectionCard>
     </div>;
@@ -537,17 +541,18 @@ export default function ReitorBI({ institutions, courses, enrollments, session, 
     return <div className="rbi-grid">
       <SectionCard title="Resumo de Compliance">
         {compliance ? <>
+          <p>Semestre: {compliance.semestre}</p>
           <div className="rbi-kpi-strip rbi-kpi-strip-sm">
-            <KPICard label="Plano de Ensino" value={compliance.pctPlano} unit="pct" direction="cima" small />
-            <KPICard label="Notas Lançadas" value={compliance.pctNotas} unit="pct" direction="cima" small />
+            <KPICard label="Plano de Ensino" value={compliance.plano} unit="pct" direction="cima" small />
+            <KPICard label="Notas Lançadas" value={compliance.notas} unit="pct" direction="cima" small />
           </div>
         </> : <p className="rbi-empty">Sem dados de compliance</p>}
       </SectionCard>
 
       <SectionCard title="ENADE — Habilitados">
         {enade.length ? (
-          <MiniTable headers={['Curso', 'Habilitados', 'Ano']}
-            rows={enade.slice(0, 10).map(e => [String(e.nome_curso ?? e.curso_id ?? '—'), Number(e.habilitados ?? 0), String(e.ano ?? '—')])} />
+          <MiniTable headers={['Curso', 'Habilitados', 'Semestre']}
+            rows={enade.slice(0, 10).map(e => [e.curso_nome || String(e.curso_id), e.habilitados, e.semestre])} />
         ) : <p className="rbi-empty">Sem dados ENADE</p>}
       </SectionCard>
 
@@ -581,8 +586,8 @@ export default function ReitorBI({ institutions, courses, enrollments, session, 
       {/* Heatmap */}
       <SectionCard title="Heatmap — Matrículas por Curso × Semestre" span>
         {heatmap.length ? (() => {
-          const sems = [...new Set(heatmap.map(h => h.semestre))].sort();
-          const cursos = [...new Set(heatmap.map(h => h.curso))];
+          const sems = [...new Set(heatmap.map(h => h.coluna))].sort();
+          const cursos = [...new Set(heatmap.map(h => h.linha))];
           const max = Math.max(...heatmap.map(h => h.valor), 1);
           return (
             <div className="rbi-table-wrap">
@@ -591,10 +596,10 @@ export default function ReitorBI({ institutions, courses, enrollments, session, 
                 <tbody>{cursos.map(c => <tr key={c}>
                   <td>{c}</td>
                   {sems.map(s => {
-                    const cell = heatmap.find(h => h.semestre === s && h.curso === c);
-                    const v = cell?.valor ?? 0;
-                    const intensity = v / max;
-                    return <td key={s} style={{ background: `rgba(101,84,207,${intensity * 0.8 + 0.05})`, color: intensity > 0.5 ? 'white' : 'inherit' }}>{v || ''}</td>;
+                    const cell = heatmap.find(h => h.coluna === s && h.linha === c);
+                    const v = cell?.valor;
+                    const intensity = v === undefined ? 0 : v / max;
+                    return <td key={s} style={{ background: v === undefined ? undefined : `rgba(101,84,207,${intensity * 0.8 + 0.05})`, color: intensity > 0.5 ? 'white' : 'inherit' }}>{v === undefined ? '—' : v}</td>;
                   })}
                 </tr>)}</tbody>
               </table>
@@ -627,15 +632,15 @@ export default function ReitorBI({ institutions, courses, enrollments, session, 
       <SectionCard title="Biblioteca">
         {biblioteca ? <>
           <div className="rbi-kpi-strip rbi-kpi-strip-sm">
-            <KPICard label="Títulos" value={biblioteca.titulos} unit="qtd" small />
-            <KPICard label="Exemplares" value={biblioteca.exemplares} unit="qtd" small />
+            <KPICard label="Títulos" value={biblioteca.total_titulos} unit="qtd" small />
+            <KPICard label="Exemplares" value={biblioteca.total_exemplares} unit="qtd" small />
           </div>
         </> : <p className="rbi-empty">Sem dados de biblioteca</p>}
       </SectionCard>
     </div>;
   }
 
-  const RENDERERS: Record<Tab, () => JSX.Element> = {
+  const RENDERERS: Record<Tab, () => ReactElement> = {
     geral: renderGeral, academico: renderAcademico, captacao: renderCaptacao,
     compliance: renderCompliance, financeiro: renderFinanceiro, infra: renderInfra,
   };

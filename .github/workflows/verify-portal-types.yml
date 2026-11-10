@@ -1,0 +1,49 @@
+name: Portal - TypeScript completo e contratos da Reitoria
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'source-overrides/client/**'
+      - 'source-overrides/server/**'
+      - 'source-overrides/tsconfig.json'
+      - 'vertice-servidor-source.zip'
+      - 'scripts/portal-types.vitest.config.ts'
+      - 'scripts/tests/types-runtime/**'
+      - '.github/workflows/verify-portal-types.yml'
+permissions:
+  contents: read
+jobs:
+  portal:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['22', '24']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Compor o portal como os serviços atuais
+        run: |
+          mkdir -p .typecheck-build
+          unzip -qo vertice-servidor-source.zip -d .typecheck-build
+          cp -a source-overrides/. .typecheck-build/
+          cp scripts/portal-types.vitest.config.ts .typecheck-build/scripts/
+      - name: Instalar dependências com lockfile
+        run: |
+          npm ci --prefix .typecheck-build --legacy-peer-deps --no-audit --no-fund
+          npm ci --prefix scripts/tests/types-runtime --no-audit --no-fund
+          ln -s "$GITHUB_WORKSPACE/scripts/tests/types-runtime/node_modules/jsdom" .typecheck-build/node_modules/jsdom
+      - name: TypeScript completo, sem tolerar erros da base
+        working-directory: .typecheck-build
+        run: npm run check
+      - name: Suíte existente e regressões dos contratos
+        working-directory: .typecheck-build
+        run: |
+          npm test
+          ./node_modules/.bin/vitest run --config scripts/portal-types.vitest.config.ts
+      - name: Build estático completo
+        working-directory: .typecheck-build
+        run: npm run build:static

@@ -95,20 +95,23 @@ export default function GovernancaBI({ institutionId, institutionName, courses }
 
       // Paginação obrigatória: a UNITOP possui mais de mil exigências.
       // PostgREST devolve, por padrão, só a primeira página da consulta.
-      const readAll=async(table:"vertice_repository_requests"|"vertice_repository_files",columns:string)=>{
-        const rows:Record<string,unknown>[]=[];
+      const readAll=async<T,>(query:(offset:number)=>PromiseLike<{data:T[]|null;error:unknown}>):Promise<T[]>=>{
+        const rows:T[]=[];
         for(let offset=0;offset<100000;offset+=800){
-          const result=await supabase.from(table).select(columns).eq("institution_id",institutionId)
-            .order("id",{ascending:true}).range(offset,offset+799);
+          const result=await query(offset);
           if(result.error)throw result.error;
           rows.push(...(result.data??[]));
-          if(!result.data||result.data.length<800)break;
+          if(!result.data||result.data.length<800)return rows;
         }
-        return rows;
+        throw new Error("Consulta documental incompleta: limite de paginação alcançado.");
       };
       const [reqs,files]=await Promise.all([
-        readAll("vertice_repository_requests","id,course_id,indicator,not_applicable,active,repository_section"),
-        readAll("vertice_repository_files","id,request_id,status,created_at")
+        readAll(offset=>supabase.from("vertice_repository_requests")
+          .select("id,course_id,indicator,not_applicable,active,repository_section")
+          .eq("institution_id",institutionId).order("id",{ascending:true}).range(offset,offset+799)),
+        readAll(offset=>supabase.from("vertice_repository_files")
+          .select("id,request_id,status,created_at")
+          .eq("institution_id",institutionId).order("id",{ascending:true}).range(offset,offset+799))
       ]);
       if(avError||niError)throw new Error("Uma das fontes regulatórias não está disponível nesta sessão; não é seguro calcular os indicadores como zero.");
       const avsRows = avs ?? [];

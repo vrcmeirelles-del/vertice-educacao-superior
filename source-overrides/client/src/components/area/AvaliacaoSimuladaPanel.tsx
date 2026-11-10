@@ -512,7 +512,7 @@ function DetalheIndicador({
           )}
         </div>
       ))}
-      {row?.updated_at && (
+      {row && Boolean(row.updated_at) && (
         <p className="area-muted avs-meta">
           Atualizado em {new Date(String(row.updated_at)).toLocaleDateString("pt-BR")}
         </p>

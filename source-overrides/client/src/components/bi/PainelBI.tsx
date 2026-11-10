@@ -413,7 +413,7 @@ const failureMetrics = [
   { key: 'RA', label: 'Reprovação final (RA)', color: '#7e22ce' },
 ] as const;
 
-type BIReport = AcademicReport & { institution_id?: string; course_id?: string | null };
+export type BIReport = AcademicReport & { institution_id?: string; course_id?: string | null };
 
 function ReprovacoesAnuais({ reports }: { reports: BIReport[] }) {
   const [yearA, setYearA] = useState('');
