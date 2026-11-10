@@ -1,6 +1,7 @@
 import {useEffect,useMemo,useState,type FormEvent} from "react";
 import {supabase} from "@/lib/supabase";
 import type {Role,Row} from "@/lib/area";
+import RosterUpload from "./RosterUpload";
 import "./learning-connected.css";
 
 type Metric={
@@ -114,6 +115,7 @@ export default function LearningConnected({institutionId,courses,role}:{
      <article><small>Tentativas por vínculo curricular</small><b>{totals.groups?number(totals.attempts):"—"}</b><span>Não representa total de tentativas únicas</span></article>
      <article><small>Comparações nota × exame</small><b>{number(totals.coherent)}</b><span>Amostra pareada validada</span></article>
    </div>
+   {canManage&&<RosterUpload institutionId={institutionId} courses={courses} role={role}/>}
    {loading&&<p role="status">Carregando indicadores com controle de acesso…</p>}
    {message&&<p role="status" className="learning-message">{message}</p>}
    <section className="learning-panel">
