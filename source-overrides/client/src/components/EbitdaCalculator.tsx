@@ -7,7 +7,7 @@ const pct=(n:number|null)=>n===null?'Não calculável':n.toLocaleString('pt-BR')
 function Help({text}:{text:string}) {
  return <details className="reitor-help"><summary aria-label="Ver explicação">❔ Entenda</summary><p>{text}</p></details>;
 }
-function RectorDemo() {
+export function RectorDemo() {
  const [scenario,setScenario]=useState("base");
  const revenue=1200000;
  const costs=scenario==="pressao"?1080000:960000;

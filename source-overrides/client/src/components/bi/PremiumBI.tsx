@@ -4,7 +4,7 @@ import {demoInstitutionProfiles,type DemoCourse,type DemoInstitutionMode} from '
 export type BiPage='overview'|'matriculas'|'reprovacoes'|'captacao'|'regulacao'|'aprendizagem';
 type Term='2025/1'|'2025/2'|'2026/1'|'2026/2'|'2027/1';
 type Feed={origin:string;kind:string;synthetic:boolean;summary:{students:number;courses:number;exam:number|null;engagement:number|null};courses:Array<{id:string;name:string;students:number;exam:number|null}>};
-type Props={mode:DemoInstitutionMode;courses:DemoCourse[];foFeed?:Feed|null};
+type Props={mode:DemoInstitutionMode;courses:DemoCourse[];foFeed?:Feed|null;initialPage?:BiPage};
 type Row={id:string;name:string;students:number;capacity:number;occupancy:number;score:number;note:number;absence:number;risk:number;growth:number;participation:number};
 const PAGES:{id:BiPage;label:string;icon:string}[]=[
  {id:'overview',label:'Visão Geral',icon:'⌂'},{id:'matriculas',label:'Matrículas',icon:'▥'},
@@ -59,8 +59,8 @@ function Donut({parts,center,label}:{parts:Array<{value:number;color:string;name
   <div className="vp-donut-legend">{parts.map(p=><span key={p.name}><i style={{background:p.color}}/>{p.name} ({pct(p.value/total*100)})</span>)}</div>
  </div>;
 }
-export default function PremiumBI({mode,courses,foFeed}:Props){
- const [page,setPage]=useState<BiPage>('overview'),[term,setTerm]=useState<Term>('2026/2');
+export default function PremiumBI({mode,courses,foFeed,initialPage='overview'}:Props){
+ const [page,setPage]=useState<BiPage>(initialPage),[term,setTerm]=useState<Term>('2026/2');
  const [course,setCourse]=useState('all'),[compare,setCompare]=useState<'year'|'previous'>('year');
  const [detail,setDetail]=useState<{title:string;description:string}|null>(null);
  const [tv,setTv]=useState(false),[paused,setPaused]=useState(false),[speed,setSpeed]=useState(15000);

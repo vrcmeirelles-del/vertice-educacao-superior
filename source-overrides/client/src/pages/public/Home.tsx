@@ -1,3 +1,4 @@
+import {CommercialHero,CommercialShowcase} from "@/components/CommercialShowcase";
 import React from "react";
 import { Link } from "wouter";
 import {
@@ -16,84 +17,8 @@ import { DeliverableCards } from "@/components/DeliverableCards";
 export default function Home() {
   return (
     <>
-      <section className="corp-hero">
-        <div className="corp-container hero-composition">
-          <div className="hero-editorial">
-            <span className="corp-eyebrow">
-              <span />
-              CONSULTORIA PARA O ENSINO SUPERIOR
-            </span>
-            <h1>
-              Clareza regulatória.
-              <br />
-              <em>Solidez institucional.</em>
-            </h1>
-            <p>
-              Conectamos estratégia, qualidade acadêmica e gestão para
-              transformar desafios da educação superior em prioridades, ações e
-              decisões fundamentadas.
-            </p>
-            <div className="corp-actions">
-              <Link href="/servicos.html" className="corp-button">
-                Conheça nossas soluções <ArrowUpRight size={18} />
-              </Link>
-              <Link href="/metodo.html" className="corp-text-link">
-                Como trabalhamos <ArrowRight size={17} />
-              </Link>
-            </div>
-            <div className="hero-detail">
-              <span />
-              <p>
-                O software organiza.
-                <br />
-                <strong>A consultoria dá direção.</strong>
-              </p>
-            </div>
-          </div>
-          <div
-            className="strategy-board"
-            aria-label="O ciclo de gestão da Vértice"
-          >
-            <div className="board-header">
-              <span>MÉTODO VÉRTICE</span>
-              <span className="board-small-label">DA LEITURA À AÇÃO</span>
-            </div>
-            <div className="board-title">
-              <Compass size={28} strokeWidth={1.3} />
-              <h2>
-                Uma visão integrada.
-                <br />
-                Um próximo passo claro.
-              </h2>
-            </div>
-            <ol className="board-cycle">
-              {cycle.map((s, i) => (
-                <li key={s.number}>
-                  <span>{s.number}</span>
-                  <div>
-                    <strong>{s.title}</strong>
-                    <small>
-                      {
-                        [
-                          "Evidências e contexto",
-                          "Objetivos e indicadores",
-                          "Responsáveis e recursos",
-                          "Pessoas e competências",
-                          "Aprendizado e decisões",
-                        ][i]
-                      }
-                    </small>
-                  </div>
-                  <ArrowUpRight size={16} />
-                </li>
-              ))}
-            </ol>
-            <Link href="/demonstracao" className="board-link">
-              Veja o método na prática <ArrowRight size={17} />
-            </Link>
-          </div>
-        </div>
-      </section>
+      <CommercialHero />
+      <CommercialShowcase />
       <section className="aq-home-highlight" aria-labelledby="aquisicoes-title">
         <div className="corp-container aq-home-grid">
           <div>

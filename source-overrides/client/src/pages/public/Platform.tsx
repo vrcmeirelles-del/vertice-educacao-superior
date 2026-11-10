@@ -1,3 +1,4 @@
+import {CommercialShowcase} from "@/components/CommercialShowcase";
 import React from "react";
 import { Link } from "wouter";
 import { ArrowRight, ArrowUpRight, Check, ShieldCheck } from "lucide-react";
@@ -13,6 +14,7 @@ export default function Platform() {
         text={platformIntro}
       />
 
+      <CommercialShowcase />
       <div className="corp-container services-list">
         {platformGroups.map(g => (
           <section className="service-detail" id={g.id} key={g.id}>

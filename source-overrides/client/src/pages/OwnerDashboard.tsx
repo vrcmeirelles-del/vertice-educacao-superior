@@ -1,3 +1,4 @@
+import ShowcaseClientsAdmin from '@/components/ShowcaseClients';
 import {MasterDirectory, MasterInvitationGate} from '@/components/area/MasterAccess';
 import {storeActionDraft} from "@/lib/portal-integration";
 import {institutionEnrollmentSummary} from "@/lib/enrollment-summary";
@@ -43,7 +44,7 @@ async function fetchDashboardRows(table:string,order:string,ascending=true,colum
  for(let from=0;;from+=1000){const {data,error}=await supabase.from(table).select(columns).order(order,{ascending}).order('id').range(from,from+999);if(error)throw error;rows.push(...((data??[]) as unknown as Row[]));if(!data||data.length<1000)break;}
  return {data:rows,error:null};
 }
-function readHash(){const p=new URLSearchParams(typeof window==='undefined'?'':window.location.hash.slice(1));return {inst:p.get('instituicao')??'',course:p.get('curso')??'',repositories:p.get('repositorios')==='1',bi:p.get('bi')==='1',captacao:p.get('captacao')==='1',academico:p.get('academico')==='1',painelBi:p.get('painel-bi')==='1',perfis:p.get('perfis')==='1',masters:p.get('masters')==='1',demonstrativos:p.get('demonstrativos')==='1',governanca:p.get('governanca')==='1'};}
+function readHash(){const p=new URLSearchParams(typeof window==='undefined'?'':window.location.hash.slice(1));return {inst:p.get('instituicao')??'',course:p.get('curso')??'',repositories:p.get('repositorios')==='1',bi:p.get('bi')==='1',captacao:p.get('captacao')==='1',academico:p.get('academico')==='1',painelBi:p.get('painel-bi')==='1',perfis:p.get('perfis')==='1',masters:p.get('masters')==='1',demonstrativos:p.get('demonstrativos')==='1',clientes:p.get('clientes')==='1',governanca:p.get('governanca')==='1'};}
 function writeHash(inst:string,course:string,repositories=false,library=false,reitor=false,masters=false){const p=new URLSearchParams();if(masters)p.set('masters','1');if(inst)p.set('instituicao',inst);if(course)p.set('curso',course);if(repositories){if(inst)p.set('aba','repositorio');else p.set('repositorios','1');}if(library)p.set('aba','biblioteca');if(reitor)p.set('aba','reitor');const h=p.toString();window.history.pushState(null,'',h?`#${h}`:window.location.pathname);window.dispatchEvent(new HashChangeEvent('hashchange'));window.scrollTo({top:0});}
 
 type BiItem = {label:string; group:string; value:number; href?:string};
@@ -328,7 +329,7 @@ export default function OwnerDashboard(){
   <a className="vx-module-card" href="/master#academico=1" onClick={()=>setCommercial(false)}><span className="vx-module-icon" style={{background:'#faf5ff',color:'#7c3aed'}}>🎓</span><strong>BI Acadêmico</strong><small>Matrículas e reprovações</small></a>
   <a className="vx-module-card" href="/master#painel-bi=1" onClick={()=>setCommercial(false)}><span className="vx-module-icon" style={{background:'#fffbeb',color:'#b45309'}}>⚡</span><strong>Painel Executivo</strong><small>Panorama consolidado</small></a>
  </div>
- {master&&<div className="vx-module-grid vx-module-grid-sm" aria-label="Visões do master">
+ {master&&<div className="vx-module-grid vx-module-grid-sm" aria-label="Visões do master"><a className="vx-module-card" href="/master#clientes=1"><span className="vx-module-icon">◈</span><strong>Clientes na vitrine</strong><small>Logomarcas e autorizações</small></a>
   <a className="vx-module-card" href="/master/aquisicoes"><span className="vx-module-icon" style={{background:'#fef2f2',color:'#d83a52'}}>🏦</span><strong>Aquisições</strong><small>Due diligence e mandatos</small></a>
   <button className={`vx-module-card ${!commercial&&!route.bi&&!route.repositories&&!route.perfis&&!route.masters&&!route.demonstrativos&&!currentInst?'vx-module-active':''}`} onClick={()=>{setCommercial(false);writeHash('','');}}><span className="vx-module-icon" style={{background:'#eff6ff',color:'#0073ea'}}>🏢</span><strong>Gestão das IES</strong><small>Instituições e cursos</small></button>
   <button className={`vx-module-card ${!commercial&&route.repositories?'vx-module-active':''}`} onClick={()=>{setCommercial(false);writeHash('','',true);}}><span className="vx-module-icon" style={{background:'#ecfdf5',color:'#00a86b'}}>📋</span><strong>Reconhecimento</strong><small>Documentos de todas as IES</small></button>
@@ -340,7 +341,7 @@ export default function OwnerDashboard(){
   </a>
   <button className={`vx-module-card ${!commercial&&!route.perfis&&!route.painelBi&&!route.captacao&&!route.bi&&route.masters&&!route.governanca?'vx-module-active':''}`} onClick={()=>{setCommercial(false);writeHash('','',false,false,false,true);}}><span className="vx-module-icon" style={{background:'#f0f9ff',color:'#0369a1'}}>🔑</span><strong>Masters</strong><small>Administradores do sistema</small></button>
  </div>}
- {route.perfis&&master?<ProfileSimulator/>:master&&route.demonstrativos?<ExperienceAdmin embedded/>:master&&commercial?<DemoLeads/>:<>
+ {route.clientes&&master?<ShowcaseClientsAdmin/>:route.perfis&&master?<ProfileSimulator/>:master&&route.demonstrativos?<ExperienceAdmin embedded/>:master&&commercial?<DemoLeads/>:<>
  {!route.bi&&!route.captacao&&!route.academico&&!route.painelBi&&!currentInst&&!route.repositories&&!route.masters&&!route.demonstrativos&&<div className="vx-module-grid vx-kpi-row">
   <div className="vx-module-card" style={{borderLeft:'3px solid #0073ea'}}><small style={{color:'#676e7a'}}>Instituições</small><strong style={{fontSize:28}}>{institutions.length}</strong></div>
   <div className="vx-module-card" style={{borderLeft:'3px solid #7c3aed'}}><small style={{color:'#676e7a'}}>Cursos</small><strong style={{fontSize:28}}>{courses.length}</strong></div>
