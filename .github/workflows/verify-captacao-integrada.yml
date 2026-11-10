@@ -1,0 +1,77 @@
+name: Captação por IES - preparação isolada
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'source-overrides/client/src/lib/captacao-integrada*'
+      - 'source-overrides/client/src/components/area/Captacao*'
+      - 'source-overrides/client/src/components/area/captacao-integrada.css'
+      - 'supabase/**/captacao*'
+      - 'supabase/migrations/*captacao_integrada_preparacao.sql'
+      - 'scripts/*captacao*'
+      - 'scripts/tests/**'
+      - '.github/workflows/verify-captacao-integrada.yml'
+permissions:
+  contents: read
+jobs:
+  preparation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['22', '24']
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Compor fonte atual e base sem alterações
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          mkdir -p .captacao-build .captacao-base-source .captacao-base-build
+          unzip -qo vertice-servidor-source.zip -d .captacao-build
+          cp -a source-overrides/. .captacao-build/
+          cp scripts/captacao.vitest.config.ts .captacao-build/scripts/
+          git archive "$BASE_SHA" vertice-servidor-source.zip source-overrides | tar -xf - -C .captacao-base-source
+          unzip -qo .captacao-base-source/vertice-servidor-source.zip -d .captacao-base-build
+          cp -a .captacao-base-source/source-overrides/. .captacao-base-build/
+          cmp .captacao-base-build/package-lock.json .captacao-build/package-lock.json
+      - name: Instalar dependências com lockfile
+        run: |
+          npm ci --prefix .captacao-build --legacy-peer-deps --no-audit --no-fund
+          npm ci --prefix scripts/tests/runtime --no-audit --no-fund
+          ln -s "$GITHUB_WORKSPACE/.captacao-build/node_modules" .captacao-base-build/node_modules
+          ln -s "$GITHUB_WORKSPACE/scripts/tests/runtime/node_modules/jsdom" .captacao-build/node_modules/jsdom
+      - name: Verificar ausência de novos erros TypeScript
+        run: node scripts/verify-captacao-typecheck.mjs .captacao-base-build .captacao-build
+      - name: Testes existentes e novos contratos/DOM
+        working-directory: .captacao-build
+        run: |
+          npm test
+          ./node_modules/.bin/vitest run --config scripts/captacao.vitest.config.ts
+      - name: Testes SQL em memória, sem banco remoto
+        env:
+          PGLITE_MODULE: ${{ github.workspace }}/scripts/tests/runtime/node_modules/@electric-sql/pglite/dist/index.js
+        run: node supabase/tests/captacao-integrada.test.mjs
+      - name: Compilar como o serviço atual do Render
+        working-directory: .captacao-build
+        run: npm run build:static
+      - name: Conferir UI sintética no Chromium
+        if: matrix.node == '22'
+        env:
+          PLAYWRIGHT_MODULE: ${{ github.workspace }}/scripts/tests/runtime/node_modules/playwright/index.mjs
+        run: |
+          node scripts/tests/runtime/node_modules/playwright/cli.js install --with-deps chromium
+          node scripts/prepare-captacao-ui.mjs .captacao-build
+          ./.captacao-build/node_modules/.bin/vite --config .captacao-build/captacao-ui/vite.config.mjs > "$RUNNER_TEMP/captacao-ui.log" 2>&1 &
+          UI_PID=$!
+          trap 'kill "$UI_PID"' EXIT
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4178/ > /dev/null; then break; fi
+            sleep 1
+          done
+          node scripts/tests/captacao-ui.test.mjs

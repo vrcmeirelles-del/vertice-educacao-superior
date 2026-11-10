@@ -1,0 +1,636 @@
+{
+  "columns": [
+    {
+      "table_schema": "public",
+      "table_name": "vertice_connection_records",
+      "column_name": "id",
+      "data_type": "bigint",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_connection_records",
+      "column_name": "connection_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_connection_records",
+      "column_name": "institution_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_connection_records",
+      "column_name": "dataset",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_connection_records",
+      "column_name": "categoria",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_connection_records",
+      "column_name": "row_hash",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_connection_records",
+      "column_name": "payload",
+      "data_type": "jsonb",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_connection_records",
+      "column_name": "synced_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_data_connection_runs",
+      "column_name": "id",
+      "data_type": "bigint",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_data_connection_runs",
+      "column_name": "connection_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_data_connection_runs",
+      "column_name": "institution_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_data_connection_runs",
+      "column_name": "acao",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_data_connection_runs",
+      "column_name": "status",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_data_connection_runs",
+      "column_name": "detalhe",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_data_connection_runs",
+      "column_name": "acionado_por",
+      "data_type": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_data_connection_runs",
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_data_connections",
+      "column_name": "id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": "gen_random_uuid()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_data_connections",
+      "column_name": "institution_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_data_connections",
+      "column_name": "tipo",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_data_connections",
+      "column_name": "fornecedor",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_data_connections",
+      "column_name": "rotulo",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_data_connections",
+      "column_name": "config",
+      "data_type": "jsonb",
+      "is_nullable": "NO",
+      "column_default": "'{}'::jsonb"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_data_connections",
+      "column_name": "vault_secret_id",
+      "data_type": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_data_connections",
+      "column_name": "escopo",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": "'agregado'::text"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_data_connections",
+      "column_name": "status",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": "'pendente'::text"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_data_connections",
+      "column_name": "aceite_operador_em",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_data_connections",
+      "column_name": "aceite_por",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_data_connections",
+      "column_name": "ultimo_teste_em",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_data_connections",
+      "column_name": "ultimo_sync_em",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_data_connections",
+      "column_name": "ultimo_erro",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_data_connections",
+      "column_name": "created_by",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_data_connections",
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_data_connections",
+      "column_name": "updated_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_data_connections",
+      "column_name": "escopo_financeiro",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": "'nenhum'::text"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_data_connections",
+      "column_name": "aceite_financeiro_em",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_data_connections",
+      "column_name": "aprovado_por",
+      "data_type": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_data_connections",
+      "column_name": "aprovado_em",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES",
+      "column_default": null
+    }
+  ],
+  "constraints": [
+    {
+      "table_name": "vertice_data_connections",
+      "conname": "vertice_data_connections_escopo_check",
+      "definition": "CHECK ((escopo = ANY (ARRAY['agregado'::text, 'nominal'::text])))"
+    },
+    {
+      "table_name": "vertice_data_connections",
+      "conname": "vertice_data_connections_escopo_financeiro_check",
+      "definition": "CHECK ((escopo_financeiro = ANY (ARRAY['nenhum'::text, 'pessoal'::text, 'completo'::text])))"
+    },
+    {
+      "table_name": "vertice_data_connections",
+      "conname": "vertice_data_connections_fornecedor_check",
+      "definition": "CHECK (((char_length(fornecedor) >= 2) AND (char_length(fornecedor) <= 60)))"
+    },
+    {
+      "table_name": "vertice_data_connections",
+      "conname": "vertice_data_connections_institution_id_fkey",
+      "definition": "FOREIGN KEY (institution_id) REFERENCES vertice_institutions(id) ON DELETE CASCADE"
+    },
+    {
+      "table_name": "vertice_data_connections",
+      "conname": "vertice_data_connections_pkey",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "table_name": "vertice_data_connections",
+      "conname": "vertice_data_connections_rotulo_check",
+      "definition": "CHECK (((char_length(rotulo) >= 2) AND (char_length(rotulo) <= 80)))"
+    },
+    {
+      "table_name": "vertice_data_connections",
+      "conname": "vertice_data_connections_status_check",
+      "definition": "CHECK ((status = ANY (ARRAY['pendente'::text, 'aguardando_aprovacao'::text, 'ativa'::text, 'erro'::text, 'pausada'::text])))"
+    },
+    {
+      "table_name": "vertice_data_connections",
+      "conname": "vertice_data_connections_tipo_check",
+      "definition": "CHECK ((tipo = ANY (ARRAY['api'::text, 'sql'::text, 'agente'::text, 'onedrive'::text])))"
+    },
+    {
+      "table_name": "vertice_data_connection_runs",
+      "conname": "vertice_data_connection_runs_acao_check",
+      "definition": "CHECK ((acao = ANY (ARRAY['criar'::text, 'testar'::text, 'sincronizar'::text, 'pausar'::text, 'retomar'::text, 'revogar'::text, 'aprovar'::text])))"
+    },
+    {
+      "table_name": "vertice_data_connection_runs",
+      "conname": "vertice_data_connection_runs_connection_id_fkey",
+      "definition": "FOREIGN KEY (connection_id) REFERENCES vertice_data_connections(id) ON DELETE CASCADE"
+    },
+    {
+      "table_name": "vertice_data_connection_runs",
+      "conname": "vertice_data_connection_runs_pkey",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "table_name": "vertice_data_connection_runs",
+      "conname": "vertice_data_connection_runs_status_check",
+      "definition": "CHECK ((status = ANY (ARRAY['ok'::text, 'erro'::text])))"
+    },
+    {
+      "table_name": "vertice_connection_records",
+      "conname": "vertice_connection_records_categoria_check",
+      "definition": "CHECK ((categoria = ANY (ARRAY['academico_agregado'::text, 'academico_nominal'::text, 'pessoal'::text, 'financeiro'::text])))"
+    },
+    {
+      "table_name": "vertice_connection_records",
+      "conname": "vertice_connection_records_connection_id_dataset_row_hash_key",
+      "definition": "UNIQUE (connection_id, dataset, row_hash)"
+    },
+    {
+      "table_name": "vertice_connection_records",
+      "conname": "vertice_connection_records_connection_id_fkey",
+      "definition": "FOREIGN KEY (connection_id) REFERENCES vertice_data_connections(id) ON DELETE CASCADE"
+    },
+    {
+      "table_name": "vertice_connection_records",
+      "conname": "vertice_connection_records_pkey",
+      "definition": "PRIMARY KEY (id)"
+    }
+  ],
+  "policies": [
+    {
+      "tablename": "vertice_connection_records",
+      "policyname": "vertice_connection_records_select",
+      "roles": [
+        "authenticated"
+      ],
+      "cmd": "SELECT",
+      "qual": "vertice_connection_authorize(institution_id)",
+      "with_check": null
+    },
+    {
+      "tablename": "vertice_data_connection_runs",
+      "policyname": "vertice_data_connection_runs_select",
+      "roles": [
+        "authenticated"
+      ],
+      "cmd": "SELECT",
+      "qual": "vertice_connection_authorize(institution_id)",
+      "with_check": null
+    },
+    {
+      "tablename": "vertice_data_connections",
+      "policyname": "vertice_data_connections_select",
+      "roles": [
+        "authenticated"
+      ],
+      "cmd": "SELECT",
+      "qual": "vertice_connection_authorize(institution_id)",
+      "with_check": null
+    }
+  ],
+  "grants": [
+    {
+      "grantee": "postgres",
+      "table_name": "vertice_connection_records",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_name": "vertice_connection_records",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_name": "vertice_connection_records",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_name": "vertice_connection_records",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "postgres",
+      "table_name": "vertice_connection_records",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_name": "vertice_connection_records",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_name": "vertice_connection_records",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "service_role",
+      "table_name": "vertice_connection_records",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "service_role",
+      "table_name": "vertice_connection_records",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "table_name": "vertice_connection_records",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "service_role",
+      "table_name": "vertice_connection_records",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "service_role",
+      "table_name": "vertice_connection_records",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "service_role",
+      "table_name": "vertice_connection_records",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "table_name": "vertice_connection_records",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "authenticated",
+      "table_name": "vertice_connection_records",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_name": "vertice_data_connection_runs",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_name": "vertice_data_connection_runs",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_name": "vertice_data_connection_runs",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_name": "vertice_data_connection_runs",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "postgres",
+      "table_name": "vertice_data_connection_runs",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_name": "vertice_data_connection_runs",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_name": "vertice_data_connection_runs",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "service_role",
+      "table_name": "vertice_data_connection_runs",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "service_role",
+      "table_name": "vertice_data_connection_runs",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "table_name": "vertice_data_connection_runs",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "service_role",
+      "table_name": "vertice_data_connection_runs",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "service_role",
+      "table_name": "vertice_data_connection_runs",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "service_role",
+      "table_name": "vertice_data_connection_runs",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "table_name": "vertice_data_connection_runs",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "authenticated",
+      "table_name": "vertice_data_connection_runs",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_name": "vertice_data_connections",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_name": "vertice_data_connections",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_name": "vertice_data_connections",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_name": "vertice_data_connections",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "postgres",
+      "table_name": "vertice_data_connections",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_name": "vertice_data_connections",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_name": "vertice_data_connections",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "service_role",
+      "table_name": "vertice_data_connections",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "service_role",
+      "table_name": "vertice_data_connections",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "table_name": "vertice_data_connections",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "service_role",
+      "table_name": "vertice_data_connections",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "service_role",
+      "table_name": "vertice_data_connections",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "service_role",
+      "table_name": "vertice_data_connections",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "table_name": "vertice_data_connections",
+      "privilege_type": "TRIGGER"
+    }
+  ]
+}
