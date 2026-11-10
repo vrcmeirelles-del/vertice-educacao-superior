@@ -3,6 +3,7 @@ import {supabase} from "@/lib/supabase";
 import type {Role,Row} from "@/lib/area";
 import RosterUpload from "./RosterUpload";
 import ApiConnectorSetup from "./ApiConnectorSetup";
+import StudentNotifications from "./StudentNotifications";
 import "./learning-connected.css";
 
 type Metric={
@@ -118,6 +119,7 @@ export default function LearningConnected({institutionId,courses,role}:{
    </div>
    {canManage&&<RosterUpload institutionId={institutionId} courses={courses} role={role}/>}
    {canManage&&<ApiConnectorSetup institutionId={institutionId} role={role}/>}
+   {canManage&&<StudentNotifications institutionId={institutionId} role={role}/>}
    {loading&&<p role="status">Carregando indicadores com controle de acesso…</p>}
    {message&&<p role="status" className="learning-message">{message}</p>}
    <section className="learning-panel">
