@@ -72,7 +72,14 @@ reset role;
 do $$declare candidate text; expected boolean;
 begin
  foreach candidate in array array['gestor','reitor','diretor_geral','diretor_pedagogico','procurador','cpa','coordenador','nde','equipe','leitor'] loop
-  update public.vertice_memberships set role=candidate where user_id='aa000000-0000-4000-8000-000000000001';
+  begin
+   update public.vertice_memberships set role=candidate where user_id='aa000000-0000-4000-8000-000000000001';
+  exception when check_violation then
+   -- Unsupported roles must be rejected by the REAL foundation constraint.
+   -- Do not loosen that constraint to make a synthetic profile possible.
+   if candidate in ('gestor','equipe','leitor') then raise; end if;
+   continue;
+  end;
   perform set_config('request.jwt.claims','{"sub":"aa000000-0000-4000-8000-000000000001","aal":"aal2"}',true);
   expected:=candidate='gestor';
   set local role authenticated;

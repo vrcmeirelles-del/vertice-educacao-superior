@@ -19,8 +19,7 @@ try {
     const end = source.indexOf('$$;', start); assert(end >= 0);
     return source.slice(start, end + 3);
   }
-  await db.exec(`alter table public.vertice_institutions add column status text not null default 'ativa';
-  alter table public.vertice_memberships drop constraint vertice_memberships_role_check;`);
+  await db.exec(`alter table public.vertice_institutions add column status text not null default 'ativa';`);
   for (const [file, name] of [
     ['202610300001_area_real.sql','vertice_private.member_role'],
     ['202610300001_area_real.sql','vertice_private.has_role'],
