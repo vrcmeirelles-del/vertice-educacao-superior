@@ -1,0 +1,142 @@
+/* ============================================================
+   Vértice – CSS Variables White-Label
+   Adicionar/substituir no design system existente.
+   Todas as variáveis abaixo são sobrescritas pelo theme-provider
+   quando o gestor/equipe loga. Master mantém os defaults.
+   ============================================================ */
+
+:root {
+  /* ---------- Cores primárias (sobrescritas por theme-provider) ---------- */
+  --color-primary:        #1a56db;   /* azul Vértice */
+  --color-primary-hover:  #1648b8;
+  --color-primary-light:  #e8effc;
+  --color-primary-ring:   rgba(26, 86, 219, 0.2);
+
+  --color-secondary:      #1e293b;
+  --color-accent:         #f59e0b;
+
+  /* ---------- Sidebar ---------- */
+  --sidebar-bg:           #1e293b;
+  --sidebar-text:         #e2e8f0;
+  --sidebar-active-bg:    var(--color-primary);
+  --sidebar-active-text:  #ffffff;
+  --sidebar-hover-bg:     rgba(255, 255, 255, 0.06);
+
+  /* ---------- Header ---------- */
+  --header-bg:            #ffffff;
+  --header-border:        #e2e8f0;
+
+  /* ---------- Componentes genéricos ---------- */
+  --btn-primary-bg:       var(--color-primary);
+  --btn-primary-hover:    var(--color-primary-hover);
+  --btn-primary-text:     #ffffff;
+
+  --kpi-border-color:     var(--color-primary);
+  --tab-active-bg:        var(--color-primary);
+  --tab-active-text:      #ffffff;
+
+  --chart-color-1:        var(--color-primary);
+  --chart-color-2:        var(--color-accent);
+  --chart-color-3:        var(--color-secondary);
+  --chart-color-4:        #10b981;
+  --chart-color-5:        #8b5cf6;
+
+  /* ---------- Powered by ---------- */
+  --powered-by-display:   flex;
+}
+
+/* ---------- Elementos que referenciam as variáveis ---------- */
+
+.sidebar {
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
+}
+
+.sidebar .nav-item.active {
+  background: var(--sidebar-active-bg);
+  color: var(--sidebar-active-text);
+}
+
+.sidebar .nav-item:hover:not(.active) {
+  background: var(--sidebar-hover-bg);
+}
+
+.btn--primary {
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+}
+
+.btn--primary:hover {
+  background: var(--btn-primary-hover);
+}
+
+.kpi-card {
+  border-left-color: var(--kpi-border-color);
+}
+
+.tab-pill.active {
+  background: var(--tab-active-bg);
+  color: var(--tab-active-text);
+}
+
+/* Powered by Vértice — badge no rodapé */
+.powered-by-vertice {
+  display: var(--powered-by-display);
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  font-size: 11px;
+  color: #94a3b8;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+.powered-by-vertice img {
+  height: 16px;
+  opacity: 0.6;
+}
+
+/* ---------- Theme Editor ---------- */
+
+.theme-editor {
+  max-width: 560px;
+}
+
+.theme-editor__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 16px 0;
+}
+
+.theme-editor__color-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.theme-editor__color-row input[type="color"] {
+  width: 40px;
+  height: 40px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  cursor: pointer;
+  padding: 2px;
+}
+
+.theme-editor__color-row input[type="text"] {
+  font-family: monospace;
+  font-size: 14px;
+  width: 90px;
+}
+
+.theme-editor__logo-preview {
+  max-height: 48px;
+  margin-top: 8px;
+  border-radius: 4px;
+}
+
+.theme-editor__feedback {
+  color: #10b981;
+  font-size: 13px;
+  margin-left: 12px;
+}

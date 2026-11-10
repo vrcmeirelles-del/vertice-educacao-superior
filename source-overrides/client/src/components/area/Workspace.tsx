@@ -32,6 +32,7 @@ import ManagementReview from "./ManagementReview";
 import DocumentAI from "./DocumentAI";
 import OrganizationBase from "./OrganizationBase";
 import BrandingPanel from "./BrandingPanel";
+import {ThemeEditor} from "./ThemeEditor";
 import EmecPanel from "./EmecPanel";
 import {repositorySummary} from "@/lib/repository";
 import {listRepository} from "@/lib/repository-data";
@@ -582,6 +583,7 @@ function RegistryTab({ institution, role, courses, reload, onChanged }: { instit
       </div>
 
           <BrandingPanel institution={institution} canEdit={can.editInstitution(role)} onChanged={onChanged} />
+          {(role==='master'||role==='gestor') && <ThemeEditor institutionId={String(institution.id)} isMaster={role==='master'} />}
 
       <div className="area-panel">
         <div className="area-panel-head">

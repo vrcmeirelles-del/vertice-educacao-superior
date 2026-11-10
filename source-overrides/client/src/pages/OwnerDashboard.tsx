@@ -1,3 +1,4 @@
+import {applyInstitutionTheme, resetToVerticeTheme} from '@/lib/theme-provider';
 import ShowcaseClientsAdmin from '@/components/ShowcaseClients';
 import {MasterDirectory, MasterInvitationGate} from '@/components/area/MasterAccess';
 import {storeActionDraft} from "@/lib/portal-integration";
@@ -304,7 +305,16 @@ export default function OwnerDashboard(){
   }catch{setError('Não foi possível consultar os dados protegidos. Tente novamente.');}
   finally{setLoading(false);}
  }
- useEffect(()=>{load(); const {data}=supabase.auth.onAuthStateChange((event,current)=>{if(event==='SIGNED_OUT'){setSession(current);setInstitutions([]);setCourses([]);setMembers([]);setEnrollments([]);setReports([]);setMaster(false);setCaptacaoInstitutionId('');}});return()=>data.subscription.unsubscribe();},[]);
+ useEffect(()=>{load(); const {data}=supabase.auth.onAuthStateChange((event,current)=>{if(event==='SIGNED_OUT'){setSession(current);setInstitutions([]);setCourses([]);setMembers([]);setEnrollments([]);setReports([]);setMaster(false);setCaptacaoInstitutionId('');resetToVerticeTheme();}});return()=>data.subscription.unsubscribe();},[]);
+ // White-label: aplicar tema da IES para não-master
+ useEffect(()=>{
+  if(master||!institutions.length||!session)return;
+  const myMembership=members.find(m=>m.user_id===session.user.id);
+  const instId=route.inst||myMembership?.institution_id||institutions[0]?.id;
+  if(instId)applyInstitutionTheme(instId);
+  else resetToVerticeTheme();
+  return()=>resetToVerticeTheme();
+ },[master,institutions,members,session,route.inst]);
  async function enroll(){setBusy(true);setError('');try{
   const {data:existing,error:listError}=await supabase.auth.mfa.listFactors();if(listError)throw listError;
   const pending=existing.all.find(f=>f.factor_type==='totp' && f.status==='unverified');
