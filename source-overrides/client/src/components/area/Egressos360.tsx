@@ -174,12 +174,7 @@ export default function Egressos360({ institutionId, courses, role }: Props) {
             <KpiCard label="Cursos com Egressos" value={byCourse.length} color="var(--vx-info, #7c3aed)" />
           </div>
 
-          {!loading && byCourse.length === 0 && (
-            <div className="alumni-empty">
-              <p>Nenhum egresso cadastrado ainda.</p>
-              <p>Use a aba <strong>Importação</strong> para carregar uma base CSV ou XLSX.</p>
-            </div>
-          )}
+          {!loading && byCourse.length === 0 && <DerivedEgressos institutionId={institutionId} />}
 
           {byCourse.length > 0 && (
             <div className="alumni-table-wrapper">
@@ -323,6 +318,68 @@ export default function Egressos360({ institutionId, courses, role }: Props) {
 }
 
 /* ── Componentes auxiliares ── */
+
+// ─── Dados derivados quando não há perfis nominais cadastrados ───
+function DerivedEgressos({ institutionId }: { institutionId: string }) {
+  const [resumo, setResumo] = useState<any>(null);
+  const [historico, setHistorico] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    Promise.all([
+      supabase.from('v_egressos_resumo').select('*').eq('institution_id', institutionId).maybeSingle(),
+      supabase.from('v_egressos_historico').select('*').eq('institution_id', institutionId).order('semestre', { ascending: false }).limit(100),
+    ]).then(([r, h]) => {
+      if (r.data) setResumo(r.data);
+      if (h.data) setHistorico(h.data);
+      setLoading(false);
+    });
+  }, [institutionId]);
+
+  if (loading) return <p className="alumni-loading">Carregando indicadores de egressos…</p>;
+  if (!resumo || resumo.total_concluidos === 0) return (
+    <div className="alumni-empty">
+      <p>Nenhum dado de egressos disponível para esta instituição.</p>
+      <p>Use a aba <strong>Importação</strong> para carregar uma base CSV/XLSX, ou conecte o sistema acadêmico da IES.</p>
+    </div>
+  );
+
+  // Agrupar por curso
+  const byCourse = new Map<string, { name: string; total: number; semestres: number }>();
+  for (const r of historico) {
+    const key = r.course_name || 'Sem curso';
+    const prev = byCourse.get(key) || { name: key, total: 0, semestres: 0 };
+    prev.total += r.concluidos;
+    prev.semestres += 1;
+    byCourse.set(key, prev);
+  }
+  const sorted = [...byCourse.entries()].sort((a, b) => b[1].total - a[1].total);
+
+  return (
+    <div className="alumni-derived">
+      <div className="alumni-derived-note">
+        <strong>📊 Indicadores derivados do histórico acadêmico</strong>
+        <p>Dados reais extraídos dos registros de conclusão por curso/semestre. Para acompanhamento nominal (contato, empregabilidade, pesquisas), importe a base de egressos via CSV ou conecte o sistema acadêmico.</p>
+      </div>
+      <div className="alumni-kpis">
+        <KpiCard label="Total de Concluintes" value={resumo.total_concluidos} color="var(--vx-accent, #2563eb)" />
+        <KpiCard label="Cursos com Concluintes" value={resumo.cursos_com_concluintes} color="var(--vx-info, #7c3aed)" />
+        <KpiCard label="Série Histórica" value={resumo.semestres_com_dados} color="var(--vx-success, #16a34a)" />
+        <KpiCard label="Período" value={0} color="var(--vx-warning, #d97706)" />
+      </div>
+      <p className="alumni-derived-period">{resumo.primeiro_semestre} a {resumo.ultimo_semestre}</p>
+      <div className="alumni-table-wrapper">
+        <table className="alumni-table">
+          <thead><tr><th>Curso</th><th style={{textAlign:'right'}}>Concluintes</th><th style={{textAlign:'right'}}>Semestres</th></tr></thead>
+          <tbody>
+            {sorted.map(([key, d]) => (
+              <tr key={key}><td>{d.name}</td><td style={{textAlign:'right'}}>{d.total.toLocaleString('pt-BR')}</td><td style={{textAlign:'right'}}>{d.semestres}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
 
 function KpiCard({ label, value, pct, color }: { label: string; value: number; pct?: number; color: string }) {
   return (
