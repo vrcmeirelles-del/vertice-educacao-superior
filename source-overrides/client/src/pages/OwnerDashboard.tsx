@@ -414,8 +414,8 @@ export default function OwnerDashboard(){
       const openInstrument=()=>{const p=new URLSearchParams({instituicao:i.id,aba:'novo_instrumento'});window.history.pushState(null,'','#'+p.toString());window.dispatchEvent(new HashChangeEvent('hashchange'));window.scrollTo({top:0});};
       return <article className="vx-inst-card" key={i.id}>
        <div className="vx-inst-card-heading">
-        <span className="vx-inst-building" aria-hidden="true">▥</span>
-        <div className="vx-inst-identity"><h3>{i.name}</h3><p>{String((i as unknown as Row).acronym??'Instituição de ensino superior')} · {ROLE_LABEL[roleIn(i.id)??'leitor']}</p></div>
+        <span className="vx-inst-building" aria-hidden="true">{(i as any).tier==='escolas'?'🏫':'🏛️'}</span>
+        <div className="vx-inst-identity"><h3>{i.name}</h3><p>{String((i as unknown as Row).acronym??((i as any).tier==='escolas'?'Escola':'Instituição de ensino superior'))} · <span style={{padding:'1px 6px',borderRadius:8,fontSize:10,fontWeight:700,background:(i as any).tier==='escolas'?'#ede9fe':'#dbeafe',color:(i as any).tier==='escolas'?'#7c3aed':'#2563eb'}}>{(i as any).tier==='escolas'?'Escola':'IES'}</span> · {ROLE_LABEL[roleIn(i.id)??'leitor']}</p></div>
         {((i as unknown as Row).status==='arquivada')&&<span className="vx-inst-archived">Arquivada</span>}
        </div>
        <div className="vx-inst-indicators">
