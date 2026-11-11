@@ -357,16 +357,15 @@ function DerivedEgressos({ institutionId }: { institutionId: string }) {
   return (
     <div className="alumni-derived">
       <div className="alumni-derived-note">
-        <strong>📊 Indicadores derivados do histórico acadêmico</strong>
-        <p>Dados reais extraídos dos registros de conclusão por curso/semestre. Para acompanhamento nominal (contato, empregabilidade, pesquisas), importe a base de egressos via CSV ou conecte o sistema acadêmico.</p>
+        <strong>Concluintes por curso e semestre</strong> — dados do sistema acadêmico da IES.
+        Para acompanhamento individual (contato, empregabilidade, pesquisas), importe a base nominal via CSV ou conecte a API.
       </div>
       <div className="alumni-kpis">
         <KpiCard label="Total de Concluintes" value={resumo.total_concluidos} color="var(--vx-accent, #2563eb)" />
         <KpiCard label="Cursos com Concluintes" value={resumo.cursos_com_concluintes} color="var(--vx-info, #7c3aed)" />
-        <KpiCard label="Série Histórica" value={resumo.semestres_com_dados} color="var(--vx-success, #16a34a)" />
-        <KpiCard label="Período" value={0} color="var(--vx-warning, #d97706)" />
+        <KpiCard label="Semestres com Dados" value={resumo.semestres_com_dados} color="var(--vx-success, #16a34a)" />
       </div>
-      <p className="alumni-derived-period">{resumo.primeiro_semestre} a {resumo.ultimo_semestre}</p>
+      <p className="alumni-derived-period">Período: <strong>{resumo.primeiro_semestre}</strong> a <strong>{resumo.ultimo_semestre}</strong> · {resumo.semestres_com_dados} semestres</p>
       <div className="alumni-table-wrapper">
         <table className="alumni-table">
           <thead><tr><th>Curso</th><th style={{textAlign:'right'}}>Concluintes</th><th style={{textAlign:'right'}}>Semestres</th></tr></thead>
