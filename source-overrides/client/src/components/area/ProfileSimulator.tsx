@@ -45,6 +45,7 @@ const TAB_LABELS: Record<Tab, string> = {
   conta: "Minha Conta",
   "escola-enem": "ENEM & Vestibular",
   "escola-egressos": "Egressos Escolar",
+  "integracao-ies": "Configurar Integração",
 };
 
 const ALL_TABS: Tab[] = [

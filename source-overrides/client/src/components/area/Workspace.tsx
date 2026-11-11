@@ -59,6 +59,7 @@ import ContractView from "./ContractView";
 import MinhaConta from "./MinhaConta";
 import ModuleManager from "./ModuleManager";
 import ModuleCatalogShowcase from "./ModuleCatalogShowcase";
+import IntegrationSettings from "./IntegrationSettings";
 import ModulePreview from "./ModulePreview";
 import { getActiveTabs, isTabActive, getModuleCatalog, findModuleByTab, type CatalogModule } from "@/lib/modules";
 import ModuleOffer from "./ModuleOffer";
@@ -77,7 +78,7 @@ const TAB_GROUPS: {label:string;subtitle:string;icon:string;tabs:Tab[];tier?:'su
   {label:'ENEM & Vestibular',subtitle:'Simulados, desempenho por área e metas',icon:'🎯',tabs:['escola-enem'],tier:'escolas'},
   {label:'Egressos Escolar',subtitle:'Destino pós-escola e aprovações',icon:'🎓',tabs:['escola-egressos'],tier:'escolas'},
   {label:'Documentos',subtitle:'Gestão documental e análise por IA',icon:'📄',tabs:['documentos'],tier:'both'},
-  {label:'Integrações',subtitle:'Saúde dos dados e sincronizações',icon:'⇄',tabs:['sync'],tier:'both'},
+  {label:'Integrações',subtitle:'Saúde dos dados e sincronizações',icon:'⇄',tabs:['sync','integracao-ies'],tier:'both'},
   {label:'Financeiro',subtitle:'Contratos, faturamento e receita',icon:'💰',tabs:['conta','contrato','billing','modulos','catalogo']},
 ];
 
@@ -117,6 +118,7 @@ const TAB_DETAILS: Partial<Record<Tab,{icon:string;description:string}>> = {
   contrato:{icon:'📜',description:'Termos, cláusulas e assinatura digital'},
   modulos:{icon:'⚙',description:'Ativar e desativar módulos por IES'},
   catalogo:{icon:'🛒',description:'Vitrine de módulos com preços e degustação'},
+  'integracao-ies':{icon:'🔑',description:'Chave de API, dados autorizados e frequência de sincronização'},
   billing:{icon:'💰',description:'Contratos, faturas, MRR e pacotes comerciais'},
   'escola-enem':{icon:'🎯',description:'Histórico ENEM, simulados, competências, metas e ranking'},
   'escola-egressos':{icon:'🎓',description:'Para onde seus alunos foram: universidade, técnico, mercado'},
@@ -157,6 +159,7 @@ const TABS: [Tab, string][] = [
   ["contrato", "Meu Contrato"],
   ["modulos", "Gerenciar Módulos"],
   ["catalogo", "Catálogo de Módulos"],
+  ["integracao-ies", "Configurar Integração"],
   ["billing", "Painel Financeiro"],
   ["escola-enem", "ENEM 360°"],
   ["escola-egressos", "Egressos Escolar"],
@@ -455,6 +458,8 @@ export default function Workspace({
         role === 'master' ? <ModuleManager /> : <p>Gerenciamento de módulos restrito ao administrador da plataforma.</p>
       ) : tab === "catalogo" ? (
         <ModuleCatalogShowcase institutionId={id} institutionTier={String((institution as any).tier || 'superior')} isMaster={role === 'master'} onActivated={() => { reloadModules(); }} />
+      ) : tab === "integracao-ies" ? (
+        <IntegrationSettings institutionId={id} institutionName={String(institution.name)} role={role || 'master'} />
       ) : tab === "contrato" ? (
         <ContractView institutionId={id} institutionName={String(institution.name)} role={role||'master'} />
       ) : tab === "billing" ? (
