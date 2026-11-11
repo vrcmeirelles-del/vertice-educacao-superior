@@ -51,6 +51,7 @@ import Inclusao360 from "./Inclusao360";
 import AcompanhamentoEspecial360 from "./AcompanhamentoEspecial360";
 import SyncHealth from "./SyncHealth";
 import Aquisicoes360 from "./Aquisicoes360";
+import BillingPanel from "./BillingPanel";
 import ModulePreview from "./ModulePreview";
 import { getActiveTabs, isTabActive, getModuleCatalog, findModuleByTab, type CatalogModule } from "@/lib/modules";
 import ModuleOffer from "./ModuleOffer";
@@ -67,6 +68,7 @@ const TAB_GROUPS: {label:string;subtitle:string;icon:string;tabs:Tab[]}[] = [
   {label:'Acompanhamento',subtitle:'Inclusão, PEI e regimes especiais',icon:'♿',tabs:['inclusao','acompanhamento-especial']},
   {label:'Aquisições',subtitle:'Compras, fornecedores e ordens',icon:'🛒',tabs:['aquisicoes']},
   {label:'Integrações',subtitle:'Saúde dos dados e sincronizações',icon:'⇄',tabs:['sync']},
+  {label:'Financeiro',subtitle:'Contratos, faturamento e receita',icon:'💰',tabs:['billing']},
 ];
 
 const TAB_DETAILS: Partial<Record<Tab,{icon:string;description:string}>> = {
@@ -101,6 +103,7 @@ const TAB_DETAILS: Partial<Record<Tab,{icon:string;description:string}>> = {
   inclusao:{icon:'♿',description:'Inclusão, PEI, acessibilidade e Núcleo de Apoio'},
   'acompanhamento-especial':{icon:'📋',description:'Regimes especiais, exercícios domiciliares e planos acadêmicos'},
   aquisicoes:{icon:'🛒',description:'Gestão de compras, fornecedores e ordens'},
+  billing:{icon:'💰',description:'Contratos, faturas, MRR e pacotes comerciais'},
   sync:{icon:'⇄',description:'Central de Sincronização e Integrações'},
 };
 
@@ -133,6 +136,7 @@ const TABS: [Tab, string][] = [
   ["inclusao", "Inclusão 360° · PEI"],
   ["acompanhamento-especial", "Acompanhamento Especial 360°"],
   ["aquisicoes", "Aquisições 360°"],
+  ["billing", "Painel Financeiro"],
   ["sync", "Central de Sincronização"],
   ["plano", "Plano de ação 5W2H"],
   ["diagnostico", "Diagnóstico"],
@@ -419,6 +423,8 @@ export default function Workspace({
             <Aquisicoes360 institutionId={id} role={role || 'master'} />
           </ModulePreview>;
         })()
+      ) : tab === "billing" ? (
+        role === 'master' ? <BillingPanel /> : <p>Painel financeiro restrito ao administrador da plataforma.</p>
       ) : tab === "sync" ? (
         <SyncHealth institutionId={id} />
       ) : tab === "biblioteca" ? (
