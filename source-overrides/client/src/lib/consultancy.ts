@@ -179,6 +179,7 @@ export const publicPages = [
     title: "Aquisições e incorporações | Vértice Educação Superior",
     description: "Due diligence de instituições de ensino: evidências, riscos regulatórios, análise econômico-financeira e acompanhamento da operação de compra ou venda.",
   },
+  {path:"/plataforma-ies", title:"Plataforma para IES | Vértice Educação Superior", description:"Gestão integrada para sua IES: BI, regulação, governança, egressos, captação e 24 módulos ativáveis. 90 dias grátis. Conecta a qualquer sistema acadêmico."},
   {path:"/reitor", title:"Calculadora de EBITDA para a Direção | Vértice Educação Superior", description:"Calcule EBITDA e margem da instituição, detalhe receitas e custos e registre a DRE em área reservada, sem IA paga."},
   {
     path: "/",

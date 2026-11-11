@@ -11,6 +11,7 @@ import About from "./pages/public/About";
 import Founder from "./pages/public/Founder";
 import CaseStudy from "./pages/public/CaseStudy";
 import Reitor from "./pages/public/Reitor";
+import PlataformaIES from "./pages/public/PlataformaIES";
 import Guide from "./pages/public/Guide";
 import Contact from "./pages/public/Contact";
 import Login from "./pages/public/Login";
@@ -33,6 +34,7 @@ export const publicComponents: Record<string, React.ComponentType> = {
   "/caso-real": CaseStudy,
   "/guia": Guide,
   "/reitor": Reitor,
+  "/plataforma-ies": PlataformaIES,
   "/contato": Contact,
   "/privacidade": Privacy,
 };

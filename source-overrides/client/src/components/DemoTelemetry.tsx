@@ -1,7 +1,7 @@
 import {useEffect} from 'react';
 import {useLocation} from 'wouter';
 import {demoEvent,hasDemoSession,updateDemo} from '@/lib/commercial-demo';
-const allowed=new Set(['/','/demonstracao','/servicos','/aquisicoes','/metodo','/caso-real','/fundador','/contato','/reitor','/guia']);
+const allowed=new Set(['/','/demonstracao','/servicos','/aquisicoes','/metodo','/caso-real','/fundador','/contato','/reitor','/guia','/plataforma-ies']);
 export default function DemoTelemetry(){
  const [location]=useLocation();
  useEffect(()=>{const page=location.split('?')[0].replace(/\.html$/,'').replace(/\/$/,'')||'/';if(!allowed.has(page))return;
