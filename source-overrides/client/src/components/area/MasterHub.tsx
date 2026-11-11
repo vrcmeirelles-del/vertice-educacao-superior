@@ -2,8 +2,10 @@
  * MasterHub.tsx — Painel master de primeiro nível
  * Hub que separa Universidades, Escolas, Financeiro e BI Vértice
  */
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, type FormEvent } from 'react';
 import { supabase } from '@/lib/supabase';
+import { experienceApi, type ExperienceInvite, type ExperienceRole } from '@/lib/experience-access';
+import type { DemoInstitutionMode } from '@/lib/demo-showroom';
 
 interface Props {
   onNavigate: (destination: 'universidades' | 'escolas' | 'financeiro' | 'bi-vertice' | 'configuracoes' | 'institution', institutionId?: string) => void;
@@ -38,6 +40,19 @@ export default function MasterHub({ onNavigate }: Props) {
   const [recentIes, setRecentIes] = useState<Institution[]>([]);
   const [recentEscolas, setRecentEscolas] = useState<Institution[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Convites demonstrativos
+  const [showInvite, setShowInvite] = useState(false);
+  const [invEmail, setInvEmail] = useState('');
+  const [invName, setInvName] = useState('');
+  const [invTier, setInvTier] = useState<'faculdade' | 'escola'>('faculdade');
+  const [invDays, setInvDays] = useState(15);
+  const [invRole, setInvRole] = useState<ExperienceRole>('reitor');
+  const [invLink, setInvLink] = useState('');
+  const [invBusy, setInvBusy] = useState(false);
+  const [invError, setInvError] = useState('');
+  const [invNotice, setInvNotice] = useState('');
+  const [invites, setInvites] = useState<ExperienceInvite[]>([]);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -91,7 +106,57 @@ export default function MasterHub({ onNavigate }: Props) {
     setLoading(false);
   }, []);
 
-  useEffect(() => { loadData(); }, [loadData]);
+  useEffect(() => { loadData(); loadInvites(); }, [loadData]);
+
+  const apiCall = useCallback(async (action: string, data: Record<string, unknown> = {}) => {
+    const { data: session } = await supabase.auth.getSession();
+    if (!session.session?.access_token) throw new Error('Sessão não disponível');
+    return experienceApi(action, data, session.session.access_token);
+  }, []);
+
+  async function loadInvites() {
+    try {
+      const data = await apiCall('admin:list');
+      setInvites((data.invitations ?? []) as ExperienceInvite[]);
+    } catch { /* silently fail if not master MFA */ }
+  }
+
+  async function createInvite(e: FormEvent) {
+    e.preventDefault();
+    setInvBusy(true); setInvError(''); setInvLink(''); setInvNotice('');
+    try {
+      const hours = invDays * 24;
+      const mode: DemoInstitutionMode = invTier === 'escola' ? 'escola' : 'faculdade';
+      const role = invTier === 'escola' ? 'diretor_escola' as ExperienceRole : invRole;
+      const result = await apiCall('admin:create', {
+        email: invEmail.trim().toLowerCase(),
+        name: invName.trim(),
+        mode, role, hours,
+      });
+      setInvLink(result.link);
+      setInvNotice(`Convite criado para ${invName.trim()} (${invDays} dias). Copie o link e envie por e-mail.`);
+      setInvEmail(''); setInvName('');
+      await loadInvites();
+    } catch (err: any) {
+      setInvError(err.message);
+    } finally {
+      setInvBusy(false);
+    }
+  }
+
+  async function revokeInvite(id: string, email: string) {
+    if (!window.confirm(`Revogar convite de ${email}?`)) return;
+    try {
+      await apiCall('admin:revoke', { id });
+      await loadInvites();
+    } catch (err: any) {
+      setInvError(err.message);
+    }
+  }
+
+  async function copyLink() {
+    try { await navigator.clipboard.writeText(invLink); setInvNotice('Link copiado!'); } catch { }
+  }
 
   const HubCard = ({ icon, title, subtitle, color, badge, onClick }: {
     icon: string; title: string; subtitle: string; color: string; badge?: string; onClick: () => void;
@@ -207,6 +272,145 @@ export default function MasterHub({ onNavigate }: Props) {
           subtitle="Módulos, usuários, integrações, termos contratuais e catálogo da plataforma."
           onClick={() => onNavigate('configuracoes')}
         />
+      </div>
+
+      {/* ── Convites Demonstrativos ── */}
+      <div style={{ marginBottom: 28, background: 'var(--bg-card, #fff)', borderRadius: 12, padding: '20px 24px', boxShadow: '0 2px 8px rgba(0,0,0,.06)', borderLeft: '5px solid #d97706' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: showInvite ? 16 : 0 }}>
+          <div>
+            <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#1a1a2e' }}>🎟️ Convites Demonstrativos</h3>
+            <p style={{ margin: '4px 0 0', fontSize: 13, color: '#666' }}>
+              Envie um link para a IES ou escola explorar a plataforma completa por tempo limitado.
+              {invites.filter(i => !i.revoked_at && new Date(i.expires_at) > new Date()).length > 0 &&
+                <span style={{ marginLeft: 8, padding: '2px 8px', background: '#fef3c7', color: '#b45309', borderRadius: 6, fontSize: 11, fontWeight: 700 }}>
+                  {invites.filter(i => !i.revoked_at && new Date(i.expires_at) > new Date()).length} ativo(s)
+                </span>
+              }
+            </p>
+          </div>
+          <button onClick={() => setShowInvite(!showInvite)} style={{
+            padding: '8px 18px', background: showInvite ? '#f1f5f9' : '#d97706', color: showInvite ? '#475569' : '#fff',
+            border: 'none', borderRadius: 8, fontWeight: 600, fontSize: 13, cursor: 'pointer',
+          }}>
+            {showInvite ? 'Fechar' : '+ Novo convite'}
+          </button>
+        </div>
+
+        {showInvite && (
+          <div>
+            <form onSubmit={createInvite} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
+              <label style={{ fontSize: 13, fontWeight: 600, color: '#374151' }}>
+                Nome do destinatário
+                <input type="text" required value={invName} onChange={e => setInvName(e.target.value)}
+                  placeholder="Ex: Prof. João Silva"
+                  style={{ display: 'block', width: '100%', marginTop: 4, padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }} />
+              </label>
+              <label style={{ fontSize: 13, fontWeight: 600, color: '#374151' }}>
+                E-mail
+                <input type="email" required value={invEmail} onChange={e => setInvEmail(e.target.value)}
+                  placeholder="joao@instituicao.edu.br"
+                  style={{ display: 'block', width: '100%', marginTop: 4, padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }} />
+              </label>
+              <label style={{ fontSize: 13, fontWeight: 600, color: '#374151' }}>
+                Tipo de instituição
+                <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                  <button type="button" onClick={() => { setInvTier('faculdade'); setInvRole('reitor'); }}
+                    style={{ flex: 1, padding: '8px 12px', border: `2px solid ${invTier === 'faculdade' ? '#2563eb' : '#e2e8f0'}`, borderRadius: 8, background: invTier === 'faculdade' ? '#eff6ff' : '#fff', cursor: 'pointer', fontWeight: 600, fontSize: 13, color: invTier === 'faculdade' ? '#2563eb' : '#64748b' }}>
+                    🏛️ Faculdade
+                  </button>
+                  <button type="button" onClick={() => { setInvTier('escola'); setInvRole('diretor_escola'); }}
+                    style={{ flex: 1, padding: '8px 12px', border: `2px solid ${invTier === 'escola' ? '#7c3aed' : '#e2e8f0'}`, borderRadius: 8, background: invTier === 'escola' ? '#f5f3ff' : '#fff', cursor: 'pointer', fontWeight: 600, fontSize: 13, color: invTier === 'escola' ? '#7c3aed' : '#64748b' }}>
+                    🏫 Escola
+                  </button>
+                </div>
+              </label>
+              <label style={{ fontSize: 13, fontWeight: 600, color: '#374151' }}>
+                Prazo de acesso
+                <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
+                  {[7, 15, 30].map(d => (
+                    <button key={d} type="button" onClick={() => setInvDays(d)}
+                      style={{ flex: 1, padding: '8px 10px', border: `2px solid ${invDays === d ? '#d97706' : '#e2e8f0'}`, borderRadius: 8, background: invDays === d ? '#fffbeb' : '#fff', cursor: 'pointer', fontWeight: 600, fontSize: 13, color: invDays === d ? '#d97706' : '#64748b' }}>
+                      {d} dias
+                    </button>
+                  ))}
+                </div>
+              </label>
+              {invTier === 'faculdade' && (
+                <label style={{ fontSize: 13, fontWeight: 600, color: '#374151', gridColumn: '1 / -1' }}>
+                  Perfil de acesso
+                  <select value={invRole} onChange={e => setInvRole(e.target.value as ExperienceRole)}
+                    style={{ display: 'block', width: '100%', marginTop: 4, padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14 }}>
+                    <option value="reitor">Direção / Mantenedor (acesso total)</option>
+                    <option value="coordenador">Coordenador de Curso</option>
+                  </select>
+                </label>
+              )}
+              <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 12, alignItems: 'center' }}>
+                <button type="submit" disabled={invBusy}
+                  style={{ padding: '10px 24px', background: '#d97706', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: 14, cursor: 'pointer', opacity: invBusy ? .6 : 1 }}>
+                  {invBusy ? 'Gerando...' : 'Gerar link de acesso'}
+                </button>
+                <span style={{ fontSize: 12, color: '#94a3b8' }}>
+                  O destinatário terá acesso completo à plataforma demo por {invDays} dias. Cada clique em módulo add-on mostra aviso de contratação separada.
+                </span>
+              </div>
+            </form>
+
+            {invError && <div style={{ padding: '10px 14px', background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: 8, color: '#991b1b', fontSize: 13, marginBottom: 12 }}>⚠ {invError}</div>}
+            {invNotice && <div style={{ padding: '10px 14px', background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 8, color: '#166534', fontSize: 13, marginBottom: 12 }}>✅ {invNotice}</div>}
+
+            {invLink && (
+              <div style={{ padding: '12px 16px', background: '#fffbeb', border: '1px solid #fbbf24', borderRadius: 8, marginBottom: 12 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#92400e', marginBottom: 6 }}>🔗 Link gerado (envie por e-mail)</div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <input readOnly value={invLink} style={{ flex: 1, padding: '6px 10px', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 12, fontFamily: 'monospace' }} />
+                  <button onClick={copyLink} style={{ padding: '6px 14px', background: '#d97706', color: '#fff', border: 'none', borderRadius: 6, fontWeight: 600, fontSize: 12, cursor: 'pointer' }}>Copiar</button>
+                </div>
+              </div>
+            )}
+
+            {/* Convites ativos */}
+            {invites.length > 0 && (
+              <div>
+                <h4 style={{ margin: '16px 0 8px', fontSize: 13, fontWeight: 700, color: '#475569' }}>Convites recentes</h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  {invites.slice(0, 10).map(inv => {
+                    const expired = new Date(inv.expires_at) < new Date();
+                    const revoked = !!inv.revoked_at;
+                    const active = !expired && !revoked;
+                    return (
+                      <div key={inv.id} style={{
+                        display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px',
+                        background: active ? '#f0fdf4' : '#f9fafb', border: `1px solid ${active ? '#86efac' : '#e5e7eb'}`,
+                        borderRadius: 8, fontSize: 13,
+                      }}>
+                        <span>{inv.institution_type === 'escola' ? '🏫' : '🏛️'}</span>
+                        <div style={{ flex: 1 }}>
+                          <strong>{inv.recipient_name}</strong>
+                          <span style={{ color: '#94a3b8', marginLeft: 6 }}>{inv.target_email}</span>
+                        </div>
+                        <span style={{ fontSize: 11, color: '#94a3b8' }}>{inv.opens} abertura(s)</span>
+                        <span style={{
+                          fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 6,
+                          background: active ? '#dcfce7' : revoked ? '#fef2f2' : '#f1f5f9',
+                          color: active ? '#15803d' : revoked ? '#991b1b' : '#64748b',
+                        }}>
+                          {active ? `Ativo (${Math.ceil((new Date(inv.expires_at).getTime() - Date.now()) / 86400000)}d)` : revoked ? 'Revogado' : 'Expirado'}
+                        </span>
+                        {active && (
+                          <button onClick={() => revokeInvite(inv.id, inv.target_email)}
+                            style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>
+                            Revogar
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Acesso rápido a instituições */}
