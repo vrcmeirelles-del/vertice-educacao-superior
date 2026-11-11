@@ -1,0 +1,318 @@
+import { useCallback, useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
+import "./acompanhamento-especial360.css";
+
+interface SpecialCase { id:string; institution_id:string; student_name:string; enrollment_id?:string; course_id?:string; category_id?:string; status:string; opened_at:string; notes?:string; }
+interface SpecialRequest { id:string; case_id:string; institution_id:string; regime_type:string; legal_basis?:string; start_date?:string; end_date?:string; description:string; status:string; created_at:string; }
+interface SpecialDecision { id:string; request_id:string; institution_id:string; decision:string; decided_by?:string; decided_at:string; justification?:string; conditions?:string; }
+interface SpecialPlan { id:string; case_id:string; institution_id:string; plan_type:string; status:string; objectives?:string; start_date?:string; end_date?:string; coordinator_name?:string; created_at:string; }
+interface Category { id:string; institution_id:string; name:string; description?:string; legal_basis?:string; requires_documentation:boolean; }
+
+type View = 'casos'|'requerimentos'|'planos'|'indicadores';
+interface Props { institutionId:string; role:string; }
+
+export default function AcompanhamentoEspecial360({institutionId,role}:Props) {
+  const [view,setView] = useState<View>('casos');
+  const [cases,setCases] = useState<SpecialCase[]>([]);
+  const [requests,setRequests] = useState<SpecialRequest[]>([]);
+  const [decisions,setDecisions] = useState<SpecialDecision[]>([]);
+  const [plans,setPlans] = useState<SpecialPlan[]>([]);
+  const [categories,setCategories] = useState<Category[]>([]);
+  const [loading,setLoading] = useState(true);
+  const [showForm,setShowForm] = useState<'case'|'request'|'decision'|'plan'|'category'|null>(null);
+
+  const [formCase,setFormCase] = useState({student_name:'',enrollment_id:'',category_id:'',notes:''});
+  const [formReq,setFormReq] = useState({case_id:'',regime_type:'exercicio_domiciliar',legal_basis:'',start_date:'',end_date:'',description:''});
+  const [formDecision,setFormDecision] = useState({request_id:'',decision:'deferido',justification:'',conditions:'',decided_by:''});
+  const [formPlan,setFormPlan] = useState({case_id:'',plan_type:'plano_academico_especial',objectives:'',coordinator_name:'',start_date:'',end_date:''});
+  const [formCat,setFormCat] = useState({name:'',description:'',legal_basis:'',requires_documentation:true});
+
+  const load = useCallback(async ()=>{
+    setLoading(true);
+    const [c,r,d,p,cat] = await Promise.all([
+      supabase.from('student_special_cases').select('*').eq('institution_id',institutionId).order('opened_at',{ascending:false}),
+      supabase.from('student_special_requests').select('*').eq('institution_id',institutionId).order('created_at',{ascending:false}),
+      supabase.from('student_special_decisions').select('*').eq('institution_id',institutionId).order('decided_at',{ascending:false}),
+      supabase.from('student_special_plans').select('*').eq('institution_id',institutionId).order('created_at',{ascending:false}),
+      supabase.from('student_special_categories').select('*').eq('institution_id',institutionId).order('name'),
+    ]);
+    if(c.data) setCases(c.data);
+    if(r.data) setRequests(r.data);
+    if(d.data) setDecisions(d.data);
+    if(p.data) setPlans(p.data);
+    if(cat.data) setCategories(cat.data);
+    setLoading(false);
+  },[institutionId]);
+
+  useEffect(()=>{load()},[load]);
+
+  const regimeTypes = [
+    {v:'exercicio_domiciliar',l:'Exercício domiciliar'},{v:'regime_especial',l:'Regime especial'},{v:'abono_faltas',l:'Abono de faltas'},
+    {v:'prorrogacao_prazo',l:'Prorrogação de prazo'},{v:'avaliacao_substitutiva',l:'Avaliação substitutiva'},{v:'adaptacao_horario',l:'Adaptação de horário'},
+    {v:'trancamento_parcial',l:'Trancamento parcial de disciplinas'},{v:'outro',l:'Outro'},
+  ];
+  const defaultCategories = [
+    'Gestação','Lactação','Acidente','Recuperação pós-operatória','Tratamento de saúde','Condição temporária de saúde','Condição de saúde mental','Internação','Outro'
+  ];
+
+  const saveCase = async ()=>{
+    await supabase.from('student_special_cases').insert({institution_id:institutionId,student_name:formCase.student_name,enrollment_id:formCase.enrollment_id||null,category_id:formCase.category_id||null,status:'aberto',opened_at:new Date().toISOString(),notes:formCase.notes||null});
+    setShowForm(null);load();
+  };
+  const saveRequest = async ()=>{
+    await supabase.from('student_special_requests').insert({institution_id:institutionId,case_id:formReq.case_id,regime_type:formReq.regime_type,legal_basis:formReq.legal_basis||null,start_date:formReq.start_date||null,end_date:formReq.end_date||null,description:formReq.description,status:'protocolo'});
+    setShowForm(null);load();
+  };
+  const saveDecision = async ()=>{
+    await supabase.from('student_special_decisions').insert({institution_id:institutionId,request_id:formDecision.request_id,decision:formDecision.decision,justification:formDecision.justification||null,conditions:formDecision.conditions||null,decided_by:formDecision.decided_by||null,decided_at:new Date().toISOString()});
+    setShowForm(null);load();
+  };
+  const savePlan = async ()=>{
+    await supabase.from('student_special_plans').insert({institution_id:institutionId,case_id:formPlan.case_id,plan_type:formPlan.plan_type,objectives:formPlan.objectives||null,coordinator_name:formPlan.coordinator_name||null,start_date:formPlan.start_date||null,end_date:formPlan.end_date||null,status:'ativo'});
+    setShowForm(null);load();
+  };
+  const saveCategory = async ()=>{
+    await supabase.from('student_special_categories').insert({institution_id:institutionId,name:formCat.name,description:formCat.description||null,legal_basis:formCat.legal_basis||null,requires_documentation:formCat.requires_documentation});
+    setShowForm(null);load();
+  };
+
+  const stats = {
+    abertos: cases.filter(c=>c.status==='aberto'||c.status==='em_analise').length,
+    autorizados: requests.filter(r=>decisions.some(d=>d.request_id===r.id&&d.decision==='deferido')).length,
+    planosAtivos: plans.filter(p=>p.status==='ativo').length,
+    pendentes: requests.filter(r=>r.status==='protocolo'||r.status==='em_analise').length,
+  };
+
+  if(loading) return <div className="ae-loading">Carregando acompanhamento especial…</div>;
+
+  return (
+    <div className="ae360">
+      <div className="ae-kpis">
+        <div className="ae-kpi"><span className="ae-kpi-n ae-warn">{stats.abertos}</span><span className="ae-kpi-l">Casos abertos</span></div>
+        <div className="ae-kpi"><span className="ae-kpi-n ae-alert">{stats.pendentes}</span><span className="ae-kpi-l">Requerimentos pendentes</span></div>
+        <div className="ae-kpi"><span className="ae-kpi-n ae-ok">{stats.autorizados}</span><span className="ae-kpi-l">Regimes autorizados</span></div>
+        <div className="ae-kpi"><span className="ae-kpi-n">{stats.planosAtivos}</span><span className="ae-kpi-l">Planos ativos</span></div>
+      </div>
+
+      <div className="ae-nav">
+        {(['casos','requerimentos','planos','indicadores'] as View[]).map(v=>(
+          <button key={v} className={`ae-nav-btn${view===v?' active':''}`} onClick={()=>setView(v)}>
+            {v==='casos'?'Casos':v==='requerimentos'?'Requerimentos':v==='planos'?'Planos Acadêmicos':'Indicadores'}
+          </button>
+        ))}
+      </div>
+
+      {/* Casos */}
+      {view==='casos' && (
+        <div className="ae-section">
+          <div className="ae-header">
+            <h3>Casos de Acompanhamento Especial</h3>
+            <div className="ae-header-actions">
+              <button className="ae-btn-secondary" onClick={()=>setShowForm('category')}>Categorias</button>
+              <button className="ae-btn-primary" onClick={()=>setShowForm('case')}>+ Novo caso</button>
+            </div>
+          </div>
+          {showForm==='category' && (
+            <div className="ae-form">
+              <h4 style={{margin:'0 0 8px'}}>Cadastrar categoria de regime especial</h4>
+              <div className="ae-form-row">
+                <input placeholder="Nome da categoria" value={formCat.name} onChange={e=>setFormCat({...formCat,name:e.target.value})} />
+                <input placeholder="Base legal (ex: Lei 6.202/1975)" value={formCat.legal_basis} onChange={e=>setFormCat({...formCat,legal_basis:e.target.value})} />
+              </div>
+              <textarea placeholder="Descrição" value={formCat.description} onChange={e=>setFormCat({...formCat,description:e.target.value})} rows={2} />
+              <label className="ae-checkbox"><input type="checkbox" checked={formCat.requires_documentation} onChange={e=>setFormCat({...formCat,requires_documentation:e.target.checked})} /> Exige documentação comprobatória</label>
+              <div className="ae-form-actions">
+                <button className="ae-btn-primary" onClick={saveCategory} disabled={!formCat.name}>Salvar</button>
+                <button className="ae-btn-secondary" onClick={()=>setShowForm(null)}>Fechar</button>
+              </div>
+              {categories.length>0 && (
+                <div className="ae-cat-list">
+                  {categories.map(c=><div key={c.id} className="ae-cat-item"><strong>{c.name}</strong>{c.legal_basis&&<span> · {c.legal_basis}</span>}</div>)}
+                </div>
+              )}
+            </div>
+          )}
+          {showForm==='case' && (
+            <div className="ae-form">
+              <div className="ae-form-row">
+                <input placeholder="Nome do estudante" value={formCase.student_name} onChange={e=>setFormCase({...formCase,student_name:e.target.value})} />
+                <input placeholder="Matrícula" value={formCase.enrollment_id} onChange={e=>setFormCase({...formCase,enrollment_id:e.target.value})} />
+              </div>
+              {categories.length>0 && (
+                <select value={formCase.category_id} onChange={e=>setFormCase({...formCase,category_id:e.target.value})}>
+                  <option value="">Categoria (opcional)</option>
+                  {categories.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+              )}
+              <textarea placeholder="Observações" value={formCase.notes} onChange={e=>setFormCase({...formCase,notes:e.target.value})} rows={2} />
+              <div className="ae-form-actions">
+                <button className="ae-btn-primary" onClick={saveCase} disabled={!formCase.student_name}>Abrir caso</button>
+                <button className="ae-btn-secondary" onClick={()=>setShowForm(null)}>Cancelar</button>
+              </div>
+            </div>
+          )}
+          <div className="ae-table-wrap">
+            <table className="ae-table">
+              <thead><tr><th>Estudante</th><th>Categoria</th><th>Status</th><th>Aberto em</th><th>Requerimentos</th><th>Plano</th></tr></thead>
+              <tbody>
+                {cases.map(c=>{
+                  const cr = requests.filter(r=>r.case_id===c.id);
+                  const cp = plans.filter(p=>p.case_id===c.id);
+                  const cat = categories.find(ct=>ct.id===c.category_id);
+                  return (
+                    <tr key={c.id}>
+                      <td><strong>{c.student_name}</strong>{c.enrollment_id&&<span className="ae-mono"> · {c.enrollment_id}</span>}</td>
+                      <td>{cat?.name||'—'}</td>
+                      <td><span className={`ae-badge ae-badge-${c.status}`}>{c.status}</span></td>
+                      <td>{new Date(c.opened_at).toLocaleDateString('pt-BR')}</td>
+                      <td>{cr.length}</td>
+                      <td>{cp.length>0?'✓':'—'}</td>
+                    </tr>
+                  );
+                })}
+                {cases.length===0&&<tr><td colSpan={6} className="ae-empty-cell">Nenhum caso de acompanhamento especial registrado. O módulo contempla gestação, lactação, acidentes, recuperação, tratamentos e demais hipóteses legais.</td></tr>}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Requerimentos */}
+      {view==='requerimentos' && (
+        <div className="ae-section">
+          <div className="ae-header"><h3>Requerimentos de Regime Especial</h3><button className="ae-btn-primary" onClick={()=>setShowForm('request')}>+ Novo requerimento</button></div>
+          {showForm==='request' && (
+            <div className="ae-form">
+              <select value={formReq.case_id} onChange={e=>setFormReq({...formReq,case_id:e.target.value})}>
+                <option value="">Vincular a caso</option>
+                {cases.map(c=><option key={c.id} value={c.id}>{c.student_name}</option>)}
+              </select>
+              <div className="ae-form-row">
+                <select value={formReq.regime_type} onChange={e=>setFormReq({...formReq,regime_type:e.target.value})}>
+                  {regimeTypes.map(t=><option key={t.v} value={t.v}>{t.l}</option>)}
+                </select>
+                <input placeholder="Base legal" value={formReq.legal_basis} onChange={e=>setFormReq({...formReq,legal_basis:e.target.value})} />
+              </div>
+              <div className="ae-form-row">
+                <label>Início<input type="date" value={formReq.start_date} onChange={e=>setFormReq({...formReq,start_date:e.target.value})} /></label>
+                <label>Término<input type="date" value={formReq.end_date} onChange={e=>setFormReq({...formReq,end_date:e.target.value})} /></label>
+              </div>
+              <textarea placeholder="Descrição / justificativa" value={formReq.description} onChange={e=>setFormReq({...formReq,description:e.target.value})} rows={3} />
+              <div className="ae-form-actions">
+                <button className="ae-btn-primary" onClick={saveRequest} disabled={!formReq.case_id||!formReq.description}>Protocolar</button>
+                <button className="ae-btn-secondary" onClick={()=>setShowForm(null)}>Cancelar</button>
+              </div>
+            </div>
+          )}
+          {requests.map(r=>{
+            const rd = decisions.filter(d=>d.request_id===r.id);
+            return (
+              <div key={r.id} className="ae-req-card">
+                <div className="ae-req-header">
+                  <span className="ae-req-type">{regimeTypes.find(t=>t.v===r.regime_type)?.l||r.regime_type}</span>
+                  <span className={`ae-badge ae-badge-${r.status}`}>{r.status}</span>
+                </div>
+                <div className="ae-req-student">{cases.find(c=>c.id===r.case_id)?.student_name}</div>
+                <div className="ae-req-text">{r.description}</div>
+                <div className="ae-req-meta">
+                  {r.legal_basis&&<span>Base: {r.legal_basis}</span>}
+                  {r.start_date&&<span>De {new Date(r.start_date).toLocaleDateString('pt-BR')}</span>}
+                  {r.end_date&&<span>a {new Date(r.end_date).toLocaleDateString('pt-BR')}</span>}
+                </div>
+                {rd.map(d=>(
+                  <div key={d.id} className={`ae-decision ae-decision-${d.decision}`}>
+                    <strong>{d.decision==='deferido'?'✓ Deferido':'✗ Indeferido'}</strong>
+                    {d.justification&&<span> — {d.justification}</span>}
+                    {d.conditions&&<div className="ae-decision-cond">Condições: {d.conditions}</div>}
+                  </div>
+                ))}
+                {rd.length===0 && r.status!=='cancelado' && (
+                  <button className="ae-btn-small" onClick={()=>{setFormDecision({...formDecision,request_id:r.id});setShowForm('decision');}}>Registrar decisão</button>
+                )}
+              </div>
+            );
+          })}
+          {showForm==='decision' && (
+            <div className="ae-form">
+              <h4 style={{margin:'0 0 8px'}}>Registrar decisão</h4>
+              <div className="ae-form-row">
+                <select value={formDecision.decision} onChange={e=>setFormDecision({...formDecision,decision:e.target.value})}>
+                  <option value="deferido">Deferido</option>
+                  <option value="indeferido">Indeferido</option>
+                  <option value="deferido_parcial">Deferido parcialmente</option>
+                </select>
+                <input placeholder="Decidido por" value={formDecision.decided_by} onChange={e=>setFormDecision({...formDecision,decided_by:e.target.value})} />
+              </div>
+              <textarea placeholder="Justificativa" value={formDecision.justification} onChange={e=>setFormDecision({...formDecision,justification:e.target.value})} rows={2} />
+              <textarea placeholder="Condições / restrições (opcional)" value={formDecision.conditions} onChange={e=>setFormDecision({...formDecision,conditions:e.target.value})} rows={2} />
+              <div className="ae-form-actions">
+                <button className="ae-btn-primary" onClick={saveDecision}>Registrar</button>
+                <button className="ae-btn-secondary" onClick={()=>setShowForm(null)}>Cancelar</button>
+              </div>
+            </div>
+          )}
+          {requests.length===0&&<div className="ae-empty">Nenhum requerimento registrado</div>}
+        </div>
+      )}
+
+      {/* Planos */}
+      {view==='planos' && (
+        <div className="ae-section">
+          <div className="ae-header"><h3>Planos Acadêmicos Especiais</h3><button className="ae-btn-primary" onClick={()=>setShowForm('plan')}>+ Novo plano</button></div>
+          {showForm==='plan' && (
+            <div className="ae-form">
+              <select value={formPlan.case_id} onChange={e=>setFormPlan({...formPlan,case_id:e.target.value})}>
+                <option value="">Vincular a caso</option>
+                {cases.map(c=><option key={c.id} value={c.id}>{c.student_name}</option>)}
+              </select>
+              <div className="ae-form-row">
+                <input placeholder="Coordenador responsável" value={formPlan.coordinator_name} onChange={e=>setFormPlan({...formPlan,coordinator_name:e.target.value})} />
+                <input type="date" value={formPlan.start_date} onChange={e=>setFormPlan({...formPlan,start_date:e.target.value})} />
+                <input type="date" value={formPlan.end_date} onChange={e=>setFormPlan({...formPlan,end_date:e.target.value})} />
+              </div>
+              <textarea placeholder="Objetivos e atividades" value={formPlan.objectives} onChange={e=>setFormPlan({...formPlan,objectives:e.target.value})} rows={3} />
+              <div className="ae-form-actions">
+                <button className="ae-btn-primary" onClick={savePlan} disabled={!formPlan.case_id}>Criar plano</button>
+                <button className="ae-btn-secondary" onClick={()=>setShowForm(null)}>Cancelar</button>
+              </div>
+            </div>
+          )}
+          {plans.map(p=>(
+            <div key={p.id} className="ae-plan-card">
+              <div className="ae-plan-header">
+                <span className="ae-plan-type">{p.plan_type.replace(/_/g,' ')}</span>
+                <span className={`ae-badge ae-badge-${p.status}`}>{p.status}</span>
+              </div>
+              <div className="ae-plan-student">{cases.find(c=>c.id===p.case_id)?.student_name}</div>
+              {p.objectives&&<div className="ae-plan-obj">{p.objectives}</div>}
+              <div className="ae-plan-meta">
+                {p.coordinator_name&&<span>Coord: {p.coordinator_name}</span>}
+                {p.start_date&&<span>De {new Date(p.start_date).toLocaleDateString('pt-BR')}</span>}
+                {p.end_date&&<span>a {new Date(p.end_date).toLocaleDateString('pt-BR')}</span>}
+              </div>
+            </div>
+          ))}
+          {plans.length===0&&<div className="ae-empty">Nenhum plano acadêmico especial criado</div>}
+        </div>
+      )}
+
+      {/* Indicadores */}
+      {view==='indicadores' && (
+        <div className="ae-section">
+          <h3>Indicadores — Acompanhamento Especial</h3>
+          <div className="ae-ind-grid">
+            <div className="ae-ind-card"><div className="ae-ind-label">Total de casos</div><div className="ae-ind-n">{cases.length}</div></div>
+            <div className="ae-ind-card"><div className="ae-ind-label">Regimes autorizados</div><div className="ae-ind-n ae-ok">{stats.autorizados}</div></div>
+            <div className="ae-ind-card"><div className="ae-ind-label">Planos ativos</div><div className="ae-ind-n">{stats.planosAtivos}</div></div>
+            <div className="ae-ind-card"><div className="ae-ind-label">Categorias cadastradas</div><div className="ae-ind-n">{categories.length}</div></div>
+          </div>
+          <div className="ae-ind-note">
+            Indicadores agregados para o BI da Reitoria e dossiê regulatório.
+            CID, laudos e informações clínicas não são exibidos — apenas o quantitativo por categoria e status.
+            O término do prazo inicia revisão ou retorno, sem encerramento automático de pendências.
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
