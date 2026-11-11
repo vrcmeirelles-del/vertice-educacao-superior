@@ -63,16 +63,25 @@ export default function MasterHub({ onNavigate }: Props) {
     const activeContracts = (contracts || []).filter(c => c.status === 'active' || c.status === 'ativo');
     const trialContracts = (contracts || []).filter(c => c.status === 'trial');
 
-    // MRR por tier (simplificado)
+    // MRR por tier
     const { data: mrrData } = await supabase.from('v_mrr_by_tier').select('*');
     const mrrIes = mrrData?.find(m => m.tier === 'superior')?.mrr || 0;
     const mrrEscolas = mrrData?.find(m => m.tier === 'escolas')?.mrr || 0;
 
+    // Alunos IES (último semestre de cada IES)
+    const { data: iesStudents } = await supabase.rpc('simulate_pricing', { p_tier: 'superior', p_package: 'core', p_student_count: 0 }).maybeSingle();
+    // Fallback: somar contratos
+    const alunosIes = activeContracts.reduce((s, c) => s + ((c as any).student_count || 0), 0);
+
+    // Alunos escolas (segmentos)
+    const { data: segData } = await supabase.from('vertice_school_segments').select('classes_count, max_students_per_class').eq('active', true);
+    const alunosEscolas = (segData || []).reduce((s, seg) => s + (seg.classes_count || 0) * (seg.max_students_per_class || 30), 0);
+
     setKpis({
       total_ies: ies.length,
       total_escolas: escolas.length,
-      total_alunos_ies: 0, // será populado quando tiver dados
-      total_alunos_escolas: 0,
+      total_alunos_ies: alunosIes,
+      total_alunos_escolas: alunosEscolas,
       mrr_ies: Number(mrrIes),
       mrr_escolas: Number(mrrEscolas),
       contratos_ativos: activeContracts.length,
@@ -162,6 +171,8 @@ export default function MasterHub({ onNavigate }: Props) {
         <KPIChip label="Universidades" value={kpis.total_ies} color="#2563eb" />
         <KPIChip label="Escolas" value={kpis.total_escolas} color="#7c3aed" />
         <KPIChip label="MRR Total" value={`R$ ${(kpis.mrr_ies + kpis.mrr_escolas).toLocaleString('pt-BR')}`} color="#16a34a" />
+        <KPIChip label="Alunos IES" value={kpis.total_alunos_ies.toLocaleString('pt-BR')} color="#16a34a" />
+        <KPIChip label="Alunos Escolas" value={kpis.total_alunos_escolas.toLocaleString('pt-BR')} color="#0891b2" />
         <KPIChip label="Contratos" value={kpis.contratos_ativos} color="#ea580c" />
         <KPIChip label="Trials" value={kpis.trials_ativos} color="#0891b2" />
       </div>
