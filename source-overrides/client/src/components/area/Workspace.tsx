@@ -50,6 +50,8 @@ import Governanca360 from "./Governanca360";
 import Inclusao360 from "./Inclusao360";
 import AcompanhamentoEspecial360 from "./AcompanhamentoEspecial360";
 import SyncHealth from "./SyncHealth";
+import Aquisicoes360 from "./Aquisicoes360";
+import ModulePreview from "./ModulePreview";
 import { getActiveTabs, isTabActive, getModuleCatalog, findModuleByTab, type CatalogModule } from "@/lib/modules";
 import ModuleOffer from "./ModuleOffer";
 import "./area.css";
@@ -63,6 +65,7 @@ const TAB_GROUPS: {label:string;subtitle:string;icon:string;tabs:Tab[]}[] = [
   {label:'Egressos',subtitle:'Acompanhamento longitudinal e empregabilidade',icon:'🎓',tabs:['egressos']},
   {label:'Governança',subtitle:'Órgãos colegiados, deliberações e fluxos',icon:'⚖',tabs:['governanca']},
   {label:'Acompanhamento',subtitle:'Inclusão, PEI e regimes especiais',icon:'♿',tabs:['inclusao','acompanhamento-especial']},
+  {label:'Aquisições',subtitle:'Compras, fornecedores e ordens',icon:'🛒',tabs:['aquisicoes']},
   {label:'Integrações',subtitle:'Saúde dos dados e sincronizações',icon:'⇄',tabs:['sync']},
 ];
 
@@ -97,6 +100,7 @@ const TAB_DETAILS: Partial<Record<Tab,{icon:string;description:string}>> = {
   governanca:{icon:'⚖',description:'NDE, Colegiado, reuniões, atas e deliberações'},
   inclusao:{icon:'♿',description:'Inclusão, PEI, acessibilidade e Núcleo de Apoio'},
   'acompanhamento-especial':{icon:'📋',description:'Regimes especiais, exercícios domiciliares e planos acadêmicos'},
+  aquisicoes:{icon:'🛒',description:'Gestão de compras, fornecedores e ordens'},
   sync:{icon:'⇄',description:'Central de Sincronização e Integrações'},
 };
 
@@ -128,6 +132,7 @@ const TABS: [Tab, string][] = [
   ["governanca", "Governança 360°"],
   ["inclusao", "Inclusão 360° · PEI"],
   ["acompanhamento-especial", "Acompanhamento Especial 360°"],
+  ["aquisicoes", "Aquisições 360°"],
   ["sync", "Central de Sincronização"],
   ["plano", "Plano de ação 5W2H"],
   ["diagnostico", "Diagnóstico"],
@@ -394,13 +399,26 @@ export default function Workspace({
           ? <DireitoRaioX institutionId={id}/>
           : <p role="status">O Raio-X do Direito utiliza exclusivamente informações institucionais da UNITOP. Este conjunto de dados não é compartilhado com outras IES.</p>
       ) : tab === "egressos" ? (
-        <Egressos360 institutionId={id} courses={data.courses.map((c: Row) => ({ id: c.id as string, name: c.name as string, modality: c.modality as string }))} role={role as 'master' | 'gestor' | 'equipe'} />
+        (() => { const m=findModuleByTab(moduleCatalog,'egressos'); return <ModulePreview locked={isLocked('egressos')} tasting={isTasting('egressos')} tastingEnds={m?.tasting_ends} moduleCode="GEST_EGRESSOS" moduleName="Egressos 360°" moduleDescription="Acompanhamento longitudinal de egressos, empregabilidade e trajetória profissional." institutionId={id} estimatedFee={m?.estimated_monthly_fee||1000} tier={m?.tier||'gestao'}><Egressos360 institutionId={id} courses={data.courses.map((c: Row) => ({ id: c.id as string, name: c.name as string, modality: c.modality as string }))} role={role as 'master' | 'gestor' | 'equipe'} /></ModulePreview>; })()
       ) : tab === "governanca" ? (
-        <Governanca360 institutionId={id} role={role||'master'} />
+        (() => { const m=findModuleByTab(moduleCatalog,'governanca'); return <ModulePreview locked={isLocked('governanca')} tasting={isTasting('governanca')} tastingEnds={m?.tasting_ends} moduleCode="GEST_GOVERNANCA" moduleName="Governança 360°" moduleDescription="Órgãos colegiados, deliberações, atas e fluxos regulatórios." institutionId={id} estimatedFee={m?.estimated_monthly_fee||1000} tier={m?.tier||'gestao'}><Governanca360 institutionId={id} role={role||'master'} /></ModulePreview>; })()
       ) : tab === "inclusao" ? (
-        <Inclusao360 institutionId={id} role={role||'master'} />
+        (() => { const m=findModuleByTab(moduleCatalog,'inclusao'); return <ModulePreview locked={isLocked('inclusao')} tasting={isTasting('inclusao')} tastingEnds={m?.tasting_ends} moduleCode="GEST_INCLUSAO" moduleName="Inclusão 360° · PEI" moduleDescription="Gestão de inclusão, acessibilidade, PEI e evidências regulatórias." institutionId={id} estimatedFee={m?.estimated_monthly_fee||1000} tier={m?.tier||'gestao'}><Inclusao360 institutionId={id} role={role||'master'} /></ModulePreview>; })()
       ) : tab === "acompanhamento-especial" ? (
-        <AcompanhamentoEspecial360 institutionId={id} role={role||'master'} />
+        (() => { const m=findModuleByTab(moduleCatalog,'acompanhamento-especial'); return <ModulePreview locked={isLocked('acompanhamento-especial')} tasting={isTasting('acompanhamento-especial')} tastingEnds={m?.tasting_ends} moduleCode="GEST_ACOMPANHAMENTO" moduleName="Acompanhamento Especial 360°" moduleDescription="Regimes especiais, exercícios domiciliares e planos acadêmicos." institutionId={id} estimatedFee={m?.estimated_monthly_fee||1000} tier={m?.tier||'gestao'}><AcompanhamentoEspecial360 institutionId={id} role={role||'master'} /></ModulePreview>; })()
+
+      ) : tab === "aquisicoes" ? (
+        (() => {
+          const mod = findModuleByTab(moduleCatalog, 'aquisicoes');
+          const locked = isLocked('aquisicoes');
+          const tasting = isTasting('aquisicoes');
+          return <ModulePreview locked={locked} tasting={tasting} tastingEnds={mod?.tasting_ends}
+            moduleCode="GEST_AQUISICOES" moduleName="Aquisições 360°"
+            moduleDescription="Gestão completa de compras, fornecedores, cotações e ordens de compra da sua IES."
+            institutionId={id} estimatedFee={mod?.estimated_monthly_fee || 1000} tier={mod?.tier || 'gestao'}>
+            <Aquisicoes360 institutionId={id} role={role || 'master'} />
+          </ModulePreview>;
+        })()
       ) : tab === "sync" ? (
         <SyncHealth institutionId={id} />
       ) : tab === "biblioteca" ? (
