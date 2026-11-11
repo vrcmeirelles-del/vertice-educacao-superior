@@ -7,7 +7,7 @@ import {clearExperienceCredential,guestExperience,readExperienceCredential,type 
 
 const roles={
  mantenedor:{title:'Percurso do mantenedor',guide:'Investigue a sustentabilidade econômica, a expansão e os riscos regulatórios.',start:'Comece por EBITDA e cenários, depois aquisições e visão executiva.'},
- reitor:{title:'Percurso da reitoria',guide:'Compare cursos, entenda as prioridades institucionais e o acompanhamento das metas.',start:'Comece pela visão executiva, avance para o BI acadêmico e a governança CPA/NDE.'},
+ reitor:{title:'Percurso da Direção',guide:'Compare cursos, entenda as prioridades institucionais e o acompanhamento das metas.',start:'Comece pela visão executiva, avance para o BI acadêmico e a governança CPA/NDE.'},
  coordenador:{title:'Percurso da coordenação',guide:'Observe a evolução dos cursos, aprendizagem, evidências e planos de melhoria.',start:'Comece em Cursos e indicadores, depois ENADE e aprendizagem e Regulação e evidências.'},
 };
 const date=(d:string)=>new Date(d).toLocaleString('pt-BR');

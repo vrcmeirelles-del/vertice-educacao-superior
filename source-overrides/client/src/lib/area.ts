@@ -32,7 +32,7 @@ export type Role =
 
 export const ROLE_LABEL: Record<Role, string> = {
   master: "Master (Vértice)",
-  reitor: "Reitor",
+  reitor: "Direção",
   diretor_geral: "Diretor Geral",
   diretor_pedagogico: "Diretor Pedagógico",
   procurador: "Procurador Institucional",
@@ -110,13 +110,13 @@ export const can = {
 export const ROLE_DESCRIPTION: Record<Role, string> = {
   master: "Acesso completo a todas as instituições, cursos e funcionalidades do sistema. Único perfil que visualiza outras IES além da própria.",
   reitor: "Acesso completo dentro da própria instituição: todos os módulos, todos os cursos, dados financeiros e análises por IA.",
-  diretor_geral: "Mesmo nível de acesso do Reitor dentro da instituição.",
+  diretor_geral: "Mesmo nível de acesso da Direção dentro da instituição.",
   diretor_pedagogico: "Acesso completo à instituição com foco pedagógico. Vê todos os módulos incluindo análises e metas.",
   procurador: "Acesso completo à instituição com foco regulatório. Vê todos os módulos incluindo e-MEC e repositório.",
   cpa: "Visão institucional ampla: vê dados de todos os cursos, mas sem acesso a módulos de gestão financeira, análise por IA ou diagnóstico. Pode postar documentos (sujeitos a validação pela instância superior).",
   coordenador: "Acesso limitado ao(s) curso(s) vinculado(s): visão geral, matrículas, metas, repositório e plano de ação do próprio curso. Pode cadastrar membros do NDE. Documentos postados são validados pela instância superior.",
   nde: "Mesmo escopo do Coordenador: vê e colabora nos dados do curso vinculado. Pode postar documentos (sujeitos a validação).",
-  gestor: "Perfil legado equivalente ao Reitor. Acesso completo dentro da instituição.",
+  gestor: "Perfil legado equivalente à Direção. Acesso completo dentro da instituição.",
   equipe: "Acesso operacional básico: visão geral, matrículas e biblioteca INEP.",
   leitor: "Somente leitura: visão geral, matrículas e biblioteca INEP.",
 };

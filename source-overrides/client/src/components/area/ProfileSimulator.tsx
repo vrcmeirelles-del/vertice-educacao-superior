@@ -26,7 +26,7 @@ const TAB_LABELS: Record<Tab, string> = {
   metas: "Metas e indicadores",
   repositorio: "Reconhecimento de Curso",
   biblioteca: "Biblioteca INEP",
-  reitor: "Área do reitor · EBITDA",
+  reitor: "Área da Direção · EBITDA",
   eorbit: "e-ORBIT",
   plano: "Plano de ação 5W2H",
   diagnostico: "Diagnóstico",
@@ -62,7 +62,7 @@ const SCOPE_LABEL: Record<string, string> = {
 };
 
 const VALIDATION_NOTE: Record<string, string> = {
-  coordenador: "Documentos postados por este perfil precisam de validação pela instância superior (Reitor, Diretor ou Procurador).",
+  coordenador: "Documentos postados por este perfil precisam de validação pela instância superior (Direção ou Procurador).",
   nde: "Documentos postados por este perfil precisam de validação pela instância superior.",
   cpa: "Documentos postados por este perfil precisam de validação pela instância superior.",
 };

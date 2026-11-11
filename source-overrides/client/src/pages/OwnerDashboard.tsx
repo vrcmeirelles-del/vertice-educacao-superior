@@ -210,10 +210,10 @@ function PortalBI({institutions,courses,enrollments,session}:{institutions:Insti
     [2,'Regulação (MEC / INEP)','◇'],[3,'Reconhecimento de Curso','▤'],
     [4,'Aquisições','◫'],[5,'Captação','↗']
   ] as [number,string,string][]).map(([key,name,icon])=><button type="button" key={key} aria-current={page===key?'page':undefined} onClick={()=>setPage(key)}><span>{icon}</span>{name}</button>)}</nav>
-  <div className="exe-sidebar-bottom">BI estratégico para <strong>Reitores e Gestores</strong><small>Dados autenticados · sem números demonstrativos</small></div>
+  <div className="exe-sidebar-bottom">BI estratégico para <strong>Direção e Gestores</strong><small>Dados autenticados · sem números demonstrativos</small></div>
  </aside>
  <div className="exe-screen-main">
- <header className="vx-bi-heading"><div><p className="vx-eyebrow">VÉRTICE · INTELIGÊNCIA INSTITUCIONAL</p><h2>Visão Executiva da Reitoria</h2><p>Indicadores institucionais com acesso aos registros originais.</p></div><span className="vx-scope">Consulta ao portal · sem estimativas</span></header>
+ <header className="vx-bi-heading"><div><p className="vx-eyebrow">VÉRTICE · INTELIGÊNCIA INSTITUCIONAL</p><h2>Visão Executiva da Direção</h2><p>Indicadores institucionais com acesso aos registros originais.</p></div><span className="vx-scope">Consulta ao portal · sem estimativas</span></header>
  <div className="pbi-toolbar"><label>Instituição <select value={id} onChange={event=>{setSources({});setActionRows([]);setManual(['','','','']);setId(event.target.value);}}>{institutions.map(institution=><option key={institution.id} value={institution.id}>{institution.name}</option>)}</select></label>
  <label>Semestre de matrículas <select value={term??''} onChange={event=>setSemester(event.target.value)}>{!semesters.length&&<option value="">Sem referência</option>}{semesters.map(value=><option key={value}>{value}</option>)}</select></label>
  <button type="button" onClick={toggleTv}>{tv?'Sair do modo TV':'Modo TV • automático'}</button>
@@ -325,7 +325,7 @@ export default function OwnerDashboard(){
   const {error}=await supabase.auth.mfa.challengeAndVerify({factorId:factor,code});if(error)throw error;setCode('');setQr('');await load();
  }catch{setError('Código não validado. Confira o autenticador e tente novamente.');}finally{setBusy(false);}}
  if(acquisitionsRoute&&!loading&&session&&aal==='aal2')return <GreenHost/>;
- return <main className="corp-container corp-section"><h1>{window.location.pathname.startsWith('/reitor')?'Área reservada do reitor':master&&route.repositories?'Repositórios · visão master':master&&route.demonstrativos?'Convites demonstrativos · Master':master?'Painel Vértice':'Painel de gestão'}</h1>
+ return <main className="corp-container corp-section"><h1>{window.location.pathname.startsWith('/reitor')?'Área reservada da Direção':master&&route.repositories?'Repositórios · visão master':master&&route.demonstrativos?'Convites demonstrativos · Master':master?'Painel Vértice':'Painel de gestão'}</h1>
  {loading?<p role="status">Verificando acesso…</p>:!session?<><p>Entre para acessar sua conta.</p><Link className="corp-button" href={window.location.pathname.startsWith('/reitor')?'/entrar?destino=reitor':'/entrar'}>Entrar</Link></>:<>
  <p>Conectado como <strong>{session.user.email}</strong>.</p>
  {aal!=='aal2'?<section className="corp-login-card"><h2>Proteja seu acesso</h2><p>O segundo fator é obrigatório para consultar os dados das instituições.</p>
@@ -334,7 +334,7 @@ export default function OwnerDashboard(){
  <form className="access-form" onSubmit={verify}><label>Código do autenticador<input autoComplete="one-time-code" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} required value={code} onChange={e=>setCode(e.target.value)}/></label><button className="corp-button" disabled={busy}>Validar segundo fator</button></form></>}
  </section>:<><MasterInvitationGate onAccepted={load}/><p>{master?'Visão das instituições da empresa.':'Você vê somente as instituições vinculadas à sua conta.'}</p>
  <div className="vx-module-grid" aria-label="Indicadores do portal">
-  <a className="vx-module-card" href="/master#bi=1" onClick={()=>setCommercial(false)}><span className="vx-module-icon" style={{background:'#eff6ff',color:'#0073ea'}}>📊</span><strong>BI da Reitoria</strong><small>Visão executiva e indicadores</small></a>
+  <a className="vx-module-card" href="/master#bi=1" onClick={()=>setCommercial(false)}><span className="vx-module-icon" style={{background:'#eff6ff',color:'#0073ea'}}>📊</span><strong>BI da Direção</strong><small>Visão executiva e indicadores</small></a>
   <a className="vx-module-card" href="/master#captacao=1" onClick={()=>setCommercial(false)}><span className="vx-module-icon" style={{background:'#ecfdf5',color:'#00a86b'}}>📈</span><strong>BI de Captação</strong><small>Funil, custos e conversão</small></a>
   <a className="vx-module-card" href="/master#academico=1" onClick={()=>setCommercial(false)}><span className="vx-module-icon" style={{background:'#faf5ff',color:'#7c3aed'}}>🎓</span><strong>BI Acadêmico</strong><small>Matrículas e reprovações</small></a>
   <a className="vx-module-card" href="/master#painel-bi=1" onClick={()=>setCommercial(false)}><span className="vx-module-icon" style={{background:'#fffbeb',color:'#b45309'}}>⚡</span><strong>Painel Executivo</strong><small>Panorama consolidado</small></a>

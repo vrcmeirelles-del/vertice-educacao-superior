@@ -15,7 +15,7 @@ import './modo-tv.css';
 
 type BiPanel = 'reitor' | 'academico' | 'captacao' | 'executivo';
 const PANELS: { key: BiPanel; label: string; icon: string }[] = [
-  { key: 'reitor', label: 'BI do Reitor', icon: '👔' },
+  { key: 'reitor', label: 'BI da Direção', icon: '👔' },
   { key: 'academico', label: 'BI Acadêmico', icon: '🎓' },
   { key: 'captacao', label: 'BI de Captação', icon: '📈' },
   { key: 'executivo', label: 'Painel Executivo', icon: '📊' },

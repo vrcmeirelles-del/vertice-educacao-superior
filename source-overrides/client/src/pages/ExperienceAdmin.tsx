@@ -7,7 +7,7 @@ import {demoInstitutionProfiles,type DemoInstitutionMode} from '@/lib/demo-showr
 import MasterCommercialSuite from './MasterCommercialSuite';
 import './master-commercial-suite.css';
 
-const roleLabels:Record<ExperienceRole,string>={mantenedor:'Mantenedor',reitor:'Reitor / dirigente',coordenador:'Coordenador de curso'};
+const roleLabels:Record<ExperienceRole,string>={mantenedor:'Mantenedor',reitor:'Direção / dirigente',coordenador:'Coordenador de curso'};
 const time=(x:string|null)=>x?new Date(x).toLocaleString('pt-BR'):'—';
 export default function ExperienceAdmin({embedded=false}:{embedded?:boolean}={}){
  const [access,setAccess]=useState<'loading'|'ready'|'denied'>('loading');

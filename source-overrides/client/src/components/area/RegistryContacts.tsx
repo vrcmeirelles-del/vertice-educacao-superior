@@ -5,9 +5,9 @@ import type {Row} from "@/lib/area";
 const coursePositions = ["coordenador", "nde", "colegiado"];
 const labels: Record<string, string> = {
  gestor: "Gestor institucional",
- reitor: "Reitor",
- vice_reitor: "Vice-reitor",
- pro_reitor: "Pró-reitor",
+ reitor: "Diretor(a) / Reitor(a)",
+ vice_reitor: "Vice-diretor(a)",
+ pro_reitor: "Pró-reitor(a)",
  diretor: "Diretor",
  procurador: "Procurador institucional",
  secretaria: "Secretaria acadêmica",

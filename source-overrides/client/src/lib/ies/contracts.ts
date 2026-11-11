@@ -14,7 +14,7 @@ export const roles = [
 export type Role = (typeof roles)[number];
 export const roleNames: Record<Role, string> = {
   master_ies: "Master da IES",
-  reitor: "Reitor(a)",
+  reitor: "Diretor(a) / Reitor(a)",
   diretor_geral: "Diretor(a) geral",
   pro_reitor_graduacao: "Pró-reitoria de graduação",
   diretor_pedagogico: "Diretor(a) pedagógico(a)",

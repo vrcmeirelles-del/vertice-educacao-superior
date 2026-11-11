@@ -140,7 +140,7 @@ export const GLOSSARY: { group: string; entries: GlossaryEntry[] }[] = [
       { term: "Master", text: "Perfil da equipe Vértice. Vê e administra todas as instituições, cria instituições e cadastra gestores." },
       { term: "Gestor", text: "Responsável pela instituição no sistema. Edita dados da instituição e dos cursos, define metas, gere a equipe (perfis Equipe e Leitura) e pode excluir registros." },
       { term: "Equipe", text: "Quem executa o trabalho: registra medições, ações do plano e critérios do diagnóstico. Não altera metas nem exclui registros." },
-      { term: "Leitura", text: "Apenas consulta. Indicado para reitoria, mantenedora ou conselhos que acompanham sem lançar dados." },
+      { term: "Leitura", text: "Apenas consulta. Indicado para direção, mantenedora ou conselhos que acompanham sem lançar dados." },
       { term: "Convite", text: "E-mail enviado a quem ainda não tem conta. A pessoa define senha e segundo fator; o vínculo com a instituição é criado no primeiro acesso." },
       { term: "Segundo fator (MFA)", text: "Código de seis dígitos gerado por um aplicativo autenticador no celular. É exigido em todo acesso aos dados das instituições." },
     ],
