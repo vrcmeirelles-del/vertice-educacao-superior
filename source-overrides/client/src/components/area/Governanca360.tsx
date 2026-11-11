@@ -2,12 +2,11 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import "./governanca360.css";
 
-// ─── Types ───
-interface Body { id:string; institution_id:string; name:string; body_type:string; mandate_start?:string; mandate_end?:string; status:string; course_id?:string; description?:string; regulatory_basis?:string; created_at:string; }
-interface Member { id:string; body_id:string; institution_id:string; name:string; role_in_body:string; email?:string; cpf_hash?:string; start_date?:string; end_date?:string; status:string; }
-interface Meeting { id:string; body_id:string; institution_id:string; meeting_type:string; scheduled_date:string; location?:string; status:string; quorum_required?:number; quorum_present?:number; summary?:string; }
-interface Minute { id:string; meeting_id:string; institution_id:string; content:string; status:string; approved_at?:string; approved_by?:string; }
-interface Deliberation { id:string; meeting_id:string; institution_id:string; body_id:string; number:string; subject:string; deliberation_type:string; decision_text:string; status:string; due_date?:string; responsible_name?:string; responsible_user_id?:string; priority?:string; requires_action:boolean; action_origin_ref?:string; created_at:string; }
+// ─── Types aligned with actual Supabase schema ───
+interface Body { id:string; institution_id:string; name:string; body_type:string; acronym?:string; creation_instrument?:string; regiment_summary?:string; status:string; course_id?:string; president_name?:string; secretary_name?:string; meeting_frequency?:string; notes?:string; created_at:string; }
+interface Member { id:string; body_id:string; institution_id:string; member_name:string; member_email?:string; role_in_body:string; segment?:string; is_active:boolean; mandate_start?:string; mandate_end?:string; designation_act?:string; }
+interface Meeting { id:string; body_id:string; institution_id:string; meeting_number?:string; meeting_type:string; scheduled_date:string; scheduled_time?:string; location?:string; status:string; quorum_present?:number; quorum_total?:number; agenda?:any; notes?:string; }
+interface Deliberation { id:string; meeting_id:string; institution_id:string; body_id:string; protocol:string; subject:string; full_text:string; decision_type:string; nature?:string; priority?:string; due_date?:string; responsible_name?:string; responsible_user_id?:string; status:string; action_id?:string; goal_id?:string; target_sector?:string; ai_extracted?:boolean; created_at:string; }
 
 type View = 'orgaos'|'reunioes'|'deliberacoes'|'timeline';
 
@@ -24,9 +23,9 @@ export default function Governanca360({institutionId, role}:Props) {
   const [showForm, setShowForm] = useState<'body'|'meeting'|'deliberation'|null>(null);
 
   // ─── Form state ───
-  const [formBody, setFormBody] = useState({name:'',body_type:'nde',description:'',regulatory_basis:'',course_id:''});
-  const [formMeeting, setFormMeeting] = useState({body_id:'',meeting_type:'ordinaria',scheduled_date:'',location:'',summary:''});
-  const [formDelib, setFormDelib] = useState({meeting_id:'',number:'',subject:'',deliberation_type:'resolucao',decision_text:'',due_date:'',responsible_name:'',priority:'media',requires_action:true});
+  const [formBody, setFormBody] = useState({name:'',body_type:'nde',acronym:'',creation_instrument:'',regiment_summary:'',course_id:''});
+  const [formMeeting, setFormMeeting] = useState({body_id:'',meeting_type:'ordinaria',scheduled_date:'',location:'',notes:''});
+  const [formDelib, setFormDelib] = useState({meeting_id:'',protocol:'',subject:'',decision_type:'resolucao',full_text:'',due_date:'',responsible_name:'',priority:'media',target_sector:''});
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -60,12 +59,13 @@ export default function Governanca360({institutionId, role}:Props) {
       institution_id:institutionId,
       name:formBody.name,
       body_type:formBody.body_type,
-      description:formBody.description||null,
-      regulatory_basis:formBody.regulatory_basis||null,
+      acronym:formBody.acronym||null,
+      creation_instrument:formBody.creation_instrument||null,
+      regiment_summary:formBody.regiment_summary||null,
       course_id:formBody.course_id||null,
       status:'ativo',
     });
-    if(!error){setShowForm(null);setFormBody({name:'',body_type:'nde',description:'',regulatory_basis:'',course_id:''});load();}
+    if(!error){setShowForm(null);setFormBody({name:'',body_type:'nde',acronym:'',creation_instrument:'',regiment_summary:'',course_id:''});load();}
   };
 
   const saveMeeting = async () => {
@@ -75,10 +75,10 @@ export default function Governanca360({institutionId, role}:Props) {
       meeting_type:formMeeting.meeting_type,
       scheduled_date:formMeeting.scheduled_date,
       location:formMeeting.location||null,
-      summary:formMeeting.summary||null,
+      notes:formMeeting.notes||null,
       status:'agendada',
     });
-    if(!error){setShowForm(null);setFormMeeting({body_id:'',meeting_type:'ordinaria',scheduled_date:'',location:'',summary:''});load();}
+    if(!error){setShowForm(null);setFormMeeting({body_id:'',meeting_type:'ordinaria',scheduled_date:'',location:'',notes:''});load();}
   };
 
   const saveDeliberation = async () => {
@@ -86,14 +86,14 @@ export default function Governanca360({institutionId, role}:Props) {
       institution_id:institutionId,
       meeting_id:formDelib.meeting_id,
       body_id: meetings.find(m=>m.id===formDelib.meeting_id)?.body_id || '',
-      number:formDelib.number,
+      protocol:formDelib.protocol,
       subject:formDelib.subject,
-      deliberation_type:formDelib.deliberation_type,
-      decision_text:formDelib.decision_text,
+      decision_type:formDelib.decision_type,
+      full_text:formDelib.full_text,
       due_date:formDelib.due_date||null,
       responsible_name:formDelib.responsible_name||null,
       priority:formDelib.priority,
-      requires_action:formDelib.requires_action,
+      target_sector:formDelib.target_sector||null,
       status:'aprovada',
     });
     if(!error){setShowForm(null);load();}
@@ -104,26 +104,28 @@ export default function Governanca360({institutionId, role}:Props) {
       institution_id:institutionId,
       goal_id:null,
       what:d.subject,
-      why:`Deliberação ${d.number}: ${d.decision_text.slice(0,200)}`,
+      why:`Deliberação ${d.protocol}: ${d.full_text.slice(0,200)}`,
       who:d.responsible_name||'A definir',
       due_date:d.due_date||null,
       status:'pendente',
       progress:0,
-      origin_type: d.deliberation_type==='resolucao'?'colegiado':'nde',
+      origin_type: d.decision_type==='resolucao'?'colegiado':'nde',
       origin_ref:d.id,
-      origin_label:`Deliberação ${d.number}`,
+      origin_label:`Deliberação ${d.protocol}`,
       deliberation_id:d.id,
     });
+    // Update deliberation with action link
+    // (action_id will be set after the action is created — for now just reload)
     load();
   };
 
   const filteredMeetings = selectedBody ? meetings.filter(m=>m.body_id===selectedBody) : meetings;
   const filteredDelibs = selectedBody ? deliberations.filter(d=>d.body_id===selectedBody) : deliberations;
-  const pendingActions = deliberations.filter(d=>d.requires_action && d.status==='aprovada');
+  const pendingActions = deliberations.filter(d=>!d.action_id && d.status==='aprovada');
 
   const stats = useMemo(()=>({
     orgaos: bodies.filter(b=>b.status==='ativo').length,
-    membros: members.filter(m=>m.status==='ativo').length,
+    membros: members.filter(m=>m.is_active).length,
     reunioes: meetings.length,
     deliberacoes: deliberations.length,
     pendentes: pendingActions.length,
@@ -172,8 +174,11 @@ export default function Governanca360({institutionId, role}:Props) {
                   {bodyTypes.map(t=><option key={t.value} value={t.value}>{t.label}</option>)}
                 </select>
               </div>
-              <input placeholder="Base normativa (ex: Resolução nº 5/2018 CNE)" value={formBody.regulatory_basis} onChange={e=>setFormBody({...formBody,regulatory_basis:e.target.value})} />
-              <textarea placeholder="Descrição e competências" value={formBody.description} onChange={e=>setFormBody({...formBody,description:e.target.value})} rows={3} />
+              <div className="gov-form-row">
+                <input placeholder="Sigla (ex: NDE-DIR)" value={formBody.acronym} onChange={e=>setFormBody({...formBody,acronym:e.target.value})} />
+                <input placeholder="Instrumento de criação (ex: Resolução nº 5/2018)" value={formBody.creation_instrument} onChange={e=>setFormBody({...formBody,creation_instrument:e.target.value})} />
+              </div>
+              <textarea placeholder="Resumo do regimento e competências" value={formBody.regiment_summary} onChange={e=>setFormBody({...formBody,regiment_summary:e.target.value})} rows={3} />
               <div className="gov-form-actions">
                 <button className="gov-btn-primary" onClick={saveBody} disabled={!formBody.name}>Salvar</button>
                 <button className="gov-btn-secondary" onClick={()=>setShowForm(null)}>Cancelar</button>
@@ -182,14 +187,14 @@ export default function Governanca360({institutionId, role}:Props) {
           )}
           <div className="gov-cards">
             {bodies.map(b=>{
-              const bMembers = members.filter(m=>m.body_id===b.id && m.status==='ativo');
+              const bMembers = members.filter(m=>m.body_id===b.id && m.is_active);
               const bMeetings = meetings.filter(m=>m.body_id===b.id);
               const bDelibs = deliberations.filter(d=>d.body_id===b.id);
               return (
                 <div key={b.id} className="gov-card" onClick={()=>{setSelectedBody(b.id);setView('reunioes');}}>
                   <div className="gov-card-type">{bodyTypes.find(t=>t.value===b.body_type)?.label||b.body_type}</div>
                   <div className="gov-card-name">{b.name}</div>
-                  {b.regulatory_basis && <div className="gov-card-basis">{b.regulatory_basis}</div>}
+                  {b.creation_instrument && <div className="gov-card-basis">{b.creation_instrument}</div>}
                   <div className="gov-card-stats">
                     <span>{bMembers.length} membros</span>
                     <span>{bMeetings.length} reuniões</span>
@@ -226,7 +231,7 @@ export default function Governanca360({institutionId, role}:Props) {
                 <input type="datetime-local" value={formMeeting.scheduled_date} onChange={e=>setFormMeeting({...formMeeting,scheduled_date:e.target.value})} />
                 <input placeholder="Local" value={formMeeting.location} onChange={e=>setFormMeeting({...formMeeting,location:e.target.value})} />
               </div>
-              <textarea placeholder="Pauta / Resumo" value={formMeeting.summary} onChange={e=>setFormMeeting({...formMeeting,summary:e.target.value})} rows={3} />
+              <textarea placeholder="Pauta / Observações" value={formMeeting.notes} onChange={e=>setFormMeeting({...formMeeting,notes:e.target.value})} rows={3} />
               <div className="gov-form-actions">
                 <button className="gov-btn-primary" onClick={saveMeeting} disabled={!formMeeting.body_id||!formMeeting.scheduled_date}>Salvar</button>
                 <button className="gov-btn-secondary" onClick={()=>setShowForm(null)}>Cancelar</button>
@@ -270,12 +275,12 @@ export default function Governanca360({institutionId, role}:Props) {
                   <option value="">Selecione a reunião</option>
                   {meetings.map(m=><option key={m.id} value={m.id}>{new Date(m.scheduled_date).toLocaleDateString('pt-BR')} — {bodies.find(b=>b.id===m.body_id)?.name}</option>)}
                 </select>
-                <input placeholder="Nº da deliberação" value={formDelib.number} onChange={e=>setFormDelib({...formDelib,number:e.target.value})} />
+                <input placeholder="Protocolo da deliberação" value={formDelib.protocol} onChange={e=>setFormDelib({...formDelib,protocol:e.target.value})} />
               </div>
               <input placeholder="Assunto" value={formDelib.subject} onChange={e=>setFormDelib({...formDelib,subject:e.target.value})} />
-              <textarea placeholder="Texto da decisão" value={formDelib.decision_text} onChange={e=>setFormDelib({...formDelib,decision_text:e.target.value})} rows={4} />
+              <textarea placeholder="Texto completo da decisão" value={formDelib.full_text} onChange={e=>setFormDelib({...formDelib,full_text:e.target.value})} rows={4} />
               <div className="gov-form-row">
-                <select value={formDelib.deliberation_type} onChange={e=>setFormDelib({...formDelib,deliberation_type:e.target.value})}>
+                <select value={formDelib.decision_type} onChange={e=>setFormDelib({...formDelib,decision_type:e.target.value})}>
                   <option value="resolucao">Resolução</option>
                   <option value="parecer">Parecer</option>
                   <option value="recomendacao">Recomendação</option>
@@ -285,7 +290,7 @@ export default function Governanca360({institutionId, role}:Props) {
                 <input placeholder="Responsável" value={formDelib.responsible_name} onChange={e=>setFormDelib({...formDelib,responsible_name:e.target.value})} />
                 <input type="date" value={formDelib.due_date} onChange={e=>setFormDelib({...formDelib,due_date:e.target.value})} />
               </div>
-              <label className="gov-checkbox"><input type="checkbox" checked={formDelib.requires_action} onChange={e=>setFormDelib({...formDelib,requires_action:e.target.checked})} /> Requer ação no Plano de Metas</label>
+              <input placeholder="Setor de destino (opcional)" value={formDelib.target_sector} onChange={e=>setFormDelib({...formDelib,target_sector:e.target.value})} />
               <div className="gov-form-actions">
                 <button className="gov-btn-primary" onClick={saveDeliberation} disabled={!formDelib.meeting_id||!formDelib.subject}>Salvar</button>
                 <button className="gov-btn-secondary" onClick={()=>setShowForm(null)}>Cancelar</button>
@@ -296,23 +301,24 @@ export default function Governanca360({institutionId, role}:Props) {
             {filteredDelibs.map(d=>(
               <div key={d.id} className="gov-delib">
                 <div className="gov-delib-header">
-                  <span className="gov-delib-num">{d.number}</span>
+                  <span className="gov-delib-num">{d.protocol}</span>
                   <span className={`gov-badge gov-badge-${d.status}`}>{d.status}</span>
-                  <span className={`gov-badge gov-badge-type`}>{d.deliberation_type}</span>
+                  <span className={`gov-badge gov-badge-type`}>{d.decision_type}</span>
                   {d.priority && <span className={`gov-badge gov-badge-pri-${d.priority}`}>{d.priority}</span>}
                 </div>
                 <div className="gov-delib-subject">{d.subject}</div>
-                <div className="gov-delib-text">{d.decision_text}</div>
+                <div className="gov-delib-text">{d.full_text}</div>
                 <div className="gov-delib-meta">
                   {d.responsible_name && <span>Resp: {d.responsible_name}</span>}
                   {d.due_date && <span>Prazo: {new Date(d.due_date).toLocaleDateString('pt-BR')}</span>}
                   <span>{bodies.find(b=>b.id===d.body_id)?.name}</span>
                 </div>
-                {d.requires_action && (
+                {!d.action_id && (
                   <button className="gov-btn-action" onClick={()=>createActionFrom(d)} title="Criar ação no Plano de Metas 5W2H">
                     → Criar ação no 5W2H
                   </button>
                 )}
+                {d.action_id && <span className="gov-badge gov-badge-ativo">✓ Ação vinculada</span>}
               </div>
             ))}
             {filteredDelibs.length===0 && <div className="gov-empty">Nenhuma deliberação registrada</div>}
@@ -335,7 +341,7 @@ export default function Governanca360({institutionId, role}:Props) {
                   {ev.type==='meeting' ? (
                     <><strong>Reunião {(ev.item as Meeting).meeting_type}</strong> — {bodies.find(b=>b.id===(ev.item as Meeting).body_id)?.name}</>
                   ):(
-                    <><strong>Deliberação {(ev.item as Deliberation).number}</strong> — {(ev.item as Deliberation).subject}</>
+                    <><strong>Deliberação {(ev.item as Deliberation).protocol}</strong> — {(ev.item as Deliberation).subject}</>
                   )}
                 </div>
               </div>
