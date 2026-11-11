@@ -78,8 +78,8 @@ export default function ApiConnectorSetup({institutionId,role}:{institutionId:st
     const {error}=await supabase.from("vertice_api_connectors").update(payload).eq("id",connector.id);
     if(error)throw error;
    }else{
-    const {data:user}=await supabase.auth.getUser();
-    const {error}=await supabase.from("vertice_api_connectors").insert({...payload,created_by:user.data.user?.id||""});
+    const {data:{user}}=await supabase.auth.getUser();
+    const {error}=await supabase.from("vertice_api_connectors").insert({...payload,created_by:user?.id||""});
     if(error)throw error;
    }
    setMessage("✅ Conector salvo.");setEditing(false);void load();
