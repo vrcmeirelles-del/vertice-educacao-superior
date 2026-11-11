@@ -31,6 +31,7 @@ import ProfileSimulator from '@/components/area/ProfileSimulator';
 import ExperienceAdmin from './ExperienceAdmin';
 import MasterHub from '@/components/area/MasterHub';
 import VerticeBI from '@/components/area/VerticeBI';
+import BillingPanel from '@/components/area/BillingPanel';
 
 type Membership={user_id:string;institution_id:string;role:string};
 const SNAPSHOT_COLUMNS='id,course_id,semester,class_label,enrolled,capacity,available,source_report_at,reported_total,student_status';
@@ -354,7 +355,7 @@ export default function OwnerDashboard(){
   </a>
   <button className={`vx-module-card ${!commercial&&!route.perfis&&!route.painelBi&&!route.captacao&&!route.bi&&route.masters&&!route.governanca?'vx-module-active':''}`} onClick={()=>{setCommercial(false);writeHash('','',false,false,false,true);}}><span className="vx-module-icon" style={{background:'#f0f9ff',color:'#0369a1'}}>🔑</span><strong>Masters</strong><small>Administradores do sistema</small></button>
  </div>}
- {route.biVertice&&master?<VerticeBI onBack={()=>{window.location.hash='';window.dispatchEvent(new HashChangeEvent('hashchange'));}}/>:route.hub&&master?<MasterHub onNavigate={(dest,instId)=>{
+ {route.biVertice&&master?<VerticeBI onBack={()=>{window.location.hash='';window.dispatchEvent(new HashChangeEvent('hashchange'));}}/>:route.financeiro&&master?<><button onClick={()=>{window.location.hash='';window.dispatchEvent(new HashChangeEvent('hashchange'));}} style={{background:'none',border:'none',color:'#2563eb',cursor:'pointer',fontSize:13,padding:0,marginBottom:12}}>← Voltar ao hub</button><BillingPanel/></>:route.hub&&master?<MasterHub onNavigate={(dest,instId)=>{
   if(dest==='bi-vertice'){window.location.hash='bi-vertice=1';}
   else if(dest==='universidades'){window.location.hash='tier=superior';}
   else if(dest==='escolas'){window.location.hash='tier=escolas';}

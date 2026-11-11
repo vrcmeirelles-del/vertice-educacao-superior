@@ -49,7 +49,7 @@ function Badge({ s }: { s: string }) {
 function fmtBRL(v: number|null) { return v==null?'—':'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2}); }
 function fmtDate(d: string|null) { return d?new Date(d).toLocaleDateString('pt-BR'):'—'; }
 
-export default function BillingPanel() {
+export default function BillingPanel({ tierFilter }: { tierFilter?: string }) {
   const [view, setView] = useState<View>('dashboard');
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -68,7 +68,9 @@ export default function BillingPanel() {
   const load = useCallback(async () => {
     setLoading(true);
     const [c, i, m] = await Promise.all([
-      supabase.from('v_billing_dashboard').select('*'),
+      tierFilter
+        ? supabase.from('v_billing_dashboard').select('*').eq('tier', tierFilter)
+        : supabase.from('v_billing_dashboard').select('*'),
       supabase.from('vertice_invoices').select('*').order('issued_at', { ascending: false }).limit(100),
       supabase.from('v_mrr_summary').select('*').single(),
     ]);
@@ -81,7 +83,9 @@ export default function BillingPanel() {
   useEffect(() => { load(); }, [load]);
 
   async function loadInstitutions() {
-    const { data } = await supabase.from('vertice_institutions').select('id,name').order('name');
+    let q = supabase.from('vertice_institutions').select('id,name,tier').order('name');
+    if (tierFilter) q = q.eq('tier', tierFilter);
+    const { data } = await q;
     setInstitutions((data||[]) as {id:string;name:string}[]);
   }
 
