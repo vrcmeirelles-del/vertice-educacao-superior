@@ -1,14 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { supabase } from "@/lib/supabase";
 import { type Row, explain } from "@/lib/area";
 import { REPOSITORY_CATEGORIES, REPOSITORY_DIMENSIONS, instrumentIndicators } from "@/lib/repository";
+const PreValidationPanel = lazy(() => import("./PreValidationPanel"));
 const fileIndicators = (f: Row): string[] => Array.isArray(f.instrument_indicators) ? f.instrument_indicators.map(String) : [];
-export default function RepositoryFiles({ files, requests, other=false, manager, download, reload, review }: {
- files: Row[]; requests: Row[]; other?: boolean; manager: boolean;
+export default function RepositoryFiles({ files, requests, other=false, manager, download, reload, review, institutionId }: {
+ files: Row[]; requests: Row[]; other?: boolean; manager: boolean; institutionId?: string;
  download:(f:Row)=>Promise<void>; reload:()=>Promise<void>; review:(f:Row)=>void;
 }) {
  const [query,setQuery]=useState(""),[dimension,setDimension]=useState(""),[category,setCategory]=useState(""),[page,setPage]=useState(0);
  const [editing,setEditing]=useState<Row|null>(null),[selection,setSelection]=useState("nao_classificado"),[indicators,setIndicators]=useState(""),[note,setNote]=useState(""),[busy,setBusy]=useState(false),[error,setError]=useState("");
+ const [prevalidating,setPrevalidating]=useState<Row|null>(null);
  useEffect(()=>setPage(0),[query,dimension,category,other,files.length]);
  const rows=files.filter(f=> {
   const cat=String(f.document_category??"nao_classificado"),codes=Array.isArray(f.instrument_indicators)? f.instrument_indicators:[];
@@ -38,11 +40,15 @@ export default function RepositoryFiles({ files, requests, other=false, manager,
    <label>Justificativa<textarea value={note} onChange={e=>setNote(e.target.value)} maxLength={4000}/></label>
    <div className="er-actions"><button className="er-btn er-primary" disabled={busy}>Salvar classificação</button><button className="er-btn" type="button" disabled={busy} onClick={()=>setEditing(null)}>Cancelar</button></div>
   </form>}
+  {prevalidating && institutionId && <Suspense fallback={<p>Carregando painel de pré-validação…</p>}><PreValidationPanel file={prevalidating} institutionId={institutionId} sourceTable="vertice_repository_files" onClose={()=>setPrevalidating(null)} onLinksUpdated={()=>void reload()} /></Suspense>}
   {!rows.length?<p className="er-empty">Nenhum arquivo nesta seleção.</p>:<div className="er-table-scroll"><table className="er-table"><thead><tr><th>Documento</th><th>{other?"Categoria":"Indicadores"}</th><th/></tr></thead><tbody>{rows.slice(current*20,current*20+20).map(f=><tr key={f.id}>
    <td><strong>{String(f.file_name)}</strong><small>{(Number(f.size_bytes)/1024/1024).toFixed(2)} MB</small>
     <details className="er-file-details"><summary>Detalhes</summary><p>{String(f.classification_note??"Classificação pendente de conferência.")}</p>{Boolean(f.upload_note)&&<p>{String(f.upload_note)}</p>}<p>Situação: {String(f.status)} · Enviado por {String(f.uploaded_email??"Conta vinculada")}</p></details>
    </td><td>{other?REPOSITORY_CATEGORIES[String(f.document_category??"nao_classificado")]:String(fileIndicators(f).join(", "))}</td>
-   <td><div className="er-actions"><button className="er-btn er-small" onClick={()=>void download(f)}>Baixar</button>{manager&&<><button className="er-btn er-small" onClick={()=>{setEditing(f);setSelection(String(f.document_category??"nao_classificado"));setIndicators(fileIndicators(f).join(", "));setNote(String(f.classification_note??""));}}>Classificar</button><button className="er-btn er-small" onClick={()=>review(f)}>Analisar</button></>}</div></td>
+   <td><div className="er-actions">
+    {manager&&<button className="er-btn er-small" style={{background:"#2563eb",color:"#fff",fontWeight:700}} onClick={()=>{setPrevalidating(prevalidating?.id===f.id?null:f);setEditing(null);}}>🤖 Pré-validar</button>}
+    <button className="er-btn er-small" onClick={()=>void download(f)}>Baixar</button>{manager&&<><button className="er-btn er-small" onClick={()=>{setEditing(f);setPrevalidating(null);setSelection(String(f.document_category??"nao_classificado"));setIndicators(fileIndicators(f).join(", "));setNote(String(f.classification_note??""));}}>Classificar</button><button className="er-btn er-small" onClick={()=>review(f)}>Analisar</button></>}
+   </div></td>
   </tr>)}</tbody></table></div>}
   {pages>1&&<div className="er-toolbar"><button className="er-btn" disabled={current===0} onClick={()=>setPage(current-1)}>Anterior</button><span>Página {current+1} de {pages}</span><button className="er-btn" disabled={current===pages-1} onClick={()=>setPage(current+1)}>Próxima</button></div>}
  </section>;

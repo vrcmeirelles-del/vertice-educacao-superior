@@ -901,7 +901,7 @@ export default function RepositoryTab(props: RepositoryProps) {
                 )}
               </>
             ) : view === "arquivos" || view === "outros" ? (
-              <RepositoryFiles files={ownFiles} requests={courseRequests} other={view==="outros"} manager={manager} download={download} reload={reload} review={setReviewing} />
+              <RepositoryFiles files={ownFiles} requests={courseRequests} other={view==="outros"} manager={manager} download={download} reload={reload} review={setReviewing} institutionId={institutionId} />
             ) : view === "serie" ? (
               <Card
                 title="Série histórica"

@@ -4,8 +4,9 @@
  * Upload, catalogação, análise IA, alertas, busca full-text
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import { supabase } from '@/lib/supabase';
+const PreValidationPanel = lazy(() => import('./PreValidationPanel'));
 
 // ── Types ──────────────────────────────────────────────────
 
@@ -149,6 +150,7 @@ export default function DocumentManager({ institutionId, isMaster }: Props) {
   const [findings, setFindings] = useState<Finding[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [showPrevalidation, setShowPrevalidation] = useState(false);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -614,6 +616,7 @@ export default function DocumentManager({ institutionId, isMaster }: Props) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
           <h4 style={{ margin: 0 }}>Achados ({findings.length})</h4>
           <button onClick={() => reanalyze(d.id)} style={btnStyle('#7c3aed')}>🔄 Reanalisar</button>
+          <button onClick={() => setShowPrevalidation(!showPrevalidation)} style={btnStyle('#2563eb')}>🤖 {showPrevalidation ? 'Fechar pré-validação' : 'PRÉ-VALIDAR COM IA'}</button>
         </div>
         {findings.map((f) => (
           <div key={f.id} style={{
@@ -647,6 +650,19 @@ export default function DocumentManager({ institutionId, isMaster }: Props) {
             )}
           </div>
         ))}
+
+        {/* Painel de Pré-validação IA */}
+        {showPrevalidation && d && (
+          <Suspense fallback={<p>Carregando pré-validação…</p>}>
+            <PreValidationPanel
+              file={{ id: d.id, file_name: d.file_name } as any}
+              institutionId={institutionId}
+              sourceTable="vertice_documents"
+              onClose={() => setShowPrevalidation(false)}
+              onLinksUpdated={() => void loadData()}
+            />
+          </Suspense>
+        )}
       </div>
     );
   };
