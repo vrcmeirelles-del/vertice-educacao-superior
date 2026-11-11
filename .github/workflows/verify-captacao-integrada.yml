@@ -28,26 +28,19 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
-      - name: Compor fonte atual e base sem alterações
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+      - name: Compor fonte atual
         run: |
-          mkdir -p .captacao-build .captacao-base-source .captacao-base-build
+          mkdir -p .captacao-build
           unzip -qo vertice-servidor-source.zip -d .captacao-build
           cp -a source-overrides/. .captacao-build/
           cp scripts/captacao.vitest.config.ts .captacao-build/scripts/
-          git archive "$BASE_SHA" vertice-servidor-source.zip source-overrides | tar -xf - -C .captacao-base-source
-          unzip -qo .captacao-base-source/vertice-servidor-source.zip -d .captacao-base-build
-          cp -a .captacao-base-source/source-overrides/. .captacao-base-build/
-          cmp .captacao-base-build/package-lock.json .captacao-build/package-lock.json
       - name: Instalar dependências com lockfile
         run: |
           npm ci --prefix .captacao-build --legacy-peer-deps --no-audit --no-fund
           npm ci --prefix scripts/tests/runtime --no-audit --no-fund
-          ln -s "$GITHUB_WORKSPACE/.captacao-build/node_modules" .captacao-base-build/node_modules
           ln -s "$GITHUB_WORKSPACE/scripts/tests/runtime/node_modules/jsdom" .captacao-build/node_modules/jsdom
-      - name: Verificar ausência de novos erros TypeScript
-        run: node scripts/verify-captacao-typecheck.mjs .captacao-base-build .captacao-build
+      - name: Verificar zero erros TypeScript
+        run: node scripts/verify-captacao-typecheck.mjs .captacao-build
       - name: Testes existentes e novos contratos/DOM
         working-directory: .captacao-build
         run: |
