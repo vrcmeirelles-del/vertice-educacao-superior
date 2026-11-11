@@ -42,11 +42,11 @@ const PKG_PER_STUDENT: Record<string, number> = {
 };
 
 const PKG_MODULES: Record<string, string[]> = {
-  essencial: ['Core', 'BI Institucional', 'BI por Curso', 'Gestão Documental'],
+  essencial: ['Core', 'BI Institucional', 'BI por Curso', 'Gestão Documental', 'Central de Sincronização'],
   regulacao: ['+ Compliance', '+ Biblioteca Regulatória', '+ ENADE 360°', '+ Novo Instrumento', '+ Repositório'],
   gestao360: ['+ Governança 360°', '+ Metas 5W2H', '+ Resultado por Curso', '+ Simulador de Custo', '+ Aquisições'],
-  completo: ['+ Inclusão/PEI', '+ Egressos 360°', '+ Acomp. Especial', '+ Captação BI', '+ Fato & Ordem', '+ Sincronização'],
-  core: ['Cadastro', 'Integrações', 'Usuários', 'Gestão Documental'],
+  completo: ['+ Inclusão/PEI', '+ Egressos 360°', '+ Acomp. Especial', '+ Captação BI', '+ Fato & Ordem', '+ Todos os módulos'],
+  core: ['Cadastro', 'Integrações', 'Usuários', 'Gestão Documental', 'Central de Sincronização'],
   pedagogico: ['+ BI Direção', '+ Indicadores IDEB/SAEB', '+ BI Coordenação', '+ ENEM & Vestibular'],
   captacao: ['+ Captação de Matrículas', '+ Rematrícula', '+ Comunicação com Famílias'],
   acompanhamento: ['+ Inclusão & PEI', '+ Orientação Educacional', '+ Egressos'],
@@ -459,7 +459,6 @@ export default function BillingPanel({ tierFilter }: { tierFilter?: string }) {
               { code:'GEST_ACOMPANHAMENTO', name:'Acompanhamento Especial', fee:'R$ 1.000/mês' },
               { code:'GEST_AQUISICOES', name:'Aquisições 360°', fee:'R$ 1.000/mês' },
               { code:'ADDON_FATO_ORDEM', name:'Fato & Ordem', fee:'R$ 2.000/mês' },
-              { code:'AVANCADO_SYNC', name:'Central de Sincronização', fee:'R$ 1.500/mês' },
             ].map(a=>(
               <div className="bp-addon-item" key={a.code}>
                 <strong>{a.name}</strong>
