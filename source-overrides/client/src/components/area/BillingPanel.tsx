@@ -8,6 +8,7 @@ type View = 'dashboard' | 'contratos' | 'faturas' | 'modulos';
 interface Contract {
   contract_id: string; contract_number: string; ies_name: string; package_code: string;
   contract_status: string; student_count: number; monthly_value: number;
+  discount_percent: number; is_courtesy: boolean; courtesy_reason: string; custom_monthly: number;
   starts_at: string; trial_ends_at: string; min_commitment_ends_at: string;
   cancellation_effective_at: string;
   total_paid: number; total_pending: number; total_overdue: number;
@@ -60,6 +61,10 @@ export default function BillingPanel() {
   const [institutions, setInstitutions] = useState<{id:string;name:string}[]>([]);
   const [newContract, setNewContract] = useState<any>({ package_code:'essencial', price_per_student:1.50, min_monthly:1500, max_monthly:null, student_count:0, implementation_fee:3000, with_trial:true });
 
+  // Negociação
+  const [editingContract, setEditingContract] = useState<string|null>(null);
+  const [nego, setNego] = useState<any>({});
+
   const load = useCallback(async () => {
     setLoading(true);
     const [c, i, m] = await Promise.all([
@@ -98,6 +103,38 @@ export default function BillingPanel() {
 
   async function markPaid(invoiceId: string) {
     await supabase.rpc('register_payment', { p_invoice_id: invoiceId, p_payment_method: 'pix' });
+    load();
+  }
+
+  function startNegotiation(c: Contract) {
+    setEditingContract(c.contract_id);
+    setNego({
+      discount_percent: c.discount_percent || 0,
+      discount_reason: '',
+      custom_monthly: c.custom_monthly || '',
+      is_courtesy: c.is_courtesy || false,
+      courtesy_reason: c.courtesy_reason || '',
+      courtesy_expires_at: '',
+      negotiation_notes: '',
+    });
+  }
+
+  async function saveNegotiation() {
+    if (!editingContract) return;
+    const updates: any = {
+      discount_percent: nego.discount_percent || 0,
+      is_courtesy: nego.is_courtesy || false,
+      updated_at: new Date().toISOString(),
+    };
+    if (nego.discount_reason) updates.discount_reason = nego.discount_reason;
+    if (nego.custom_monthly) updates.custom_monthly = +nego.custom_monthly;
+    else updates.custom_monthly = null;
+    if (nego.courtesy_reason) updates.courtesy_reason = nego.courtesy_reason;
+    if (nego.courtesy_expires_at) updates.courtesy_expires_at = nego.courtesy_expires_at;
+    if (nego.negotiation_notes) updates.negotiation_notes = nego.negotiation_notes;
+
+    await supabase.from('vertice_contracts').update(updates).eq('id', editingContract);
+    setEditingContract(null);
     load();
   }
 
@@ -208,8 +245,8 @@ export default function BillingPanel() {
             <table className="bp-table">
               <thead><tr>
                 <th>Contrato</th><th>IES</th><th>Pacote</th><th>Status</th>
-                <th>Alunos</th><th>Mensalidade</th><th>Pago</th><th>Pendente</th><th>Vencido</th>
-                <th>Início</th><th>Trial até</th>
+                <th>Alunos</th><th>Mensalidade</th><th>Negociação</th><th>Pago</th><th>Vencido</th>
+                <th></th>
               </tr></thead>
               <tbody>
                 {contracts.map(c=>(
@@ -219,16 +256,67 @@ export default function BillingPanel() {
                     <td><span className="bp-pkg-badge">{PKG[c.package_code]||c.package_code}</span></td>
                     <td><Badge s={c.contract_status} /></td>
                     <td className="num">{c.student_count}</td>
-                    <td className="num">{fmtBRL(c.monthly_value)}</td>
+                    <td className="num">
+                      {c.is_courtesy ? <span className="bp-courtesy-badge">🤝 Cortesia</span> : fmtBRL(c.monthly_value)}
+                      {!c.is_courtesy && c.discount_percent > 0 && <small className="bp-discount"> -{c.discount_percent}%</small>}
+                      {!c.is_courtesy && c.custom_monthly && <small className="bp-custom"> (negociado)</small>}
+                    </td>
+                    <td>
+                      {c.is_courtesy && <span className="bp-nego-tag cortesia" title={c.courtesy_reason||''}>🤝 {c.courtesy_reason||'Cortesia'}</span>}
+                      {!c.is_courtesy && c.discount_percent > 0 && <span className="bp-nego-tag desconto">-{c.discount_percent}%</span>}
+                      {!c.is_courtesy && !c.discount_percent && !c.custom_monthly && <span className="bp-nego-tag padrao">Tabela</span>}
+                      {!c.is_courtesy && c.custom_monthly && <span className="bp-nego-tag custom">{fmtBRL(c.custom_monthly)}</span>}
+                    </td>
                     <td className="num green">{fmtBRL(c.total_paid)}</td>
-                    <td className="num warn">{fmtBRL(c.total_pending)}</td>
                     <td className="num danger">{fmtBRL(c.total_overdue)}</td>
-                    <td>{fmtDate(c.starts_at)}</td>
-                    <td>{c.trial_ends_at ? fmtDate(c.trial_ends_at) : '—'}</td>
+                    <td><button className="bp-nego-btn" onClick={()=>startNegotiation(c)} title="Negociar valores">⚙️</button></td>
                   </tr>
                 ))}
               </tbody>
             </table>
+          )}
+
+          {/* PAINEL DE NEGOCIAÇÃO */}
+          {editingContract && (
+            <div className="bp-nego-panel">
+              <h4>⚙️ Negociação — {contracts.find(c=>c.contract_id===editingContract)?.ies_name}</h4>
+              <div className="bp-form-grid">
+                <label className="bp-checkbox">
+                  <input type="checkbox" checked={nego.is_courtesy} onChange={e=>setNego({...nego, is_courtesy:e.target.checked, discount_percent: e.target.checked ? 0 : nego.discount_percent})} />
+                  <strong>🤝 Cortesia total (R$ 0)</strong>
+                </label>
+                {nego.is_courtesy && (
+                  <>
+                    <label>Motivo da cortesia *
+                      <input value={nego.courtesy_reason} onChange={e=>setNego({...nego,courtesy_reason:e.target.value})} placeholder="Ex: Pró-reitoria de extensão, parceria institucional" />
+                    </label>
+                    <label>Cortesia válida até (opcional)
+                      <input type="date" value={nego.courtesy_expires_at} onChange={e=>setNego({...nego,courtesy_expires_at:e.target.value})} />
+                    </label>
+                  </>
+                )}
+                {!nego.is_courtesy && (
+                  <>
+                    <label>Desconto (%)
+                      <input type="number" step="0.5" min="0" max="100" value={nego.discount_percent} onChange={e=>setNego({...nego,discount_percent:+e.target.value})} />
+                    </label>
+                    <label>Motivo do desconto
+                      <input value={nego.discount_reason||''} onChange={e=>setNego({...nego,discount_reason:e.target.value})} placeholder="Ex: Negociação direta, fidelização" />
+                    </label>
+                    <label>Valor mensal fixo negociado (opcional)
+                      <input type="number" step="0.01" value={nego.custom_monthly||''} onChange={e=>setNego({...nego,custom_monthly:e.target.value})} placeholder="Deixe vazio para usar o cálculo padrão" />
+                    </label>
+                  </>
+                )}
+                <label className="bp-form-full-w">Anotações da negociação
+                  <textarea value={nego.negotiation_notes||''} onChange={e=>setNego({...nego,negotiation_notes:e.target.value})} rows={2} placeholder="Registro interno — não aparece no contrato" />
+                </label>
+              </div>
+              <div className="bp-form-actions">
+                <button className="bp-btn-save" onClick={saveNegotiation}>Salvar negociação</button>
+                <button className="bp-btn-cancel" onClick={()=>setEditingContract(null)}>Cancelar</button>
+              </div>
+            </div>
           )}
         </div>
       )}

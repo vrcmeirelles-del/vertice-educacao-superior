@@ -85,3 +85,21 @@
 .bp-addon-item strong { font-size: .85rem; }
 .bp-addon-item span { font-size: .85rem; color: #6366f1; font-weight: 600; }
 @media(prefers-color-scheme:dark) { .bp-addon-item { border-color: #333; } }
+
+/* Negociação */
+.bp-courtesy-badge { background: #dbeafe; color: #1d4ed8; padding: .15rem .5rem; border-radius: 5px; font-size: .75rem; font-weight: 700; }
+.bp-discount { color: #16a34a; font-weight: 600; margin-left: .25rem; }
+.bp-custom { color: #8b5cf6; font-weight: 500; margin-left: .25rem; }
+.bp-nego-tag { display: inline-block; padding: .12rem .4rem; border-radius: 4px; font-size: .7rem; font-weight: 600; }
+.bp-nego-tag.cortesia { background: #dbeafe; color: #1d4ed8; }
+.bp-nego-tag.desconto { background: #dcfce7; color: #166534; }
+.bp-nego-tag.padrao { background: #f3f4f6; color: #6b7280; }
+.bp-nego-tag.custom { background: #f5f3ff; color: #7c3aed; }
+.bp-nego-btn { background: transparent; border: 1px solid #d1d5db; padding: .25rem .5rem; border-radius: 5px; cursor: pointer; font-size: .8rem; }
+.bp-nego-btn:hover { border-color: #6366f1; background: #6366f108; }
+.bp-nego-panel { background: linear-gradient(135deg,#eef2ff,#f5f3ff); border: 2px solid #6366f1; border-radius: 12px; padding: 1.5rem; margin-top: 1rem; }
+@media(prefers-color-scheme:dark) { .bp-nego-panel { background: linear-gradient(135deg,#1e1b4b,#1e1e2e); border-color: #6366f1; } }
+.bp-nego-panel h4 { margin: 0 0 1rem; font-size: 1rem; }
+.bp-form-full-w { grid-column: 1 / -1; display: flex; flex-direction: column; gap: .25rem; font-size: .8rem; font-weight: 500; color: var(--muted,#666); }
+.bp-form-full-w textarea { padding: .5rem .75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: .9rem; background: var(--bg,#fff); color: var(--fg,#1a1a2e); resize: vertical; }
+@media(prefers-color-scheme:dark) { .bp-form-full-w textarea { background: #12121e; border-color: #444; color: #e0e0e0; } }

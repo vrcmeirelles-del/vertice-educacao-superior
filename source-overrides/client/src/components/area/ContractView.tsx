@@ -7,6 +7,7 @@ interface ContractData {
   id: string; contract_number: string; package_code: string; status: string;
   price_per_student: number; min_monthly: number; max_monthly: number;
   student_count: number; monthly_value: number; implementation_fee: number;
+  discount_percent: number; custom_monthly: number; is_courtesy: boolean; courtesy_reason: string;
   starts_at: string; trial_ends_at: string; min_commitment_ends_at: string;
   cooling_off_expires_at: string; signed_at: string;
 }
@@ -156,7 +157,12 @@ export default function ContractView({ contractId, institutionId, institutionNam
           <div><label>Pacote</label><strong>{PKG[contract.package_code]}</strong></div>
           <div><label>Valor por aluno</label><strong>{fmtBRL(contract.price_per_student)}</strong></div>
           <div><label>Nº de alunos</label><strong>{contract.student_count}</strong></div>
-          <div><label>Mensalidade calculada</label><strong className="cv-highlight">{fmtBRL(contract.monthly_value)}</strong></div>
+          <div><label>Mensalidade</label><strong className="cv-highlight">
+            {contract.is_courtesy ? '🤝 Cortesia' : fmtBRL(contract.monthly_value)}
+            {!contract.is_courtesy && contract.discount_percent > 0 && <small style={{color:'#16a34a',marginLeft:4}}>(-{contract.discount_percent}%)</small>}
+          </strong></div>
+          {contract.is_courtesy && <div><label>Condição especial</label><strong style={{color:'#1d4ed8'}}>{contract.courtesy_reason || 'Parceria institucional'}</strong></div>}
+          {!contract.is_courtesy && contract.custom_monthly > 0 && <div><label>Valor negociado</label><strong style={{color:'#7c3aed'}}>{fmtBRL(contract.custom_monthly)}</strong></div>}
           <div><label>Piso mensal</label><strong>{fmtBRL(contract.min_monthly)}</strong></div>
           <div><label>Teto mensal</label><strong>{contract.max_monthly ? fmtBRL(contract.max_monthly) : 'Sem teto'}</strong></div>
           <div><label>Implementação</label><strong>{fmtBRL(contract.implementation_fee)}</strong></div>
