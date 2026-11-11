@@ -49,6 +49,7 @@ import Egressos360 from "./Egressos360";
 import Governanca360 from "./Governanca360";
 import Inclusao360 from "./Inclusao360";
 import AcompanhamentoEspecial360 from "./AcompanhamentoEspecial360";
+import SyncHealth from "./SyncHealth";
 import "./area.css";
 
 const TAB_GROUPS: {label:string;subtitle:string;icon:string;tabs:Tab[]}[] = [
@@ -59,6 +60,7 @@ const TAB_GROUPS: {label:string;subtitle:string;icon:string;tabs:Tab[]}[] = [
   {label:'Egressos',subtitle:'Acompanhamento longitudinal e empregabilidade',icon:'🎓',tabs:['egressos']},
   {label:'Governança',subtitle:'Órgãos colegiados, deliberações e fluxos',icon:'⚖',tabs:['governanca']},
   {label:'Acompanhamento',subtitle:'Inclusão, PEI e regimes especiais',icon:'♿',tabs:['inclusao','acompanhamento-especial']},
+  {label:'Integrações',subtitle:'Saúde dos dados e sincronizações',icon:'⇄',tabs:['sync']},
 ];
 
 const TAB_DETAILS: Partial<Record<Tab,{icon:string;description:string}>> = {
@@ -92,6 +94,7 @@ const TAB_DETAILS: Partial<Record<Tab,{icon:string;description:string}>> = {
   governanca:{icon:'⚖',description:'NDE, Colegiado, reuniões, atas e deliberações'},
   inclusao:{icon:'♿',description:'Inclusão, PEI, acessibilidade e Núcleo de Apoio'},
   'acompanhamento-especial':{icon:'📋',description:'Regimes especiais, exercícios domiciliares e planos acadêmicos'},
+  sync:{icon:'⇄',description:'Central de Sincronização e Integrações'},
 };
 
 const TABS: [Tab, string][] = [
@@ -122,6 +125,7 @@ const TABS: [Tab, string][] = [
   ["governanca", "Governança 360°"],
   ["inclusao", "Inclusão 360° · PEI"],
   ["acompanhamento-especial", "Acompanhamento Especial 360°"],
+  ["sync", "Central de Sincronização"],
   ["plano", "Plano de ação 5W2H"],
   ["diagnostico", "Diagnóstico"],
   ["equipe", "Equipe"],
@@ -369,6 +373,8 @@ export default function Workspace({
         <Inclusao360 institutionId={id} role={role||'master'} />
       ) : tab === "acompanhamento-especial" ? (
         <AcompanhamentoEspecial360 institutionId={id} role={role||'master'} />
+      ) : tab === "sync" ? (
+        <SyncHealth institutionId={id} />
       ) : tab === "biblioteca" ? (
         <InepLibrary institutionId={id} />
       ) : tab === "plano" ? (

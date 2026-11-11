@@ -1,0 +1,25 @@
+.sync-health { display:flex; flex-direction:column; gap:16px; }
+.sh-loading { padding:40px; text-align:center; color:var(--text-secondary,#6b7280); }
+.sh-title { margin:0; font-size:1.1rem; font-weight:700; }
+.sh-summary { display:flex; gap:10px; flex-wrap:wrap; }
+.sh-stat { background:var(--bg-card,#fff); border:1px solid var(--border,#e5e7eb); border-radius:8px; padding:12px 16px; flex:1; min-width:120px; }
+.sh-stat-n { display:block; font-size:1.5rem; font-weight:700; line-height:1.1; font-variant-numeric:tabular-nums; }
+.sh-stat-l { display:block; font-size:.7rem; color:var(--text-secondary,#6b7280); text-transform:uppercase; letter-spacing:.04em; margin-top:2px; }
+.sh-table-wrap { overflow-x:auto; }
+.sh-table { width:100%; border-collapse:collapse; font-size:.82rem; }
+.sh-table th { text-align:left; padding:8px 10px; border-bottom:2px solid var(--border,#e5e7eb); font-size:.72rem; text-transform:uppercase; letter-spacing:.04em; color:var(--text-secondary,#6b7280); white-space:nowrap; }
+.sh-table td { padding:7px 10px; border-bottom:1px solid var(--border,#e5e7eb); }
+.sh-table tr:hover td { background:var(--bg-hover,#f9fafb); }
+.sh-table-sm { font-size:.75rem; }
+.sh-mono { font-family:'SF Mono','Fira Code',monospace; font-size:.72rem; color:var(--text-secondary,#6b7280); }
+.sh-right { text-align:right; font-variant-numeric:tabular-nums; }
+.sh-badge { display:inline-block; padding:2px 8px; border-radius:99px; font-size:.68rem; font-weight:600; white-space:nowrap; }
+.sh-ok { background:#f0fdf4; color:#15803d; }
+.sh-warn { background:#fffbeb; color:#b45309; }
+.sh-pending { background:#eff6ff; color:#1d4ed8; }
+.sh-blocked { background:#fef2f2; color:#b91c1c; }
+.sh-error { background:#fef2f2; color:#b91c1c; }
+.sh-none { background:var(--bg-card,#fff); color:var(--text-secondary,#a8a29e); border:1px solid var(--border,#e5e7eb); }
+.sh-details { margin-top:8px; }
+.sh-details summary { cursor:pointer; font-weight:500; font-size:.85rem; padding:8px 0; }
+.sh-details[open] summary { margin-bottom:8px; }

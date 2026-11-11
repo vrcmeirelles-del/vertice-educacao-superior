@@ -28,10 +28,11 @@ import { latestSemesterSummary, reitorCompliance, sourceDate, type ReitorComplia
 import './reitor-bi.css';
 
 // ─── types ───
-type Tab = 'geral' | 'academico' | 'captacao' | 'compliance' | 'financeiro' | 'infra';
+type Tab = 'geral' | 'academico' | 'captacao' | 'compliance' | 'financeiro' | 'infra' | 'governanca_360';
 const TABS: { key: Tab; label: string; icon: string }[] = [
   { key: 'geral', label: 'Visão Geral', icon: '📊' },
   { key: 'academico', label: 'Acadêmico', icon: '🎓' },
+  { key: 'governanca_360', label: 'Governança 360°', icon: '⚖️' },
   { key: 'captacao', label: 'Captação', icon: '📈' },
   { key: 'compliance', label: 'Compliance', icon: '✅' },
   { key: 'financeiro', label: 'Financeiro', icon: '💰' },
@@ -640,8 +641,62 @@ export default function ReitorBI({ institutions, courses, enrollments, session, 
     </div>;
   }
 
+  // ─── Governança 360° (§4, §7, §9 do Prompt Master) ───
+  function renderGovernanca360(): ReactElement {
+    const [govData, setGovData] = useState<any>(null);
+    const [incData, setIncData] = useState<any>(null);
+    const [specData, setSpecData] = useState<any>(null);
+    useEffect(() => {
+      supabase.from('v_governance_summary').select('*').eq('institution_id', institutionId).maybeSingle().then(r => setGovData(r.data));
+      supabase.from('v_inclusion_summary').select('*').eq('institution_id', institutionId).maybeSingle().then(r => setIncData(r.data));
+      supabase.from('v_special_support_summary').select('*').eq('institution_id', institutionId).maybeSingle().then(r => setSpecData(r.data));
+    }, []);
+    return <div className="rbi-grid">
+      <SectionCard title="Governança Institucional" icon="⚖️">
+        {govData ? <>
+          <div className="rbi-kpis">
+            <KPICard label="Órgãos ativos" value={govData.orgaos_ativos} unit="qtd" small />
+            <KPICard label="Membros" value={govData.total_membros} unit="qtd" small />
+            <KPICard label="Reuniões" value={govData.total_reunioes} unit="qtd" small />
+            <KPICard label="Deliberações" value={govData.total_deliberacoes} unit="qtd" small />
+            <KPICard label="Pendentes" value={govData.deliberacoes_pendentes} unit="qtd" small />
+          </div>
+          {govData.ultima_reuniao && <p className="rbi-note">Última reunião: {new Date(govData.ultima_reuniao).toLocaleDateString('pt-BR')}</p>}
+        </> : <p className="rbi-empty">Sem dados de governança — cadastre órgãos e reuniões na aba Governança 360° do Workspace.</p>}
+      </SectionCard>
+      <SectionCard title="Inclusão e Acessibilidade" icon="♿">
+        {incData ? <>
+          <div className="rbi-kpis">
+            <KPICard label="Casos de apoio" value={incData.total_casos} unit="qtd" small />
+            <KPICard label="Abertos" value={incData.casos_abertos} unit="qtd" small />
+            <KPICard label="Solicitações" value={incData.total_solicitacoes} unit="qtd" small />
+            <KPICard label="PEI/PAA/PAI" value={incData.total_planos} unit="qtd" small />
+            <KPICard label="Adaptações" value={incData.total_adaptacoes} unit="qtd" small />
+          </div>
+        </> : <p className="rbi-empty">Sem dados de inclusão — registre casos na aba Inclusão 360° do Workspace.</p>}
+      </SectionCard>
+      <SectionCard title="Acompanhamento Especial" icon="📋">
+        {specData ? <>
+          <div className="rbi-kpis">
+            <KPICard label="Casos" value={specData.total_casos} unit="qtd" small />
+            <KPICard label="Ativos" value={specData.casos_ativos} unit="qtd" small />
+            <KPICard label="Requerimentos" value={specData.total_requerimentos} unit="qtd" small />
+            <KPICard label="Regimes autorizados" value={specData.regimes_autorizados} unit="qtd" small />
+            <KPICard label="Planos ativos" value={specData.planos_ativos} unit="qtd" small />
+          </div>
+        </> : <p className="rbi-empty">Sem dados de acompanhamento especial — registre casos na aba correspondente do Workspace.</p>}
+      </SectionCard>
+      <SectionCard title="Nota de privacidade" icon="🔒">
+        <p className="rbi-note">
+          Este painel exibe apenas indicadores agregados. CID, laudos, diagnósticos e informações clínicas
+          individuais permanecem protegidos e acessíveis apenas ao Núcleo de Apoio e à Coordenação responsável.
+        </p>
+      </SectionCard>
+    </div>;
+  }
+
   const RENDERERS: Record<Tab, () => ReactElement> = {
-    geral: renderGeral, academico: renderAcademico, captacao: renderCaptacao,
+    geral: renderGeral, academico: renderAcademico, governanca_360: renderGovernanca360, captacao: renderCaptacao,
     compliance: renderCompliance, financeiro: renderFinanceiro, infra: renderInfra,
   };
 
