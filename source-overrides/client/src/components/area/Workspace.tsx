@@ -22,6 +22,7 @@ import RecordForm from "./RecordForm";
 import GoalsDashboard, { GoalSignalBadge, GoalSignalBar } from "./GoalsDashboard";
 import { goalSignals, summarizeGoalSignals, goalSignalDate, GOAL_SIGNALS, type GoalSignal } from "@/lib/goal-signals";
 import RepositoryTab from "./RepositoryTab";
+import PreValidationQueue from "./PreValidationQueue";
 import EbitdaCalculator from "../EbitdaCalculator";
 import InepLibrary from "./InepLibrary";
 import AvaliacaoInstitucional from "./AvaliacaoInstitucional";
@@ -69,7 +70,7 @@ import "./module-offer.css";
 
 const TAB_GROUPS: {label:string;subtitle:string;icon:string;tabs:Tab[];tier?:'superior'|'escolas'|'both'}[] = [
   {label:'Gestão',subtitle:'Planejamento, metas e governança',icon:'▦',tabs:['base','metas','plano','diagnostico','equipe'],tier:'both'},
-  {label:'Regulação',subtitle:'Instrumentos e evidências MEC/INEP',icon:'◇',tabs:['emec','repositorio','enade','avaliacao','novo_instrumento','biblioteca'],tier:'superior'},
+  {label:'Regulação',subtitle:'Instrumentos e evidências MEC/INEP',icon:'◇',tabs:['emec','repositorio','validacao','enade','avaliacao','novo_instrumento','biblioteca'],tier:'superior'},
   {label:'Acadêmico',subtitle:'Cursos, estudantes e desempenho',icon:'▤',tabs:['geral','cadastro','visao','eorbit','backups','auditoria'],tier:'superior'},
   {label:'Inteligência',subtitle:'Análises, integrações e decisões',icon:'◎',tabs:['analise','ia','fontes','conexoes','reitor','resultado-curso','simulador','raio-x-direito','aprendizagem'],tier:'superior'},
   {label:'Egressos',subtitle:'Acompanhamento longitudinal e empregabilidade',icon:'🎓',tabs:['egressos'],tier:'superior'},
@@ -123,6 +124,7 @@ const TAB_DETAILS: Partial<Record<Tab,{icon:string;description:string}>> = {
   billing:{icon:'💰',description:'Contratos, faturas, MRR e pacotes comerciais'},
   'escola-enem':{icon:'🎯',description:'Histórico ENEM, simulados, competências, metas e ranking'},
   'escola-egressos':{icon:'🎓',description:'Para onde seus alunos foram: universidade, técnico, mercado'},
+  validacao:{icon:'🤖',description:'Fila de pré-validação e espelhamento transversal de evidências'},
   documentos:{icon:'📄',description:'Upload, catalogação, vencimentos, conformidade e análise IA'},
   sync:{icon:'⇄',description:'Central de Sincronização e Integrações'},
 };
@@ -164,6 +166,7 @@ const TABS: [Tab, string][] = [
   ["billing", "Painel Financeiro"],
   ["escola-enem", "ENEM 360°"],
   ["escola-egressos", "Egressos Escolar"],
+  ["validacao", "Validação Pendente"],
   ["documentos", "Gestão Documental"],
   ["sync", "Central de Sincronização"],
   ["plano", "Plano de ação 5W2H"],
@@ -470,6 +473,8 @@ export default function Workspace({
         <Enem360Escolar institutionId={id} isMaster={role === 'master'} />
       ) : tab === "escola-egressos" ? (
         <EgressosEscolar institutionId={id} isMaster={role === 'master'} />
+      ) : tab === "validacao" ? (
+        <PreValidationQueue institutionId={id} role={role} />
       ) : tab === "documentos" ? (
         <DocumentManager institutionId={id} isMaster={role === 'master'} />
       ) : tab === "sync" ? (
