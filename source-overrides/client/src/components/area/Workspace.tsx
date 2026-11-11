@@ -45,6 +45,8 @@ import CostEvidence from "./CostEvidence";
 import OneDriveEspelho from "./OneDriveEspelho";
 import ConexoesDados from "./ConexoesDados";
 import DocumentManager from "./DocumentManager";
+import Enem360Escolar from "./Enem360Escolar";
+import EgressosEscolar from "./EgressosEscolar";
 import DireitoRaioX from "./DireitoRaioX";
 import Egressos360 from "./Egressos360";
 import Governanca360 from "./Governanca360";
@@ -70,6 +72,8 @@ const TAB_GROUPS: {label:string;subtitle:string;icon:string;tabs:Tab[]}[] = [
   {label:'Governança',subtitle:'Órgãos colegiados, deliberações e fluxos',icon:'⚖',tabs:['governanca']},
   {label:'Acompanhamento',subtitle:'Inclusão, PEI e regimes especiais',icon:'♿',tabs:['inclusao','acompanhamento-especial']},
   {label:'Aquisições',subtitle:'Compras, fornecedores e ordens',icon:'🛒',tabs:['aquisicoes']},
+  {label:'ENEM & Vestibular',subtitle:'Simulados, desempenho por área e metas',icon:'🎯',tabs:['escola-enem']},
+  {label:'Egressos Escolar',subtitle:'Destino pós-escola e aprovações',icon:'🎓',tabs:['escola-egressos']},
   {label:'Documentos',subtitle:'Gestão documental e análise por IA',icon:'📄',tabs:['documentos']},
   {label:'Integrações',subtitle:'Saúde dos dados e sincronizações',icon:'⇄',tabs:['sync']},
   {label:'Financeiro',subtitle:'Contratos, faturamento e receita',icon:'💰',tabs:['contrato','billing','modulos']},
@@ -110,6 +114,8 @@ const TAB_DETAILS: Partial<Record<Tab,{icon:string;description:string}>> = {
   contrato:{icon:'📜',description:'Termos, cláusulas e assinatura digital'},
   modulos:{icon:'⚙',description:'Ativar e desativar módulos por IES'},
   billing:{icon:'💰',description:'Contratos, faturas, MRR e pacotes comerciais'},
+  'escola-enem':{icon:'🎯',description:'Histórico ENEM, simulados, competências, metas e ranking'},
+  'escola-egressos':{icon:'🎓',description:'Para onde seus alunos foram: universidade, técnico, mercado'},
   documentos:{icon:'📄',description:'Upload, catalogação, vencimentos, conformidade e análise IA'},
   sync:{icon:'⇄',description:'Central de Sincronização e Integrações'},
 };
@@ -146,6 +152,8 @@ const TABS: [Tab, string][] = [
   ["contrato", "Meu Contrato"],
   ["modulos", "Gerenciar Módulos"],
   ["billing", "Painel Financeiro"],
+  ["escola-enem", "ENEM 360°"],
+  ["escola-egressos", "Egressos Escolar"],
   ["documentos", "Gestão Documental"],
   ["sync", "Central de Sincronização"],
   ["plano", "Plano de ação 5W2H"],
@@ -439,6 +447,10 @@ export default function Workspace({
         <ContractView institutionId={id} institutionName={String(institution.name)} role={role||'master'} />
       ) : tab === "billing" ? (
         role === 'master' ? <BillingPanel /> : <p>Painel financeiro restrito ao administrador da plataforma.</p>
+      ) : tab === "escola-enem" ? (
+        <Enem360Escolar institutionId={id} isMaster={role === 'master'} />
+      ) : tab === "escola-egressos" ? (
+        <EgressosEscolar institutionId={id} isMaster={role === 'master'} />
       ) : tab === "documentos" ? (
         <DocumentManager institutionId={id} isMaster={role === 'master'} />
       ) : tab === "sync" ? (
