@@ -50,6 +50,7 @@ import Governanca360 from "./Governanca360";
 import Inclusao360 from "./Inclusao360";
 import AcompanhamentoEspecial360 from "./AcompanhamentoEspecial360";
 import SyncHealth from "./SyncHealth";
+import { getActiveTabs, isTabActive } from "@/lib/modules";
 import "./area.css";
 
 const TAB_GROUPS: {label:string;subtitle:string;icon:string;tabs:Tab[]}[] = [
@@ -163,6 +164,8 @@ export default function Workspace({
   const [moduleSearch,setModuleSearch]=useState("");
   const [favoriteTabs,setFavoriteTabs]=useState<Tab[]>([]);
   const [onlyFavorites,setOnlyFavorites]=useState(false);
+  const [activeTabs,setActiveTabs]=useState<Set<string>>(new Set());
+  useEffect(()=>{ getActiveTabs(id).then(setActiveTabs); },[id]);
   const toggleFavorite=(key:Tab)=>setFavoriteTabs(items=>items.includes(key)?items.filter(item=>item!==key):[...items,key]);
 
 
@@ -214,7 +217,7 @@ export default function Workspace({
   const openFindings = data.diagnosis.filter(d => d.status !== "resolvido").length;
   const activeGoals = data.goals.filter(g => g.status === "ativa" || g.status === "planejada").length;
   const allowedTabs = visibleTabs(role);
-  const visible = TABS.filter(([k]) => allowedTabs.includes(k));
+  const visible = TABS.filter(([k]) => allowedTabs.includes(k) && isTabActive(activeTabs, k));
 
   return (
     <section aria-labelledby="ws-title" className="area-ws">
