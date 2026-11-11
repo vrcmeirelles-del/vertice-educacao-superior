@@ -2,11 +2,12 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import "./acompanhamento-especial360.css";
 
-interface SpecialCase { id:string; institution_id:string; student_name:string; enrollment_id?:string; course_id?:string; category_id?:string; status:string; opened_at:string; notes?:string; }
-interface SpecialRequest { id:string; case_id:string; institution_id:string; regime_type:string; legal_basis?:string; start_date?:string; end_date?:string; description:string; status:string; created_at:string; }
-interface SpecialDecision { id:string; request_id:string; institution_id:string; decision:string; decided_by?:string; decided_at:string; justification?:string; conditions?:string; }
-interface SpecialPlan { id:string; case_id:string; institution_id:string; plan_type:string; status:string; objectives?:string; start_date?:string; end_date?:string; coordinator_name?:string; created_at:string; }
-interface Category { id:string; institution_id:string; name:string; description?:string; legal_basis?:string; requires_documentation:boolean; }
+// Aligned with actual Supabase schema
+interface SpecialCase { id:string; institution_id:string; student_name:string; student_matricula?:string; course_id?:string; category_id?:string; category_code?:string; protocol?:string; status:string; priority?:string; created_at:string; notes?:string; }
+interface SpecialRequest { id:string; case_id:string; institution_id:string; origin?:string; category_code?:string; description:string; requester_name?:string; requested_period_start?:string; requested_period_end?:string; urgency?:string; status:string; created_at:string; }
+interface SpecialDecision { id:string; case_id:string; institution_id:string; decision_type:string; status:string; authority_name?:string; regime_start?:string; regime_end?:string; justification?:string; conditions?:string; created_at:string; }
+interface SpecialPlan { id:string; case_id:string; institution_id:string; student_name?:string; category_code?:string; modality?:string; status:string; plan_start?:string; plan_end?:string; elaborated_by?:string; notes?:string; created_at:string; }
+interface Category { id:string; institution_id:string; code:string; label:string; description?:string; legal_basis?:string; requires_documentation:boolean; active:boolean; }
 
 type View = 'casos'|'requerimentos'|'planos'|'indicadores';
 interface Props { institutionId:string; role:string; }
@@ -21,11 +22,11 @@ export default function AcompanhamentoEspecial360({institutionId,role}:Props) {
   const [loading,setLoading] = useState(true);
   const [showForm,setShowForm] = useState<'case'|'request'|'decision'|'plan'|'category'|null>(null);
 
-  const [formCase,setFormCase] = useState({student_name:'',enrollment_id:'',category_id:'',notes:''});
-  const [formReq,setFormReq] = useState({case_id:'',regime_type:'exercicio_domiciliar',legal_basis:'',start_date:'',end_date:'',description:''});
-  const [formDecision,setFormDecision] = useState({request_id:'',decision:'deferido',justification:'',conditions:'',decided_by:''});
-  const [formPlan,setFormPlan] = useState({case_id:'',plan_type:'plano_academico_especial',objectives:'',coordinator_name:'',start_date:'',end_date:''});
-  const [formCat,setFormCat] = useState({name:'',description:'',legal_basis:'',requires_documentation:true});
+  const [formCase,setFormCase] = useState({student_name:'',student_matricula:'',category_id:'',notes:''});
+  const [formReq,setFormReq] = useState({case_id:'',category_code:'',description:'',requester_name:'',requested_period_start:'',requested_period_end:''});
+  const [formDecision,setFormDecision] = useState({case_id:'',decision_type:'deferimento',justification:'',conditions:'',authority_name:'',regime_start:'',regime_end:''});
+  const [formPlan,setFormPlan] = useState({case_id:'',elaborated_by:'',plan_start:'',plan_end:'',notes:''});
+  const [formCat,setFormCat] = useState({code:'',label:'',description:'',legal_basis:'',requires_documentation:true});
 
   const load = useCallback(async ()=>{
     setLoading(true);
@@ -56,29 +57,29 @@ export default function AcompanhamentoEspecial360({institutionId,role}:Props) {
   ];
 
   const saveCase = async ()=>{
-    await supabase.from('student_special_cases').insert({institution_id:institutionId,student_name:formCase.student_name,enrollment_id:formCase.enrollment_id||null,category_id:formCase.category_id||null,status:'aberto',opened_at:new Date().toISOString(),notes:formCase.notes||null});
+    await supabase.from('student_special_cases').insert({institution_id:institutionId,student_name:formCase.student_name,student_matricula:formCase.student_matricula||null,category_id:formCase.category_id||null,status:'aberto',notes:formCase.notes||null});
     setShowForm(null);load();
   };
   const saveRequest = async ()=>{
-    await supabase.from('student_special_requests').insert({institution_id:institutionId,case_id:formReq.case_id,regime_type:formReq.regime_type,legal_basis:formReq.legal_basis||null,start_date:formReq.start_date||null,end_date:formReq.end_date||null,description:formReq.description,status:'protocolo'});
+    await supabase.from('student_special_requests').insert({institution_id:institutionId,case_id:formReq.case_id,category_code:formReq.category_code||null,description:formReq.description,requester_name:formReq.requester_name||null,requested_period_start:formReq.requested_period_start||null,requested_period_end:formReq.requested_period_end||null,status:'protocolo'});
     setShowForm(null);load();
   };
   const saveDecision = async ()=>{
-    await supabase.from('student_special_decisions').insert({institution_id:institutionId,request_id:formDecision.request_id,decision:formDecision.decision,justification:formDecision.justification||null,conditions:formDecision.conditions||null,decided_by:formDecision.decided_by||null,decided_at:new Date().toISOString()});
+    await supabase.from('student_special_decisions').insert({institution_id:institutionId,case_id:formDecision.case_id,decision_type:formDecision.decision_type,justification:formDecision.justification||null,conditions:formDecision.conditions||null,authority_name:formDecision.authority_name||null,regime_start:formDecision.regime_start||null,regime_end:formDecision.regime_end||null,status:'deferido'});
     setShowForm(null);load();
   };
   const savePlan = async ()=>{
-    await supabase.from('student_special_plans').insert({institution_id:institutionId,case_id:formPlan.case_id,plan_type:formPlan.plan_type,objectives:formPlan.objectives||null,coordinator_name:formPlan.coordinator_name||null,start_date:formPlan.start_date||null,end_date:formPlan.end_date||null,status:'ativo'});
+    await supabase.from('student_special_plans').insert({institution_id:institutionId,case_id:formPlan.case_id,elaborated_by:formPlan.elaborated_by||null,plan_start:formPlan.plan_start||null,plan_end:formPlan.plan_end||null,notes:formPlan.notes||null,status:'ativo'});
     setShowForm(null);load();
   };
   const saveCategory = async ()=>{
-    await supabase.from('student_special_categories').insert({institution_id:institutionId,name:formCat.name,description:formCat.description||null,legal_basis:formCat.legal_basis||null,requires_documentation:formCat.requires_documentation});
+    await supabase.from('student_special_categories').insert({institution_id:institutionId,code:formCat.code,label:formCat.label,description:formCat.description||null,legal_basis:formCat.legal_basis||null,requires_documentation:formCat.requires_documentation,active:true});
     setShowForm(null);load();
   };
 
   const stats = {
     abertos: cases.filter(c=>c.status==='aberto'||c.status==='em_analise').length,
-    autorizados: requests.filter(r=>decisions.some(d=>d.request_id===r.id&&d.decision==='deferido')).length,
+    autorizados: decisions.filter(d=>d.status==='deferido'||d.decision_type==='deferimento').length,
     planosAtivos: plans.filter(p=>p.status==='ativo').length,
     pendentes: requests.filter(r=>r.status==='protocolo'||r.status==='em_analise').length,
   };
@@ -116,18 +117,19 @@ export default function AcompanhamentoEspecial360({institutionId,role}:Props) {
             <div className="ae-form">
               <h4 style={{margin:'0 0 8px'}}>Cadastrar categoria de regime especial</h4>
               <div className="ae-form-row">
-                <input placeholder="Nome da categoria" value={formCat.name} onChange={e=>setFormCat({...formCat,name:e.target.value})} />
+                <input placeholder="Código (ex: GESTACAO)" value={formCat.code} onChange={e=>setFormCat({...formCat,code:e.target.value})} />
+                <input placeholder="Nome da categoria" value={formCat.label} onChange={e=>setFormCat({...formCat,label:e.target.value})} />
                 <input placeholder="Base legal (ex: Lei 6.202/1975)" value={formCat.legal_basis} onChange={e=>setFormCat({...formCat,legal_basis:e.target.value})} />
               </div>
               <textarea placeholder="Descrição" value={formCat.description} onChange={e=>setFormCat({...formCat,description:e.target.value})} rows={2} />
               <label className="ae-checkbox"><input type="checkbox" checked={formCat.requires_documentation} onChange={e=>setFormCat({...formCat,requires_documentation:e.target.checked})} /> Exige documentação comprobatória</label>
               <div className="ae-form-actions">
-                <button className="ae-btn-primary" onClick={saveCategory} disabled={!formCat.name}>Salvar</button>
+                <button className="ae-btn-primary" onClick={saveCategory} disabled={!formCat.label||!formCat.code}>Salvar</button>
                 <button className="ae-btn-secondary" onClick={()=>setShowForm(null)}>Fechar</button>
               </div>
               {categories.length>0 && (
                 <div className="ae-cat-list">
-                  {categories.map(c=><div key={c.id} className="ae-cat-item"><strong>{c.name}</strong>{c.legal_basis&&<span> · {c.legal_basis}</span>}</div>)}
+                  {categories.map(c=><div key={c.id} className="ae-cat-item"><strong>{c.label}</strong> ({c.code}){c.legal_basis&&<span> · {c.legal_basis}</span>}</div>)}
                 </div>
               )}
             </div>
@@ -136,7 +138,7 @@ export default function AcompanhamentoEspecial360({institutionId,role}:Props) {
             <div className="ae-form">
               <div className="ae-form-row">
                 <input placeholder="Nome do estudante" value={formCase.student_name} onChange={e=>setFormCase({...formCase,student_name:e.target.value})} />
-                <input placeholder="Matrícula" value={formCase.enrollment_id} onChange={e=>setFormCase({...formCase,enrollment_id:e.target.value})} />
+                <input placeholder="Matrícula" value={formCase.student_matricula} onChange={e=>setFormCase({...formCase,student_matricula:e.target.value})} />
               </div>
               {categories.length>0 && (
                 <select value={formCase.category_id} onChange={e=>setFormCase({...formCase,category_id:e.target.value})}>
@@ -161,10 +163,10 @@ export default function AcompanhamentoEspecial360({institutionId,role}:Props) {
                   const cat = categories.find(ct=>ct.id===c.category_id);
                   return (
                     <tr key={c.id}>
-                      <td><strong>{c.student_name}</strong>{c.enrollment_id&&<span className="ae-mono"> · {c.enrollment_id}</span>}</td>
-                      <td>{cat?.name||'—'}</td>
+                      <td><strong>{c.student_name}</strong>{c.student_matricula&&<span className="ae-mono"> · {c.student_matricula}</span>}</td>
+                      <td>{cat?.label||'—'}</td>
                       <td><span className={`ae-badge ae-badge-${c.status}`}>{c.status}</span></td>
-                      <td>{new Date(c.opened_at).toLocaleDateString('pt-BR')}</td>
+                      <td>{new Date(c.created_at).toLocaleDateString('pt-BR')}</td>
                       <td>{cr.length}</td>
                       <td>{cp.length>0?'✓':'—'}</td>
                     </tr>
@@ -188,14 +190,15 @@ export default function AcompanhamentoEspecial360({institutionId,role}:Props) {
                 {cases.map(c=><option key={c.id} value={c.id}>{c.student_name}</option>)}
               </select>
               <div className="ae-form-row">
-                <select value={formReq.regime_type} onChange={e=>setFormReq({...formReq,regime_type:e.target.value})}>
-                  {regimeTypes.map(t=><option key={t.v} value={t.v}>{t.l}</option>)}
+                <select value={formReq.category_code} onChange={e=>setFormReq({...formReq,category_code:e.target.value})}>
+                  <option value="">Categoria</option>
+                  {categories.map(c=><option key={c.id} value={c.code}>{c.label}</option>)}
                 </select>
-                <input placeholder="Base legal" value={formReq.legal_basis} onChange={e=>setFormReq({...formReq,legal_basis:e.target.value})} />
+                <input placeholder="Nome do solicitante" value={formReq.requester_name} onChange={e=>setFormReq({...formReq,requester_name:e.target.value})} />
               </div>
               <div className="ae-form-row">
-                <label>Início<input type="date" value={formReq.start_date} onChange={e=>setFormReq({...formReq,start_date:e.target.value})} /></label>
-                <label>Término<input type="date" value={formReq.end_date} onChange={e=>setFormReq({...formReq,end_date:e.target.value})} /></label>
+                <label>Período início<input type="date" value={formReq.requested_period_start} onChange={e=>setFormReq({...formReq,requested_period_start:e.target.value})} /></label>
+                <label>Período fim<input type="date" value={formReq.requested_period_end} onChange={e=>setFormReq({...formReq,requested_period_end:e.target.value})} /></label>
               </div>
               <textarea placeholder="Descrição / justificativa" value={formReq.description} onChange={e=>setFormReq({...formReq,description:e.target.value})} rows={3} />
               <div className="ae-form-actions">
@@ -205,29 +208,29 @@ export default function AcompanhamentoEspecial360({institutionId,role}:Props) {
             </div>
           )}
           {requests.map(r=>{
-            const rd = decisions.filter(d=>d.request_id===r.id);
+            const rd = decisions.filter(d=>d.case_id===r.case_id);
             return (
               <div key={r.id} className="ae-req-card">
                 <div className="ae-req-header">
-                  <span className="ae-req-type">{regimeTypes.find(t=>t.v===r.regime_type)?.l||r.regime_type}</span>
+                  <span className="ae-req-type">{categories.find(c=>c.code===r.category_code)?.label||r.category_code||'Geral'}</span>
                   <span className={`ae-badge ae-badge-${r.status}`}>{r.status}</span>
                 </div>
                 <div className="ae-req-student">{cases.find(c=>c.id===r.case_id)?.student_name}</div>
                 <div className="ae-req-text">{r.description}</div>
                 <div className="ae-req-meta">
-                  {r.legal_basis&&<span>Base: {r.legal_basis}</span>}
-                  {r.start_date&&<span>De {new Date(r.start_date).toLocaleDateString('pt-BR')}</span>}
-                  {r.end_date&&<span>a {new Date(r.end_date).toLocaleDateString('pt-BR')}</span>}
+                  {r.requester_name&&<span>Solicitante: {r.requester_name}</span>}
+                  {r.requested_period_start&&<span>De {new Date(r.requested_period_start).toLocaleDateString('pt-BR')}</span>}
+                  {r.requested_period_end&&<span>a {new Date(r.requested_period_end).toLocaleDateString('pt-BR')}</span>}
                 </div>
                 {rd.map(d=>(
-                  <div key={d.id} className={`ae-decision ae-decision-${d.decision}`}>
-                    <strong>{d.decision==='deferido'?'✓ Deferido':'✗ Indeferido'}</strong>
+                  <div key={d.id} className={`ae-decision ae-decision-${d.status}`}>
+                    <strong>{d.status==='deferido'?'✓ Deferido':d.status==='indeferido'?'✗ Indeferido':'⊘ '+d.status}</strong>
                     {d.justification&&<span> — {d.justification}</span>}
                     {d.conditions&&<div className="ae-decision-cond">Condições: {d.conditions}</div>}
                   </div>
                 ))}
                 {rd.length===0 && r.status!=='cancelado' && (
-                  <button className="ae-btn-small" onClick={()=>{setFormDecision({...formDecision,request_id:r.id});setShowForm('decision');}}>Registrar decisão</button>
+                  <button className="ae-btn-small" onClick={()=>{setFormDecision({...formDecision,case_id:r.case_id});setShowForm('decision');}}>Registrar decisão</button>
                 )}
               </div>
             );
@@ -236,12 +239,12 @@ export default function AcompanhamentoEspecial360({institutionId,role}:Props) {
             <div className="ae-form">
               <h4 style={{margin:'0 0 8px'}}>Registrar decisão</h4>
               <div className="ae-form-row">
-                <select value={formDecision.decision} onChange={e=>setFormDecision({...formDecision,decision:e.target.value})}>
-                  <option value="deferido">Deferido</option>
-                  <option value="indeferido">Indeferido</option>
-                  <option value="deferido_parcial">Deferido parcialmente</option>
+                <select value={formDecision.decision_type} onChange={e=>setFormDecision({...formDecision,decision_type:e.target.value})}>
+                  <option value="deferimento">Deferimento</option>
+                  <option value="indeferimento">Indeferimento</option>
+                  <option value="deferimento_parcial">Deferimento parcial</option>
                 </select>
-                <input placeholder="Decidido por" value={formDecision.decided_by} onChange={e=>setFormDecision({...formDecision,decided_by:e.target.value})} />
+                <input placeholder="Autoridade responsável" value={formDecision.authority_name} onChange={e=>setFormDecision({...formDecision,authority_name:e.target.value})} />
               </div>
               <textarea placeholder="Justificativa" value={formDecision.justification} onChange={e=>setFormDecision({...formDecision,justification:e.target.value})} rows={2} />
               <textarea placeholder="Condições / restrições (opcional)" value={formDecision.conditions} onChange={e=>setFormDecision({...formDecision,conditions:e.target.value})} rows={2} />
@@ -266,11 +269,11 @@ export default function AcompanhamentoEspecial360({institutionId,role}:Props) {
                 {cases.map(c=><option key={c.id} value={c.id}>{c.student_name}</option>)}
               </select>
               <div className="ae-form-row">
-                <input placeholder="Coordenador responsável" value={formPlan.coordinator_name} onChange={e=>setFormPlan({...formPlan,coordinator_name:e.target.value})} />
-                <input type="date" value={formPlan.start_date} onChange={e=>setFormPlan({...formPlan,start_date:e.target.value})} />
-                <input type="date" value={formPlan.end_date} onChange={e=>setFormPlan({...formPlan,end_date:e.target.value})} />
+                <input placeholder="Elaborado por" value={formPlan.elaborated_by} onChange={e=>setFormPlan({...formPlan,elaborated_by:e.target.value})} />
+                <input type="date" value={formPlan.plan_start} onChange={e=>setFormPlan({...formPlan,plan_start:e.target.value})} />
+                <input type="date" value={formPlan.plan_end} onChange={e=>setFormPlan({...formPlan,plan_end:e.target.value})} />
               </div>
-              <textarea placeholder="Objetivos e atividades" value={formPlan.objectives} onChange={e=>setFormPlan({...formPlan,objectives:e.target.value})} rows={3} />
+              <textarea placeholder="Observações e orientações" value={formPlan.notes} onChange={e=>setFormPlan({...formPlan,notes:e.target.value})} rows={3} />
               <div className="ae-form-actions">
                 <button className="ae-btn-primary" onClick={savePlan} disabled={!formPlan.case_id}>Criar plano</button>
                 <button className="ae-btn-secondary" onClick={()=>setShowForm(null)}>Cancelar</button>
@@ -280,15 +283,15 @@ export default function AcompanhamentoEspecial360({institutionId,role}:Props) {
           {plans.map(p=>(
             <div key={p.id} className="ae-plan-card">
               <div className="ae-plan-header">
-                <span className="ae-plan-type">{p.plan_type.replace(/_/g,' ')}</span>
+                <span className="ae-plan-type">{p.category_code||'Plano acadêmico'}</span>
                 <span className={`ae-badge ae-badge-${p.status}`}>{p.status}</span>
               </div>
-              <div className="ae-plan-student">{cases.find(c=>c.id===p.case_id)?.student_name}</div>
-              {p.objectives&&<div className="ae-plan-obj">{p.objectives}</div>}
+              <div className="ae-plan-student">{p.student_name||cases.find(c=>c.id===p.case_id)?.student_name}</div>
+              {p.notes&&<div className="ae-plan-obj">{p.notes}</div>}
               <div className="ae-plan-meta">
-                {p.coordinator_name&&<span>Coord: {p.coordinator_name}</span>}
-                {p.start_date&&<span>De {new Date(p.start_date).toLocaleDateString('pt-BR')}</span>}
-                {p.end_date&&<span>a {new Date(p.end_date).toLocaleDateString('pt-BR')}</span>}
+                {p.elaborated_by&&<span>Elaborado por: {p.elaborated_by}</span>}
+                {p.plan_start&&<span>De {new Date(p.plan_start).toLocaleDateString('pt-BR')}</span>}
+                {p.plan_end&&<span>a {new Date(p.plan_end).toLocaleDateString('pt-BR')}</span>}
               </div>
             </div>
           ))}

@@ -2,10 +2,11 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import "./inclusao360.css";
 
-interface SupportCase { id:string; institution_id:string; student_name:string; enrollment_id?:string; course_id?:string; entry_channel:string; urgency:string; status:string; assigned_to?:string; opened_at:string; closed_at?:string; notes?:string; }
-interface SupportRequest { id:string; case_id:string; institution_id:string; request_type:string; description:string; requested_by:string; status:string; created_at:string; }
-interface IndividualPlan { id:string; case_id:string; institution_id:string; student_name:string; plan_type:string; status:string; start_date?:string; end_date?:string; coordinator_name?:string; created_at:string; objectives?:string; }
-interface Accommodation { id:string; plan_id:string; institution_id:string; accommodation_type:string; description:string; discipline?:string; teacher_name?:string; status:string; }
+// Aligned with actual Supabase schema
+interface SupportCase { id:string; institution_id:string; student_name:string; student_matricula?:string; course_id?:string; protocol?:string; priority:string; status:string; summary?:string; assigned_to?:string; created_at:string; closed_at?:string; }
+interface SupportRequest { id:string; case_id:string; institution_id:string; origin:string; needs_type:string; description:string; requester_name:string; urgency?:string; status:string; created_at:string; }
+interface IndividualPlan { id:string; case_id:string; institution_id:string; student_name:string; status:string; effective_from?:string; effective_until?:string; objectives?:string; created_at:string; version_number?:number; }
+interface Accommodation { id:string; plan_id:string; institution_id:string; category:string; description:string; details?:string; responsible?:string; status:string; }
 
 type View = 'casos'|'solicitacoes'|'pei'|'evidencias';
 interface Props { institutionId:string; role:string; }
@@ -19,10 +20,10 @@ export default function Inclusao360({institutionId,role}:Props) {
   const [loading,setLoading] = useState(true);
   const [showForm,setShowForm] = useState<'case'|'request'|'plan'|'accommodation'|null>(null);
 
-  const [formCase,setFormCase] = useState({student_name:'',enrollment_id:'',entry_channel:'coordenacao',urgency:'normal',notes:''});
-  const [formReq,setFormReq] = useState({case_id:'',request_type:'apoio_pedagogico',description:'',requested_by:''});
-  const [formPlan,setFormPlan] = useState({case_id:'',student_name:'',plan_type:'pei',objectives:'',coordinator_name:'',start_date:'',end_date:''});
-  const [formAccom,setFormAccom] = useState({plan_id:'',accommodation_type:'tempo_adicional',description:'',discipline:'',teacher_name:''});
+  const [formCase,setFormCase] = useState({student_name:'',student_matricula:'',priority:'normal',summary:''});
+  const [formReq,setFormReq] = useState({case_id:'',origin:'coordenacao',needs_type:'apoio_pedagogico',description:'',requester_name:''});
+  const [formPlan,setFormPlan] = useState({case_id:'',student_name:'',objectives:'',effective_from:'',effective_until:''});
+  const [formAccom,setFormAccom] = useState({plan_id:'',category:'tempo_adicional',description:'',responsible:''});
 
   const load = useCallback(async ()=>{
     setLoading(true);
@@ -41,25 +42,24 @@ export default function Inclusao360({institutionId,role}:Props) {
 
   useEffect(()=>{load()},[load]);
 
-  const entryChannels = [{v:'estudante',l:'Estudante'},{v:'professor',l:'Professor'},{v:'coordenacao',l:'Coordenação'},{v:'secretaria',l:'Secretaria'},{v:'nucleo_apoio',l:'Núcleo de Apoio'},{v:'fato_ordem',l:'Fato & Ordem'}];
-  const requestTypes = [{v:'apoio_pedagogico',l:'Apoio Pedagógico'},{v:'acessibilidade',l:'Acessibilidade'},{v:'apoio_psicologico',l:'Apoio Psicológico'},{v:'adaptacao_curricular',l:'Adaptação Curricular'},{v:'recurso_assistivo',l:'Recurso Assistivo'},{v:'interprete_libras',l:'Intérprete de Libras'},{v:'outro',l:'Outro'}];
-  const planTypes = [{v:'pei',l:'PEI — Plano Educacional Individualizado'},{v:'paa',l:'PAA — Plano de Acompanhamento Acadêmico'},{v:'pai',l:'PAI — Plano de Acessibilidade Individual'}];
-  const accomTypes = [{v:'tempo_adicional',l:'Tempo adicional em provas'},{v:'material_adaptado',l:'Material adaptado'},{v:'sala_reservada',l:'Sala reservada'},{v:'interprete',l:'Intérprete de Libras'},{v:'tecnologia_assistiva',l:'Tecnologia assistiva'},{v:'adaptacao_avaliativa',l:'Adaptação avaliativa'},{v:'tutoria',l:'Tutoria'},{v:'outro',l:'Outra adaptação'}];
+  const origins = [{v:'estudante',l:'Estudante'},{v:'professor',l:'Professor'},{v:'coordenacao',l:'Coordenação'},{v:'secretaria',l:'Secretaria'},{v:'nucleo_apoio',l:'Núcleo de Apoio'},{v:'fato_ordem',l:'Fato & Ordem'}];
+  const needsTypes = [{v:'apoio_pedagogico',l:'Apoio Pedagógico'},{v:'acessibilidade',l:'Acessibilidade'},{v:'apoio_psicologico',l:'Apoio Psicológico'},{v:'adaptacao_curricular',l:'Adaptação Curricular'},{v:'recurso_assistivo',l:'Recurso Assistivo'},{v:'interprete_libras',l:'Intérprete de Libras'},{v:'outro',l:'Outro'}];
+  const accomCategories = [{v:'tempo_adicional',l:'Tempo adicional em provas'},{v:'material_adaptado',l:'Material adaptado'},{v:'sala_reservada',l:'Sala reservada'},{v:'interprete',l:'Intérprete de Libras'},{v:'tecnologia_assistiva',l:'Tecnologia assistiva'},{v:'adaptacao_avaliativa',l:'Adaptação avaliativa'},{v:'tutoria',l:'Tutoria'},{v:'outro',l:'Outra adaptação'}];
 
   const saveCase = async ()=>{
-    await supabase.from('student_support_cases').insert({institution_id:institutionId,student_name:formCase.student_name,enrollment_id:formCase.enrollment_id||null,entry_channel:formCase.entry_channel,urgency:formCase.urgency,status:'aberto',opened_at:new Date().toISOString(),notes:formCase.notes||null});
+    await supabase.from('student_support_cases').insert({institution_id:institutionId,student_name:formCase.student_name,student_matricula:formCase.student_matricula||null,priority:formCase.priority,status:'aberto',summary:formCase.summary||null});
     setShowForm(null); load();
   };
   const saveRequest = async ()=>{
-    await supabase.from('student_support_requests').insert({institution_id:institutionId,case_id:formReq.case_id,request_type:formReq.request_type,description:formReq.description,requested_by:formReq.requested_by,status:'pendente'});
+    await supabase.from('student_support_requests').insert({institution_id:institutionId,case_id:formReq.case_id||null,origin:formReq.origin,needs_type:formReq.needs_type,description:formReq.description,requester_name:formReq.requester_name,status:'pendente'});
     setShowForm(null); load();
   };
   const savePlan = async ()=>{
-    await supabase.from('student_individual_plans').insert({institution_id:institutionId,case_id:formPlan.case_id||null,student_name:formPlan.student_name,plan_type:formPlan.plan_type,objectives:formPlan.objectives||null,coordinator_name:formPlan.coordinator_name||null,start_date:formPlan.start_date||null,end_date:formPlan.end_date||null,status:'em_elaboracao'});
+    await supabase.from('student_individual_plans').insert({institution_id:institutionId,case_id:formPlan.case_id||null,student_name:formPlan.student_name,objectives:formPlan.objectives||null,effective_from:formPlan.effective_from||null,effective_until:formPlan.effective_until||null,status:'em_elaboracao'});
     setShowForm(null); load();
   };
   const saveAccommodation = async ()=>{
-    await supabase.from('student_plan_accommodations').insert({institution_id:institutionId,plan_id:formAccom.plan_id,accommodation_type:formAccom.accommodation_type,description:formAccom.description,discipline:formAccom.discipline||null,teacher_name:formAccom.teacher_name||null,status:'pendente'});
+    await supabase.from('student_plan_accommodations').insert({institution_id:institutionId,plan_id:formAccom.plan_id,category:formAccom.category,description:formAccom.description,responsible:formAccom.responsible||null,status:'pendente'});
     setShowForm(null); load();
   };
 
@@ -97,17 +97,14 @@ export default function Inclusao360({institutionId,role}:Props) {
             <div className="inc-form">
               <div className="inc-form-row">
                 <input placeholder="Nome do estudante" value={formCase.student_name} onChange={e=>setFormCase({...formCase,student_name:e.target.value})} />
-                <input placeholder="Matrícula (opcional)" value={formCase.enrollment_id} onChange={e=>setFormCase({...formCase,enrollment_id:e.target.value})} />
+                <input placeholder="Matrícula (opcional)" value={formCase.student_matricula} onChange={e=>setFormCase({...formCase,student_matricula:e.target.value})} />
               </div>
               <div className="inc-form-row">
-                <select value={formCase.entry_channel} onChange={e=>setFormCase({...formCase,entry_channel:e.target.value})}>
-                  {entryChannels.map(c=><option key={c.v} value={c.v}>{c.l}</option>)}
-                </select>
-                <select value={formCase.urgency} onChange={e=>setFormCase({...formCase,urgency:e.target.value})}>
+                <select value={formCase.priority} onChange={e=>setFormCase({...formCase,priority:e.target.value})}>
                   <option value="normal">Normal</option><option value="urgente">Urgente</option><option value="critico">Crítico</option>
                 </select>
               </div>
-              <textarea placeholder="Observações iniciais" value={formCase.notes} onChange={e=>setFormCase({...formCase,notes:e.target.value})} rows={3} />
+              <textarea placeholder="Resumo da situação" value={formCase.summary} onChange={e=>setFormCase({...formCase,summary:e.target.value})} rows={3} />
               <div className="inc-form-actions">
                 <button className="inc-btn-primary" onClick={saveCase} disabled={!formCase.student_name}>Abrir caso</button>
                 <button className="inc-btn-secondary" onClick={()=>setShowForm(null)}>Cancelar</button>
@@ -116,24 +113,23 @@ export default function Inclusao360({institutionId,role}:Props) {
           )}
           <div className="inc-table-wrap">
             <table className="inc-table">
-              <thead><tr><th>Estudante</th><th>Canal</th><th>Urgência</th><th>Status</th><th>Aberto em</th><th>Solicitações</th><th>Plano</th></tr></thead>
+              <thead><tr><th>Estudante</th><th>Prioridade</th><th>Status</th><th>Aberto em</th><th>Solicitações</th><th>Plano</th></tr></thead>
               <tbody>
                 {cases.map(c=>{
                   const cr = requests.filter(r=>r.case_id===c.id);
                   const cp = plans.filter(p=>p.case_id===c.id);
                   return (
                     <tr key={c.id}>
-                      <td><strong>{c.student_name}</strong>{c.enrollment_id&&<span className="inc-mono"> · {c.enrollment_id}</span>}</td>
-                      <td>{entryChannels.find(ch=>ch.v===c.entry_channel)?.l||c.entry_channel}</td>
-                      <td><span className={`inc-badge inc-badge-${c.urgency}`}>{c.urgency}</span></td>
+                      <td><strong>{c.student_name}</strong>{c.student_matricula&&<span className="inc-mono"> · {c.student_matricula}</span>}</td>
+                      <td><span className={`inc-badge inc-badge-${c.priority}`}>{c.priority}</span></td>
                       <td><span className={`inc-badge inc-badge-${c.status}`}>{c.status}</span></td>
-                      <td>{new Date(c.opened_at).toLocaleDateString('pt-BR')}</td>
+                      <td>{new Date(c.created_at).toLocaleDateString('pt-BR')}</td>
                       <td>{cr.length}</td>
                       <td>{cp.length>0?'✓ '+cp.length:'—'}</td>
                     </tr>
                   );
                 })}
-                {cases.length===0&&<tr><td colSpan={7} className="inc-empty-cell">Nenhum caso registrado. O módulo está pronto para receber solicitações do estudante, professor, coordenação ou Núcleo de Apoio.</td></tr>}
+                {cases.length===0&&<tr><td colSpan={6} className="inc-empty-cell">Nenhum caso registrado. O módulo está pronto para receber solicitações do estudante, professor, coordenação ou Núcleo de Apoio.</td></tr>}
               </tbody>
             </table>
           </div>
@@ -151,10 +147,13 @@ export default function Inclusao360({institutionId,role}:Props) {
                 {cases.map(c=><option key={c.id} value={c.id}>{c.student_name}</option>)}
               </select>
               <div className="inc-form-row">
-                <select value={formReq.request_type} onChange={e=>setFormReq({...formReq,request_type:e.target.value})}>
-                  {requestTypes.map(t=><option key={t.v} value={t.v}>{t.l}</option>)}
+                <select value={formReq.origin} onChange={e=>setFormReq({...formReq,origin:e.target.value})}>
+                  {origins.map(o=><option key={o.v} value={o.v}>{o.l}</option>)}
                 </select>
-                <input placeholder="Solicitado por" value={formReq.requested_by} onChange={e=>setFormReq({...formReq,requested_by:e.target.value})} />
+                <select value={formReq.needs_type} onChange={e=>setFormReq({...formReq,needs_type:e.target.value})}>
+                  {needsTypes.map(t=><option key={t.v} value={t.v}>{t.l}</option>)}
+                </select>
+                <input placeholder="Nome do solicitante" value={formReq.requester_name} onChange={e=>setFormReq({...formReq,requester_name:e.target.value})} />
               </div>
               <textarea placeholder="Descrição da necessidade" value={formReq.description} onChange={e=>setFormReq({...formReq,description:e.target.value})} rows={3} />
               <div className="inc-form-actions">
@@ -167,12 +166,12 @@ export default function Inclusao360({institutionId,role}:Props) {
             {requests.map(r=>(
               <div key={r.id} className="inc-item">
                 <div className="inc-item-header">
-                  <span className="inc-badge inc-badge-type">{requestTypes.find(t=>t.v===r.request_type)?.l||r.request_type}</span>
+                  <span className="inc-badge inc-badge-type">{needsTypes.find(t=>t.v===r.needs_type)?.l||r.needs_type}</span>
                   <span className={`inc-badge inc-badge-${r.status}`}>{r.status}</span>
                 </div>
                 <div className="inc-item-text">{r.description}</div>
                 <div className="inc-item-meta">
-                  <span>Solicitado por: {r.requested_by}</span>
+                  <span>Solicitado por: {r.requester_name}</span>
                   <span>{new Date(r.created_at).toLocaleDateString('pt-BR')}</span>
                   {r.case_id && <span>Caso: {cases.find(c=>c.id===r.case_id)?.student_name}</span>}
                 </div>
@@ -191,20 +190,14 @@ export default function Inclusao360({institutionId,role}:Props) {
             <div className="inc-form">
               <div className="inc-form-row">
                 <input placeholder="Nome do estudante" value={formPlan.student_name} onChange={e=>setFormPlan({...formPlan,student_name:e.target.value})} />
-                <select value={formPlan.plan_type} onChange={e=>setFormPlan({...formPlan,plan_type:e.target.value})}>
-                  {planTypes.map(t=><option key={t.v} value={t.v}>{t.l}</option>)}
-                </select>
-              </div>
-              <div className="inc-form-row">
                 <select value={formPlan.case_id} onChange={e=>setFormPlan({...formPlan,case_id:e.target.value})}>
                   <option value="">Vincular a caso (opcional)</option>
                   {cases.map(c=><option key={c.id} value={c.id}>{c.student_name}</option>)}
                 </select>
-                <input placeholder="Coordenador responsável" value={formPlan.coordinator_name} onChange={e=>setFormPlan({...formPlan,coordinator_name:e.target.value})} />
               </div>
               <div className="inc-form-row">
-                <input type="date" value={formPlan.start_date} onChange={e=>setFormPlan({...formPlan,start_date:e.target.value})} />
-                <input type="date" value={formPlan.end_date} onChange={e=>setFormPlan({...formPlan,end_date:e.target.value})} />
+                <label>Vigência início<input type="date" value={formPlan.effective_from} onChange={e=>setFormPlan({...formPlan,effective_from:e.target.value})} /></label>
+                <label>Vigência fim<input type="date" value={formPlan.effective_until} onChange={e=>setFormPlan({...formPlan,effective_until:e.target.value})} /></label>
               </div>
               <textarea placeholder="Objetivos do plano" value={formPlan.objectives} onChange={e=>setFormPlan({...formPlan,objectives:e.target.value})} rows={3} />
               <div className="inc-form-actions">
@@ -218,22 +211,22 @@ export default function Inclusao360({institutionId,role}:Props) {
             return (
               <div key={p.id} className="inc-plan-card">
                 <div className="inc-plan-header">
-                  <span className="inc-plan-type">{planTypes.find(t=>t.v===p.plan_type)?.l||p.plan_type}</span>
+                  <span className="inc-plan-type">PEI v{p.version_number||1}</span>
                   <span className={`inc-badge inc-badge-${p.status}`}>{p.status}</span>
                 </div>
                 <div className="inc-plan-student">{p.student_name}</div>
                 {p.objectives && <div className="inc-plan-obj">{p.objectives}</div>}
                 <div className="inc-plan-meta">
-                  {p.coordinator_name&&<span>Coord: {p.coordinator_name}</span>}
-                  {p.start_date&&<span>Início: {new Date(p.start_date).toLocaleDateString('pt-BR')}</span>}
+                  {p.effective_from&&<span>Vigência: {new Date(p.effective_from).toLocaleDateString('pt-BR')}</span>}
+                  {p.effective_until&&<span>até {new Date(p.effective_until).toLocaleDateString('pt-BR')}</span>}
                 </div>
                 <div className="inc-plan-accoms">
                   <strong>Adaptações ({pa.length})</strong>
                   {pa.map(a=>(
                     <div key={a.id} className="inc-accom">
-                      <span className="inc-accom-type">{accomTypes.find(t=>t.v===a.accommodation_type)?.l||a.accommodation_type}</span>
+                      <span className="inc-accom-type">{accomCategories.find(t=>t.v===a.category)?.l||a.category}</span>
                       <span className="inc-accom-desc">{a.description}</span>
-                      {a.teacher_name&&<span className="inc-accom-teacher">Prof. {a.teacher_name}</span>}
+                      {a.responsible&&<span className="inc-accom-teacher">Resp: {a.responsible}</span>}
                     </div>
                   ))}
                   <button className="inc-btn-small" onClick={()=>{setFormAccom({...formAccom,plan_id:p.id});setShowForm('accommodation');}}>+ Adaptação</button>
@@ -245,13 +238,12 @@ export default function Inclusao360({institutionId,role}:Props) {
           {showForm==='accommodation' && (
             <div className="inc-form">
               <div className="inc-form-row">
-                <select value={formAccom.accommodation_type} onChange={e=>setFormAccom({...formAccom,accommodation_type:e.target.value})}>
-                  {accomTypes.map(t=><option key={t.v} value={t.v}>{t.l}</option>)}
+                <select value={formAccom.category} onChange={e=>setFormAccom({...formAccom,category:e.target.value})}>
+                  {accomCategories.map(t=><option key={t.v} value={t.v}>{t.l}</option>)}
                 </select>
-                <input placeholder="Disciplina (opcional)" value={formAccom.discipline} onChange={e=>setFormAccom({...formAccom,discipline:e.target.value})} />
               </div>
               <textarea placeholder="Descrição da adaptação" value={formAccom.description} onChange={e=>setFormAccom({...formAccom,description:e.target.value})} rows={2} />
-              <input placeholder="Professor responsável (opcional)" value={formAccom.teacher_name} onChange={e=>setFormAccom({...formAccom,teacher_name:e.target.value})} />
+              <input placeholder="Responsável (opcional)" value={formAccom.responsible} onChange={e=>setFormAccom({...formAccom,responsible:e.target.value})} />
               <div className="inc-form-actions">
                 <button className="inc-btn-primary" onClick={saveAccommodation} disabled={!formAccom.description}>Salvar</button>
                 <button className="inc-btn-secondary" onClick={()=>setShowForm(null)}>Cancelar</button>
