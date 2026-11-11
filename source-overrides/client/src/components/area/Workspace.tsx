@@ -54,6 +54,7 @@ import SyncHealth from "./SyncHealth";
 import Aquisicoes360 from "./Aquisicoes360";
 import BillingPanel from "./BillingPanel";
 import ContractView from "./ContractView";
+import MinhaConta from "./MinhaConta";
 import ModuleManager from "./ModuleManager";
 import ModulePreview from "./ModulePreview";
 import { getActiveTabs, isTabActive, getModuleCatalog, findModuleByTab, type CatalogModule } from "@/lib/modules";
@@ -72,7 +73,7 @@ const TAB_GROUPS: {label:string;subtitle:string;icon:string;tabs:Tab[]}[] = [
   {label:'Aquisições',subtitle:'Compras, fornecedores e ordens',icon:'🛒',tabs:['aquisicoes']},
   {label:'Documentos',subtitle:'Gestão documental e análise por IA',icon:'📄',tabs:['documentos']},
   {label:'Integrações',subtitle:'Saúde dos dados e sincronizações',icon:'⇄',tabs:['sync']},
-  {label:'Financeiro',subtitle:'Contratos, faturamento e receita',icon:'💰',tabs:['contrato','billing','modulos']},
+  {label:'Financeiro',subtitle:'Contratos, faturamento e receita',icon:'💰',tabs:['conta','contrato','billing','modulos']},
 ];
 
 const TAB_DETAILS: Partial<Record<Tab,{icon:string;description:string}>> = {
@@ -107,6 +108,7 @@ const TAB_DETAILS: Partial<Record<Tab,{icon:string;description:string}>> = {
   inclusao:{icon:'♿',description:'Inclusão, PEI, acessibilidade e Núcleo de Apoio'},
   'acompanhamento-especial':{icon:'📋',description:'Regimes especiais, exercícios domiciliares e planos acadêmicos'},
   aquisicoes:{icon:'🛒',description:'Gestão de compras, fornecedores e ordens'},
+  conta:{icon:'👤',description:'Pacote, faturas, módulos e dados do contrato'},
   contrato:{icon:'📜',description:'Termos, cláusulas e assinatura digital'},
   modulos:{icon:'⚙',description:'Ativar e desativar módulos por IES'},
   billing:{icon:'💰',description:'Contratos, faturas, MRR e pacotes comerciais'},
@@ -143,6 +145,7 @@ const TABS: [Tab, string][] = [
   ["inclusao", "Inclusão 360° · PEI"],
   ["acompanhamento-especial", "Acompanhamento Especial 360°"],
   ["aquisicoes", "Aquisições 360°"],
+  ["conta", "Minha Conta"],
   ["contrato", "Meu Contrato"],
   ["modulos", "Gerenciar Módulos"],
   ["billing", "Painel Financeiro"],
@@ -433,6 +436,8 @@ export default function Workspace({
             <Aquisicoes360 institutionId={id} role={role || 'master'} />
           </ModulePreview>;
         })()
+      ) : tab === "conta" ? (
+        <MinhaConta institutionId={id} institutionName={String(institution.name)} />
       ) : tab === "modulos" ? (
         role === 'master' ? <ModuleManager /> : <p>Gerenciamento de módulos restrito ao administrador da plataforma.</p>
       ) : tab === "contrato" ? (
