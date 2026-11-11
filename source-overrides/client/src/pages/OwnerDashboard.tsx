@@ -29,6 +29,8 @@ import PainelBI from '@/components/bi/PainelBI';
 import BIFrame from '@/components/bi/BIFrame';
 import ProfileSimulator from '@/components/area/ProfileSimulator';
 import ExperienceAdmin from './ExperienceAdmin';
+import MasterHub from '@/components/area/MasterHub';
+import VerticeBI from '@/components/area/VerticeBI';
 
 type Membership={user_id:string;institution_id:string;role:string};
 const SNAPSHOT_COLUMNS='id,course_id,semester,class_label,enrolled,capacity,available,source_report_at,reported_total,student_status';
@@ -45,7 +47,7 @@ async function fetchDashboardRows(table:string,order:string,ascending=true,colum
  for(let from=0;;from+=1000){const {data,error}=await supabase.from(table).select(columns).order(order,{ascending}).order('id').range(from,from+999);if(error)throw error;rows.push(...((data??[]) as unknown as Row[]));if(!data||data.length<1000)break;}
  return {data:rows,error:null};
 }
-function readHash(){const p=new URLSearchParams(typeof window==='undefined'?'':window.location.hash.slice(1));return {inst:p.get('instituicao')??'',course:p.get('curso')??'',repositories:p.get('repositorios')==='1',bi:p.get('bi')==='1',captacao:p.get('captacao')==='1',academico:p.get('academico')==='1',painelBi:p.get('painel-bi')==='1',perfis:p.get('perfis')==='1',masters:p.get('masters')==='1',demonstrativos:p.get('demonstrativos')==='1',clientes:p.get('clientes')==='1',governanca:p.get('governanca')==='1'};}
+function readHash(){const p=new URLSearchParams(typeof window==='undefined'?'':window.location.hash.slice(1));return {inst:p.get('instituicao')??'',course:p.get('curso')??'',repositories:p.get('repositorios')==='1',bi:p.get('bi')==='1',captacao:p.get('captacao')==='1',academico:p.get('academico')==='1',painelBi:p.get('painel-bi')==='1',perfis:p.get('perfis')==='1',masters:p.get('masters')==='1',demonstrativos:p.get('demonstrativos')==='1',clientes:p.get('clientes')==='1',governanca:p.get('governanca')==='1',hub:!p.toString(),biVertice:p.get('bi-vertice')==='1',tierFilter:p.get('tier')??'',financeiro:p.get('financeiro')==='1'};}
 function writeHash(inst:string,course:string,repositories=false,library=false,reitor=false,masters=false){const p=new URLSearchParams();if(masters)p.set('masters','1');if(inst)p.set('instituicao',inst);if(course)p.set('curso',course);if(repositories){if(inst)p.set('aba','repositorio');else p.set('repositorios','1');}if(library)p.set('aba','biblioteca');if(reitor)p.set('aba','reitor');const h=p.toString();window.history.pushState(null,'',h?`#${h}`:window.location.pathname);window.dispatchEvent(new HashChangeEvent('hashchange'));window.scrollTo({top:0});}
 
 type BiItem = {label:string; group:string; value:number; href?:string};
@@ -325,7 +327,8 @@ export default function OwnerDashboard(){
   const {error}=await supabase.auth.mfa.challengeAndVerify({factorId:factor,code});if(error)throw error;setCode('');setQr('');await load();
  }catch{setError('Código não validado. Confira o autenticador e tente novamente.');}finally{setBusy(false);}}
  if(acquisitionsRoute&&!loading&&session&&aal==='aal2')return <GreenHost/>;
- return <main className="corp-container corp-section"><h1>{window.location.pathname.startsWith('/reitor')?'Área reservada da Direção':master&&route.repositories?'Repositórios · visão master':master&&route.demonstrativos?'Convites demonstrativos · Master':master?'Painel Vértice':'Painel de gestão'}</h1>
+ return <main className="corp-container corp-section"><h1>{window.location.pathname.startsWith('/reitor')?'Área reservada da Direção':master&&route.repositories?'Repositórios · visão master':master&&route.demonstrativos?'Convites demonstrativos · Master':master&&route.tierFilter==='superior'?'🏛️ Universidades':master&&route.tierFilter==='escolas'?'🏫 Escolas':master&&route.financeiro?'💰 Financeiro':master?'Painel Vértice':'Painel de gestão'}</h1>
+ {master&&(route.tierFilter||route.financeiro)&&!route.inst&&<button onClick={()=>{window.location.hash='';window.dispatchEvent(new HashChangeEvent('hashchange'));}} style={{background:'none',border:'none',color:'#2563eb',cursor:'pointer',fontSize:13,marginBottom:12,padding:0}}>← Voltar ao hub</button>}
  {loading?<p role="status">Verificando acesso…</p>:!session?<><p>Entre para acessar sua conta.</p><Link className="corp-button" href={window.location.pathname.startsWith('/reitor')?'/entrar?destino=reitor':'/entrar'}>Entrar</Link></>:<>
  <p>Conectado como <strong>{session.user.email}</strong>.</p>
  {aal!=='aal2'?<section className="corp-login-card"><h2>Proteja seu acesso</h2><p>O segundo fator é obrigatório para consultar os dados das instituições.</p>
@@ -351,7 +354,15 @@ export default function OwnerDashboard(){
   </a>
   <button className={`vx-module-card ${!commercial&&!route.perfis&&!route.painelBi&&!route.captacao&&!route.bi&&route.masters&&!route.governanca?'vx-module-active':''}`} onClick={()=>{setCommercial(false);writeHash('','',false,false,false,true);}}><span className="vx-module-icon" style={{background:'#f0f9ff',color:'#0369a1'}}>🔑</span><strong>Masters</strong><small>Administradores do sistema</small></button>
  </div>}
- {route.clientes&&master?<ShowcaseClientsAdmin/>:route.perfis&&master?<ProfileSimulator/>:master&&route.demonstrativos?<ExperienceAdmin embedded/>:master&&commercial?<DemoLeads/>:<>
+ {route.biVertice&&master?<VerticeBI onBack={()=>{window.location.hash='';window.dispatchEvent(new HashChangeEvent('hashchange'));}}/>:route.hub&&master?<MasterHub onNavigate={(dest,instId)=>{
+  if(dest==='bi-vertice'){window.location.hash='bi-vertice=1';}
+  else if(dest==='universidades'){window.location.hash='tier=superior';}
+  else if(dest==='escolas'){window.location.hash='tier=escolas';}
+  else if(dest==='financeiro'){window.location.hash='financeiro=1';}
+  else if(dest==='configuracoes'){window.location.hash='masters=1';}
+  else if(dest==='institution'&&instId){window.location.hash=`instituicao=${instId}`;}
+  window.dispatchEvent(new HashChangeEvent('hashchange'));
+}}/>:route.clientes&&master?<ShowcaseClientsAdmin/>:route.perfis&&master?<ProfileSimulator/>:master&&route.demonstrativos?<ExperienceAdmin embedded/>:master&&commercial?<DemoLeads/>:<>
  {!route.bi&&!route.captacao&&!route.academico&&!route.painelBi&&!currentInst&&!route.repositories&&!route.masters&&!route.demonstrativos&&<div className="vx-module-grid vx-kpi-row">
   <div className="vx-module-card" style={{borderLeft:'3px solid #0073ea'}}><small style={{color:'#676e7a'}}>Instituições</small><strong style={{fontSize:28}}>{institutions.length}</strong></div>
   <div className="vx-module-card" style={{borderLeft:'3px solid #7c3aed'}}><small style={{color:'#676e7a'}}>Cursos</small><strong style={{fontSize:28}}>{courses.length}</strong></div>
@@ -388,6 +399,7 @@ export default function OwnerDashboard(){
   </div>
   {!institutions.length?<p className="vx-inst-empty">Nenhuma instituição disponível para esta conta. O vínculo deve ser autorizado pela administração.</p>:
    <div className="vx-inst-grid">{institutions
+    .filter(i=>!route.tierFilter||(i as any).tier===route.tierFilter)
     .filter(i=>[i.name,(i as unknown as Row).acronym,(i as unknown as Row).cnpj].some(value=>String(value??'').toLocaleLowerCase('pt-BR').includes(institutionSearch.trim().toLocaleLowerCase('pt-BR'))))
     .sort((a,b)=>institutionSort==='courses'?courses.filter(c=>c.institution_id===b.id).length-courses.filter(c=>c.institution_id===a.id).length:institutionSort==='pending'?mgmt.actions.filter(x=>x.institution_id===b.id&&isLate(x.due_date,x.status)).length-mgmt.actions.filter(x=>x.institution_id===a.id&&isLate(x.due_date,x.status)).length:String(a.name).localeCompare(String(b.name),'pt-BR'))
     .map(i=>{
