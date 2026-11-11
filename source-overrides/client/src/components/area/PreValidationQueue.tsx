@@ -160,6 +160,19 @@ export default function PreValidationQueue({ institutionId, role }: { institutio
   const totalLinks = items.reduce((s, i) => s + i.links.length, 0);
   const approvedLinks = items.reduce((s, i) => s + i.approved_count, 0);
 
+  async function deletePrevalidation(pvId: string) {
+    if (!confirm("Excluir esta pré-validação e todos os seus vínculos? Você poderá repetir o processo depois.")) return;
+    try {
+      // Links are CASCADE deleted via FK
+      await supabase.from("vertice_doc_indicator_links").delete().eq("prevalidation_id", pvId);
+      await supabase.from("vertice_doc_prevalidation").delete().eq("id", pvId);
+      setSelectedItem(null);
+      await loadQueue();
+    } catch (e) {
+      setError(explain(e));
+    }
+  }
+
   async function bulkApproveHigh() {
     setAnalyzing(true);
     try {
@@ -339,15 +352,24 @@ export default function PreValidationQueue({ institutionId, role }: { institutio
                       </p>
                     )}
                   </div>
-                  <div style={{ textAlign: "right", minWidth: 120 }}>
+                  <div style={{ textAlign: "right", minWidth: 140 }}>
                     {item.instruments.length > 0 && (
                       <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}>
                         {item.instruments.map((i) => INSTRUMENT_LABELS[i] ?? i).join(", ")}
                       </div>
                     )}
-                    <div style={{ fontSize: 11, color: "#94a3b8" }}>
+                    <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 6 }}>
                       {new Date(item.prevalidation.created_at).toLocaleDateString("pt-BR")}
                     </div>
+                    {isManager && (
+                      <div style={{ display: "flex", gap: 4, justifyContent: "flex-end" }}>
+                        <button
+                          className="er-btn er-small"
+                          style={{ fontSize: 11, color: "#dc2626", padding: "2px 8px" }}
+                          onClick={(e) => { e.stopPropagation(); void deletePrevalidation(item.prevalidation.id); }}
+                        >🗑 Excluir</button>
+                      </div>
+                    )}
                   </div>
                 </div>
 
