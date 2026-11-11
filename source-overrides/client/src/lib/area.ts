@@ -58,10 +58,10 @@ export function isInstitutionalLimited(r?: Role | null): boolean { return !!r &&
 // --------------------------------------------------------------------------
 // Abas visíveis por perfil
 // --------------------------------------------------------------------------
-export type Tab = "aprendizagem" | "enade" | "backups" | "fontes" | "conexoes" | "avaliacao" | "novo_instrumento" | "emec" | "base" | "ia" | "analise" | "geral" | "visao" | "cadastro" | "metas" | "plano" | "diagnostico" | "equipe" | "repositorio" | "biblioteca" | "reitor" | "eorbit" | "resultado-curso" | "auditoria" | "simulador" | "raio-x-direito" | "egressos" | "governanca" | "inclusao" | "acompanhamento-especial" | "sync" | "aquisicoes" | "billing" | "contrato";
+export type Tab = "aprendizagem" | "enade" | "backups" | "fontes" | "conexoes" | "avaliacao" | "novo_instrumento" | "emec" | "base" | "ia" | "analise" | "geral" | "visao" | "cadastro" | "metas" | "plano" | "diagnostico" | "equipe" | "repositorio" | "biblioteca" | "reitor" | "eorbit" | "resultado-curso" | "auditoria" | "simulador" | "raio-x-direito" | "egressos" | "governanca" | "inclusao" | "acompanhamento-especial" | "sync" | "aquisicoes" | "billing" | "contrato" | "modulos";
 
 /** Abas disponíveis para cada grupo de perfis. */
-const TABS_FULL: Tab[] = ["aprendizagem", "enade", "backups", "fontes", "conexoes", "avaliacao", "novo_instrumento", "base", "ia", "geral", "analise", "visao", "cadastro", "emec", "eorbit", "auditoria", "metas", "repositorio", "biblioteca", "reitor", "resultado-curso", "simulador", "raio-x-direito", "plano", "diagnostico", "equipe", "egressos", "governanca", "inclusao", "acompanhamento-especial", "sync", "aquisicoes", "billing", "contrato"];
+const TABS_FULL: Tab[] = ["aprendizagem", "enade", "backups", "fontes", "conexoes", "avaliacao", "novo_instrumento", "base", "ia", "geral", "analise", "visao", "cadastro", "emec", "eorbit", "auditoria", "metas", "repositorio", "biblioteca", "reitor", "resultado-curso", "simulador", "raio-x-direito", "plano", "diagnostico", "equipe", "egressos", "governanca", "inclusao", "acompanhamento-especial", "sync", "aquisicoes", "billing", "contrato", "modulos"];
 const TABS_CPA: Tab[] = ["aprendizagem", "enade", "avaliacao", "geral", "visao", "metas", "repositorio", "biblioteca", "plano", "equipe", "governanca", "inclusao", "acompanhamento-especial"];
 const TABS_COURSE: Tab[] = ["aprendizagem", "geral", "visao", "metas", "repositorio", "biblioteca", "plano", "equipe"];
 

@@ -1,0 +1,58 @@
+.mm-container { max-width: 1000px; }
+.mm-header h2 { font-size: 1.4rem; font-weight: 700; margin: 0 0 .25rem; }
+.mm-header p { color: var(--muted,#666); margin: 0 0 1.5rem; }
+
+.mm-ies-select { display: flex; align-items: flex-end; gap: 1rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+.mm-ies-select label { display: flex; flex-direction: column; gap: .25rem; font-size: .8rem; font-weight: 600; color: var(--muted,#666); flex: 1; min-width: 250px; }
+.mm-ies-select select { padding: .6rem .75rem; border: 1px solid #d1d5db; border-radius: 8px; font-size: .95rem; background: var(--bg,#fff); color: var(--fg,#1a1a2e); }
+@media(prefers-color-scheme:dark) { .mm-ies-select select { background: #12121e; border-color: #444; color: #e0e0e0; } }
+.mm-counter { font-size: .85rem; font-weight: 700; color: #6366f1; white-space: nowrap; }
+
+.mm-packages { display: flex; align-items: center; gap: .5rem; margin-bottom: 1.5rem; flex-wrap: wrap; padding: .75rem 1rem; background: var(--surface,#f8fafb); border: 1px solid #e5e7eb; border-radius: 10px; }
+@media(prefers-color-scheme:dark) { .mm-packages { background: #1e1e2e; border-color: #333; } }
+.mm-packages-label { font-size: .8rem; font-weight: 600; color: var(--muted,#888); margin-right: .25rem; }
+.mm-pkg-btn { padding: .4rem .85rem; border: 1px solid #6366f1; border-radius: 6px; background: transparent; color: #6366f1; font-weight: 600; font-size: .8rem; cursor: pointer; }
+.mm-pkg-btn:hover { background: #6366f108; }
+.mm-pkg-btn:disabled { opacity: .5; cursor: not-allowed; }
+.mm-pkg-btn.danger { border-color: #ef4444; color: #ef4444; }
+.mm-pkg-btn.danger:hover { background: #ef444408; }
+
+.mm-loading { color: var(--muted,#888); text-align: center; padding: 2rem; }
+
+.mm-grid { display: flex; flex-direction: column; gap: 1.5rem; }
+
+.mm-tier-group { border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; }
+@media(prefers-color-scheme:dark) { .mm-tier-group { border-color: #333; } }
+
+.mm-tier-header { display: flex; align-items: center; gap: .75rem; padding: .75rem 1.25rem; background: var(--surface,#f8fafb); border-bottom: 1px solid #e5e7eb; }
+@media(prefers-color-scheme:dark) { .mm-tier-header { background: #1a1a2a; border-color: #333; } }
+.mm-tier-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+.mm-tier-header h3 { font-size: .9rem; font-weight: 700; margin: 0; flex: 1; }
+.mm-tier-count { font-size: .8rem; font-weight: 600; color: var(--muted,#888); }
+
+.mm-module-list { display: flex; flex-direction: column; }
+
+.mm-module { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .75rem 1.25rem; border-bottom: 1px solid #f0f0f0; transition: background .1s; }
+.mm-module:last-child { border-bottom: none; }
+.mm-module:hover { background: #f9fafb; }
+@media(prefers-color-scheme:dark) { .mm-module { border-color: #2a2a3a; } .mm-module:hover { background: #1e1e2e; } }
+
+.mm-module.locked { opacity: .65; }
+.mm-module.active .mm-module-status, .mm-module.tasting .mm-module-status, .mm-module.trial .mm-module-status { font-size: 1.1rem; }
+
+.mm-module-info { display: flex; align-items: flex-start; gap: .75rem; flex: 1; min-width: 0; }
+.mm-module-status { font-size: 1.1rem; flex-shrink: 0; margin-top: .1rem; }
+.mm-module-info strong { display: block; font-size: .88rem; }
+.mm-module-info small { display: block; font-size: .75rem; color: var(--muted,#888); line-height: 1.4; }
+.mm-tasting-note { color: #16a34a !important; font-weight: 600; }
+.mm-origin { color: #8b5cf6 !important; }
+
+.mm-module-actions { display: flex; align-items: center; gap: .75rem; flex-shrink: 0; }
+.mm-pkg-min { font-size: .7rem; color: var(--muted,#aaa); white-space: nowrap; }
+
+.mm-toggle { padding: .35rem .75rem; border-radius: 6px; font-size: .78rem; font-weight: 600; cursor: pointer; border: none; transition: all .15s; }
+.mm-toggle.activate { background: #22c55e; color: #fff; }
+.mm-toggle.activate:hover { background: #16a34a; }
+.mm-toggle.deactivate { background: transparent; border: 1px solid #ef4444; color: #ef4444; }
+.mm-toggle.deactivate:hover { background: #fef2f2; }
+.mm-toggle:disabled { opacity: .5; cursor: not-allowed; }
