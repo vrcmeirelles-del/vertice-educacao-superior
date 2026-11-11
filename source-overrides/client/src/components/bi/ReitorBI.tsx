@@ -171,6 +171,12 @@ export default function ReitorBI({ institutions, courses, enrollments, session, 
   const [professores, setProfessores] = useState<Professor[]>([]);
   const [enade, setEnade] = useState<Enade[]>([]);
   const [biblioteca, setBiblioteca] = useState<BibliotecaResumo | null>(null);
+
+  // novos módulos — egressos, governança, inclusão, acompanhamento
+  const [egressosResumo, setEgressosResumo] = useState<{ total_concluidos: number; cursos_com_concluintes: number; semestres_com_dados: number; primeiro_semestre: string; ultimo_semestre: string } | null>(null);
+  const [govResumo, setGovResumo] = useState<{ total_orgaos: number; orgaos_ativos: number; total_membros: number; total_reunioes: number; total_deliberacoes: number; deliberacoes_pendentes: number } | null>(null);
+  const [incResumo, setIncResumo] = useState<{ total_casos: number; casos_abertos: number; total_planos: number; total_adaptacoes: number } | null>(null);
+  const [specResumo, setSpecResumo] = useState<{ total_casos: number; casos_ativos: number; regimes_autorizados: number; planos_ativos: number } | null>(null);
   const [vestibular, setVestibular] = useState<VestibularEdital[]>([]);
   const [vestCursos, setVestCursos] = useState<VestibularCurso[]>([]);
 
@@ -260,6 +266,18 @@ export default function ReitorBI({ institutions, courses, enrollments, session, 
       const { data: ebitda } = await supabase.from('vertice_ebitda_calculations')
         .select('id,name,created_at,result').eq('institution_id', instId).order('created_at', { ascending: false }).limit(5);
       setEbitdaCalcs((ebitda ?? []) as Row[]);
+
+      // ─── Novos módulos: egressos, governança, inclusão, acompanhamento ───
+      const [egr, gov, inc, spec] = await Promise.all([
+        supabase.from('v_egressos_resumo').select('*').eq('institution_id', instId).maybeSingle(),
+        supabase.from('v_governance_summary').select('*').eq('institution_id', instId).maybeSingle(),
+        supabase.from('v_inclusion_summary').select('*').eq('institution_id', instId).maybeSingle(),
+        supabase.from('v_special_support_summary').select('*').eq('institution_id', instId).maybeSingle(),
+      ]);
+      if (egr.data) setEgressosResumo(egr.data);
+      if (gov.data) setGovResumo(gov.data);
+      if (inc.data) setIncResumo(inc.data);
+      if (spec.data) setSpecResumo(spec.data);
     } catch (err) {
       console.error('ReitorBI load error', err);
     } finally {
@@ -370,6 +388,36 @@ export default function ReitorBI({ institutions, courses, enrollments, session, 
             { label: 'Pendente', value: docStatus.pendente },
             { label: 'N/A', value: docStatus.na },
           ].filter(d => d.value > 0)} colors={['#168878', '#377acf', '#d76d34', '#c0447f', '#999']} />
+        </SectionCard>
+
+        {/* Egressos & Governança */}
+        <SectionCard title="Egressos — Concluintes Histórico">
+          {egressosResumo ? <>
+            <div className="rbi-kpis">
+              <KPICard label="Concluintes" value={egressosResumo.total_concluidos} unit="qtd" small />
+              <KPICard label="Cursos" value={egressosResumo.cursos_com_concluintes} unit="qtd" small />
+              <KPICard label="Semestres" value={egressosResumo.semestres_com_dados} unit="qtd" small />
+            </div>
+            <p className="rbi-note">{egressosResumo.primeiro_semestre} a {egressosResumo.ultimo_semestre} · Dados derivados do histórico acadêmico</p>
+          </> : <p className="rbi-empty">Sem histórico de concluintes</p>}
+        </SectionCard>
+
+        <SectionCard title="Governança & Acompanhamento">
+          <div className="rbi-kpis">
+            {govResumo ? <>
+              <KPICard label="Órgãos" value={govResumo.orgaos_ativos} unit="qtd" small />
+              <KPICard label="Deliberações" value={govResumo.total_deliberacoes} unit="qtd" small />
+              <KPICard label="Pendentes" value={govResumo.deliberacoes_pendentes} unit="qtd" small />
+            </> : <KPICard label="Governança" value={0} unit="qtd" small />}
+            {incResumo ? <>
+              <KPICard label="Inclusão" value={incResumo.total_casos} unit="qtd" small />
+              <KPICard label="PEI/PAA" value={incResumo.total_planos} unit="qtd" small />
+            </> : <KPICard label="Inclusão" value={0} unit="qtd" small />}
+            {specResumo ? <>
+              <KPICard label="Acomp. Esp." value={specResumo.total_casos} unit="qtd" small />
+              <KPICard label="Regimes" value={specResumo.regimes_autorizados} unit="qtd" small />
+            </> : <KPICard label="Acomp. Esp." value={0} unit="qtd" small />}
+          </div>
         </SectionCard>
 
         {/* Alertas */}
@@ -642,54 +690,63 @@ export default function ReitorBI({ institutions, courses, enrollments, session, 
   }
 
   // ─── Governança 360° (§4, §7, §9 do Prompt Master) ───
+  // Usa dados já carregados pelo loadData central (govResumo, incResumo, specResumo, egressosResumo)
   function renderGovernanca360(): ReactElement {
-    const [govData, setGovData] = useState<any>(null);
-    const [incData, setIncData] = useState<any>(null);
-    const [specData, setSpecData] = useState<any>(null);
-    useEffect(() => {
-      supabase.from('v_governance_summary').select('*').eq('institution_id', institutionId).maybeSingle().then(r => setGovData(r.data));
-      supabase.from('v_inclusion_summary').select('*').eq('institution_id', institutionId).maybeSingle().then(r => setIncData(r.data));
-      supabase.from('v_special_support_summary').select('*').eq('institution_id', institutionId).maybeSingle().then(r => setSpecData(r.data));
-    }, []);
     return <div className="rbi-grid">
-      <SectionCard title="Governança Institucional" icon="⚖️">
-        {govData ? <>
+      {/* ─── EGRESSOS ─── */}
+      <SectionCard title="Egressos — Série Histórica">
+        {egressosResumo ? <>
           <div className="rbi-kpis">
-            <KPICard label="Órgãos ativos" value={govData.orgaos_ativos} unit="qtd" small />
-            <KPICard label="Membros" value={govData.total_membros} unit="qtd" small />
-            <KPICard label="Reuniões" value={govData.total_reunioes} unit="qtd" small />
-            <KPICard label="Deliberações" value={govData.total_deliberacoes} unit="qtd" small />
-            <KPICard label="Pendentes" value={govData.deliberacoes_pendentes} unit="qtd" small />
+            <KPICard label="Total de Concluintes" value={egressosResumo.total_concluidos} unit="qtd" />
+            <KPICard label="Cursos com Concluintes" value={egressosResumo.cursos_com_concluintes} unit="qtd" small />
+            <KPICard label="Semestres com Dados" value={egressosResumo.semestres_com_dados} unit="qtd" small />
           </div>
-          {govData.ultima_reuniao && <p className="rbi-note">Última reunião: {new Date(govData.ultima_reuniao).toLocaleDateString('pt-BR')}</p>}
-        </> : <p className="rbi-empty">Sem dados de governança — cadastre órgãos e reuniões na aba Governança 360° do Workspace.</p>}
+          <p className="rbi-note">Série: {egressosResumo.primeiro_semestre} a {egressosResumo.ultimo_semestre} · Fonte: histórico acadêmico (agnóstico de sistema)</p>
+        </> : <p className="rbi-empty">Sem dados de conclusão — conecte o sistema acadêmico da IES.</p>}
       </SectionCard>
-      <SectionCard title="Inclusão e Acessibilidade" icon="♿">
-        {incData ? <>
+
+      {/* ─── GOVERNANÇA ─── */}
+      <SectionCard title="Governança Institucional">
+        {govResumo && (govResumo.total_orgaos > 0 || govResumo.total_reunioes > 0) ? <>
           <div className="rbi-kpis">
-            <KPICard label="Casos de apoio" value={incData.total_casos} unit="qtd" small />
-            <KPICard label="Abertos" value={incData.casos_abertos} unit="qtd" small />
-            <KPICard label="Solicitações" value={incData.total_solicitacoes} unit="qtd" small />
-            <KPICard label="PEI/PAA/PAI" value={incData.total_planos} unit="qtd" small />
-            <KPICard label="Adaptações" value={incData.total_adaptacoes} unit="qtd" small />
+            <KPICard label="Órgãos ativos" value={govResumo.orgaos_ativos} unit="qtd" small />
+            <KPICard label="Membros" value={govResumo.total_membros} unit="qtd" small />
+            <KPICard label="Reuniões" value={govResumo.total_reunioes} unit="qtd" small />
+            <KPICard label="Deliberações" value={govResumo.total_deliberacoes} unit="qtd" small />
+            <KPICard label="Pendentes" value={govResumo.deliberacoes_pendentes} unit="qtd" small />
           </div>
-        </> : <p className="rbi-empty">Sem dados de inclusão — registre casos na aba Inclusão 360° do Workspace.</p>}
+        </> : <p className="rbi-empty">Governança: cadastre NDE, Colegiado e reuniões na aba Governança 360° do Workspace.</p>}
       </SectionCard>
-      <SectionCard title="Acompanhamento Especial" icon="📋">
-        {specData ? <>
+
+      {/* ─── INCLUSÃO ─── */}
+      <SectionCard title="Inclusão e Acessibilidade">
+        {incResumo && incResumo.total_casos > 0 ? <>
           <div className="rbi-kpis">
-            <KPICard label="Casos" value={specData.total_casos} unit="qtd" small />
-            <KPICard label="Ativos" value={specData.casos_ativos} unit="qtd" small />
-            <KPICard label="Requerimentos" value={specData.total_requerimentos} unit="qtd" small />
-            <KPICard label="Regimes autorizados" value={specData.regimes_autorizados} unit="qtd" small />
-            <KPICard label="Planos ativos" value={specData.planos_ativos} unit="qtd" small />
+            <KPICard label="Casos de apoio" value={incResumo.total_casos} unit="qtd" small />
+            <KPICard label="Abertos" value={incResumo.casos_abertos} unit="qtd" small />
+            <KPICard label="PEI/PAA/PAI" value={incResumo.total_planos} unit="qtd" small />
+            <KPICard label="Adaptações" value={incResumo.total_adaptacoes} unit="qtd" small />
           </div>
-        </> : <p className="rbi-empty">Sem dados de acompanhamento especial — registre casos na aba correspondente do Workspace.</p>}
+        </> : <p className="rbi-empty">Inclusão: registre casos na aba Inclusão 360° · PEI do Workspace.</p>}
       </SectionCard>
-      <SectionCard title="Nota de privacidade" icon="🔒">
+
+      {/* ─── ACOMPANHAMENTO ESPECIAL ─── */}
+      <SectionCard title="Acompanhamento Especial">
+        {specResumo && specResumo.total_casos > 0 ? <>
+          <div className="rbi-kpis">
+            <KPICard label="Casos" value={specResumo.total_casos} unit="qtd" small />
+            <KPICard label="Ativos" value={specResumo.casos_ativos} unit="qtd" small />
+            <KPICard label="Regimes autorizados" value={specResumo.regimes_autorizados} unit="qtd" small />
+            <KPICard label="Planos ativos" value={specResumo.planos_ativos} unit="qtd" small />
+          </div>
+        </> : <p className="rbi-empty">Acompanhamento Especial: registre casos na aba correspondente do Workspace.</p>}
+      </SectionCard>
+
+      {/* ─── PRIVACIDADE ─── */}
+      <SectionCard title="Nota de privacidade">
         <p className="rbi-note">
-          Este painel exibe apenas indicadores agregados. CID, laudos, diagnósticos e informações clínicas
-          individuais permanecem protegidos e acessíveis apenas ao Núcleo de Apoio e à Coordenação responsável.
+          Indicadores agregados — CID, laudos e informações clínicas permanecem protegidos.
+          A Reitoria acompanha quantitativos e pendências, sem acesso a prontuários individuais.
         </p>
       </SectionCard>
     </div>;
