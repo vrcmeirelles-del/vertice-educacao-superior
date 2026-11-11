@@ -28,7 +28,32 @@ interface MrrSummary {
   mrr_active: number; mrr_total: number; total_students: number; total_overdue: number;
 }
 
-const PKG = { essencial: 'Essencial', regulacao: 'Regulação', gestao360: 'Gestão 360°', completo: 'Completo' } as Record<string,string>;
+const PKG = { essencial: 'Essencial', regulacao: 'Regulação', gestao360: 'Gestão 360°', completo: 'Completo', core: 'Essencial (Escolas)', pedagogico: 'Pedagógico', captacao: 'Captação', acompanhamento: 'Acompanhamento', governanca: 'Governança 360' } as Record<string,string>;
+
+interface PkgPricing {
+  tier: string; package: string; package_label: string;
+  monthly_floor: string; setup_fee: string; addon_activation: string; addon_monthly: string;
+  sort_order: number; per_student?: number;
+}
+
+const PKG_PER_STUDENT: Record<string, number> = {
+  essencial: 1.50, regulacao: 2.00, gestao360: 2.50, completo: 3.00,
+  core: 1.50, pedagogico: 1.20, captacao: 1.00, acompanhamento: 1.00, governanca: 0.80,
+};
+
+const PKG_MODULES: Record<string, string[]> = {
+  essencial: ['Core', 'BI Institucional', 'BI por Curso', 'Gestão Documental'],
+  regulacao: ['+ Compliance', '+ Biblioteca Regulatória', '+ ENADE 360°', '+ Novo Instrumento', '+ Repositório'],
+  gestao360: ['+ Governança 360°', '+ Metas 5W2H', '+ Resultado por Curso', '+ Simulador de Custo', '+ Aquisições'],
+  completo: ['+ Inclusão/PEI', '+ Egressos 360°', '+ Acomp. Especial', '+ Captação BI', '+ Fato & Ordem', '+ Sincronização'],
+  core: ['Cadastro', 'Integrações', 'Usuários', 'Gestão Documental'],
+  pedagogico: ['+ BI Direção', '+ Indicadores IDEB/SAEB', '+ BI Coordenação', '+ ENEM & Vestibular'],
+  captacao: ['+ Captação de Matrículas', '+ Rematrícula', '+ Comunicação com Famílias'],
+  acompanhamento: ['+ Inclusão & PEI', '+ Orientação Educacional', '+ Egressos'],
+  governanca: ['+ Governança Escolar (PPP, Regimento)', '+ Censo Escolar & MEC'],
+};
+
+const PKG_TETO: Record<string, string|null> = { completo: 'R$ 15.000' };
 const STATUS_COLOR: Record<string,string> = {
   draft:'#9ca3af', trial:'#8b5cf6', active:'#22c55e', suspended:'#ef4444',
   cancellation_pending:'#f59e0b', cancelled:'#6b7280', expired:'#374151',
@@ -58,7 +83,8 @@ export default function BillingPanel({ tierFilter }: { tierFilter?: string }) {
 
   // Novo contrato form
   const [showNewContract, setShowNewContract] = useState(false);
-  const [institutions, setInstitutions] = useState<{id:string;name:string}[]>([]);
+  const [institutions, setInstitutions] = useState<{id:string;name:string;tier?:string}[]>([]);
+  const [pkgPricing, setPkgPricing] = useState<PkgPricing[]>([]);
   const [newContract, setNewContract] = useState<any>({ package_code:'essencial', price_per_student:1.50, min_monthly:1500, max_monthly:null, student_count:0, implementation_fee:3000, with_trial:true });
 
   // Negociação
@@ -85,8 +111,20 @@ export default function BillingPanel({ tierFilter }: { tierFilter?: string }) {
   async function loadInstitutions() {
     let q = supabase.from('vertice_institutions').select('id,name,tier').order('name');
     if (tierFilter) q = q.eq('tier', tierFilter);
-    const { data } = await q;
-    setInstitutions((data||[]) as {id:string;name:string}[]);
+    const [inst, pr] = await Promise.all([
+      q,
+      supabase.from('vertice_package_pricing').select('*').order('sort_order'),
+    ]);
+    setInstitutions((inst.data||[]) as {id:string;name:string;tier?:string}[]);
+    setPkgPricing((pr.data||[]) as PkgPricing[]);
+  }
+
+  function applyPackageDefaults(pkgCode: string) {
+    const pr = pkgPricing.find(p => p.package === pkgCode);
+    const perStudent = PKG_PER_STUDENT[pkgCode] ?? 1.50;
+    const floor = pr ? Number(pr.monthly_floor) : 1500;
+    const impl = pr ? Number(pr.setup_fee) : 3000;
+    setNewContract((prev: any) => ({ ...prev, package_code: pkgCode, price_per_student: perStudent, min_monthly: floor, implementation_fee: impl, max_monthly: PKG_TETO[pkgCode] ? 15000 : null }));
   }
 
   async function createContract() {
@@ -219,11 +257,20 @@ export default function BillingPanel({ tierFilter }: { tierFilter?: string }) {
                   </select>
                 </label>
                 <label>Pacote
-                  <select value={newContract.package_code} onChange={e=>setNewContract({...newContract,package_code:e.target.value})}>
-                    <option value="essencial">Essencial</option>
-                    <option value="regulacao">Regulação</option>
-                    <option value="gestao360">Gestão 360°</option>
-                    <option value="completo">Completo</option>
+                  <select value={newContract.package_code} onChange={e=>applyPackageDefaults(e.target.value)}>
+                    <optgroup label="Educação Superior">
+                      <option value="essencial">Essencial</option>
+                      <option value="regulacao">Regulação</option>
+                      <option value="gestao360">Gestão 360°</option>
+                      <option value="completo">Completo</option>
+                    </optgroup>
+                    <optgroup label="Escolas">
+                      <option value="core">Essencial (Escolas)</option>
+                      <option value="pedagogico">Pedagógico</option>
+                      <option value="captacao">Captação</option>
+                      <option value="acompanhamento">Acompanhamento</option>
+                      <option value="governanca">Governança 360</option>
+                    </optgroup>
                   </select>
                 </label>
                 <label>R$/aluno<input type="number" step="0.01" value={newContract.price_per_student} onChange={e=>setNewContract({...newContract,price_per_student:+e.target.value})} /></label>
@@ -363,25 +410,44 @@ export default function BillingPanel({ tierFilter }: { tierFilter?: string }) {
       {/* MÓDULOS & PACOTES */}
       {view==='modulos' && (
         <div className="bp-section">
-          <h3>Pacotes comerciais</h3>
-          <div className="bp-packages">
-            {[
-              { code:'essencial', name:'Essencial', price:'R$ 1,50/aluno', min:'R$ 1.500', impl:'R$ 3.000', modules:['Core','BI Institucional','BI por Curso'] },
-              { code:'regulacao', name:'Regulação', price:'R$ 2,00/aluno', min:'R$ 1.800', impl:'R$ 5.000', modules:['+ Compliance','+ Biblioteca Regulatória','+ ENADE 360°','+ Novo Instrumento'] },
-              { code:'gestao360', name:'Gestão 360°', price:'R$ 2,50/aluno', min:'R$ 2.000', impl:'R$ 8.000', modules:['+ Governança 360°','+ Inclusão/PEI','+ Egressos 360°','+ Acompanhamento Especial','+ Aquisições'] },
-              { code:'completo', name:'Completo', price:'R$ 3,00/aluno', min:'R$ 2.500 (teto R$ 15.000)', impl:'R$ 12.000', modules:['+ Fato & Ordem','+ Sincronização','+ Todos os módulos'] },
-            ].map(pkg=>(
-              <div className="bp-package-card" key={pkg.code}>
-                <h4>{pkg.name}</h4>
-                <div className="bp-package-price">{pkg.price}</div>
-                <div className="bp-package-detail">Piso: {pkg.min} · Impl.: {pkg.impl}</div>
-                <ul>{pkg.modules.map((m,i)=><li key={i}>{m}</li>)}</ul>
-                <div className="bp-package-count">
-                  {contracts.filter(c=>c.package_code===pkg.code && c.contract_status!=='cancelled').length} contrato(s)
+          {(['superior','escolas'] as const).map(tier => {
+            const tierLabel = tier === 'superior' ? '🏛️ Educação Superior' : '🏫 Escolas';
+            const tierPkgs = tier === 'superior'
+              ? ['essencial','regulacao','gestao360','completo']
+              : ['core','pedagogico','captacao','acompanhamento','governanca'];
+            const tierContracts = contracts.filter(c => tierPkgs.includes(c.package_code));
+            const tierColors: Record<string,string> = tier === 'superior'
+              ? { essencial:'#2563eb', regulacao:'#059669', gestao360:'#7c3aed', completo:'#d97706' }
+              : { core:'#2563eb', pedagogico:'#16a34a', captacao:'#ca8a04', acompanhamento:'#db2777', governanca:'#6d28d9' };
+            return (
+              <div key={tier} style={{marginBottom:'2rem'}}>
+                <h3>{tierLabel}</h3>
+                <div className="bp-packages">
+                  {tierPkgs.map(code => {
+                    const pr = pkgPricing.find(p => p.package === code && p.tier === tier);
+                    const perStudent = PKG_PER_STUDENT[code] ?? 1.50;
+                    const floor = pr ? Number(pr.monthly_floor) : 0;
+                    const impl = pr ? Number(pr.setup_fee) : 0;
+                    const teto = PKG_TETO[code];
+                    const mods = PKG_MODULES[code] ?? [];
+                    const color = tierColors[code] ?? '#6b7280';
+                    const count = tierContracts.filter(c => c.package_code === code && c.contract_status !== 'cancelled').length;
+                    return (
+                      <div className="bp-package-card" key={code} style={{borderTopColor: color}}>
+                        <h4 style={{color}}>{PKG[code] ?? code}</h4>
+                        <div className="bp-package-price" style={{color}}>R$ {perStudent.toFixed(2).replace('.',',')}/aluno</div>
+                        <div className="bp-package-detail">
+                          Piso: R$ {floor.toLocaleString('pt-BR')}{teto ? ` (teto ${teto})` : ''} · Impl.: R$ {impl.toLocaleString('pt-BR')}
+                        </div>
+                        <ul>{mods.map((m,i) => <li key={i}>{m}</li>)}</ul>
+                        <div className="bp-package-count">{count} contrato(s)</div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
-            ))}
-          </div>
+            );
+          })}
 
           <h3 style={{marginTop:'2rem'}}>Add-ons avulsos</h3>
           <p className="bp-muted">Módulos ativados individualmente via degustação (15 dias) com faturamento automático.</p>

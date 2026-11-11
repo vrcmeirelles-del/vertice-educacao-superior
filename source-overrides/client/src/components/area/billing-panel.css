@@ -68,7 +68,8 @@
 
 /* Packages */
 .bp-packages { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 1rem; }
-.bp-package-card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.25rem; background: var(--surface,#fff); }
+.bp-package-card { border: 1px solid #e5e7eb; border-top: 4px solid #6366f1; border-radius: 12px; padding: 1.25rem; background: var(--surface,#fff); transition: box-shadow .2s; }
+.bp-package-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.08); }
 @media(prefers-color-scheme:dark) { .bp-package-card { background: #1e1e2e; border-color: #333; } }
 .bp-package-card h4 { margin: 0 0 .5rem; font-size: 1.1rem; }
 .bp-package-price { font-size: 1.3rem; font-weight: 800; color: #6366f1; margin-bottom: .25rem; }
