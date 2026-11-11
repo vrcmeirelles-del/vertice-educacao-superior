@@ -64,7 +64,7 @@ export default function App() {
   if (normalized === "/experience") return <ErrorBoundary><PublicLayout><Suspense fallback={<main className="corp-container corp-section" role="status">Abrindo Vértice Experience…</main>}><ExperiencePortal /></Suspense></PublicLayout></ErrorBoundary>;
   if (normalized === "/master/experience") return <ErrorBoundary><PublicLayout><Suspense fallback={<main className="corp-container corp-section" role="status">Verificando administração Experience…</main>}><ExperienceAdmin /></Suspense></PublicLayout></ErrorBoundary>;
   if (iesActive) return <ErrorBoundary>{iesSuspended ? <main className="ies-shell"><p role="status">Área institucional suspensa. Os links de convite foram removidos.</p></main> : <IesPortal key={iesRouteRevision} />}</ErrorBoundary>;
-  if (!isPublic && !demoPaths.has(normalized) && !passwordCallback && /^\/[a-z0-9]+(?:-[a-z0-9]+)*$/.test(normalized)) return <ErrorBoundary><PublicLayout><InstitutionEntry slug={normalized.slice(1)} /></PublicLayout></ErrorBoundary>;
+  if (!isPublic && !demoPaths.has(normalized) && normalized !== '/painel-real' && !passwordCallback && /^\/[a-z0-9]+(?:-[a-z0-9]+)*$/.test(normalized)) return <ErrorBoundary><PublicLayout><InstitutionEntry slug={normalized.slice(1)} /></PublicLayout></ErrorBoundary>;
   return (
     <ErrorBoundary>
       <DemoTelemetry /><InstitutionDirectoryNotice />
