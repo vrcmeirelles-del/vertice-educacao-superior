@@ -474,18 +474,86 @@ export default function BillingPanel({ tierFilter }: { tierFilter?: string }) {
           </div>
 
           {/* ── ADD-ONS ── */}
-          <h3 style={{marginTop:'2rem'}}>Add-ons (ativação avulsa)</h3>
-          <p className="bp-muted">Módulos contratados separadamente. Degustação de 15 dias disponível.</p>
-          <div className="bp-addon-grid">
-            {[
-              { code:'ADDON_FATO_ORDEM', name:'Fato & Ordem (Simulados ENADE/OAB/CFC)', fee:'R$ 2.000/mês' },
-              { code:'MODULO_FINANCEIRO', name:'Módulo Financeiro Avançado (DRE, EBITDA)', fee:'R$ 1.500/mês' },
-            ].map(a=>(
-              <div className="bp-addon-item" key={a.code}>
-                <strong>{a.name}</strong>
-                <span>{a.fee}</span>
+          <h3 style={{marginTop:'2rem'}}>Add-ons (contratação avulsa)</h3>
+          <p className="bp-muted">Módulos contratados separadamente, com precificação por aluno elegível.</p>
+
+          <div className="bp-addon-detail-grid">
+            {/* Fato & Ordem — Superior */}
+            <div className="bp-addon-detail-card" style={{borderTopColor:'#d97706'}}>
+              <div className="bp-addon-detail-header">
+                <span style={{fontSize:24}}>📖</span>
+                <div>
+                  <strong style={{color:'#d97706'}}>Fato & Ordem — Preparação para Exames</strong>
+                  <small>Simulados ENADE, OAB, CFC, ENAMED via plataforma F&O integrada</small>
+                </div>
               </div>
-            ))}
+              <div className="bp-addon-detail-body">
+                <div className="bp-addon-detail-row">
+                  <div className="bp-addon-detail-tier">
+                    <span className="bp-addon-tier-badge" style={{background:'#eff6ff',color:'#2563eb'}}>🏛️ Superior</span>
+                    <div className="bp-addon-pricing">
+                      <div>Ativação: <strong>R$ 1.000</strong> <small>(única)</small></div>
+                      <div>Mensal: <strong style={{color:'#d97706'}}>R$ 0,80/aluno elegível</strong></div>
+                      <div>Piso: <strong>R$ 200/mês</strong></div>
+                    </div>
+                    <p className="bp-addon-note">Cobra apenas alunos classificados como elegíveis ENADE (ingressantes ou concludentes) ou de cursos com OAB/CFC. Não incide sobre toda a base.</p>
+                  </div>
+                  <div className="bp-addon-detail-tier">
+                    <span className="bp-addon-tier-badge" style={{background:'#f0fdf4',color:'#16a34a'}}>🏫 Escolas</span>
+                    <div className="bp-addon-pricing">
+                      <div>Ativação: <strong>R$ 500</strong> <small>(única)</small></div>
+                      <div>Mensal: <strong style={{color:'#d97706'}}>R$ 0,50/aluno do Ensino Médio</strong></div>
+                      <div>Piso: <strong>R$ 100/mês</strong></div>
+                    </div>
+                    <p className="bp-addon-note">Simulados ENEM e vestibulares integrados. Cobra apenas alunos do Ensino Médio.</p>
+                  </div>
+                </div>
+                <ul className="bp-addon-features">
+                  <li>Simulados por área de conhecimento com banco de questões</li>
+                  <li>Ranking de desempenho por turma e aluno</li>
+                  <li>Projeção de conceito ENADE / nota ENEM</li>
+                  <li>Vinculação automática de alunos elegíveis</li>
+                  <li>Notificações por e-mail, WhatsApp e SMS</li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Financeiro Avançado */}
+            <div className="bp-addon-detail-card" style={{borderTopColor:'#059669'}}>
+              <div className="bp-addon-detail-header">
+                <span style={{fontSize:24}}>💰</span>
+                <div>
+                  <strong style={{color:'#059669'}}>Módulo Financeiro Avançado</strong>
+                  <small>DRE por curso, EBITDA simulado, projeções e cenários</small>
+                </div>
+              </div>
+              <div className="bp-addon-detail-body">
+                <div className="bp-addon-detail-row">
+                  <div className="bp-addon-detail-tier">
+                    <span className="bp-addon-tier-badge" style={{background:'#eff6ff',color:'#2563eb'}}>🏛️ Superior</span>
+                    <div className="bp-addon-pricing">
+                      <div>Ativação: <strong>R$ 1.000</strong> <small>(única)</small></div>
+                      <div>Mensal: <strong style={{color:'#059669'}}>R$ 0,50/aluno</strong></div>
+                      <div>Piso: <strong>R$ 300/mês</strong></div>
+                    </div>
+                  </div>
+                  <div className="bp-addon-detail-tier">
+                    <span className="bp-addon-tier-badge" style={{background:'#f0fdf4',color:'#16a34a'}}>🏫 Escolas</span>
+                    <div className="bp-addon-pricing">
+                      <div>Ativação: <strong>R$ 500</strong> <small>(única)</small></div>
+                      <div>Mensal: <strong style={{color:'#059669'}}>R$ 0,30/aluno</strong></div>
+                      <div>Piso: <strong>R$ 150/mês</strong></div>
+                    </div>
+                  </div>
+                </div>
+                <ul className="bp-addon-features">
+                  <li>Resultado por curso/segmento com receita × custo</li>
+                  <li>Simulador de custo com pisos da CCT</li>
+                  <li>EBITDA simulado por cenário</li>
+                  <li>Projeção de viabilidade por curso</li>
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
       )}

@@ -87,6 +87,25 @@
 .bp-addon-item span { font-size: .85rem; color: #6366f1; font-weight: 600; }
 @media(prefers-color-scheme:dark) { .bp-addon-item { border-color: #333; } }
 
+/* Add-on detail cards */
+.bp-addon-detail-grid { display: flex; flex-direction: column; gap: 1.25rem; }
+.bp-addon-detail-card { border: 1px solid #e5e7eb; border-top: 4px solid #6366f1; border-radius: 12px; background: var(--surface,#fff); overflow: hidden; }
+.bp-addon-detail-header { display: flex; gap: .75rem; align-items: center; padding: 1rem 1.25rem; background: #f8fafc; }
+.bp-addon-detail-header strong { display: block; font-size: 1rem; }
+.bp-addon-detail-header small { color: var(--muted,#888); font-size: .8rem; }
+.bp-addon-detail-body { padding: 1rem 1.25rem; }
+.bp-addon-detail-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+.bp-addon-detail-tier { padding: .75rem 1rem; border: 1px solid #e5e7eb; border-radius: 10px; }
+.bp-addon-tier-badge { display: inline-block; font-size: .75rem; font-weight: 700; padding: .15rem .5rem; border-radius: 6px; margin-bottom: .5rem; }
+.bp-addon-pricing { font-size: .85rem; line-height: 1.8; }
+.bp-addon-pricing strong { font-size: .95rem; }
+.bp-addon-note { font-size: .75rem; color: var(--muted,#888); margin: .5rem 0 0; line-height: 1.4; font-style: italic; }
+.bp-addon-features { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: .25rem .75rem; }
+.bp-addon-features li { font-size: .8rem; padding: .2rem 0; }
+.bp-addon-features li::before { content: '✓ '; color: #22c55e; font-weight: 700; }
+@media (max-width: 640px) { .bp-addon-detail-row { grid-template-columns: 1fr; } .bp-addon-features { grid-template-columns: 1fr; } }
+@media(prefers-color-scheme:dark) { .bp-addon-detail-card { background: #1e1e2e; border-color: #333; } .bp-addon-detail-header { background: #252535; } .bp-addon-detail-tier { border-color: #333; } }
+
 /* Negociação */
 .bp-courtesy-badge { background: #dbeafe; color: #1d4ed8; padding: .15rem .5rem; border-radius: 5px; font-size: .75rem; font-weight: 700; }
 .bp-discount { color: #16a34a; font-weight: 600; margin-left: .25rem; }
