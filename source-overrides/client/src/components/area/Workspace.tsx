@@ -45,6 +45,7 @@ import CostEvidence from "./CostEvidence";
 import OneDriveEspelho from "./OneDriveEspelho";
 import ConexoesDados from "./ConexoesDados";
 import DireitoRaioX from "./DireitoRaioX";
+import Egressos360 from "./Egressos360";
 import "./area.css";
 
 const TAB_GROUPS: {label:string;subtitle:string;icon:string;tabs:Tab[]}[] = [
@@ -52,6 +53,7 @@ const TAB_GROUPS: {label:string;subtitle:string;icon:string;tabs:Tab[]}[] = [
   {label:'Regulação',subtitle:'Instrumentos e evidências MEC/INEP',icon:'◇',tabs:['emec','repositorio','enade','avaliacao','novo_instrumento','biblioteca']},
   {label:'Acadêmico',subtitle:'Cursos, estudantes e desempenho',icon:'▤',tabs:['geral','cadastro','visao','eorbit','backups','auditoria']},
   {label:'Inteligência',subtitle:'Análises, integrações e decisões',icon:'◎',tabs:['analise','ia','fontes','conexoes','reitor','resultado-curso','simulador','raio-x-direito','aprendizagem']},
+  {label:'Egressos',subtitle:'Acompanhamento longitudinal e empregabilidade',icon:'🎓',tabs:['egressos']},
 ];
 
 const TAB_DETAILS: Partial<Record<Tab,{icon:string;description:string}>> = {
@@ -81,6 +83,7 @@ const TAB_DETAILS: Partial<Record<Tab,{icon:string;description:string}>> = {
   simulador:{icon:'▦',description:'Custos e cenários informados'},
   'raio-x-direito':{icon:'⌕',description:'Análise dedicada ao curso de Direito'},
   aprendizagem:{icon:'↔',description:'Acompanhamento da aprendizagem'},
+  egressos:{icon:'🎓',description:'Egressos, empregabilidade e trajetória profissional'},
 };
 
 const TABS: [Tab, string][] = [
@@ -107,6 +110,7 @@ const TABS: [Tab, string][] = [
   ["resultado-curso", "Resultado por Curso"],
   ["simulador", "Simulador de Custo"],
   ["raio-x-direito", "Raio-X Direito"],
+  ["egressos", "Egressos 360°"],
   ["plano", "Plano de ação 5W2H"],
   ["diagnostico", "Diagnóstico"],
   ["equipe", "Equipe"],
@@ -346,6 +350,8 @@ export default function Workspace({
         id === "1f5fd5b4-93c6-4626-834d-136884915587"
           ? <DireitoRaioX institutionId={id}/>
           : <p role="status">O Raio-X do Direito utiliza exclusivamente informações institucionais da UNITOP. Este conjunto de dados não é compartilhado com outras IES.</p>
+      ) : tab === "egressos" ? (
+        <Egressos360 institutionId={id} courses={data.courses.map((c: Row) => ({ id: c.id as string, name: c.name as string, modality: c.modality as string }))} role={role as 'master' | 'gestor' | 'equipe'} />
       ) : tab === "biblioteca" ? (
         <InepLibrary institutionId={id} />
       ) : tab === "plano" ? (
