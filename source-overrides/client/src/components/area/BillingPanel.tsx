@@ -422,12 +422,12 @@ export default function BillingPanel({ tierFilter }: { tierFilter?: string }) {
             return (
               <div key={tier} style={{marginBottom:'2rem'}}>
                 <h3>{tierLabel}</h3>
+                {(() => { const first = pkgPricing.find(p => p.tier === tier); return first ? <p className="bp-muted" style={{marginBottom:12}}>Ativação única: <strong>R$ {Number(first.setup_fee).toLocaleString('pt-BR')}</strong> · O que diferencia os pacotes é o valor por aluno/mês.</p> : null; })()}
                 <div className="bp-packages">
                   {tierPkgs.map(code => {
                     const pr = pkgPricing.find(p => p.package === code && p.tier === tier);
                     const perStudent = PKG_PER_STUDENT[code] ?? 1.50;
                     const floor = pr ? Number(pr.monthly_floor) : 0;
-                    const impl = pr ? Number(pr.setup_fee) : 0;
                     const teto = PKG_TETO[code];
                     const mods = PKG_MODULES[code] ?? [];
                     const color = tierColors[code] ?? '#6b7280';
@@ -435,9 +435,9 @@ export default function BillingPanel({ tierFilter }: { tierFilter?: string }) {
                     return (
                       <div className="bp-package-card" key={code} style={{borderTopColor: color}}>
                         <h4 style={{color}}>{PKG[code] ?? code}</h4>
-                        <div className="bp-package-price" style={{color}}>R$ {perStudent.toFixed(2).replace('.',',')}/aluno</div>
+                        <div className="bp-package-price" style={{color}}>R$ {perStudent.toFixed(2).replace('.',',')}/aluno/mês</div>
                         <div className="bp-package-detail">
-                          Piso: R$ {floor.toLocaleString('pt-BR')}{teto ? ` (teto ${teto})` : ''} · Impl.: R$ {impl.toLocaleString('pt-BR')}
+                          Piso mensal: R$ {floor.toLocaleString('pt-BR')}{teto ? ` · Teto: ${teto}` : ''}
                         </div>
                         <ul>{mods.map((m,i) => <li key={i}>{m}</li>)}</ul>
                         <div className="bp-package-count">{count} contrato(s)</div>
