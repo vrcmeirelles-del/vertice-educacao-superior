@@ -64,19 +64,19 @@ import ModuleOffer from "./ModuleOffer";
 import "./area.css";
 import "./module-offer.css";
 
-const TAB_GROUPS: {label:string;subtitle:string;icon:string;tabs:Tab[]}[] = [
-  {label:'Gestão',subtitle:'Planejamento, metas e governança',icon:'▦',tabs:['base','metas','plano','diagnostico','equipe']},
-  {label:'Regulação',subtitle:'Instrumentos e evidências MEC/INEP',icon:'◇',tabs:['emec','repositorio','enade','avaliacao','novo_instrumento','biblioteca']},
-  {label:'Acadêmico',subtitle:'Cursos, estudantes e desempenho',icon:'▤',tabs:['geral','cadastro','visao','eorbit','backups','auditoria']},
-  {label:'Inteligência',subtitle:'Análises, integrações e decisões',icon:'◎',tabs:['analise','ia','fontes','conexoes','reitor','resultado-curso','simulador','raio-x-direito','aprendizagem']},
-  {label:'Egressos',subtitle:'Acompanhamento longitudinal e empregabilidade',icon:'🎓',tabs:['egressos']},
-  {label:'Governança',subtitle:'Órgãos colegiados, deliberações e fluxos',icon:'⚖',tabs:['governanca']},
-  {label:'Acompanhamento',subtitle:'Inclusão, PEI e regimes especiais',icon:'♿',tabs:['inclusao','acompanhamento-especial']},
-  {label:'Aquisições',subtitle:'Compras, fornecedores e ordens',icon:'🛒',tabs:['aquisicoes']},
-  {label:'ENEM & Vestibular',subtitle:'Simulados, desempenho por área e metas',icon:'🎯',tabs:['escola-enem']},
-  {label:'Egressos Escolar',subtitle:'Destino pós-escola e aprovações',icon:'🎓',tabs:['escola-egressos']},
-  {label:'Documentos',subtitle:'Gestão documental e análise por IA',icon:'📄',tabs:['documentos']},
-  {label:'Integrações',subtitle:'Saúde dos dados e sincronizações',icon:'⇄',tabs:['sync']},
+const TAB_GROUPS: {label:string;subtitle:string;icon:string;tabs:Tab[];tier?:'superior'|'escolas'|'both'}[] = [
+  {label:'Gestão',subtitle:'Planejamento, metas e governança',icon:'▦',tabs:['base','metas','plano','diagnostico','equipe'],tier:'both'},
+  {label:'Regulação',subtitle:'Instrumentos e evidências MEC/INEP',icon:'◇',tabs:['emec','repositorio','enade','avaliacao','novo_instrumento','biblioteca'],tier:'superior'},
+  {label:'Acadêmico',subtitle:'Cursos, estudantes e desempenho',icon:'▤',tabs:['geral','cadastro','visao','eorbit','backups','auditoria'],tier:'superior'},
+  {label:'Inteligência',subtitle:'Análises, integrações e decisões',icon:'◎',tabs:['analise','ia','fontes','conexoes','reitor','resultado-curso','simulador','raio-x-direito','aprendizagem'],tier:'superior'},
+  {label:'Egressos',subtitle:'Acompanhamento longitudinal e empregabilidade',icon:'🎓',tabs:['egressos'],tier:'superior'},
+  {label:'Governança',subtitle:'Órgãos colegiados, deliberações e fluxos',icon:'⚖',tabs:['governanca'],tier:'both'},
+  {label:'Acompanhamento',subtitle:'Inclusão, PEI e regimes especiais',icon:'♿',tabs:['inclusao','acompanhamento-especial'],tier:'both'},
+  {label:'Aquisições',subtitle:'Compras, fornecedores e ordens',icon:'🛒',tabs:['aquisicoes'],tier:'both'},
+  {label:'ENEM & Vestibular',subtitle:'Simulados, desempenho por área e metas',icon:'🎯',tabs:['escola-enem'],tier:'escolas'},
+  {label:'Egressos Escolar',subtitle:'Destino pós-escola e aprovações',icon:'🎓',tabs:['escola-egressos'],tier:'escolas'},
+  {label:'Documentos',subtitle:'Gestão documental e análise por IA',icon:'📄',tabs:['documentos'],tier:'both'},
+  {label:'Integrações',subtitle:'Saúde dos dados e sincronizações',icon:'⇄',tabs:['sync'],tier:'both'},
   {label:'Financeiro',subtitle:'Contratos, faturamento e receita',icon:'💰',tabs:['conta','contrato','billing','modulos']},
 ];
 
@@ -183,6 +183,8 @@ export default function Workspace({
   onChanged: () => void;
 }) {
   const id = institution.id;
+  const instTier = String((institution as any).tier || 'superior');
+  const visibleGroups = TAB_GROUPS.filter(g => !g.tier || g.tier === 'both' || g.tier === instTier);
   const [tab, setTab] = useState<Tab>(() => {
     const t = new URLSearchParams(window.location.hash.slice(1)).get("aba") as Tab | null;
     return t && TABS.some(([k]) => k === t) ? t : role === 'master' || role === 'gestor' ? 'base' : 'geral';
@@ -332,7 +334,7 @@ export default function Workspace({
           </div>
         </header>
         <div className="vx-modules-grid" role="tablist" aria-label="Áreas da instituição">
-          {TAB_GROUPS.map(group => {
+          {visibleGroups.map(group => {
             const q=moduleSearch.trim().toLocaleLowerCase("pt-BR");
             const groupTabs = visible.filter(([k,l])=>group.tabs.includes(k)&&(!onlyFavorites||favoriteTabs.includes(k))&&(!q||[l,group.label,TAB_DETAILS[k]?.description??""].join(" ").toLocaleLowerCase("pt-BR").includes(q)));
             if(!groupTabs.length)return null;
@@ -369,7 +371,7 @@ export default function Workspace({
             </div>;
           })}
         </div>
-        {!TAB_GROUPS.some(group=>visible.some(([k,l])=>group.tabs.includes(k)&&(!onlyFavorites||favoriteTabs.includes(k))&&(!moduleSearch.trim()||[l,group.label,TAB_DETAILS[k]?.description??""].join(" ").toLocaleLowerCase("pt-BR").includes(moduleSearch.trim().toLocaleLowerCase("pt-BR")))))&&
+        {!visibleGroups.some(group=>visible.some(([k,l])=>group.tabs.includes(k)&&(!onlyFavorites||favoriteTabs.includes(k))&&(!moduleSearch.trim()||[l,group.label,TAB_DETAILS[k]?.description??""].join(" ").toLocaleLowerCase("pt-BR").includes(moduleSearch.trim().toLocaleLowerCase("pt-BR")))))&&
           <div className="vx-modules-empty"><strong>Nenhum módulo encontrado.</strong><p>Revise a pesquisa ou desative o filtro de favoritos. Os módulos exibidos respeitam seu perfil de acesso.</p></div>}
       </section>
       {error && <p role="alert" className="area-error">{error}</p>}
