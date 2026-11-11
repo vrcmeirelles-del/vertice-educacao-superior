@@ -120,10 +120,15 @@ export default function BillingPanel({ tierFilter }: { tierFilter?: string }) {
   }
 
   function applyPackageDefaults(pkgCode: string) {
-    const pr = pkgPricing.find(p => p.package === pkgCode);
+    // Determinar tier pela IES selecionada ou pelo código do pacote
+    const selectedInst = institutions.find(i => i.id === newContract.institution_id);
+    const isEscola = selectedInst?.tier === 'escolas' || ['core','pedagogico','captacao','acompanhamento','governanca'].includes(pkgCode);
+    const tier = isEscola ? 'escolas' : 'superior';
+    const pr = pkgPricing.find(p => p.package === pkgCode && p.tier === tier)
+            || pkgPricing.find(p => p.package === pkgCode);
     const perStudent = PKG_PER_STUDENT[pkgCode] ?? 1.50;
-    const floor = pr ? Number(pr.monthly_floor) : 1500;
-    const impl = pr ? Number(pr.setup_fee) : 3000;
+    const floor = pr ? Number(pr.monthly_floor) : (isEscola ? 250 : 500);
+    const impl = pr ? Number(pr.setup_fee) : (isEscola ? 1500 : 3000);
     setNewContract((prev: any) => ({ ...prev, package_code: pkgCode, price_per_student: perStudent, min_monthly: floor, implementation_fee: impl, max_monthly: PKG_TETO[pkgCode] ? 15000 : null }));
   }
 
