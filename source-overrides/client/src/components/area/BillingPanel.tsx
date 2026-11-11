@@ -46,7 +46,7 @@ const PKG_MODULES: Record<string, string[]> = {
   regulacao: ['+ Compliance', '+ Biblioteca Regulatória', '+ ENADE 360°', '+ Novo Instrumento', '+ Repositório'],
   gestao360: ['+ Governança 360°', '+ Metas 5W2H', '+ Resultado por Curso', '+ Simulador de Custo', '+ Aquisições'],
   completo: ['+ Inclusão/PEI', '+ Egressos 360°', '+ Acomp. Especial', '+ Captação BI', '+ Fato & Ordem', '+ Todos os módulos'],
-  core: ['Cadastro', 'Integrações', 'Usuários', 'Gestão Documental', 'Central de Sincronização'],
+  core: ['Cadastro', 'Integrações', 'Usuários', 'Gestão Documental', 'Central de Sincronização', 'Painel Financeiro'],
   pedagogico: ['+ BI Direção', '+ Indicadores IDEB/SAEB', '+ BI Coordenação', '+ ENEM & Vestibular'],
   captacao: ['+ Captação de Matrículas', '+ Rematrícula', '+ Comunicação com Famílias'],
   acompanhamento: ['+ Inclusão & PEI', '+ Orientação Educacional', '+ Egressos'],
