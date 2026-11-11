@@ -7,6 +7,7 @@ import {
   type CustoCanal, type CursoMatricula, type ConversaoOrigem,
 } from '@/lib/captacao';
 import './captacao-bi.css';
+import CaptacaoIntegrada from './CaptacaoIntegrada';
 
 const fmt = new Intl.NumberFormat('pt-BR');
 const fmtMoney = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -36,9 +37,9 @@ function KPITiles({ kpis, snapshots, hasLeads, hasCosts }: { kpis: KPIs; snapsho
   const sparkCac = snapshots.map(s => s.total_matriculas > 0 ? Number(s.investimento_total) / s.total_matriculas : 0);
   const tiles = [
     { label: 'Total de Leads', value: hasLeads ? fmt.format(kpis.totalLeads) : 'Sem dados', spark: sparkLeads, color: COLORS[0] },
-    { label: 'Matrículas Captadas', value: hasLeads ? fmt.format(kpis.totalMat) : 'Sem dados', spark: sparkMat, color: COLORS[2] },
+    { label: 'Etapas de matrícula informadas', value: hasLeads ? fmt.format(kpis.totalMat) : 'Sem dados', spark: sparkMat, color: COLORS[2] },
     { label: 'Investimento Total', value: hasCosts ? fmtMoney.format(kpis.totalInvest) : 'Sem dados', spark: sparkInvest, color: COLORS[1] },
-    { label: 'CAC Médio', value: hasLeads && hasCosts && kpis.totalMat > 0 ? fmtMoney.format(kpis.cac) : 'Sem base conciliada', spark: sparkCac, color: COLORS[3] },
+    { label: 'Custo por etapa de matrícula', value: hasLeads && hasCosts && kpis.totalMat > 0 ? fmtMoney.format(kpis.cac) : 'Sem base conciliada', spark: sparkCac, color: COLORS[3] },
   ];
   return <div className="cbi-kpis">{tiles.map(t => (
     <article className="cbi-kpi" key={t.label}>
@@ -107,7 +108,7 @@ function EvolucaoChart({ data }: { data: EvolucaoMensal[] }) {
     <h3>Evolução Mensal</h3>
     <div className="cbi-legend-row">
       <span className="cbi-legend-item"><i style={{ background: COLORS[0] }} />Leads</span>
-      <span className="cbi-legend-item"><i style={{ background: COLORS[2] }} />Matrículas</span>
+      <span className="cbi-legend-item"><i style={{ background: COLORS[2] }} />Matrículas informadas</span>
     </div>
     <svg viewBox={`0 0 ${w} ${h}`} className="cbi-line-chart" onMouseLeave={() => setHover(null)}>
       {/* Grid */}
@@ -250,7 +251,10 @@ function ImportDialog({ institutionId, onImported, dialogRef }: {
 }
 
 /* ---------- Main Component ---------- */
-export default function CaptacaoBI({ institutionId, institutionName }: { institutionId: string; institutionName: string }) {
+export default function CaptacaoBI(props: { institutionId: string; institutionName: string }) {
+  return <CaptacaoIntegrada key={props.institutionId} {...props} overview={<CaptacaoBIContent key={props.institutionId} {...props} />} />;
+}
+function CaptacaoBIContent({ institutionId, institutionName }: { institutionId: string; institutionName: string }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -297,7 +301,7 @@ export default function CaptacaoBI({ institutionId, institutionName }: { institu
 
   useEffect(() => {
     if (!tv) return;
-    const timer = setInterval(() => loadData(), 600000);
+    const timer = setInterval(() => { if (!document.hidden) void loadData(); }, 600000);
     return () => clearInterval(timer);
   }, [tv, institutionId]);
 
@@ -329,6 +333,8 @@ export default function CaptacaoBI({ institutionId, institutionName }: { institu
       </div>
     </div>
 
+    <p className="cbi-status">Visão geral · registros legados/manuais, separados da preparação de campanhas. Etapas informadas não comprovam matrícula acadêmica.</p>
+
     {error && <p role="alert" className="cbi-error">{error}</p>}
     {updatedAt && <p className="cbi-status">Última consulta ao Supabase: {new Date(updatedAt).toLocaleString('pt-BR')}</p>}
 
@@ -347,7 +353,7 @@ export default function CaptacaoBI({ institutionId, institutionName }: { institu
           {leads.length>0?<HBarChart title="Leads por Origem" data={bi.origens} valueKey="leads" labelKey="canal" />:<section className="cbi-card"><h3>Leads por origem</h3><p>Sem dados de origem.</p></section>}
           {snapshots.length>0?<EvolucaoChart data={bi.evolucao} />:<section className="cbi-card"><h3>Evolução mensal</h3><p>Snapshots mensais não disponibilizados.</p></section>}
           {custos.length>0?<HBarChart title="Custo por Canal" data={bi.custosCanal} valueKey="investimento" labelKey="canal" formatValue={v => fmtMoney.format(v)} subtitle="Investimento total por canal" />:<section className="cbi-card"><h3>Custo por canal</h3><p>Custos de campanhas não disponibilizados.</p></section>}
-          {bi.cursos.length>0?<DonutChart title="Matrículas por Curso" data={bi.cursos} valueKey="mat" labelKey="curso" />:<section className="cbi-card"><h3>Matrículas por curso</h3><p>Sem matrículas por curso no recorte de captação.</p></section>}
+          {bi.cursos.length>0?<DonutChart title="Etapas de matrícula por curso" data={bi.cursos} valueKey="mat" labelKey="curso" />:<section className="cbi-card"><h3>Etapas de matrícula por curso</h3><p>Sem etapas de matrícula informadas por curso.</p></section>}
           {bi.conversao.length>0?<ConversaoChart data={bi.conversao} />:<section className="cbi-card"><h3>Conversão por canal</h3><p>Sem dados suficientes para calcular a conversão por origem.</p></section>}
         </div>
       </>

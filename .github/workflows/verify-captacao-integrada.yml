@@ -1,0 +1,132 @@
+name: Captação por IES - preparação isolada
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'source-overrides/client/src/lib/captacao-integrada*'
+      - 'source-overrides/client/src/components/area/Captacao*'
+      - 'source-overrides/client/src/components/area/captacao-integrada.css'
+      - 'supabase/**/captacao*'
+      - 'supabase/migrations/*captacao_integrada_preparacao.sql'
+      - 'scripts/*captacao*'
+      - 'scripts/tests/**'
+      - '.github/workflows/verify-captacao-integrada.yml'
+permissions:
+  contents: read
+jobs:
+  preparation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['22', '24']
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Compor fonte atual
+        run: |
+          mkdir -p .captacao-build
+          unzip -qo vertice-servidor-source.zip -d .captacao-build
+          cp -a source-overrides/. .captacao-build/
+          cp scripts/captacao.vitest.config.ts .captacao-build/scripts/
+      - name: Instalar dependências com lockfile
+        run: |
+          npm ci --prefix .captacao-build --legacy-peer-deps --no-audit --no-fund
+          npm ci --prefix scripts/tests/runtime --no-audit --no-fund
+          ln -s "$GITHUB_WORKSPACE/scripts/tests/runtime/node_modules/jsdom" .captacao-build/node_modules/jsdom
+      - name: Verificar zero erros TypeScript
+        run: node scripts/verify-captacao-typecheck.mjs .captacao-build
+      - name: Testes existentes e novos contratos/DOM
+        working-directory: .captacao-build
+        run: |
+          npm test
+          ./node_modules/.bin/vitest run --config scripts/captacao.vitest.config.ts
+      - name: Testes SQL em memória, sem banco remoto
+        env:
+          PGLITE_MODULE: ${{ github.workspace }}/scripts/tests/runtime/node_modules/@electric-sql/pglite/dist/index.js
+        run: node supabase/tests/captacao-integrada.test.mjs
+      - name: Compilar como o serviço atual do Render
+        working-directory: .captacao-build
+        run: npm run build:static
+      - name: Conferir UI sintética no Chromium
+        if: matrix.node == '22'
+        env:
+          PLAYWRIGHT_MODULE: ${{ github.workspace }}/scripts/tests/runtime/node_modules/playwright/index.mjs
+          CAPTACAO_SCREENSHOT_DIR: ${{ runner.temp }}/captacao-screenshots
+        run: |
+          node scripts/tests/runtime/node_modules/playwright/cli.js install --with-deps chromium
+          node scripts/prepare-captacao-ui.mjs .captacao-build
+          ./.captacao-build/node_modules/.bin/vite --config .captacao-build/captacao-ui/vite.config.mjs > "$RUNNER_TEMP/captacao-ui.log" 2>&1 &
+          UI_PID=$!
+          trap 'kill "$UI_PID"' EXIT
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4178/ > /dev/null; then break; fi
+            sleep 1
+          done
+          node scripts/tests/captacao-ui.test.mjs
+      - name: Guardar evidências visuais sintéticas
+        if: always() && matrix.node == '22'
+        uses: actions/upload-artifact@v4
+        with:
+          name: captacao-ui-sintetica
+          path: ${{ runner.temp }}/captacao-screenshots
+          if-no-files-found: ignore
+          retention-days: 7
+  local-supabase:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Compor fonte e instalar dependências de teste
+        run: |
+          mkdir -p .captacao-build
+          unzip -qo vertice-servidor-source.zip -d .captacao-build
+          cp -a source-overrides/. .captacao-build/
+          npm ci --prefix .captacao-build --legacy-peer-deps --no-audit --no-fund
+          npm ci --prefix scripts/tests/runtime --no-audit --no-fund
+      - name: Preparar stack local isolado, sem vínculo remoto
+        run: |
+          mkdir -p .captacao-stack
+          npx --yes supabase@3.1.0 init --workdir .captacao-stack --yes
+          node scripts/prepare-captacao-stack.mjs
+          npx --yes supabase@3.1.0 start --workdir .captacao-stack --exclude realtime,storage-api,imgproxy,postgres-meta,studio,edge-runtime,logflare,vector,supavisor > "$RUNNER_TEMP/captacao-local-start.log" 2>&1
+      - name: Auth com TOTP, REST real e concorrência PostgreSQL
+        env:
+          TEST_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          CAPTACAO_EVIDENCE_DIR: ${{ runner.temp }}/captacao-real-evidence
+        run: node scripts/tests/captacao-supabase.test.mjs
+      - name: Homologar interface contra Supabase local
+        env:
+          CAPTACAO_REAL_API: '1'
+          PLAYWRIGHT_MODULE: ${{ github.workspace }}/scripts/tests/runtime/node_modules/playwright/index.mjs
+          CAPTACAO_SCREENSHOT_DIR: ${{ runner.temp }}/captacao-real-evidence
+        run: |
+          node scripts/tests/runtime/node_modules/playwright/cli.js install --with-deps chromium
+          node scripts/prepare-captacao-ui.mjs .captacao-build
+          ./.captacao-build/node_modules/.bin/vite --config .captacao-build/captacao-ui/vite.config.mjs > "$RUNNER_TEMP/captacao-real-ui.log" 2>&1 &
+          UI_PID=$!
+          trap 'kill "$UI_PID"' EXIT
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4178/ > /dev/null; then break; fi
+            sleep 1
+          done
+          node scripts/tests/captacao-ui-real.test.mjs
+      - name: Guardar somente evidências sem sessões ou chaves
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: captacao-local-supabase-evidence
+          path: ${{ runner.temp }}/captacao-real-evidence
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Encerrar stack e descartar dados sintéticos
+        if: always()
+        run: npx --yes supabase@3.1.0 stop --workdir .captacao-stack --no-backup
