@@ -7,7 +7,7 @@ import {demoInstitutionProfiles,type DemoInstitutionMode} from '@/lib/demo-showr
 import MasterCommercialSuite from './MasterCommercialSuite';
 import './master-commercial-suite.css';
 
-const roleLabels:Record<ExperienceRole,string>={mantenedor:'Mantenedor',reitor:'Direção / dirigente',coordenador:'Coordenador de curso'};
+const roleLabels:Record<ExperienceRole,string>={mantenedor:'Mantenedor',reitor:'Direção / dirigente',coordenador:'Coordenador de curso',diretor_escola:'Diretor de escola'};
 const time=(x:string|null)=>x?new Date(x).toLocaleString('pt-BR'):'—';
 export default function ExperienceAdmin({embedded=false}:{embedded?:boolean}={}){
  const [access,setAccess]=useState<'loading'|'ready'|'denied'>('loading');
@@ -82,6 +82,7 @@ export default function ExperienceAdmin({embedded=false}:{embedded?:boolean}={})
      {!embedded&&<Link href="/master" className="corp-button">Voltar ao painel Master<ExternalLink size={16}/></Link>}
    </header>
    <nav aria-label="Cenários públicos para demonstrar" style={{display:"flex",flexWrap:"wrap",gap:10,margin:"16px 0"}}>
+    <a className="corp-button small" href="/demonstracao?perfil=escola" target="_blank" rel="noopener noreferrer">🏫 Prévia Escola <ExternalLink size={14}/></a>
     <a className="corp-button small" href="/demonstracao?perfil=faculdade" target="_blank" rel="noopener noreferrer">Prévia Faculdade <ExternalLink size={14}/></a>
     <a className="corp-button small" href="/demonstracao?perfil=centro" target="_blank" rel="noopener noreferrer">Prévia Centro Universitário <ExternalLink size={14}/></a>
     <a className="corp-button small" href="/demonstracao?perfil=universidade" target="_blank" rel="noopener noreferrer">Prévia Universidade <ExternalLink size={14}/></a>
@@ -102,7 +103,7 @@ export default function ExperienceAdmin({embedded=false}:{embedded?:boolean}={})
          <label>Nome do destinatário (opcional)<input value={name} maxLength={120} onChange={e=>setName(e.target.value)} placeholder="Ex.: dirigente convidado"/></label>
          <label>E-mail do destinatário<input type="email" required maxLength={254} value={email} onChange={e=>setEmail(e.target.value)} placeholder="gestor@instituicao.edu.br"/></label>
          <label>Organização acadêmica<select value={mode} onChange={e=>setMode(e.target.value as DemoInstitutionMode)}>
-          {(['faculdade','centro','universidade'] as DemoInstitutionMode[]).map(k=><option key={k} value={k}>{demoInstitutionProfiles[k].name}</option>)}
+          {(['escola','faculdade','centro','universidade'] as DemoInstitutionMode[]).map(k=><option key={k} value={k}>{demoInstitutionProfiles[k].name}</option>)}
          </select></label>
          <label>Trilha do visitante<select value={role} onChange={e=>setRole(e.target.value as ExperienceRole)}>
           {(['mantenedor','reitor','coordenador'] as ExperienceRole[]).map(k=><option key={k} value={k}>{roleLabels[k]}</option>)}

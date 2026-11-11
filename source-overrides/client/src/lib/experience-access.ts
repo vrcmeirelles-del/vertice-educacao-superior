@@ -1,7 +1,7 @@
 import type {DemoInstitutionMode} from './demo-showroom';
 import type {DemoSnapshot} from '@/components/DemoShowroom';
 
-export type ExperienceRole='mantenedor'|'reitor'|'coordenador';
+export type ExperienceRole='mantenedor'|'reitor'|'coordenador'|'diretor_escola';
 export type ExperienceCredential={id:string;token:string};
 export type ExperienceInvite={
  id:string;target_email:string;recipient_name:string;institution_type:DemoInstitutionMode;

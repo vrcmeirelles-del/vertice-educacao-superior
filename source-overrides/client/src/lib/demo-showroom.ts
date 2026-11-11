@@ -6,8 +6,9 @@ export const demoCourses=[
  {id:'enfermagem',name:'Enfermagem',short:'ENF',students:260,capacity:300,coordinator:'Coordenação de Enfermagem',shift:'Integral'},
  {id:'contabeis',name:'Ciências Contábeis',short:'CC',students:150,capacity:280,coordinator:'Coordenação de Contábeis',shift:'Noturno'},
 ];
-export type DemoInstitutionMode = 'faculdade' | 'centro' | 'universidade';
+export type DemoInstitutionMode = 'faculdade' | 'centro' | 'universidade' | 'escola';
 export const demoInstitutionProfiles: Record<DemoInstitutionMode, { name: string; short: string; subtitle: string; description: string; revenue: number; cost: number; depreciation: number; debt: number; cash: number }> = {
+ escola: {name:'Escola Vértice',short:'EV',subtitle:'Escola privada · Fund. I/II e Médio · 620 alunos',description:'Gestão escolar inteligente: ENEM 360°, egressos, rematrícula, indicadores IDEB/SAEB, governança e documentos com IA.',revenue:4464000,cost:3800000,depreciation:120000,debt:400000,cash:250000},
  faculdade: {name:'Faculdade Vértice',short:'FV',subtitle:'Faculdade isolada · 6 cursos',description:'Gestão integrada de uma faculdade, com foco na consolidação da graduação, captação e reconhecimento de cursos.',revenue:12000000,cost:10800000,depreciation:200000,debt:1500000,cash:500000},
  centro: {name:'Centro Universitário Vértice',short:'CUV',subtitle:'Centro universitário · 12 cursos',description:'Estrutura institucional ampliada, múltiplas coordenações, governança da reitoria e indicadores comparativos.',revenue:30000000,cost:26100000,depreciation:700000,debt:4200000,cash:1800000},
  universidade: {name:'Universidade Vértice',short:'UV',subtitle:'Universidade multicampi · 18 cursos',description:'Visão estratégica de universidade com oferta multicampi fictícia, pós-graduação, pesquisa e comitês de gestão.',revenue:75000000,cost:66100000,depreciation:2100000,debt:14000000,cash:5200000},
