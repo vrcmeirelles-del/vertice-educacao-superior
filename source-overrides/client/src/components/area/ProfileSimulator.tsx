@@ -31,6 +31,20 @@ const TAB_LABELS: Record<Tab, string> = {
   plano: "Plano de ação 5W2H",
   diagnostico: "Diagnóstico",
   equipe: "Equipe",
+  egressos: "Egressos 360°",
+  governanca: "Governança 360°",
+  inclusao: "Inclusão 360° · PEI",
+  "acompanhamento-especial": "Acompanhamento Especial",
+  sync: "Sincronização",
+  aquisicoes: "Aquisições",
+  billing: "Painel Financeiro",
+  contrato: "Meu Contrato",
+  modulos: "Gerenciar Módulos",
+  catalogo: "Catálogo de Módulos",
+  documentos: "Gestão Documental",
+  conta: "Minha Conta",
+  "escola-enem": "ENEM & Vestibular",
+  "escola-egressos": "Egressos Escolar",
 };
 
 const ALL_TABS: Tab[] = [
