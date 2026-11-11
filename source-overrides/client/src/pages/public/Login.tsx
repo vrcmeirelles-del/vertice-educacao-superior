@@ -5,9 +5,9 @@ import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import ResetPassword from './ResetPassword';
 
-export default function Login() {
+export default function Login({institutionId}:{institutionId?:string} = {}) {
   const destination = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("destino") : null;
-  const dashboard = destination === "reitor" ? "/reitor/reservado" : destination === "mobile" ? "/mobile" : "/master";
+  const dashboard = institutionId ? `/master#${new URLSearchParams({instituicao:institutionId})}` : destination === "reitor" ? "/reitor/reservado" : destination === "mobile" ? "/mobile" : "/master";
   const [session, setSession] = useState<Session | null>(null);
   const [checking, setChecking] = useState(true);
   const [busy, setBusy] = useState(false);

@@ -7,6 +7,7 @@ import SourceUpload from "./SourceUpload";
 import AcademicBackups from "./AcademicBackups";
 import ApprovedSourcesBI from "./ApprovedSourcesBI";
 import RegistryContacts from "./RegistryContacts";
+import InstitutionAddress from "./InstitutionAddress";
 import { courseClassification, useCourseFilters } from "./CourseFilters";
 import {displayCourseRows} from '@/lib/course-labels';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
@@ -380,6 +381,7 @@ export default function Workspace({
         {!visibleGroups.some(group=>visible.some(([k,l])=>group.tabs.includes(k)&&(!onlyFavorites||favoriteTabs.includes(k))&&(!moduleSearch.trim()||[l,group.label,TAB_DETAILS[k]?.description??""].join(" ").toLocaleLowerCase("pt-BR").includes(moduleSearch.trim().toLocaleLowerCase("pt-BR")))))&&
           <div className="vx-modules-empty"><strong>Nenhum módulo encontrado.</strong><p>Revise a pesquisa ou desative o filtro de favoritos. Os módulos exibidos respeitam seu perfil de acesso.</p></div>}
       </section>
+      {tab === 'base' && <InstitutionAddress institutionId={id} manage={role==='master'}/>}
       {error && <p role="alert" className="area-error">{error}</p>}
       {TAB_HELP[tab] && tab!=="repositorio" && <TabHelp id={tab} />}
       {tab === "visao" ? (
