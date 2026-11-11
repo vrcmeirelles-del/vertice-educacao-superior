@@ -51,3 +51,37 @@ export function isTabActive(activeTabs: Set<string>, tab: string): boolean {
 export function invalidateModuleCache() {
   _cache = null;
 }
+
+/** Info de módulo do catálogo para a tela de oferta */
+export interface CatalogModule {
+  code: string;
+  name: string;
+  description: string;
+  tier: string;
+  min_package: string;
+  tabs: string[];
+  display_order: number;
+  activation_status: string;
+  display_status: 'active' | 'tasting' | 'trial' | 'locked';
+  tasting_ends?: string;
+  estimated_monthly_fee: number;
+  addon_monthly_fee?: number;
+}
+
+let _catalogCache: { institutionId: string; modules: CatalogModule[]; ts: number } | null = null;
+
+/** Retorna catálogo completo com status por IES */
+export async function getModuleCatalog(institutionId: string): Promise<CatalogModule[]> {
+  if (_catalogCache && _catalogCache.institutionId === institutionId && Date.now() - _catalogCache.ts < CACHE_TTL) {
+    return _catalogCache.modules;
+  }
+  const { data } = await supabase.rpc('get_module_catalog_for_ies', { p_institution_id: institutionId });
+  const modules = (data ?? []) as CatalogModule[];
+  _catalogCache = { institutionId, modules, ts: Date.now() };
+  return modules;
+}
+
+/** Busca info de módulo pelo tab name */
+export function findModuleByTab(catalog: CatalogModule[], tabKey: string): CatalogModule | undefined {
+  return catalog.find(m => m.tabs?.includes(tabKey));
+}

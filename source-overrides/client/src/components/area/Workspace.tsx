@@ -50,8 +50,10 @@ import Governanca360 from "./Governanca360";
 import Inclusao360 from "./Inclusao360";
 import AcompanhamentoEspecial360 from "./AcompanhamentoEspecial360";
 import SyncHealth from "./SyncHealth";
-import { getActiveTabs, isTabActive } from "@/lib/modules";
+import { getActiveTabs, isTabActive, getModuleCatalog, findModuleByTab, type CatalogModule } from "@/lib/modules";
+import ModuleOffer from "./ModuleOffer";
 import "./area.css";
+import "./module-offer.css";
 
 const TAB_GROUPS: {label:string;subtitle:string;icon:string;tabs:Tab[]}[] = [
   {label:'Gestão',subtitle:'Planejamento, metas e governança',icon:'▦',tabs:['base','metas','plano','diagnostico','equipe']},
@@ -165,7 +167,13 @@ export default function Workspace({
   const [favoriteTabs,setFavoriteTabs]=useState<Tab[]>([]);
   const [onlyFavorites,setOnlyFavorites]=useState(false);
   const [activeTabs,setActiveTabs]=useState<Set<string>>(new Set());
-  useEffect(()=>{ getActiveTabs(id).then(setActiveTabs); },[id]);
+  const [moduleCatalog,setModuleCatalog]=useState<CatalogModule[]>([]);
+  const [offerModule,setOfferModule]=useState<CatalogModule|null>(null);
+  useEffect(()=>{
+    getActiveTabs(id).then(setActiveTabs);
+    getModuleCatalog(id).then(setModuleCatalog);
+  },[id]);
+  const reloadModules=()=>{getActiveTabs(id).then(setActiveTabs);getModuleCatalog(id).then(setModuleCatalog);};
   const toggleFavorite=(key:Tab)=>setFavoriteTabs(items=>items.includes(key)?items.filter(item=>item!==key):[...items,key]);
 
 
@@ -217,7 +225,13 @@ export default function Workspace({
   const openFindings = data.diagnosis.filter(d => d.status !== "resolvido").length;
   const activeGoals = data.goals.filter(g => g.status === "ativa" || g.status === "planejada").length;
   const allowedTabs = visibleTabs(role);
-  const visible = TABS.filter(([k]) => allowedTabs.includes(k) && isTabActive(activeTabs, k));
+  // Mostrar TODAS as tabs permitidas pelo role, incluindo bloqueadas (com badge)
+  const visible = TABS.filter(([k]) => allowedTabs.includes(k));
+  const isLocked = (tabKey: string) => activeTabs.size > 0 && !activeTabs.has(tabKey);
+  const isTasting = (tabKey: string) => {
+    const mod = findModuleByTab(moduleCatalog, tabKey);
+    return mod?.display_status === 'tasting';
+  };
 
   return (
     <section aria-labelledby="ws-title" className="area-ws">
@@ -301,10 +315,21 @@ export default function Workspace({
               <div className="vx-module-links">
                 {groupTabs.map(([k,l])=>{
                   const active=tab===k,starred=favoriteTabs.includes(k),details=TAB_DETAILS[k];
-                  return <div className={active?"vx-module-entry selected":"vx-module-entry"} key={k}>
-                    <button type="button" role="tab" aria-selected={active} className="vx-module-link" onClick={()=>choose(k)}>
-                      <span className="vx-module-entry-icon" aria-hidden="true">{details?.icon??"◈"}</span>
+                  const locked=isLocked(k), tasting=isTasting(k);
+                  const handleClick=()=>{
+                    if(locked){
+                      const mod=findModuleByTab(moduleCatalog,k);
+                      if(mod) setOfferModule(mod);
+                      return;
+                    }
+                    choose(k);
+                  };
+                  return <div className={active?"vx-module-entry selected":locked?"vx-module-entry locked":"vx-module-entry"} key={k}>
+                    <button type="button" role="tab" aria-selected={active} className="vx-module-link" onClick={handleClick}>
+                      <span className="vx-module-entry-icon" aria-hidden="true">{locked?"🔒":details?.icon??"◈"}</span>
                       <span className="vx-module-entry-copy"><strong>{l}</strong><small>{details?.description??"Abrir módulo institucional"}</small></span>
+                      {locked && <span className="tab-locked-badge">Ativar</span>}
+                      {tasting && <span className="tab-tasting-badge">Degustação</span>}
                       <span className="vx-module-arrow" aria-hidden="true">›</span>
                     </button>
                     <button type="button" className="vx-module-star" aria-label={(starred?"Remover ":"Adicionar ")+l+(starred?" dos favoritos":" aos favoritos")} aria-pressed={starred} title={starred?"Remover dos favoritos":"Adicionar aos favoritos"} onClick={()=>toggleFavorite(k)}>{starred?"★":"☆"}</button>
@@ -388,6 +413,23 @@ export default function Workspace({
         <><RegistryContacts institutionId={id} courses={data.courses} manage={can.manageTeam(role)}/><TeamTab institutionId={id} role={role} /></>
       )}
       {TAB_FAQ[tab] && <TabFaq id={tab} />}
+      {offerModule && (
+        <ModuleOffer
+          module={{
+            code: offerModule.code,
+            name: offerModule.name,
+            description: offerModule.description,
+            tier: offerModule.tier,
+            min_package: offerModule.min_package,
+            estimated_fee: offerModule.addon_monthly_fee || offerModule.estimated_monthly_fee,
+            tabs: offerModule.tabs,
+          }}
+          institutionId={id}
+          currentPackage={moduleCatalog.find(m => m.display_status === 'active')?.min_package || 'essencial'}
+          onClose={() => setOfferModule(null)}
+          onActivated={() => { setOfferModule(null); reloadModules(); }}
+        />
+      )}
     </section>
   );
 }

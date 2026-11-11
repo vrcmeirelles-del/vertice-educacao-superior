@@ -1,0 +1,88 @@
+.module-offer-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(0,0,0,.55); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 1rem;
+}
+.module-offer-card {
+  background: var(--surface,#fff); color: var(--fg,#1a1a2e);
+  border-radius: 16px; max-width: 520px; width: 100%;
+  padding: 2rem; position: relative;
+  box-shadow: 0 20px 60px rgba(0,0,0,.3);
+  max-height: 90vh; overflow-y: auto;
+}
+@media(prefers-color-scheme:dark){
+  .module-offer-card { background: #1e1e2e; color: #e0e0e0; }
+}
+.module-offer-close {
+  position: absolute; top: .75rem; right: .75rem;
+  background: none; border: none; font-size: 1.5rem; cursor: pointer;
+  color: var(--fg,#666); opacity: .6;
+}
+.module-offer-close:hover { opacity: 1; }
+.module-offer-badge {
+  display: inline-block; padding: .25rem .75rem;
+  border-radius: 20px; font-size: .75rem; font-weight: 600;
+  background: #6366f1; color: #fff; text-transform: uppercase;
+  letter-spacing: .05em; margin-bottom: .75rem;
+}
+.module-offer-title { font-size: 1.5rem; font-weight: 700; margin: 0 0 .5rem; }
+.module-offer-desc { color: var(--muted,#666); margin: 0 0 1.5rem; line-height: 1.5; }
+.module-offer-highlights { margin-bottom: 1.5rem; }
+.module-offer-highlights h3 { font-size: .85rem; font-weight: 600; margin: 0 0 .75rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted,#888); }
+.module-offer-highlights ul { list-style: none; padding: 0; margin: 0; }
+.module-offer-highlights li { padding: .4rem 0; display: flex; gap: .5rem; align-items: flex-start; line-height: 1.4; }
+.module-offer-check { color: #22c55e; font-weight: 700; flex-shrink: 0; }
+.module-offer-upgrade-note {
+  background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 10px;
+  padding: 1rem; margin-bottom: 1.5rem;
+}
+@media(prefers-color-scheme:dark){
+  .module-offer-upgrade-note { background: #1e293b; border-color: #334155; }
+}
+.module-offer-upgrade-note p { margin: .5rem 0 0; font-size: .9rem; line-height: 1.5; color: var(--muted,#555); }
+.module-offer-tasting {
+  background: linear-gradient(135deg, #f0fdf4, #ecfdf5);
+  border: 1px solid #86efac; border-radius: 10px;
+  padding: 1rem; margin-bottom: 1.5rem;
+}
+@media(prefers-color-scheme:dark){
+  .module-offer-tasting { background: linear-gradient(135deg, #052e16, #064e3b); border-color: #065f46; }
+}
+.module-offer-tasting-header { display: flex; gap: .75rem; align-items: flex-start; }
+.module-offer-tasting-icon { font-size: 1.5rem; }
+.module-offer-tasting-header p { margin: .25rem 0 0; font-size: .85rem; line-height: 1.5; color: var(--muted,#555); }
+.module-offer-actions { display: flex; flex-direction: column; gap: .5rem; margin-bottom: 1rem; }
+.module-offer-btn {
+  padding: .75rem 1.5rem; border-radius: 10px; font-weight: 600;
+  font-size: .95rem; cursor: pointer; border: none; transition: all .15s;
+}
+.module-offer-btn.primary { background: #6366f1; color: #fff; }
+.module-offer-btn.primary:hover { background: #4f46e5; }
+.module-offer-btn.primary:disabled { opacity: .6; cursor: not-allowed; }
+.module-offer-btn.secondary { background: transparent; border: 2px solid #6366f1; color: #6366f1; }
+.module-offer-btn.secondary:hover { background: rgba(99,102,241,.08); }
+.module-offer-btn.ghost { background: transparent; color: var(--muted,#888); font-weight: 400; }
+.module-offer-btn.ghost:hover { color: var(--fg,#333); }
+.module-offer-result { padding: .75rem 1rem; border-radius: 8px; margin-bottom: 1rem; font-weight: 500; }
+.module-offer-result.success { background: #f0fdf4; color: #166534; border: 1px solid #86efac; }
+.module-offer-result.error { background: #fef2f2; color: #991b1b; border: 1px solid #fca5a5; }
+@media(prefers-color-scheme:dark){
+  .module-offer-result.success { background: #052e16; color: #86efac; border-color: #065f46; }
+  .module-offer-result.error { background: #450a0a; color: #fca5a5; border-color: #991b1b; }
+}
+.module-offer-legal { font-size: .75rem; color: var(--muted,#999); text-align: center; line-height: 1.5; margin: 0; }
+
+/* Badge "🔒" nas tabs bloqueadas no sidebar */
+.tab-locked-badge {
+  display: inline-flex; align-items: center; gap: .25rem;
+  font-size: .65rem; color: #f59e0b; font-weight: 600;
+  background: rgba(245,158,11,.1); padding: .1rem .4rem;
+  border-radius: 4px; margin-left: auto;
+}
+.tab-tasting-badge {
+  display: inline-flex; align-items: center; gap: .25rem;
+  font-size: .65rem; color: #22c55e; font-weight: 600;
+  background: rgba(34,197,94,.1); padding: .1rem .4rem;
+  border-radius: 4px; margin-left: auto;
+}
