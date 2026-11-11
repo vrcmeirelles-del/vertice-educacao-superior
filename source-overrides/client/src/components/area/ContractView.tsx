@@ -105,6 +105,12 @@ export default function ContractView({ contractId, institutionId, institutionNam
       });
       if (error) throw error;
       setSignResult(data);
+      // Disparar e-mail de confirmação via Edge Function
+      if ((data as any)?.signature_id) {
+        supabase.functions.invoke('send-contract-confirmation', {
+          body: { signature_id: (data as any).signature_id, contract_id: contract.id },
+        }).catch(() => {}); // fire-and-forget
+      }
       load();
     } catch (e: any) {
       setSignResult({ error: e.message });
