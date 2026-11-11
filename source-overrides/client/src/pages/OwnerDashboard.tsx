@@ -336,7 +336,15 @@ export default function OwnerDashboard(){
  {!factor?<button className="corp-button" disabled={busy} onClick={enroll}>Configurar aplicativo autenticador</button>:<>
  {qr&&<><p>Leia o QR code no seu aplicativo autenticador. Não compartilhe esta imagem.</p><img alt="QR code para configurar seu autenticador" src={qr} width={200} height={200}/></>}
  <form className="access-form" onSubmit={verify}><label>Código do autenticador<input autoComplete="one-time-code" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} required value={code} onChange={e=>setCode(e.target.value)}/></label><button className="corp-button" disabled={busy}>Validar segundo fator</button></form></>}
- </section>:<><MasterInvitationGate onAccepted={load}/><p>{master?'Visão das instituições da empresa.':'Você vê somente as instituições vinculadas à sua conta.'}</p>
+ </section>:<><MasterInvitationGate onAccepted={load}/>{route.hub&&master?<MasterHub onNavigate={(dest,instId)=>{
+  if(dest==='bi-vertice'){window.location.hash='bi-vertice=1';}
+  else if(dest==='universidades'){window.location.hash='tier=superior';}
+  else if(dest==='escolas'){window.location.hash='tier=escolas';}
+  else if(dest==='financeiro'){window.location.hash='financeiro=1';}
+  else if(dest==='configuracoes'){window.location.hash='masters=1';}
+  else if(dest==='institution'&&instId){window.location.hash=`instituicao=${instId}`;}
+  window.dispatchEvent(new HashChangeEvent('hashchange'));
+}}/>:route.biVertice&&master?<VerticeBI onBack={()=>{window.location.hash='';window.dispatchEvent(new HashChangeEvent('hashchange'));}}/>:route.financeiro&&master?<><button onClick={()=>{window.location.hash='';window.dispatchEvent(new HashChangeEvent('hashchange'));}} style={{background:'none',border:'none',color:'#2563eb',cursor:'pointer',fontSize:13,padding:0,marginBottom:12}}>← Voltar ao hub</button><BillingPanel/></>:<><p>{master?'Visão das instituições da empresa.':'Você vê somente as instituições vinculadas à sua conta.'}</p>
  <div className="vx-module-grid" aria-label="Indicadores do portal">
   <a className="vx-module-card" href="/master#bi=1" onClick={()=>setCommercial(false)}><span className="vx-module-icon" style={{background:'#eff6ff',color:'#0073ea'}}>📊</span><strong>BI da Direção</strong><small>Visão executiva e indicadores</small></a>
   <a className="vx-module-card" href="/master#captacao=1" onClick={()=>setCommercial(false)}><span className="vx-module-icon" style={{background:'#ecfdf5',color:'#00a86b'}}>📈</span><strong>BI de Captação</strong><small>Funil, custos e conversão</small></a>
