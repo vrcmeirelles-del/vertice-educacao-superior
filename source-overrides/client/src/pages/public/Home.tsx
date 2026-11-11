@@ -253,6 +253,36 @@ export default function Home() {
         <p>Converse com o assistente de IA para organizar o trabalho e preparar minutas. As fontes, premissas e conclusões permanecem sujeitas à conferência do responsável. Aquisições mantém equipes e informações reservadas por mandato.</p>
         <div className="corp-actions"><Link className="corp-button" href="/master">Acessar minha organização <ArrowRight size={17}/></Link><Link className="corp-text-link" href="/demonstracao">Explorar a demonstração</Link></div>
       </section>
+      <section className="corp-section corp-container" id="ia-responsavel" aria-labelledby="ia-responsavel-title">
+        <span className="corp-eyebrow">GOVERNANÇA E INTELIGÊNCIA ARTIFICIAL RESPONSÁVEL</span>
+        <h2 id="ia-responsavel-title">Tecnologia inteligente. Educação humana.</h2>
+        <p>
+          A Vértice Educação Superior e a Vértice Escolas estão em processo de alinhamento
+          aos princípios do Referencial para Desenvolvimento e Uso Responsáveis de
+          Inteligência Artificial na Educação, do Ministério da Educação (2026).
+          Privacidade, transparência e supervisão humana orientam esse trabalho.
+        </p>
+        <div className="service-preview">
+          <article className="service-preview-card">
+            <div className="service-card-top"><ShieldCheck size={25} /></div>
+            <h3>Educação Superior</h3>
+            <p>Governança institucional, proteção de dados, evidências regulatórias e revisão humana das análises e recomendações acadêmicas.</p>
+          </article>
+          <article className="service-preview-card">
+            <div className="service-card-top"><ShieldCheck size={25} /></div>
+            <h3>Vértice Escolas</h3>
+            <p>Uso pedagógico apropriado à faixa etária, proteção de crianças e adolescentes, mediação docente e comunicação responsável com as famílias.</p>
+          </article>
+        </div>
+        <p style={{ marginTop: 20 }}>
+          <a className="corp-text-link" href="https://www.gov.br/mec/pt-br/referencial-de-ia-na-educacao/referencial-ia-na-educacao" target="_blank" rel="noopener noreferrer">
+            Consultar o referencial oficial do MEC <ArrowUpRight size={17} />
+          </a>
+        </p>
+        <p style={{ fontSize: 12, opacity: 0.75 }}>
+          Processo de adequação em andamento. Esta informação não representa certificação, chancela ou homologação pelo MEC.
+        </p>
+      </section>
       <ConsultCTA />
     </>
   );
