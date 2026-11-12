@@ -100,7 +100,38 @@ if(pgClient){
   assert.equal((await db.query(`SELECT course_ids FROM vertice_extension_projects WHERE id='${id(501)}'`)).rows[0].course_ids[0],id(11));
   assert.equal((await db.query(`SELECT count(*) n FROM vertice_extension_students WHERE id='${id(502)}' AND project_id='${id(501)}' AND course_id='${id(11)}'`)).rows[0].n,1);
   console.log('PASS real two-session project/course mutation vs participant insertion');
- }finally{await db.exec('ROLLBACK');await second.end();}
+  // Repeatable Read pins B's snapshot BEFORE A creates the participant. A row
+  // lock alone does not necessarily refresh that snapshot after it is released.
+  // Keep this independent from the already-proven Read Committed scenario above.
+  await db.exec(`INSERT INTO vertice_extension_projects VALUES('${id(503)}','${id(1)}','2099/2','planejamento',ARRAY['${id(11)}']::uuid[]);`);
+  assert.equal((await second.query(`SELECT id FROM vertice_extension_projects WHERE id='${id(503)}'`)).rowCount,1);
+  await second.query('BEGIN ISOLATION LEVEL REPEATABLE READ');
+  assert.equal((await second.query('SHOW transaction_isolation')).rows[0].transaction_isolation,'repeatable read');
+  assert.equal((await second.query(`SELECT count(*) n FROM vertice_extension_students WHERE project_id='${id(503)}'`)).rows[0].n,0);
+  await db.exec('BEGIN');
+  await db.exec(`INSERT INTO vertice_extension_students VALUES('${id(504)}','${id(1)}','${id(503)}','${id(11)}','ativo',1);`);
+  let rrFinished=false;
+  const rrWaiting=second.query(`UPDATE vertice_extension_projects SET course_ids=ARRAY[]::uuid[] WHERE id='${id(503)}'`)
+    .then(r=>({ok:true,rowCount:r.rowCount}),e=>({error:e}))
+    .then(result=>{rrFinished=true;return result;});
+  let rrBlocked=false;
+  const rrDeadline=Date.now()+4000;
+  while(Date.now()<rrDeadline && !rrFinished){
+    if((await db.query('SELECT $1::int = ANY(pg_blocking_pids($2::int)) AS blocked',[holder,waiter])).rows[0].blocked){rrBlocked=true;break;}
+    await new Promise(r=>setTimeout(r,25));
+  }
+  await db.exec('COMMIT');
+  const rrResult=await rrWaiting;
+  console.log('RR concurrency observation: '+JSON.stringify({blocked:rrBlocked,rowCount:rrResult.rowCount,errorCode:rrResult.error?.code}));
+  // Explicitly unsupported isolation, serialization failure or invariant rejection
+  // are safe. A successful UPDATE using an old snapshot is NOT a pass.
+  assert(['0A000','40001','23514'].includes(rrResult.error?.code),
+    'REPEATABLE READ must reject the course removal; successful stale-snapshot UPDATE breaks participant membership');
+  await second.query('ROLLBACK');
+  assert.deepEqual((await db.query(`SELECT course_ids FROM vertice_extension_projects WHERE id='${id(503)}'`)).rows[0].course_ids,[id(11)]);
+  assert.equal((await db.query(`SELECT count(*) n FROM vertice_extension_students WHERE id='${id(504)}' AND course_id='${id(11)}'`)).rows[0].n,1);
+  console.log('PASS Repeatable Read stale-snapshot mutation is rejected without losing the participant');
+ }finally{await db.exec('ROLLBACK');await second.query('ROLLBACK');await second.end();}
 }else{console.log('SKIP real two-session extension race: embedded engine');}
 const beforeRollback=(await db.query('select count(*) n from vertice_extension_students')).rows[0].n;
 await db.exec(readFileSync('supabase/rollback/20261112090000_extension_coverage_contract.sql','utf8'));
