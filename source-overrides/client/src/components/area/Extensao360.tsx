@@ -9,8 +9,11 @@ import ExtensaoAtividades from "./ExtensaoAtividades";
 import ExtensaoEvidencias from "./ExtensaoEvidencias";
 import ExtensaoParceiros from "./ExtensaoParceiros";
 import ExtensaoCompetencias from "./ExtensaoCompetencias";
+import ExtensaoAchados from "./ExtensaoAchados";
+import ExtensaoIA from "./ExtensaoIA";
+import ExtensaoPerfis from "./ExtensaoPerfis";
 
-type View = 'projetos' | 'equipe' | 'alunos' | 'entregas' | 'cobertura' | 'revisoes' | 'ods' | 'governanca' | 'atividades' | 'evidencias' | 'parceiros' | 'competencias';
+type View = 'projetos' | 'equipe' | 'alunos' | 'entregas' | 'cobertura' | 'revisoes' | 'ods' | 'governanca' | 'atividades' | 'evidencias' | 'parceiros' | 'competencias' | 'achados' | 'ia' | 'perfis';
 
 interface ExtProject {
   id: string; title: string; code: string; project_type: string; description: string;
@@ -252,7 +255,7 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
 
       {/* Tabs de navegação */}
       <div className="ext-tabs">
-        {(['projetos','equipe','alunos','entregas','atividades','evidencias','competencias','parceiros','cobertura','revisoes','ods','governanca'] as View[]).map(v => (
+        {(['projetos','equipe','alunos','entregas','atividades','evidencias','competencias','parceiros','achados','cobertura','revisoes','ods','governanca','ia','perfis'] as View[]).map(v => (
           <button key={v} className={view === v ? 'active' : ''} onClick={() => setView(v)}>
             {v === 'projetos' ? `Projetos (${projects.length})` :
              v === 'equipe' ? `Equipe (${team.length})` :
@@ -263,9 +266,12 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
              v === 'evidencias' ? '📁 Evidências' :
              v === 'competencias' ? '🎯 Competências' :
              v === 'parceiros' ? '🤝 Parceiros' :
+             v === 'achados' ? '🔍 Achados' :
              v === 'revisoes' ? `Revisões (${pendentesRevisao})` :
              v === 'cobertura' ? 'Cobertura por Curso' :
              v === 'ods' ? '🌍 ODS' :
+             v === 'ia' ? '🤖 IA' :
+             v === 'perfis' ? '🔐 Perfis' :
              '📊 Governança'}
           </button>
         ))}
@@ -723,6 +729,33 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
           {/* ===== PARCEIROS ===== */}
           {view === 'parceiros' && (
             <ExtensaoParceiros
+              institutionId={institutionId}
+              canEdit={canEdit}
+              onClose={() => setView('projetos')}
+            />
+          )}
+
+          {/* ===== ACHADOS / 5W2H ===== */}
+          {view === 'achados' && (
+            <ExtensaoAchados
+              institutionId={institutionId}
+              canEdit={canEdit}
+              onClose={() => setView('projetos')}
+            />
+          )}
+
+          {/* ===== IA ===== */}
+          {view === 'ia' && (
+            <ExtensaoIA
+              institutionId={institutionId}
+              canEdit={canEdit}
+              onClose={() => setView('projetos')}
+            />
+          )}
+
+          {/* ===== PERFIS ===== */}
+          {view === 'perfis' && (
+            <ExtensaoPerfis
               institutionId={institutionId}
               canEdit={canEdit}
               onClose={() => setView('projetos')}
