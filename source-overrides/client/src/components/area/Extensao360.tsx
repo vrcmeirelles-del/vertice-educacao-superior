@@ -14,6 +14,7 @@ import ExtensaoIA from "./ExtensaoIA";
 import ExtensaoPerfis from "./ExtensaoPerfis";
 import ExtensaoImportacao from "./ExtensaoImportacao";
 import ExtensaoRelatorios from "./ExtensaoRelatorios";
+import ExtensaoProjectWorkflow from "./ExtensaoProjectWorkflow";
 
 type View = 'projetos' | 'equipe' | 'alunos' | 'entregas' | 'cobertura' | 'revisoes' | 'ods' | 'governanca' | 'atividades' | 'evidencias' | 'parceiros' | 'competencias' | 'achados' | 'ia' | 'perfis' | 'importacao' | 'relatorios';
 
@@ -94,6 +95,7 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
   const [odsPanel, setOdsPanel] = useState<{ projectId: string; projectTitle: string } | null>(null);
   const [activityPanel, setActivityPanel] = useState<{ projectId: string; projectTitle: string } | null>(null);
   const [evidencePanel, setEvidencePanel] = useState<{ projectId: string; projectTitle: string } | null>(null);
+  const [workflowPanel, setWorkflowPanel] = useState<{ projectId: string; projectTitle: string; reviewStatus: string } | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState<any>({});
   const [formType, setFormType] = useState<'project' | 'team' | 'student' | 'deliverable' | 'axis' | 'review'>('project');
@@ -523,6 +525,7 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
                             <button onClick={() => { setSelectedProject(p.id); setView('entregas'); }}>Entregas</button>
                             <button onClick={() => { setActivityPanel({ projectId: p.id, projectTitle: p.title }); setView('atividades'); }}>Atividades</button>
                             <button onClick={() => { setEvidencePanel({ projectId: p.id, projectTitle: p.title }); setView('evidencias'); }}>Evidências</button>
+                            <button onClick={() => { setWorkflowPanel({ projectId: p.id, projectTitle: p.title, reviewStatus: p.review_status }); }}>📋 Workflow</button>
                           </div>
                         )}
                       </div>
@@ -850,6 +853,23 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
           {/* ===== GOVERNANÇA ===== */}
           {view === 'governanca' && (
             <ExtensaoGovernanca institutionId={institutionId} canEdit={canEdit} />
+          )}
+
+          {/* ===== WORKFLOW (modal inline) ===== */}
+          {workflowPanel && (
+            <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.4)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+              <div style={{ background: 'var(--bg, #fff)', borderRadius: '.75rem', maxWidth: '900px', width: '100%', maxHeight: '90vh', overflow: 'auto', padding: '1.5rem' }}>
+                <ExtensaoProjectWorkflow
+                  institutionId={institutionId}
+                  projectId={workflowPanel.projectId}
+                  projectTitle={workflowPanel.projectTitle}
+                  currentStatus={workflowPanel.reviewStatus}
+                  canEdit={canEdit}
+                  onStatusChange={() => { load(); setWorkflowPanel(null); }}
+                  onClose={() => setWorkflowPanel(null)}
+                />
+              </div>
+            </div>
           )}
 
           {/* ===== LIVRO-RAZÃO (modal inline) ===== */}
