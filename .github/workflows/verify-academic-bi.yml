@@ -5,6 +5,17 @@ on:
       - 'source-overrides/**'
       - 'vertice-servidor-source.zip'
       - '.github/workflows/verify-academic-bi.yml'
+      - 'scripts/tests/governance-concurrency.sh'
+      - 'scripts/tests/governance-concurrency-fixture.sql'
+      - 'scripts/tests/alumni-access-local-postgres.sh'
+      - 'scripts/tests/alumni-access.test.mjs'
+      - 'scripts/tests/extension-coverage-contract.test.mjs'
+      - 'supabase/migrations/20261112090000_extension_coverage_contract.sql'
+      - 'supabase/migrations/20261112110000_governance_action_contract.sql'
+      - 'supabase/migrations/20261112130000_alumni_atomic_import.sql'
+      - 'supabase/rollback/20261112090000_extension_coverage_contract.sql'
+      - 'supabase/rollback/20261112130000_alumni_atomic_import.sql'
+      - 'supabase/proposals/alumni_write_boundary.sql'
   workflow_dispatch:
     inputs:
       institution_contracts_only:

@@ -67,11 +67,38 @@ if(pgClient){
  const {default:pg}=await import(pathToFileURL(process.env.PG_MODULE));pg.types.setTypeParser(20,Number);
  const second=new pg.Client({host:process.env.PG_TEST_SOCKET,port:Number(process.env.PG_TEST_PORT||5432),database:process.env.PG_TEST_DB,user:process.env.PG_TEST_USER});await second.connect();
  try{
-  await db.exec(`INSERT INTO vertice_extension_projects VALUES('${id(501)}','${id(1)}','2099/1','planejamento',ARRAY['${id(11)}']::uuid[]);BEGIN;INSERT INTO vertice_extension_students VALUES('${id(502)}','${id(1)}','${id(501)}','${id(11)}','ativo',1);`);
-  let finished=false;const waiting=second.query(`UPDATE vertice_extension_projects SET course_ids=ARRAY[]::uuid[] WHERE id='${id(501)}'`).then(()=>({ok:true}),e=>({error:e})).finally(()=>{finished=true;});
-  await new Promise(r=>setTimeout(r,150));assert.equal(finished,false,'project change must wait on student validation lock');
-  await db.exec('COMMIT');const result=await waiting;assert(result.error,'removing course with committed participant must fail');
+  // Separate protocol messages are essential: INSERT; BEGIN; INSERT in one
+  // simple-query message can leave the project itself uncommitted/invisible.
+  // Session B would then update zero rows, which is not a locking test.
+  await db.exec(`INSERT INTO vertice_extension_projects VALUES('${id(501)}','${id(1)}','2099/1','planejamento',ARRAY['${id(11)}']::uuid[]);`);
+  const visible = await second.query(`SELECT course_ids FROM vertice_extension_projects WHERE id='${id(501)}'`);
+  assert.equal(visible.rowCount,1,'committed fixture project must be visible in session B');
+  assert.deepEqual(visible.rows[0].course_ids,[id(11)]);
+  const holder = (await db.query('SELECT pg_backend_pid() AS pid')).rows[0].pid;
+  const waiter = (await second.query('SELECT pg_backend_pid() AS pid')).rows[0].pid;
+  await second.query("SET statement_timeout='10s'");
+  await db.exec('BEGIN');
+  await db.exec(`INSERT INTO vertice_extension_students VALUES('${id(502)}','${id(1)}','${id(501)}','${id(11)}','ativo',1);`);
+  let finished=false;
+  let earlyResult;
+  const waiting=second.query(`UPDATE vertice_extension_projects SET course_ids=ARRAY[]::uuid[] WHERE id='${id(501)}'`)
+    .then(r=>({ok:true,rowCount:r.rowCount}),e=>({error:e}))
+    .then(result=>{earlyResult=result;finished=true;return result;});
+  // Observe the actual database blocker instead of inferring it from elapsed time.
+  let blocked=false;
+  const deadline=Date.now()+4000;
+  while(Date.now()<deadline && !finished){
+    const state=await db.query('SELECT $1::int = ANY(pg_blocking_pids($2::int)) AS blocked',[holder,waiter]);
+    if(state.rows[0].blocked){blocked=true;break;}
+    await new Promise(r=>setTimeout(r,25));
+  }
+  assert.equal(finished,false,`project change completed before releasing validation lock: ${JSON.stringify({rowCount:earlyResult?.rowCount,code:earlyResult?.error?.code})}`);
+  assert.equal(blocked,true,'session B must be blocked by the student transaction in session A');
+  await db.exec('COMMIT');
+  const result=await waiting;
+  assert.equal(result.error?.code,'23514','after waiting, removal must reject the newly committed participant, not succeed or timeout');
   assert.equal((await db.query(`SELECT course_ids FROM vertice_extension_projects WHERE id='${id(501)}'`)).rows[0].course_ids[0],id(11));
+  assert.equal((await db.query(`SELECT count(*) n FROM vertice_extension_students WHERE id='${id(502)}' AND project_id='${id(501)}' AND course_id='${id(11)}'`)).rows[0].n,1);
   console.log('PASS real two-session project/course mutation vs participant insertion');
  }finally{await db.exec('ROLLBACK');await second.end();}
 }else{console.log('SKIP real two-session extension race: embedded engine');}
