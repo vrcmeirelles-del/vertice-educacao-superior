@@ -103,11 +103,28 @@ export default function ExtensaoDashboard({
 
   const nav = (view: string) => onNavigate ? () => onNavigate(view) : undefined;
 
+  // Alertas
+  const alerts: { icon: string; text: string; color: string; action?: string }[] = [];
+  if (data.criticalFindings > 0) alerts.push({ icon: '🔴', text: `${data.criticalFindings} achado(s) crítico(s) aberto(s)`, color: '#dc2626', action: 'achados' });
+  if (data.pendingEvidence > 3) alerts.push({ icon: '📁', text: `${data.pendingEvidence} evidências aguardando validação`, color: '#f59e0b', action: 'evidencias' });
+  if (data.totalHoursPending > data.totalHoursValidated && data.totalHoursPending > 0) alerts.push({ icon: '⏳', text: `${data.totalHoursPending}h em trâmite (mais que validadas)`, color: '#f97316' });
+
   return (
     <div style={{ marginBottom: '2rem' }}>
       <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: '0 0 1rem', color: 'var(--accent, #0b9185)' }}>
         🌍 Impacto — Extensão Universitária
       </h3>
+
+      {alerts.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '.35rem', marginBottom: '1rem' }}>
+          {alerts.map((a, i) => (
+            <div key={i} onClick={a.action ? nav(a.action) : undefined}
+              style={{ padding: '.5rem .75rem', borderRadius: '6px', background: a.color + '10', borderLeft: `3px solid ${a.color}`, fontSize: '.82rem', cursor: a.action ? 'pointer' : 'default' }}>
+              {a.icon} {a.text}
+            </div>
+          ))}
+        </div>
+      )}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '.75rem' }}>
         <Card value={data.activeProjects} label="Projetos ativos" color="#8b5cf6" onClick={nav('projetos')} />
         <Card value={data.completedProjects} label="Concluídos" color="#22c55e" onClick={nav('projetos')} />
