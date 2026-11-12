@@ -3,9 +3,10 @@ import {Link} from 'wouter';
 import {ArrowRight,CheckCircle2,Clock,Eye,LockKeyhole,ShieldCheck} from 'lucide-react';
 import DemoShowroom from '@/components/DemoShowroom';
 import {demoInstitutionProfiles} from '@/lib/demo-showroom';
-import {clearExperienceCredential,guestExperience,readExperienceCredential,type DemoSnapshot,type ExperienceAccess,type ExperienceCredential} from '@/lib/experience-access';
+import {clearExperienceCredential,guestExperience,readExperienceCredential,type DemoSnapshot,type ExperienceAccess,type ExperienceCredential,type ExperienceRole} from '@/lib/experience-access';
 
-const roles={
+const roles:Record<ExperienceRole,{title:string;guide:string;start:string}>={
+ diretor_escola:{title:'Percurso da direção escolar',guide:'Acompanhe os indicadores e as prioridades da escola no cenário fictício.',start:'Explore os painéis e os módulos demonstrativos disponíveis para a escola.'},
  mantenedor:{title:'Percurso do mantenedor',guide:'Investigue a sustentabilidade econômica, a expansão e os riscos regulatórios.',start:'Comece por EBITDA e cenários, depois aquisições e visão executiva.'},
  reitor:{title:'Percurso da Direção',guide:'Compare cursos, entenda as prioridades institucionais e o acompanhamento das metas.',start:'Comece pela visão executiva, avance para o BI acadêmico e a governança CPA/NDE.'},
  coordenador:{title:'Percurso da coordenação',guide:'Observe a evolução dos cursos, aprendizagem, evidências e planos de melhoria.',start:'Comece em Cursos e indicadores, depois ENADE e aprendizagem e Regulação e evidências.'},

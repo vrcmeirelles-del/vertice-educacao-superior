@@ -1,0 +1,1101 @@
+[
+  {
+    "key": "reconhecimento_curso:2017",
+    "instrumentCode": "reconhecimento_curso",
+    "version": "2017",
+    "label": "Reconhecimento de Curso (2017)",
+    "scope": "course",
+    "regulatoryStatus": "current",
+    "sourcePath": "source-overrides/client/src/lib/repository-indicators.json",
+    "sourceUrl": "https://download.inep.gov.br/educacao_superior/avaliacao_cursos_graduacao/instrumentos/2017/curso_reconhecimento.pdf",
+    "sourceSha256": "fcb485421df5520545ca74e8fe6a06452b4398f0cbaf6ad12bcef7192abfc165",
+    "objects": [
+      {
+        "code": "1.1",
+        "title": "Políticas institucionais no âmbito do curso"
+      },
+      {
+        "code": "1.2",
+        "title": "Objetivos do curso"
+      },
+      {
+        "code": "1.3",
+        "title": "Perfil profissional do egresso"
+      },
+      {
+        "code": "1.4",
+        "title": "Estrutura curricular"
+      },
+      {
+        "code": "1.5",
+        "title": "Conteúdos curriculares"
+      },
+      {
+        "code": "1.6",
+        "title": "Metodologia"
+      },
+      {
+        "code": "1.7",
+        "title": "Estágio curricular supervisionado"
+      },
+      {
+        "code": "1.8",
+        "title": "Estágio curricular supervisionado – relação com a rede de escolas da educação básica"
+      },
+      {
+        "code": "1.9",
+        "title": "Estágio curricular supervisionado – relação teoria e prática"
+      },
+      {
+        "code": "1.10",
+        "title": "Atividades complementares"
+      },
+      {
+        "code": "1.11",
+        "title": "Trabalhos de Conclusão de Curso (TCC)"
+      },
+      {
+        "code": "1.12",
+        "title": "Apoio ao discente"
+      },
+      {
+        "code": "1.13",
+        "title": "Gestão do curso e os processos de avaliação interna e externa"
+      },
+      {
+        "code": "1.14",
+        "title": "Atividades de tutoria"
+      },
+      {
+        "code": "1.15",
+        "title": "Conhecimentos, habilidades e atitudes necessárias às atividades de tutoria"
+      },
+      {
+        "code": "1.16",
+        "title": "Tecnologias de Informação e Comunicação (TIC) no processo ensino-aprendizagem"
+      },
+      {
+        "code": "1.17",
+        "title": "Ambiente Virtual de Aprendizagem (AVA)"
+      },
+      {
+        "code": "1.18",
+        "title": "Material didático"
+      },
+      {
+        "code": "1.19",
+        "title": "Procedimentos de acompanhamento e de avaliação dos processos de ensino-aprendizagem"
+      },
+      {
+        "code": "1.20",
+        "title": "Número de vagas"
+      },
+      {
+        "code": "1.21",
+        "title": "Integração com as redes públicas de ensino"
+      },
+      {
+        "code": "1.22",
+        "title": "Integração do curso com o sistema local e regional de saúde (SUS)"
+      },
+      {
+        "code": "1.23",
+        "title": "Atividades práticas de ensino para áreas da saúde"
+      },
+      {
+        "code": "1.24",
+        "title": "Atividades práticas de ensino para licenciaturas"
+      },
+      {
+        "code": "2.1",
+        "title": "Núcleo Docente Estruturante – NDE"
+      },
+      {
+        "code": "2.2",
+        "title": "Equipe multidisciplinar"
+      },
+      {
+        "code": "2.3",
+        "title": "Atuação do coordenador"
+      },
+      {
+        "code": "2.4",
+        "title": "Regime de trabalho do coordenador de curso"
+      },
+      {
+        "code": "2.5",
+        "title": "Corpo docente: titulação"
+      },
+      {
+        "code": "2.6",
+        "title": "Regime de trabalho do corpo docente do curso"
+      },
+      {
+        "code": "2.7",
+        "title": "Experiência profissional do docente"
+      },
+      {
+        "code": "2.8",
+        "title": "Experiência no exercício da docência na educação básica"
+      },
+      {
+        "code": "2.9",
+        "title": "Experiência no exercício da docência superior"
+      },
+      {
+        "code": "2.10",
+        "title": "Experiência no exercício da docência na educação a distância"
+      },
+      {
+        "code": "2.11",
+        "title": "Experiência no exercício da tutoria na educação a distância"
+      },
+      {
+        "code": "2.12",
+        "title": "Atuação do colegiado de curso ou equivalente"
+      },
+      {
+        "code": "2.13",
+        "title": "Titulação e formação do corpo de tutores do curso"
+      },
+      {
+        "code": "2.14",
+        "title": "Experiência do corpo de tutores em educação a distância"
+      },
+      {
+        "code": "2.15",
+        "title": "Interação entre tutores, docentes e coordenadores de curso a distância"
+      },
+      {
+        "code": "2.16",
+        "title": "Produção científica, cultural, artística ou tecnológica"
+      },
+      {
+        "code": "3.1",
+        "title": "Espaço de trabalho para docentes em tempo integral"
+      },
+      {
+        "code": "3.2",
+        "title": "Espaço de trabalho para o coordenador"
+      },
+      {
+        "code": "3.3",
+        "title": "Sala coletiva de professores"
+      },
+      {
+        "code": "3.4",
+        "title": "Salas de aula"
+      },
+      {
+        "code": "3.5",
+        "title": "Acesso dos alunos a equipamentos de informática"
+      },
+      {
+        "code": "3.6",
+        "title": "Bibliografia básica por Unidade Curricular (UC)"
+      },
+      {
+        "code": "3.7",
+        "title": "Bibliografia complementar por Unidade Curricular (UC)"
+      },
+      {
+        "code": "3.8",
+        "title": "Laboratórios didáticos de formação básica"
+      },
+      {
+        "code": "3.9",
+        "title": "Laboratórios didáticos de formação específica"
+      },
+      {
+        "code": "3.10",
+        "title": "Laboratórios de ensino para a área de saúde"
+      },
+      {
+        "code": "3.11",
+        "title": "Laboratórios de habilidades"
+      },
+      {
+        "code": "3.12",
+        "title": "Unidades hospitalares e complexo assistencial conveniados"
+      },
+      {
+        "code": "3.13",
+        "title": "Biotérios"
+      },
+      {
+        "code": "3.14",
+        "title": "Processo de controle de produção ou distribuição de material didático (logística)"
+      },
+      {
+        "code": "3.15",
+        "title": "Núcleo de práticas jurídicas: atividades básicas, resolução consensual e atividades jurídicas reais"
+      },
+      {
+        "code": "3.16",
+        "title": "Comitê de Ética em Pesquisa (CEP)"
+      },
+      {
+        "code": "3.17",
+        "title": "Comitê de Ética na Utilização de Animais (CEUA)"
+      },
+      {
+        "code": "3.18",
+        "title": "Ambientes profissionais vinculados ao curso"
+      }
+    ]
+  },
+  {
+    "key": "recredenciamento_2017:2017",
+    "instrumentCode": "recredenciamento_2017",
+    "version": "2017",
+    "label": "Recredenciamento Institucional (2017)",
+    "scope": "institution",
+    "regulatoryStatus": "current",
+    "sourcePath": "source-overrides/client/src/lib/avaliacao-institucional.json",
+    "sourceUrl": "https://download.inep.gov.br/educacao_superior/avaliacao_institucional/instrumentos/2017/IES_recredenciamento.pdf",
+    "sourceSha256": "4d87ce4faa083baeaea42fa46fd6c12b971f6a9a37601fa85f3b282a0f7a65c4",
+    "objects": [
+      {
+        "code": "1.1",
+        "title": "Evolução institucional a partir dos processos de Planejamento e Avaliação Institucional",
+        "criteria": "{\"1\":\"O Relato Institucional não contempla o histórico da IES, os conceitos de avaliações externas, o desenvolvimento e divulgação dos processos de autoavaliação, o plano de melhorias ou os processos de gestão a partir das avaliações externas e internas.\",\"2\":\"O Relato Institucional contempla o histórico da IES, os conceitos de avaliações externas, o desenvolvimento e divulgação dos processos de autoavaliação, o plano de melhorias e os processos de gestão a partir das avaliações externas e internas, mas não evidencia a evolução institucional.\",\"3\":\"O Relato Institucional demonstra a análise do histórico da IES, do conceito de avaliações externas, do desenvolvimento e divulgação dos processos de autoavaliação, do plano de melhorias e dos processos de gestão a partir das avaliações externas e internas e evidencia a evolução institucional.\",\"4\":\"O Relato Institucional demonstra a análise do histórico da IES, do conceito de avaliações externas, do desenvolvimento e divulgação dos processos de autoavaliação, do plano de melhorias e dos processos de gestão a partir das avaliações externas e internas, demonstra a implementação de ações efetivas na gestão da IES e evidencia a evolução institucional.\",\"5\":\"O Relato Institucional analisa e sintetiza o histórico da IES, o conceito de avaliações externas, o desenvolvimento e divulgação dos processos de autoavaliação, o plano de melhorias e processos de gestão a partir das avaliações externas e internas, demonstra a implementação de ações efetivas na gestão da IES, evidencia a evolução institucional e é apropriado pelos gestores, docentes/colaboradores e discentes.\"}"
+      },
+      {
+        "code": "1.2",
+        "title": "Processo de autoavaliação institucional",
+        "criteria": "{\"1\":\"Não há processo de autoavaliação institucional.\",\"2\":\"Há processo de autoavaliação institucional, mas não atende às necessidades institucionais, como instrumento de gestão e de ação acadêmico-administrativa de melhoria institucional.\",\"3\":\"Há processo de autoavaliação institucional e atende às necessidades institucionais, como instrumento de gestão e de ação acadêmico-administrativa de melhoria institucional.\",\"4\":\"Há processo de autoavaliação institucional e atende às necessidades institucionais, como instrumento de gestão e de ação acadêmico-administrativa de melhoria institucional, com evidência de que todos os segmentos da comunidade acadêmica estão sensibilizados para a sua relevância.\",\"5\":\"Há processo de autoavaliação institucional e atende às necessidades institucionais, como instrumento de gestão e de ação acadêmico-administrativa de melhoria institucional, com evidência de que todos os segmentos da comunidade acadêmica estão sensibilizados e se apropriam seus resultados.\"}"
+      },
+      {
+        "code": "1.3",
+        "title": "Autoavaliação institucional: participação da comunidade acadêmica",
+        "criteria": "{\"1\":\"Não há processo de autoavaliação institucional.\",\"2\":\"O processo de autoavaliação não ocorre com participação da sociedade civil organizada e de todos os segmentos da comunidade acadêmica.\",\"3\":\"O processo de autoavaliação ocorre com participação da sociedade civil organizada e de todos os segmentos da comunidade acadêmica (vedada a composição que privilegie a maioria absoluta de um deles).\",\"4\":\"O processo de autoavaliação ocorre com participação da sociedade civil organizada, de todos os segmentos da comunidade acadêmica (vedada a composição que privilegie a maioria absoluta de um deles) e com abrangência de instrumentos de coleta.\",\"5\":\"O processo de autoavaliação ocorre com participação da sociedade civil organizada e de todos os segmentos da comunidade acadêmica (vedada a composição que privilegie a maioria absoluta de um deles), com abrangência de instrumentos de coleta e índice de participação crescente.\"}"
+      },
+      {
+        "code": "1.4",
+        "title": "Autoavaliação institucional e avaliações externas: análise e divulgação dos resultados",
+        "criteria": "{\"1\":\"Não há divulgação dos resultados da autoavaliação institucional ou de avaliações externas.\",\"2\":\"Os resultados divulgados, referentes à autoavaliação institucional e às avaliações externas, não estão disponíveis para todos os segmentos da comunidade acadêmica.\",\"3\":\"Os resultados divulgados, referentes à autoavaliação institucional e às avaliações externas, são descritivos e estão disponíveis para todos os segmentos da comunidade acadêmica.\",\"4\":\"Os resultados divulgados, referentes à autoavaliação institucional e às avaliações externas, são analíticos e estão disponíveis para todos os segmentos da comunidade acadêmica.\",\"5\":\"Os resultados divulgados, referentes à autoavaliação institucional e às avaliações externas, são analíticos e apropriados por todos os segmentos da comunidade acadêmica.\"}"
+      },
+      {
+        "code": "1.5",
+        "title": "Relatórios de autoavaliação",
+        "criteria": "{\"1\":\"Não há relatórios de autoavaliação postados.\",\"2\":\"Os relatórios de autoavaliação não estão de acordo com a previsão de postagem para cada ano do triênio (considerando os relatórios parciais e final previstos no planejamento da CPA).\",\"3\":\"Os relatórios de autoavaliação estão de acordo com a previsão de postagem para cada ano do triênio (considerando os relatórios parciais e final previstos no planejamento da CPA).\",\"4\":\"Os relatórios de autoavaliação estão de acordo com a previsão de postagem para cada ano do triênio (considerando os relatórios parciais e final previstos no planejamento da CPA), possuem clara relação entre si e impactam o processo de gestão da instituição.\",\"5\":\"Os relatórios de autoavaliação estão de acordo com a previsão de postagem para cada ano do triênio (considerando os relatórios parciais e final previstos no planejamento da CPA), possuem clara relação entre si, impactam o processo de gestão da instituição e promovem mudanças inovadoras.\"}"
+      },
+      {
+        "code": "2.1",
+        "title": "Missão, objetivos, metas e valores institucionais",
+        "criteria": "{\"1\":\"A missão, os objetivos e as metas da instituição não estão consonantes com o PDI.\",\"2\":\"A missão, os objetivos e as metas da instituição estão expressos no PDI, mas não se comunicam com as políticas de ensino, de extensão e de pesquisa (esta última, considerando a organização acadêmica).\",\"3\":\"A missão, os objetivos e as metas da instituição estão expressos no PDI e se comunicam com as políticas de ensino, de extensão e de pesquisa (esta última, considerando a organização acadêmica).\",\"4\":\"A missão, os objetivos, as metas e os valores da instituição estão expressos no PDI, comunicam-se com as políticas de ensino, de extensão e de pesquisa (esta última, considerando a organização acadêmica) e se traduzem em ações institucionais internas, transversais a todos os cursos.\",\"5\":\"A missão, os objetivos, as metas e os valores da instituição estão expressos no PDI, comunicam-se com as políticas de ensino, de extensão e de pesquisa (esta última, considerando a organização acadêmica), traduzem-se em ações institucionais internas, transversais a todos os cursos, e externas, por meio dos projetos de responsabilidade social.\"}"
+      },
+      {
+        "code": "2.2",
+        "title": "PDI, planejamento didático-instrucional e política de ensino de graduação e de pós-graduação",
+        "criteria": "{\"1\":\"Não há alinhamento entre o PDI e a política de ensino.\",\"2\":\"Há alinhamento entre o PDI e a política de ensino, mas não se consideram os métodos e as técnicas didático-pedagógicas, metodologias que favorecem o atendimento educacional especializado ou as atividades de avaliação.\",\"3\":\"Há alinhamento entre o PDI e a política de ensino, considerando os métodos e as técnicas didático-pedagógicas, metodologias que favorecem o atendimento educacional especializado e as atividades de avaliação, o que se traduz nas práticas de ensino de graduação e de pós-graduação.\",\"4\":\"Há alinhamento entre o PDI e a política de ensino, considerando os métodos e as técnicas didático-pedagógicas, metodologias que favorecem o atendimento educacional especializado e as atividades de avaliação, o que se traduz nas práticas de ensino de graduação e de pós-graduação, com incorporação de avanços tecnológicos e com metodologia que incentiva a interdisciplinaridade.\",\"5\":\"Há alinhamento entre o PDI e a política de ensino, considerando os métodos e as técnicas didático-pedagógicas, metodologias que favorecem o atendimento educacional especializado e as atividades de avaliação, o que se traduz nas práticas de ensino de graduação e de pós-graduação, com incorporação de avanços tecnológicos e com metodologia que incentiva a interdisciplinaridade, e a promoção de ações reconhecidamente exitosas ou inovadoras.\"}"
+      },
+      {
+        "code": "2.3",
+        "title": "PDI, política e práticas de pesquisa ou iniciação científica, de inovação tecnológica e de desenvolvimento artístico e cultural",
+        "criteria": "{\"1\":\"Não há alinhamento entre o PDI e a política e as práticas de pesquisa ou iniciação científica, de inovação tecnológica e de desenvolvimento artístico e cultural.\",\"2\":\"Há alinhamento entre o PDI e a política e as práticas de pesquisa ou iniciação científica, de inovação tecnológica e de desenvolvimento artístico e cultural, mas não se verificam práticas acadêmicas voltadas à produção e à interpretação do conhecimento.\",\"3\":\"Há alinhamento entre o PDI e a política e as práticas de pesquisa ou iniciação científica, de inovação tecnológica e de desenvolvimento artístico e cultural, verificando-se práticas acadêmicas voltadas à produção e à interpretação do conhecimento.\",\"4\":\"Há alinhamento entre o PDI e a política e as práticas de pesquisa ou iniciação científica, de inovação tecnológica e de desenvolvimento artístico e cultural, verificando-se práticas acadêmicas voltadas à produção e à interpretação do conhecimento, havendo linhas de pesquisa e de trabalho transversais aos cursos ofertados.\",\"5\":\"Há alinhamento entre o PDI e a política e as práticas de pesquisa ou iniciação científica, de inovação tecnológica e de desenvolvimento artístico e cultural, verificando-se práticas acadêmicas voltadas à produção e à interpretação do conhecimento, havendo linhas de pesquisa e de trabalho transversais aos cursos ofertados e mecanismos de transmissão dos resultados para a comunidade.\"}"
+      },
+      {
+        "code": "2.4",
+        "title": "PDI, políticas institucionais voltadas à valorização da diversidade, do meio ambiente, da memória cultural, da produção artística e do patrimônio cultural, e ações afirmativas de defesa e promoção dos direitos humanos",
+        "criteria": "{\"1\":\"O PDI não possui políticas institucionais e não aborda problemática relacionada a ações voltadas à valorização da diversidade, do meio ambiente, da memória cultural, da produção artística e do patrimônio cultural, ou a ações afirmativas de defesa e promoção dos direitos humanos e da igualdade étnico-racial.\",\"2\":\"O PDI não possui políticas institucionais, mas aborda problemática relacionada a ações voltadas à valorização da diversidade, do meio ambiente, da memória cultural, da produção artística e do patrimônio cultural, e a ações afirmativas de defesa e promoção dos direitos humanos e da igualdade étnico-racial.\",\"3\":\"O PDI possui políticas institucionais que se traduzem em ações voltadas à valorização da diversidade, do meio ambiente, da memória cultural, da produção artística e do patrimônio cultural, e em ações afirmativas de defesa e promoção dos direitos humanos e da igualdade étnico-racial.\",\"4\":\"O PDI possui políticas institucionais que se traduzem em ações voltadas à valorização da diversidade, do meio ambiente, da memória cultural, da produção artística e do patrimônio cultural, e em ações afirmativas de defesa e promoção dos direitos humanos e da igualdade étnico-racial, de modo transversal aos cursos ofertados, ampliando as competências dos egressos.\",\"5\":\"O PDI possui políticas institucionais que se traduzem em ações voltadas à valorização da diversidade, do meio ambiente, da memória cultural, da produção artística e do patrimônio cultural, e em ações afirmativas de defesa e promoção dos direitos humanos e da igualdade étnico-racial, de modo transversal aos cursos ofertados, ampliando as competências dos egressos e ofertando mecanismos de transmissão dos resultados para a comunidade.\"}"
+      },
+      {
+        "code": "2.5",
+        "title": "PDI e políticas institucionais voltadas ao desenvolvimento econômico e à responsabilidade social",
+        "criteria": "{\"1\":\"Não há alinhamento entre o PDI e as políticas institucionais voltadas ao desenvolvimento econômico e social.\",\"2\":\"Há alinhamento entre o PDI e as políticas institucionais voltadas ao desenvolvimento econômico e social, mas não se consideram a melhoria das condições de vida da população e as ações de inclusão.\",\"3\":\"Há alinhamento entre o PDI e as políticas institucionais para o desenvolvimento econômico e social, considerando a melhoria das condições de vida da população e as ações de inclusão.\",\"4\":\"Há alinhamento entre o PDI e as políticas institucionais para o desenvolvimento econômico e social, considerando a melhoria das condições de vida da população e as ações de inclusão e empreendedorismo, articulando os objetivos e valores da IES.\",\"5\":\"Há alinhamento entre o PDI e as políticas institucionais para o desenvolvimento econômico e social, considerando a melhoria das condições de vida da população e as ações de inclusão e empreendedorismo, articulando os objetivos e valores da IES, e a promoção de ações reconhecidamente exitosas ou inovadoras.\"}"
+      },
+      {
+        "code": "2.6",
+        "title": "PDI e política institucional para a modalidade EaD",
+        "criteria": "{\"1\":\"A política institucional para a modalidade a distância não está articulada com o PDI.\",\"2\":\"A política institucional para a modalidade a distância está articulada com o PDI, mas não contempla o alinhamento da base tecnológica institucional com o projeto pedagógico da sua utilização.\",\"3\":\"A política institucional para a modalidade a distância está articulada com o PDI e contempla o alinhamento da base tecnológica institucional com o projeto pedagógico da sua utilização.\",\"4\":\"A política institucional para a modalidade a distância está articulada com o PDI e contempla o alinhamento da base tecnológica institucional com o projeto pedagógico da sua utilização, observando a formação pretendida para os discentes (na sede e nos polos).\",\"5\":\"A política institucional para a modalidade a distância está articulada com o PDI e contempla o alinhamento da base tecnológica institucional com o projeto pedagógico da sua utilização, observando a formação pretendida para os discentes (na sede e nos polos) e considerando as condições reais da localidade de oferta.\"}"
+      },
+      {
+        "code": "2.7",
+        "title": "Estudo para implantação de polos EaD",
+        "criteria": "{\"1\":\"O PDI não apresenta estudo para implantação de polos EAD.\",\"2\":\"O PDI apresenta estudo para implantação de polos EAD, mas não considera sua distribuição geográfica ou aspectos regionais sobre a população do ensino médio, a demanda por cursos superiores e a relação entre número de matriculados e de evadidos.\",\"3\":\"O PDI apresenta estudo para implantação de polos EAD que considera sua distribuição geográfica e aspectos regionais sobre a população do ensino médio, a demanda por cursos superiores e a relação entre número de matriculados e de evadidos.\",\"4\":\"O PDI apresenta estudo para implantação de polos EAD que considera sua distribuição geográfica e aspectos regionais sobre a população do ensino médio, a demanda por cursos superiores e a relação entre número de matriculados e de evadidos, bem como a contribuição do(s) curso(s) ofertado(s) para o desenvolvimento da comunidade.\",\"5\":\"O PDI apresenta estudo para implantação de polos EAD que considera sua distribuição geográfica e aspectos regionais sobre a população do ensino médio, a demanda por cursos superiores e a relação entre número de matriculados e de evadidos, bem como a contribuição do(s) curso(s) ofertado(s) para o desenvolvimento da comunidade e os indicadores estabelecidos no PNE vigente.\"}"
+      },
+      {
+        "code": "3.1",
+        "title": "Políticas de ensino e ações acadêmico-administrativas para os cursos de graduação",
+        "criteria": "{\"1\":\"As ações acadêmico-administrativas não estão relacionadas com a política de ensino para os cursos de graduação.\",\"2\":\"As ações acadêmico-administrativas estão relacionadas com a política de ensino para os cursos de graduação, mas não consideram a atualização curricular sistemática, a oferta de componentes curriculares na modalidade a distância (quando previsto no PDI), a existência de programas de monitoria em uma ou mais áreas ou de nivelamento, transversais a todos os cursos.\",\"3\":\"As ações acadêmico-administrativas estão relacionadas com a política de ensino para os cursos de graduação e consideram a atualização curricular sistemática, a oferta de componentes curriculares na modalidade a distância (quando previsto no PDI), a existência de programas de monitoria em uma ou mais áreas e de nivelamento, transversais a todos os cursos.\",\"4\":\"As ações acadêmico-administrativas estão relacionadas com a política de ensino para os cursos de graduação e consideram a atualização curricular sistemática, a oferta de componentes curriculares na modalidade a distância (quando previsto no PDI), a existência de programas de monitoria em uma ou mais áreas, de nivelamento, transversais a todos os cursos, e de mobilidade acadêmica com instituições nacionais ou internacionais.\",\"5\":\"As ações acadêmico-administrativas estão relacionadas com a política de ensino para os cursos de graduação e consideram a atualização curricular sistemática, a oferta de componentes curriculares na modalidade a distância (quando previsto no PDI), a existência de programas de monitoria em uma ou mais áreas, de nivelamento, transversais a todos os cursos, de mobilidade acadêmica com instituições nacionais ou internacionais, e a promoção de ações reconhecidamente exitosas ou inovadoras.\"}"
+      },
+      {
+        "code": "3.2",
+        "title": "Políticas de ensino e ações acadêmico-administrativas para os cursos de pós-graduação lato sensu",
+        "criteria": "{\"1\":\"As ações acadêmico-administrativas constantes do PDI não estão relacionadas com a política de ensino para os cursos de pós-graduação lato sensu.\",\"2\":\"As ações acadêmico-administrativas constantes do PDI estão relacionadas com as políticas de ensino para os cursos de pós-graduação lato sensu, mas não se evidenciam a aprovação pelos colegiados da IES e o acompanhamento e a avaliação dos cursos ofertados.\",\"3\":\"As ações acadêmico-administrativas constantes do PDI estão relacionadas com a política de ensino para os cursos de pós-graduação lato sensu, considerando a aprovação pelos colegiados da IES, o acompanhamento e a avaliação dos cursos ofertados, o atendimento às demandas socioeconômicas da região de inserção da IES e a articulação da oferta dos cursos lato sensu com as áreas da graduação. instrumento de avaliação institucional externa | presencial e A distância Recredenciamento | Transformação de Organização Acadêmica 16 CONCEITO CRITÉRIO DE ANÁLISE\",\"4\":\"As ações acadêmico-administrativas constantes do PDI estão relacionadas com as políticas de ensino para os cursos de pós-graduação lato sensu, considerando a aprovação pelos colegiados da IES, o acompanhamento e a avaliação dos cursos ofertados, o atendimento às demandas socioeconômicas da região de inserção da IES e a articulação da oferta dos cursos lato sensu com as áreas da graduação; adicionalmente, mais de 50% dos docentes são mestres ou doutores.\",\"5\":\"As ações acadêmico-administrativas constantes do PDI estão relacionadas com as políticas de ensino para os cursos de pós-graduação lato sensu, considerando a aprovação pelos colegiados da IES, o acompanhamento e a avaliação dos cursos ofertados, o atendimento às demandas socioeconômicas da região de inserção da IES e a articulação da oferta dos cursos lato sensu com as áreas da graduação; adicionalmente, mais de 50% dos docentes são mestres ou doutores e há outras ações reconhecidamente exitosas ou inovadoras.\"}"
+      },
+      {
+        "code": "3.3",
+        "title": "Políticas de ensino e ações acadêmico-administrativas para os cursos de pós-graduação stricto sensu",
+        "criteria": "{\"1\":\"Não há política de ensino ou ações acadêmico-administrativas para os cursos de pós-graduação stricto sensu.\",\"2\":\"As ações acadêmico-administrativas não estão relacionadas com a política de ensino para os cursos de pós-graduação stricto sensu, mas não há articulação com a graduação, por meio de grupos de estudo ou de pesquisa, de iniciação científica ou da atuação de professores dos programas de pós-graduação stricto sensu na graduação.\",\"3\":\"As ações acadêmico-administrativas estão relacionadas com a política de ensino para os cursos de pós-graduação stricto sensu, considerando sua articulação com a graduação, por meio de grupos de estudo ou de pesquisa, de iniciação científica e da atuação de professores dos programas de pós-graduação stricto sensu na graduação.\",\"4\":\"As ações acadêmico-administrativas estão relacionadas com a política de ensino para os cursos de pós-graduação stricto sensu, considerando sua articulação com a graduação, por meio de grupos de estudo ou de pesquisa, de iniciação científica e da atuação de professores dos programas de pós-graduação stricto sensu na graduação; adicionalmente, a IES possui pelo menos um programa de pós-graduação stricto sensu avaliado com conceito 5 pela CAPES.\",\"5\":\"As ações acadêmico-administrativas estão relacionadas com a política de ensino para os cursos de pós-graduação stricto sensu, considerando sua articulação com a graduação, por meio de grupos de estudo ou de pesquisa, de iniciação científica e da atuação de professores dos programas de pós-graduação stricto sensu na graduação; adicionalmente, a IES possui pelo menos um programa de pós-graduação stricto sensu avaliado com conceito 6 ou 7 pela CAPES.\"}"
+      },
+      {
+        "code": "3.4",
+        "title": "Políticas institucionais e ações acadêmico-administrativas para a pesquisa ou iniciação científica, a inovação tecnológica e o desenvolvimento artístico e cultural",
+        "criteria": "{\"1\":\"Não há ações acadêmico-administrativas para a pesquisa ou iniciação científica, a inovação tecnológica e o desenvolvimento artístico e cultural.\",\"2\":\"As ações acadêmico-administrativas para a pesquisa ou iniciação científica, a inovação tecnológica e o desenvolvimento artístico e cultural não estão em conformidade com as políticas estabelecidas.\",\"3\":\"As ações acadêmico-administrativas para a pesquisa ou iniciação científica, a inovação tecnológica e o desenvolvimento artístico e cultural estão em conformidade com as políticas estabelecidas, com garantia de sua divulgação no meio acadêmico.\",\"4\":\"As ações acadêmico-administrativas para a pesquisa ou iniciação científica, a inovação tecnológica e o desenvolvimento artístico e cultural estão em conformidade com as políticas estabelecidas, com garantia de divulgação no meio acadêmico, e são estimuladas com programas de bolsas mantidos com recursos próprios ou de agências de fomento.\",\"5\":\"As ações acadêmico-administrativas para a pesquisa ou iniciação científica, a inovação tecnológica e o desenvolvimento artístico e cultural estão em conformidade com as políticas estabelecidas, com garantia de divulgação no meio acadêmico, são estimuladas com programas de bolsas mantidos com recursos próprios ou de agências de fomento e promovem práticas reconhecidamente exitosas ou inovadoras.\"}"
+      },
+      {
+        "code": "3.5",
+        "title": "Políticas institucionais e ações acadêmico-administrativas para a extensão",
+        "criteria": "{\"1\":\"Não há ações acadêmico-administrativas para a extensão.\",\"2\":\"As ações acadêmico-administrativas para a extensão não estão em conformidade com as políticas estabelecidas, considerando práticas efetivas para a melhoria das condições sociais da comunidade externa.\",\"3\":\"As ações acadêmico-administrativas para a extensão estão em conformidade com as políticas estabelecidas, considerando práticas efetivas para a melhoria das condições sociais da comunidade externa, com garantia de divulgação no meio acadêmico.\",\"4\":\"As ações acadêmico-administrativas para a extensão estão em conformidade com as políticas estabelecidas, considerando práticas efetivas para a melhoria das condições sociais da comunidade externa, com garantia de divulgação no meio acadêmico, e são estimuladas com programas de bolsas mantidos com recursos próprios ou de agências de fomento.\",\"5\":\"As ações acadêmico-administrativas para a extensão estão em conformidade com as políticas estabelecidas, considerando práticas efetivas para a melhoria das condições sociais da comunidade externa, com garantia de divulgação no meio acadêmico, são estimuladas com programas de bolsas mantidos com recursos próprios ou de agências de fomento e promovem práticas reconhecidamente exitosas ou inovadoras.\"}"
+      },
+      {
+        "code": "3.6",
+        "title": "Políticas institucionais e ações de estímulo e difusão para a produção acadêmica docente",
+        "criteria": "{\"1\":\"Não há ações de estímulo e difusão para a produção acadêmica.\",\"2\":\"As ações de estímulo e difusão para a produção acadêmica não promovem publicações científicas, didático-pedagógicas, tecnológicas, artísticas e culturais ou não incentivam a participação dos docentes em eventos locais.\",\"3\":\"As ações de estímulo e difusão para a produção acadêmica promovem publicações científicas, didático-pedagógicas, tecnológicas, artísticas e culturais e incentivam a participação dos docentes em eventos de âmbito local e nacional.\",\"4\":\"As ações de estímulo e difusão para a produção acadêmica promovem publicações científicas, didático-pedagógicas, tecnológicas, artísticas e culturais e incentivam a participação dos docentes em eventos de âmbito local, nacional e internacional.\",\"5\":\"As ações de estímulo e difusão para a produção acadêmica promovem publicações científicas, didático-pedagógicas, tecnológicas, artísticas e culturais, incentivam a participação dos docentes em eventos de âmbito local, nacional e internacional, e incluem a organização e publicação de revista acadêmico-científica indexada no Qualis.\"}"
+      },
+      {
+        "code": "3.7",
+        "title": "Política institucional de acompanhamento dos egressos",
+        "criteria": "{\"1\":\"Não há política institucional de acompanhamento dos egressos.\",\"2\":\"A política institucional não garante mecanismo de acompanhamento de egressos.\",\"3\":\"A política institucional garante mecanismo de acompanhamento de egressos e a atualização sistemática de informações a respeito da continuidade na vida acadêmica ou da inserção profissional.\",\"4\":\"A política institucional garante mecanismo de acompanhamento de egressos, a atualização sistemática de informações a respeito da continuidade na vida acadêmica ou da inserção profissional e estudo comparativo entre a atuação do egresso e a formação recebida, subsidiando ações de melhoria relacionadas às demandas da sociedade e do mundo do trabalho.\",\"5\":\"A política institucional garante mecanismo de acompanhamento de egressos, a atualização sistemática de informações a respeito da continuidade na vida acadêmica ou da inserção profissional, estudo comparativo entre a atuação do egresso e a formação recebida, subsidiando ações de melhoria relacionadas às demandas da sociedade e do mundo do trabalho, e promove outras ações reconhecidamente exitosas ou inovadoras.\"}"
+      },
+      {
+        "code": "3.8",
+        "title": "Política institucional para internacionalização",
+        "criteria": "{\"1\":\"A política institucional para a internacionalização não está articulada com o PDI.\",\"2\":\"A política institucional para a internacionalização está articulada com o PDI, mas não apresenta atividades voltadas para programas de cooperação e intercâmbio.\",\"3\":\"A política institucional para a internacionalização está articulada com o PDI e apresenta atividades voltadas para programas de cooperação e intercâmbio.\",\"4\":\"A política institucional para a internacionalização está articulada com o PDI, apresenta atividades voltadas para programas de cooperação e intercâmbio e é coordenada por um grupo regulamentado.\",\"5\":\"A política institucional para a internacionalização está articulada com o PDI, apresenta atividades voltadas para programas de cooperação e intercâmbio e é coordenada por um grupo regulamentado, responsável por sistematizar acordos e convênios internacionais de ensino e de mobilidade docente e discente.\"}"
+      },
+      {
+        "code": "3.9",
+        "title": "Comunicação da IES com a comunidade externa",
+        "criteria": "{\"1\":\"Não há canais de comunicação externa.\",\"2\":\"Os canais de comunicação externa divulgam informações de cursos, de programas, da extensão e da pesquisa (quando houver), mas não publicam documentos institucionais relevantes ou não possuem mecanismos de transparência institucional e de ouvidoria.\",\"3\":\"Os canais de comunicação externa divulgam informações de cursos, de programas, da extensão e da pesquisa (quando houver), publicam documentos institucionais relevantes, possuem mecanismos de transparência institucional e de ouvidoria e permitem o acesso às informações acerca dos resultados da avaliação interna e externa.\",\"4\":\"Os canais de comunicação externa divulgam informações de cursos, de programas, da extensão e da pesquisa (quando houver), publicam documentos institucionais relevantes, possuem mecanismos de transparência institucional e de ouvidoria, permitem o acesso às informações acerca dos resultados da avaliação interna e externa e apresentam instância específica que atua transversalmente às áreas.\",\"5\":\"Os canais de comunicação externa divulgam informações de cursos, de programas, da extensão e da pesquisa (quando houver), publicam documentos institucionais relevantes, possuem mecanismos de transparência institucional e de ouvidoria, permitem o acesso às informações acerca dos resultados da avaliação interna e externa, apresentam instância específica que atua transversalmente às áreas e promovem outras ações reconhecidamente exitosas ou inovadoras.\"}"
+      },
+      {
+        "code": "3.10",
+        "title": "Comunicação da IES com a comunidade interna",
+        "criteria": "{\"1\":\"Não há comunicação da IES com a comunidade interna.\",\"2\":\"A comunicação da IES com a comunidade interna não promove a transparência institucional, ou não divulga os resultados das avaliações interna e externa.\",\"3\":\"A comunicação da IES com a comunidade interna promove a transparência institucional, divulga os resultados das avaliações interna e externa e disponibiliza ouvidoria.\",\"4\":\"A comunicação da IES com a comunidade interna promove a transparência institucional, por meio de canais diversificados, impressos e virtuais, favorecendo o acesso por todos os segmentos da comunidade acadêmica, divulga os resultados das avaliações interna e externa e disponibiliza ouvidoria.\",\"5\":\"A comunicação da IES com a comunidade interna promove a transparência institucional, por meio de canais diversificados, impressos e virtuais, favorecendo o acesso por todos os segmentos da comunidade acadêmica, divulga os resultados das avaliações interna e externa, disponibiliza ouvidoria e fomenta a manifestação da comunidade, gerando insumos para a melhoria da qualidade institucional.\"}"
+      },
+      {
+        "code": "3.11",
+        "title": "Política de atendimento aos discentes",
+        "criteria": "{\"1\":\"Não há programas de apoio aos discentes.\",\"2\":\"A política de atendimento aos discentes não contempla programas de acolhimento ao ingressante, programas de acessibilidade, monitoria ou nivelamento.\",\"3\":\"A política de atendimento aos discentes contempla programas de acolhimento e permanência do discente, programas de acessibilidade, monitoria, nivelamento, intermediação e acompanhamento de estágios não obrigatórios remunerados, e apoio psicopedagógico.\",\"4\":\"A política de atendimento aos discentes contempla programas de acolhimento e permanência do discente, programas de acessibilidade, monitoria, nivelamento, intermediação e acompanhamento de estágios não obrigatórios remunerados e apoio psicopedagógico, e apresenta uma instância que permite o atendimento discente em todos os setores pedagógico-administrativos da instituição.\",\"5\":\"A política de atendimento aos discentes contempla programas de acolhimento e permanência do discente, programas de acessibilidade, monitoria, nivelamento, intermediação e acompanhamento de estágios não obrigatórios remunerados e apoio psicopedagógico, apresenta uma instância que permite o atendimento discente em todos os setores pedagógico-administrativos da instituição e promove outras ações reconhecidamente exitosas ou inovadoras.\"}"
+      },
+      {
+        "code": "3.12",
+        "title": "Políticas institucionais e ações de estímulo à produção discente e à participação em eventos (graduação e pós-graduação)",
+        "criteria": "{\"1\":\"Não há políticas institucionais e ações de estímulo à produção discente e à participação em eventos.\",\"2\":\"As políticas institucionais e ações de estímulo não garantem apoio financeiro ou logístico para a organização e participação em eventos na IES ou apoio à produção acadêmica discente.\",\"3\":\"As políticas institucionais e ações de estímulo garantem apoio financeiro ou logístico para a organização e participação em eventos na IES e de âmbito local, e apoio à produção acadêmica discente.\",\"4\":\"As políticas institucionais e ações de estímulo garantem apoio financeiro ou logístico para a organização e participação em eventos na IES e de âmbito local, nacional ou internacional, e apoio à produção acadêmica discente e à sua publicação em encontros e periódicos nacionais.\",\"5\":\"As políticas institucionais e ações de estímulo garantem apoio financeiro ou logístico para a organização e participação em eventos na IES e de âmbito local, nacional ou internacional, e apoio à produção acadêmica discente e à sua publicação em encontros e periódicos nacionais e internacionais.\"}"
+      },
+      {
+        "code": "4.1",
+        "title": "Titulação do corpo docente",
+        "criteria": "{\"1\":\"O corpo docente é composto por menos de 25% de mestres e doutores.\",\"2\":\"O corpo docente é composto por ao menos 25% de mestres e doutores.\",\"3\":\"O corpo docente é composto por ao menos 40% de mestres e doutores.\",\"4\":\"O corpo docente é composto por ao menos 60% de mestres e doutores.\",\"5\":\"O corpo docente é composto por ao menos 80% de mestres e doutores.\"}"
+      },
+      {
+        "code": "4.2",
+        "title": "Política de capacitação docente e formação continuada",
+        "criteria": "{\"1\":\"Não há política de capacitação docente e formação continuada.\",\"2\":\"A política de capacitação docente e formação continuada não garante a participação em eventos científicos, técnicos, artísticos ou culturais ou em cursos de desenvolvimento pessoal e profissional.\",\"3\":\"A política de capacitação docente e formação continuada garante a participação em eventos científicos, técnicos, artísticos ou culturais e em cursos de desenvolvimento pessoal e profissional.\",\"4\":\"A política de capacitação docente e formação continuada garante a participação em eventos científicos, técnicos, artísticos ou culturais, em cursos de desenvolvimento pessoal e profissional e a qualificação acadêmica em programas de mestrado e doutorado.\",\"5\":\"A política de capacitação docente e formação continuada garante a participação em eventos científicos, técnicos, artísticos ou culturais, em cursos de desenvolvimento pessoal e a qualificação acadêmica em programas de mestrado e doutorado, com práticas consolidadas, instituídas e publicizadas.\"}"
+      },
+      {
+        "code": "4.3",
+        "title": "Política de capacitação e formação continuada para o corpo técnico-administrativo",
+        "criteria": "{\"1\":\"Não há política de capacitação e formação continuada para o corpo técnico-administrativo.\",\"2\":\"A política de capacitação e formação continuada para o corpo técnico- administrativo não garante a participação em eventos científicos, técnicos, artísticos ou culturais e em cursos de desenvolvimento pessoal e profissional.\",\"3\":\"A política de capacitação e formação continuada para o corpo técnico- administrativo garante a participação em eventos científicos, técnicos, artísticos ou culturais e em cursos de desenvolvimento pessoal e profissional.\",\"4\":\"A política de capacitação e formação continuada para o corpo técnico- administrativo garante a participação em eventos científicos, técnicos, artísticos ou culturais, em cursos de desenvolvimento pessoal e profissional e a qualificação acadêmica na graduação e/ou em programas de pós-graduação.\",\"5\":\"A política de capacitação e formação continuada para o corpo técnico- administrativo garante a participação em eventos científicos, técnicos, artísticos ou culturais, em cursos de desenvolvimento pessoal e profissional e a qualificação acadêmica na graduação e/ou em programas de pós- graduação, com práticas consolidadas e institucionalizadas.\"}"
+      },
+      {
+        "code": "4.4",
+        "title": "Política de capacitação e formação continuada para o corpo de tutores presenciais e a distância",
+        "criteria": "{\"1\":\"Não há política de capacitação e formação continuada para o corpo de tutores presenciais e a distância.\",\"2\":\"A política de capacitação e formação continuada para o corpo de tutores presenciais e a distância não garante a participação em eventos científicos, técnicos, artísticos ou culturais e em cursos de desenvolvimento pessoal e profissional.\",\"3\":\"A política de capacitação e formação continuada para o corpo de tutores presenciais e a distância garante a participação em eventos científicos, técnicos, artísticos ou culturais e em cursos de desenvolvimento pessoal e profissional.\",\"4\":\"A política de capacitação e formação continuada para o corpo de tutores presenciais e a distância garante a participação em eventos científicos, técnicos, artísticos ou culturais, em cursos de desenvolvimento pessoal e profissional e a qualificação acadêmica em graduação e/ou programas de pós-graduação.\",\"5\":\"A política de capacitação e formação continuada para o corpo de tutores presenciais e a distância garante a participação em eventos científicos, técnicos, artísticos ou culturais, em cursos de desenvolvimento pessoal e profissional e a qualificação acadêmica em graduação e/ou programas de pós-graduação, com práticas consolidadas e institucionalizadas.\"}"
+      },
+      {
+        "code": "4.5",
+        "title": "Processos de gestão institucional",
+        "criteria": "{\"1\":\"Os processos de gestão institucional não consideram a autonomia e a representatividade dos órgãos gestores e colegiados ou a participação de docentes, técnicos, discentes, da sociedade civil organizada e dos tutores (estes, quando for o caso).\",\"2\":\"Os processos de gestão institucional consideram a autonomia e a representatividade dos órgãos gestores e colegiados e a participação de docentes, técnicos, discentes, da sociedade civil organizada e dos tutores (estes, quando for o caso), mas não regulamentam o mandato dos membros que compõem os órgãos colegiados.\",\"3\":\"Os processos de gestão institucional consideram a autonomia e a representatividade dos órgãos gestores e colegiados e a participação de docentes, técnicos, discentes, da sociedade civil organizada e dos tutores (estes, quando for o caso), e regulamentam o mandato dos membros que compõem os órgãos colegiados.\",\"4\":\"Os processos de gestão institucional consideram a autonomia e a representatividade dos órgãos gestores e colegiados e a participação de docentes, técnicos, discentes e da sociedade civil organizada e dos tutores (estes, quando for o caso), regulamentam o mandato dos membros que compõem os órgãos colegiados e sistematizam e divulgam as decisões colegiadas.\",\"5\":\"Os processos de gestão institucional consideram a autonomia e a representatividade dos órgãos gestores e colegiados e a participação de docentes, técnicos, discentes e da sociedade civil organizada e dos tutores (estes, quando for o caso), regulamentam o mandato dos membros que compõem os órgãos colegiados e sistematizam e divulgam as decisões colegiadas, cuja apropriação pela comunidade interna é assegurada.\"}"
+      },
+      {
+        "code": "4.6",
+        "title": "Sistema de controle de produção e distribuição de material didático",
+        "criteria": "{\"1\":\"O sistema de controle e distribuição de material didático não está formalizado.\",\"2\":\"O sistema de controle de produção e distribuição de material didático não considera o atendimento da demanda, a existência de uma equipe técnica multidisciplinar responsável ou estratégias que garantem a acessibilidade comunicacional.\",\"3\":\"O sistema de controle de produção e distribuição de material didático considera o atendimento da demanda, a existência de uma equipe técnica multidisciplinar responsável e estratégias que garantem a acessibilidade comunicacional.\",\"4\":\"O sistema de controle de produção e distribuição de material didático considera o atendimento da demanda, a existência de uma equipe técnica multidisciplinar responsável, estratégias que garantem a acessibilidade comunicacional e disponibilização por diferentes mídias, suportes e linguagens.\",\"5\":\"O sistema de controle de produção e distribuição de material didático considera o atendimento da demanda, a existência de uma equipe técnica multidisciplinar responsável, estratégias que garantem a acessibilidade comunicacional, disponibilização por diferentes mídias, suportes e linguagens, plano de atualização do material didático e apoio à produção de material autoral pelo corpo docente.\"}"
+      },
+      {
+        "code": "4.7",
+        "title": "Sustentabilidade financeira: relação com o desenvolvimento institucional",
+        "criteria": "{\"1\":\"O orçamento não é formulado a partir do PDI.\",\"2\":\"O orçamento é formulado a partir do PDI e está de acordo com as políticas de ensino, extensão e pesquisa (quando for o caso).\",\"3\":\"O orçamento é formulado a partir do PDI, está de acordo com as políticas de ensino, extensão e pesquisa (quando for o caso) e prevê ampliação e fortalecimento de fontes captadoras de recursos.\",\"4\":\"O orçamento é formulado a partir do PDI, está de acordo com as políticas de ensino, extensão e pesquisa (quando for o caso), prevê ampliação e fortalecimento de fontes captadoras de recursos e apresenta estudos para monitoramento e acompanhamento da distribuição de créditos.\",\"5\":\"O orçamento é formulado a partir do PDI, está de acordo com as políticas de ensino, extensão e pesquisa (quando for o caso), prevê ampliação e fortalecimento de fontes captadoras de recursos e apresenta estudos para monitoramento e acompanhamento da distribuição de créditos, com metas objetivas e mensuráveis, por meio de indicadores de desempenho institucionalizados.\"}"
+      },
+      {
+        "code": "4.8",
+        "title": "Sustentabilidade financeira: participação da comunidade interna",
+        "criteria": "{\"1\":\"O orçamento não dispõe de acompanhamento ou participação das instâncias gestoras e acadêmicas.\",\"2\":\"O orçamento dispõe de acompanhamento ou participação das instâncias gestoras e acadêmicas.\",\"3\":\"O orçamento dispõe de ciência, participação e acompanhamento das instâncias gestoras e acadêmicas, orientando a tomada de decisões internas.\",\"4\":\"O orçamento considera as análises do relatório de avaliação interna e dispõe de ciência, participação e acompanhamento das instâncias gestoras e acadêmicas, orientando a tomada de decisões internas.\",\"5\":\"O orçamento considera as análises do relatório de avaliação interna e dispõe de ciência, participação e acompanhamento das instâncias gestoras e acadêmicas (estas, capacitadas para a gestão de recursos), orientando a tomada de decisões internas.\"}"
+      },
+      {
+        "code": "5.1",
+        "title": "Instalações administrativas",
+        "criteria": "{\"1\":\"As instalações administrativas não atendem às necessidades institucionais.\",\"2\":\"As instalações administrativas atendem às necessidades institucionais, considerando apenas a sua adequação às atividades.\",\"3\":\"As instalações administrativas atendem às necessidades institucionais, considerando a sua adequação às atividades, a guarda, manutenção e disponibilização de documentação acadêmica, a acessibilidade e a avaliação periódica dos espaços.\",\"4\":\"As instalações administrativas atendem às necessidades institucionais, considerando a sua adequação às atividades, a guarda, manutenção e disponibilização de documentação acadêmica, a acessibilidade, a avaliação periódica dos espaços e o gerenciamento da manutenção patrimonial.\",\"5\":\"As instalações administrativas atendem às necessidades institucionais, considerando a sua adequação às atividades, a guarda, manutenção e disponibilização de documentação acadêmica, a acessibilidade, a avaliação periódica dos espaços, o gerenciamento da manutenção patrimonial e a existência de recursos tecnológicos diferenciados.\"}"
+      },
+      {
+        "code": "5.2",
+        "title": "Salas de aula",
+        "criteria": "{\"1\":\"As salas de aula não atendem às necessidades institucionais.\",\"2\":\"As salas de aula atendem às necessidades institucionais, considerando apenas a sua adequação às atividades.\",\"3\":\"As salas de aula atendem às necessidades institucionais, considerando a sua adequação às atividades, a acessibilidade e a avaliação periódica dos espaços.\",\"4\":\"As salas de aula atendem às necessidades institucionais, considerando a sua adequação às atividades, a acessibilidade, a avaliação periódica dos espaços e o gerenciamento da manutenção patrimonial, com normas consolidadas e institucionalizadas.\",\"5\":\"As salas de aula atendem às necessidades institucionais, considerando a sua adequação às atividades, a acessibilidade, a avaliação periódica dos espaços, o gerenciamento da manutenção patrimonial, com normas consolidadas e institucionalizadas, e a existência de recursos tecnológicos diferenciados.\"}"
+      },
+      {
+        "code": "5.3",
+        "title": "Auditório(s)",
+        "criteria": "{\"1\":\"Não há auditório(s).\",\"2\":\"O(s) auditório(s) não atende(m) às necessidades institucionais.\",\"3\":\"O(s) auditório(s) atende(m) às necessidades institucionais, considerando a acessibilidade, o conforto, o isolamento e a qualidade acústica.\",\"4\":\"O(s) auditório(s) atende(m) às necessidades institucionais, considerando a acessibilidade, o conforto, o isolamento e a qualidade acústica e, em pelo menos um auditório, a existência de recursos tecnológicos multimídia, incluindo-se a disponibilidade de conexão à internet.\",\"5\":\"O(s) auditório(s) atende(m) às necessidades institucionais, considerando a acessibilidade, o conforto, o isolamento e a qualidade acústica e, em pelo menos um auditório, a existência de recursos tecnológicos multimídia, incluindo-se a disponibilidade de conexão à internet e de equipamentos para videoconferência.\"}"
+      },
+      {
+        "code": "5.4",
+        "title": "Sala de professores",
+        "criteria": "{\"1\":\"As salas de professores não atendem às necessidades institucionais.\",\"2\":\"As salas de professores atendem às necessidades institucionais, considerando apenas a sua adequação às atividades.\",\"3\":\"As salas de professores atendem às necessidades institucionais, considerando a sua adequação às atividades, a acessibilidade e a avaliação periódica dos espaços.\",\"4\":\"As salas de professores atendem às necessidades institucionais, considerando a sua adequação às atividades, a acessibilidade, a avaliação periódica dos espaços e o gerenciamento da manutenção patrimonial, com normas consolidadas e institucionalizadas.\",\"5\":\"As salas de professores atendem às necessidades institucionais, considerando a sua adequação às atividades, a acessibilidade, a avaliação periódica dos espaços, o gerenciamento da manutenção patrimonial, com normas consolidadas e institucionalizadas, e a existência de recursos tecnológicos diferenciados.\"}"
+      },
+      {
+        "code": "5.5",
+        "title": "Espaços para atendimento aos discentes",
+        "criteria": "{\"1\":\"Os espaços para atendimento aos discentes não atendem às necessidades institucionais.\",\"2\":\"Os espaços para atendimento aos discentes atendem às necessidades institucionais, considerando apenas a sua adequação às atividades.\",\"3\":\"Os espaços para atendimento aos discentes atendem às necessidades institucionais, considerando a sua adequação às atividades, a acessibilidade e a avaliação periódica dos espaços. instrumento de avaliação institucional externa | presencial e A distância Recredenciamento | Transformação de Organização Acadêmica 27 27 CONCEITO CRITÉRIO DE ANÁLISE\",\"4\":\"Os espaços para atendimento aos discentes atendem às necessidades institucionais, considerando a sua adequação às atividades, a acessibilidade, a avaliação periódica dos espaços e o gerenciamento da manutenção patrimonial, com normas consolidadas e institucionalizadas.\",\"5\":\"Os espaços para atendimento aos discentes atendem às necessidades institucionais, considerando a sua adequação às atividades, a acessibilidade, a avaliação periódica dos espaços, o gerenciamento da manutenção patrimonial, com normas consolidadas e institucionalizadas, e a possibilidade de implementação de variadas formas de atendimento.\"}"
+      },
+      {
+        "code": "5.6",
+        "title": "Espaços de convivência e de alimentação",
+        "criteria": "{\"1\":\"Os espaços de convivência e de alimentação não atendem às necessidades institucionais.\",\"2\":\"Os espaços de convivência e de alimentação atendem às necessidades institucionais, considerando apenas a sua adequação às atividades.\",\"3\":\"Os espaços de convivência e de alimentação atendem às necessidades institucionais, considerando a sua adequação às atividades, as condições de limpeza e segurança, a acessibilidade e a avaliação periódica dos espaços.\",\"4\":\"Os espaços de convivência e de alimentação atendem às necessidades institucionais, considerando a sua adequação às atividades, a acessibilidade, a avaliação periódica dos espaços e a dimensão necessária para integração entre os membros da comunidade acadêmica.\",\"5\":\"Os espaços de convivência e de alimentação atendem às necessidades institucionais, considerando a sua adequação às atividades, a acessibilidade, a avaliação periódica dos espaços, a dimensão necessária para integração entre os membros da comunidade acadêmica e a existência de serviços variados e adequados.\"}"
+      },
+      {
+        "code": "5.7",
+        "title": "Laboratórios, ambientes e cenários para práticas didáticas: infraestrutura física",
+        "criteria": "{\"1\":\"Os laboratórios, ambientes e cenários para práticas didáticas não atendem às necessidades institucionais.\",\"2\":\"Os laboratórios, ambientes e cenários para práticas didáticas atendem às necessidades institucionais, considerando apenas a sua adequação às atividades.\",\"3\":\"Os laboratórios, ambientes e cenários para práticas didáticas atendem às necessidades institucionais, considerando a sua adequação às atividades, a acessibilidade, as normas de segurança e a avaliação periódica dos espaços.\",\"4\":\"Os laboratórios, ambientes e cenários para práticas didáticas atendem às necessidades institucionais, considerando a sua adequação às atividades, a acessibilidade, as normas de segurança, a avaliação periódica dos espaços e o gerenciamento da manutenção patrimonial, com normas consolidadas e institucionalizadas.\",\"5\":\"Os laboratórios, ambientes e cenários para práticas didáticas atendem às necessidades institucionais, considerando a sua adequação às atividades, a acessibilidade, as normas de segurança, a avaliação periódica dos espaços e o gerenciamento da manutenção patrimonial, com normas consolidadas e institucionalizadas, e a existência de recursos tecnológicos diferenciados.\"}"
+      },
+      {
+        "code": "5.8",
+        "title": "Infraestrutura física e tecnológica destinada à CPA",
+        "criteria": "{\"1\":\"Não há infraestrutura física ou tecnológica destinada à CPA.\",\"2\":\"A infraestrutura física e tecnológica destinada à CPA não atende às necessidades institucionais.\",\"3\":\"A infraestrutura física e tecnológica destinada à CPA atende às necessidades institucionais, considerando o espaço de trabalho para seus membros e as condições físicas e de tecnologia da informação para a coleta e análise de dados.\",\"4\":\"A infraestrutura física e tecnológica destinada à CPA atende às necessidades institucionais, considerando o espaço de trabalho para seus membros, as condições físicas e de tecnologia da informação para a coleta e análise de dados e os recursos tecnológicos para implantação da metodologia escolhida para o processo de autoavaliação.\",\"5\":\"A infraestrutura física e tecnológica destinada à CPA atende às necessidades institucionais, considerando o espaço de trabalho para seus membros, as condições físicas e de tecnologia da informação para a coleta e análise de dados, os recursos tecnológicos para implantação da metodologia escolhida para o processo de autoavaliação e recursos ou processos comprovadamente inovadores.\"}"
+      },
+      {
+        "code": "5.9",
+        "title": "Bibliotecas: infraestrutura",
+        "criteria": "{\"1\":\"A infraestrutura para bibliotecas não atende às necessidades institucionais.\",\"2\":\"A infraestrutura para bibliotecas atende às necessidades institucionais, mas não apresenta acessibilidade, ou não possui estações individuais e coletivas para estudos ou recursos tecnológicos para consulta, guarda, empréstimo e organização do acervo.\",\"3\":\"A infraestrutura para bibliotecas atende às necessidades institucionais, apresenta acessibilidade, e possui estações individuais e coletivas para estudos e recursos tecnológicos para consulta, guarda, empréstimo e organização do acervo.\",\"4\":\"A infraestrutura para bibliotecas atende às necessidades institucionais, apresenta acessibilidade, possui estações individuais e coletivas para estudos e recursos tecnológicos para consulta, guarda, empréstimo e organização do acervo e fornece condições para atendimento educacional especializado.\",\"5\":\"A infraestrutura para bibliotecas atende às necessidades institucionais, apresenta acessibilidade, possui estações individuais e coletivas para estudos e recursos tecnológicos para consulta, guarda, empréstimo e organização do acervo, fornece condições para atendimento educacional especializado e disponibiliza recursos comprovadamente inovadores.\"}"
+      },
+      {
+        "code": "5.10",
+        "title": "Bibliotecas: plano de atualização do acervo",
+        "criteria": "{\"1\":\"Não há plano de atualização do acervo descrito no PDI.\",\"2\":\"Há plano de atualização do acervo descrito no PDI, mas não há viabilidade para sua execução.\",\"3\":\"Há plano de atualização do acervo descrito no PDI, e viabilidade para sua execução, considerando a alocação de recursos.\",\"4\":\"Há plano de atualização do acervo descrito no PDI, e viabilidade para sua execução, considerando a alocação de recursos e ações corretivas associadas ao acompanhamento e à avaliação do acervo pela comunidade acadêmica.\",\"5\":\"Há plano de atualização do acervo descrito no PDI, e viabilidade para sua execução, considerando a alocação de recursos, ações corretivas associadas ao acompanhamento e à avaliação do acervo pela comunidade acadêmica e a existência de dispositivos inovadores.\"}"
+      },
+      {
+        "code": "5.11",
+        "title": "Salas de apoio de informática ou estrutura equivalente",
+        "criteria": "{\"1\":\"As salas de apoio de informática ou estrutura equivalente não atendem às necessidades institucionais\",\"2\":\"As salas de apoio de informática ou estrutura equivalente atendem às necessidades institucionais, considerando os equipamentos, as normas de segurança, o espaço físico, o acesso à internet, a atualização de softwares, a acessibilidade, os serviços e o suporte.\",\"3\":\"As salas de apoio de informática ou estrutura equivalente atendem às necessidades institucionais, considerando os equipamentos, as normas de segurança, o espaço físico, o acesso à internet, a atualização de softwares, a acessibilidade, os serviços, o suporte e as condições ergonômicas.\",\"4\":\"As salas de apoio de informática ou estrutura equivalente atendem às necessidades institucionais, considerando os equipamentos, as normas de segurança, o espaço físico, o acesso à internet, a atualização de softwares, a acessibilidade (incluindo recursos tecnológicos transformadores), os serviços, o suporte e as condições ergonômicas.\",\"5\":\"As salas de apoio de informática ou estrutura equivalente atendem às necessidades institucionais, considerando os equipamentos, as normas de segurança, o espaço físico, o acesso à internet, a atualização de softwares, a acessibilidade (incluindo recursos tecnológicos transformadores), os serviços, o suporte, as condições ergonômicas e a oferta de recursos de informática comprovadamente inovadores.\"}"
+      },
+      {
+        "code": "5.12",
+        "title": "Instalações sanitárias",
+        "criteria": "{\"1\":\"As instalações sanitárias não atendem às necessidades institucionais.\",\"2\":\"As instalações sanitárias atendem às necessidades institucionais, considerando apenas a sua adequação às atividades.\",\"3\":\"As instalações sanitárias atendem às necessidades institucionais, considerando a sua adequação às atividades, as condições de limpeza e segurança, a acessibilidade e a avaliação periódica dos espaços.\",\"4\":\"As instalações sanitárias atendem às necessidades institucionais, considerando a sua adequação às atividades, as condições de limpeza e segurança, a acessibilidade, a avaliação periódica dos espaços e o gerenciamento da manutenção patrimonial, com normas consolidadas e institucionalizadas.\",\"5\":\"As instalações sanitárias atendem às necessidades institucionais, considerando a sua adequação às atividades, as condições de limpeza e segurança, a acessibilidade, a avaliação periódica dos espaços, o gerenciamento da manutenção patrimonial, com normas consolidadas e institucionalizadas, e a existência de banheiros familiares e fraldários.\"}"
+      },
+      {
+        "code": "5.13",
+        "title": "Estrutura dos polos EAD",
+        "criteria": "{\"1\":\"A estrutura física, tecnológica e de pessoal nos polos não permite a execução das atividades previstas no PDI.\",\"2\":\"A estrutura física, tecnológica e de pessoal nos polos permite a execução das atividades previstas no PDI, mas não viabiliza a realização das atividades presenciais, não apresenta acessibilidade ou não é adequada ao projeto pedagógico dos cursos vinculados.\",\"3\":\"A estrutura física, tecnológica e de pessoal nos polos permite a execução das atividades previstas no PDI, viabiliza a realização das atividades presenciais, apresenta acessibilidade e é adequada ao projeto pedagógico dos cursos vinculados.\",\"4\":\"A estrutura física, tecnológica e de pessoal nos polos permite a execução das atividades previstas no PDI, viabiliza a realização das atividades presenciais, apresenta acessibilidade, é adequada ao projeto pedagógico dos cursos vinculados, propicia interação entre docentes, tutores e discentes e possui modelos tecnológicos e digitais diferenciados aplicados aos processos de ensino e aprendizagem.\",\"5\":\"A estrutura física, tecnológica e de pessoal nos polos permite a execução das atividades previstas no PDI, viabiliza a realização das atividades presenciais, apresenta acessibilidade, é adequada ao projeto pedagógico dos cursos vinculados, propicia interação entre docentes, tutores e discentes e possui modelos tecnológicos e digitais aplicados aos processos de ensino e aprendizagem e diferenciais inovadores comprovadamente exitosos.\"}"
+      },
+      {
+        "code": "5.14",
+        "title": "Infraestrutura tecnológica",
+        "criteria": "{\"1\":\"Não há base tecnológica explicitada no PDI ou não é apresentada a descrição dos recursos tecnológicos disponíveis.\",\"2\":\"A base tecnológica explicitada no PDI apresenta a descrição dos recursos tecnológicos disponíveis e considera a capacidade e a estabilidade da energia elétrica, a rede lógica e o acordo do nível de serviço.\",\"3\":\"A base tecnológica explicitada no PDI apresenta a descrição dos recursos tecnológicos disponíveis e considera a capacidade e a estabilidade da energia elétrica, a rede lógica, o acordo do nível de serviço e a segurança da informação.\",\"4\":\"A base tecnológica explicitada no PDI apresenta a descrição dos recursos tecnológicos disponíveis e considera a capacidade e a estabilidade da energia elétrica, a rede lógica, o acordo do nível de serviço, a segurança da informação e o plano de contingência.\",\"5\":\"A base tecnológica explicitada no PDI apresenta a descrição dos recursos tecnológicos disponíveis e considera a capacidade e a estabilidade da energia elétrica, a rede lógica, o acordo do nível de serviço, a segurança da informação e o plano de contingência, com condições de funcionamento 24 horas por dia, 7 dias por semana.\"}"
+      },
+      {
+        "code": "5.15",
+        "title": "Infraestrutura de execução e suporte",
+        "criteria": "{\"1\":\"A infraestrutura de execução e suporte não atende às necessidades institucionais.\",\"2\":\"A infraestrutura de execução e suporte não atende às necessidades institucionais, considerando a disponibilidade de serviços.\",\"3\":\"A infraestrutura de execução e suporte atende às necessidades institucionais, considerando a disponibilidade de serviços e meios apropriados para sua oferta.\",\"4\":\"A infraestrutura de execução e suporte atende às necessidades institucionais, considerando a disponibilidade de serviços e meios apropriados para sua oferta, e apresentando um plano de contingência.\",\"5\":\"A infraestrutura de execução e suporte atende às necessidades institucionais, considerando a disponibilidade de serviços e meios apropriados para sua oferta, apresentando um plano de contingência, redundância e expansão.\"}"
+      },
+      {
+        "code": "5.16",
+        "title": "Plano de expansão e atualização de equipamentos",
+        "criteria": "{\"1\":\"Não há plano de expansão e atualização de equipamentos descrito no PDI.\",\"2\":\"Não há viabilidade para executar o plano de expansão e atualização de equipamentos descrito no PDI.\",\"3\":\"Há viabilidade para executar o plano de expansão e atualização de equipamentos descrito no PDI. instrumento de avaliação institucional externa | presencial e A distância Recredenciamento | Transformação de Organização Acadêmica 32 CONCEITO CRITÉRIO DE ANÁLISE\",\"4\":\"Há viabilidade para executar o plano de expansão e atualização de equipamentos descrito no PDI, com acompanhamento baseado em metas objetivas e mensuráveis, por meio de indicadores de desempenho.\",\"5\":\"Há viabilidade para executar o plano de expansão e atualização de equipamentos descrito no PDI, com acompanhamento baseado em metas objetivas e mensuráveis, por meio de indicadores de desempenho; adicionalmente, há ações associadas à correção do plano.\"}"
+      },
+      {
+        "code": "5.17",
+        "title": "Recursos de tecnologias de informação e comunicação",
+        "criteria": "{\"1\":\"Os recursos de tecnologias de informação e comunicação não asseguram a execução do PDI.\",\"2\":\"Os recursos de tecnologias de informação e comunicação asseguram a execução do PDI, mas não viabilizam as ações acadêmico-administrativas ou não garantem a acessibilidade comunicacional.\",\"3\":\"Os recursos de tecnologias de informação e comunicação asseguram a execução do PDI, viabilizam as ações acadêmico-administrativas e garantem a acessibilidade comunicacional.\",\"4\":\"Os recursos de tecnologias de informação e comunicação asseguram a execução do PDI, viabilizam as ações acadêmico-administrativas, garantem a acessibilidade comunicacional e permitem a interatividade entre os membros da comunidade acadêmica.\",\"5\":\"Os recursos de tecnologias de informação e comunicação asseguram a execução do PDI, viabilizam as ações acadêmico-administrativas, garantem a acessibilidade comunicacional, permitem a interatividade entre os membros da comunidade acadêmica e apresentam soluções tecnológicas comprovadamente inovadoras.\"}"
+      },
+      {
+        "code": "5.18",
+        "title": "Ambiente Virtual de Aprendizagem - AVA",
+        "criteria": "{\"1\":\"O AVA não atende aos processos de ensino-aprendizagem, conforme disposto nas políticas institucionais para educação a distância estabelecidas pela IES.\",\"2\":\"O AVA atende aos processos de ensino-aprendizagem, conforme disposto nas políticas institucionais para educação a distância estabelecidas pela IES.\",\"3\":\"O AVA atende aos processos de ensino-aprendizagem, conforme disposto nas políticas institucionais para educação a distância estabelecidas pela IES, garantindo a interação entre docentes, discentes e tutores.\",\"4\":\"O AVA está integrado com o sistema acadêmico e atende aos processos de ensino-aprendizagem, conforme disposto nas políticas institucionais para educação a distância estabelecidas pela IES, garantindo a interação entre docentes, discentes e tutores.\",\"5\":\"O AVA está integrado com o sistema acadêmico e atende aos processos de ensino-aprendizagem, conforme disposto nas políticas institucionais para educação a distância estabelecidas pela IES, garantindo a interação entre docentes, discentes e tutores, com adoção de recursos inovadores.\"}"
+      }
+    ]
+  },
+  {
+    "key": "novo_instrumento_2026_institucional:2026-proposta",
+    "instrumentCode": "novo_instrumento_2026_institucional",
+    "version": "2026-proposta",
+    "label": "Proposta de Recredenciamento Institucional (2026)",
+    "scope": "institution",
+    "regulatoryStatus": "proposal",
+    "sourcePath": "source-overrides/client/src/lib/novo-instrumento.ts",
+    "sourceUrl": null,
+    "sourceSha256": "0e2681042626bf75a1fc35e3668d68cb00acda54329e4c8280f04aef91d7a09b",
+    "warning": "Proposta preliminar de 2026; não é instrumento definitivo confirmado. Títulos podem ser provisórios; orientações editoriais não são critérios oficiais.",
+    "objects": [
+      {
+        "code": "E1.1",
+        "title": "Plano de Desenvolvimento Institucional (PDI)"
+      },
+      {
+        "code": "E1.2",
+        "title": "Comissão Própria de Avaliação (CPA)"
+      },
+      {
+        "code": "E1.3",
+        "title": "Autoavaliação institucional e meta-avaliação"
+      },
+      {
+        "code": "E1.4",
+        "title": "Monitoramento de indicadores de qualidade"
+      },
+      {
+        "code": "E1.5",
+        "title": "Planejamento estratégico e orçamentário"
+      },
+      {
+        "code": "E2.1",
+        "title": "Responsabilidade social e compromisso com os ODS"
+      },
+      {
+        "code": "E2.2",
+        "title": "Inclusão, diversidade e equidade"
+      },
+      {
+        "code": "E2.3",
+        "title": "Extensão e relação com a comunidade"
+      },
+      {
+        "code": "E2.4",
+        "title": "Educação ambiental e sustentabilidade"
+      },
+      {
+        "code": "E3.1",
+        "title": "Projeto Pedagógico Institucional (PPI)"
+      },
+      {
+        "code": "E3.2",
+        "title": "Políticas de ensino"
+      },
+      {
+        "code": "E3.3",
+        "title": "Políticas de pesquisa e inovação"
+      },
+      {
+        "code": "E3.4",
+        "title": "Políticas de extensão"
+      },
+      {
+        "code": "E3.5",
+        "title": "Políticas de gestão de pessoas"
+      },
+      {
+        "code": "E3.6",
+        "title": "Acompanhamento de egressos (institucional)"
+      },
+      {
+        "code": "E3.7",
+        "title": "Internacionalização"
+      },
+      {
+        "code": "E4.1",
+        "title": "Governança e estrutura organizacional"
+      },
+      {
+        "code": "E4.2",
+        "title": "Transformação digital e sistemas de informação"
+      },
+      {
+        "code": "E4.3",
+        "title": "LGPD e proteção de dados"
+      },
+      {
+        "code": "E4.4",
+        "title": "Sustentabilidade financeira"
+      },
+      {
+        "code": "E4.5",
+        "title": "Comunicação institucional"
+      },
+      {
+        "code": "E5.1",
+        "title": "Estruturas de aprendizagem"
+      },
+      {
+        "code": "E5.2",
+        "title": "Ambiente híbrido de aprendizagem (Biblioteca)"
+      },
+      {
+        "code": "E5.3",
+        "title": "Acessibilidade arquitetônica e digital"
+      },
+      {
+        "code": "E5.4",
+        "title": "Infraestrutura tecnológica"
+      },
+      {
+        "code": "E5.5",
+        "title": "Polos EaD (quando aplicável)"
+      }
+    ]
+  },
+  {
+    "key": "novo_instrumento_2026_curso:2026-proposta-base",
+    "instrumentCode": "novo_instrumento_2026_curso",
+    "version": "2026-proposta-base",
+    "label": "Proposta de Avaliação de Curso (2026) · Dimensões 1–3",
+    "scope": "course",
+    "regulatoryStatus": "proposal",
+    "sourcePath": "source-overrides/client/src/lib/novo-instrumento.ts",
+    "sourceUrl": null,
+    "sourceSha256": "0e2681042626bf75a1fc35e3668d68cb00acda54329e4c8280f04aef91d7a09b",
+    "warning": "Proposta preliminar de 2026; não é instrumento definitivo confirmado. Títulos podem ser provisórios; orientações editoriais não são critérios oficiais.",
+    "applicabilityProfile": "base",
+    "objects": [
+      {
+        "code": "1.1",
+        "title": "PPC — fundamentação I"
+      },
+      {
+        "code": "1.2",
+        "title": "PPC — fundamentação II"
+      },
+      {
+        "code": "1.3",
+        "title": "PPC — fundamentação III"
+      },
+      {
+        "code": "1.4",
+        "title": "PPC — fundamentação IV"
+      },
+      {
+        "code": "1.5",
+        "title": "Extensão"
+      },
+      {
+        "code": "1.6",
+        "title": "Interdisciplinaridade"
+      },
+      {
+        "code": "1.7",
+        "title": "Ensino"
+      },
+      {
+        "code": "1.8",
+        "title": "Pesquisa"
+      },
+      {
+        "code": "1.9",
+        "title": "Extensão na formação"
+      },
+      {
+        "code": "1.10",
+        "title": "Avaliação da aprendizagem"
+      },
+      {
+        "code": "1.11",
+        "title": "Perfil do egresso"
+      },
+      {
+        "code": "1.12",
+        "title": "Métodos de ensino"
+      },
+      {
+        "code": "1.13",
+        "title": "Material didático (processo e produto)"
+      },
+      {
+        "code": "1.14",
+        "title": "Acompanhamento de egressos"
+      },
+      {
+        "code": "2.1",
+        "title": "Coordenador do curso"
+      },
+      {
+        "code": "2.2",
+        "title": "Coordenação pedagógica"
+      },
+      {
+        "code": "2.3",
+        "title": "Perfil docente"
+      },
+      {
+        "code": "2.4",
+        "title": "Compatibilidade do corpo docente com a matriz"
+      },
+      {
+        "code": "2.5",
+        "title": "Formação continuada"
+      },
+      {
+        "code": "2.6",
+        "title": "Desenvolvimento docente"
+      },
+      {
+        "code": "2.7",
+        "title": "NDE (composição e atuação efetiva)"
+      },
+      {
+        "code": "2.8",
+        "title": "Mediadores pedagógicos"
+      },
+      {
+        "code": "3.1",
+        "title": "Espaços administrativos"
+      },
+      {
+        "code": "3.2",
+        "title": "Espaços de convivência"
+      },
+      {
+        "code": "3.3",
+        "title": "Espaços de ensino e aprendizagem (salas flexíveis)"
+      },
+      {
+        "code": "3.4",
+        "title": "Ambientes de aprendizagem"
+      },
+      {
+        "code": "3.5",
+        "title": "Laboratórios"
+      },
+      {
+        "code": "3.6",
+        "title": "Recursos tecnológicos"
+      },
+      {
+        "code": "3.7",
+        "title": "Acessibilidade"
+      },
+      {
+        "code": "3.8",
+        "title": "Serviços de apoio"
+      },
+      {
+        "code": "3.9",
+        "title": "Biblioteca (acervo, acervo digital e acessibilidade)"
+      }
+    ]
+  },
+  {
+    "key": "novo_instrumento_2026_curso:2026-proposta-direito",
+    "instrumentCode": "novo_instrumento_2026_curso",
+    "version": "2026-proposta-direito",
+    "label": "Proposta de Avaliação de Curso (2026) · Direito, Área 04",
+    "scope": "course",
+    "regulatoryStatus": "proposal",
+    "sourcePath": "source-overrides/client/src/lib/novo-instrumento.ts",
+    "sourceUrl": null,
+    "sourceSha256": "0e2681042626bf75a1fc35e3668d68cb00acda54329e4c8280f04aef91d7a09b",
+    "warning": "Proposta preliminar de 2026; não é instrumento definitivo confirmado. Títulos podem ser provisórios; orientações editoriais não são critérios oficiais.",
+    "applicabilityProfile": "direito",
+    "objects": [
+      {
+        "code": "1.1",
+        "title": "PPC — fundamentação I"
+      },
+      {
+        "code": "1.2",
+        "title": "PPC — fundamentação II"
+      },
+      {
+        "code": "1.3",
+        "title": "PPC — fundamentação III"
+      },
+      {
+        "code": "1.4",
+        "title": "PPC — fundamentação IV"
+      },
+      {
+        "code": "1.5",
+        "title": "Extensão"
+      },
+      {
+        "code": "1.6",
+        "title": "Interdisciplinaridade"
+      },
+      {
+        "code": "1.7",
+        "title": "Ensino"
+      },
+      {
+        "code": "1.8",
+        "title": "Pesquisa"
+      },
+      {
+        "code": "1.9",
+        "title": "Extensão na formação"
+      },
+      {
+        "code": "1.10",
+        "title": "Avaliação da aprendizagem"
+      },
+      {
+        "code": "1.11",
+        "title": "Perfil do egresso"
+      },
+      {
+        "code": "1.12",
+        "title": "Métodos de ensino"
+      },
+      {
+        "code": "1.13",
+        "title": "Material didático (processo e produto)"
+      },
+      {
+        "code": "1.14",
+        "title": "Acompanhamento de egressos"
+      },
+      {
+        "code": "2.1",
+        "title": "Coordenador do curso"
+      },
+      {
+        "code": "2.2",
+        "title": "Coordenação pedagógica"
+      },
+      {
+        "code": "2.3",
+        "title": "Perfil docente"
+      },
+      {
+        "code": "2.4",
+        "title": "Compatibilidade do corpo docente com a matriz"
+      },
+      {
+        "code": "2.5",
+        "title": "Formação continuada"
+      },
+      {
+        "code": "2.6",
+        "title": "Desenvolvimento docente"
+      },
+      {
+        "code": "2.7",
+        "title": "NDE (composição e atuação efetiva)"
+      },
+      {
+        "code": "2.8",
+        "title": "Mediadores pedagógicos"
+      },
+      {
+        "code": "3.1",
+        "title": "Espaços administrativos"
+      },
+      {
+        "code": "3.2",
+        "title": "Espaços de convivência"
+      },
+      {
+        "code": "3.3",
+        "title": "Espaços de ensino e aprendizagem (salas flexíveis)"
+      },
+      {
+        "code": "3.4",
+        "title": "Ambientes de aprendizagem"
+      },
+      {
+        "code": "3.5",
+        "title": "Laboratórios"
+      },
+      {
+        "code": "3.6",
+        "title": "Recursos tecnológicos"
+      },
+      {
+        "code": "3.7",
+        "title": "Acessibilidade"
+      },
+      {
+        "code": "3.8",
+        "title": "Serviços de apoio"
+      },
+      {
+        "code": "3.9",
+        "title": "Biblioteca (acervo, acervo digital e acessibilidade)"
+      },
+      {
+        "code": "4.1",
+        "title": "Práticas laboratoriais — Núcleo de Prática Jurídica (NPJ)"
+      },
+      {
+        "code": "4.2",
+        "title": "Estágio supervisionado e prática jurídica"
+      },
+      {
+        "code": "4.3",
+        "title": "Integração com o mercado e a comunidade"
+      },
+      {
+        "code": "4.4",
+        "title": "Inserção social do curso"
+      },
+      {
+        "code": "4.5",
+        "title": "Atualização tecnológica da área"
+      },
+      {
+        "code": "4.6",
+        "title": "Marco legal da área"
+      },
+      {
+        "code": "4.7",
+        "title": "Impacto social e profissional"
+      }
+    ]
+  },
+  {
+    "key": "novo_instrumento_2026_curso:2026-proposta-negocios",
+    "instrumentCode": "novo_instrumento_2026_curso",
+    "version": "2026-proposta-negocios",
+    "label": "Proposta de Avaliação de Curso (2026) · Negócios e Administração, Área 04",
+    "scope": "course",
+    "regulatoryStatus": "proposal",
+    "sourcePath": "source-overrides/client/src/lib/novo-instrumento.ts",
+    "sourceUrl": null,
+    "sourceSha256": "0e2681042626bf75a1fc35e3668d68cb00acda54329e4c8280f04aef91d7a09b",
+    "warning": "Proposta preliminar de 2026; não é instrumento definitivo confirmado. Títulos podem ser provisórios; orientações editoriais não são critérios oficiais.",
+    "applicabilityProfile": "negocios",
+    "objects": [
+      {
+        "code": "1.1",
+        "title": "PPC — fundamentação I"
+      },
+      {
+        "code": "1.2",
+        "title": "PPC — fundamentação II"
+      },
+      {
+        "code": "1.3",
+        "title": "PPC — fundamentação III"
+      },
+      {
+        "code": "1.4",
+        "title": "PPC — fundamentação IV"
+      },
+      {
+        "code": "1.5",
+        "title": "Extensão"
+      },
+      {
+        "code": "1.6",
+        "title": "Interdisciplinaridade"
+      },
+      {
+        "code": "1.7",
+        "title": "Ensino"
+      },
+      {
+        "code": "1.8",
+        "title": "Pesquisa"
+      },
+      {
+        "code": "1.9",
+        "title": "Extensão na formação"
+      },
+      {
+        "code": "1.10",
+        "title": "Avaliação da aprendizagem"
+      },
+      {
+        "code": "1.11",
+        "title": "Perfil do egresso"
+      },
+      {
+        "code": "1.12",
+        "title": "Métodos de ensino"
+      },
+      {
+        "code": "1.13",
+        "title": "Material didático (processo e produto)"
+      },
+      {
+        "code": "1.14",
+        "title": "Acompanhamento de egressos"
+      },
+      {
+        "code": "2.1",
+        "title": "Coordenador do curso"
+      },
+      {
+        "code": "2.2",
+        "title": "Coordenação pedagógica"
+      },
+      {
+        "code": "2.3",
+        "title": "Perfil docente"
+      },
+      {
+        "code": "2.4",
+        "title": "Compatibilidade do corpo docente com a matriz"
+      },
+      {
+        "code": "2.5",
+        "title": "Formação continuada"
+      },
+      {
+        "code": "2.6",
+        "title": "Desenvolvimento docente"
+      },
+      {
+        "code": "2.7",
+        "title": "NDE (composição e atuação efetiva)"
+      },
+      {
+        "code": "2.8",
+        "title": "Mediadores pedagógicos"
+      },
+      {
+        "code": "3.1",
+        "title": "Espaços administrativos"
+      },
+      {
+        "code": "3.2",
+        "title": "Espaços de convivência"
+      },
+      {
+        "code": "3.3",
+        "title": "Espaços de ensino e aprendizagem (salas flexíveis)"
+      },
+      {
+        "code": "3.4",
+        "title": "Ambientes de aprendizagem"
+      },
+      {
+        "code": "3.5",
+        "title": "Laboratórios"
+      },
+      {
+        "code": "3.6",
+        "title": "Recursos tecnológicos"
+      },
+      {
+        "code": "3.7",
+        "title": "Acessibilidade"
+      },
+      {
+        "code": "3.8",
+        "title": "Serviços de apoio"
+      },
+      {
+        "code": "3.9",
+        "title": "Biblioteca (acervo, acervo digital e acessibilidade)"
+      },
+      {
+        "code": "4.1",
+        "title": "Práticas laboratoriais"
+      },
+      {
+        "code": "4.2",
+        "title": "Estágio supervisionado"
+      },
+      {
+        "code": "4.3",
+        "title": "Integração com o mercado e a comunidade"
+      },
+      {
+        "code": "4.4",
+        "title": "Inserção social do curso"
+      },
+      {
+        "code": "4.5",
+        "title": "Atualização tecnológica da área"
+      },
+      {
+        "code": "4.6",
+        "title": "Marco legal da área"
+      },
+      {
+        "code": "4.7",
+        "title": "Impacto social e profissional"
+      }
+    ]
+  }
+]

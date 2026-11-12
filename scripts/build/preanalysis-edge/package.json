@@ -1,0 +1,12 @@
+{
+  "name": "vertice-preanalysis-edge-packaging",
+  "private": true,
+  "type": "module",
+  "engines": {"node": ">=24"},
+  "dependencies": {
+    "esbuild": "0.25.12",
+    "fast-xml-parser": "5.12.0",
+    "fflate": "0.8.3",
+    "unpdf": "2.1.0"
+  }
+}

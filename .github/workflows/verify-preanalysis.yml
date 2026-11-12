@@ -1,0 +1,39 @@
+name: Superior evidence preanalysis
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'supabase/functions/_shared/preanalysis-*'
+      - 'supabase/functions/vertice-doc-prevalidate/**'
+      - 'supabase/functions/vertice-doc-analyze/**'
+      - 'supabase/tests/preanalysis-*'
+      - 'source-overrides/client/src/lib/repository-indicators.json'
+      - 'source-overrides/client/src/lib/avaliacao-institucional.json'
+      - 'source-overrides/client/src/lib/novo-instrumento.ts'
+      - 'docs/sql/preanalysis-v2.sql'
+      - 'supabase/migrations/*superior_preanalysis*'
+      - 'scripts/build-preanalysis-catalog.mjs'
+      - 'scripts/build-preanalysis-sources.mjs'
+      - 'scripts/build-preanalysis-migration.mjs'
+      - 'scripts/build-preanalysis-edge.mjs'
+      - 'scripts/build/preanalysis-edge/**'
+      - 'source-overrides/client/src/lib/preanalysis-sources.json'
+      - 'scripts/test-preanalysis.sh'
+      - 'scripts/tests/preanalysis-runtime/**'
+      - '.github/workflows/verify-preanalysis.yml'
+permissions:
+  contents: read
+jobs:
+  synthetic:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci --prefix scripts/tests/preanalysis-runtime --no-fund
+      - run: bash scripts/test-preanalysis.sh
+      - run: npm ci --prefix scripts/build/preanalysis-edge --ignore-scripts --no-audit --no-fund
+      - run: node scripts/build-preanalysis-edge.mjs
+      - run: node scripts/build-preanalysis-edge.mjs --check --smoke

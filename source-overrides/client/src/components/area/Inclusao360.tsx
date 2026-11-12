@@ -272,7 +272,7 @@ export default function Inclusao360({institutionId,role}:Props) {
             </div>
             <div className="inc-ev-card">
               <div className="inc-ev-label">Canais de entrada ativos</div>
-              <div className="inc-ev-n">{new Set(cases.map(c=>c.entry_channel)).size}</div>
+              <div className="inc-ev-n">{new Set(requests.map(r=>r.origin).filter(Boolean)).size}</div>
             </div>
           </div>
           <div className="inc-ev-note">
