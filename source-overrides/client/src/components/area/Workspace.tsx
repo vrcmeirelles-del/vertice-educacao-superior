@@ -251,6 +251,32 @@ export default function Workspace({
     return()=>{window.clearInterval(timer);window.removeEventListener("focus",focus);};
   }, [reload]);
 
+  const [modulePickerOpen, setModulePickerOpen] = useState(true);
+  const [moduleFocusRequest, setModuleFocusRequest] = useState(0);
+  const moduleContentRef = useRef<HTMLDivElement>(null);
+  const modulePickerRef = useRef<HTMLElement>(null);
+  const revealModule = () => {
+    if (role !== "master") return;
+    setModulePickerOpen(false);
+    setModuleFocusRequest(value => value + 1);
+  };
+  useEffect(() => {
+    if (!moduleFocusRequest || role !== "master" || macroOverride) return;
+    const frame = window.requestAnimationFrame(() => {
+      const content = moduleContentRef.current;
+      if (!content || content.hidden) return;
+      content.focus({ preventScroll: true });
+      content.scrollIntoView({ block: "start", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [moduleFocusRequest, role, macroOverride]);
+  const showModulePicker = () => {
+    setModulePickerOpen(true);
+    window.requestAnimationFrame(() => {
+      modulePickerRef.current?.scrollIntoView({ block: "start", behavior: "instant" });
+      modulePickerRef.current?.focus({ preventScroll: true });
+    });
+  };
   const edited = useRef(false);
   useEffect(() => {
     const sync = () => {
@@ -266,6 +292,7 @@ export default function Workspace({
       edited.current = false;
       setMacroOverride(null);
       setTab(next);
+      revealModule();
     };
     const beforeUnload = (event: BeforeUnloadEvent) => {
       if (edited.current) { event.preventDefault(); event.returnValue = ""; }
@@ -281,12 +308,13 @@ export default function Workspace({
   }, [id, role, tab]);
   const confirmNavigation = () => !edited.current || window.confirm("Você editou campos nesta área. Confira se salvou suas alterações antes de sair. Deseja continuar?");
   const choose = (t: Tab) => {
-    if (t === tab) { setMacroOverride(null); return true; }
+    if (t === tab) { setMacroOverride(null); revealModule(); return true; }
     if (!confirmNavigation()) return false;
     setMacroOverride(null);
     edited.current = false;
     if (t !== "repositorio") setInstrumentUpload(null);
     setTab(t);
+    revealModule();
     const p = new URLSearchParams(window.location.hash.slice(1));
     p.set("aba", t);
     p.set("instituicao", String(id));
@@ -319,6 +347,7 @@ export default function Workspace({
     } else if (confirmNavigation()) {
       // Keep the original form mounted while presenting the existing activation controls.
       setMacroOverride(macro);
+      setModulePickerOpen(true);
       setModuleSearch(""); setOnlyFavorites(false);
     }
   };
@@ -380,7 +409,7 @@ export default function Workspace({
           window.dispatchEvent(new Event("vertice-open-assistant"));
         }}>Abrir agente de IA</button>
        </div>}
-      <section className="vx-modules" aria-label="Central de Gestão Institucional">
+      <section ref={modulePickerRef} tabIndex={-1} hidden={role === "master" && !modulePickerOpen} className="vx-modules inst-module-picker" aria-label="Central de Gestão Institucional">
         <header className="vx-modules-head">
           <div>
             <p className="vx-modules-eyebrow">VÉRTICE · MÓDULOS INSTITUCIONAIS</p>
@@ -441,7 +470,11 @@ export default function Workspace({
       </section>
       {role === "master" && activeMacro === "historico" && <p className="area-note">Os registros disponíveis permanecem nos módulos abaixo. Esta área não constitui um histórico consolidado de auditoria.</p>}
       {macroOverride && <p role="status" className="area-note">Os módulos desta área precisam ser ativados. Selecione um módulo para consultar as condições existentes.</p>}
-      <div hidden={Boolean(macroOverride)}>
+      <div ref={moduleContentRef} hidden={Boolean(macroOverride)} tabIndex={-1} role="region" aria-labelledby={role === "master" ? "inst-active-module-title" : undefined} className={role === "master" ? "inst-active-module" : undefined}>
+      {role === "master" && <header className="inst-active-module-head">
+        <div><p>Módulo selecionado</p><h3 id="inst-active-module-title">{TABS.find(([key]) => key === tab)?.[1] ?? "Painel institucional"}</h3></div>
+        <button type="button" className="corp-button small" aria-expanded={modulePickerOpen} onClick={showModulePicker}>Trocar módulo</button>
+      </header>}
       {tab === 'base' && <InstitutionAddress institutionId={id} manage={role==='master'}/>}
       {error && <p role="alert" className="area-error">{error}</p>}
       {TAB_HELP[tab] && tab!=="repositorio" && <TabHelp id={tab} />}
