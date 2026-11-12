@@ -5,8 +5,16 @@ import "./extensao360.css";
 import ExtensaoHourLedger from "./ExtensaoHourLedger";
 import ExtensaoODS from "./ExtensaoODS";
 import ExtensaoGovernanca from "./ExtensaoGovernanca";
+import ExtensaoAtividades from "./ExtensaoAtividades";
+import ExtensaoEvidencias from "./ExtensaoEvidencias";
+import ExtensaoParceiros from "./ExtensaoParceiros";
+import ExtensaoCompetencias from "./ExtensaoCompetencias";
+import ExtensaoAchados from "./ExtensaoAchados";
+import ExtensaoIA from "./ExtensaoIA";
+import ExtensaoPerfis from "./ExtensaoPerfis";
+import ExtensaoImportacao from "./ExtensaoImportacao";
 
-type View = 'projetos' | 'equipe' | 'alunos' | 'entregas' | 'cobertura' | 'revisoes' | 'ods' | 'governanca';
+type View = 'projetos' | 'equipe' | 'alunos' | 'entregas' | 'cobertura' | 'revisoes' | 'ods' | 'governanca' | 'atividades' | 'evidencias' | 'parceiros' | 'competencias' | 'achados' | 'ia' | 'perfis' | 'importacao';
 
 interface ExtProject {
   id: string; title: string; code: string; project_type: string; description: string;
@@ -83,6 +91,8 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
   const [loading, setLoading] = useState(true);
   const [hourLedger, setHourLedger] = useState<{ participantId: string; participantName: string; projectId: string } | null>(null);
   const [odsPanel, setOdsPanel] = useState<{ projectId: string; projectTitle: string } | null>(null);
+  const [activityPanel, setActivityPanel] = useState<{ projectId: string; projectTitle: string } | null>(null);
+  const [evidencePanel, setEvidencePanel] = useState<{ projectId: string; projectTitle: string } | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState<any>({});
   const [formType, setFormType] = useState<'project' | 'team' | 'student' | 'deliverable' | 'axis' | 'review'>('project');
@@ -246,15 +256,23 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
 
       {/* Tabs de navegação */}
       <div className="ext-tabs">
-        {(['projetos','equipe','alunos','entregas','cobertura','revisoes','ods','governanca'] as View[]).map(v => (
+        {(['projetos','equipe','alunos','entregas','atividades','evidencias','competencias','parceiros','achados','cobertura','revisoes','ods','governanca','ia','perfis','importacao'] as View[]).map(v => (
           <button key={v} className={view === v ? 'active' : ''} onClick={() => setView(v)}>
             {v === 'projetos' ? `Projetos (${projects.length})` :
              v === 'equipe' ? `Equipe (${team.length})` :
              v === 'alunos' ? `Alunos (${students.length})` :
              v === 'entregas' ? `Entregas (${deliverables.length})` :
+             v === 'atividades' ? '📅 Atividades' :
+             v === 'evidencias' ? '📁 Evidências' :
+             v === 'competencias' ? '🎯 Competências' :
+             v === 'parceiros' ? '🤝 Parceiros' :
+             v === 'achados' ? '🔍 Achados' :
              v === 'cobertura' ? 'Cobertura por Curso' :
              v === 'revisoes' ? `Revisões (${pendentesRevisao})` :
              v === 'ods' ? '🌍 ODS' :
+             v === 'ia' ? '🤖 IA' :
+             v === 'perfis' ? '🔐 Perfis' :
+             v === 'importacao' ? '📥 Importação' :
              '📊 Governança'}
           </button>
         ))}
@@ -354,6 +372,54 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
                     <label>ODS<input value={formData.ods_goals_text ?? (formData.ods_goals || []).join(', ')} onChange={e => setFormData({ ...formData, ods_goals_text: e.target.value })} placeholder="ODS4, ODS16" /></label>
                   </div>
                   <label className="ext-form-full">Descrição<textarea value={formData.description || ''} onChange={e => setFormData({ ...formData, description: e.target.value })} rows={3} /></label>
+
+                  {/* Campos Impacto */}
+                  <div style={{ borderTop: '1px solid var(--border,#e5e7eb)', paddingTop: '1rem', marginTop: '.5rem' }}>
+                    <h4 style={{ margin: '0 0 .75rem', fontSize: '.9rem', color: 'var(--accent,#0b9185)' }}>📋 Detalhamento Impacto</h4>
+                    <label className="ext-form-full">Problema social identificado
+                      <textarea value={formData.social_problem || ''} onChange={e => setFormData({ ...formData, social_problem: e.target.value })} rows={2} placeholder="Qual problema social o projeto visa resolver?" />
+                    </label>
+                    <label className="ext-form-full">Objetivo geral
+                      <textarea value={formData.general_objective || ''} onChange={e => setFormData({ ...formData, general_objective: e.target.value })} rows={2} placeholder="Objetivo geral do projeto" />
+                    </label>
+                    <label className="ext-form-full">Objetivos específicos (um por linha)
+                      <textarea value={(formData.specific_objectives || []).join('\n')} onChange={e => setFormData({ ...formData, specific_objectives: e.target.value.split('\n').filter((s: string) => s.trim()) })} rows={3} placeholder="Um objetivo por linha" />
+                    </label>
+                    <div className="ext-form-grid">
+                      <label>Perfil do público beneficiário
+                        <input value={formData.beneficiary_profile || ''} onChange={e => setFormData({ ...formData, beneficiary_profile: e.target.value })} placeholder="Ex: famílias em vulnerabilidade" />
+                      </label>
+                      <label>Comunidade externa envolvida
+                        <input value={formData.external_community || ''} onChange={e => setFormData({ ...formData, external_community: e.target.value })} placeholder="Instituições, associações, ONGs..." />
+                      </label>
+                    </div>
+                    <label className="ext-form-full">Metodologia
+                      <textarea value={formData.methodology || ''} onChange={e => setFormData({ ...formData, methodology: e.target.value })} rows={3} placeholder="Como o projeto será executado" />
+                    </label>
+                    <label className="ext-form-full">Recursos necessários
+                      <textarea value={formData.required_resources || ''} onChange={e => setFormData({ ...formData, required_resources: e.target.value })} rows={2} placeholder="Materiais, infraestrutura, transporte..." />
+                    </label>
+                    <label className="ext-form-full">Resultados esperados (um por linha)
+                      <textarea value={(formData.expected_results || []).join('\n')} onChange={e => setFormData({ ...formData, expected_results: e.target.value.split('\n').filter((s: string) => s.trim()) })} rows={2} placeholder="Um resultado por linha" />
+                    </label>
+                    <div className="ext-form-grid">
+                      <label>Status de revisão
+                        <select value={formData.review_status || 'rascunho'} onChange={e => setFormData({ ...formData, review_status: e.target.value })}>
+                          <option value="rascunho">Rascunho</option>
+                          <option value="submetido">Submetido</option>
+                          <option value="em_analise">Em Análise</option>
+                          <option value="pendente_ajustes">Pendente Ajustes</option>
+                          <option value="aprovado">Aprovado</option>
+                          <option value="em_execucao">Em Execução</option>
+                          <option value="aguardando_evidencias">Aguardando Evidências</option>
+                          <option value="em_avaliacao">Em Avaliação</option>
+                          <option value="concluido">Concluído</option>
+                          <option value="reprovado">Reprovado</option>
+                          <option value="arquivado">Arquivado</option>
+                        </select>
+                      </label>
+                    </div>
+                  </div>
 
                   {/* Cursos vinculados */}
                   {courses && courses.length > 0 && (
@@ -663,6 +729,95 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
                 </>
               )}
             </div>
+          )}
+
+          {/* ===== ATIVIDADES ===== */}
+          {view === 'atividades' && (
+            activityPanel ? (
+              <ExtensaoAtividades
+                institutionId={institutionId}
+                projectId={activityPanel.projectId}
+                projectTitle={activityPanel.projectTitle}
+                canEdit={canEdit}
+                onClose={() => setActivityPanel(null)}
+              />
+            ) : (
+              <div>
+                <h3>📅 Selecione um projeto para ver atividades</h3>
+                <div style={{ display: 'grid', gap: '.5rem' }}>
+                  {projects.map(p => (
+                    <button key={p.id} className="ext-btn-secondary" onClick={() => setActivityPanel({ projectId: p.id, projectTitle: p.title })}>
+                      {p.code} — {p.title}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )
+          )}
+
+          {/* ===== EVIDÊNCIAS ===== */}
+          {view === 'evidencias' && (
+            <ExtensaoEvidencias
+              institutionId={institutionId}
+              projectId={evidencePanel?.projectId}
+              projectTitle={evidencePanel?.projectTitle}
+              canEdit={canEdit}
+              onClose={() => setEvidencePanel(null)}
+            />
+          )}
+
+          {/* ===== COMPETÊNCIAS ===== */}
+          {view === 'competencias' && (
+            <ExtensaoCompetencias
+              institutionId={institutionId}
+              canEdit={canEdit}
+              onClose={() => setView('projetos')}
+            />
+          )}
+
+          {/* ===== PARCEIROS ===== */}
+          {view === 'parceiros' && (
+            <ExtensaoParceiros
+              institutionId={institutionId}
+              canEdit={canEdit}
+              onClose={() => setView('projetos')}
+            />
+          )}
+
+          {/* ===== ACHADOS / 5W2H ===== */}
+          {view === 'achados' && (
+            <ExtensaoAchados
+              institutionId={institutionId}
+              canEdit={canEdit}
+              onClose={() => setView('projetos')}
+            />
+          )}
+
+          {/* ===== IA ===== */}
+          {view === 'ia' && (
+            <ExtensaoIA
+              institutionId={institutionId}
+              canEdit={canEdit}
+              onClose={() => setView('projetos')}
+            />
+          )}
+
+          {/* ===== IMPORTAÇÃO ===== */}
+          {view === 'importacao' && (
+            <ExtensaoImportacao
+              institutionId={institutionId}
+              canEdit={canEdit}
+              onClose={() => setView('projetos')}
+            />
+          )}
+
+          {/* ===== PERFIS ===== */}
+          {view === 'perfis' && (
+            <ExtensaoPerfis
+              institutionId={institutionId}
+              canEdit={canEdit}
+              onClose={() => setView('projetos')}
+            />
           )}
 
           {/* ===== GOVERNANÇA ===== */}
