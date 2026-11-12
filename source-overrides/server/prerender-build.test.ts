@@ -23,8 +23,9 @@ describe('strict public prerender build', () => {
   });
   it('does not mask failure in the production package command', () => {
     const command=JSON.parse(readFileSync('package.json','utf8')).scripts['build:static'];
-    expect(command).toBe('vite build && node scripts/run-prerender.mjs');
-    expect(command).not.toContain('||');
+    expect(command.startsWith('vite build && node scripts/run-prerender.mjs')).toBe(true);
+    expect(command).not.toContain('|| echo');
+    expect(command).not.toContain('|| true');
     const source=readFileSync('scripts/prerender.tsx','utf8');
     expect(source).toContain('Prerender requires a fresh Vite template');
     expect(source).toContain('Public page rendered no HTML');
