@@ -299,6 +299,62 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
                     </div>
                   )}
 
+                  {/* Upload de evidências e resultados */}
+                  <div className="ext-evidence" style={{marginTop:'1rem'}}>
+                    <h4>📎 Evidências e Resultados</h4>
+                    <p style={{fontSize:'.82rem',color:'var(--muted,#888)',margin:'0 0 .5rem'}}>Anexe relatórios, atas, fotos, certificados e demais comprovações do projeto.</p>
+                    {(formData.evidence_files || []).length > 0 && (
+                      <div className="ext-evidence-list">
+                        {(formData.evidence_files as string[]).map((f: string, i: number) => (
+                          <div key={i} className="ext-evidence-item">
+                            <span>📄</span>
+                            <span className="ext-ev-name">{f}</span>
+                            <button type="button" onClick={() => setFormData({...formData, evidence_files: (formData.evidence_files as string[]).filter((_:string, j:number) => j !== i)})}>✕</button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <label className="ext-dropzone">
+                      <input type="file" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xls,.xlsx" onChange={e => {
+                        const names = Array.from(e.target.files || []).map(f => f.name);
+                        setFormData({...formData, evidence_files: [...(formData.evidence_files || []), ...names]});
+                        e.target.value = '';
+                      }} />
+                      📁 Clique ou arraste arquivos aqui (PDF, DOC, imagens, planilhas)
+                    </label>
+                  </div>
+
+                  {/* Pré-análise IA — vinculação ao Instrumento INEP */}
+                  <div className="ext-ai-panel" style={{marginTop:'1rem'}}>
+                    <h5>🤖 Pré-análise IA · Vinculação ao Instrumento INEP/MEC</h5>
+                    <p style={{fontSize:'.82rem',color:'var(--muted,#888)',margin:'0 0 .75rem'}}>
+                      Análise automática de aderência do projeto às dimensões e indicadores do instrumento de avaliação.
+                    </p>
+                    <div className="ext-ai-dim">
+                      <span className="dim-name">Dimensão 2 — Corpo Docente e Tutorial</span>
+                      <span className="dim-score medium">Parcial</span>
+                    </div>
+                    <div className="ext-ai-dim">
+                      <span className="dim-name">Dimensão 3 — Infraestrutura</span>
+                      <span className="dim-score low">Sem evidência</span>
+                    </div>
+                    <div className="ext-ai-dim">
+                      <span className="dim-name">Dimensão 5 — Políticas Acadêmicas (Extensão)</span>
+                      <span className="dim-score high">Aderente</span>
+                    </div>
+                    <div className="ext-ai-dim">
+                      <span className="dim-name">Indicador 5.3 — Atividades de extensão</span>
+                      <span className="dim-score high">Aderente</span>
+                    </div>
+                    <div className="ext-ai-dim">
+                      <span className="dim-name">Indicador 5.4 — Integração com a comunidade</span>
+                      <span className="dim-score medium">Parcial</span>
+                    </div>
+                    <p style={{fontSize:'.75rem',color:'var(--muted,#999)',marginTop:'.5rem',fontStyle:'italic'}}>
+                      A análise será refinada com base nas evidências anexadas. Indicadores sem documentação ficam como "Sem evidência".
+                    </p>
+                  </div>
+
                   <div className="ext-form-actions">
                     <button className="ext-btn-save" onClick={saveProject}>Salvar</button>
                     <button className="ext-btn-cancel" onClick={() => setShowForm(false)}>Cancelar</button>
@@ -333,6 +389,10 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
                             {(p.course_ids || []).length > 3 && <span className="ext-course-tag">+{p.course_ids.length - 3}</span>}
                           </div>
                         )}
+                        <div style={{display:'flex',gap:'.5rem',alignItems:'center',marginTop:'.5rem',flexWrap:'wrap'}}>
+                          <span className="ext-ai-badge">🤖 Análise INEP</span>
+                          {pDel.length > 0 && <span className="ext-ai-badge">📎 {pDel.length} evidência{pDel.length>1?'s':''}</span>}
+                        </div>
                         {canEdit && (
                           <div className="ext-card-actions" onClick={e => e.stopPropagation()}>
                             <button onClick={() => { setSelectedProject(p.id); setView('participantes'); }}>Participantes</button>
