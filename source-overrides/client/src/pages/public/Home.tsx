@@ -103,6 +103,9 @@ export default function Home() {
           <Link className="corp-text-link" href="/plataforma.html">
             Veja os módulos do painel <ArrowRight size={17} />
           </Link>
+          <Link className="corp-text-link" href="/extensao.html">
+            Extensão com impacto social <ArrowRight size={17} />
+          </Link>
         </div>
       </section>
       <section className="corp-method-band">
