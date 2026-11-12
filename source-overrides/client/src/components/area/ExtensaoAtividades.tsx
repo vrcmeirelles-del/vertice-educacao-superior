@@ -206,11 +206,36 @@ export default function ExtensaoAtividades({
       {selectedActivity && participation[selectedActivity] && (
         <div style={{ marginTop: '1.5rem', padding: '1rem', background: 'var(--bg-secondary, #f9fafb)', borderRadius: '8px' }}>
           <h4>Participantes — {activities.find(a => a.id === selectedActivity)?.title}</h4>
+
+          {/* Vincular estudantes do projeto */}
+          {canEdit && (
+            <button className="ext-btn-secondary" style={{ marginBottom: '.75rem' }} onClick={async () => {
+              const act = activities.find(a => a.id === selectedActivity);
+              if (!act) return;
+              // Buscar estudantes do projeto que não estão na atividade
+              const { data: students } = await supabase.from('vertice_extension_students')
+                .select('id, registration_number').eq('project_id', act.project_id).eq('status', 'ativo');
+              const existing = new Set(participation[selectedActivity]?.map(p => p.student_id) || []);
+              const available = (students || []).filter(s => !existing.has(s.id));
+              if (available.length === 0) return alert('Todos os estudantes ativos já estão vinculados.');
+              // Inserir todos como presentes
+              const rows = available.map(s => ({
+                institution_id: institutionId, activity_id: selectedActivity,
+                student_id: s.id, present: true, hours_credited: act.duration_minutes,
+              }));
+              const { error } = await supabase.from('vertice_extension_activity_participation').insert(rows);
+              if (error) return alert('Erro: ' + error.message);
+              loadParticipation(selectedActivity!);
+            }}>
+              + Vincular todos os estudantes do projeto
+            </button>
+          )}
+
           {participation[selectedActivity].length === 0 ? (
-            <p className="ext-empty">Nenhum participante registrado.</p>
+            <p className="ext-empty">Nenhum participante registrado. Use o botão acima para vincular.</p>
           ) : (
             <table className="ext-table">
-              <thead><tr><th>Estudante</th><th>Presente</th><th>Horas</th><th>Nota</th><th>Feedback</th></tr></thead>
+              <thead><tr><th>Matrícula</th><th>Presente</th><th>Min creditados</th><th>Nota</th>{canEdit && <th>Ação</th>}</tr></thead>
               <tbody>
                 {participation[selectedActivity].map(p => (
                   <tr key={p.id}>
@@ -218,7 +243,17 @@ export default function ExtensaoAtividades({
                     <td>{p.present ? '✅' : '❌'}</td>
                     <td className="num">{p.hours_credited}min</td>
                     <td className="num">{p.grade ?? '—'}</td>
-                    <td>{p.feedback || '—'}</td>
+                    {canEdit && (
+                      <td>
+                        <button className="ext-btn-small" onClick={async () => {
+                          await supabase.from('vertice_extension_activity_participation')
+                            .update({ present: !p.present }).eq('id', p.id);
+                          loadParticipation(selectedActivity!);
+                        }}>
+                          {p.present ? 'Marcar ausente' : 'Marcar presente'}
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>

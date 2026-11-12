@@ -62,6 +62,7 @@ export default function ExtensaoIA({
   const [findings, setFindings] = useState<AIFinding[]>([]);
   const [refs, setRefs] = useState<Record<string, SourceRef[]>>({});
   const [loading, setLoading] = useState(true);
+  const [analyzing, setAnalyzing] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -73,6 +74,74 @@ export default function ExtensaoIA({
   }, [institutionId]);
 
   useEffect(() => { load(); }, [load]);
+
+  const runProjectAnalysis = async () => {
+    setAnalyzing(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setAnalyzing(false); return; }
+
+    // Buscar todos os projetos da instituição
+    const { data: projects } = await supabase.from('vertice_extension_projects')
+      .select('*').eq('institution_id', institutionId);
+    if (!projects || projects.length === 0) { setAnalyzing(false); return alert('Nenhum projeto encontrado.'); }
+
+    // Criar registro da análise
+    const { data: analysis, error } = await supabase.from('vertice_ai_analyses').insert({
+      institution_id: institutionId,
+      analysis_type: 'projeto',
+      model_used: 'regras-estaticas-v1',
+      status: 'processando',
+      requested_by: user.id,
+    }).select('id').single();
+    if (error || !analysis) { setAnalyzing(false); return alert('Erro: ' + (error?.message || '')); }
+
+    // Analisar cada projeto com regras estáticas
+    let totalFindings = 0;
+    for (const project of projects) {
+      const checks: { type: string; title: string; desc: string; sev: string }[] = [];
+      const required: [string, string][] = [
+        ['social_problem', 'Problema social não identificado'],
+        ['general_objective', 'Objetivo geral não definido'],
+        ['methodology', 'Metodologia não descrita'],
+        ['target_community', 'Comunidade atendida não identificada'],
+        ['beneficiary_profile', 'Perfil do público beneficiário ausente'],
+      ];
+      for (const [field, msg] of required) {
+        if (!project[field] || String(project[field]).trim().length < 10) {
+          checks.push({ type: 'lacuna', title: `${msg} — ${project.title}`, desc: `Campo "${field}" vazio ou insuficiente.`, sev: 'alto' });
+        }
+      }
+      if (!project.specific_objectives || project.specific_objectives.length === 0) {
+        checks.push({ type: 'lacuna', title: `Objetivos específicos ausentes — ${project.title}`, desc: 'Projeto sem objetivos específicos.', sev: 'medio' });
+      }
+      if (!project.total_hours || project.total_hours < 1) {
+        checks.push({ type: 'inconsistencia', title: `Carga horária não definida — ${project.title}`, desc: 'Sem carga horária total.', sev: 'critico' });
+      }
+      if (!project.start_date || !project.end_date) {
+        checks.push({ type: 'lacuna', title: `Período não definido — ${project.title}`, desc: 'Sem datas de início/término.', sev: 'medio' });
+      }
+      if (checks.length === 0) {
+        checks.push({ type: 'informacao_comprovada', title: `Projeto completo — ${project.title}`, desc: 'Campos obrigatórios preenchidos.', sev: 'informativo' });
+      }
+
+      for (const c of checks) {
+        await supabase.from('vertice_ai_findings').insert({
+          analysis_id: analysis.id, institution_id: institutionId,
+          finding_type: c.type, title: c.title, description: c.desc,
+          confidence: 1.0, severity: c.sev,
+        });
+        totalFindings++;
+      }
+    }
+
+    await supabase.from('vertice_ai_analyses').update({
+      status: 'concluida', findings_count: totalFindings,
+      completed_at: new Date().toISOString(),
+    }).eq('id', analysis.id);
+
+    setAnalyzing(false);
+    load();
+  };
 
   const loadFindings = async (analysisId: string) => {
     setSelectedAnalysis(analysisId);
@@ -141,8 +210,15 @@ export default function ExtensaoIA({
         </div>
       </div>
 
+      {canEdit && (
+        <button className="ext-btn-primary" style={{ marginBottom: '1rem' }} disabled={analyzing}
+          onClick={runProjectAnalysis}>
+          {analyzing ? '⏳ Analisando projetos...' : '🔍 Analisar completude dos projetos'}
+        </button>
+      )}
+
       {loading ? <p>Carregando...</p> : analyses.length === 0 ? (
-        <p className="ext-empty">Nenhuma análise de IA registrada.</p>
+        <p className="ext-empty">Nenhuma análise de IA registrada. Clique no botão acima para iniciar.</p>
       ) : !selectedAnalysis ? (
         <table className="ext-table">
           <thead>
