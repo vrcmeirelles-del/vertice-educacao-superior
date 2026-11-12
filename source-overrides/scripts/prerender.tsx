@@ -14,6 +14,9 @@ import { publicPages } from "../client/src/lib/consultancy";
 
 const dir = resolve("dist/public");
 const template = readFileSync(resolve(dir, "index.html"), "utf8");
+if (!template.includes('<div id="root"></div>')) {
+  throw new Error('Prerender requires a fresh Vite template with an empty root.');
+}
 const config = existsSync("site.config.json")
   ? JSON.parse(readFileSync("site.config.json", "utf8"))
   : {};
@@ -77,6 +80,7 @@ for (const page of publicPages) {
       <PublicPage path={page.path} />
     </Router>
   );
+  if (!body.trim()) throw new Error(`Public page rendered no HTML: ${page.path}`);
   const html = document(page, body);
   if (page.path === "/") writeFileSync(resolve(dir, "index.html"), html);
   else {
