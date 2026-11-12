@@ -241,4 +241,10 @@ export const publicPages = [
     description:
       "Entenda os dados utilizados pelo site e pelo demonstrador local da Vértice, os limites de armazenamento e os cuidados com informações institucionais.",
   },
+  {
+    path: "/extensao",
+    title: "Extensão universitária com impacto | Vértice Impacto",
+    description:
+      "Gestão completa de projetos de extensão: livro-razão de horas, competências, evidências, ODS e curricularização monitorada. Módulo Impacto da Vértice.",
+  },
 ];

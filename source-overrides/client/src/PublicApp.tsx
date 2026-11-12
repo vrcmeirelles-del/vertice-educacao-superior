@@ -17,6 +17,7 @@ import Contact from "./pages/public/Contact";
 import Login from "./pages/public/Login";
 import Privacy from "./pages/public/Privacy";
 import ResetPassword from "./pages/public/ResetPassword";
+import Extensao from "./pages/public/Extensao";
 import { useLocation } from "wouter";
 
 export const publicComponents: Record<string, React.ComponentType> = {
@@ -37,6 +38,7 @@ export const publicComponents: Record<string, React.ComponentType> = {
   "/plataforma-ies": PlataformaIES,
   "/contato": Contact,
   "/privacidade": Privacy,
+  "/extensao": Extensao,
 };
 export function normalizePublicPath(path: string) {
   return path.replace(/\.html$/, "").replace(/\/$/, "") || "/";
