@@ -1,0 +1,76 @@
+/* Sub-tabs pill bar inside each macro tab */
+
+.inst-subtabs {
+  margin: 0 0 20px;
+  padding: 0;
+}
+.inst-subtabs-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.inst-subtab {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 14px;
+  border: 1px solid #dde1ec;
+  border-radius: 20px;
+  background: #fff;
+  color: #3b4260;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+  white-space: nowrap;
+}
+.inst-subtab:hover,
+.inst-subtab:focus-visible {
+  background: #eef1f8;
+  border-color: #b8bdd4;
+  outline: none;
+}
+.inst-subtab:focus-visible {
+  box-shadow: 0 0 0 2px #4f8cf7;
+}
+.inst-subtab--active {
+  background: #2563eb;
+  color: #fff;
+  border-color: #2563eb;
+}
+.inst-subtab--active:hover {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+}
+.inst-subtab--locked {
+  opacity: 0.6;
+  cursor: default;
+}
+.inst-subtab-icon {
+  font-size: 14px;
+}
+.inst-subtab-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 8px;
+  background: #fbbf24;
+  color: #78350f;
+}
+.inst-subtab-badge.tasting {
+  background: #c4b5fd;
+  color: #4c1d95;
+}
+
+@media (max-width: 768px) {
+  .inst-subtabs-list {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+  }
+}
