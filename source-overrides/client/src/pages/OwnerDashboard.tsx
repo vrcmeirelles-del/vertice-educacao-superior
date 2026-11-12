@@ -26,6 +26,7 @@ import DemoLeads from '@/components/DemoLeads';
 import CaptacaoBI from '@/components/area/CaptacaoBI';
 import './owner-dashboard-redesign.css';
 import AcademicoBI from '@/components/bi/AcademicoBI';
+import EgressosBI from '@/components/bi/EgressosBI';
 import PainelBI from '@/components/bi/PainelBI';
 import BIFrame from '@/components/bi/BIFrame';
 import ProfileSimulator from '@/components/area/ProfileSimulator';
@@ -54,7 +55,7 @@ function writeHash(inst:string,course:string,repositories=false,library=false,re
 
 type BiItem = {label:string; group:string; value:number; href?:string};
 type BiSource = {items:BiItem[]; error?:boolean};
-const BI_NAMES=['Metas','Matrículas','Documentação','Reconhecimento de Curso','Aquisições','Captação e permanência'];
+const BI_NAMES=['Metas','Matrículas','Documentação','Reconhecimento de Curso','Aquisições','Captação e permanência','Egressos'];
 const BI_COLORS=['#0b9185','#daa94e','#e5765e','#368aa6','#6bbf9f','#b58b3b','#116d78'];
 const biNumber=new Intl.NumberFormat('pt-BR');
 const biMoney=new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'});
@@ -209,7 +210,7 @@ export function PortalBI({institutions,courses,enrollments,session}:{institution
   <nav>{([
     [-1,'Visão geral','⌂'],[1,'Matrículas','▥'],[0,'Metas e indicadores','◎'],
     [2,'Regulação (MEC / INEP)','◇'],[3,'Reconhecimento de Curso','▤'],
-    [4,'Aquisições','◫'],[5,'Captação','↗']
+    [4,'Aquisições','◫'],[5,'Captação','↗'],[6,'Egressos','🎓']
   ] as [number,string,string][]).map(([key,name,icon])=><button type="button" key={key} aria-current={page===key?'page':undefined} onClick={()=>setPage(key)}><span>{icon}</span>{name}</button>)}</nav>
   <div className="exe-sidebar-bottom">BI estratégico para <strong>Direção e Gestores</strong><small>Dados cadastrados · confira a instituição e a origem</small></div>
  </aside>
@@ -239,7 +240,7 @@ export function PortalBI({institutions,courses,enrollments,session}:{institution
    onNavigate={navigateExecutive}
  />}
  <div className="pbi-toolbar vx-bi-tabs"><button type="button" aria-pressed={page<0} onClick={()=>{setPage(-1);setTv(false);}}>Visão geral</button>{BI_NAMES.map((name,index)=><button type="button" key={name} aria-pressed={page===index} onClick={()=>setPage(index)}>{name}</button>)}</div>
- {page<0?null:page===5?<><section aria-label="Captação cadastrada da instituição"><p role="note">Fonte: registros de captação da instituição selecionada. Recorte: todo o histórico cadastrado; o seletor de semestre de matrículas acadêmicas não filtra esta seção. Etapas informadas não comprovam matrícula acadêmica.</p><CaptacaoBI key={id} institutionId={id} institutionName={institutions.find(i=>i.id===id)?.name??''}/></section><details><summary>Simulação manual separada dos registros</summary><div className="pbi-grid">{costs}</div></details></>:chart(page)}
+ {page<0?null:page===5?<><section aria-label="Captação cadastrada da instituição"><p role="note">Fonte: registros de captação da instituição selecionada. Recorte: todo o histórico cadastrado; o seletor de semestre de matrículas acadêmicas não filtra esta seção. Etapas informadas não comprovam matrícula acadêmica.</p><CaptacaoBI key={id} institutionId={id} institutionName={institutions.find(i=>i.id===id)?.name??''}/></section><details><summary>Simulação manual separada dos registros</summary><div className="pbi-grid">{costs}</div></details></>:page===6?<EgressosBI key={id} institutionId={id}/>:chart(page)}
  </div></div>
  <dialog ref={dialog} onClose={()=>setDetail(null)}>{detail&&<><h3>{detail.title}</h3><p>{biNumber.format(detail.items.length)} registros</p><ul>{detail.items.map((item,index)=><li key={index}>{item.href?<a href={item.href} onClick={()=>dialog.current?.close()}>{item.label}</a>:item.label}{item.value!==1?' · '+biNumber.format(item.value):''}</li>)}</ul></>}<form method="dialog"><button>Fechar detalhes</button></form></dialog>
  </section>;

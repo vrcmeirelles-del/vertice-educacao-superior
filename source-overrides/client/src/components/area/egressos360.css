@@ -84,6 +84,70 @@
 }
 .alumni-education-details { color: var(--vx-muted, #64748b); }
 
+/* Derived */
+.alumni-derived { margin-top: 1rem; }
+.alumni-derived-note { background: var(--vx-hover, #f8fafc); border-left: 4px solid var(--vx-accent, #2563eb); padding: .75rem 1rem; border-radius: 0 8px 8px 0; font-size: .8125rem; margin-bottom: 1rem; color: var(--vx-text, #1e293b); }
+.alumni-derived-period { font-size: .8125rem; color: var(--vx-muted, #64748b); margin-bottom: 1rem; }
+
+/* Section header */
+.alumni-section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: .5rem; }
+.alumni-section-header h3 { font-size: 1.125rem; font-weight: 700; margin: 0; }
+.alumni-btn-primary { padding: .5rem 1rem; border: none; border-radius: 6px; background: var(--vx-accent, #2563eb); color: #fff; cursor: pointer; font-size: .8125rem; font-weight: 600; }
+.alumni-btn-primary:hover { opacity: .9; }
+.alumni-btn-small { padding: .25rem .5rem; border: 1px solid var(--vx-border, #e2e8f0); border-radius: 4px; background: var(--vx-surface, #fff); cursor: pointer; font-size: .75rem; color: var(--vx-accent, #2563eb); margin-top: .5rem; }
+
+/* Create form */
+.alumni-create-form { background: var(--vx-surface, #fff); border: 1px solid var(--vx-border, #e2e8f0); border-radius: 10px; padding: 1rem; margin-bottom: 1rem; display: flex; flex-direction: column; gap: .5rem; }
+.alumni-create-form input, .alumni-create-form select, .alumni-create-form textarea { padding: .375rem .75rem; border: 1px solid var(--vx-border, #e2e8f0); border-radius: 6px; font-size: .8125rem; background: var(--vx-surface, #fff); font-family: inherit; }
+.alumni-form-actions { display: flex; gap: .5rem; }
+
+/* Status pill */
+.alumni-status-pill { display: inline-block; padding: .125rem .5rem; border-radius: 999px; font-size: .6875rem; font-weight: 600; color: #fff; text-transform: uppercase; }
+
+/* Indicadores */
+.alumni-ind-subtitle { font-size: .9375rem; font-weight: 600; color: var(--vx-text, #1e293b); margin: 1.5rem 0 .75rem; }
+.alumni-kpi-indicator .alumni-kpi-ratio { font-size: .875rem; color: var(--vx-muted, #64748b); font-weight: 500; }
+.alumni-kpi-indicator .alumni-kpi-note { font-size: .6875rem; color: var(--vx-muted, #94a3b8); margin-top: .125rem; }
+.alumni-table-compact td, .alumni-table-compact th { padding: .375rem .625rem; }
+
+/* Catálogo */
+.alumni-catalog { margin-top: 1.5rem; }
+.alumni-catalog h4 { margin-bottom: .75rem; }
+.alumni-catalog-card { background: var(--vx-surface, #fff); border: 1px solid var(--vx-border, #e2e8f0); border-radius: 8px; padding: 1rem; margin-bottom: .75rem; }
+.alumni-catalog-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: .5rem; }
+.alumni-catalog-header code { font-size: .6875rem; background: var(--vx-hover, #f1f5f9); padding: .125rem .375rem; border-radius: 3px; }
+.alumni-catalog-formula { display: flex; flex-direction: column; gap: .25rem; font-size: .75rem; color: var(--vx-muted, #64748b); }
+.alumni-catalog-limit { color: var(--vx-warning, #d97706); font-style: italic; }
+
+/* Info box */
+.alumni-info-box { background: var(--vx-hover, #f8fafc); border: 1px solid var(--vx-border, #e2e8f0); border-radius: 8px; padding: .75rem 1rem; font-size: .75rem; color: var(--vx-muted, #64748b); margin-top: 1.5rem; }
+.alumni-info-box-warn { border-left: 4px solid var(--vx-warning, #d97706); }
+
+/* CPA / Findings */
+.alumni-findings-list { display: flex; flex-direction: column; gap: .75rem; }
+.alumni-finding-card { background: var(--vx-surface, #fff); border: 1px solid var(--vx-border, #e2e8f0); border-radius: 10px; padding: 1rem; }
+.alumni-finding-header { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; margin-bottom: .5rem; }
+.alumni-finding-type { display: inline-block; padding: .125rem .5rem; border-radius: 999px; font-size: .6875rem; font-weight: 600; color: #fff; }
+.alumni-finding-ref { font-size: .6875rem; background: var(--vx-hover, #f1f5f9); padding: .125rem .375rem; border-radius: 3px; }
+.alumni-finding-status { font-size: .6875rem; color: var(--vx-muted, #64748b); margin-left: auto; text-transform: uppercase; }
+.alumni-finding-desc { font-size: .8125rem; color: var(--vx-muted, #64748b); margin: 0 0 .5rem; }
+.alumni-finding-indicator { font-size: .75rem; color: var(--vx-text, #1e293b); }
+
+/* Actions */
+.alumni-actions-list { margin-top: .75rem; border-top: 1px solid var(--vx-border-light, #f1f5f9); padding-top: .5rem; }
+.alumni-action-row { display: flex; align-items: center; gap: .5rem; padding: .375rem 0; font-size: .8125rem; flex-wrap: wrap; }
+.alumni-action-status { font-size: .6875rem; padding: .125rem .375rem; border-radius: 4px; font-weight: 600; text-transform: uppercase; }
+.alumni-action-status.planejada { background: #f1f5f9; color: #475569; }
+.alumni-action-status.em_execucao { background: #dbeafe; color: #1e40af; }
+.alumni-action-status.executada { background: #dcfce7; color: #166534; }
+.alumni-action-status.avaliada { background: #f0fdf4; color: #14532d; }
+.alumni-action-status.cancelada { background: #fef2f2; color: #991b1b; }
+.alumni-action-title { flex: 1; }
+.alumni-action-resp { font-size: .75rem; color: var(--vx-muted, #64748b); }
+.alumni-action-date { font-size: .75rem; color: var(--vx-warning, #d97706); }
+.alumni-action-evidence { cursor: help; }
+.alumni-action-select { padding: .125rem .375rem; font-size: .6875rem; border: 1px solid var(--vx-border, #e2e8f0); border-radius: 4px; background: var(--vx-surface, #fff); }
+
 /* Empty / loading / error */
 .alumni-empty { text-align: center; padding: 3rem 1rem; color: var(--vx-muted, #64748b); }
 .alumni-empty-cell { text-align: center; padding: 2rem; color: var(--vx-muted, #64748b); }

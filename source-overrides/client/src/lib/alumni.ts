@@ -223,3 +223,193 @@ async function hashCPF(cpfDigits: string): Promise<string> {
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
+
+/* ── Tipos Fase 2+ ── */
+
+export interface AlumniSurvey {
+  id: string;
+  institution_id: string;
+  course_id?: string;
+  title: string;
+  version: number;
+  wave_type: string;
+  status: string;
+  opens_at?: string;
+  closes_at?: string;
+  created_at: string;
+}
+
+export interface SurveyIndicators {
+  institution_id: string;
+  survey_id: string;
+  survey_title: string;
+  wave_type: string;
+  total_eligible: number;
+  total_invited: number;
+  total_delivered: number;
+  total_respondents: number;
+  pct_eligible?: number;
+  pct_invited?: number;
+  pct_delivered?: number;
+}
+
+export interface TrajectoryIndicators {
+  institution_id: string;
+  course_id?: string;
+  total_egressos: number;
+  respostas_trabalho: number;
+  em_atividade: number;
+  desempregados: number;
+  desempregados_buscando: number;
+  responderam_aderencia: number;
+  area_ou_correlata: number;
+  respostas_estudos_validas: number;
+  respostas_ambas: number;
+  trabalha_ou_estuda: number;
+}
+
+export interface AlumniFinding {
+  id: string;
+  finding_type: string;
+  title: string;
+  description?: string;
+  indicator_key?: string;
+  indicator_value?: number;
+  indicator_target?: number;
+  instrument_ref?: string;
+  status: string;
+  created_at: string;
+}
+
+export interface AlumniAction {
+  id: string;
+  finding_id: string;
+  title: string;
+  responsible?: string;
+  due_date?: string;
+  status: string;
+  evidence_url?: string;
+  result_observed?: string;
+}
+
+export interface IndicatorCatalog {
+  id: string;
+  code: string;
+  name: string;
+  description: string;
+  formula: string;
+  numerator_desc: string;
+  denominator_desc: string;
+  limitations?: string;
+}
+
+/* ── Queries Fase 2+ ── */
+
+export async function fetchSurveys(institutionId: string): Promise<AlumniSurvey[]> {
+  const { data, error } = await supabase
+    .from('vertice_alumni_surveys')
+    .select('*')
+    .eq('institution_id', institutionId)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as AlumniSurvey[];
+}
+
+export async function fetchSurveyIndicators(institutionId: string): Promise<SurveyIndicators[]> {
+  const { data, error } = await supabase
+    .from('v_alumni_survey_indicators')
+    .select('*')
+    .eq('institution_id', institutionId);
+  if (error) throw error;
+  return (data ?? []) as SurveyIndicators[];
+}
+
+export async function fetchTrajectoryIndicators(institutionId: string): Promise<TrajectoryIndicators[]> {
+  const { data, error } = await supabase
+    .from('v_alumni_trajectory_indicators')
+    .select('*')
+    .eq('institution_id', institutionId);
+  if (error) throw error;
+  return (data ?? []) as TrajectoryIndicators[];
+}
+
+export async function fetchFindings(institutionId: string): Promise<AlumniFinding[]> {
+  const { data, error } = await supabase
+    .from('vertice_alumni_findings')
+    .select('*')
+    .eq('institution_id', institutionId)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as AlumniFinding[];
+}
+
+export async function fetchActions(institutionId: string): Promise<AlumniAction[]> {
+  const { data, error } = await supabase
+    .from('vertice_alumni_actions')
+    .select('*')
+    .eq('institution_id', institutionId)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as AlumniAction[];
+}
+
+export async function fetchIndicatorCatalog(): Promise<IndicatorCatalog[]> {
+  const { data, error } = await supabase
+    .from('vertice_alumni_indicator_catalog')
+    .select('*')
+    .order('code');
+  if (error) throw error;
+  return (data ?? []) as IndicatorCatalog[];
+}
+
+export async function createSurvey(survey: Partial<AlumniSurvey>): Promise<AlumniSurvey> {
+  const { data, error } = await supabase
+    .from('vertice_alumni_surveys')
+    .insert(survey)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as AlumniSurvey;
+}
+
+export async function createFinding(finding: Partial<AlumniFinding> & { institution_id: string }): Promise<AlumniFinding> {
+  const { data, error } = await supabase
+    .from('vertice_alumni_findings')
+    .insert(finding)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as AlumniFinding;
+}
+
+export async function createAction(action: Partial<AlumniAction> & { finding_id: string; institution_id: string }): Promise<AlumniAction> {
+  const { data, error } = await supabase
+    .from('vertice_alumni_actions')
+    .insert(action)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as AlumniAction;
+}
+
+export async function updateActionStatus(id: string, status: string, evidence?: { url?: string; description?: string; result?: string }): Promise<void> {
+  const updates: any = { status, updated_at: new Date().toISOString() };
+  if (evidence?.url) updates.evidence_url = evidence.url;
+  if (evidence?.description) updates.evidence_description = evidence.description;
+  if (evidence?.result) updates.result_observed = evidence.result;
+  if (status === 'avaliada') updates.evaluated_at = new Date().toISOString();
+  const { error } = await supabase.from('vertice_alumni_actions').update(updates).eq('id', id);
+  if (error) throw error;
+}
+
+/* ── Helpers de indicador ── */
+
+export function safePercent(num: number, den: number): string | null {
+  if (den === 0) return null; // §6: denominador zero → "não disponível"
+  return (100 * num / den).toFixed(1) + '%';
+}
+
+export function safeRatio(num: number, den: number): string {
+  if (den === 0) return 'N/D';
+  return `${num}/${den}`;
+}
