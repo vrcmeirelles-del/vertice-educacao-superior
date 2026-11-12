@@ -1,4 +1,5 @@
 import React from 'react';
+import InstitutionSubTabs from './InstitutionSubTabs';
 import { describe, it, expect } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { readFileSync } from 'node:fs';
@@ -33,5 +34,29 @@ describe('institution navigation', () => {
     const html = renderToStaticMarkup(<InstitutionTabs availableMacros={['dados']} activeTab="cadastro" activeMacro="dados" onSelectMacro={() => {}} institutionName="IES teste" ><p>Cadastro</p></InstitutionTabs>);
     expect(html.match(/class="inst-tabs-nav-item(?: |")/g)).toHaveLength(1);
     expect(html).not.toContain('Gestores e Acessos');
+  });
+});
+
+
+describe('persistent module navigation', () => {
+  const macro = MACRO_TABS.find(item => item.key === 'dados')!;
+  it('keeps the module picker visible even for a single destination', () => {
+    const html = renderToStaticMarkup(<InstitutionSubTabs macro={macro} entries={[{key:'cadastro',label:'Cadastro'}]} activeTab="cadastro" onSelect={() => {}} />);
+    expect(html).toContain('Módulos de Dados da Instituição');
+    expect(html).toContain('aria-current="page"');
+    expect(html).not.toContain('Trocar módulo');
+    expect(html).not.toContain('role="tab"');
+  });
+  it('retains activation, tasting and favorite controls beside navigation', () => {
+    const html = renderToStaticMarkup(<InstitutionSubTabs macro={macro} entries={[{key:'cadastro',label:'Cadastro',icon:'▣',locked:true,tasting:true}]} activeTab={null} onSelect={() => {}} favorites={['cadastro']} onToggleFavorite={() => {}} />);
+    expect(html).toContain('Ativar');
+    expect(html).toContain('Degustação');
+    expect(html).toContain('Remover Cadastro dos favoritos');
+    expect(html).not.toContain('aria-current="page"');
+  });
+  it('offers recovery when search and favorite filters hide destinations', () => {
+    const html = renderToStaticMarkup(<InstitutionSubTabs macro={macro} entries={[{key:'cadastro',label:'Cadastro'}]} activeTab="cadastro" onSelect={() => {}} query="inexistente" onQueryChange={() => {}} onlyFavorites onToggleOnlyFavorites={() => {}} />);
+    expect(html).toContain('Nenhum módulo encontrado');
+    expect(html).toContain('Limpar filtros');
   });
 });
