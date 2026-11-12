@@ -389,7 +389,7 @@ export default function Workspace({
           <span className={openFindings > 0 ? "kpi-warn" : "kpi-success"}><b>{openFindings}</b> achados abertos</span>
         </div>}
         <Suspense fallback={null}>
-          <ExtensaoDashboard institutionId={String(id)} onNavigate={(view) => { choose("extensao360"); }} />
+          <ExtensaoDashboard institutionId={String(id)} onNavigate={() => { choose("extensao" as Tab); }} />
         </Suspense>
       </div>
       <InstitutionTabs enabled={role === "master"} activeTab={tab} activeMacro={activeMacro} onSelectMacro={selectMacro} institutionName={String(institution.name)} availableMacros={MACRO_TABS.filter(m => m.tabs.some(key => availableWorkspaceTabs.some(([k]) => k === key))).map(m => m.key)}>
