@@ -8,7 +8,7 @@ const ORIGINS=new Set([
 ]);
 const UUID=/^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
 const ALLOWED_ROLES=new Set(["reitor","gestor","diretor_geral","diretor_pedagogico","procurador"]);
-const MODS=new Set(["oab","cfc","enade","delegado","pf","estadual","federal","defensoria","mp"]);
+const MODS=new Set(["oab","cfc","enade","enamed","residencia","delegado","pf","estadual","federal","defensoria","mp"]);
 const enc=new TextEncoder();
 const fail=(message:string,status=400)=>Object.assign(new Error(message),{status});
 const env=(name:string)=>String(Deno.env.get(name)||"");
@@ -98,9 +98,16 @@ async function remote(path:string,method="GET",body?:unknown){
   "x-vertice-bridge-key":key,
   ...(method!=="GET"?{"x-requested-with":"fato-e-ordem","content-type":"application/json"}:{})
  },body:body===undefined?undefined:JSON.stringify(body),signal:AbortSignal.timeout(20000)});
- if(!response.ok)throw fail("Fato & Ordem não confirmou a integração (HTTP "+response.status+").",502);
+ if(!response.ok){
+  const errBody=await response.text().catch(()=>"(sem corpo)");
+  console.error("[vertice-bridge] F&O error:",response.status,errBody.slice(0,500));
+  throw fail("Fato & Ordem não confirmou a integração (HTTP "+response.status+"): "+errBody.slice(0,200),502);
+ }
  const result=await response.json().catch(()=>null);
- if(!result||typeof result!=="object"||!result.result)throw fail("Resposta da integração inválida.",502);
+ if(!result||typeof result!=="object"||!result.result){
+  console.error("[vertice-bridge] F&O resposta inválida:",JSON.stringify(result).slice(0,500));
+  throw fail("Resposta da integração inválida.",502);
+ }
  return result.result;
 }
 function rows(value:unknown,max=100){
@@ -273,7 +280,7 @@ Deno.serve(async req=>{
    // Call F&O batch-link endpoint
    const result=await remote("/api/internal/vertice/batch-link","POST",{
     institutionId:inst,courseId,
-    students:validated.map(v=>({cpf:v.cpf}))
+    students:validated.map(v=>({cpf:v.cpf,name:v.name,email:v.email,institution:v.curso}))
    });
    // Save entries in Vértice for audit trail
    const importId=str(body.importId,70);
@@ -289,7 +296,7 @@ Deno.serve(async req=>{
     await admin.from("vertice_roster_entries").insert(entries).then(()=>{});
    }
    return send({ok:true,total:result.total,matched:result.matched,
-    linked:result.linked,skipped:result.skipped,
+    linked:result.linked,provisioned:result.provisioned||0,skipped:result.skipped,
     notice:result.notice||`${result.linked} alunos vinculados.`},200,origin);
   }
   throw fail("Operação desconhecida.",404);
@@ -298,4 +305,3 @@ Deno.serve(async req=>{
   return send({error:e.message||"Falha na integração."},e.status||500,origin);
  }
 });
-

@@ -15,7 +15,7 @@ type Metric={
 type BridgeStatus={configured:boolean;tenantEnabled:boolean|null;tenantStatus:string;courseCount:number;metrics:Metric[];ok:boolean};
 type MapForm={courseId:string;subjectCode:string;module:string;competency:string;evidenceRef:string;reviewed:boolean};
 const MODULES=[
- ["oab","OAB"],["cfc","CFC"],["enade","ENADE"],["delegado","Delegado"],
+ ["oab","OAB"],["cfc","CFC"],["enade","ENADE"],["enamed","ENAMED"],["residencia","Residência Médica"],["delegado","Delegado"],
  ["pf","Polícia Federal"],["estadual","Magistratura Estadual"],["federal","Magistratura Federal"],
  ["defensoria","Defensoria"],["mp","Ministério Público"]
 ] as const;
