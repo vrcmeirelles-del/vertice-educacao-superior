@@ -140,10 +140,10 @@ CREATE POLICY "ext_deliverables_read" ON vertice_extension_deliverables FOR SELE
 CREATE POLICY "ext_deliverables_write" ON vertice_extension_deliverables FOR ALL USING (vertice_private.can_read_institution(institution_id));
 
 -- 8. Catálogo de módulos — Superior + Escolas
-INSERT INTO vertice_module_catalog (code, label, tier, package, tab_codes, depends_on, sort_order)
+INSERT INTO vertice_module_catalog (code, name, tier, package, tabs, depends_on, display_order, active, description)
 VALUES
-  ('ACAD_EXTENSAO', 'Extensão 360°', 'superior', 'regulacao', ARRAY['extensao'], ARRAY['CORE_CADASTRO'], 46),
-  ('ESC_EXTENSAO', 'Extensão Escolar', 'escolas', 'governanca360', ARRAY['extensao'], ARRAY['CORE_CADASTRO'], 47)
+  ('ACAD_EXTENSAO', 'Extensão 360°', 'regulacao', 'completo', ARRAY['extensao'], ARRAY['CORE_CADASTRO'], 46, true, 'Repositório de projetos de extensão — participantes, entregas, cobertura por curso e dossiê regulatório.'),
+  ('ESC_EXTENSAO', 'Extensão Escolar', 'escolas', 'completo', ARRAY['extensao'], ARRAY['CORE_CADASTRO'], 47, true, 'Extensão escolar — projetos, participantes e cobertura.')
 ON CONFLICT (code) DO NOTHING;
 
 -- 9. Índices
