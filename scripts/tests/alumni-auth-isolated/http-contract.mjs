@@ -3,7 +3,8 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {pathToFileURL} from 'node:url';
-export const expectedHead='4e1884a7db86671e364136cf57b7662e04d32b1f';
+// Logical contract reference retained until final coordinated revision; parent baseline e0d85d8.
+export const expectedHead='4a472d8ab5f9e0b1baa083b8718bc06ae429b124';
 export const cases=[
  ['anonymous aggregate RPC denied','anon','rpc/alumni_safe_overview','POST','denied'],
  ['AAL1 management aggregate denied','gestor_aal1','rpc/alumni_safe_overview','POST','denied'],
@@ -31,8 +32,21 @@ export const cases=[
  ['management global history denied','gestor','vertice_alumni_contact_history?select=*','GET','denied'],
  ['management CPF hash denied','gestor','vertice_alumni_profiles?select=cpf_hash','GET','denied'],
  ['legacy importer denied','gestor','rpc/alumni_find_or_create_profile','POST','legacy_denied'],
+ ['gestor scoped indicator contract','gestor','rpc/alumni_safe_overview','POST','indicator_institution_2'],
+ ['master scoped indicator contract','master','rpc/alumni_safe_overview','POST','indicator_institution_2'],
+ ['reitor scoped indicator contract','reitor','rpc/alumni_safe_overview','POST','indicator_institution_2'],
+ ['diretor scoped indicator contract','diretor','rpc/alumni_safe_overview','POST','indicator_institution_2'],
+ ['coord scoped indicator contract','coord','rpc/alumni_safe_overview','POST','indicator_courses_1'],
+ ['coord_multi scoped indicator contract','coord_multi','rpc/alumni_safe_overview','POST','indicator_courses_2'],
+ ['coord_revoked scoped indicator contract','coord_revoked','rpc/alumni_safe_overview','POST','indicator_small'],
+ ['coord_conflict scoped indicator contract','coord_conflict','rpc/alumni_safe_overview','POST','indicator_small'],
  ['manager atomic import idempotent','gestor','rpc/alumni_import_education','POST','import_retry'],
 ];
+export function assertOverview(actual,institution,scope,n,exactAuthorized){
+ assert(Number.isInteger(n)&&n>=0);assert(['institution','courses'].includes(scope));
+ const small=!exactAuthorized&&n<5;
+ assert.deepEqual(actual,{institution_id:institution,indicator_scope:scope,population:'distinct_eligible_profiles',privacy_mode:small?'small_group_range':'exact',total_egressos:small?null:n,total_egressos_min:small?0:null,total_egressos_max:small?4:null,suppression_applied:small});
+}
 export function localUrl(value){const u=new URL(value);assert.equal(u.protocol,'http:','Disposable localhost HTTP only');assert(['127.0.0.1','localhost','[::1]'].includes(u.hostname),'Remote hosts forbidden');assert(!u.username&&!u.password&&!u.search&&!u.hash,'No credentials/query/hash in base URL');return u;}
 export function validate(m){assert.equal(m.purpose,'disposable-alumni-contract-only');assert.equal(m.source_head,expectedHead);assert.equal(m.contains_real_data,false);localUrl(m.rest_url);localUrl(m.auth_url);localUrl(m.auth_issuer);const origin=localUrl(m.auth_url).origin;assert.equal(localUrl(m.rest_url).origin,origin);assert.equal(localUrl(m.auth_issuer).origin,origin);assert.equal(localUrl(m.auth_url).hostname,'127.0.0.1');assert.equal(localUrl(m.auth_url).pathname,'/auth/v1');assert.equal(localUrl(m.auth_issuer).pathname,'/auth/v1');assert.equal(localUrl(m.rest_url).pathname,'/rest/v1');assert.equal(new Set(cases.map(c=>c[1])).size,Object.keys(m.tokens).length,'Exact role token fixture required');for(const key of new Set(cases.map(c=>c[1]))){const token=m.tokens[key];assert.equal(typeof token,'string');const part=token.split('.');assert.equal(part.length,3);const c=JSON.parse(Buffer.from(part[1],'base64url'));if(key==='anon'){assert.equal(c.role,'anon');assert.equal(c.iss,m.anon_issuer);assert(['supabase','supabase-demo',m.auth_issuer].includes(m.anon_issuer),'Unexpected local anonymous issuer');}else{assert.equal(c.iss,m.auth_issuer,'Only tokens from configured disposable Auth issuer');assert.equal(c.role,'authenticated');assert.equal(c.aal,key.endsWith('_aal1')?'aal1':'aal2');}assert(c.exp>Date.now()/1000,'Expired fixture token');assert(!['service_role','supabase_admin'].includes(c.role),'Never use administrative token for tested calls');}
  for(const id of [m.ies,m.other_ies,m.course,m.other_course,m.education,m.profile,...m.multi_courses])assert(/^00000000-0000-4000-8000-[0-9]{12}$/.test(id),'Synthetic fixture UUIDs only');assert(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(m.actor),'Valid Auth UUID required');assert.equal(m.actor,JSON.parse(Buffer.from(m.tokens.coord.split('.')[1],'base64url')).sub,'actor must be coordinator session subject');assert(m.multi_courses.includes(m.course)&&m.multi_courses.length>1);return m;}
@@ -58,7 +72,9 @@ export async function run(m){validate(m);assert.equal(process.env.ALLOW_DISPOSAB
    if(expect==='institution_read')assert.deepEqual(d,{can_view_nominal:true,can_import:false,nominal_scope:'institution',allowed_course_ids:[]});
    if(expect==='multicourse'){assert.equal(d.nominal_scope,'courses');assert.equal(d.can_import,false);assert.deepEqual([...d.allowed_course_ids].sort(),[...m.multi_courses].sort());}
    if(expect==='course_rows'){assert(d.length>0,'Fixture must contain own-course row');assert(d.every(x=>x.course_id===m.course&&x.profile?.id),'Embedded RLS/profile relation must resolve safely');}
-   if(expect==='aggregate'){assert.deepEqual(Object.keys(d).sort(),['institution_id','privacy_mode','suppression_applied','total_egressos_min','total_egressos_max'].sort());assert.equal(d.institution_id,m.ies);assert.equal(d.privacy_mode,'institution_band_5');}
+   if(expect==='aggregate'||expect==='indicator_small')assertOverview(d,m.ies,'institution',2,false);
+   if(expect.startsWith('indicator_institution_'))assertOverview(d,m.ies,'institution',Number(expect.split('_').at(-1)),true);
+   if(expect.startsWith('indicator_courses_'))assertOverview(d,m.ies,'courses',Number(expect.split('_').at(-1)),true);
    if(expect==='import_retry'){assert(d.profile_id&&d.education_id);const again=await request(role,path,method,body);assert.equal(again.status,200);assert.equal(again.data.profile_id,d.profile_id);assert.equal(again.data.education_id,d.education_id);}
   }
   console.log('PASS '+name); // Never print tokens, response bodies or personal details.

@@ -167,6 +167,37 @@ begin
   'can_import',scope='institution' and vertice_private.has_role(p_institution_id,array['gestor']),
   'nominal_scope',scope,'allowed_course_ids',courses);
 end; $$;
+-- Role-scoped indicators. Threshold 5 is the existing conservative technical
+-- parameter, not a user-selected number or an anonymity guarantee.
+create or replace function public.alumni_safe_overview(p_institution_id uuid)
+returns jsonb language plpgsql stable security definer set search_path='' as $$
+declare n bigint; scope text; exact_authorized boolean; small boolean;
+begin
+ if auth.uid() is null or not coalesce(vertice_private.can_read_institution(p_institution_id),false) then
+  raise exception 'Alumni indicators unavailable' using errcode='42501';
+ end if;
+ scope:=vertice_private.alumni_effective_scope(p_institution_id);
+ exact_authorized:=scope='courses' or (scope='institution' and (
+  vertice_private.has_role(p_institution_id,array['gestor','reitor','diretor_geral','diretor_pedagogico'])
+  or exists(select 1 from public.vertice_alumni_role_grants r
+   where r.institution_id=p_institution_id and r.user_id=auth.uid()
+    and r.access_role in ('reitoria','direcao') and r.revoked_at is null and r.expires_at>now())));
+ select count(distinct e.profile_id) into n from public.vertice_alumni_education e
+ where e.institution_id=p_institution_id
+  and e.academic_status in ('formado','diplomado','egresso_acompanhado','integralizado','concluinte')
+  and (scope<>'courses' or vertice_private.alumni_can_view_education(e.institution_id,e.course_id));
+ small:=not exact_authorized and n<5;
+ return jsonb_build_object('institution_id',p_institution_id,
+  'indicator_scope',case when scope='courses' then 'courses' else 'institution' end,
+  'population','distinct_eligible_profiles',
+  'privacy_mode',case when small then 'small_group_range' else 'exact' end,
+  'total_egressos',case when small then null else n end,
+  'total_egressos_min',case when small then 0 else null end,
+  'total_egressos_max',case when small then 4 else null end,
+  'suppression_applied',small);
+end; $$;
+revoke all on function public.alumni_safe_overview(uuid) from public,anon;
+grant execute on function public.alumni_safe_overview(uuid) to authenticated;
 -- Preserve the atomic importer implementation and existing gestor/master check.
 -- Add only the contradictory-scope boundary; nominal reads never grant import.
 create or replace function public.alumni_import_education(p_institution uuid, p_course uuid, p_enrollment text, p_record jsonb)

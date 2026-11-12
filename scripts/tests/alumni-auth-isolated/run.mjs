@@ -6,9 +6,9 @@ import path from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {createHash} from 'node:crypto';
 import {bootstrap,sid} from './bootstrap-auth.mjs';
-import {run as httpContracts,validate,expectedHead,localUrl} from './http-contract.mjs';
+import {run as httpContracts,validate,expectedHead,localUrl,assertOverview} from './http-contract.mjs';
 const expectedSqlHashes={
-  "supabase/proposals/alumni_course_scope.sql": "b92ff357f9a43a6173d967e3a79b8a52a76b243599d037bd927e574b1194ed33",
+  "supabase/proposals/alumni_course_scope.sql": "33b68fc225f3ce76f67c92d8f8b5504d409136b4479450e69de1e73ec5368a51",
   "supabase/proposals/alumni_nominal_safe_stop.sql": "9fda3c8a6da517929195569ca0c880d09d08566153fbcba0857b7392cce07397",
   "supabase/proposals/alumni_nominal_scope.sql": "65b3b65fc7f6d02088c7006ccbb9d9e3d1816142f7a8c54e9f62f297f33e3871",
   "supabase/migrations/20261112130000_alumni_atomic_import.sql": "d79607c665c3f316ed632ce86c76ea771bab4b1efde089a90aafa785df2f3262",
@@ -37,13 +37,46 @@ export async function execute(){
   m=JSON.parse(readFileSync(path.join(directory,'manifest.candidate.private.json'),'utf8'));validate(m);users=JSON.parse(readFileSync(path.join(directory,'auth-map.private.json'),'utf8'));
   await db.query("select set_config('qa.disposable_alumni','YES',false)");await db.query(readFileSync(path.join(directory,'fixtures.review-only.sql'),'utf8'));
   pass('Fresh PostgreSQL17, nine local Auth logins with real TOTP enroll/challenge/verify and refresh; AAL1/AAL2 verified');
-  await httpContracts(m);
+
   const request=async(role,endpoint,body,method='POST',auth=false)=>{
    const url=(auth?m.auth_url:m.rest_url)+'/'+endpoint;assert.equal(new URL(url).origin,api.origin);
    const res=await fetch(url,{method,redirect:'error',headers:{Authorization:'Bearer '+m.tokens[role],apikey:m.tokens.anon,'Content-Type':'application/json',Prefer:'return=representation'},...(body?{body:JSON.stringify(body)}:{})});let data;try{data=await res.json();}catch{data=null;}return{status:res.status,data};
   };
   const context=role=>request(role,'rpc/alumni_access_context',{p_institution_id:m.ies});
   const denied=r=>{assert([401,403].includes(r.status));assert.equal(r.data?.code,'42501');};
+  const overview=async(role,n,exactAuthorized,scope='institution')=>{
+   const result=await request(role,'rpc/alumni_safe_overview',{p_institution_id:m.ies});
+   assert.equal(result.status,200);assertOverview(result.data,m.ies,scope,n,exactAuthorized);
+  };
+  // Assert distinct profile population independently from the RPC response.
+  const countEligible=async()=>Number((await db.query("select count(distinct profile_id) n from vertice_alumni_education where institution_id=$1 and academic_status in ('formado','diplomado','egresso_acompanhado','integralizado','concluinte')",[m.ies])).rows[0].n);
+  assert.equal(await countEligible(),2);
+  await httpContracts(m); // Includes n=2 institutional, n=1 course, n=2 course union before importing.
+  assert.equal(await countEligible(),3); // Idempotent import contributes exactly one new profile.
+  // Freeze original rows as ineligible while testing all privacy boundaries. Restore in finally.
+  const originals=(await db.query('select id,academic_status from vertice_alumni_education where institution_id=$1',[m.ies])).rows;
+  const addedProfiles=[];
+  try{
+   await db.query("update vertice_alumni_education set academic_status='ativo' where institution_id=$1",[m.ies]);
+   for(let n=0;n<=6;n++){
+    if(n>0){const profile=sid(900+n),education=sid(950+n);addedProfiles.push(profile);
+     await db.query('insert into vertice_alumni_profiles(id,full_name) values($1,$2)',[profile,'SYNTHETIC BOUNDARY '+n]);
+     await db.query("insert into vertice_alumni_education(id,profile_id,institution_id,course_id,enrollment_id,academic_status) values($1,$2,$3,$4,$5,'formado')",[education,profile,m.ies,m.course,'QA-BOUNDARY-'+n]);
+    }
+    assert.equal(await countEligible(),n);
+    await overview('reader',n,false);await overview('gestor',n,true);await overview('master',n,true);
+    await overview('coord',n,true,'courses');await overview('coord_multi',n,true,'courses');
+    // A generic nominal grant must NOT authorize small-population exact indicators.
+    await db.query("insert into vertice_alumni_nominal_grants(institution_id,user_id,granted_by,expires_at) values($1,$2,$3,now()+interval '1 day')",[m.ies,users.reader,users.gestor]);
+    try{await overview('reader',n,false);}finally{await db.query('delete from vertice_alumni_nominal_grants where institution_id=$1 and user_id=$2',[m.ies,users.reader]);}
+   }
+  }finally{
+   await db.query('delete from vertice_alumni_education where profile_id=any($1::uuid[])',[addedProfiles]);
+   await db.query('delete from vertice_alumni_profiles where id=any($1::uuid[])',[addedProfiles]);
+   for(const row of originals)await db.query('update vertice_alumni_education set academic_status=$1 where id=$2',[row.academic_status,row.id]);
+  }
+  assert.equal(await countEligible(),3);pass('Indicator boundaries 0..4/5/6, scoped exact counts, distinct profiles and generic nominal grant privacy');
+
   // Force an error AFTER the importer creates a profile, proving transaction rollback
   // in the disposable database. The temporary fault injector is always removed.
   const rollbackBefore=(await db.query('select count(*)::int n from vertice_alumni_profiles')).rows[0].n;
@@ -54,14 +87,14 @@ export async function execute(){
   // New HTTP requests observe changed database authorization, without replacing JWTs.
   await db.query('delete from vertice_alumni_course_grants where user_id=$1 and course_id=$2',[users.coord_multi,m.other_course]);
   let r=await context('coord_multi');assert.equal(r.status,200);assert.deepEqual(r.data.allowed_course_ids,[m.course]);
-  r=await request('coord_multi','vertice_alumni_education?select=id&course_id=eq.'+m.other_course,null,'GET');assert.equal(r.status,200);assert.deepEqual(r.data,[]);pass('Removing one course takes effect in new HTTP requests; shared profile does not widen education');
-  await db.query("update vertice_alumni_course_grants set granted_at=now()-interval '2 days',expires_at=now()-interval '1 day' where user_id=$1",[users.coord_multi]);r=await context('coord_multi');assert.equal(r.data.nominal_scope,'none');pass('Expired course grant removes nominal HTTP scope');
-  await db.query('update vertice_alumni_role_grants set revoked_at=clock_timestamp() where user_id=$1',[users.coord]);r=await context('coord');assert.equal(r.data.nominal_scope,'none');assert.equal(r.data.can_import,false);pass('Designation revocation closes nominal reads without changing token');
-  await db.query('delete from vertice_memberships where user_id=$1',[users.coord_multi]);denied(await context('coord_multi'));pass('Membership removal revokes institutional RPC access');
+  r=await request('coord_multi','vertice_alumni_education?select=id&course_id=eq.'+m.other_course,null,'GET');assert.equal(r.status,200);assert.deepEqual(r.data,[]);await overview('coord_multi',1,true,'courses');pass('Removing one course takes effect in new HTTP requests; shared profile does not widen education');
+  await db.query("update vertice_alumni_course_grants set granted_at=now()-interval '2 days',expires_at=now()-interval '1 day' where user_id=$1",[users.coord_multi]);r=await context('coord_multi');assert.equal(r.data.nominal_scope,'none');await overview('coord_multi',3,false);pass('Expired course grant removes nominal HTTP scope');
+  await db.query('update vertice_alumni_role_grants set revoked_at=clock_timestamp() where user_id=$1',[users.coord]);r=await context('coord');assert.equal(r.data.nominal_scope,'none');assert.equal(r.data.can_import,false);await overview('coord',3,false);pass('Designation revocation closes nominal reads without changing token');
+  await db.query('delete from vertice_memberships where user_id=$1',[users.coord_multi]);denied(await context('coord_multi'));denied(await request('coord_multi','rpc/alumni_safe_overview',{p_institution_id:m.ies}));pass('Membership removal revokes institutional RPC access');
   const before=(await db.query('select to_jsonb(g) body from vertice_alumni_role_grants g where user_id=$1',[users.coord_conflict])).rows[0].body;
   await db.query('update vertice_alumni_role_grants set revoked_at=clock_timestamp() where user_id=$1',[users.coord_conflict]);
   const after=(await db.query('select to_jsonb(g) body from vertice_alumni_role_grants g where user_id=$1',[users.coord_conflict])).rows[0].body;assert(after.revoked_at);delete before.revoked_at;delete after.revoked_at;assert.deepEqual(after,before);
-  r=await context('coord_conflict');assert.equal(r.data.nominal_scope,'none');denied(await request('coord_conflict','rpc/alumni_import_education',{p_institution:m.ies,p_course:m.other_course,p_enrollment:'QA-CONFLICT-AFTER-REVOKE',p_record:{full_name:'SYNTHETIC',academic_status:'formado'}}));pass('One-way revocation of conflicting promotion persists, importer remains denied over HTTP');
+  r=await context('coord_conflict');assert.equal(r.data.nominal_scope,'none');denied(await request('coord_conflict','rpc/alumni_import_education',{p_institution:m.ies,p_course:m.other_course,p_enrollment:'QA-CONFLICT-AFTER-REVOKE',p_record:{full_name:'SYNTHETIC',academic_status:'formado'}}));await overview('coord_conflict',3,false);pass('One-way revocation of conflicting promotion persists, importer remains denied over HTTP');
   // Invalid signature is tested without forging a valid AAL2 token.
   const parts=m.tokens.reader.split('.');const sig=parts[2];parts[2]=(sig[0]==='A'?'B':'A')+sig.slice(1);
   const invalid=await fetch(m.rest_url+'/rpc/alumni_access_context',{method:'POST',redirect:'error',headers:{Authorization:'Bearer '+parts.join('.'),apikey:anon,'Content-Type':'application/json'},body:JSON.stringify({p_institution_id:m.ies})});assert.equal(invalid.status,401);pass('PostgREST rejects invalid JWT signature');
