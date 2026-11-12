@@ -261,14 +261,13 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
              v === 'equipe' ? `Equipe (${team.length})` :
              v === 'alunos' ? `Alunos (${students.length})` :
              v === 'entregas' ? `Entregas (${deliverables.length})` :
-             v === 'cobertura' ? 'Cobertura por Curso' :
              v === 'atividades' ? '📅 Atividades' :
              v === 'evidencias' ? '📁 Evidências' :
              v === 'competencias' ? '🎯 Competências' :
              v === 'parceiros' ? '🤝 Parceiros' :
              v === 'achados' ? '🔍 Achados' :
-             v === 'revisoes' ? `Revisões (${pendentesRevisao})` :
              v === 'cobertura' ? 'Cobertura por Curso' :
+             v === 'revisoes' ? `Revisões (${pendentesRevisao})` :
              v === 'ods' ? '🌍 ODS' :
              v === 'ia' ? '🤖 IA' :
              v === 'perfis' ? '🔐 Perfis' :
