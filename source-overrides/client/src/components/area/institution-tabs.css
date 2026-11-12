@@ -225,12 +225,11 @@
 
 /* Selected modules become the reading destination, clear of the sticky header. */
 .inst-active-module,
-.inst-module-picker { scroll-margin-top: 112px; }
-.inst-module-picker[hidden],
+.inst-module-workspace { scroll-margin-top: 112px; }
 .inst-active-module[hidden] { display: none !important; }
 .inst-active-module { min-width: 0; border-top: 4px solid #298d87; border-radius: 12px; padding: 16px; background: #fff; box-shadow: 0 8px 24px rgb(25 62 74 / 8%); }
 .inst-active-module:focus-visible,
-.inst-module-picker:focus-visible { outline: 3px solid #298d87; outline-offset: 4px; }
+.inst-module-workspace:focus-visible { outline: 3px solid #298d87; outline-offset: 4px; }
 .inst-active-module-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding-bottom: 16px; margin-bottom: 16px; border-bottom: 1px solid #dce9e7; }
 .inst-active-module-head p { margin: 0 0 4px; color: #346b67; font-size: .78rem; font-weight: 700; }
 .inst-active-module-head h3 { margin: 0; color: #173f43; font-size: clamp(1.2rem, 2vw, 1.6rem); }

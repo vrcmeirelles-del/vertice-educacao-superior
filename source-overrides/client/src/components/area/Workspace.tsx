@@ -1,3 +1,4 @@
+import InstitutionSubTabs from "./InstitutionSubTabs";
 import InstitutionTabs, { MACRO_TABS, macroTabFor, macroDestination, type MacroTab } from "./InstitutionTabs";
 import {actionDraftKey,parseActionDraft,storeActionDraft,validateActionLinks,changeActionScope} from "@/lib/portal-integration";
 import ActionCockpit from "./ActionCockpit";
@@ -251,13 +252,11 @@ export default function Workspace({
     return()=>{window.clearInterval(timer);window.removeEventListener("focus",focus);};
   }, [reload]);
 
-  const [modulePickerOpen, setModulePickerOpen] = useState(true);
   const [moduleFocusRequest, setModuleFocusRequest] = useState(0);
   const moduleContentRef = useRef<HTMLDivElement>(null);
-  const modulePickerRef = useRef<HTMLElement>(null);
+  const moduleNavigationRef = useRef<HTMLDivElement>(null);
   const revealModule = () => {
     if (role !== "master") return;
-    setModulePickerOpen(false);
     setModuleFocusRequest(value => value + 1);
   };
   useEffect(() => {
@@ -266,17 +265,10 @@ export default function Workspace({
       const content = moduleContentRef.current;
       if (!content || content.hidden) return;
       content.focus({ preventScroll: true });
-      content.scrollIntoView({ block: "start", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
+      moduleNavigationRef.current?.scrollIntoView({ block: "start", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
     });
     return () => window.cancelAnimationFrame(frame);
   }, [moduleFocusRequest, role, macroOverride]);
-  const showModulePicker = () => {
-    setModulePickerOpen(true);
-    window.requestAnimationFrame(() => {
-      modulePickerRef.current?.scrollIntoView({ block: "start", behavior: "instant" });
-      modulePickerRef.current?.focus({ preventScroll: true });
-    });
-  };
   const edited = useRef(false);
   useEffect(() => {
     const sync = () => {
@@ -339,15 +331,16 @@ export default function Workspace({
   const allowedTabs = visibleTabs(role);
   // Mostrar TODAS as tabs permitidas pelo role, incluindo bloqueadas (com badge)
   const visible = TABS.filter(([k]) => allowedTabs.includes(k));
+  const availableWorkspaceTabs = visible.filter(([key]) => visibleGroups.some(group => group.tabs.includes(key)));
   const activeMacro = macroOverride ?? macroTabFor(tab);
+  const activeMacroDefinition = MACRO_TABS.find(macro => macro.key === activeMacro)!;
   const selectMacro = (macro: MacroTab) => {
-    const target = macroDestination(macro, visible.map(([key]) => key), isLocked);
+    const target = macroDestination(macro, availableWorkspaceTabs.map(([key]) => key), isLocked);
     if (target) {
       if (choose(target)) { setModuleSearch(""); setOnlyFavorites(false); }
     } else if (confirmNavigation()) {
       // Keep the original form mounted while presenting the existing activation controls.
       setMacroOverride(macro);
-      setModulePickerOpen(true);
       setModuleSearch(""); setOnlyFavorites(false);
     }
   };
@@ -355,6 +348,15 @@ export default function Workspace({
   const isTasting = (tabKey: string) => {
     const mod = findModuleByTab(moduleCatalog, tabKey);
     return mod?.display_status === 'tasting';
+  };
+
+  const selectModule = (key: Tab) => {
+    if (isLocked(key)) {
+      const module = findModuleByTab(moduleCatalog, key);
+      if (module) setOfferModule(module);
+      return;
+    }
+    choose(key);
   };
 
   return (
@@ -378,16 +380,26 @@ export default function Workspace({
         </div>
         <a className="area-guide-link" href="/guia.html" target="_blank" rel="noopener">Guia e glossário ↗</a>
         {can.manageGoals(role)&&<button type="button" className="corp-button small" onClick={()=>{window.location.hash="governanca=1&instituicao="+encodeURIComponent(String(id));window.dispatchEvent(new HashChangeEvent("hashchange"));}}>Governança 360 · Auditar integrações ↗</button>}
-        <div className="area-kpis">
+        {(role !== "master" || activeMacro === "visao-geral") && <div className="area-kpis">
           <span className="kpi-neutral"><b>{data.courses.length}</b> cursos</span>
           <span className={activeGoals > 0 ? "kpi-info" : "kpi-neutral"}><b>{activeGoals}</b> metas em curso</span>
           <span className={documents.total > 0 && documents.validated === documents.total ? "kpi-success" : documents.total > 0 ? "kpi-warn" : "kpi-neutral"}><b>{documents.validated}/{documents.total}</b> documentos validados</span>
           <span className={late > 0 ? "kpi-danger" : "kpi-success"}><b>{late}</b> ações atrasadas</span>
           <span className={openFindings > 0 ? "kpi-warn" : "kpi-success"}><b>{openFindings}</b> achados abertos</span>
-        </div>
+        </div>}
       </div>
-      <InstitutionTabs enabled={role === "master"} activeTab={tab} activeMacro={activeMacro} onSelectMacro={selectMacro} institutionName={String(institution.name)} availableMacros={MACRO_TABS.filter(m => m.tabs.some(key => visible.some(([k]) => k === key))).map(m => m.key)}>
-      <div onChangeCapture={e => { if ((e.target as HTMLElement).closest("input:not([type=search]), textarea, select")) edited.current = true; }}>
+      <InstitutionTabs enabled={role === "master"} activeTab={tab} activeMacro={activeMacro} onSelectMacro={selectMacro} institutionName={String(institution.name)} availableMacros={MACRO_TABS.filter(m => m.tabs.some(key => availableWorkspaceTabs.some(([k]) => k === key))).map(m => m.key)}>
+      <div ref={moduleNavigationRef} className="inst-module-workspace" onChangeCapture={e => { if ((e.target as HTMLElement).closest("input:not([type=search]), textarea, select")) edited.current = true; }}>
+      {role === "master" && <InstitutionSubTabs
+        macro={activeMacroDefinition}
+        entries={availableWorkspaceTabs.filter(([key]) => macroTabFor(key) === activeMacro).map(([key, label]) => ({key, label, icon: TAB_DETAILS[key]?.icon, description: TAB_DETAILS[key]?.description, locked: isLocked(key), tasting: isTasting(key)}))}
+        activeTab={macroOverride ? null : tab}
+        onSelect={selectModule}
+        query={moduleSearch} onQueryChange={setModuleSearch}
+        favorites={favoriteTabs} onToggleFavorite={toggleFavorite}
+        onlyFavorites={onlyFavorites} onToggleOnlyFavorites={() => setOnlyFavorites(value => !value)}
+      />}
+      {(role !== "master" || activeMacro === "visao-geral") && <>
       {id==="4224e2fc-6a96-4761-820f-6f8e809ca1c1" && (
         <div className="area-panel" style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:16,flexWrap:"wrap",borderLeft:"5px solid #298d87",background:"linear-gradient(100deg,#eaf7f4,#f7fbfd)"}}>
           <div>
@@ -409,7 +421,8 @@ export default function Workspace({
           window.dispatchEvent(new Event("vertice-open-assistant"));
         }}>Abrir agente de IA</button>
        </div>}
-      <section ref={modulePickerRef} tabIndex={-1} hidden={role === "master" && !modulePickerOpen} className="vx-modules inst-module-picker" aria-label="Central de Gestão Institucional">
+      </>}
+      {role !== "master" && <section className="vx-modules" aria-label="Central de Gestão Institucional">
         <header className="vx-modules-head">
           <div>
             <p className="vx-modules-eyebrow">VÉRTICE · MÓDULOS INSTITUCIONAIS</p>
@@ -430,7 +443,7 @@ export default function Workspace({
         <div className="vx-modules-grid" aria-label="Áreas da instituição">
           {visibleGroups.map(group => {
             const q=moduleSearch.trim().toLocaleLowerCase("pt-BR");
-            const groupTabs = visible.filter(([k,l])=>(role !== "master" || macroTabFor(k) === activeMacro)&&group.tabs.includes(k)&&(!onlyFavorites||favoriteTabs.includes(k))&&(!q||[l,group.label,TAB_DETAILS[k]?.description??""].join(" ").toLocaleLowerCase("pt-BR").includes(q)));
+            const groupTabs = visible.filter(([k,l])=>group.tabs.includes(k)&&(!onlyFavorites||favoriteTabs.includes(k))&&(!q||[l,group.label,TAB_DETAILS[k]?.description??""].join(" ").toLocaleLowerCase("pt-BR").includes(q)));
             if(!groupTabs.length)return null;
             return <div className="vx-module-group" key={group.label}>
               <div className="vx-module-group-head">
@@ -465,15 +478,14 @@ export default function Workspace({
             </div>;
           })}
         </div>
-        {!visibleGroups.some(group=>visible.some(([k,l])=>(role !== "master" || macroTabFor(k) === activeMacro)&&group.tabs.includes(k)&&(!onlyFavorites||favoriteTabs.includes(k))&&(!moduleSearch.trim()||[l,group.label,TAB_DETAILS[k]?.description??""].join(" ").toLocaleLowerCase("pt-BR").includes(moduleSearch.trim().toLocaleLowerCase("pt-BR")))))&&
+        {!visibleGroups.some(group=>visible.some(([k,l])=>group.tabs.includes(k)&&(!onlyFavorites||favoriteTabs.includes(k))&&(!moduleSearch.trim()||[l,group.label,TAB_DETAILS[k]?.description??""].join(" ").toLocaleLowerCase("pt-BR").includes(moduleSearch.trim().toLocaleLowerCase("pt-BR")))))&&
           <div className="vx-modules-empty"><strong>Nenhum módulo encontrado.</strong><p>Revise a pesquisa ou desative o filtro de favoritos. Os módulos exibidos respeitam seu perfil de acesso.</p></div>}
-      </section>
-      {role === "master" && activeMacro === "historico" && <p className="area-note">Os registros disponíveis permanecem nos módulos abaixo. Esta área não constitui um histórico consolidado de auditoria.</p>}
-      {macroOverride && <p role="status" className="area-note">Os módulos desta área precisam ser ativados. Selecione um módulo para consultar as condições existentes.</p>}
+      </section>}
+      {role === "master" && activeMacro === "historico" && <p className="area-note">Os registros disponíveis permanecem nos módulos desta área. Esta área não constitui um histórico consolidado de auditoria.</p>}
+      {macroOverride && <p role="status" className="area-note">Os módulos desta área precisam ser ativados. Selecione um módulo acima para consultar as condições existentes.</p>}
       <div ref={moduleContentRef} hidden={Boolean(macroOverride)} tabIndex={-1} role="region" aria-labelledby={role === "master" ? "inst-active-module-title" : undefined} className={role === "master" ? "inst-active-module" : undefined}>
       {role === "master" && <header className="inst-active-module-head">
-        <div><p>Módulo selecionado</p><h3 id="inst-active-module-title">{TABS.find(([key]) => key === tab)?.[1] ?? "Painel institucional"}</h3></div>
-        <button type="button" className="corp-button small" aria-expanded={modulePickerOpen} onClick={showModulePicker}>Trocar módulo</button>
+        <div><p>{activeMacroDefinition.label}</p><h3 id="inst-active-module-title">{TABS.find(([key]) => key === tab)?.[1] ?? "Painel institucional"}</h3></div>
       </header>}
       {tab === 'base' && <InstitutionAddress institutionId={id} manage={role==='master'}/>}
       {error && <p role="alert" className="area-error">{error}</p>}
