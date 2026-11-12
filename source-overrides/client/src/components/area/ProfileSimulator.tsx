@@ -37,6 +37,7 @@ const TAB_LABELS: Record<Tab, string> = {
   "acompanhamento-especial": "Acompanhamento Especial",
   sync: "Sincronização",
   aquisicoes: "Aquisições",
+  extensao: "Extensão 360°",
   billing: "Painel Financeiro",
   contrato: "Meu Contrato",
   modulos: "Gerenciar Módulos",

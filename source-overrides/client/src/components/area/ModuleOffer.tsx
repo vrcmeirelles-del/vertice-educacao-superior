@@ -60,6 +60,18 @@ const MODULE_HIGHLIGHTS: Record<string, string[]> = {
     "Cotações comparativas e ordem de compra",
     "Rastreamento de entregas e pagamentos",
   ],
+  ACAD_EXTENSAO: [
+    "Cadastro de projetos com eixos temáticos e ODS",
+    "Participantes: docentes, discentes e comunidade",
+    "Cobertura extensionista por curso (DCNs: mín. 10%)",
+    "Dossiê regulatório e entregas vinculadas",
+  ],
+  ESC_EXTENSAO: [
+    "Projetos de extensão e projetos comunitários",
+    "Participantes e horas por aluno",
+    "Cobertura por turma e série",
+    "Relatórios e evidências para conselho",
+  ],
   ADDON_FATO_ORDEM: [
     "Publicação institucional integrada",
     "Biblioteca de atos normativos",
