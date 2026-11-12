@@ -482,7 +482,8 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
                         {p.code && <span className="ext-card-code">{p.code}</span>}
                         {p.coordinator_name && <p className="ext-card-coord">👤 {p.coordinator_name}</p>}
                         {((p as any).axis_ids?.length > 0 || p.axis_id) && <p className="ext-card-coord">📌 {((p as any).axis_ids || (p.axis_id ? [p.axis_id] : [])).map((id:string) => axisName(id)).filter(Boolean).join(' · ')}</p>}
-                        {p.target_community && <p className="ext-card-community">🏘 {p.target_community}</p>}
+                        {p.target_community && <p className="ext-card-community">🏘 {p.target_community}{(p as any).beneficiary_profile ? ` · ${(p as any).beneficiary_profile}` : ''}</p>}
+                        {(p as any).social_problem && <p style={{fontSize:'.8rem',color:'#6b7280',margin:'.2rem 0'}}>💡 {String((p as any).social_problem).slice(0, 80)}{String((p as any).social_problem).length > 80 ? '…' : ''}</p>}
                         <div className="ext-card-meta">
                           <span>⏱ {p.total_hours || 0}h</span>
                           <span>👨‍🏫 {pTeam.length} equipe</span>
@@ -490,6 +491,20 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
                           <span>📄 {pDel.length} entregas</span>
                           {p.semester && <span>📅 {p.semester}</span>}
                         </div>
+                        {/* Completude Impacto */}
+                        {(() => {
+                          const fields = ['social_problem','general_objective','methodology','target_community','beneficiary_profile'] as const;
+                          const filled = fields.filter(f => (p as any)[f] && String((p as any)[f]).trim().length >= 10).length;
+                          const pct = Math.round((filled / fields.length) * 100);
+                          return (
+                            <div style={{marginTop:'.35rem',display:'flex',alignItems:'center',gap:'.5rem'}}>
+                              <div style={{flex:1,height:'4px',background:'var(--border,#e5e7eb)',borderRadius:'2px',overflow:'hidden'}}>
+                                <div style={{width:`${pct}%`,height:'100%',background:pct===100?'#22c55e':pct>=60?'#f59e0b':'#ef4444',transition:'width .3s'}}/>
+                              </div>
+                              <span style={{fontSize:'.7rem',color:'#6b7280',whiteSpace:'nowrap'}}>{pct}% Impacto</span>
+                            </div>
+                          );
+                        })()}
                         {(p.course_ids || []).length > 0 && (
                           <div className="ext-card-courses">
                             {(p.course_ids || []).slice(0, 3).map(cid => <span key={cid} className="ext-course-tag">{courseName(cid)}</span>)}
@@ -506,6 +521,8 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
                             <button onClick={() => { setSelectedProject(p.id); setView('equipe'); }}>Equipe</button>
                             <button onClick={() => { setSelectedProject(p.id); setView('alunos'); }}>Alunos</button>
                             <button onClick={() => { setSelectedProject(p.id); setView('entregas'); }}>Entregas</button>
+                            <button onClick={() => { setActivityPanel({ projectId: p.id, projectTitle: p.title }); setView('atividades'); }}>Atividades</button>
+                            <button onClick={() => { setEvidencePanel({ projectId: p.id, projectTitle: p.title }); setView('evidencias'); }}>Evidências</button>
                           </div>
                         )}
                       </div>
