@@ -5,13 +5,31 @@ on:
       - 'source-overrides/**'
       - 'vertice-servidor-source.zip'
       - '.github/workflows/verify-academic-bi.yml'
+      - 'scripts/tests/governance-concurrency.sh'
+      - 'scripts/tests/governance-concurrency-fixture.sql'
+      - 'scripts/tests/alumni-access-local-postgres.sh'
+      - 'scripts/tests/alumni-access.test.mjs'
+      - 'scripts/tests/extension-coverage-contract.test.mjs'
+      - 'supabase/migrations/20261112090000_extension_coverage_contract.sql'
+      - 'supabase/migrations/20261112110000_governance_action_contract.sql'
+      - 'supabase/migrations/20261112130000_alumni_atomic_import.sql'
+      - 'supabase/rollback/20261112090000_extension_coverage_contract.sql'
+      - 'supabase/rollback/20261112130000_alumni_atomic_import.sql'
+      - 'supabase/proposals/alumni_write_boundary.sql'
   workflow_dispatch:
+    inputs:
+      institution_contracts_only:
+        description: 'Executar somente contratos institucionais em PostgreSQL efêmero (sem produção)'
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: read
 
 jobs:
   validation:
+    if: ${{ github.event_name != 'workflow_dispatch' || !inputs.institution_contracts_only }}
     runs-on: ubuntu-latest
     timeout-minutes: 18
     steps:
@@ -69,3 +87,58 @@ jobs:
       - name: Verificar saída
         run: |
           test -f .validation-build/dist/public/index.html
+
+  institution-multisession:
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.institution_contracts_only) || (github.event_name == 'pull_request' && github.head_ref == 'test/institution-postgres-concurrency-20261112') }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    concurrency:
+      group: institution-multisession-${{ github.ref }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Dependências de teste fixadas
+        run: npm ci --prefix scripts/tests/runtime --no-audit --no-fund
+      - name: PostgreSQL 17 local no runner efêmero
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -x /usr/lib/postgresql/17/bin/initdb ]; then
+            sudo apt-get update
+            sudo apt-get install --yes --no-install-recommends postgresql-common ca-certificates
+            # Official PostgreSQL packaging helper; no database/project credentials.
+            sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+            sudo apt-get update
+            sudo apt-get install --yes --no-install-recommends postgresql-17 postgresql-client-17
+          fi
+          test -x /usr/lib/postgresql/17/bin/initdb
+          echo '/usr/lib/postgresql/17/bin' >> "$GITHUB_PATH"
+          /usr/lib/postgresql/17/bin/postgres --version
+      - name: Governança - duas sessões, identidade da ação e vínculo
+        shell: bash
+        run: |
+          set -euo pipefail
+          unset PGHOST PGHOSTADDR PGPORT PGDATABASE PGUSER PGPASSWORD PGPASSFILE PGOPTIONS PGSERVICE PGSERVICEFILE
+          bash scripts/tests/governance-concurrency.sh
+      - name: Egressos e Extensão - acesso, duas sessões e rollback
+        shell: bash
+        env:
+          PG_MODULE: ${{ github.workspace }}/scripts/tests/runtime/node_modules/pg/lib/index.js
+        run: |
+          set -euo pipefail
+          unset PGHOST PGHOSTADDR PGPORT PGDATABASE PGUSER PGPASSWORD PGPASSFILE PGOPTIONS PGSERVICE PGSERVICEFILE
+          bash scripts/tests/alumni-access-local-postgres.sh
+      - name: Registrar escopo sem sessões, chaves ou artefatos de banco
+        if: always()
+        shell: bash
+        run: |
+          printf '%s\n' '## PostgreSQL efêmero' >> "$GITHUB_STEP_SUMMARY"
+          printf '%s\n' 'Commit testado: '${GITHUB_SHA} >> "$GITHUB_STEP_SUMMARY"
+          printf '%s\n' 'Os scripts criam clusters próprios Unix-only e bases vazias; seus traps encerram e removem os dados sintéticos.' >> "$GITHUB_STEP_SUMMARY"
+          printf '%s\n' 'Ausência de binário (exit 77), erro de socket ou teste falho NÃO contam como gate aprovado.' >> "$GITHUB_STEP_SUMMARY"
+          printf '%s\n' 'Não há conexão Supabase/Render de produção, secrets do repositório ou autorização de aplicar SQL remotamente.' >> "$GITHUB_STEP_SUMMARY"
