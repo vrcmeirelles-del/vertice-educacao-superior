@@ -1,3 +1,4 @@
+import {isEnrolledStatus} from '@/lib/enrollment-summary';
 import {courseTotals} from "@/lib/enrollment-summary";
 export {courseTotals} from "@/lib/enrollment-summary";
 import "./academic-data.css";
@@ -43,7 +44,7 @@ function EnrollmentChart({title,items}:{title:string;items:{label:string;value:n
 export function InstitutionView({institution,courses,enrollments,onOpenCourse,onBack,embedded}:{institution:Institution;courses:Course[];enrollments:Enrollment[];onOpenCourse:(id:string)=>void;onBack:()=>void;embedded?:boolean}){
  const own=courses.filter(c=>c.institution_id===institution.id);
  const ids=new Set(own.map(c=>c.id));
- const rows=enrollments.filter(r=>ids.has(r.course_id)&&r.student_status==='MATRICULADO');
+ const rows=enrollments.filter(r=>ids.has(r.course_id)&&isEnrolledStatus(r.student_status));
  const semesters=[...new Set(rows.map(r=>r.semester))].sort(sortSem);
  const [semester,setSemester]=useState(semesters[0]??'');
  const [tab,setTab]=useState<Modality|'todas'>('todas');
@@ -92,7 +93,7 @@ export function InstitutionView({institution,courses,enrollments,onOpenCourse,on
 }
 
 export function CourseView({course,institution,enrollments,reports,onBack,onPlan}:{course:Course;institution:Institution;enrollments:Enrollment[];reports:(AcademicReport&{course_id?:string})[];onBack:()=>void;onPlan?:(draft:{course_id:string;what:string;why:string;how:string})=>void}){
- const rows=enrollments.filter(r=>r.course_id===course.id&&r.student_status==='MATRICULADO');
+ const rows=enrollments.filter(r=>r.course_id===course.id&&isEnrolledStatus(r.student_status));
  const semesters=[...new Set(rows.map(r=>r.semester))].sort(sortSem);
  const [semester,setSemester]=useState(semesters[0]??'');
  const sem=semester||semesters[0]||'';
@@ -103,7 +104,7 @@ export function CourseView({course,institution,enrollments,reports,onBack,onPlan
  const displayRows=selected.filter(r=>r.class_label!=="__TOTAL_CURSO__");
  const series=own.find(r=>(r.kind as string)==='status_series');
  const statusRows=((series?.payload.series??[]) as StatusSeries[]).slice().sort((a,b)=>a.semester.localeCompare(b.semester));
- const periods=[...new Set(enrollments.filter(r=>r.student_status==='MATRICULADO').map(r=>r.semester))].sort(sortSem);
+ const periods=[...new Set(enrollments.filter(r=>isEnrolledStatus(r.student_status)).map(r=>r.semester))].sort(sortSem);
  const previous=periods[periods.indexOf(sem)+1];
  const baseline=rows.filter(r=>r.semester===previous);
  const current=courseTotals(selected).value;

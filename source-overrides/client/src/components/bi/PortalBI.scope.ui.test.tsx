@@ -1,0 +1,23 @@
+import {beforeEach,afterEach,describe,it,expect,vi} from 'vitest';
+import {act,createElement} from 'react';
+import {createRoot,type Root} from 'react-dom/client';
+const fixtures=vi.hoisted(()=>({list:vi.fn(),repository:vi.fn()}));
+vi.mock('@/lib/supabase',()=>({supabase:{}}));
+vi.mock('@/lib/area',async original=>({...await original<any>(),listByInstitution:fixtures.list}));
+vi.mock('@/lib/repository-data',()=>({listRepository:fixtures.repository}));
+vi.mock('@/components/area/CaptacaoBI',()=>({default:({institutionId,institutionName}:any)=>createElement('section',{'data-captacao-ies':institutionId},institutionName+' · fonte cadastrada')}));
+import {PortalBI} from '@/pages/OwnerDashboard';
+let container:HTMLDivElement,root:Root;
+const institutions=[{id:'demo',name:'TESTE FICTÍCIO FV-DEMO'},{id:'other',name:'Outra IES sintética'}];
+const props={institutions,courses:[{id:'dc',institution_id:'demo',name:'Direito fictício'},{id:'oc',institution_id:'other',name:'Curso outro'}],enrollments:[{course_id:'dc',semester:'2026/02',student_status:'matriculado',class_label:'A',enrolled:1500,reported_total:null}],session:{access_token:'not-a-real-token'}} as any;
+async function select(value:string){await act(async()=>{const s=container.querySelector('select')!;s.value=value;s.dispatchEvent(new Event('change',{bubbles:true}));});}
+beforeEach(()=>{fixtures.list.mockReset().mockResolvedValue([]);fixtures.repository.mockReset().mockResolvedValue([]);container=document.createElement('div');document.body.append(container);root=createRoot(container);});
+afterEach(async()=>{await act(async()=>root.unmount());container.remove();});
+describe('existing PortalBI explicit scope',()=>{
+ it('embeds captation under the selected IES with independent period and separate simulation',async()=>{await act(async()=>root.render(createElement(PortalBI,props)));await select('demo');await act(async()=>{[...container.querySelectorAll('nav button')].find(b=>b.textContent?.includes('Captação'))!.dispatchEvent(new MouseEvent('click',{bubbles:true}));});expect(container.querySelector('[data-captacao-ies]')?.getAttribute('data-captacao-ies')).toBe('demo');expect(container.textContent).toContain('todo o histórico cadastrado');expect(container.textContent).toContain('não filtra esta seção');expect(container.querySelector('details')?.textContent).toContain('NÃO COMPÕE OS INDICADORES');await select('other');expect(container.querySelector('[data-captacao-ies]')).toBeNull();await act(async()=>{[...container.querySelectorAll('nav button')].find(b=>b.textContent?.includes('Captação'))!.dispatchEvent(new MouseEvent('click',{bubbles:true}));});expect(container.querySelector('[data-captacao-ies]')?.getAttribute('data-captacao-ies')).toBe('other');});
+ it('ignores late records from an institution after switching scope',async()=>{let resolveOld!:(rows:any[])=>void;const old=new Promise<any[]>(resolve=>{resolveOld=resolve;});fixtures.list.mockImplementation((_table,id)=>id==='demo'?old:Promise.resolve([]));await act(async()=>root.render(createElement(PortalBI,props)));await select('demo');await select('other');await act(async()=>resolveOld([{id:'old',title:'OLD IES SECRET',what:'OLD IES SECRET',status:'ativa'}]));expect(container.textContent).not.toContain('OLD IES SECRET');expect(container.textContent).not.toContain('1.500');});
+ it('does not query the first institution by default',async()=>{await act(async()=>root.render(createElement(PortalBI,props)));expect(fixtures.list).not.toHaveBeenCalled();expect(fixtures.repository).not.toHaveBeenCalled();expect(container.textContent).toContain('Nenhum indicador é carregado por padrão');});
+ it('loads only explicitly selected IES and displays lowercase snapshot counts',async()=>{await act(async()=>root.render(createElement(PortalBI,props)));await select('demo');expect(fixtures.list.mock.calls.every(c=>c[1]==='demo')).toBe(true);expect(container.textContent).toContain('1.500');expect(container.textContent).not.toContain('sem números demonstrativos');});
+ it('clears previous institution content when selection is removed',async()=>{await act(async()=>root.render(createElement(PortalBI,props)));await select('demo');await select('');expect(container.textContent).not.toContain('1.500');expect(container.textContent).toContain('Nenhum indicador é carregado por padrão');});
+ it('changes scope without retaining the earlier enrollment count',async()=>{await act(async()=>root.render(createElement(PortalBI,props)));await select('demo');await select('other');expect(fixtures.list.mock.calls.at(-1)?.[1]).toBe('other');expect(container.textContent).not.toContain('1.500');});
+});

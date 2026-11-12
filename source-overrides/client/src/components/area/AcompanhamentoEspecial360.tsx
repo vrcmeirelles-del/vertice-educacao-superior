@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { buildSupportPayload, checkedWrite, specialOrigins } from "@/lib/student-support-contracts";
 import "./acompanhamento-especial360.css";
 
 // Aligned with actual Supabase schema
@@ -12,7 +13,11 @@ interface Category { id:string; institution_id:string; code:string; label:string
 type View = 'casos'|'requerimentos'|'planos'|'indicadores';
 interface Props { institutionId:string; role:string; }
 
-export default function AcompanhamentoEspecial360({institutionId,role}:Props) {
+export default function AcompanhamentoEspecial360(props:Props) {
+  return <AcompanhamentoEspecial360Content key={props.institutionId} {...props} />;
+}
+
+function AcompanhamentoEspecial360Content({institutionId,role}:Props) {
   const [view,setView] = useState<View>('casos');
   const [cases,setCases] = useState<SpecialCase[]>([]);
   const [requests,setRequests] = useState<SpecialRequest[]>([]);
@@ -20,29 +25,42 @@ export default function AcompanhamentoEspecial360({institutionId,role}:Props) {
   const [plans,setPlans] = useState<SpecialPlan[]>([]);
   const [categories,setCategories] = useState<Category[]>([]);
   const [loading,setLoading] = useState(true);
+  const [error,setError] = useState('');
+  const [loadError,setLoadError] = useState(false);
+  const loadVersion = useRef(0);
+  const [saving,setSaving] = useState(false);
+  const saveLock = useRef(false);
+  const mounted = useRef(true);
+  useEffect(()=>{ mounted.current=true; return ()=>{mounted.current=false}; },[]);
   const [showForm,setShowForm] = useState<'case'|'request'|'decision'|'plan'|'category'|null>(null);
 
   const [formCase,setFormCase] = useState({student_name:'',student_matricula:'',category_id:'',notes:''});
-  const [formReq,setFormReq] = useState({case_id:'',category_code:'',description:'',requester_name:'',requested_period_start:'',requested_period_end:''});
+  const [formReq,setFormReq] = useState({case_id:'',origin:'coordenacao',category_code:'',description:'',requester_name:'',requested_period_start:'',requested_period_end:''});
   const [formDecision,setFormDecision] = useState({case_id:'',decision_type:'deferimento',justification:'',conditions:'',authority_name:'',regime_start:'',regime_end:''});
-  const [formPlan,setFormPlan] = useState({case_id:'',elaborated_by:'',plan_start:'',plan_end:'',notes:''});
+  const [formPlan,setFormPlan] = useState({case_id:'',plan_start:'',plan_end:'',notes:''});
   const [formCat,setFormCat] = useState({code:'',label:'',description:'',legal_basis:'',requires_documentation:true});
 
   const load = useCallback(async ()=>{
+    const version=++loadVersion.current;
     setLoading(true);
+    try {
     const [c,r,d,p,cat] = await Promise.all([
-      supabase.from('student_special_cases').select('*').eq('institution_id',institutionId).order('opened_at',{ascending:false}),
+      supabase.from('student_special_cases').select('*').eq('institution_id',institutionId).order('created_at',{ascending:false}),
       supabase.from('student_special_requests').select('*').eq('institution_id',institutionId).order('created_at',{ascending:false}),
-      supabase.from('student_special_decisions').select('*').eq('institution_id',institutionId).order('decided_at',{ascending:false}),
+      supabase.from('student_special_decisions').select('*').eq('institution_id',institutionId).order('created_at',{ascending:false}),
       supabase.from('student_special_plans').select('*').eq('institution_id',institutionId).order('created_at',{ascending:false}),
-      supabase.from('student_special_categories').select('*').eq('institution_id',institutionId).order('name'),
+      supabase.from('student_special_categories').select('*').eq('institution_id',institutionId).order('label'),
     ]);
+    if (!mounted.current || version!==loadVersion.current) return;
+    if ([c,r,d,p,cat].some(result=>result.error)) throw new Error('Não foi possível carregar os registros. Tente novamente.');
+    setError(''); setLoadError(false);
     if(c.data) setCases(c.data);
     if(r.data) setRequests(r.data);
     if(d.data) setDecisions(d.data);
     if(p.data) setPlans(p.data);
     if(cat.data) setCategories(cat.data);
-    setLoading(false);
+    } catch { if (mounted.current && version===loadVersion.current) { setLoadError(true); setError('Não foi possível carregar os registros. Tente novamente.'); } }
+    finally { if (mounted.current && version===loadVersion.current) setLoading(false); }
   },[institutionId]);
 
   useEffect(()=>{load()},[load]);
@@ -56,38 +74,45 @@ export default function AcompanhamentoEspecial360({institutionId,role}:Props) {
     'Gestação','Lactação','Acidente','Recuperação pós-operatória','Tratamento de saúde','Condição temporária de saúde','Condição de saúde mental','Internação','Outro'
   ];
 
-  const saveCase = async ()=>{
-    await supabase.from('student_special_cases').insert({institution_id:institutionId,student_name:formCase.student_name,student_matricula:formCase.student_matricula||null,category_id:formCase.category_id||null,status:'aberto',notes:formCase.notes||null});
-    setShowForm(null);load();
+  const save = async (kind:string, table:string, form:Record<string,string|boolean>)=>{
+    if (saveLock.current) return;
+    saveLock.current=true; setSaving(true); setError('');
+    try {
+      const payload=buildSupportPayload(kind,form,{institutionId,cases,plans,role,categories});
+      await checkedWrite(supabase.from(table).insert(payload));
+      if (!mounted.current) return;
+      setShowForm(null);
+      setFormCase({student_name:'',student_matricula:'',category_id:'',notes:''});
+      setFormReq({case_id:'',origin:'coordenacao',category_code:'',description:'',requester_name:'',requested_period_start:'',requested_period_end:''});
+      setFormDecision({case_id:'',decision_type:'deferimento',justification:'',conditions:'',authority_name:'',regime_start:'',regime_end:''});
+      setFormPlan({case_id:'',plan_start:'',plan_end:'',notes:''});
+      setFormCat({code:'',label:'',description:'',legal_basis:'',requires_documentation:true});
+      await load();
+    } catch (failure) {
+      if (mounted.current) setError(failure instanceof Error ? failure.message : 'Não foi possível salvar. Tente novamente.');
+    } finally { saveLock.current=false; if (mounted.current) setSaving(false); }
   };
-  const saveRequest = async ()=>{
-    await supabase.from('student_special_requests').insert({institution_id:institutionId,case_id:formReq.case_id,category_code:formReq.category_code||null,description:formReq.description,requester_name:formReq.requester_name||null,requested_period_start:formReq.requested_period_start||null,requested_period_end:formReq.requested_period_end||null,status:'protocolo'});
-    setShowForm(null);load();
-  };
-  const saveDecision = async ()=>{
-    await supabase.from('student_special_decisions').insert({institution_id:institutionId,case_id:formDecision.case_id,decision_type:formDecision.decision_type,justification:formDecision.justification||null,conditions:formDecision.conditions||null,authority_name:formDecision.authority_name||null,regime_start:formDecision.regime_start||null,regime_end:formDecision.regime_end||null,status:'deferido'});
-    setShowForm(null);load();
-  };
-  const savePlan = async ()=>{
-    await supabase.from('student_special_plans').insert({institution_id:institutionId,case_id:formPlan.case_id,elaborated_by:formPlan.elaborated_by||null,plan_start:formPlan.plan_start||null,plan_end:formPlan.plan_end||null,notes:formPlan.notes||null,status:'ativo'});
-    setShowForm(null);load();
-  };
-  const saveCategory = async ()=>{
-    await supabase.from('student_special_categories').insert({institution_id:institutionId,code:formCat.code,label:formCat.label,description:formCat.description||null,legal_basis:formCat.legal_basis||null,requires_documentation:formCat.requires_documentation,active:true});
-    setShowForm(null);load();
-  };
+  const saveCase = ()=>save('specialCase','student_special_cases',formCase);
+  const saveRequest = ()=>save('specialRequest','student_special_requests',formReq);
+  const saveDecision = ()=>save('specialDecision','student_special_decisions',formDecision);
+  const savePlan = ()=>save('specialPlan','student_special_plans',formPlan);
+  const saveCategory = ()=>save('specialCategory','student_special_categories',formCat);
 
   const stats = {
-    abertos: cases.filter(c=>c.status==='aberto'||c.status==='em_analise').length,
-    autorizados: decisions.filter(d=>d.status==='deferido'||d.decision_type==='deferimento').length,
+    abertos: cases.filter(c=>!['encerrado','indeferido'].includes(c.status)).length,
+    autorizados: decisions.filter(d=>d.status==='vigente'&&['deferimento','deferimento_parcial'].includes(d.decision_type)).length,
     planosAtivos: plans.filter(p=>p.status==='ativo').length,
-    pendentes: requests.filter(r=>r.status==='protocolo'||r.status==='em_analise').length,
+    pendentes: requests.filter(r=>r.status==='pendente'||r.status==='em_analise').length,
   };
 
   if(loading) return <div className="ae-loading">Carregando acompanhamento especial…</div>;
 
+  if (loadError) return <div role="alert">{error}<button onClick={load}>Tentar novamente</button></div>;
+
   return (
     <div className="ae360">
+      {error && <div role="alert">{error} <button onClick={load} disabled={saving}>Recarregar</button></div>}
+      {saving && <div role="status">Salvando…</div>}
       <div className="ae-kpis">
         <div className="ae-kpi"><span className="ae-kpi-n ae-warn">{stats.abertos}</span><span className="ae-kpi-l">Casos abertos</span></div>
         <div className="ae-kpi"><span className="ae-kpi-n ae-alert">{stats.pendentes}</span><span className="ae-kpi-l">Requerimentos pendentes</span></div>
@@ -124,7 +149,7 @@ export default function AcompanhamentoEspecial360({institutionId,role}:Props) {
               <textarea placeholder="Descrição" value={formCat.description} onChange={e=>setFormCat({...formCat,description:e.target.value})} rows={2} />
               <label className="ae-checkbox"><input type="checkbox" checked={formCat.requires_documentation} onChange={e=>setFormCat({...formCat,requires_documentation:e.target.checked})} /> Exige documentação comprobatória</label>
               <div className="ae-form-actions">
-                <button className="ae-btn-primary" onClick={saveCategory} disabled={!formCat.label||!formCat.code}>Salvar</button>
+                <button className="ae-btn-primary" onClick={saveCategory} disabled={saving||!formCat.label||!formCat.code}>Salvar</button>
                 <button className="ae-btn-secondary" onClick={()=>setShowForm(null)}>Fechar</button>
               </div>
               {categories.length>0 && (
@@ -143,12 +168,12 @@ export default function AcompanhamentoEspecial360({institutionId,role}:Props) {
               {categories.length>0 && (
                 <select value={formCase.category_id} onChange={e=>setFormCase({...formCase,category_id:e.target.value})}>
                   <option value="">Categoria (opcional)</option>
-                  {categories.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}
+                  {categories.map(c=><option key={c.id} value={c.id}>{c.label}</option>)}
                 </select>
               )}
               <textarea placeholder="Observações" value={formCase.notes} onChange={e=>setFormCase({...formCase,notes:e.target.value})} rows={2} />
               <div className="ae-form-actions">
-                <button className="ae-btn-primary" onClick={saveCase} disabled={!formCase.student_name}>Abrir caso</button>
+                <button className="ae-btn-primary" onClick={saveCase} disabled={saving||!formCase.student_name}>Abrir caso</button>
                 <button className="ae-btn-secondary" onClick={()=>setShowForm(null)}>Cancelar</button>
               </div>
             </div>
@@ -185,6 +210,7 @@ export default function AcompanhamentoEspecial360({institutionId,role}:Props) {
           <div className="ae-header"><h3>Requerimentos de Regime Especial</h3><button className="ae-btn-primary" onClick={()=>setShowForm('request')}>+ Novo requerimento</button></div>
           {showForm==='request' && (
             <div className="ae-form">
+              <label>Origem<select value={formReq.origin} onChange={e=>setFormReq({...formReq,origin:e.target.value})}>{specialOrigins.map(o=><option key={o} value={o}>{o.replaceAll('_',' ')}</option>)}</select></label>
               <select value={formReq.case_id} onChange={e=>setFormReq({...formReq,case_id:e.target.value})}>
                 <option value="">Vincular a caso</option>
                 {cases.map(c=><option key={c.id} value={c.id}>{c.student_name}</option>)}
@@ -202,7 +228,7 @@ export default function AcompanhamentoEspecial360({institutionId,role}:Props) {
               </div>
               <textarea placeholder="Descrição / justificativa" value={formReq.description} onChange={e=>setFormReq({...formReq,description:e.target.value})} rows={3} />
               <div className="ae-form-actions">
-                <button className="ae-btn-primary" onClick={saveRequest} disabled={!formReq.case_id||!formReq.description}>Protocolar</button>
+                <button className="ae-btn-primary" onClick={saveRequest} disabled={saving||!formReq.case_id||!formReq.description}>Protocolar</button>
                 <button className="ae-btn-secondary" onClick={()=>setShowForm(null)}>Cancelar</button>
               </div>
             </div>
@@ -224,12 +250,12 @@ export default function AcompanhamentoEspecial360({institutionId,role}:Props) {
                 </div>
                 {rd.map(d=>(
                   <div key={d.id} className={`ae-decision ae-decision-${d.status}`}>
-                    <strong>{d.status==='deferido'?'✓ Deferido':d.status==='indeferido'?'✗ Indeferido':'⊘ '+d.status}</strong>
+                    <strong>{d.decision_type.replaceAll('_',' ')} · {d.status}</strong>
                     {d.justification&&<span> — {d.justification}</span>}
                     {d.conditions&&<div className="ae-decision-cond">Condições: {d.conditions}</div>}
                   </div>
                 ))}
-                {rd.length===0 && r.status!=='cancelado' && (
+                {rd.length===0 && r.status!=='recusada' && !!r.case_id && (
                   <button className="ae-btn-small" onClick={()=>{setFormDecision({...formDecision,case_id:r.case_id});setShowForm('decision');}}>Registrar decisão</button>
                 )}
               </div>
@@ -249,7 +275,7 @@ export default function AcompanhamentoEspecial360({institutionId,role}:Props) {
               <textarea placeholder="Justificativa" value={formDecision.justification} onChange={e=>setFormDecision({...formDecision,justification:e.target.value})} rows={2} />
               <textarea placeholder="Condições / restrições (opcional)" value={formDecision.conditions} onChange={e=>setFormDecision({...formDecision,conditions:e.target.value})} rows={2} />
               <div className="ae-form-actions">
-                <button className="ae-btn-primary" onClick={saveDecision}>Registrar</button>
+                <button className="ae-btn-primary" onClick={saveDecision} disabled={saving||!formDecision.justification.trim()||!role}>Registrar</button>
                 <button className="ae-btn-secondary" onClick={()=>setShowForm(null)}>Cancelar</button>
               </div>
             </div>
@@ -269,13 +295,12 @@ export default function AcompanhamentoEspecial360({institutionId,role}:Props) {
                 {cases.map(c=><option key={c.id} value={c.id}>{c.student_name}</option>)}
               </select>
               <div className="ae-form-row">
-                <input placeholder="Elaborado por" value={formPlan.elaborated_by} onChange={e=>setFormPlan({...formPlan,elaborated_by:e.target.value})} />
                 <input type="date" value={formPlan.plan_start} onChange={e=>setFormPlan({...formPlan,plan_start:e.target.value})} />
                 <input type="date" value={formPlan.plan_end} onChange={e=>setFormPlan({...formPlan,plan_end:e.target.value})} />
               </div>
               <textarea placeholder="Observações e orientações" value={formPlan.notes} onChange={e=>setFormPlan({...formPlan,notes:e.target.value})} rows={3} />
               <div className="ae-form-actions">
-                <button className="ae-btn-primary" onClick={savePlan} disabled={!formPlan.case_id}>Criar plano</button>
+                <button className="ae-btn-primary" onClick={savePlan} disabled={saving||!formPlan.case_id}>Criar plano</button>
                 <button className="ae-btn-secondary" onClick={()=>setShowForm(null)}>Cancelar</button>
               </div>
             </div>

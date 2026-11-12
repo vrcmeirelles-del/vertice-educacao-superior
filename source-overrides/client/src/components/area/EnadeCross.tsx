@@ -1,3 +1,4 @@
+import {isEnrolledStatus} from '@/lib/enrollment-summary';
 import {useCallback,useEffect,useMemo,useState} from "react";
 import {supabase} from "@/lib/supabase";
 import {courseTotals} from "@/lib/enrollment-summary";
@@ -43,7 +44,7 @@ function latest(rows:Enrollment[]){
   return rows.filter(x=>(Date.parse(x.source_report_at)||0)===(times.get([x.course_id,term(x.semester),x.student_status].join("|"))??0));
 }
 function enrollCount(rows:Enrollment[],ids:Set<string>,period:string):number|null{
-  const selected=rows.filter(x=>ids.has(x.course_id)&&term(x.semester)===period&&x.student_status==="MATRICULADO");
+  const selected=rows.filter(x=>ids.has(x.course_id)&&term(x.semester)===period&&isEnrolledStatus(x.student_status));
   if(!selected.length)return null;
   const grouped=new Map<string,Enrollment[]>();
   selected.forEach(x=>grouped.set(x.course_id,[...(grouped.get(x.course_id)??[]),x]));

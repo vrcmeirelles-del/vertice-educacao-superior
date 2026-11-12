@@ -1,3 +1,4 @@
+export function isEnrolledStatus(value:unknown):boolean { return typeof value === 'string' && value.trim().toUpperCase() === 'MATRICULADO'; }
 type EnrollmentRow={course_id:string;semester:string;student_status:string;class_label:string;enrolled:number;reported_total:number|null};
 export function courseTotals(rows:EnrollmentRow[]){
  const classes=rows.filter(r=>r.class_label!=='__TOTAL_CURSO__');
@@ -8,7 +9,7 @@ export function courseTotals(rows:EnrollmentRow[]){
 }
 export function institutionEnrollmentSummary(institutionId:string,courses:{id:string;institution_id:string}[],enrollments:EnrollmentRow[]){
  const ids=new Set(courses.filter(c=>c.institution_id===institutionId).map(c=>c.id));
- const own=enrollments.filter(r=>ids.has(r.course_id)&&r.student_status==='MATRICULADO');
+ const own=enrollments.filter(r=>ids.has(r.course_id)&&isEnrolledStatus(r.student_status));
  const semester=[...new Set(own.map(r=>r.semester))].sort().at(-1);
  if(!semester)return undefined;
  const groups=new Map<string,EnrollmentRow[]>();

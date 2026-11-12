@@ -11,6 +11,7 @@ const PreValidationPanel = lazy(() => import('./PreValidationPanel'));
 // ── Types ──────────────────────────────────────────────────
 
 interface DocCategory {
+  linked_module?: string | null;
   code: string;
   label: string;
   tier: string;

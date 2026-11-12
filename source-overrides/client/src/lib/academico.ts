@@ -23,6 +23,7 @@ export type AcademicReportRow = {
   id: string;
   institution_id: string;
   kind: string;
+  course_id?: string | null;
   dedupe_key: string | null;
   payload: Record<string, any>;
   source_report_at: string | null;
@@ -113,7 +114,7 @@ export type FluxoSemestre = {
   abandono: number; concluidos: number; cancelados: number;
   transferidos: number; trocaCurso: number; graduados: number; total: number;
 };
-export type ReprovaSemestre = { semestre: string; reprovacoes: number; matriculas: number; pct: number };
+export type ReprovaSemestre = { semestre: string; reprovacoes: number; matriculas: number; pct: number; reportId?: string; courseId?: string | null; scopeLabel?: string };
 
 const pctToNum = (v: any): number | undefined => {
   if (v == null) return undefined;
@@ -166,10 +167,13 @@ export function parseFluxo(rows: AcademicReportRow[]): FluxoSemestre[] {
   }).sort((a, b) => a.semestre.localeCompare(b.semestre));
 }
 
-export function parseReprovaSemestre(rows: AcademicReportRow[]): ReprovaSemestre[] {
+export function parseReprovaSemestre(rows: AcademicReportRow[], courseNames: Map<string, string> = new Map()): ReprovaSemestre[] {
   return rows.map(r => {
     const p = r.payload || {};
     return {
+      reportId: r.id,
+      courseId: r.course_id ?? null,
+      scopeLabel: r.course_id ? (courseNames.get(r.course_id) ?? `Curso ${r.course_id}`) : `Recorte sem curso identificado · ${r.id.slice(0, 8)}`,
       semestre: String(p.s ?? ''),
       reprovacoes: Number(p.reprovacoes ?? 0),
       matriculas: Number(p.matriculas ?? 0),
