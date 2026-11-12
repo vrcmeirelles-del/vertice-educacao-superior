@@ -2,9 +2,14 @@ import React from 'react';
 import { describe, it, expect } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { readFileSync } from 'node:fs';
-import InstitutionTabs, { MACRO_TABS, macroTabFor } from './InstitutionTabs';
+import InstitutionTabs, { MACRO_TABS, macroTabFor, macroDestination } from './InstitutionTabs';
 
 describe('institution navigation', () => {
+  it('does not enter blocked or unauthorized destinations', () => {
+    expect(macroDestination('dados', ['cadastro', 'emec'], () => true)).toBeUndefined();
+    expect(macroDestination('dados', ['emec'], () => false)).toBe('emec');
+    expect(macroDestination('dados', ['cadastro', 'emec'], tab => tab === 'cadastro')).toBe('emec');
+  });
   it('assigns every supported workspace destination exactly once', () => {
     const source = readFileSync(new URL('../../lib/area.ts', import.meta.url), 'utf8');
     const declaration = source.match(/export type Tab = ([^;]+);/)![1];

@@ -4,7 +4,7 @@
  * Substitui o grid de módulos do Workspace mantendo toda a funcionalidade existente.
  * As tabs internas de cada aba macro continuam controladas pelo Workspace via `choose()`.
  */
-import { useState, useEffect, type ReactNode } from "react";
+import { useState, useEffect, useRef, type ReactNode } from "react";
 import type { Tab } from "@/lib/area";
 import "./institution-tabs.css";
 
@@ -79,6 +79,11 @@ export function macroTabFor(wsTab: Tab): MacroTab {
   return 'visao-geral';
 }
 
+/** Pick only a permitted, active destination; a blocked group stays in the activation picker. */
+export function macroDestination(macro: MacroTab, visible: Tab[], locked: (tab: Tab) => boolean): Tab | undefined {
+  return MACRO_TABS.find(m => m.key === macro)?.tabs.find(tab => visible.includes(tab) && !locked(tab));
+}
+
 interface Props {
   enabled?: boolean;
   availableMacros?: MacroTab[];
@@ -92,9 +97,12 @@ interface Props {
 
 export default function InstitutionTabs({ activeTab, onSelectMacro, activeMacro, children, institutionName, kpis, enabled = true, availableMacros }: Props) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const toggleRef = useRef<HTMLButtonElement>(null);
 
   // Close mobile nav when macro changes
-  useEffect(() => { setMobileOpen(false); }, [activeMacro]);
+  useEffect(() => {
+    if (mobileOpen) { setMobileOpen(false); toggleRef.current?.focus(); }
+  }, [activeMacro]);
 
   if (!enabled) return <>{children}</>;
 
@@ -103,6 +111,7 @@ export default function InstitutionTabs({ activeTab, onSelectMacro, activeMacro,
       {/* Mobile: tab bar at top */}
       <div className="inst-tabs-mobile-bar">
         <button
+          ref={toggleRef}
           type="button"
           className="inst-tabs-mobile-toggle"
           aria-expanded={mobileOpen}

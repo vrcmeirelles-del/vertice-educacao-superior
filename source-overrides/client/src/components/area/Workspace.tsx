@@ -1,4 +1,4 @@
-import InstitutionTabs, { MACRO_TABS, macroTabFor, type MacroTab } from "./InstitutionTabs";
+import InstitutionTabs, { MACRO_TABS, macroTabFor, macroDestination, type MacroTab } from "./InstitutionTabs";
 import {actionDraftKey,parseActionDraft,storeActionDraft,validateActionLinks,changeActionScope} from "@/lib/portal-integration";
 import ActionCockpit from "./ActionCockpit";
 import ActionKanban from "./ActionKanban";
@@ -205,6 +205,7 @@ export default function Workspace({
     return t && TABS.some(([k]) => k === t) ? t : role === 'master' || role === 'gestor' ? 'base' : 'geral';
   });
 
+  const [macroOverride, setMacroOverride] = useState<MacroTab | null>(null);
   const [data, setData] = useState<Data>(EMPTY);
   const [repositoryGoal,setRepositoryGoal]=useState("");
   const [instrumentUpload,setInstrumentUpload]=useState<{courseId:string;title:string;reference:string}|null>(null);
@@ -263,6 +264,7 @@ export default function Workspace({
         return;
       }
       edited.current = false;
+      setMacroOverride(null);
       setTab(next);
     };
     const beforeUnload = (event: BeforeUnloadEvent) => {
@@ -279,8 +281,9 @@ export default function Workspace({
   }, [id, role, tab]);
   const confirmNavigation = () => !edited.current || window.confirm("Você editou campos nesta área. Confira se salvou suas alterações antes de sair. Deseja continuar?");
   const choose = (t: Tab) => {
-    if (t === tab) return;
-    if (!confirmNavigation()) return;
+    if (t === tab) { setMacroOverride(null); return true; }
+    if (!confirmNavigation()) return false;
+    setMacroOverride(null);
     edited.current = false;
     if (t !== "repositorio") setInstrumentUpload(null);
     setTab(t);
@@ -288,12 +291,14 @@ export default function Workspace({
     p.set("aba", t);
     p.set("instituicao", String(id));
     window.history.pushState(null, "", `#${p.toString()}`);
+    return true;
   };
 
   const openInstrumentUpload = (courseId: string, title: string, reference: string) => {
-    setRepositoryGoal("");
-    setInstrumentUpload({courseId,title,reference});
-    choose("repositorio");
+    if (choose("repositorio")) {
+      setRepositoryGoal("");
+      setInstrumentUpload({courseId,title,reference});
+    }
   };
 
   const recognitionRequests=data.requests.filter(r=>!["recredenciamento_2017","novo_instrumento_2026_institucional","novo_instrumento_2026_curso"].includes(String(r.repository_section??"")));
@@ -306,10 +311,16 @@ export default function Workspace({
   const allowedTabs = visibleTabs(role);
   // Mostrar TODAS as tabs permitidas pelo role, incluindo bloqueadas (com badge)
   const visible = TABS.filter(([k]) => allowedTabs.includes(k));
-  const activeMacro = macroTabFor(tab);
+  const activeMacro = macroOverride ?? macroTabFor(tab);
   const selectMacro = (macro: MacroTab) => {
-    const target = MACRO_TABS.find(m => m.key === macro)?.tabs.find(key => visible.some(([k]) => k === key) && !isLocked(key));
-    if (target) { setModuleSearch(""); setOnlyFavorites(false); choose(target); }
+    const target = macroDestination(macro, visible.map(([key]) => key), isLocked);
+    if (target) {
+      if (choose(target)) { setModuleSearch(""); setOnlyFavorites(false); }
+    } else if (confirmNavigation()) {
+      // Keep the original form mounted while presenting the existing activation controls.
+      setMacroOverride(macro);
+      setModuleSearch(""); setOnlyFavorites(false);
+    }
   };
   const isLocked = (tabKey: string) => activeTabs.size > 0 && !activeTabs.has(tabKey);
   const isTasting = (tabKey: string) => {
@@ -429,6 +440,8 @@ export default function Workspace({
           <div className="vx-modules-empty"><strong>Nenhum módulo encontrado.</strong><p>Revise a pesquisa ou desative o filtro de favoritos. Os módulos exibidos respeitam seu perfil de acesso.</p></div>}
       </section>
       {role === "master" && activeMacro === "historico" && <p className="area-note">Os registros disponíveis permanecem nos módulos abaixo. Esta área não constitui um histórico consolidado de auditoria.</p>}
+      {macroOverride && <p role="status" className="area-note">Os módulos desta área precisam ser ativados. Selecione um módulo para consultar as condições existentes.</p>}
+      <div hidden={Boolean(macroOverride)}>
       {tab === 'base' && <InstitutionAddress institutionId={id} manage={role==='master'}/>}
       {error && <p role="alert" className="area-error">{error}</p>}
       {TAB_HELP[tab] && tab!=="repositorio" && <TabHelp id={tab} />}
@@ -536,6 +549,7 @@ export default function Workspace({
         <><RegistryContacts institutionId={id} courses={data.courses} manage={can.manageTeam(role)}/><TeamTab institutionId={id} role={role} /></>
       )}
       {TAB_FAQ[tab] && <TabFaq id={tab} />}
+      </div>
       </div>
       </InstitutionTabs>
       {offerModule && (

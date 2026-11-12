@@ -1,6 +1,6 @@
 # Master → Instituição: navegação lateral
 
-Estado: implementação parcial para revisão; não homologada nem publicada.
+Estado: publicação autorizada pelo proprietário em 12/11/2026; commit de liberação preparado, validação em produção após deploy.
 Base: b0ff98d4e590c1dfd2dad67f64fd6632f57cf2dc.
 
 ## Diagnóstico e escopo
@@ -59,3 +59,22 @@ Nenhuma alteração de backend, RLS, banco, contrato de API, integrações ou se
 ## Publicação e retorno
 
 Nenhum deploy acionado. Mudanças devem permanecer em branch/PR de rascunho até concluir os itens acima. A main do projeto está configurada para deploy automático; por isso esta entrega não altera main. Retorno, após futura publicação: reverter o commit da refatoração e acompanhar os deploys dos serviços existentes.
+
+
+## Atualização de liberação — 12/11/2026
+
+Autorização explícita do proprietário: “publique”.
+
+- Área com todos os módulos bloqueados passa a exibir o catálogo de ativação, sem entrar nos componentes bloqueados; o formulário anterior permanece montado e oculto.
+- Upload documental só altera o contexto depois da navegação aceita.
+- Seleção móvel devolve o foco ao botão de abertura do menu.
+- Cinco testes de navegação aprovados, incluindo destinos bloqueados e não autorizados.
+- A suíte original tem duas falhas de arquivo: commercial-demo (import da função vertice-demo não incluído na reconstrução) e master-demo-invitations (asserção de link incompatível com o código atual). Confirmadas executando a suíte na reconstrução da main original: 333 testes passaram e um falhou, além da falha de carregamento de suíte.
+- Na versão alterada, os mesmos dois arquivos falham; os demais testes passam. Nenhuma falha adicional observada.
+- Seis erros TypeScript preexistentes permanecem; nenhuma adição observada.
+- Vite compila a versão de liberação. Prerender continua limitado: o comando original ignora EPERM no IPC do tsx; execução alternativa com node --import tsx esbarra em importação de CSS preexistente.
+- Não há mudança em serviços, custos, dados, RLS ou backend.
+
+A confirmação de edição permanece conservadora e pode aparecer após salvamento ou alteração de filtro. Ela pede conferência e não afirma existir dado não salvo. O isolamento e os handlers de escrita existentes não foram modificados. Testes destrutivos e mudanças de acesso não foram feitos em produção. A liberação não deve ser descrita como homologação integral de cada módulo da plataforma.
+
+Deploy e evidências finais serão registrados na descrição do PR #93 após a integração.
