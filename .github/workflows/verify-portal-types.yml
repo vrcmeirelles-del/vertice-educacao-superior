@@ -30,6 +30,7 @@ jobs:
           mkdir -p .typecheck-build
           unzip -qo vertice-servidor-source.zip -d .typecheck-build
           cp -a source-overrides/. .typecheck-build/
+          cp -a supabase .typecheck-build/
           cp scripts/portal-types.vitest.config.ts .typecheck-build/scripts/
       - name: Instalar dependências com lockfile
         run: |
