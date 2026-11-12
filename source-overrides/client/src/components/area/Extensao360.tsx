@@ -1,9 +1,12 @@
-// Extensao360.tsx — Repositório de Projetos de Extensão (v2 — fluxo completo)
+// Extensao360.tsx — Repositório de Projetos de Extensão (v3 — Impacto integrado)
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import "./extensao360.css";
+import ExtensaoHourLedger from "./ExtensaoHourLedger";
+import ExtensaoODS from "./ExtensaoODS";
+import ExtensaoGovernanca from "./ExtensaoGovernanca";
 
-type View = 'projetos' | 'equipe' | 'alunos' | 'entregas' | 'cobertura' | 'revisoes';
+type View = 'projetos' | 'equipe' | 'alunos' | 'entregas' | 'cobertura' | 'revisoes' | 'ods' | 'governanca';
 
 interface ExtProject {
   id: string; title: string; code: string; project_type: string; description: string;
@@ -78,6 +81,8 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [coverage, setCoverage] = useState<Coverage[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hourLedger, setHourLedger] = useState<{ participantId: string; participantName: string; projectId: string } | null>(null);
+  const [odsPanel, setOdsPanel] = useState<{ projectId: string; projectTitle: string } | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState<any>({});
   const [formType, setFormType] = useState<'project' | 'team' | 'student' | 'deliverable' | 'axis' | 'review'>('project');
@@ -241,14 +246,16 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
 
       {/* Tabs de navegação */}
       <div className="ext-tabs">
-        {(['projetos','equipe','alunos','entregas','cobertura','revisoes'] as View[]).map(v => (
+        {(['projetos','equipe','alunos','entregas','cobertura','revisoes','ods','governanca'] as View[]).map(v => (
           <button key={v} className={view === v ? 'active' : ''} onClick={() => setView(v)}>
             {v === 'projetos' ? `Projetos (${projects.length})` :
              v === 'equipe' ? `Equipe (${team.length})` :
              v === 'alunos' ? `Alunos (${students.length})` :
              v === 'entregas' ? `Entregas (${deliverables.length})` :
              v === 'cobertura' ? 'Cobertura por Curso' :
-             `Revisões (${pendentesRevisao})`}
+             v === 'revisoes' ? `Revisões (${pendentesRevisao})` :
+             v === 'ods' ? '🌍 ODS' :
+             '📊 Governança'}
           </button>
         ))}
       </div>
@@ -507,10 +514,11 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
                 </div>
               )}
               {(selectedProject ? projStudents : students).length === 0 ? <p className="ext-empty">{selectedProject ? 'Nenhum aluno vinculado.' : 'Selecione um projeto.'}</p> : (
-                <table className="ext-table"><thead><tr><th>Nome</th><th>E-mail</th><th>WhatsApp</th><th>Matrícula</th><th>CPF</th><th>Horas</th><th>Bolsista</th><th>Status</th></tr></thead>
+                <table className="ext-table"><thead><tr><th>Nome</th><th>E-mail</th><th>WhatsApp</th><th>Matrícula</th><th>Horas</th><th>Bolsista</th><th>Status</th><th>Ações</th></tr></thead>
                 <tbody>{(selectedProject ? projStudents : students).map(s => (
                   <tr key={s.id} className={canEdit?'clickable':''} onClick={() => { if(canEdit){setFormType('student');setFormData(s);setSelectedProject(s.project_id);setShowForm(true);} }}>
-                    <td><strong>{s.full_name}</strong></td><td>{s.email||'—'}</td><td>{s.phone||'—'}</td><td className="mono">{s.registration_number||'—'}</td><td className="mono">{s.cpf||'—'}</td><td className="num">{s.hours_completed||0}/{s.hours_assigned||0}h</td><td>{s.is_scholarship?'✅':'—'}</td><td><Badge status={s.status}/></td>
+                    <td><strong>{s.full_name}</strong></td><td>{s.email||'—'}</td><td>{s.phone||'—'}</td><td className="mono">{s.registration_number||'—'}</td><td className="num">{s.hours_completed||0}/{s.hours_assigned||0}h</td><td>{s.is_scholarship?'✅':'—'}</td><td><Badge status={s.status}/></td>
+                    <td><button className="ext-btn-small" onClick={(e) => { e.stopPropagation(); setHourLedger({ participantId: s.id, participantName: s.full_name, projectId: s.project_id }); }}>📒 Horas</button></td>
                   </tr>
                 ))}</tbody></table>
               )}
@@ -627,6 +635,54 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
                   </div>
                 ))
               )}
+            </div>
+          )}
+          {/* ===== ODS ===== */}
+          {view === 'ods' && (
+            <div className="ext-section">
+              {odsPanel ? (
+                <ExtensaoODS
+                  institutionId={institutionId}
+                  projectId={odsPanel.projectId}
+                  projectTitle={odsPanel.projectTitle}
+                  canEdit={canEdit}
+                  onClose={() => setOdsPanel(null)}
+                />
+              ) : (
+                <>
+                  <div className="ext-info">🌍 Selecione um projeto para vincular metas ODS com fundamentação.</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '.75rem' }}>
+                    {projects.map(p => (
+                      <div key={p.id} className="ext-project-card" onClick={() => setOdsPanel({ projectId: p.id, projectTitle: p.title })}>
+                        <span className="ext-card-type">{p.code}</span>
+                        <h4>{p.title}</h4>
+                        {p.ods_goals?.length > 0 && <p style={{ fontSize: '.82rem' }}>ODS: {p.ods_goals.join(', ')}</p>}
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* ===== GOVERNANÇA ===== */}
+          {view === 'governanca' && (
+            <ExtensaoGovernanca institutionId={institutionId} canEdit={canEdit} />
+          )}
+
+          {/* ===== LIVRO-RAZÃO (modal inline) ===== */}
+          {hourLedger && (
+            <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.4)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+              <div style={{ background: 'var(--bg, #fff)', borderRadius: '.75rem', maxWidth: '900px', width: '100%', maxHeight: '90vh', overflow: 'auto', padding: '1.5rem' }}>
+                <ExtensaoHourLedger
+                  institutionId={institutionId}
+                  projectId={hourLedger.projectId}
+                  participantId={hourLedger.participantId}
+                  participantName={hourLedger.participantName}
+                  canEdit={canEdit}
+                  onClose={() => setHourLedger(null)}
+                />
+              </div>
             </div>
           )}
         </>
