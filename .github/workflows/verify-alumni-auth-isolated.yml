@@ -1,0 +1,57 @@
+name: Isolated Alumni Auth and REST contracts
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/verify-alumni-auth-isolated.yml'
+      - 'scripts/prepare-alumni-stack.mjs'
+      - 'scripts/tests/alumni-auth-isolated/**'
+      - 'supabase/proposals/alumni_nominal_scope.sql'
+      - 'supabase/proposals/alumni_course_scope.sql'
+      - 'supabase/proposals/alumni_nominal_safe_stop.sql'
+permissions:
+  contents: read
+concurrency:
+  group: alumni-auth-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+jobs:
+  isolated:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install already locked test dependencies
+        run: |
+          mkdir -p .alumni-build
+          unzip -qo vertice-servidor-source.zip -d .alumni-build
+          cp -a source-overrides/. .alumni-build/
+          npm ci --prefix .alumni-build --legacy-peer-deps --no-audit --no-fund
+          npm ci --prefix scripts/tests/runtime --no-audit --no-fund
+      - name: Offline safety guards
+        run: node --test scripts/tests/alumni-auth-isolated/safety.test.mjs
+      - name: Create disposable local stack only
+        run: |
+          mkdir -p .alumni-stack
+          npx --yes supabase@3.1.0 init --workdir .alumni-stack --yes
+          node scripts/prepare-alumni-stack.mjs
+          npx --yes supabase@3.1.0 start --workdir .alumni-stack --exclude realtime,storage-api,imgproxy,postgres-meta,studio,edge-runtime,logflare,vector,supavisor > "$RUNNER_TEMP/alumni-stack-start.log" 2>&1
+      - name: Real Auth MFA, HTTP contracts, lifecycle and safe stop
+        env:
+          ALLOW_DISPOSABLE_ALUMNI_HTTP: 'YES'
+        run: node scripts/tests/alumni-auth-isolated/run.mjs
+      - name: Destroy disposable stack and credential files
+        if: always()
+        run: |
+          : "${RUNNER_TEMP:?} information required for cleanup"
+          status=0
+          npx --yes supabase@3.1.0 stop --workdir .alumni-stack --no-backup || status=$?
+          rm -rf .alumni-stack "$RUNNER_TEMP/alumni-auth-test"
+          rm -f "$RUNNER_TEMP/alumni-stack-start.log"
+          exit "$status"
+# No artifacts, cache, production secrets, hosted project, deployment or persistent runner.
