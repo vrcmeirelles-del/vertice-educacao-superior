@@ -3,6 +3,17 @@ import { Link } from "wouter";
 import { ArrowRight, Target, Users, Clock, FileCheck, Globe, BookOpen } from "lucide-react";
 import { PublicHeading, ConsultCTA } from "@/components/PublicLayout";
 
+const JSONLD = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Vértice Impacto",
+  "applicationCategory": "EducationalApplication",
+  "description": "Gestão completa de projetos de extensão universitária: livro-razão de horas, competências, evidências, ODS e curricularização monitorada.",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL", "description": "90 dias grátis" },
+  "operatingSystem": "Web",
+  "provider": { "@type": "Organization", "name": "Vértice Educação Superior", "url": "https://www.verticesuperior.com.br" },
+});
+
 const ODS_COLORS = [
   '#E5243B','#DDA63A','#4C9F38','#C5192D','#FF3A21','#26BDE2','#FCC30B',
   '#A21942','#FD6925','#DD1367','#FD9D24','#BF8B2E','#3F7E44','#0A97D9',
@@ -26,6 +37,7 @@ const WORKFLOW_STEPS = [
 export default function Extensao() {
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSONLD }} />
       <PublicHeading
         eyebrow="VÉRTICE IMPACTO"
         title="Extensão universitária com rastreabilidade e impacto social."
