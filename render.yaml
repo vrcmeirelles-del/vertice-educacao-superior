@@ -1,0 +1,21 @@
+services:
+  - type: web
+    runtime: static
+    name: vertice-educacao-superior
+    buildCommand: >-
+      mkdir -p .render-build &&
+      unzip -qo vertice-servidor-source.zip -d .render-build &&
+      cp -a source-overrides/. .render-build/ &&
+      cd .render-build &&
+      npm ci --legacy-peer-deps --no-audit --no-fund &&
+      npm run build:static &&
+      mkdir -p ../dist/public &&
+      cp -a dist/public/. ../dist/public/
+    staticPublishPath: dist/public
+    envVars:
+      - key: PUBLIC_SITE_ORIGIN
+        value: https://www.verticesuperior.com.br
+      - key: SKIP_INSTALL_DEPS
+        value: "1"
+    domains:
+      - www.verticesuperior.com.br
