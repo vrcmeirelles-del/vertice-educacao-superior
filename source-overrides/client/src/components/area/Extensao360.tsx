@@ -16,6 +16,7 @@ import ExtensaoImportacao from "./ExtensaoImportacao";
 import ExtensaoRelatorios from "./ExtensaoRelatorios";
 import ExtensaoProjectWorkflow from "./ExtensaoProjectWorkflow";
 import ExtensaoConformidade from "./ExtensaoConformidade";
+import ExtensaoNotificacoes from "./ExtensaoNotificacoes";
 
 type View = 'projetos' | 'equipe' | 'alunos' | 'entregas' | 'cobertura' | 'revisoes' | 'ods' | 'governanca' | 'atividades' | 'evidencias' | 'parceiros' | 'competencias' | 'achados' | 'ia' | 'perfis' | 'importacao' | 'relatorios' | 'conformidade';
 
@@ -235,7 +236,10 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
       {onBack && <button type="button" className="ext-back" onClick={onBack}>← Voltar aos módulos</button>}
       <div className="ext-header">
         <div>
-          <h2>🤝 Extensão 360°</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '.75rem' }}>
+            <h2 style={{ margin: 0 }}>🤝 Extensão 360°</h2>
+            <ExtensaoNotificacoes institutionId={institutionId} />
+          </div>
           <p>Pró-Reitoria de Extensão · DCNs: mínimo 10% da carga horária</p>
         </div>
         {canEdit && view === 'projetos' && (
