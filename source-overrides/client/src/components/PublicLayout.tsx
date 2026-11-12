@@ -11,6 +11,7 @@ const links = [
   { href: "/servicos.html", label: "Soluções" },
   { href: "/plataforma-ies", label: "Para sua IES" },
   { href: "/plataforma.html", label: "O painel" },
+  { href: "/extensao.html", label: "Extensão" },
   { href: "/aquisicoes", label: "Aquisições" },
   { href: "/metodo.html", label: "Nosso método" },
   { href: "/caso-real.html", label: "Caso real" },
