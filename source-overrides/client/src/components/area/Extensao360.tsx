@@ -5,8 +5,12 @@ import "./extensao360.css";
 import ExtensaoHourLedger from "./ExtensaoHourLedger";
 import ExtensaoODS from "./ExtensaoODS";
 import ExtensaoGovernanca from "./ExtensaoGovernanca";
+import ExtensaoAtividades from "./ExtensaoAtividades";
+import ExtensaoEvidencias from "./ExtensaoEvidencias";
+import ExtensaoParceiros from "./ExtensaoParceiros";
+import ExtensaoCompetencias from "./ExtensaoCompetencias";
 
-type View = 'projetos' | 'equipe' | 'alunos' | 'entregas' | 'cobertura' | 'revisoes' | 'ods' | 'governanca';
+type View = 'projetos' | 'equipe' | 'alunos' | 'entregas' | 'cobertura' | 'revisoes' | 'ods' | 'governanca' | 'atividades' | 'evidencias' | 'parceiros' | 'competencias';
 
 interface ExtProject {
   id: string; title: string; code: string; project_type: string; description: string;
@@ -83,6 +87,8 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
   const [loading, setLoading] = useState(true);
   const [hourLedger, setHourLedger] = useState<{ participantId: string; participantName: string; projectId: string } | null>(null);
   const [odsPanel, setOdsPanel] = useState<{ projectId: string; projectTitle: string } | null>(null);
+  const [activityPanel, setActivityPanel] = useState<{ projectId: string; projectTitle: string } | null>(null);
+  const [evidencePanel, setEvidencePanel] = useState<{ projectId: string; projectTitle: string } | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState<any>({});
   const [formType, setFormType] = useState<'project' | 'team' | 'student' | 'deliverable' | 'axis' | 'review'>('project');
@@ -246,14 +252,19 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
 
       {/* Tabs de navegação */}
       <div className="ext-tabs">
-        {(['projetos','equipe','alunos','entregas','cobertura','revisoes','ods','governanca'] as View[]).map(v => (
+        {(['projetos','equipe','alunos','entregas','atividades','evidencias','competencias','parceiros','cobertura','revisoes','ods','governanca'] as View[]).map(v => (
           <button key={v} className={view === v ? 'active' : ''} onClick={() => setView(v)}>
             {v === 'projetos' ? `Projetos (${projects.length})` :
              v === 'equipe' ? `Equipe (${team.length})` :
              v === 'alunos' ? `Alunos (${students.length})` :
              v === 'entregas' ? `Entregas (${deliverables.length})` :
              v === 'cobertura' ? 'Cobertura por Curso' :
+             v === 'atividades' ? '📅 Atividades' :
+             v === 'evidencias' ? '📁 Evidências' :
+             v === 'competencias' ? '🎯 Competências' :
+             v === 'parceiros' ? '🤝 Parceiros' :
              v === 'revisoes' ? `Revisões (${pendentesRevisao})` :
+             v === 'cobertura' ? 'Cobertura por Curso' :
              v === 'ods' ? '🌍 ODS' :
              '📊 Governança'}
           </button>
@@ -663,6 +674,59 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
                 </>
               )}
             </div>
+          )}
+
+          {/* ===== ATIVIDADES ===== */}
+          {view === 'atividades' && (
+            activityPanel ? (
+              <ExtensaoAtividades
+                institutionId={institutionId}
+                projectId={activityPanel.projectId}
+                projectTitle={activityPanel.projectTitle}
+                canEdit={canEdit}
+                onClose={() => setActivityPanel(null)}
+              />
+            ) : (
+              <div>
+                <h3>📅 Selecione um projeto para ver atividades</h3>
+                <div style={{ display: 'grid', gap: '.5rem' }}>
+                  {projects.map(p => (
+                    <button key={p.id} className="ext-btn-secondary" onClick={() => setActivityPanel({ projectId: p.id, projectTitle: p.title })}>
+                      {p.code} — {p.title}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )
+          )}
+
+          {/* ===== EVIDÊNCIAS ===== */}
+          {view === 'evidencias' && (
+            <ExtensaoEvidencias
+              institutionId={institutionId}
+              projectId={evidencePanel?.projectId}
+              projectTitle={evidencePanel?.projectTitle}
+              canEdit={canEdit}
+              onClose={() => setEvidencePanel(null)}
+            />
+          )}
+
+          {/* ===== COMPETÊNCIAS ===== */}
+          {view === 'competencias' && (
+            <ExtensaoCompetencias
+              institutionId={institutionId}
+              canEdit={canEdit}
+              onClose={() => setView('projetos')}
+            />
+          )}
+
+          {/* ===== PARCEIROS ===== */}
+          {view === 'parceiros' && (
+            <ExtensaoParceiros
+              institutionId={institutionId}
+              canEdit={canEdit}
+              onClose={() => setView('projetos')}
+            />
           )}
 
           {/* ===== GOVERNANÇA ===== */}
