@@ -45,6 +45,11 @@ export default function ExtensaoEvidencias({
   const [loading, setLoading] = useState(true);
   const [filterType, setFilterType] = useState('todos');
   const [filterStatus, setFilterStatus] = useState('todos');
+  const [showUpload, setShowUpload] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadForm, setUploadForm] = useState({
+    title: '', document_type: 'outro', notes: '', period: '',
+  });
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -69,6 +74,52 @@ export default function ExtensaoEvidencias({
     const { error } = await supabase.from('vertice_extension_evidence_registry').update(update).eq('id', id);
     if (error) alert('Erro: ' + error.message);
     else load();
+  };
+
+  const uploadFile = async (file: File) => {
+    if (!uploadForm.title.trim()) return alert('Título obrigatório.');
+    setUploading(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setUploading(false); return; }
+
+    // Path: {institution_id}/{project_id|general}/{timestamp}_{filename}
+    const folder = projectId || 'general';
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const path = `${institutionId}/${folder}/${Date.now()}_${safeName}`;
+
+    // Upload to Storage
+    const { error: uploadError } = await supabase.storage
+      .from('extension-evidence')
+      .upload(path, file, { contentType: file.type });
+    if (uploadError) { setUploading(false); return alert('Erro no upload: ' + uploadError.message); }
+
+    // Compute SHA-256 hash
+    const buffer = await file.arrayBuffer();
+    const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const fileHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+    // Insert registry
+    const { error } = await supabase.from('vertice_extension_evidence_registry').insert({
+      institution_id: institutionId,
+      title: uploadForm.title.trim(),
+      document_type: uploadForm.document_type,
+      project_id: projectId || null,
+      storage_path: path,
+      file_name: file.name,
+      mime_type: file.type,
+      file_size_bytes: file.size,
+      file_hash: fileHash,
+      period: uploadForm.period || null,
+      notes: uploadForm.notes || null,
+      uploaded_by: user.id,
+    });
+
+    setUploading(false);
+    if (error) return alert('Erro ao registrar: ' + error.message);
+    setShowUpload(false);
+    setUploadForm({ title: '', document_type: 'outro', notes: '', period: '' });
+    load();
   };
 
   const fmtDate = (d: string) => d ? new Date(d).toLocaleDateString('pt-BR') : '—';
@@ -110,6 +161,45 @@ export default function ExtensaoEvidencias({
           <span className="ext-stat-label">Pendentes</span>
         </div>
       </div>
+
+      {/* Filters */}
+      {/* Upload */}
+      {canEdit && (
+        <button className="ext-btn-primary" style={{ marginBottom: '1rem' }} onClick={() => setShowUpload(true)}>
+          📤 Enviar evidência
+        </button>
+      )}
+
+      {showUpload && (
+        <div className="ext-form">
+          <h3>Enviar evidência</h3>
+          <div className="ext-form-grid">
+            <label>Título *
+              <input value={uploadForm.title} onChange={e => setUploadForm({ ...uploadForm, title: e.target.value })} />
+            </label>
+            <label>Tipo de documento
+              <select value={uploadForm.document_type} onChange={e => setUploadForm({ ...uploadForm, document_type: e.target.value })}>
+                {Object.entries(DOC_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+              </select>
+            </label>
+            <label>Período
+              <input value={uploadForm.period} onChange={e => setUploadForm({ ...uploadForm, period: e.target.value })} placeholder="2026/02" />
+            </label>
+          </div>
+          <label className="ext-form-full">Observações
+            <textarea value={uploadForm.notes} onChange={e => setUploadForm({ ...uploadForm, notes: e.target.value })} rows={2} />
+          </label>
+          <label className="ext-form-full">Arquivo (máx. 10MB)
+            <input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,.docx,.xlsx,.pptx,.csv,.txt"
+              disabled={uploading}
+              onChange={e => { const f = e.target.files?.[0]; if (f) uploadFile(f); }} />
+          </label>
+          {uploading && <p style={{ color: '#3b82f6' }}>⏳ Enviando...</p>}
+          <div className="ext-form-actions">
+            <button className="ext-btn-cancel" onClick={() => setShowUpload(false)} disabled={uploading}>Cancelar</button>
+          </div>
+        </div>
+      )}
 
       {/* Filters */}
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
