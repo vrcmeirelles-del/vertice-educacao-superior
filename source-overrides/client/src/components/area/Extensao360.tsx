@@ -13,8 +13,9 @@ import ExtensaoAchados from "./ExtensaoAchados";
 import ExtensaoIA from "./ExtensaoIA";
 import ExtensaoPerfis from "./ExtensaoPerfis";
 import ExtensaoImportacao from "./ExtensaoImportacao";
+import ExtensaoRelatorios from "./ExtensaoRelatorios";
 
-type View = 'projetos' | 'equipe' | 'alunos' | 'entregas' | 'cobertura' | 'revisoes' | 'ods' | 'governanca' | 'atividades' | 'evidencias' | 'parceiros' | 'competencias' | 'achados' | 'ia' | 'perfis' | 'importacao';
+type View = 'projetos' | 'equipe' | 'alunos' | 'entregas' | 'cobertura' | 'revisoes' | 'ods' | 'governanca' | 'atividades' | 'evidencias' | 'parceiros' | 'competencias' | 'achados' | 'ia' | 'perfis' | 'importacao' | 'relatorios';
 
 interface ExtProject {
   id: string; title: string; code: string; project_type: string; description: string;
@@ -256,7 +257,7 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
 
       {/* Tabs de navegação */}
       <div className="ext-tabs">
-        {(['projetos','equipe','alunos','entregas','atividades','evidencias','competencias','parceiros','achados','cobertura','revisoes','ods','governanca','ia','perfis','importacao'] as View[]).map(v => (
+        {(['projetos','equipe','alunos','entregas','atividades','evidencias','competencias','parceiros','achados','cobertura','revisoes','ods','governanca','ia','perfis','importacao','relatorios'] as View[]).map(v => (
           <button key={v} className={view === v ? 'active' : ''} onClick={() => setView(v)}>
             {v === 'projetos' ? `Projetos (${projects.length})` :
              v === 'equipe' ? `Equipe (${team.length})` :
@@ -273,6 +274,7 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
              v === 'ia' ? '🤖 IA' :
              v === 'perfis' ? '🔐 Perfis' :
              v === 'importacao' ? '📥 Importação' :
+             v === 'relatorios' ? '📊 Relatórios' :
              '📊 Governança'}
           </button>
         ))}
@@ -807,6 +809,14 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
             <ExtensaoImportacao
               institutionId={institutionId}
               canEdit={canEdit}
+              onClose={() => setView('projetos')}
+            />
+          )}
+
+          {/* ===== RELATÓRIOS ===== */}
+          {view === 'relatorios' && (
+            <ExtensaoRelatorios
+              institutionId={institutionId}
               onClose={() => setView('projetos')}
             />
           )}
