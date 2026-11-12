@@ -373,6 +373,54 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
                   </div>
                   <label className="ext-form-full">Descrição<textarea value={formData.description || ''} onChange={e => setFormData({ ...formData, description: e.target.value })} rows={3} /></label>
 
+                  {/* Campos Impacto */}
+                  <div style={{ borderTop: '1px solid var(--border,#e5e7eb)', paddingTop: '1rem', marginTop: '.5rem' }}>
+                    <h4 style={{ margin: '0 0 .75rem', fontSize: '.9rem', color: 'var(--accent,#0b9185)' }}>📋 Detalhamento Impacto</h4>
+                    <label className="ext-form-full">Problema social identificado
+                      <textarea value={formData.social_problem || ''} onChange={e => setFormData({ ...formData, social_problem: e.target.value })} rows={2} placeholder="Qual problema social o projeto visa resolver?" />
+                    </label>
+                    <label className="ext-form-full">Objetivo geral
+                      <textarea value={formData.general_objective || ''} onChange={e => setFormData({ ...formData, general_objective: e.target.value })} rows={2} placeholder="Objetivo geral do projeto" />
+                    </label>
+                    <label className="ext-form-full">Objetivos específicos (um por linha)
+                      <textarea value={(formData.specific_objectives || []).join('\n')} onChange={e => setFormData({ ...formData, specific_objectives: e.target.value.split('\n').filter((s: string) => s.trim()) })} rows={3} placeholder="Um objetivo por linha" />
+                    </label>
+                    <div className="ext-form-grid">
+                      <label>Perfil do público beneficiário
+                        <input value={formData.beneficiary_profile || ''} onChange={e => setFormData({ ...formData, beneficiary_profile: e.target.value })} placeholder="Ex: famílias em vulnerabilidade" />
+                      </label>
+                      <label>Comunidade externa envolvida
+                        <input value={formData.external_community || ''} onChange={e => setFormData({ ...formData, external_community: e.target.value })} placeholder="Instituições, associações, ONGs..." />
+                      </label>
+                    </div>
+                    <label className="ext-form-full">Metodologia
+                      <textarea value={formData.methodology || ''} onChange={e => setFormData({ ...formData, methodology: e.target.value })} rows={3} placeholder="Como o projeto será executado" />
+                    </label>
+                    <label className="ext-form-full">Recursos necessários
+                      <textarea value={formData.required_resources || ''} onChange={e => setFormData({ ...formData, required_resources: e.target.value })} rows={2} placeholder="Materiais, infraestrutura, transporte..." />
+                    </label>
+                    <label className="ext-form-full">Resultados esperados (um por linha)
+                      <textarea value={(formData.expected_results || []).join('\n')} onChange={e => setFormData({ ...formData, expected_results: e.target.value.split('\n').filter((s: string) => s.trim()) })} rows={2} placeholder="Um resultado por linha" />
+                    </label>
+                    <div className="ext-form-grid">
+                      <label>Status de revisão
+                        <select value={formData.review_status || 'rascunho'} onChange={e => setFormData({ ...formData, review_status: e.target.value })}>
+                          <option value="rascunho">Rascunho</option>
+                          <option value="submetido">Submetido</option>
+                          <option value="em_analise">Em Análise</option>
+                          <option value="pendente_ajustes">Pendente Ajustes</option>
+                          <option value="aprovado">Aprovado</option>
+                          <option value="em_execucao">Em Execução</option>
+                          <option value="aguardando_evidencias">Aguardando Evidências</option>
+                          <option value="em_avaliacao">Em Avaliação</option>
+                          <option value="concluido">Concluído</option>
+                          <option value="reprovado">Reprovado</option>
+                          <option value="arquivado">Arquivado</option>
+                        </select>
+                      </label>
+                    </div>
+                  </div>
+
                   {/* Cursos vinculados */}
                   {courses && courses.length > 0 && (
                     <div className="ext-course-picker">
