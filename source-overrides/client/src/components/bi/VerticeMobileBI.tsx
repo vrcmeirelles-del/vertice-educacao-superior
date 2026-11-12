@@ -1,3 +1,4 @@
+import {isEnrolledStatus} from '@/lib/enrollment-summary';
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { courseTotals } from "@/lib/enrollment-summary";
@@ -146,7 +147,7 @@ export default function VerticeMobileBI() {
   const id = institution?.id ?? "";
   const courses = useMemo(() => data.courses.filter(course => course.institution_id === id), [data.courses, id]);
   const courseIds = useMemo(() => new Set(courses.map(course => course.id)), [courses]);
-  const rows = useMemo(() => data.enrollments.filter(row => courseIds.has(row.course_id) && row.student_status === "MATRICULADO"), [data.enrollments, courseIds]);
+  const rows = useMemo(() => data.enrollments.filter(row => courseIds.has(row.course_id) && isEnrolledStatus(row.student_status)), [data.enrollments, courseIds]);
   const semesters = useMemo(() => [...new Set(rows.map(row => row.semester))].sort().reverse(), [rows]);
   const semester = semesters.includes(selectedSemester) ? selectedSemester : (semesters[0] ?? "");
   const previousYearSemester = yearBefore(semester);

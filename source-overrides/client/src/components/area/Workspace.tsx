@@ -557,7 +557,7 @@ export default function Workspace({
       ) : tab === "catalogo" ? (
         <ModuleCatalogShowcase institutionId={id} institutionTier={String((institution as any).tier || 'superior')} isMaster={role === 'master'} onActivated={() => { reloadModules(); }} />
       ) : tab === "integracao-ies" ? (
-        <IntegrationSettings institutionId={id} institutionName={String(institution.name)} role={role || 'master'} />
+        <IntegrationSettings institutionId={id} institutionName={String(institution.name)} role={role} />
       ) : tab === "contrato" ? (
         <ContractView institutionId={id} institutionName={String(institution.name)} role={role||'master'} />
       ) : tab === "billing" ? (
@@ -567,7 +567,7 @@ export default function Workspace({
       ) : tab === "escola-egressos" ? (
         <EgressosEscolar institutionId={id} isMaster={role === 'master'} />
       ) : tab === "validacao" ? (
-        <PreValidationQueue institutionId={id} role={role} />
+        <PreValidationQueue institutionId={id} role={role ?? ''} />
       ) : tab === "documentos" ? (
         <DocumentManager institutionId={id} isMaster={role === 'master'} />
       ) : tab === "sync" ? (

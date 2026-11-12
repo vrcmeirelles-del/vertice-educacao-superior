@@ -10,6 +10,7 @@ import {
   type Coorte, type CohortsReport, type CourseIndicator,
 } from '@/lib/academico';
 import './academico-bi.css';
+import { academicTabAvailability, reportSelectionKey } from '@/lib/academic-coverage';
 
 const fmt = new Intl.NumberFormat('pt-BR');
 const fmtPct = (v: number) => v.toFixed(1) + '%';
@@ -517,7 +518,7 @@ function Simulador({ reprovaSemestre }: { reprovaSemestre: ReprovaSemestre[] }) 
   const [mensalidade, setMensalidade] = useState(800);
   const [baseSem, setBaseSem] = useState<string>('');
 
-  const semAtual = semestresComDados.find(r => r.semestre === baseSem) ?? base;
+  const semAtual = semestresComDados.find(r => reportSelectionKey(r) === baseSem) ?? base;
   if (!semAtual) return <p className="abi-empty">Sem dados de reprovação para simular.</p>;
 
   const sim = simularRetencao(semAtual.reprovacoes, reducao, mensalidade);
@@ -526,13 +527,13 @@ function Simulador({ reprovaSemestre }: { reprovaSemestre: ReprovaSemestre[] }) 
   return <div className="abi-sim">
     <div className="abi-sim-intro">
       <h3>🎯 Simulador de Retenção</h3>
-      <p>Cada reprovação é um gatilho de evasão. Simule o impacto de reduzir as reprovações do semestre de <b>{semAtual.semestre}</b> ({fmt.format(semAtual.reprovacoes)} reprovações · {semAtual.pct.toFixed(1)}% das matrículas).</p>
+      <p>Cenário hipotético de redução de reprovações no recorte <b>{semAtual.scopeLabel ?? 'Recorte não identificado'} · {semAtual.semestre}</b> ({fmt.format(semAtual.reprovacoes)} reprovações · {semAtual.pct.toFixed(1)}% das matrículas).</p>
     </div>
 
     <div className="abi-sim-controls abi-sim-sliders">
-      <label>Semestre base
-        <select value={semAtual.semestre} onChange={e => setBaseSem(e.target.value)}>
-          {semestresComDados.map(r => <option key={r.semestre} value={r.semestre}>{r.semestre} · {fmt.format(r.reprovacoes)} reprov.</option>)}
+      <label>Recorte de referência
+        <select value={reportSelectionKey(semAtual)} onChange={e => setBaseSem(e.target.value)}>
+          {semestresComDados.map(r => <option key={reportSelectionKey(r)} value={reportSelectionKey(r)}>{r.scopeLabel ?? 'Recorte não identificado'} · {r.semestre} · {fmt.format(r.reprovacoes)} reprov.</option>)}
         </select>
       </label>
       <label className="abi-slider-label">Redução de reprovações: <b>{reducao}%</b>
@@ -551,17 +552,17 @@ function Simulador({ reprovaSemestre }: { reprovaSemestre: ReprovaSemestre[] }) 
         <line x1="100" y1="110" x2={100 + 70 * Math.cos(anguloMeter * Math.PI / 180)} y2={110 + 70 * Math.sin(anguloMeter * Math.PI / 180)} stroke="#243653" strokeWidth="3" strokeLinecap="round" />
         <circle cx="100" cy="110" r="6" fill="#243653" />
         <text x="100" y="80" textAnchor="middle" fontSize="26" fontWeight="700" fill={GREEN}>{fmt.format(sim.alunosRetidos)}</text>
-        <text x="100" y="98" textAnchor="middle" fontSize="10" fill="#757a80">alunos retidos</text>
+        <text x="100" y="98" textAnchor="middle" fontSize="10" fill="#757a80">vínculos hipotéticos</text>
       </svg>
     </div>
 
     <div className="abi-sim-results">
-      <article className="abi-sim-result"><span className="abi-kpi-label">Alunos retidos</span><strong style={{ color: GREEN }}>{fmt.format(sim.alunosRetidos)}</strong></article>
+      <article className="abi-sim-result"><span className="abi-kpi-label">Vínculos hipotéticos</span><strong style={{ color: GREEN }}>{fmt.format(sim.alunosRetidos)}</strong></article>
       <article className="abi-sim-result"><span className="abi-kpi-label">Receita / semestre</span><strong>{fmtMoney.format(sim.receitaSemestral)}</strong></article>
       <article className="abi-sim-result"><span className="abi-kpi-label">Receita / ano</span><strong>{fmtMoney.format(sim.receitaAnual)}</strong></article>
       <article className="abi-sim-result abi-sim-highlight"><span className="abi-kpi-label">Impacto no ciclo (≈2 anos)</span><strong>{fmtMoney.format(sim.receitaCiclo)}</strong></article>
     </div>
-    <p className="abi-sim-note">Estimativa gerencial: 1 reprovação evitada ≈ 1 vínculo retido. Mensalidade e ciclo são parâmetros ajustáveis — não representam contabilidade oficial.</p>
+    <p className="abi-sim-note">Hipótese de simulação, não resultado observado: assume-se 1 reprovação evitada para 1 vínculo hipotético. Reprovações podem envolver a mesma pessoa e não comprovam retenção. Mensalidade e horizonte são premissas do cenário, não contabilidade oficial. O cálculo usa somente o relatório selecionado, sem somar recortes sobrepostos.</p>
   </div>;
 }
 
@@ -753,8 +754,8 @@ export default function AcademicoBI({ institutionId, institutionName }: { instit
           setProfs(parseProfReprova(rp));
           setDiscs(parseDiscReprova(rd));
           setFluxo(parseFluxo(rf));
-          setReprovaSem(parseReprovaSemestre(rs));
-          setDossie(parseReprovaSemestre(dd));
+          setReprovaSem(parseReprovaSemestre(rs, nomes));
+          setDossie(parseReprovaSemestre(dd, nomes));
           setCohorts(parseCohorts(co));
           setCourseIndicators(parseCourseIndicators(ci, nomes));
         } catch { setReportsUnavailable(true); setProfs([]);setDiscs([]);setFluxo([]);setReprovaSem([]);setDossie([]);setCourseIndicators([]);setCohorts(null); }
@@ -786,9 +787,8 @@ export default function AcademicoBI({ institutionId, institutionName }: { instit
   const semestreLabel = semestres.find(s => s.id === selectedSemestre)?.semestre ?? 'Todos';
   const sortedSemestres = [...semestres].sort((a, b) => b.semestre.localeCompare(a.semestre));
   const modalities = ['Todas', ...new Set(bi.cursosResumo.filter(c => c.vinculos > 0).map(c => c.modalidade.charAt(0).toUpperCase() + c.modalidade.slice(1)))];
-  const temSimulacoes = profs.length > 0 || fluxo.length > 0;
+  const availableTabs = academicTabAvailability({ quantitative: quantitativo.length, professors: profs.length, disciplines: discs.length, dossiers: dossie.length, courseIndicators: courseIndicators.length, semesterFailures: reprovaSem.filter(r => r.reprovacoes > 0).length, flow: fluxo.filter(r => r.total > 0).length, cohorts: cohorts?.coortes.length ?? 0 });
   const reprovaTipo = useMemo(() => agregarReprovaTipo(courseIndicators), [courseIndicators]);
-  const temEvasao = (cohorts?.coortes.length ?? 0) > 0;
 
   if (loading) return <section className="abi-root"><p role="status">Carregando BI acadêmico…</p></section>;
 
@@ -796,7 +796,7 @@ export default function AcademicoBI({ institutionId, institutionName }: { instit
     <div className="abi-header">
       <div>
         <h2>BI Acadêmico</h2>
-        <p>{institutionName} · Semestre: {semestreLabel} · Fonte: e-ORBIT</p>
+        <p>{institutionName} · {aba === 'geral' || aba === 'comparador' ? `Semestre: ${semestreLabel} · Fonte: quantitativos e-ORBIT` : 'Fonte: relatórios acadêmicos importados; recorte identificado em cada seção'}</p>
       </div>
       <div className="abi-actions">
         {aba === 'geral' && (
@@ -811,16 +811,14 @@ export default function AcademicoBI({ institutionId, institutionName }: { instit
 
     <nav className="abi-tabs">
       {ABAS.map(t => {
-        const disabled = (t.id === 'comparador' && quantitativo.length === 0) ||
-          ((t.id === 'raiox' || t.id === 'simulador' || t.id === 'funil') && !temSimulacoes) ||
-          (t.id === 'evasao' && !temEvasao);
+        const disabled = !availableTabs[t.id];
         return <button key={t.id} className={`abi-tab ${aba === t.id ? 'active' : ''}`} disabled={disabled} onClick={() => setAba(t.id)} title={disabled ? 'Sem dados para esta instituição' : ''}>{t.label}</button>;
       })}
     </nav>
 
     {error && <p role="alert" className="abi-error">{error}</p>}
     {reportsUnavailable && <p role="status" className="abi-error">Relatórios acadêmicos complementares não disponibilizados para este recorte. Os módulos que dependem deles permanecem sem dados; nenhum resultado foi estimado.</p>}
-    {!error && quantitativo.length===0 && <p role="status" className="abi-empty">Não existem quantitativos acadêmicos disponíveis para a instituição selecionada. Confira a importação do e-ORBIT e o semestre de referência.</p>}
+    {!error && quantitativo.length===0 && <p role="status" className="abi-empty">A fonte de quantitativos e-ORBIT não possui registros neste recorte. Isso não significa zero matrículas: os snapshots do portal, a série histórica e os relatórios acadêmicos são fontes distintas. O BI do Reitor pode apresentar esses outros recortes. Nenhum total foi estimado ou copiado entre fontes.</p>}
 
     {aba === 'geral' && !error && quantitativo.length>0 && <VisaoGeral bi={bi} semestreLabel={semestreLabel} modalidadeFilter={modalidadeFilter} setModalidadeFilter={setModalidadeFilter} modalities={modalities} />}
     {aba === 'comparador' && <Comparador quantitativo={quantitativo} cursos={cursos} semestres={semestres} />}

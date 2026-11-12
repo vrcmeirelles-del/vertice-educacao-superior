@@ -56,7 +56,7 @@ export default function SourceCuration({institutionId,files}:Props){
  useEffect(()=>{let active=true;
   void supabase.from("vertice_enrollment_snapshots")
    .select("semester,enrolled").eq("institution_id",institutionId)
-   .eq("student_status","MATRICULADO").limit(5000).then(({data,error})=>{
+   .ilike("student_status","matriculado").limit(5000).then(({data,error})=>{
     if(!active)return;
     if(error){setLegacy({});setLegacyNote("Não foi possível consultar a fonte de matrícula legada.");return;}
     const sums:Record<string,number>={};

@@ -5,6 +5,7 @@ import {
 } from "@/lib/area";
 
 const TAB_LABELS: Record<Tab, string> = {
+  validacao: "Validação documental",
   backups: "Backups Acadêmicos",
   fontes: "Importar dados de sites",
   conexoes: "Conexões de dados",

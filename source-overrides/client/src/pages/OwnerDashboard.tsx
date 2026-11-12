@@ -1,3 +1,4 @@
+import {isEnrolledStatus} from '@/lib/enrollment-summary';
 import {applyInstitutionTheme, resetToVerticeTheme} from '@/lib/theme-provider';
 import ShowcaseClientsAdmin from '@/components/ShowcaseClients';
 import {MasterDirectory, MasterInvitationGate} from '@/components/area/MasterAccess';
@@ -57,8 +58,9 @@ const BI_NAMES=['Metas','Matrículas','Documentação','Reconhecimento de Curso'
 const BI_COLORS=['#0b9185','#daa94e','#e5765e','#368aa6','#6bbf9f','#b58b3b','#116d78'];
 const biNumber=new Intl.NumberFormat('pt-BR');
 const biMoney=new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'});
-function PortalBI({institutions,courses,enrollments,session}:{institutions:Institution[];courses:Course[];enrollments:Enrollment[];session:Session}){
- const [id,setId]=useState(institutions[0]?.id??'');
+export function PortalBI({institutions,courses,enrollments,session}:{institutions:Institution[];courses:Course[];enrollments:Enrollment[];session:Session}){
+ const [selectedId,setId]=useState('');
+ const id=institutions.some(i=>i.id===selectedId)?selectedId:'';
  const [page,setPage]=useState(-1),[tv,setTv]=useState(false),[tick,setTick]=useState(0);
  const [tvPaused,setTvPaused]=useState(false),[tvSpeed,setTvSpeed]=useState(15000);
  const [sources,setSources]=useState<Record<number,BiSource>>({});
@@ -70,14 +72,14 @@ function PortalBI({institutions,courses,enrollments,session}:{institutions:Insti
  useEffect(()=>{if(!tick)return;let active=true;void fetchAllSnapshots().then(rows=>{if(active)setSnapshots(latestEnrollmentSnapshots(rows));}).catch(()=>{});return()=>{active=false;};},[tick]);
  const [semester,setSemester]=useState('');
  const own=courses.filter(c=>c.institution_id===id);
- const semesters=[...new Set(snapshots.filter(e=>own.some(c=>c.id===e.course_id)&&e.student_status==='MATRICULADO').map(e=>e.semester))].sort().reverse();
+ const semesters=[...new Set(snapshots.filter(e=>own.some(c=>c.id===e.course_id)&&isEnrolledStatus(e.student_status)).map(e=>e.semester))].sort().reverse();
  const term=semesters.includes(semester)?semester:semesters[0];
  const termPart=(v:string)=>v.match(/(?:^|[-/])0?([12])$/)?.[1]??'';
  const yearPart=(v:string)=>v.match(/^(\d{4})/)?.[1]??'';
  const previousTerm=term?semesters.find(v=>v!==term&&termPart(v)===termPart(term)&&Number(yearPart(v))<Number(yearPart(term))):undefined;
  const countTerm=(v:string|undefined)=>{
   if(!v)return null;
-  const available=own.map(c=>snapshots.filter(e=>e.course_id===c.id&&e.semester===v&&e.student_status==='MATRICULADO')).filter(rows=>rows.length>0);
+  const available=own.map(c=>snapshots.filter(e=>e.course_id===c.id&&e.semester===v&&isEnrolledStatus(e.student_status))).filter(rows=>rows.length>0);
   return available.length?available.reduce((sum,rows)=>sum+courseTotals(rows).value,0):null;
  };
  const currentCount=countTerm(term), priorCount=countTerm(previousTerm);
@@ -85,7 +87,7 @@ function PortalBI({institutions,courses,enrollments,session}:{institutions:Insti
 
  const link=(aba:string)=>'/master#'+new URLSearchParams({instituicao:id,aba});
  const enrollmentItems=own.flatMap(c=>{
-  const rows=snapshots.filter(e=>e.course_id===c.id&&e.semester===term&&e.student_status==='MATRICULADO');
+  const rows=snapshots.filter(e=>e.course_id===c.id&&e.semester===term&&isEnrolledStatus(e.student_status));
   return rows.length?[{label:c.name,group:c.name,value:courseTotals(rows).value,href:'/master#'+new URLSearchParams({instituicao:id,curso:c.id})}]:[];
  });
  useEffect(()=>{
@@ -108,11 +110,10 @@ function PortalBI({institutions,courses,enrollments,session}:{institutions:Insti
     })});
    }).catch(()=>{set(2,{items:[],error:true});set(3,{items:[],error:true});});
   }
-  void fetch('https://qvetbbmviatxxatzzuzc.supabase.co/functions/v1/vertice-aquisicoes-green/rest/v1/dd_matters?select=*',{headers:{Authorization:'Bearer '+session.access_token},cache:'no-store'}).then(async response=>{
-   if(!response.ok)throw Error('Aquisições indisponível');
-   const rows=await response.json() as Row[];
-   set(4,{items:rows.filter(row=>row.scope_note!=='SEED-TESTE-FLUXO-COMPLETO-V1').map(row=>({label:String(row.title??row.code),group:({draft:'Em preparação',active:'Em análise',closing:'Fechamento',closed:'Encerrado',cancelled:'Cancelado'} as Record<string,string>)[String(row.status)]??String(row.status??'Sem situação'),value:1,href:'/master/aquisicoes#'+new URLSearchParams({mandato:row.id,aba:'summary'})}))});
-  }).catch(()=>set(4,{items:[],error:true}));
+  if(!id)return()=>{active=false;};
+  // The legacy acquisitions gateway returns a global authorized list and strips institution_id.
+  // Do not attribute those records to the selected IES without a scoped contract.
+  set(4,{items:[],error:true});
   return()=>{active=false;};
  },[id,tick,session.access_token,courses]);
  useEffect(()=>{
@@ -137,17 +138,12 @@ function PortalBI({institutions,courses,enrollments,session}:{institutions:Insti
  function tvMove(direction:number){
   setPage(current=>(current<0?0:(current+direction+BI_NAMES.length)%BI_NAMES.length));
  }
- const captacaoLink=<article className="pbi-card" key="captacao-link" style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'12px',cursor:'pointer'}} onClick={()=>{window.location.hash='captacao=1';window.dispatchEvent(new HashChangeEvent('hashchange'));}}>
-   <h3 style={{margin:0,fontSize:'18px',color:'#328ea8'}}>📊 BI de Captação</h3>
-   <p style={{margin:0,fontSize:'13px',color:'#757a80',textAlign:'center'}}>Dashboard completo de captação com funil, custos e conversão</p>
-   <span style={{background:'#328ea8',color:'white',padding:'6px 16px',borderRadius:'8px',fontSize:'13px',fontWeight:600}}>Acessar</span>
-  </article>;
  const cards:Record<number,BiSource>={...sources,1:{items:enrollmentItems}};
  const totalOf=(index:number)=>cards[index]?.error?null:cards[index]?.items?.reduce((sum,item)=>sum+item.value,0)??null;
  const executivePeriods=semesters.slice().reverse().slice(-7).map(v=>({term:v,enrolled:countTerm(v)})).filter((v):v is {term:string;enrolled:number}=>v.enrolled!==null);
  const executiveCourses=own.map(c=>{
-  const a=snapshots.filter(e=>e.course_id===c.id&&e.semester===term&&e.student_status==='MATRICULADO');
-  const b=snapshots.filter(e=>e.course_id===c.id&&e.semester===previousTerm&&e.student_status==='MATRICULADO');
+  const a=snapshots.filter(e=>e.course_id===c.id&&e.semester===term&&isEnrolledStatus(e.student_status));
+  const b=snapshots.filter(e=>e.course_id===c.id&&e.semester===previousTerm&&isEnrolledStatus(e.student_status));
   const current=a.length?courseTotals(a).value:null;
   const previous=b.length?courseTotals(b).value:null;
   return current===null?null:{name:c.name,current,previous,growth:previous!==null&&previous>0?(current-previous)/previous*100:null,href:'/master#'+new URLSearchParams({instituicao:id,curso:c.id})};
@@ -166,9 +162,9 @@ function PortalBI({institutions,courses,enrollments,session}:{institutions:Insti
  };
  const executiveMetrics=[
   {label:'Matrículas ativas no recorte',value:currentCount,note:term?'Semestre '+term:'Sem recorte',tone:'mint' as const,target:'Matrículas'},
-  {label:'Metas acompanhadas',value:totalOf(0),note:'Metas cadastradas na instituição',tone:'gold' as const,target:'Documentação'},
-  {label:'Documentos validados',value:cards[2]?executiveDocs.find(x=>x.status==='Validado')?.count??0:null,note:'Evidências com validação registrada',tone:'cyan' as const,target:'Documentação'},
-  {label:'Pendências documentais',value:cards[2]?.error?null:executiveDocs.filter(x=>!['Validado','NSA'].includes(x.status)).reduce((a,b)=>a+b.count,0),note:'Não validadas no repositório',tone:'rose' as const,target:'Documentação'}
+  {label:'Metas acompanhadas',value:totalOf(0),note:'Metas cadastradas na instituição',tone:'gold' as const,target:'Metas'},
+  {label:'Documentos validados',value:cards[2]&&!cards[2].error?executiveDocs.find(x=>x.status==='Validado')?.count??0:null,note:'Evidências com validação registrada',tone:'cyan' as const,target:'Documentação'},
+  {label:'Pendências documentais',value:!cards[2]||cards[2].error?null:executiveDocs.filter(x=>!['Validado','NSA'].includes(x.status)).reduce((a,b)=>a+b.count,0),note:'Não validadas no repositório',tone:'rose' as const,target:'Documentação'}
  ];
  const executiveIndicators=[
   {name:'Matrículas no recorte',value:currentCount,caption:term?'Semestre '+term:'Sem recorte',tone:'blue',index:1},
@@ -188,9 +184,9 @@ function PortalBI({institutions,courses,enrollments,session}:{institutions:Insti
   let offset=0;
   const open=(entry:typeof data[number])=>setDetail({title:BI_NAMES[index]+' · '+entry.name,items:entry.items});
   return <article className="pbi-card" key={index}>
-   <small>{index===1?'Matriculados · '+(term??'sem referência'):'Dados do portal · '+(index===4?'todos os mandatos autorizados':'instituição selecionada')}</small>
+   <small>{index===1?'Matriculados · '+(term??'sem referência'):'Dados do portal · '+('instituição selecionada')}</small>
    <h3>{BI_NAMES[index]}</h3>
-   {!source?<p role="status">Carregando…</p>:source.error?<p role="alert">Fonte temporariamente indisponível.</p>:!data.length?<p>Sem registros disponíveis neste recorte.</p>:<>
+   {!source?<p role="status">Carregando…</p>:source.error?<p role="alert">{index===4?'Integração institucional de Aquisições não disponível neste painel. Consulte os mandatos autorizados no módulo Aquisições; eles não são atribuídos automaticamente à IES selecionada.':'Fonte temporariamente indisponível.'}</p>:!data.length?<p>Sem registros disponíveis neste recorte.</p>:<>
     {donut?<svg viewBox="0 0 180 180" className="pbi-donut" aria-label={BI_NAMES[index]}><circle cx="90" cy="90" r="63" fill="none" stroke="#edf0f7" strokeWidth="26"/>
      {data.map((entry,i)=>{const length=total?entry.value/total*100:0;const start=offset;offset+=length;return <circle key={entry.name} cx="90" cy="90" r="63" pathLength="100" fill="none" stroke={BI_COLORS[i%BI_COLORS.length]} strokeWidth="26" strokeDasharray={length+' '+(100-length)} strokeDashoffset={-start} transform="rotate(-90 90 90)" onClick={()=>open(entry)}><title>{entry.name+' · '+biNumber.format(entry.value)}</title></circle>;})}
      <text x="90" y="90" textAnchor="middle" dominantBaseline="middle" fontSize="27" fontWeight="700">{biNumber.format(total)}</text>
@@ -199,8 +195,10 @@ function PortalBI({institutions,courses,enrollments,session}:{institutions:Insti
    </>}
   </article>;
  }
+ const selectInstitution=(value:string)=>{setSources({});setActionRows([]);setManual(['','','','']);setDetail(null);setSemester('');setPage(-1);setTv(false);setId(value);};
+ if(!id)return <section className="portal-bi" aria-label="BI da Reitoria"><h2>Visão Executiva da Direção</h2><label>Instituição <select value="" onChange={event=>selectInstitution(event.target.value)}><option value="">Selecione uma instituição autorizada</option>{institutions.map(i=><option key={i.id} value={i.id}>{i.name}</option>)}</select></label><p role="status">Selecione uma instituição autorizada. Nenhum indicador é carregado por padrão.</p></section>;
  const ratio=(cost:string,count:string)=>cost!==''&&Number(cost)>=0&&Number.isInteger(Number(count))&&Number(count)>0?biMoney.format(Number(cost)/Number(count)):'—';
- const costs=<article className="pbi-card"><small>ENTRADA MANUAL · INTEGRAÇÃO PENDENTE</small><h3>Captação e permanência</h3><p>Preencha os totais do mesmo período. Os valores ficam disponíveis enquanto o BI estiver aberto.</p><div className="pbi-grid">
+ const costs=<article className="pbi-card"><small>SIMULAÇÃO MANUAL · NÃO COMPÕE OS INDICADORES</small><h3>Captação e permanência</h3><p>Preencha os totais do mesmo período. Os valores ficam disponíveis enquanto o BI estiver aberto e não alteram nem são somados aos registros de captação.</p><div className="pbi-grid">
  {['Investimento em captação (R$)','Matrículas atribuídas à campanha','Despesas de permanência (R$)','Alunos acompanhados'].map((label,i)=><label key={label}>{label}<input type="number" min="0" step={i%2?'1':'0.01'} value={manual[i]} onChange={event=>{const value=event.target.value;setManual(previous=>previous.map((old,index)=>index===i?value:old));}}/></label>)}
  <p>Por matrícula confirmada <strong>{ratio(manual[0],manual[1])}</strong></p><p>Por aluno acompanhado <strong>{ratio(manual[2],manual[3])}</strong></p></div></article>;
  return <section ref={panel} className="portal-bi" aria-label="BI da Reitoria">
@@ -213,11 +211,11 @@ function PortalBI({institutions,courses,enrollments,session}:{institutions:Insti
     [2,'Regulação (MEC / INEP)','◇'],[3,'Reconhecimento de Curso','▤'],
     [4,'Aquisições','◫'],[5,'Captação','↗']
   ] as [number,string,string][]).map(([key,name,icon])=><button type="button" key={key} aria-current={page===key?'page':undefined} onClick={()=>setPage(key)}><span>{icon}</span>{name}</button>)}</nav>
-  <div className="exe-sidebar-bottom">BI estratégico para <strong>Direção e Gestores</strong><small>Dados autenticados · sem números demonstrativos</small></div>
+  <div className="exe-sidebar-bottom">BI estratégico para <strong>Direção e Gestores</strong><small>Dados cadastrados · confira a instituição e a origem</small></div>
  </aside>
  <div className="exe-screen-main">
- <header className="vx-bi-heading"><div><p className="vx-eyebrow">VÉRTICE · INTELIGÊNCIA INSTITUCIONAL</p><h2>Visão Executiva da Direção</h2><p>Indicadores institucionais com acesso aos registros originais.</p></div><span className="vx-scope">Consulta ao portal · sem estimativas</span></header>
- <div className="pbi-toolbar"><label>Instituição <select value={id} onChange={event=>{setSources({});setActionRows([]);setManual(['','','','']);setId(event.target.value);}}>{institutions.map(institution=><option key={institution.id} value={institution.id}>{institution.name}</option>)}</select></label>
+ <header className="vx-bi-heading"><div><p className="vx-eyebrow">VÉRTICE · INTELIGÊNCIA INSTITUCIONAL</p><h2>Visão Executiva da Direção</h2><p>Indicadores institucionais com acesso aos registros originais.</p></div><span className="vx-scope">Registros do portal · simulações identificadas separadamente</span></header>
+ <div className="pbi-toolbar"><label>Instituição <select value={id} onChange={event=>{selectInstitution(event.target.value);}}><option value="">Selecione uma instituição autorizada</option>{institutions.map(institution=><option key={institution.id} value={institution.id}>{institution.name}</option>)}</select></label>
  <label>Semestre de matrículas <select value={term??''} onChange={event=>setSemester(event.target.value)}>{!semesters.length&&<option value="">Sem referência</option>}{semesters.map(value=><option key={value}>{value}</option>)}</select></label>
  <button type="button" onClick={toggleTv}>{tv?'Sair do modo TV':'Modo TV • automático'}</button>
  {tv&&<><button type="button" onClick={()=>setTvPaused(old=>!old)} aria-pressed={tvPaused}>{tvPaused?'Retomar':'Pausar'}</button>
@@ -241,7 +239,7 @@ function PortalBI({institutions,courses,enrollments,session}:{institutions:Insti
    onNavigate={navigateExecutive}
  />}
  <div className="pbi-toolbar vx-bi-tabs"><button type="button" aria-pressed={page<0} onClick={()=>{setPage(-1);setTv(false);}}>Visão geral</button>{BI_NAMES.map((name,index)=><button type="button" key={name} aria-pressed={page===index} onClick={()=>setPage(index)}>{name}</button>)}</div>
- {page<0?null:page===5?<div className="pbi-grid">{captacaoLink}{costs}</div>:chart(page)}
+ {page<0?null:page===5?<><section aria-label="Captação cadastrada da instituição"><p role="note">Fonte: registros de captação da instituição selecionada. Recorte: todo o histórico cadastrado; o seletor de semestre de matrículas acadêmicas não filtra esta seção. Etapas informadas não comprovam matrícula acadêmica.</p><CaptacaoBI key={id} institutionId={id} institutionName={institutions.find(i=>i.id===id)?.name??''}/></section><details><summary>Simulação manual separada dos registros</summary><div className="pbi-grid">{costs}</div></details></>:chart(page)}
  </div></div>
  <dialog ref={dialog} onClose={()=>setDetail(null)}>{detail&&<><h3>{detail.title}</h3><p>{biNumber.format(detail.items.length)} registros</p><ul>{detail.items.map((item,index)=><li key={index}>{item.href?<a href={item.href} onClick={()=>dialog.current?.close()}>{item.label}</a>:item.label}{item.value!==1?' · '+biNumber.format(item.value):''}</li>)}</ul></>}<form method="dialog"><button>Fechar detalhes</button></form></dialog>
  </section>;
@@ -363,7 +361,7 @@ export default function OwnerDashboard(){
     </label>
     {selectedCaptacaoInstitution
       ? <CaptacaoBI key={selectedCaptacaoInstitution.id} institutionId={selectedCaptacaoInstitution.id} institutionName={selectedCaptacaoInstitution.name}/>
-      : <p role="status">Selecione uma instituição autorizada para consultar somente seus indicadores reais de captação.</p>}
+      : <p role="status">Selecione uma instituição autorizada para consultar somente seus indicadores cadastrados de captação.</p>}
   </section></BIFrame>:route.bi?<PortalBI institutions={institutions} courses={courses} enrollments={enrollments} session={session}/>:master&&route.masters?<MasterDirectory/>:currentInst&&currentCourse?<CourseView key={currentCourse.id} course={currentCourse} institution={currentInst} enrollments={enrollments.filter(row => courses.some(course => course.id === row.course_id && course.institution_id === currentInst.id))} reports={reports} onBack={()=>writeHash(currentInst.id,'')} onPlan={can.record(roleIn(currentInst.id)) ? draft => { storeActionDraft(currentInst.id,draft); window.location.hash = new URLSearchParams({instituicao:currentInst.id,aba:'plano'}).toString(); } : undefined}/>
  :currentInst?<Workspace key={currentInst.id} institution={currentInst as unknown as Row} role={roleIn(currentInst.id)} onBack={()=>writeHash('','')} onChanged={load}
    stats={instStats(currentInst.id)}

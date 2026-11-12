@@ -1,3 +1,4 @@
+import {isEnrolledStatus} from '@/lib/enrollment-summary';
 /**
  * Painel Executivo de BI — Consultas agregadas
  *
@@ -66,7 +67,7 @@ async function getEnrollments(filtro: FiltroBI): Promise<Enrollment[]> {
   );
   const courses = await getCourses(filtro);
   const ids = new Set(courses.map(c => c.id));
-  return latestEnrollmentSnapshots(all.filter(e => ids.has(e.course_id) && e.student_status === 'MATRICULADO'));
+  return latestEnrollmentSnapshots(all.filter(e => ids.has(e.course_id) && isEnrolledStatus(e.student_status)));
 }
 
 function courseSemesterTotals(enrollments:Enrollment[]):Map<string,Map<string,number>>{
@@ -104,7 +105,7 @@ export async function getSemestres(instituicaoId: string): Promise<string[]> {
     { institution_id: instituicaoId },
     'semester'
   );
-  const semesters = [...new Set(all.filter(e => e.student_status === 'MATRICULADO').map(e => e.semester))];
+  const semesters = [...new Set(all.filter(e => isEnrolledStatus(e.student_status)).map(e => e.semester))];
   return semesters.sort().reverse();
 }
 // ---------------------------------------------------------------- KPIs

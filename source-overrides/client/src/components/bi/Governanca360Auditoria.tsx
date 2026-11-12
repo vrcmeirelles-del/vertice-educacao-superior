@@ -92,7 +92,7 @@ export default function Governanca360Auditoria({institutionId}:{institutionId:st
     supabase.from("vertice_goals").select("id,status,owner_user_id").eq("institution_id",institutionId).limit(2000),
     supabase.from("vertice_repository_requests").select("id,repository_section,course_id,not_applicable,active").eq("institution_id",institutionId).limit(2000),
     supabase.from("vertice_repository_files").select("request_id,status,created_at").eq("institution_id",institutionId).order("created_at",{ascending:false}).limit(2000),
-    supabase.from("vertice_enrollment_snapshots").select("course_id,semester,class_label,enrolled").eq("institution_id",institutionId).eq("semester","2026/02").eq("student_status","MATRICULADO").limit(2000),
+    supabase.from("vertice_enrollment_snapshots").select("course_id,semester,class_label,enrolled").eq("institution_id",institutionId).eq("semester","2026/02").ilike("student_status","matriculado").limit(2000),
     institutionId===CANONICAL_UNITOP?supabase.from("vertice_eorbit_quantitativo").select("curso_id,total_matriculados,total_vinculos,semestre:vertice_eorbit_semestres!inner(semestre)").eq("instituicao_id",LEGACY_UNITOP).eq("vertice_eorbit_semestres.semestre","2026/02").limit(2000):Promise.resolve({data:[],error:null}),
     supabase.from("vertice_course_semester_stats").select("codigo,matriculados").eq("institution_id",institutionId).eq("semestre","2026/02").limit(2000)
    ]);

@@ -288,7 +288,7 @@ function CaptacaoBIContent({ institutionId, institutionName }: { institutionId: 
       setCustos([]);
       setSnapshots([]);
       setUpdatedAt(null);
-      setError('Não foi possível consultar os dados reais de captação. Tente atualizar.');
+      setError('Não foi possível consultar os registros de captação. Tente atualizar.');
     } finally {
       if (requestId === loadRequestId.current) setLoading(false);
     }
@@ -340,7 +340,7 @@ function CaptacaoBIContent({ institutionId, institutionName }: { institutionId: 
 
     {noData ? (
       <section className="cbi-card" aria-live="polite">
-        <h3>{error ? 'Indicadores indisponíveis' : 'Nenhum dado real de captação'}</h3>
+        <h3>{error ? 'Indicadores indisponíveis' : 'Nenhum registro de captação'}</h3>
         <p>{error
           ? 'Os indicadores não foram exibidos porque a consulta falhou. Atualize para tentar novamente.'
           : 'Ainda não existem leads, custos ou registros mensais para esta instituição. Importe um CSV ou integre uma fonte de dados para visualizar os indicadores.'}</p>
