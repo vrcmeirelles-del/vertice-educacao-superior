@@ -143,6 +143,44 @@ export default function ExtensaoIA({
     load();
   };
 
+  const [docAnalysisType, setDocAnalysisType] = useState<string>('documental');
+  const [docAnalyzing, setDocAnalyzing] = useState(false);
+
+  const runDocumentAnalysis = async () => {
+    setDocAnalyzing(true);
+    // Buscar evidências pendentes ou aprovadas do repositório
+    const { data: docs } = await supabase.from('vertice_extension_evidence_registry')
+      .select('storage_path, file_name').eq('institution_id', institutionId)
+      .eq('is_current', true).limit(5);
+    if (!docs || docs.length === 0) { setDocAnalyzing(false); return alert('Nenhum documento encontrado no repositório de evidências.'); }
+
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) { setDocAnalyzing(false); return alert('Sessão expirada.'); }
+
+    try {
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL || ''}/functions/v1/vertice-impacto-analyze`, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'authorization': `Bearer ${session.access_token}`,
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY || '',
+        },
+        body: JSON.stringify({
+          institution_id: institutionId,
+          analysis_type: docAnalysisType,
+          document_paths: docs.map(d => d.storage_path),
+        }),
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || 'Erro na análise');
+      alert(`Análise concluída: ${result.findings_count} achados em ${Math.round(result.processing_time_ms / 1000)}s`);
+    } catch (err: any) {
+      alert('Erro: ' + err.message);
+    }
+    setDocAnalyzing(false);
+    load();
+  };
+
   const loadFindings = async (analysisId: string) => {
     setSelectedAnalysis(analysisId);
     const { data } = await supabase.from('vertice_ai_findings')
@@ -211,10 +249,22 @@ export default function ExtensaoIA({
       </div>
 
       {canEdit && (
-        <button className="ext-btn-primary" style={{ marginBottom: '1rem' }} disabled={analyzing}
-          onClick={runProjectAnalysis}>
-          {analyzing ? '⏳ Analisando projetos...' : '🔍 Analisar completude dos projetos'}
-        </button>
+        <div style={{ display: 'flex', gap: '.75rem', marginBottom: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
+          <button className="ext-btn-primary" disabled={analyzing} onClick={runProjectAnalysis}>
+            {analyzing ? '⏳...' : '🔍 Completude dos projetos'}
+          </button>
+          <div style={{ display: 'flex', gap: '.35rem', alignItems: 'center' }}>
+            <select value={docAnalysisType} onChange={e => setDocAnalysisType(e.target.value)} style={{ fontSize: '.8rem', padding: '.4rem' }}>
+              <option value="documental">📄 Documental</option>
+              <option value="estrutural">🏗️ Estrutural (DCN)</option>
+              <option value="evidencia">📁 Verificar evidências</option>
+              <option value="conformidade">⚖️ Conformidade INEP</option>
+            </select>
+            <button className="ext-btn-secondary" disabled={docAnalyzing} onClick={runDocumentAnalysis}>
+              {docAnalyzing ? '⏳ Analisando...' : '🤖 Analisar documentos'}
+            </button>
+          </div>
+        </div>
       )}
 
       {loading ? <p>Carregando...</p> : analyses.length === 0 ? (
