@@ -9,8 +9,21 @@ import {
   unlinkSync,
 } from "node:fs";
 import { resolve } from "node:path";
-import { PublicPage } from "../client/src/PublicApp";
+import { createServer } from "vite";
 import { publicPages } from "../client/src/lib/consultancy";
+
+// Use Vite's SSR transforms for the public app, including its CSS imports.
+// The production CSS remains linked by the already-built HTML template.
+const renderer = await createServer({
+  configFile: false,
+  root: resolve("client"),
+  resolve: { alias: { "@": resolve("client/src"), "@shared": resolve("shared") } },
+  esbuild: { jsx: "automatic" },
+  server: { middlewareMode: true, watch: null },
+  appType: "custom",
+});
+try {
+const { PublicPage } = await renderer.ssrLoadModule("/src/PublicApp.tsx");
 
 const dir = resolve("dist/public");
 const template = readFileSync(resolve(dir, "index.html"), "utf8");
@@ -157,3 +170,7 @@ writeFileSync(
     true
   )
 );
+
+} finally {
+  await renderer.close();
+}

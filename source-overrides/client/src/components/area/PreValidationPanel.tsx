@@ -1,403 +1,56 @@
-import { useState, useEffect, useCallback } from "react";
-import { supabase } from "@/lib/supabase";
-import { type Row, explain } from "@/lib/area";
-
-interface IndicatorLink {
-  id: string;
-  instrument_code: string;
-  instrument_version: string;
-  object_code: string;
-  dimension: string;
-  is_primary: boolean;
-  compatibility: "alta" | "media" | "baixa";
-  justification: string;
-  evidence_excerpts: { page?: number; section?: string; text: string }[];
-  limitations?: string;
-  status: string;
-}
-
-interface Prevalidation {
-  id: string;
-  ai_status: string;
-  ai_summary: string;
-  ai_nature: string;
-  ai_institution_detected: string;
-  ai_course_detected: string;
-  ai_period_detected: string;
-  ai_scope_detected: string;
-  ai_model_version: string;
-  ai_analyzed_at: string;
-  ai_error: string;
-}
-
-const COMPAT_COLORS: Record<string, { bg: string; border: string; label: string }> = {
-  alta: { bg: "#dcfce7", border: "#16a34a", label: "ALTA" },
-  media: { bg: "#fef3c7", border: "#d97706", label: "MÉDIA" },
-  baixa: { bg: "#fee2e2", border: "#dc2626", label: "BAIXA" },
-};
-
-const STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  sugerido: { label: "Sugerido pela IA", color: "#d97706" },
-  aprovado: { label: "Aprovado", color: "#16a34a" },
-  rejeitado: { label: "Rejeitado", color: "#dc2626" },
-  revisao_humana: { label: "Em revisão humana", color: "#7c3aed" },
-};
-
-const INSTRUMENT_LABELS: Record<string, string> = {
-  reconhecimento_curso: "Reconhecimento de Curso (2017)",
-  novo_instrumento_2026: "Novo Instrumento (2026)",
-  recredenciamento_2017: "Recredenciamento (2017)",
-};
-
-export default function PreValidationPanel({
-  file,
-  institutionId,
-  sourceTable = "vertice_repository_files",
-  onClose,
-  onLinksUpdated,
-}: {
-  file: Row;
-  institutionId: string;
-  sourceTable?: string;
-  onClose: () => void;
-  onLinksUpdated?: () => void;
-}) {
-  const [prevalidation, setPrevalidation] = useState<Prevalidation | null>(null);
-  const [links, setLinks] = useState<IndicatorLink[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [analyzing, setAnalyzing] = useState(false);
-  const [error, setError] = useState("");
-  const [expandedLink, setExpandedLink] = useState<string | null>(null);
-  const [rejectReason, setRejectReason] = useState("");
-  const [rejectingId, setRejectingId] = useState<string | null>(null);
-  const [bulkMode, setBulkMode] = useState(false);
-  const [selectedLinks, setSelectedLinks] = useState<Set<string>>(new Set());
-
-  const fileId = String(file.id);
-
-  const loadExisting = useCallback(async () => {
-    setLoading(true);
-    try {
-      const col = sourceTable === "vertice_documents" ? "document_id" : "repository_file_id";
-      const { data: pvs } = await supabase
-        .from("vertice_doc_prevalidation")
-        .select("*")
-        .eq(col, fileId)
-        .eq("institution_id", institutionId)
-        .order("created_at", { ascending: false })
-        .limit(1);
-
-      if (pvs?.length) {
-        setPrevalidation(pvs[0] as Prevalidation);
-        const { data: linkData } = await supabase
-          .from("vertice_doc_indicator_links")
-          .select("*")
-          .eq("prevalidation_id", pvs[0].id)
-          .order("compatibility", { ascending: true })
-          .order("is_primary", { ascending: false });
-        setLinks((linkData ?? []) as IndicatorLink[]);
-      }
-    } catch (e) {
-      setError(explain(e));
-    } finally {
-      setLoading(false);
-    }
-  }, [fileId, institutionId, sourceTable]);
-
-  useEffect(() => { void loadExisting(); }, [loadExisting]);
-
-  async function startPrevalidation() {
-    setAnalyzing(true);
-    setError("");
-    try {
-      const { data, error: fnErr } = await supabase.functions.invoke("vertice-doc-prevalidate", {
-        body: { institution_id: institutionId, source_table: sourceTable, file_id: fileId },
-      });
-      if (fnErr) throw new Error(fnErr.message);
-      if (data?.error) throw new Error(data.detail || data.error);
-      await loadExisting();
-    } catch (e) {
-      setError(explain(e));
-    } finally {
-      setAnalyzing(false);
-    }
-  }
-
-  async function updateLinkStatus(linkId: string, status: string, reason?: string) {
-    try {
-      const update: Record<string, unknown> = {
-        status,
-        reviewed_at: new Date().toISOString(),
-      };
-      if (reason) update.rejection_reason = reason;
-      const { error: err } = await supabase
-        .from("vertice_doc_indicator_links")
-        .update(update)
-        .eq("id", linkId);
-      if (err) throw err;
-      setLinks((prev) => prev.map((l) => l.id === linkId ? { ...l, status, ...(reason ? { rejection_reason: reason } : {}) } : l));
-      setRejectingId(null);
-      setRejectReason("");
-      onLinksUpdated?.();
-    } catch (e) {
-      setError(explain(e));
-    }
-  }
-
-  async function bulkApprove() {
-    const toApprove = links.filter((l) =>
-      (bulkMode ? selectedLinks.has(l.id) : l.compatibility === "alta") && l.status === "sugerido"
-    );
-    for (const link of toApprove) {
-      await updateLinkStatus(link.id, "aprovado");
-    }
-    setBulkMode(false);
-    setSelectedLinks(new Set());
-  }
-
-  const byInstrument = links.reduce<Record<string, IndicatorLink[]>>((acc, link) => {
-    const key = `${link.instrument_code}/${link.instrument_version}`;
-    (acc[key] ??= []).push(link);
-    return acc;
-  }, {});
-
-  const highCount = links.filter((l) => l.compatibility === "alta" && l.status === "sugerido").length;
-  const pendingCount = links.filter((l) => l.status === "sugerido").length;
-  const approvedCount = links.filter((l) => l.status === "aprovado").length;
-
-  return (
-    <div className="er-prevalidation-panel" style={{ border: "2px solid var(--color-primary, #2563eb)", borderRadius: 12, padding: 24, background: "var(--color-surface, #fff)", marginTop: 16 }}>
-      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-        <div>
-          <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: "var(--color-primary, #1e40af)" }}>
-            🤖 PRÉ-VALIDAÇÃO COM IA
-          </h3>
-          <p style={{ margin: "4px 0 0", fontSize: 13, color: "#64748b" }}>
-            {String(file.file_name)}
-          </p>
-        </div>
-        <button onClick={onClose} className="er-btn er-small" style={{ fontSize: 18, lineHeight: 1 }}>✕</button>
-      </header>
-
-      {error && <p role="alert" className="er-alert error" style={{ marginBottom: 12 }}>{error}</p>}
-
-      {/* Status atual */}
-      {loading && <p style={{ color: "#64748b" }}>Carregando análises anteriores…</p>}
-
-      {!loading && !prevalidation && (
-        <div style={{ textAlign: "center", padding: "24px 0" }}>
-          <p style={{ fontSize: 15, marginBottom: 12 }}>
-            Este documento ainda não foi pré-validado pela IA.
-          </p>
-          <p style={{ fontSize: 13, color: "#64748b", marginBottom: 16 }}>
-            A IA irá ler o documento, identificar indicadores relacionados em todos os instrumentos regulatórios
-            e sugerir onde esta evidência pode ser aproveitada.
-          </p>
-          <button
-            onClick={startPrevalidation}
-            disabled={analyzing}
-            className="er-btn er-primary"
-            style={{ fontSize: 16, padding: "12px 32px", fontWeight: 700 }}
-          >
-            {analyzing ? "⏳ Analisando documento…" : "🔍 PRÉ-VALIDAR COM IA"}
-          </button>
-        </div>
-      )}
-
-      {prevalidation?.ai_status === "processing" && (
-        <div style={{ textAlign: "center", padding: 24 }}>
-          <p style={{ fontSize: 16, fontWeight: 600 }}>⏳ Análise em andamento…</p>
-          <p style={{ fontSize: 13, color: "#64748b" }}>A IA está lendo o documento e identificando indicadores.</p>
-        </div>
-      )}
-
-      {prevalidation?.ai_status === "failed" && (
-        <div style={{ padding: 16, background: "#fef2f2", borderRadius: 8, marginBottom: 16 }}>
-          <p style={{ fontWeight: 600, color: "#dc2626" }}>❌ Análise falhou</p>
-          <p style={{ fontSize: 13 }}>{prevalidation.ai_error}</p>
-          <button onClick={startPrevalidation} disabled={analyzing} className="er-btn er-small" style={{ marginTop: 8 }}>
-            {analyzing ? "Reprocessando…" : "Tentar novamente"}
-          </button>
-        </div>
-      )}
-
-      {prevalidation?.ai_status === "completed" && (
-        <>
-          {/* Resumo da análise */}
-          <div style={{ background: "#f0f9ff", borderRadius: 8, padding: 16, marginBottom: 16 }}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
-              <div><small style={{ color: "#64748b" }}>Natureza</small><br /><strong>{prevalidation.ai_nature}</strong></div>
-              <div><small style={{ color: "#64748b" }}>Abrangência</small><br /><strong>{prevalidation.ai_scope_detected}</strong></div>
-              {prevalidation.ai_course_detected && <div><small style={{ color: "#64748b" }}>Curso detectado</small><br /><strong>{prevalidation.ai_course_detected}</strong></div>}
-              {prevalidation.ai_period_detected && <div><small style={{ color: "#64748b" }}>Período</small><br /><strong>{prevalidation.ai_period_detected}</strong></div>}
-            </div>
-            <p style={{ fontSize: 13, margin: 0 }}>{prevalidation.ai_summary}</p>
-            <p style={{ fontSize: 11, color: "#94a3b8", marginTop: 8 }}>
-              Analisado por {prevalidation.ai_model_version} em{" "}
-              {new Date(prevalidation.ai_analyzed_at).toLocaleString("pt-BR")}
-            </p>
-          </div>
-
-          {/* KPIs */}
-          <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
-            <div style={{ flex: 1, background: "#dcfce7", borderRadius: 8, padding: 12, textAlign: "center" }}>
-              <div style={{ fontSize: 24, fontWeight: 700 }}>{approvedCount}</div>
-              <div style={{ fontSize: 11 }}>Aprovados</div>
-            </div>
-            <div style={{ flex: 1, background: "#fef3c7", borderRadius: 8, padding: 12, textAlign: "center" }}>
-              <div style={{ fontSize: 24, fontWeight: 700 }}>{pendingCount}</div>
-              <div style={{ fontSize: 11 }}>Pendentes</div>
-            </div>
-            <div style={{ flex: 1, background: "#ede9fe", borderRadius: 8, padding: 12, textAlign: "center" }}>
-              <div style={{ fontSize: 24, fontWeight: 700 }}>{Object.keys(byInstrument).length}</div>
-              <div style={{ fontSize: 11 }}>Instrumentos</div>
-            </div>
-            <div style={{ flex: 1, background: "#f1f5f9", borderRadius: 8, padding: 12, textAlign: "center" }}>
-              <div style={{ fontSize: 24, fontWeight: 700 }}>{links.length}</div>
-              <div style={{ fontSize: 11 }}>Vínculos totais</div>
-            </div>
-          </div>
-
-          {/* Ações em lote */}
-          {pendingCount > 0 && (
-            <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
-              {highCount > 0 && (
-                <button className="er-btn er-primary er-small" onClick={() => void bulkApprove()}>
-                  ✅ Aprovar {bulkMode ? selectedLinks.size : highCount} vínculo(s){!bulkMode ? " de alta compatibilidade" : " selecionado(s)"}
-                </button>
-              )}
-              <button className="er-btn er-small" onClick={() => { setBulkMode(!bulkMode); setSelectedLinks(new Set()); }}>
-                {bulkMode ? "Cancelar seleção" : "Selecionar individualmente"}
-              </button>
-              <button onClick={startPrevalidation} disabled={analyzing} className="er-btn er-small">
-                🔄 Reanalisar
-              </button>
-            </div>
-          )}
-
-          {/* DESTINOS SUGERIDOS PARA ESTA EVIDÊNCIA */}
-          <h4 style={{ fontSize: 16, fontWeight: 700, margin: "20px 0 12px", color: "var(--color-primary, #1e40af)" }}>
-            DESTINOS SUGERIDOS PARA ESTA EVIDÊNCIA
-          </h4>
-
-          {Object.entries(byInstrument).map(([key, instrumentLinks]) => {
-            const [code] = key.split("/");
-            return (
-              <div key={key} style={{ marginBottom: 16, border: "1px solid #e2e8f0", borderRadius: 8, overflow: "hidden" }}>
-                <div style={{ background: "#f8fafc", padding: "10px 16px", borderBottom: "1px solid #e2e8f0", fontWeight: 600, fontSize: 14 }}>
-                  📋 {INSTRUMENT_LABELS[code] ?? code}
-                  <span style={{ float: "right", fontSize: 12, color: "#64748b" }}>
-                    {instrumentLinks.length} indicador(es)
-                  </span>
-                </div>
-                {instrumentLinks.map((link) => {
-                  const compat = COMPAT_COLORS[link.compatibility] ?? COMPAT_COLORS.baixa;
-                  const statusInfo = STATUS_LABELS[link.status] ?? { label: link.status, color: "#64748b" };
-                  const isExpanded = expandedLink === link.id;
-                  return (
-                    <div key={link.id} style={{ borderBottom: "1px solid #f1f5f9", padding: "12px 16px" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        {bulkMode && link.status === "sugerido" && (
-                          <input
-                            type="checkbox"
-                            checked={selectedLinks.has(link.id)}
-                            onChange={() => {
-                              const next = new Set(selectedLinks);
-                              next.has(link.id) ? next.delete(link.id) : next.add(link.id);
-                              setSelectedLinks(next);
-                            }}
-                          />
-                        )}
-                        <span
-                          style={{
-                            display: "inline-block", padding: "2px 8px", borderRadius: 4,
-                            fontSize: 11, fontWeight: 700, background: compat.bg, color: compat.border, border: `1px solid ${compat.border}`,
-                          }}
-                        >
-                          {compat.label}
-                        </span>
-                        <strong style={{ fontSize: 14 }}>
-                          {link.object_code}
-                          {link.is_primary && <span style={{ color: "#d97706", marginLeft: 4 }}>★</span>}
-                        </strong>
-                        <span style={{ color: "#64748b", fontSize: 12 }}>Dim. {link.dimension}</span>
-                        <span style={{ marginLeft: "auto", fontSize: 11, color: statusInfo.color, fontWeight: 600 }}>
-                          {statusInfo.label}
-                        </span>
-                        <button className="er-btn er-small" onClick={() => setExpandedLink(isExpanded ? null : link.id)} style={{ padding: "2px 8px", fontSize: 12 }}>
-                          {isExpanded ? "▲" : "▼"}
-                        </button>
-                      </div>
-
-                      <p style={{ fontSize: 13, margin: "6px 0 0", color: "#475569" }}>
-                        {link.justification}
-                      </p>
-
-                      {isExpanded && (
-                        <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px dashed #e2e8f0" }}>
-                          {link.evidence_excerpts?.length > 0 && (
-                            <div style={{ marginBottom: 8 }}>
-                              <small style={{ fontWeight: 600, color: "#475569" }}>Trechos identificados:</small>
-                              {(Array.isArray(link.evidence_excerpts) ? link.evidence_excerpts : JSON.parse(String(link.evidence_excerpts))).map((ex: { page?: number; section?: string; text: string }, i: number) => (
-                                <div key={i} style={{ background: "#fefce8", padding: 8, borderRadius: 4, margin: "4px 0", fontSize: 12 }}>
-                                  {ex.page && <span style={{ color: "#92400e" }}>Pág. {ex.page}</span>}
-                                  {ex.section && <span style={{ color: "#64748b" }}> · {ex.section}</span>}
-                                  <p style={{ margin: "4px 0 0", fontStyle: "italic" }}>"{ex.text}"</p>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                          {link.limitations && (
-                            <div style={{ background: "#fff7ed", padding: 8, borderRadius: 4, fontSize: 12, marginBottom: 8 }}>
-                              <strong>⚠️ Limitações:</strong> {link.limitations}
-                            </div>
-                          )}
-
-                          {link.status === "sugerido" && (
-                            <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-                              <button className="er-btn er-primary er-small" onClick={() => void updateLinkStatus(link.id, "aprovado")}>
-                                ✅ Aprovar vínculo
-                              </button>
-                              <button className="er-btn er-small" onClick={() => void updateLinkStatus(link.id, "revisao_humana")}>
-                                👁️ Solicitar revisão
-                              </button>
-                              <button className="er-btn er-small" style={{ color: "#dc2626" }} onClick={() => setRejectingId(link.id)}>
-                                ❌ Rejeitar
-                              </button>
-                            </div>
-                          )}
-                          {rejectingId === link.id && (
-                            <div style={{ marginTop: 8 }}>
-                              <textarea
-                                value={rejectReason}
-                                onChange={(e) => setRejectReason(e.target.value)}
-                                placeholder="Justificativa da rejeição"
-                                style={{ width: "100%", minHeight: 60 }}
-                              />
-                              <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
-                                <button className="er-btn er-small" style={{ color: "#dc2626" }} onClick={() => void updateLinkStatus(link.id, "rejeitado", rejectReason)}>
-                                  Confirmar rejeição
-                                </button>
-                                <button className="er-btn er-small" onClick={() => setRejectingId(null)}>Cancelar</button>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            );
-          })}
-
-          {links.length === 0 && (
-            <p style={{ color: "#64748b", textAlign: "center", padding: 24 }}>
-              A IA não identificou indicadores relacionados neste documento.
-            </p>
-          )}
-        </>
-      )}
-    </div>
-  );
+import {useCallback,useEffect,useRef,useState} from 'react';
+import {supabase} from '@/lib/supabase';
+import {type Row,explain} from '@/lib/area';
+type Chunk={id:string;text:string;page:number|null;section:string|null;sensitive_flags:string[]};
+type Link={objectKey:string;instrumentCode:string;version:string;regulatoryStatus:string;objectCode:string;title:string;compatibility:string;justification:string;quotes:{chunkId:string;text:string;page:number|null}[];limitations:string[]};
+type Result={summary:string;correlation:'potential'|'none'|'insufficient';links:Link[];gaps:string[];limitations:string[];disclaimer:string};
+type Decision={object_key:string|null;decision:string;reason:string;validation_status:string};
+type Run={id:string;state:string;result:Result|null;source_version:string;created_at:string;provider:string;model:string;error_code:string|null;decisions:Decision[]};
+type Preview={preview_digest:string;source_version:string;extraction_status:string;document_coverage:string|null;page_coverage:{page:number;status:string;characters:number}[];chunks:Chunk[];limitations:string[];provider:string|null;model:string|null;enabled:boolean;coverage:{catalogs:{key:string;label:string;version:string;regulatoryStatus:string}[];notes:string[]}};
+const MESSAGES:Record<string,string>={authentication_required:'Entre novamente para continuar.',source_not_in_release:'Fonte ainda fora do escopo autorizado de homologação. Nenhum conteúdo foi lido.',release_content_mismatch:'Os bytes diferem do documento aprovado para este ensaio. A extração foi bloqueada.',partial_coverage_unconfirmed:'Confirme que a análise usará somente o texto verificado; as páginas sem texto continuam pendentes.',source_unavailable:'Fonte indisponível ou acesso não autorizado. Esta etapa exige gestor institucional e MFA.',analysis_not_activated:'Pré-análise preparada, mas ainda não ativada para esta instituição.',source_changed:'A fonte mudou. Revise uma nova prévia antes de continuar.',preview_changed_or_unconfirmed:'A prévia mudou ou não foi confirmada. Gere outra prévia.',sensitive_input_requires_minimization:'Há possíveis dados pessoais ou sensíveis nos trechos. Remova-os ou encaminhe para revisão autorizada.',quota_exceeded:'Limite diário alcançado. Não foi enviado outro pedido.',provider_configuration_error:'O provedor recusou a configuração. Nenhuma conclusão foi gerada.',provider_outcome_uncertain:'O resultado no provedor é incerto. Não repita automaticamente.',extraction_requires_manual_review:'Leitura automática indisponível para este arquivo. É necessária extração assistida ou OCR autorizado.'};
+class PreValidationError extends Error {}
+const failureMessage=(error:unknown)=>error instanceof PreValidationError?error.message:explain(error);
+export default function PreValidationPanel({file,institutionId,sourceTable='vertice_repository_files',onClose,onLinksUpdated}:{file:Row;institutionId:string;sourceTable?:string;onClose:()=>void;onLinksUpdated?:()=>void}){
+ const [runs,setRuns]=useState<Run[]>([]),[preview,setPreview]=useState<Preview|null>(null),[currentVersion,setCurrentVersion]=useState(''),[selected,setSelected]=useState<Record<string,string>>({}),[confirmed,setConfirmed]=useState(false),[coverageConfirmed,setCoverageConfirmed]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(''),[reason,setReason]=useState('');
+ const generation=useRef(0),busyRef=useRef(false);const ref={institution_id:institutionId,source_table:sourceTable,source_id:String(file.id)};
+ const invoke=useCallback(async(body:Record<string,unknown>)=>{const {data,error}=await supabase.functions.invoke('vertice-doc-prevalidate',{body});if(error){let code='';try{code=(await error.context?.json())?.error??''}catch{}throw new PreValidationError(MESSAGES[code]??'Não foi possível concluir a operação. Confira a sessão e o escopo autorizado.');}if(data?.error)throw new PreValidationError(MESSAGES[data.error]??'Não foi possível concluir a operação. Confira a sessão e o escopo autorizado.');return data},[]);
+ const load=useCallback(async(token:number)=>{const data=await invoke({action:'history',institution_id:institutionId,source_table:sourceTable,source_id:String(file.id)});if(token===generation.current){setRuns(data.runs??[]);setCurrentVersion(data.source_version??'')}},[invoke,institutionId,sourceTable,file.id]);
+ useEffect(()=>{const token=++generation.current;setPreview(null);setSelected({});setConfirmed(false);setCoverageConfirmed(false);setRuns([]);setReason('');setError('');busyRef.current=false;setBusy(false);void load(token).catch(e=>{if(token===generation.current)setError(failureMessage(e))});return()=>{generation.current++}},[load]);
+ async function task(fn:(token:number)=>Promise<void>){if(busyRef.current)return;const token=generation.current;busyRef.current=true;setBusy(true);setError('');try{await fn(token)}catch(e){if(token===generation.current)setError(failureMessage(e))}finally{if(token===generation.current){busyRef.current=false;setBusy(false)}}}
+ const prepare=()=>task(async token=>{const p=await invoke({...ref,action:'preview'});if(token===generation.current){setPreview(p);setCurrentVersion(p.source_version);setSelected({});setConfirmed(false);setCoverageConfirmed(false)}});
+ const analyze=()=>task(async token=>{if(!preview||!confirmed)return;await invoke({...ref,action:'analyze',preview_digest:preview.preview_digest,privacy_confirmed:true,coverage_acknowledged:coverageConfirmed,selections:Object.entries(selected).map(([id,text])=>({id,text}))});if(token===generation.current){setPreview(null);setConfirmed(false);await load(token)}});
+ const review=(runId:string,key:string|null,decision:'accepted'|'rejected')=>task(async token=>{if(!reason.trim())throw new PreValidationError('Registre o fundamento da decisão.');await invoke({action:'review',run_id:runId,object_key:key,decision,reason:reason.trim()});if(token===generation.current){setReason('');await load(token);if(token===generation.current)onLinksUpdated?.()}});
+ return <section aria-label="Pré-análise de possíveis evidências" className="er-prevalidation-panel" style={{padding:20,border:'1px solid #94a3b8',borderRadius:12}}>
+  <header style={{display:'flex',justifyContent:'space-between',gap:12}}><div><h3>Pré-análise de possíveis evidências</h3><p>{String(file.file_name??file.title??'Registro')}</p></div><button onClick={onClose} aria-label="Fechar pré-análise">Fechar</button></header>
+  <p>A IA sugere correlações. O gestor vincula ou descarta cada sugestão. A validação no instrumento continua independente, sem garantia de conformidade ou nota.</p>
+  <p>Nesta etapa: documentos, repositórios, metas, medições, ações, diagnósticos e matrículas agregadas, com campos limitados. Os demais módulos aguardam adaptadores e testes próprios.</p>
+  {error&&<p role="alert">{error}</p>}
+  <button disabled={busy} onClick={prepare}>{busy?'Aguarde…':'Preparar leitura e revisar trechos'}</button>
+  {preview&&<div>
+   <h4>Prévia local: {preview.extraction_status==='ready'?'texto extraído':preview.extraction_status==='ready_with_gaps'?'texto extraído com páginas pendentes':'leitura pendente'}</h4>
+   {preview.limitations.map((s,i)=><p key={i}>{s}</p>)}
+   <p>Nenhum trecho desta prévia foi enviado ao provedor. PDFs sem texto verificável, digitalizações, formatos não suportados ou leitura incompleta continuam pendentes.</p>
+   <details><summary>Catálogos considerados</summary>{preview.coverage.catalogs.map(c=><p key={c.key}>{c.label} · {c.version} · {c.regulatoryStatus==='proposal'?'Proposta em construção, não vigente':'Catálogo atual no sistema'}</p>)}{preview.coverage.notes.map((s,i)=><p key={i}>{s}</p>)}</details>
+   {!!preview.page_coverage?.length&&<details><summary>Cobertura das páginas: {preview.page_coverage.filter(p=>p.status==='text').length} com texto de {preview.page_coverage.length} examinadas</summary>{preview.page_coverage.map(p=><p key={p.page}>Página {p.page}: {p.status==='text'?`${p.characters} caracteres de texto`:p.status==='confirmed_blank'?'vazia confirmada':'sem texto extraível, revisão visual ou OCR pendentes'}</p>)}</details>}
+   {preview.extraction_status==='ready_with_gaps'&&<label><input type="checkbox" checked={coverageConfirmed} disabled={busy} onChange={e=>setCoverageConfirmed(e.target.checked)}/> Entendo que esta análise é parcial: páginas {preview.page_coverage.filter(p=>p.status==='no_text_requires_review').map(p=>p.page).join(', ')} não terão conteúdo analisado. Elas permanecem pendentes; não estou confirmando que sejam vazias.</label>}
+   {preview.chunks.map(c=><fieldset key={c.id} disabled={busy}><label><input type="checkbox" checked={c.id in selected} onChange={e=>{setConfirmed(false);setSelected(prev=>{const next={...prev};if(e.target.checked)next[c.id]=c.text;else delete next[c.id];return next})}}/> Incluir trecho {c.id}{c.page?` · página ${c.page}`:''}</label>{c.sensitive_flags.length>0&&<p>Revisão necessária: possíveis dados pessoais, sensíveis ou segredos. Remova-os antes de enviar.</p>}<textarea aria-label={`Trecho ${c.id}`} rows={5} value={selected[c.id]??c.text} readOnly={!(c.id in selected)} onChange={e=>{setConfirmed(false);setSelected(prev=>({...prev,[c.id]:e.target.value}))}} style={{width:'100%'}}/><small>Selecione apenas recortes literais. É permitido retirar início/fim; não acrescentar conteúdo.</small></fieldset>)}
+   {!preview.enabled&&<p>Envio à IA desativado. Exige aprovação de publicação, provedor/modelo, dados permitidos e testes de homologação.</p>}
+   <label><input type="checkbox" checked={confirmed} disabled={busy||!preview.enabled} onChange={e=>setConfirmed(e.target.checked)}/> Revisei os trechos selecionados e autorizo enviá-los a {preview.provider??'provedor não configurado'} ({preview.model??'modelo não configurado'}) para sugerir possíveis evidências. Não contêm dados pessoais/sensíveis sem autorização nem segredos.</label>
+   <button disabled={busy||!preview.enabled||!confirmed||!Object.keys(selected).length||!['ready','ready_with_gaps'].includes(preview.extraction_status)||(preview.extraction_status==='ready_with_gaps'&&!coverageConfirmed)} onClick={analyze}>Analisar trechos selecionados</button>
+  </div>}
+  <h4>Histórico e decisões</h4>
+  {!runs.length&&<p>Nenhuma pré-análise desta versão do fluxo. Resultados legados não foram promovidos a evidência validada.</p>}
+  {runs.map(run=><article key={run.id} style={{borderTop:'1px solid #cbd5e1',paddingTop:12,marginTop:12}}>
+   <p>{new Date(run.created_at).toLocaleString('pt-BR')} · {run.provider}/{run.model} · {run.state}</p>
+   {run.source_version!==currentVersion&&<p>Versão anterior da fonte. Decisões preservadas para auditoria; nova análise necessária para vincular.</p>}
+   {run.error_code&&<p>{MESSAGES[run.error_code]??run.error_code}</p>}
+   {run.result&&<><p><strong>{run.result.correlation==='none'?'Sem correlação identificada':run.result.correlation==='insufficient'?'Informação insuficiente':'Possíveis correlações'}</strong>: {run.result.summary}</p>
+    {run.result.links.map(l=>{const d=run.decisions?.find(d=>d.object_key===l.objectKey);return <div key={l.objectKey} style={{padding:12,border:'1px solid #e2e8f0',marginBottom:8}}><h5>{l.title} ({l.objectCode})</h5><p>{l.instrumentCode} · {l.version} · {l.regulatoryStatus==='proposal'?'Proposta não vigente':'Atual'} · pertinência {l.compatibility}</p><p>{l.justification}</p>{l.quotes.map((q,i)=><p key={i}>Trecho {q.chunkId}{q.page?` (p. ${q.page})`:''}: {q.text}</p>)}{l.limitations.map((s,i)=><p key={i}>{s}</p>)}{d&&<p>Decisão registrada: {d.decision==='accepted'?'vínculo lógico aceito, validação no destino pendente':'sugestão descartada'}. {d.reason}</p>}<button disabled={busy||!reason.trim()||run.source_version!==currentVersion} onClick={()=>review(run.id,l.objectKey,'accepted')}>Vincular como potencial evidência</button><button disabled={busy||!reason.trim()||run.source_version!==currentVersion} onClick={()=>review(run.id,l.objectKey,'rejected')}>Descartar sugestão</button></div>})}
+    {run.result.gaps.map((s,i)=><p key={`gap${i}`}>Lacuna: {s}</p>)}{run.result.limitations.map((s,i)=><p key={`lim${i}`}>Limite: {s}</p>)}
+    {run.decisions?.filter(d=>d.object_key===null).slice(0,1).map((d,i)=><p key={i}>Resultado descartado pelo gestor: {d.reason}</p>)}
+    <button disabled={busy||!reason.trim()||run.source_version!==currentVersion} onClick={()=>review(run.id,null,'rejected')}>Descartar este resultado, mantendo auditoria</button>
+   </>}
+  </article>)}
+  <label>Fundamento da próxima decisão<textarea value={reason} onChange={e=>setReason(e.target.value)} maxLength={1000} rows={3} style={{width:'100%'}}/></label>
+ </section>;
 }

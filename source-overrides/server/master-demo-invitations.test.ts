@@ -6,14 +6,21 @@ const file=(name:string)=>readFileSync(new URL(name,root),"utf8");
 
 describe("Convites Demonstrativos dentro do portal Master",()=>{
   const master=file("client/src/pages/OwnerDashboard.tsx");
+  const hub=file("client/src/components/area/MasterHub.tsx");
   const existing=file("client/src/pages/ExperienceAdmin.tsx");
   const client=file("client/src/lib/experience-access.ts");
   const routing=file("client/src/App.tsx");
 
   it("inclui entrada acessível na navegação do Master com estado próprio",()=>{
     expect(master).toContain("demonstrativos:p.get('demonstrativos')==='1'");
-    expect(master).toContain('href="/master#demonstrativos=1"');
-    expect(master).toContain("<strong>Convites demonstrativos</strong>");
+    expect(master).toContain("route.hub&&master?<MasterHub");
+    expect(hub).toContain("Convites Demonstrativos</h3>");
+    expect(hub).toContain("onClick={() => setShowInvite(!showInvite)}");
+    expect(hub).toContain("{showInvite ? 'Fechar' : '+ Novo convite'}");
+    expect(hub).toContain("{showInvite && (");
+    for(const action of ["admin:list","admin:create","admin:revoke"]){
+      expect(hub).toContain("apiCall('"+action+"'");
+    }
     expect(master).toContain("master&&route.demonstrativos?<ExperienceAdmin embedded/>");
   });
   it("não abre o formulário aos demais perfis por meio de flag na URL",()=>{

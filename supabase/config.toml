@@ -4,3 +4,10 @@ verify_jwt = false
 # Visitor demo uses random capability tokens, consent gates and server quotas.
 [functions.vertice-demo]
 verify_jwt = false
+
+# v2 requires a user JWT and database aal2/scope authorization as well.
+[functions.vertice-doc-prevalidate]
+verify_jwt = true
+entrypoint = './functions/vertice-doc-prevalidate/index.bundle.mjs'
+[functions.vertice-doc-analyze]
+verify_jwt = true

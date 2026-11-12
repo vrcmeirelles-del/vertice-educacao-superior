@@ -143,7 +143,7 @@ export default function AcompanhamentoEspecial360({institutionId,role}:Props) {
               {categories.length>0 && (
                 <select value={formCase.category_id} onChange={e=>setFormCase({...formCase,category_id:e.target.value})}>
                   <option value="">Categoria (opcional)</option>
-                  {categories.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}
+                  {categories.map(c=><option key={c.id} value={c.id}>{c.label}</option>)}
                 </select>
               )}
               <textarea placeholder="Observações" value={formCase.notes} onChange={e=>setFormCase({...formCase,notes:e.target.value})} rows={2} />

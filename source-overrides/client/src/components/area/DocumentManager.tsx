@@ -18,6 +18,7 @@ interface DocCategory {
   renewal_months: number | null;
   required_for: string[] | null;
   required_note: string | null;
+  linked_module?: string | null;
 }
 
 interface Document {
@@ -111,7 +112,7 @@ const STATUS_LABELS: Record<string, string> = {
 const AI_STATUS_LABELS: Record<string, string> = {
   pending: '⏳ Aguardando análise',
   processing: '🔄 Analisando...',
-  completed: '✅ Analisado',
+  completed: 'Registro legado de análise',
   failed: '❌ Falhou',
   skipped: '⏭️ Ignorado',
 };
@@ -260,12 +261,8 @@ export default function DocumentManager({ institutionId, isMaster }: Props) {
 
       if (insertErr) throw insertErr;
 
-      // 5. Trigger AI analysis
-      if (doc) {
-        supabase.functions.invoke('vertice-doc-analyze', {
-          body: { document_id: doc.id },
-        }).catch(console.error); // fire and forget
-      }
+      // No fire-and-forget provider calls. New uploads enter the common preview.
+      if (doc) { setSelectedDoc(doc as Document); setShowPrevalidation(true); }
 
       // Reset form
       setUploadCategory('');
@@ -275,7 +272,7 @@ export default function DocumentManager({ institutionId, isMaster }: Props) {
       setUploadExpiry('');
       setUploadFile(null);
       if (fileRef.current) fileRef.current.value = '';
-      setView('list');
+      setView(doc ? 'detail' : 'list');
       loadData();
     } catch (err: any) {
       alert('Erro no upload: ' + err.message);
@@ -287,18 +284,9 @@ export default function DocumentManager({ institutionId, isMaster }: Props) {
   // ── Re-analyze ─────────────────────────────────────────
 
   const reanalyze = async (docId: string) => {
-    await supabase
-      .from('vertice_documents')
-      .update({ ai_status: 'pending' })
-      .eq('id', docId);
-    await supabase
-      .from('vertice_doc_findings')
-      .delete()
-      .eq('document_id', docId);
-    supabase.functions.invoke('vertice-doc-analyze', {
-      body: { document_id: docId },
-    }).catch(console.error);
-    loadData();
+    const doc = documents.find(d => d.id === docId);
+    if (doc) { setSelectedDoc(doc); setShowPrevalidation(true); setView('detail'); }
+    // Preserve all previous analyses/findings and human decisions.
   };
 
   // ── Search ─────────────────────────────────────────────

@@ -25,6 +25,7 @@ const TAB_LABELS: Record<Tab, string> = {
   emec: "e-MEC · Regulação",
   metas: "Metas e indicadores",
   repositorio: "Reconhecimento de Curso",
+  validacao: "Validação documental",
   biblioteca: "Biblioteca INEP",
   reitor: "Área da Direção · EBITDA",
   eorbit: "e-ORBIT",
