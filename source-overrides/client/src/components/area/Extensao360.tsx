@@ -53,9 +53,10 @@ function Badge({ status }: { status: string }) {
 function fmtDate(d: string | null) { return d ? new Date(d).toLocaleDateString('pt-BR') : '—'; }
 function fmtBRL(v: number | null) { return v == null ? '—' : 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2 }); }
 
-export default function Extensao360({ institutionId, role, courses }: {
+export default function Extensao360({ institutionId, role, courses, onBack }: {
   institutionId: string; role: string;
   courses?: { id: string; name: string }[];
+  onBack?: () => void;
 }) {
   const [view, setView] = useState<View>('projetos');
   const [projects, setProjects] = useState<ExtProject[]>([]);
@@ -172,6 +173,7 @@ export default function Extensao360({ institutionId, role, courses }: {
 
   return (
     <div className="ext-container">
+      {onBack && <button type="button" className="ext-back" onClick={onBack}>← Voltar aos módulos</button>}
       <div className="ext-header">
         <div>
           <h2>Extensão 360°</h2>
