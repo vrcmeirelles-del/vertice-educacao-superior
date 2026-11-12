@@ -10,7 +10,7 @@ import RegistryContacts from "./RegistryContacts";
 import InstitutionAddress from "./InstitutionAddress";
 import { courseClassification, useCourseFilters } from "./CourseFilters";
 import {displayCourseRows} from '@/lib/course-labels';
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { supabase } from "@/lib/supabase";
 import {
   ACTION_STATUS, COURSE_STATUS, DEGREE, DIMENSIONS, DIRECTION, FINDING_STATUS, FREQUENCY, GOAL_STATUS, MODALITY, PRIORITY, ROLE_LABEL, TABLES, UF,
@@ -65,6 +65,7 @@ import IntegrationSettings from "./IntegrationSettings";
 import ModulePreview from "./ModulePreview";
 import { getActiveTabs, isTabActive, getModuleCatalog, findModuleByTab, type CatalogModule } from "@/lib/modules";
 import ModuleOffer from "./ModuleOffer";
+const Extensao360 = lazy(() => import("./Extensao360"));
 import "./area.css";
 import "./module-offer.css";
 
@@ -154,6 +155,7 @@ const TABS: [Tab, string][] = [
   ["simulador", "Simulador de Custo"],
   ["raio-x-direito", "Raio-X Direito"],
   ["egressos", "Egressos 360°"],
+  ["extensao", "Extensão 360°"],
   ["governanca", "Governança 360°"],
   ["inclusao", "Inclusão 360° · PEI"],
   ["acompanhamento-especial", "Acompanhamento Especial 360°"],
@@ -438,6 +440,8 @@ export default function Workspace({
           : <p role="status">O Raio-X do Direito utiliza exclusivamente informações institucionais da UNITOP. Este conjunto de dados não é compartilhado com outras IES.</p>
       ) : tab === "egressos" ? (
         (() => { const m=findModuleByTab(moduleCatalog,'egressos'); return <ModulePreview locked={isLocked('egressos')} tasting={isTasting('egressos')} tastingEnds={m?.tasting_ends} moduleCode="GEST_EGRESSOS" moduleName="Egressos 360°" moduleDescription="Acompanhamento longitudinal de egressos, empregabilidade e trajetória profissional." institutionId={id} estimatedFee={m?.estimated_monthly_fee||1000} tier={m?.tier||'gestao'}><Egressos360 institutionId={id} courses={data.courses.map((c: Row) => ({ id: c.id as string, name: c.name as string, modality: c.modality as string }))} role={role as 'master' | 'gestor' | 'equipe'} /></ModulePreview>; })()
+      ) : tab === "extensao" ? (
+        (() => { const m=findModuleByTab(moduleCatalog,'extensao'); return <ModulePreview locked={isLocked('extensao')} tasting={isTasting('extensao')} tastingEnds={m?.tasting_ends} moduleCode="ACAD_EXTENSAO" moduleName="Extensão 360°" moduleDescription="Repositório de projetos de extensão — participantes, entregas, cobertura por curso e dossiê regulatório." institutionId={id} estimatedFee={m?.estimated_monthly_fee||800} tier={m?.tier||'regulacao'}><Suspense fallback={<p role="status">Carregando Extensão 360°…</p>}><Extensao360 institutionId={id} role={role||'master'} courses={data.courses.map((c: Row) => ({ id: c.id as string, name: c.name as string }))} /></Suspense></ModulePreview>; })()
       ) : tab === "governanca" ? (
         (() => { const m=findModuleByTab(moduleCatalog,'governanca'); return <ModulePreview locked={isLocked('governanca')} tasting={isTasting('governanca')} tastingEnds={m?.tasting_ends} moduleCode="GEST_GOVERNANCA" moduleName="Governança 360°" moduleDescription="Órgãos colegiados, deliberações, atas e fluxos regulatórios." institutionId={id} estimatedFee={m?.estimated_monthly_fee||1000} tier={m?.tier||'gestao'}><Governanca360 institutionId={id} role={role||'master'} /></ModulePreview>; })()
       ) : tab === "inclusao" ? (
