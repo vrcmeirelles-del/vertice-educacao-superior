@@ -66,6 +66,8 @@ import IntegrationSettings from "./IntegrationSettings";
 import ModulePreview from "./ModulePreview";
 import { getActiveTabs, isTabActive, getModuleCatalog, findModuleByTab, type CatalogModule } from "@/lib/modules";
 import ModuleOffer from "./ModuleOffer";
+import InstitutionTabs, { MACRO_TABS, macroTabFor, type MacroTab } from "./InstitutionTabs";
+import InstitutionSubTabs from "./InstitutionSubTabs";
 import "./area.css";
 import "./module-offer.css";
 
@@ -215,12 +217,44 @@ export default function Workspace({
   const [activeTabs,setActiveTabs]=useState<Set<string>>(new Set());
   const [moduleCatalog,setModuleCatalog]=useState<CatalogModule[]>([]);
   const [offerModule,setOfferModule]=useState<CatalogModule|null>(null);
+  const [macroTab,setMacroTab]=useState<MacroTab>(()=>macroTabFor(tab));
   useEffect(()=>{
     getActiveTabs(id).then(setActiveTabs);
     getModuleCatalog(id).then(setModuleCatalog);
   },[id]);
   const reloadModules=()=>{getActiveTabs(id).then(setActiveTabs);getModuleCatalog(id).then(setModuleCatalog);};
   const toggleFavorite=(key:Tab)=>setFavoriteTabs(items=>items.includes(key)?items.filter(item=>item!==key):[...items,key]);
+
+  // Keep macro tab in sync when workspace tab changes
+  useEffect(() => { setMacroTab(macroTabFor(tab)); }, [tab]);
+
+  // Handle macro tab selection: switch to its first visible workspace tab
+  const handleMacroSelect = (macro: MacroTab) => {
+    setMacroTab(macro);
+    const def = MACRO_TABS.find(m => m.key === macro);
+    if (!def) return;
+    // If current tab is already in this macro, keep it
+    if (def.tabs.includes(tab)) return;
+    // Otherwise select the first visible tab in this macro
+    const firstVisible = def.tabs.find(t => visible.some(([k]) => k === t));
+    if (firstVisible) choose(firstVisible);
+  };
+
+  // Build sub-tab entries for the current macro tab
+  const currentMacroDef = MACRO_TABS.find(m => m.key === macroTab);
+  const subTabEntries = (currentMacroDef?.tabs ?? [])
+    .filter(t => visible.some(([k]) => k === t))
+    .map(t => {
+      const entry = TABS.find(([k]) => k === t);
+      const details = TAB_DETAILS[t];
+      return {
+        key: t,
+        label: entry?.[1] ?? t,
+        icon: details?.icon,
+        locked: isLocked(t),
+        tasting: isTasting(t),
+      };
+    });
 
 
   const reload = useCallback(async () => {
@@ -300,13 +334,6 @@ export default function Workspace({
         </div>
         <a className="area-guide-link" href="/guia.html" target="_blank" rel="noopener">Guia e glossário ↗</a>
         {can.manageGoals(role)&&<button type="button" className="corp-button small" onClick={()=>{window.location.hash="governanca=1&instituicao="+encodeURIComponent(String(id));window.dispatchEvent(new HashChangeEvent("hashchange"));}}>Governança 360 · Auditar integrações ↗</button>}
-        <div className="area-kpis">
-          <span className="kpi-neutral"><b>{data.courses.length}</b> cursos</span>
-          <span className={activeGoals > 0 ? "kpi-info" : "kpi-neutral"}><b>{activeGoals}</b> metas em curso</span>
-          <span className={documents.total > 0 && documents.validated === documents.total ? "kpi-success" : documents.total > 0 ? "kpi-warn" : "kpi-neutral"}><b>{documents.validated}/{documents.total}</b> documentos validados</span>
-          <span className={late > 0 ? "kpi-danger" : "kpi-success"}><b>{late}</b> ações atrasadas</span>
-          <span className={openFindings > 0 ? "kpi-warn" : "kpi-success"}><b>{openFindings}</b> achados abertos</span>
-        </div>
       </div>
       {id==="4224e2fc-6a96-4761-820f-6f8e809ca1c1" && (
         <div className="area-panel" style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:16,flexWrap:"wrap",borderLeft:"5px solid #298d87",background:"linear-gradient(100deg,#eaf7f4,#f7fbfd)"}}>
@@ -319,7 +346,22 @@ export default function Workspace({
       )}
       {data.courses.some(c=>c.registration_note)&&<p className="area-note">Há cadastros com o mesmo nome e código, mas com históricos próprios. Eles aparecem como Base 1 e Base 2, com suas quantidades de exigências e metas, para você escolher o acervo correto. Nenhum documento ou vínculo foi descartado.</p>}
       {can.manageGoals(role)&&Boolean(institution.cnpj)&&<CnpjConnections institutionId={id}/>}
-      {(role==="master"||role==="gestor")&&
+      <InstitutionTabs
+        activeTab={tab}
+        activeMacro={macroTab}
+        onSelectMacro={handleMacroSelect}
+        institutionName={String(institution.name)}
+        kpis={
+          <div className="area-kpis">
+            <span className="kpi-neutral"><b>{data.courses.length}</b> cursos</span>
+            <span className={activeGoals > 0 ? "kpi-info" : "kpi-neutral"}><b>{activeGoals}</b> metas em curso</span>
+            <span className={documents.total > 0 && documents.validated === documents.total ? "kpi-success" : documents.total > 0 ? "kpi-warn" : "kpi-neutral"}><b>{documents.validated}/{documents.total}</b> documentos validados</span>
+            <span className={late > 0 ? "kpi-danger" : "kpi-success"}><b>{late}</b> ações atrasadas</span>
+            <span className={openFindings > 0 ? "kpi-warn" : "kpi-success"}><b>{openFindings}</b> achados abertos</span>
+          </div>
+        }
+      >
+      {(role==="master"||role==="gestor")&&macroTab==='visao-geral'&&
        <div className="area-panel" style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:14,flexWrap:"wrap"}}>
         <div><strong>Agente de IA · Cruzamento de dados</strong><p className="area-muted" style={{margin:"4px 0 0"}}>Consulte divergências de matrículas, metas, documentos e vínculos autorizados por CNPJ.</p></div>
         <button type="button" className="corp-button" onClick={()=>{
@@ -329,65 +371,7 @@ export default function Workspace({
           window.dispatchEvent(new Event("vertice-open-assistant"));
         }}>Abrir agente de IA</button>
        </div>}
-      <section className="vx-modules" aria-label="Central de Gestão Institucional">
-        <header className="vx-modules-head">
-          <div>
-            <p className="vx-modules-eyebrow">VÉRTICE · MÓDULOS INSTITUCIONAIS</p>
-            <h3>Central de Gestão Institucional</h3>
-            <p>Escolha um módulo para consultar dados, documentos e ferramentas disponíveis à sua instituição.</p>
-          </div>
-          <div className="vx-modules-tools">
-            <label className="vx-modules-search">
-              <span>Buscar módulo</span>
-              <input type="search" value={moduleSearch} onChange={e=>setModuleSearch(e.target.value)} placeholder="Ex.: matrículas, recredenciamento..." aria-label="Buscar módulo" />
-            </label>
-            <button type="button" className={onlyFavorites?"vx-modules-fav-filter selected":"vx-modules-fav-filter"} aria-pressed={onlyFavorites} onClick={()=>setOnlyFavorites(value=>!value)}>
-              {onlyFavorites?"★ Exibindo favoritos":"☆ Favoritos"}
-            </button>
-            {(moduleSearch||onlyFavorites)&&<button type="button" className="vx-modules-clear" onClick={()=>{setModuleSearch("");setOnlyFavorites(false);}}>Limpar</button>}
-          </div>
-        </header>
-        <div className="vx-modules-grid" role="tablist" aria-label="Áreas da instituição">
-          {visibleGroups.map(group => {
-            const q=moduleSearch.trim().toLocaleLowerCase("pt-BR");
-            const groupTabs = visible.filter(([k,l])=>group.tabs.includes(k)&&(!onlyFavorites||favoriteTabs.includes(k))&&(!q||[l,group.label,TAB_DETAILS[k]?.description??""].join(" ").toLocaleLowerCase("pt-BR").includes(q)));
-            if(!groupTabs.length)return null;
-            return <div className="vx-module-group" key={group.label}>
-              <div className="vx-module-group-head">
-                <span className="vx-module-group-icon" aria-hidden="true">{group.icon}</span>
-                <div><h4>{group.label}</h4><p>{group.subtitle}</p></div>
-                <span className="vx-module-counter">{groupTabs.length}</span>
-              </div>
-              <div className="vx-module-links">
-                {groupTabs.map(([k,l])=>{
-                  const active=tab===k,starred=favoriteTabs.includes(k),details=TAB_DETAILS[k];
-                  const locked=isLocked(k), tasting=isTasting(k);
-                  const handleClick=()=>{
-                    if(locked){
-                      const mod=findModuleByTab(moduleCatalog,k);
-                      if(mod) setOfferModule(mod);
-                      return;
-                    }
-                    choose(k);
-                  };
-                  return <div className={active?"vx-module-entry selected":locked?"vx-module-entry locked":"vx-module-entry"} key={k}>
-                    <button type="button" role="tab" aria-selected={active} className="vx-module-link" onClick={handleClick}>
-                      <span className="vx-module-entry-icon" aria-hidden="true">{locked?"🔒":details?.icon??"◈"}</span>
-                      <span className="vx-module-entry-copy"><strong>{l}</strong><small>{details?.description??"Abrir módulo institucional"}</small></span>
-                      {locked && <span className="tab-locked-badge">Ativar</span>}
-                      {tasting && <span className="tab-tasting-badge">Degustação</span>}
-                      <span className="vx-module-arrow" aria-hidden="true">›</span>
-                    </button>
-                    <button type="button" className="vx-module-star" aria-label={(starred?"Remover ":"Adicionar ")+l+(starred?" dos favoritos":" aos favoritos")} aria-pressed={starred} title={starred?"Remover dos favoritos":"Adicionar aos favoritos"} onClick={()=>toggleFavorite(k)}>{starred?"★":"☆"}</button>
-                  </div>;
-                })}
-              </div>
-            </div>;
-          })}
-        </div>
-        {!visibleGroups.some(group=>visible.some(([k,l])=>group.tabs.includes(k)&&(!onlyFavorites||favoriteTabs.includes(k))&&(!moduleSearch.trim()||[l,group.label,TAB_DETAILS[k]?.description??""].join(" ").toLocaleLowerCase("pt-BR").includes(moduleSearch.trim().toLocaleLowerCase("pt-BR")))))&&
-          <div className="vx-modules-empty"><strong>Nenhum módulo encontrado.</strong><p>Revise a pesquisa ou desative o filtro de favoritos. Os módulos exibidos respeitam seu perfil de acesso.</p></div>}
-      </section>
+      {currentMacroDef && <InstitutionSubTabs macro={currentMacroDef} entries={subTabEntries} activeTab={tab} onSelect={(t) => { if (isLocked(t)) { const mod=findModuleByTab(moduleCatalog,t); if(mod) setOfferModule(mod); return; } choose(t); }} />}
       {tab === 'base' && <InstitutionAddress institutionId={id} manage={role==='master'}/>}
       {error && <p role="alert" className="area-error">{error}</p>}
       {TAB_HELP[tab] && tab!=="repositorio" && <TabHelp id={tab} />}
@@ -495,6 +479,7 @@ export default function Workspace({
         <><RegistryContacts institutionId={id} courses={data.courses} manage={can.manageTeam(role)}/><TeamTab institutionId={id} role={role} /></>
       )}
       {TAB_FAQ[tab] && <TabFaq id={tab} />}
+      </InstitutionTabs>
       {offerModule && (
         <ModuleOffer
           module={{
