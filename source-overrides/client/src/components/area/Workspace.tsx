@@ -1,3 +1,4 @@
+import InstitutionTabs, { MACRO_TABS, macroTabFor, macroDestination, type MacroTab } from "./InstitutionTabs";
 import {actionDraftKey,parseActionDraft,storeActionDraft,validateActionLinks,changeActionScope} from "@/lib/portal-integration";
 import ActionCockpit from "./ActionCockpit";
 import ActionKanban from "./ActionKanban";
@@ -203,7 +204,8 @@ export default function Workspace({
     const t = new URLSearchParams(window.location.hash.slice(1)).get("aba") as Tab | null;
     return t && TABS.some(([k]) => k === t) ? t : role === 'master' || role === 'gestor' ? 'base' : 'geral';
   });
-  useEffect(()=>{const sync=()=>{const t=new URLSearchParams(window.location.hash.slice(1)).get("aba") as Tab;if(TABS.some(([key])=>key===t))setTab(t);};window.addEventListener("hashchange",sync);window.addEventListener("popstate",sync);return()=>{window.removeEventListener("hashchange",sync);window.removeEventListener("popstate",sync);};},[]);
+
+  const [macroOverride, setMacroOverride] = useState<MacroTab | null>(null);
   const [data, setData] = useState<Data>(EMPTY);
   const [repositoryGoal,setRepositoryGoal]=useState("");
   const [instrumentUpload,setInstrumentUpload]=useState<{courseId:string;title:string;reference:string}|null>(null);
@@ -249,18 +251,54 @@ export default function Workspace({
     return()=>{window.clearInterval(timer);window.removeEventListener("focus",focus);};
   }, [reload]);
 
+  const edited = useRef(false);
+  useEffect(() => {
+    const sync = () => {
+      const params = new URLSearchParams(window.location.hash.slice(1));
+      if (params.get("instituicao") !== String(id)) return;
+      const next = (params.get("aba") || (role === "master" || role === "gestor" ? "base" : "geral")) as Tab;
+      if (next === tab || !TABS.some(([key]) => key === next)) return;
+      if (edited.current && !window.confirm("Confira se salvou suas alterações antes de sair. Deseja continuar?")) {
+        params.set("aba", tab);
+        window.history.replaceState(null, "", "#" + params.toString());
+        return;
+      }
+      edited.current = false;
+      setMacroOverride(null);
+      setTab(next);
+    };
+    const beforeUnload = (event: BeforeUnloadEvent) => {
+      if (edited.current) { event.preventDefault(); event.returnValue = ""; }
+    };
+    window.addEventListener("hashchange", sync);
+    window.addEventListener("popstate", sync);
+    window.addEventListener("beforeunload", beforeUnload);
+    return () => {
+      window.removeEventListener("hashchange", sync);
+      window.removeEventListener("popstate", sync);
+      window.removeEventListener("beforeunload", beforeUnload);
+    };
+  }, [id, role, tab]);
+  const confirmNavigation = () => !edited.current || window.confirm("Você editou campos nesta área. Confira se salvou suas alterações antes de sair. Deseja continuar?");
   const choose = (t: Tab) => {
+    if (t === tab) { setMacroOverride(null); return true; }
+    if (!confirmNavigation()) return false;
+    setMacroOverride(null);
+    edited.current = false;
     if (t !== "repositorio") setInstrumentUpload(null);
     setTab(t);
     const p = new URLSearchParams(window.location.hash.slice(1));
     p.set("aba", t);
-    window.history.replaceState(null, "", `#${p.toString()}`);
+    p.set("instituicao", String(id));
+    window.history.pushState(null, "", `#${p.toString()}`);
+    return true;
   };
 
   const openInstrumentUpload = (courseId: string, title: string, reference: string) => {
-    setRepositoryGoal("");
-    setInstrumentUpload({courseId,title,reference});
-    choose("repositorio");
+    if (choose("repositorio")) {
+      setRepositoryGoal("");
+      setInstrumentUpload({courseId,title,reference});
+    }
   };
 
   const recognitionRequests=data.requests.filter(r=>!["recredenciamento_2017","novo_instrumento_2026_institucional","novo_instrumento_2026_curso"].includes(String(r.repository_section??"")));
@@ -273,6 +311,17 @@ export default function Workspace({
   const allowedTabs = visibleTabs(role);
   // Mostrar TODAS as tabs permitidas pelo role, incluindo bloqueadas (com badge)
   const visible = TABS.filter(([k]) => allowedTabs.includes(k));
+  const activeMacro = macroOverride ?? macroTabFor(tab);
+  const selectMacro = (macro: MacroTab) => {
+    const target = macroDestination(macro, visible.map(([key]) => key), isLocked);
+    if (target) {
+      if (choose(target)) { setModuleSearch(""); setOnlyFavorites(false); }
+    } else if (confirmNavigation()) {
+      // Keep the original form mounted while presenting the existing activation controls.
+      setMacroOverride(macro);
+      setModuleSearch(""); setOnlyFavorites(false);
+    }
+  };
   const isLocked = (tabKey: string) => activeTabs.size > 0 && !activeTabs.has(tabKey);
   const isTasting = (tabKey: string) => {
     const mod = findModuleByTab(moduleCatalog, tabKey);
@@ -283,7 +332,7 @@ export default function Workspace({
     <section aria-labelledby="ws-title" className="area-ws">
       {role && tab !== "cadastro" && <RegistryContacts institutionId={id} courses={[]} manage={false} firstVisit/>}
       <p>
-        <button className="corp-login-text-button" onClick={onBack}>
+        <button className="corp-login-text-button" onClick={() => { if (confirmNavigation()) { edited.current = false; onBack(); } }}>
           ← Todas as instituições
         </button>
       </p>
@@ -308,6 +357,8 @@ export default function Workspace({
           <span className={openFindings > 0 ? "kpi-warn" : "kpi-success"}><b>{openFindings}</b> achados abertos</span>
         </div>
       </div>
+      <InstitutionTabs enabled={role === "master"} activeTab={tab} activeMacro={activeMacro} onSelectMacro={selectMacro} institutionName={String(institution.name)} availableMacros={MACRO_TABS.filter(m => m.tabs.some(key => visible.some(([k]) => k === key))).map(m => m.key)}>
+      <div onChangeCapture={e => { if ((e.target as HTMLElement).closest("input:not([type=search]), textarea, select")) edited.current = true; }}>
       {id==="4224e2fc-6a96-4761-820f-6f8e809ca1c1" && (
         <div className="area-panel" style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:16,flexWrap:"wrap",borderLeft:"5px solid #298d87",background:"linear-gradient(100deg,#eaf7f4,#f7fbfd)"}}>
           <div>
@@ -347,10 +398,10 @@ export default function Workspace({
             {(moduleSearch||onlyFavorites)&&<button type="button" className="vx-modules-clear" onClick={()=>{setModuleSearch("");setOnlyFavorites(false);}}>Limpar</button>}
           </div>
         </header>
-        <div className="vx-modules-grid" role="tablist" aria-label="Áreas da instituição">
+        <div className="vx-modules-grid" aria-label="Áreas da instituição">
           {visibleGroups.map(group => {
             const q=moduleSearch.trim().toLocaleLowerCase("pt-BR");
-            const groupTabs = visible.filter(([k,l])=>group.tabs.includes(k)&&(!onlyFavorites||favoriteTabs.includes(k))&&(!q||[l,group.label,TAB_DETAILS[k]?.description??""].join(" ").toLocaleLowerCase("pt-BR").includes(q)));
+            const groupTabs = visible.filter(([k,l])=>(role !== "master" || macroTabFor(k) === activeMacro)&&group.tabs.includes(k)&&(!onlyFavorites||favoriteTabs.includes(k))&&(!q||[l,group.label,TAB_DETAILS[k]?.description??""].join(" ").toLocaleLowerCase("pt-BR").includes(q)));
             if(!groupTabs.length)return null;
             return <div className="vx-module-group" key={group.label}>
               <div className="vx-module-group-head">
@@ -371,7 +422,7 @@ export default function Workspace({
                     choose(k);
                   };
                   return <div className={active?"vx-module-entry selected":locked?"vx-module-entry locked":"vx-module-entry"} key={k}>
-                    <button type="button" role="tab" aria-selected={active} className="vx-module-link" onClick={handleClick}>
+                    <button type="button" aria-current={active ? "page" : undefined} className="vx-module-link" onClick={handleClick}>
                       <span className="vx-module-entry-icon" aria-hidden="true">{locked?"🔒":details?.icon??"◈"}</span>
                       <span className="vx-module-entry-copy"><strong>{l}</strong><small>{details?.description??"Abrir módulo institucional"}</small></span>
                       {locked && <span className="tab-locked-badge">Ativar</span>}
@@ -385,9 +436,12 @@ export default function Workspace({
             </div>;
           })}
         </div>
-        {!visibleGroups.some(group=>visible.some(([k,l])=>group.tabs.includes(k)&&(!onlyFavorites||favoriteTabs.includes(k))&&(!moduleSearch.trim()||[l,group.label,TAB_DETAILS[k]?.description??""].join(" ").toLocaleLowerCase("pt-BR").includes(moduleSearch.trim().toLocaleLowerCase("pt-BR")))))&&
+        {!visibleGroups.some(group=>visible.some(([k,l])=>(role !== "master" || macroTabFor(k) === activeMacro)&&group.tabs.includes(k)&&(!onlyFavorites||favoriteTabs.includes(k))&&(!moduleSearch.trim()||[l,group.label,TAB_DETAILS[k]?.description??""].join(" ").toLocaleLowerCase("pt-BR").includes(moduleSearch.trim().toLocaleLowerCase("pt-BR")))))&&
           <div className="vx-modules-empty"><strong>Nenhum módulo encontrado.</strong><p>Revise a pesquisa ou desative o filtro de favoritos. Os módulos exibidos respeitam seu perfil de acesso.</p></div>}
       </section>
+      {role === "master" && activeMacro === "historico" && <p className="area-note">Os registros disponíveis permanecem nos módulos abaixo. Esta área não constitui um histórico consolidado de auditoria.</p>}
+      {macroOverride && <p role="status" className="area-note">Os módulos desta área precisam ser ativados. Selecione um módulo para consultar as condições existentes.</p>}
+      <div hidden={Boolean(macroOverride)}>
       {tab === 'base' && <InstitutionAddress institutionId={id} manage={role==='master'}/>}
       {error && <p role="alert" className="area-error">{error}</p>}
       {TAB_HELP[tab] && tab!=="repositorio" && <TabHelp id={tab} />}
@@ -495,6 +549,9 @@ export default function Workspace({
         <><RegistryContacts institutionId={id} courses={data.courses} manage={can.manageTeam(role)}/><TeamTab institutionId={id} role={role} /></>
       )}
       {TAB_FAQ[tab] && <TabFaq id={tab} />}
+      </div>
+      </div>
+      </InstitutionTabs>
       {offerModule && (
         <ModuleOffer
           module={{

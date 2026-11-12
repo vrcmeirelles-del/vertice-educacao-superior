@@ -4,7 +4,7 @@
  * Substitui o grid de módulos do Workspace mantendo toda a funcionalidade existente.
  * As tabs internas de cada aba macro continuam controladas pelo Workspace via `choose()`.
  */
-import { useState, useEffect, type ReactNode } from "react";
+import { useState, useEffect, useRef, type ReactNode } from "react";
 import type { Tab } from "@/lib/area";
 import "./institution-tabs.css";
 
@@ -64,9 +64,9 @@ export const MACRO_TABS: MacroTabDef[] = [
   },
   {
     key: 'historico',
-    label: 'Regulação e Evidências',
+    label: 'Histórico e Auditoria',
     icon: '◇',
-    description: 'Instrumentos, repositório e biblioteca',
+    description: 'Registros, regulação e evidências',
     tabs: ['repositorio', 'validacao', 'biblioteca', 'avaliacao', 'novo_instrumento', 'enade', 'documentos', 'ia', 'reitor'],
   },
 ];
@@ -79,7 +79,14 @@ export function macroTabFor(wsTab: Tab): MacroTab {
   return 'visao-geral';
 }
 
+/** Pick only a permitted, active destination; a blocked group stays in the activation picker. */
+export function macroDestination(macro: MacroTab, visible: Tab[], locked: (tab: Tab) => boolean): Tab | undefined {
+  return MACRO_TABS.find(m => m.key === macro)?.tabs.find(tab => visible.includes(tab) && !locked(tab));
+}
+
 interface Props {
+  enabled?: boolean;
+  availableMacros?: MacroTab[];
   activeTab: Tab;
   onSelectMacro: (macro: MacroTab) => void;
   activeMacro: MacroTab;
@@ -88,17 +95,23 @@ interface Props {
   kpis?: ReactNode;
 }
 
-export default function InstitutionTabs({ activeTab, onSelectMacro, activeMacro, children, institutionName, kpis }: Props) {
+export default function InstitutionTabs({ activeTab, onSelectMacro, activeMacro, children, institutionName, kpis, enabled = true, availableMacros }: Props) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const toggleRef = useRef<HTMLButtonElement>(null);
 
   // Close mobile nav when macro changes
-  useEffect(() => { setMobileOpen(false); }, [activeMacro]);
+  useEffect(() => {
+    if (mobileOpen) { setMobileOpen(false); toggleRef.current?.focus(); }
+  }, [activeMacro]);
+
+  if (!enabled) return <>{children}</>;
 
   return (
     <div className="inst-tabs-layout">
       {/* Mobile: tab bar at top */}
       <div className="inst-tabs-mobile-bar">
         <button
+          ref={toggleRef}
           type="button"
           className="inst-tabs-mobile-toggle"
           aria-expanded={mobileOpen}
@@ -112,10 +125,10 @@ export default function InstitutionTabs({ activeTab, onSelectMacro, activeMacro,
       </div>
 
       {/* Content area */}
-      <main className="inst-tabs-content" role="main">
+      <div className="inst-tabs-content">
         {kpis}
         {children}
-      </main>
+      </div>
 
       {/* Right sidebar nav */}
       <nav
@@ -131,13 +144,12 @@ export default function InstitutionTabs({ activeTab, onSelectMacro, activeMacro,
             <small className="inst-tabs-nav-sub">Painel institucional</small>
           </div>
         </div>
-        <ul className="inst-tabs-nav-list" role="tablist" aria-orientation="vertical">
-          {MACRO_TABS.map(mt => (
-            <li key={mt.key} role="presentation">
+        <ul className="inst-tabs-nav-list">
+          {MACRO_TABS.filter(mt => !availableMacros || availableMacros.includes(mt.key)).map(mt => (
+            <li key={mt.key}>
               <button
                 type="button"
-                role="tab"
-                aria-selected={activeMacro === mt.key}
+                aria-current={activeMacro === mt.key ? "page" : undefined}
                 className={`inst-tabs-nav-item${activeMacro === mt.key ? ' inst-tabs-nav-item--active' : ''}`}
                 onClick={() => onSelectMacro(mt.key)}
               >

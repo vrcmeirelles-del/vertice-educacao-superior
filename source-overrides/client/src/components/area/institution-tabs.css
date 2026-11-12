@@ -54,7 +54,7 @@
 .inst-tabs-nav-sub {
   display: block;
   font-size: 11px;
-  color: #7b8194;
+  color: #596176;
 }
 
 /* Nav list */
@@ -117,7 +117,7 @@
 .inst-tabs-nav-item-text small {
   display: block;
   font-size: 11px;
-  color: #8890a6;
+  color: #596176;
   font-weight: 400;
   white-space: nowrap;
   overflow: hidden;
@@ -130,7 +130,7 @@
   border-top: 1px solid #e2e5ef;
   margin-top: 8px;
   font-size: 10px;
-  color: #a1a7ba;
+  color: #596176;
   text-align: center;
   letter-spacing: 0.3px;
 }
@@ -157,7 +157,7 @@
 .inst-tabs-chevron {
   margin-left: auto;
   font-size: 10px;
-  color: #7b8194;
+  color: #596176;
 }
 
 /* ---- Responsive: tablet ---- */
