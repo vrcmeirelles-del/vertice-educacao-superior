@@ -1,5 +1,12 @@
 -- Local proposal only. Requires the deployed v2 students table (not legacy participants).
 -- No backfill, deletion, guessed course, or replacement of legacy views.
+-- Provisional write boundary: both guards require READ COMMITTED. Reads are
+-- unchanged. RR/Serializable clients receive 0A000 until reviewed support exists.
+-- READ UNCOMMITTED is also rejected by this strict contract despite PostgreSQL's
+-- effective RC semantics. Project updates unrelated to its guarded columns are
+-- unchanged. Inventory external consumers before applying; no implicit switch.
+-- Operational rollback preserves these triggers and does NOT restore non-RC
+-- writes; relaxing this boundary requires a separately reviewed change.
 BEGIN;
 -- NOT VALID preserves legacy inconsistencies, but enforces new writes and prevents
 -- later parent tenant changes from silently breaking valid links.
@@ -18,6 +25,13 @@ END $$;
 CREATE OR REPLACE FUNCTION public.vertice_extension_validate_student()
 RETURNS trigger LANGUAGE plpgsql SET search_path = public, pg_temp AS $$
 BEGIN
+  -- The current membership contract is proven at READ COMMITTED only.
+  -- Do not silently change caller isolation: stale snapshots at RR can miss
+  -- a participant committed while a project update waits for its row lock.
+  IF current_setting('transaction_isolation') <> 'read committed' THEN
+    RAISE EXCEPTION 'Extension writes require READ COMMITTED; rollback and start a new READ COMMITTED transaction'
+      USING ERRCODE='0A000';
+  END IF;
   -- Serialize with edits to course_ids while admitting a new student link.
   PERFORM 1 FROM public.vertice_extension_projects p
     WHERE p.id = NEW.project_id AND p.institution_id = NEW.institution_id FOR SHARE;
@@ -38,6 +52,13 @@ FOR EACH ROW EXECUTE FUNCTION public.vertice_extension_validate_student();
 CREATE OR REPLACE FUNCTION public.vertice_extension_validate_project()
 RETURNS trigger LANGUAGE plpgsql SET search_path = public, pg_temp AS $$
 BEGIN
+  -- The current membership contract is proven at READ COMMITTED only.
+  -- Do not silently change caller isolation: stale snapshots at RR can miss
+  -- a participant committed while a project update waits for its row lock.
+  IF current_setting('transaction_isolation') <> 'read committed' THEN
+    RAISE EXCEPTION 'Extension writes require READ COMMITTED; rollback and start a new READ COMMITTED transaction'
+      USING ERRCODE='0A000';
+  END IF;
   IF EXISTS (SELECT 1 FROM unnest(NEW.course_ids) cid WHERE NOT EXISTS (
     SELECT 1 FROM public.vertice_courses c WHERE c.id=cid AND c.institution_id=NEW.institution_id
   )) THEN RAISE EXCEPTION 'Cursos do projeto devem pertencer à instituição' USING ERRCODE='23514'; END IF;

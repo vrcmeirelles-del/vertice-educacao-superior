@@ -63,6 +63,28 @@ SET ROLE authenticated;`);
 assert.equal((await db.query(`SELECT count(*) n FROM v_extension_coverage_v2 WHERE institution_id='${id(2)}'`)).rows[0].n,0);
 assert.equal((await db.query(`SELECT count(*) n FROM v_extension_student_quality WHERE semester='SECRET'`)).rows[0].n,0);
 await db.exec('RESET ROLE');
+// This is a write-only isolation boundary; higher-isolation reads remain valid.
+const isolationCounts=async()=>({
+ projects:(await db.query('SELECT count(*) n FROM vertice_extension_projects')).rows[0].n,
+ students:(await db.query('SELECT count(*) n FROM vertice_extension_students')).rows[0].n,
+});
+const beforeIsolation=await isolationCounts();
+for (const isolation of ['REPEATABLE READ','SERIALIZABLE','READ UNCOMMITTED']) {
+  for(const write of [
+    `UPDATE vertice_extension_projects SET course_ids=course_ids WHERE id='${id(21)}'`,
+    `INSERT INTO vertice_extension_projects VALUES('${id(603)}','${id(1)}','2099/3','planejamento',ARRAY['${id(11)}']::uuid[])`,
+    `INSERT INTO vertice_extension_students VALUES('${id(601)}','${id(1)}','${id(21)}','${id(11)}','ativo',1)`,
+    `UPDATE vertice_extension_students SET hours_completed=hours_completed+1 WHERE id='${id(41)}'`,
+  ]){
+    await db.exec(`BEGIN ISOLATION LEVEL ${isolation}`);
+    assert((await db.query('SELECT count(*) n FROM v_extension_coverage_v2')).rows[0].n>0);
+    await assert.rejects(db.exec(write),e=>e.code==='0A000');
+    await db.exec('ROLLBACK');
+    assert.deepEqual(await isolationCounts(),beforeIsolation);
+    assert.equal((await db.query(`SELECT hours_completed FROM vertice_extension_students WHERE id='${id(41)}'`)).rows[0].hours_completed,1);
+  }
+}
+console.log('PASS write-only isolation boundary: non-RC reads remain available; both guards reject INSERT/UPDATE with 0A000 and rollback');
 if(pgClient){
  const {default:pg}=await import(pathToFileURL(process.env.PG_MODULE));pg.types.setTypeParser(20,Number);
  const second=new pg.Client({host:process.env.PG_TEST_SOCKET,port:Number(process.env.PG_TEST_PORT||5432),database:process.env.PG_TEST_DB,user:process.env.PG_TEST_USER});await second.connect();
@@ -125,8 +147,8 @@ if(pgClient){
   console.log('RR concurrency observation: '+JSON.stringify({blocked:rrBlocked,rowCount:rrResult.rowCount,errorCode:rrResult.error?.code}));
   // Explicitly unsupported isolation, serialization failure or invariant rejection
   // are safe. A successful UPDATE using an old snapshot is NOT a pass.
-  assert(['0A000','40001','23514'].includes(rrResult.error?.code),
-    'REPEATABLE READ must reject the course removal; successful stale-snapshot UPDATE breaks participant membership');
+  assert.equal(rrResult.error?.code,'0A000',
+    'REPEATABLE READ must be explicitly rejected by the provisional write-isolation boundary');
   await second.query('ROLLBACK');
   assert.deepEqual((await db.query(`SELECT course_ids FROM vertice_extension_projects WHERE id='${id(503)}'`)).rows[0].course_ids,[id(11)]);
   assert.equal((await db.query(`SELECT count(*) n FROM vertice_extension_students WHERE id='${id(504)}' AND course_id='${id(11)}'`)).rows[0].n,1);
