@@ -83,10 +83,11 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
   const [formType, setFormType] = useState<'project' | 'team' | 'student' | 'deliverable' | 'axis' | 'review'>('project');
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('todos');
+  const [staffList, setStaffList] = useState<{full_name:string;email:string|null;source:string}[]>([]);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [p, t, s, del, ax, rev, cov] = await Promise.all([
+    const [p, t, s, del, ax, rev, cov, staff] = await Promise.all([
       supabase.from('vertice_extension_projects').select('*').eq('institution_id', institutionId).order('created_at', { ascending: false }),
       supabase.from('vertice_extension_team').select('*').eq('institution_id', institutionId).order('full_name'),
       supabase.from('vertice_extension_students').select('*').eq('institution_id', institutionId).order('full_name'),
@@ -94,6 +95,7 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
       supabase.from('vertice_extension_axes').select('*').eq('institution_id', institutionId).order('name'),
       supabase.from('vertice_extension_reviews').select('*').eq('institution_id', institutionId).order('created_at', { ascending: false }),
       supabase.from('v_extension_coverage').select('*').eq('institution_id', institutionId),
+      supabase.rpc('get_institution_staff', { p_institution_id: institutionId }),
     ]);
     setProjects((p.data || []) as ExtProject[]);
     setTeam((t.data || []) as TeamMember[]);
@@ -102,6 +104,7 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
     setAxes((ax.data || []) as Axis[]);
     setReviews((rev.data || []) as Review[]);
     setCoverage((cov.data || []) as Coverage[]);
+    setStaffList((staff.data || []) as {full_name:string;email:string|null;source:string}[]);
     setLoading(false);
   }, [institutionId]);
 
@@ -135,7 +138,8 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
       partner_institutions: formData.partner_institutions_text ? formData.partner_institutions_text.split(',').map((s: string) => s.trim()) : (formData.partner_institutions || []),
       ods_goals: formData.ods_goals_text ? formData.ods_goals_text.split(',').map((s: string) => s.trim()) : (formData.ods_goals || []),
     };
-    delete payload.partner_institutions_text; delete payload.ods_goals_text; delete payload.evidence_files;
+    delete payload.partner_institutions_text; delete payload.ods_goals_text; delete payload.evidence_files; delete payload.coordinator_name_manual;
+    if (!payload.axis_ids) payload.axis_ids = payload.axis_id ? [payload.axis_id] : [];
     // Se está concluindo, marcar como pendente para revisão do Acompanhamento
     if (payload.status === 'concluido' && (!formData.id || projects.find(p => p.id === formData.id)?.status !== 'concluido')) {
       payload.review_status = 'pendente';
@@ -298,18 +302,29 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
                         {Object.entries(TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                       </select>
                     </label>
-                    <label>Eixo temático
-                      <select value={formData.axis_id || ''} onChange={e => setFormData({ ...formData, axis_id: e.target.value || null })}>
-                        <option value="">— Selecionar eixo —</option>
-                        {axes.map(a => <option key={a.id} value={a.id}>{a.suggested_by_ai ? '🤖 ' : ''}{a.name} ({a.ods_alignment.join(', ')})</option>)}
+                    <div style={{gridColumn:'1 / -1'}}>
+                      <strong style={{fontSize:'.8rem',display:'block',marginBottom:'.35rem'}}>Eixos temáticos vinculados (selecione um ou mais):</strong>
+                      <div className="ext-course-chips">
+                        {axes.map(a => {
+                          const ids = formData.axis_ids || (formData.axis_id ? [formData.axis_id] : []);
+                          const sel = ids.includes(a.id);
+                          return <button key={a.id} type="button" className={`ext-chip ${sel ? 'selected' : ''}`} onClick={() => {
+                            setFormData({ ...formData, axis_ids: sel ? ids.filter((x:string) => x !== a.id) : [...ids, a.id], axis_id: null });
+                          }}>{a.suggested_by_ai ? '🤖 ' : ''}{a.name} · {(a.ods_alignment||[]).join(', ')}</button>;
+                        })}
+                      </div>
+                    </div>
+                    <label>Coordenador
+                      <select value={formData.coordinator_name || ''} onChange={e => {
+                        const staff = staffList.find(s => s.full_name === e.target.value);
+                        setFormData({ ...formData, coordinator_name: e.target.value, coordinator_email: staff?.email || formData.coordinator_email || '' });
+                      }}>
+                        <option value="">— Selecionar coordenador —</option>
+                        {staffList.map((s, i) => <option key={i} value={s.full_name}>{s.full_name}{s.email ? ` (${s.email})` : ''} · {s.source === 'coordenador_curso' ? 'Coord. Curso' : s.source === 'governanca' ? 'Governança' : 'Extensão'}</option>)}
+                        <option value="__outro">Outro (digitar manualmente)</option>
                       </select>
                     </label>
-                    <label>Coordenador
-                      <input value={formData.coordinator_name || ''} onChange={e => setFormData({ ...formData, coordinator_name: e.target.value })} list="coord-list" placeholder="Selecione ou digite" />
-                      <datalist id="coord-list">
-                        {team.filter(t => t.role_type === 'coordenador').map(t => <option key={t.id} value={t.full_name}>{t.full_name} — {t.email}</option>)}
-                      </datalist>
-                    </label>
+                    {formData.coordinator_name === '__outro' && <label>Nome do coordenador<input value={formData.coordinator_name_manual || ''} onChange={e => setFormData({ ...formData, coordinator_name: e.target.value })} placeholder="Nome completo" /></label>}
                     <label>E-mail coordenador<input type="email" value={formData.coordinator_email || ''} onChange={e => setFormData({ ...formData, coordinator_email: e.target.value })} /></label>
                     <label>Comunidade atendida<input value={formData.target_community || ''} onChange={e => setFormData({ ...formData, target_community: e.target.value })} placeholder="Ex: moradores do Jardim Aureny" /></label>
                     <label>Público estimado<input type="number" value={formData.target_audience_count || ''} onChange={e => setFormData({ ...formData, target_audience_count: +e.target.value })} /></label>
@@ -386,7 +401,7 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
                         <h4>{p.title}</h4>
                         {p.code && <span className="ext-card-code">{p.code}</span>}
                         {p.coordinator_name && <p className="ext-card-coord">👤 {p.coordinator_name}</p>}
-                        {p.axis_id && <p className="ext-card-coord">📌 {axisName(p.axis_id)}</p>}
+                        {((p as any).axis_ids?.length > 0 || p.axis_id) && <p className="ext-card-coord">📌 {((p as any).axis_ids || (p.axis_id ? [p.axis_id] : [])).map((id:string) => axisName(id)).filter(Boolean).join(' · ')}</p>}
                         {p.target_community && <p className="ext-card-community">🏘 {p.target_community}</p>}
                         <div className="ext-card-meta">
                           <span>⏱ {p.total_hours || 0}h</span>
