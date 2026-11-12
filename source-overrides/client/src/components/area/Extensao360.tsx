@@ -127,13 +127,18 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
   const filteredProjects = filterStatus === 'todos' ? projects : projects.filter(p => p.status === filterStatus);
 
   function courseName(id: string) { return courses?.find(c => c.id === id)?.name || id.slice(0, 8); }
+
+  async function generateCode() {
+    const { data } = await supabase.rpc('generate_extension_code', { p_institution_id: institutionId });
+    return data as string || '';
+  }
   function axisName(id: string) { return axes.find(a => a.id === id)?.name || ''; }
 
   // === SAVES ===
   async function saveProject() {
     const payload: any = {
       ...formData, institution_id: institutionId,
-      code: formData.code || ('EXT-' + new Date().getFullYear() + '-' + String(projects.length + 1).padStart(3, '0')),
+      code: formData.code,
       course_ids: formData.course_ids || [],
       partner_institutions: formData.partner_institutions_text ? formData.partner_institutions_text.split(',').map((s: string) => s.trim()) : (formData.partner_institutions || []),
       ods_goals: formData.ods_goals_text ? formData.ods_goals_text.split(',').map((s: string) => s.trim()) : (formData.ods_goals || []),
@@ -217,7 +222,7 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
         {canEdit && view === 'projetos' && (
           <div className="ext-header-actions">
             <button className="ext-btn-secondary" onClick={() => { setFormType('axis'); setFormData({}); setShowForm(true); }}>+ Eixo temático</button>
-            <button className="ext-btn-primary" onClick={() => { setFormType('project'); setFormData({ status: 'planejamento', review_status: 'pendente', project_type: 'projeto', course_ids: [] }); setShowForm(true); }}>+ Novo projeto</button>
+            <button className="ext-btn-primary" onClick={async () => { const code = await generateCode(); setFormType('project'); setFormData({ status: 'planejamento', review_status: 'pendente', project_type: 'projeto', course_ids: [], code }); setShowForm(true); }}>+ Novo projeto</button>
           </div>
         )}
       </div>
@@ -296,7 +301,7 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
                   <h3>{formData.id ? 'Editar' : 'Novo'} Projeto de Extensão</h3>
                   <div className="ext-form-grid">
                     <label>Título<input value={formData.title || ''} onChange={e => setFormData({ ...formData, title: e.target.value })} /></label>
-                    <label>Código<input value={formData.code || ''} onChange={e => setFormData({ ...formData, code: e.target.value })} placeholder="EXT-2026-001" /></label>
+                    <label>Código<input value={formData.code || ''} readOnly style={{background:'var(--bg-card,#f3f4f6)',cursor:'default',fontFamily:'monospace',fontWeight:600}} title="Gerado automaticamente" /></label>
                     <label>Tipo
                       <select value={formData.project_type || 'projeto'} onChange={e => setFormData({ ...formData, project_type: e.target.value })}>
                         {Object.entries(TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
