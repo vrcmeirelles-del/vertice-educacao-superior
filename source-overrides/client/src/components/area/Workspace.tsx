@@ -68,12 +68,13 @@ import ModulePreview from "./ModulePreview";
 import { getActiveTabs, isTabActive, getModuleCatalog, findModuleByTab, type CatalogModule } from "@/lib/modules";
 import ModuleOffer from "./ModuleOffer";
 const Extensao360 = lazy(() => import("./Extensao360"));
+const CpaAutoavaliacao = lazy(() => import("./CpaAutoavaliacao"));
 const ExtensaoDashboard = lazy(() => import("./ExtensaoDashboard"));
 import "./area.css";
 import "./module-offer.css";
 
 const TAB_GROUPS: {label:string;subtitle:string;icon:string;tabs:Tab[];tier?:'superior'|'escolas'|'both'}[] = [
-  {label:'Gestão',subtitle:'Planejamento, metas e governança',icon:'▦',tabs:['base','metas','plano','diagnostico','equipe'],tier:'both'},
+  {label:'Gestão',subtitle:'Planejamento, metas e governança',icon:'▦',tabs:['base','metas','plano','diagnostico','equipe','cpa-autoavaliacao'],tier:'both'},
   {label:'Regulação',subtitle:'Instrumentos e evidências MEC/INEP',icon:'◇',tabs:['emec','repositorio','validacao','enade','avaliacao','novo_instrumento','biblioteca'],tier:'superior'},
   {label:'Acadêmico',subtitle:'Cursos, estudantes e desempenho',icon:'▤',tabs:['geral','cadastro','visao','eorbit','backups','auditoria'],tier:'superior'},
   {label:'Inteligência',subtitle:'Análises, integrações e decisões',icon:'◎',tabs:['analise','ia','fontes','conexoes','reitor','resultado-curso','simulador','raio-x-direito','aprendizagem'],tier:'superior'},
@@ -121,6 +122,7 @@ const TAB_DETAILS: Partial<Record<Tab,{icon:string;description:string}>> = {
   governanca:{icon:'⚖',description:'NDE, Colegiado, reuniões, atas e deliberações'},
   inclusao:{icon:'♿',description:'Inclusão, PEI, acessibilidade e Núcleo de Apoio'},
   'acompanhamento-especial':{icon:'📋',description:'Regimes especiais, exercícios domiciliares e planos acadêmicos'},
+  'cpa-autoavaliacao':{icon:'📊',description:'CPA: pesquisas, participação, resultados, planos e devolutivas'},
   aquisicoes:{icon:'🛒',description:'Gestão de compras, fornecedores e ordens'},
   conta:{icon:'👤',description:'Pacote, faturas, módulos e dados do contrato'},
   contrato:{icon:'📜',description:'Termos, cláusulas e assinatura digital'},
@@ -162,6 +164,7 @@ const TABS: [Tab, string][] = [
   ["egressos", "Egressos 360°"],
   ["extensao", "Extensão 360°"],
   ["governanca", "Governança 360°"],
+  ["cpa-autoavaliacao", "CPA e Autoavaliação"],
   ["inclusao", "Inclusão 360° · PEI"],
   ["acompanhamento-especial", "Acompanhamento Especial 360°"],
   ["aquisicoes", "Aquisições 360°"],
@@ -549,6 +552,8 @@ export default function Workspace({
         (() => { const m=findModuleByTab(moduleCatalog,'extensao'); return <ModulePreview locked={isLocked('extensao')} tasting={isTasting('extensao')} tastingEnds={m?.tasting_ends} moduleCode="ACAD_EXTENSAO" moduleName="Extensão 360°" moduleDescription="Repositório de projetos de extensão — participantes, entregas, cobertura por curso e dossiê regulatório." institutionId={id} estimatedFee={m?.estimated_monthly_fee||800} tier={m?.tier||'regulacao'}><Suspense fallback={<p role="status">Carregando Extensão 360°…</p>}><Extensao360 institutionId={id} role={role||'master'} courses={data.courses.map((c: Row) => ({ id: c.id as string, name: c.name as string }))} onBack={()=>choose('geral')} /></Suspense></ModulePreview>; })()
       ) : tab === "governanca" ? (
         (() => { const m=findModuleByTab(moduleCatalog,'governanca'); return <ModulePreview locked={isLocked('governanca')} tasting={isTasting('governanca')} tastingEnds={m?.tasting_ends} moduleCode="GEST_GOVERNANCA" moduleName="Governança 360°" moduleDescription="Órgãos colegiados, deliberações, atas e fluxos regulatórios." institutionId={id} estimatedFee={m?.estimated_monthly_fee||1000} tier={m?.tier||'gestao'}><Governanca360 institutionId={id} role={role||'master'} /></ModulePreview>; })()
+      ) : tab === "cpa-autoavaliacao" ? (
+        (() => { const m=findModuleByTab(moduleCatalog,'cpa-autoavaliacao'); return <ModulePreview locked={isLocked('cpa-autoavaliacao')} tasting={isTasting('cpa-autoavaliacao')} tastingEnds={m?.tasting_ends} moduleCode="GEST_CPA" moduleName="CPA e Autoavaliação" moduleDescription="Pesquisas, participação, resultados, planos, evidências e devolutivas à comunidade." institutionId={id} estimatedFee={m?.estimated_monthly_fee||1500} tier={m?.tier||'gestao'}><Suspense fallback={<p role="status">Carregando CPA…</p>}><CpaAutoavaliacao institutionId={id} role={role as 'master'|'gestor'|'equipe'} /></Suspense></ModulePreview>; })()
       ) : tab === "inclusao" ? (
         (() => { const m=findModuleByTab(moduleCatalog,'inclusao'); return <ModulePreview locked={isLocked('inclusao')} tasting={isTasting('inclusao')} tastingEnds={m?.tasting_ends} moduleCode="GEST_INCLUSAO" moduleName="Inclusão 360° · PEI" moduleDescription="Gestão de inclusão, acessibilidade, PEI e evidências regulatórias." institutionId={id} estimatedFee={m?.estimated_monthly_fee||1000} tier={m?.tier||'gestao'}><Inclusao360 institutionId={id} role={role||'master'} /></ModulePreview>; })()
       ) : tab === "acompanhamento-especial" ? (
