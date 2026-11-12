@@ -28,9 +28,11 @@ function relativeDate(value:string){
  try{return new Intl.DateTimeFormat("pt-BR",{dateStyle:"short",timeStyle:"short"}).format(new Date(value));}
  catch{return"—";}
 }
-export default function LearningConnected({institutionId,courses,role}:{
- institutionId:string;courses:Row[];role:Role|null;
+export default function LearningConnected({institutionId,courses,role,schoolMode=false}:{
+ institutionId:string;courses:Row[];role:Role|null;schoolMode?:boolean;
 }){
+ const modules:readonly (readonly [string,string])[]=schoolMode?[["enem","ENEM"]]:MODULES;
+ const initialMapping={...initial,module:schoolMode?"enem":"enade"};
  const [data,setData]=useState<Metric[]>([]);
  const [status,setStatus]=useState<BridgeStatus|null>(null);
  const [loading,setLoading]=useState(true);
@@ -39,7 +41,7 @@ export default function LearningConnected({institutionId,courses,role}:{
  const [filterCourse,setFilterCourse]=useState("");
  const [filterPeriod,setFilterPeriod]=useState("");
  const [filterModule,setFilterModule]=useState("");
- const [mapping,setMapping]=useState<MapForm>(initial);
+ const [mapping,setMapping]=useState<MapForm>(initialMapping);
  const canManage=Boolean(role&&MANAGEMENT.includes(role));
  const courseNames=useMemo(()=>new Map(courses.map(c=>[String(c.id),String(c.display_name??c.name)])),[courses]);
  const periods=[...new Set(data.map(x=>x.semester))].sort().reverse();
@@ -56,7 +58,7 @@ export default function LearningConnected({institutionId,courses,role}:{
        .select("institution_id,course_id,semester,subject_code,module,competency,participants,attempts,graded,correct,paired_students,curricular_average,external_accuracy,comparison_gap,updated_at")
        .eq("institution_id",institutionId).order("updated_at",{ascending:false}).limit(1000);
      if(error)throw error;
-     setData((rows??[]) as Metric[]);
+     setData(((rows??[]) as Metric[]).filter(row=>schoolMode?row.module==="enem":row.module!=="enem"));
      if(canManage){
        const {data:state,error:bridgeError}=await supabase.functions.invoke("vertice-learning-bridge",{
          body:{operation:"status",institutionId}
@@ -76,7 +78,7 @@ export default function LearningConnected({institutionId,courses,role}:{
        body:{...body,institutionId}
      });
      if(error)throw error;
-     setMessage(body.operation==="sync"
+     setMessage((body.operation==="sync"||body.operation==="sync_enem")
        ?"Vinculações confirmadas: "+number(answer?.confirmedLinks??0)+". Novos eventos: "+number(answer?.newEvents??0)+
         ". Grupos gerenciais: "+number(answer?.publishedGroups??0)+
         (answer?.remainingPages?". Há mais páginas para sincronizar.":"")
@@ -91,7 +93,7 @@ export default function LearningConnected({institutionId,courses,role}:{
      }:previous);
      const {data:rows,error:refreshError}=await supabase.from("vertice_learning_course_metrics")
        .select("*").eq("institution_id",institutionId).limit(1000);
-     if(!refreshError)setData((rows??[]) as Metric[]);
+     if(!refreshError)setData(((rows??[]) as Metric[]).filter(row=>schoolMode?row.module==="enem":row.module!=="enem"));
      return true;
    }catch(error){setMessage("Não foi possível concluir: "+errorMessage(error));return false;}
    finally{setBusy(false);}
@@ -101,18 +103,18 @@ export default function LearningConnected({institutionId,courses,role}:{
    event.preventDefault();
    if(!canManage||!mapping.reviewed)return;
    if(!window.confirm("Confirmar que o vínculo disciplina–competência foi revisado com evidência?"))return;
-   void bridgeAction({operation:"map_subject",...mapping}).then(ok=>{if(ok)setMapping(initial);});
+   void bridgeAction({operation:"map_subject",...mapping}).then(ok=>{if(ok)setMapping(initialMapping);});
  };
  return <section className="learning-connected">
    <header className="learning-hero">
      <div><small>VÉRTICE · INTELIGÊNCIA ACADÊMICA INTEGRADA</small>
-       <h3>Aprendizagem Conectada</h3>
-       <p>Resultados do Fato & Ordem × avaliações curriculares × competências × intervenções pedagógicas. Todos os cursos, sem atribuição por semelhança de nomes ou CPFs expostos.</p>
+       <h3>{schoolMode?"ENEM · Fato & Ordem × Vértice Escolas":"Aprendizagem Conectada"}</h3>
+       <p>{schoolMode?"Prática ENEM, competências e acompanhamento escolar. Percentuais de acerto não são notas oficiais nem estimativas de TRI.":"Resultados do Fato & Ordem × avaliações curriculares × competências × intervenções pedagógicas. Todos os cursos, sem atribuição por semelhança de nomes ou CPFs expostos."}</p>
      </div>
      <button className="corp-button small" type="button" disabled={busy||loading} onClick={()=>void reload()}>Atualizar painel</button>
    </header>
    <div className="learning-kpis">
-     <article><small>Cursos abrangidos</small><b>{number(totals.courses)}</b><span>Cadastro institucional atual</span></article>
+     <article><small>{schoolMode?"Turmas / percursos cadastrados":"Cursos abrangidos"}</small><b>{number(totals.courses)}</b><span>Cadastro institucional atual</span></article>
      <article><small>Indicadores publicados</small><b>{number(totals.groups)}</b><span>Somente grupos com pelo menos 5 estudantes</span></article>
      <article><small>Tentativas por vínculo curricular</small><b>{totals.groups?number(totals.attempts):"—"}</b><span>Não representa total de tentativas únicas</span></article>
      <article><small>Comparações nota × exame</small><b>{number(totals.coherent)}</b><span>Amostra pareada validada</span></article>
@@ -128,7 +130,7 @@ export default function LearningConnected({institutionId,courses,role}:{
      <div className="learning-filters">
        <label>Curso <select value={filterCourse} onChange={e=>setFilterCourse(e.target.value)}><option value="">Todos os cursos</option>{courses.map(c=><option key={String(c.id)} value={String(c.id)}>{String(c.display_name??c.name)} · {String(c.code??"sem código")}</option>)}</select></label>
        <label>Semestre <select value={filterPeriod} onChange={e=>setFilterPeriod(e.target.value)}><option value="">Todos os períodos com evidência</option>{periods.map(p=><option key={p} value={p}>{p}</option>)}</select></label>
-       <label>Exame <select value={filterModule} onChange={e=>setFilterModule(e.target.value)}><option value="">Todas as avaliações</option>{MODULES.map(([k,v])=><option key={k} value={k}>{v}</option>)}</select></label>
+       <label>Exame <select value={filterModule} onChange={e=>setFilterModule(e.target.value)}><option value="">Todas as avaliações</option>{modules.map(([k,v])=><option key={k} value={k}>{v}</option>)}</select></label>
      </div>
      {!filtered.length?<div className="learning-empty">
        <strong>Nenhum diagnóstico pareado disponível nesta seleção.</strong>
@@ -137,7 +139,7 @@ export default function LearningConnected({institutionId,courses,role}:{
        {filtered.map((row,i)=>{
          const grade=row.comparison_gap,marker=grade===null?"indisponível":Math.abs(grade)>=.2?"atenção":"comparável";
          return <tr key={i}><td><strong>{courseNames.get(row.course_id)||"Curso cadastrado"}</strong><small>{row.subject_code}</small></td>
-           <td>{row.semester}</td><td><strong>{MODULES.find(([k])=>k===row.module)?.[1]||row.module}</strong><small>{row.competency||"Competência geral"}</small></td>
+           <td>{row.semester}</td><td><strong>{modules.find(([k])=>k===row.module)?.[1]||row.module}</strong><small>{row.competency||"Competência geral"}</small></td>
            <td>{row.participants}</td><td>{row.graded?row.correct+" / "+row.graded+" ("+percent(row.correct/row.graded)+")":"—"}</td>
            <td>{percent(row.curricular_average)}</td><td>{percent(row.external_accuracy)}</td>
            <td><span className={"learning-signal "+marker}>{grade===null?"Amostra insuficiente":(grade>0?"+":"")+percent(grade)}</span></td>
@@ -169,7 +171,7 @@ export default function LearningConnected({institutionId,courses,role}:{
            Suspender integração
          </button>
        </div>}
-       {canManage&&<button type="button" className="corp-button" disabled={busy||!status?.configured||status?.tenantEnabled!==true} onClick={()=>void bridgeAction({operation:"sync"})}>Sincronizar desempenho</button>}
+       {canManage&&<button type="button" className="corp-button" disabled={busy||!status?.configured||status?.tenantEnabled!==true} onClick={()=>void bridgeAction({operation:schoolMode?"sync_enem":"sync"})}>Sincronizar desempenho</button>}
        <p className="learning-footnote">Cada nova IES cadastrada pode ser habilitada aqui, sem alteração de código ou lista manual de clientes. A ativação não vincula alunos automaticamente. O botão de sincronização permanece bloqueado sem credenciais, credenciamento e matrícula verificada.</p>
      </section>
    </div>
@@ -179,7 +181,7 @@ export default function LearningConnected({institutionId,courses,role}:{
      <form className="learning-map" onSubmit={onMap}>
        <label>Curso <select value={mapping.courseId} required onChange={e=>setMapping(v=>({...v,courseId:e.target.value}))}><option value="">Selecione o curso</option>{courses.map(c=><option key={String(c.id)} value={String(c.id)}>{String(c.display_name??c.name)} · {String(c.code??"")}</option>)}</select></label>
        <label>Código da disciplina<input required value={mapping.subjectCode} maxLength={120} onChange={e=>setMapping(v=>({...v,subjectCode:e.target.value}))} placeholder="Código cadastrado no sistema acadêmico"/></label>
-       <label>Exame <select value={mapping.module} onChange={e=>setMapping(v=>({...v,module:e.target.value}))}>{MODULES.map(([k,v])=><option key={k} value={k}>{v}</option>)}</select></label>
+       <label>Exame <select value={mapping.module} onChange={e=>setMapping(v=>({...v,module:e.target.value}))}>{modules.map(([k,v])=><option key={k} value={k}>{v}</option>)}</select></label>
        <label>Competência avaliada<input required minLength={3} value={mapping.competency} maxLength={500} onChange={e=>setMapping(v=>({...v,competency:e.target.value}))} placeholder="Competência documentada na matriz e no plano de ensino"/></label>
        <label className="wide">Evidência de vínculo curricular<input required minLength={3} value={mapping.evidenceRef} maxLength={1000} onChange={e=>setMapping(v=>({...v,evidenceRef:e.target.value}))} placeholder="Matriz de referência, plano de ensino ou documentação institucional"/></label>
        <label className="wide learning-check"><input type="checkbox" checked={mapping.reviewed} onChange={e=>setMapping(v=>({...v,reviewed:e.target.checked}))} required/><span>Confirmei pessoalmente a correspondência entre disciplina, competência e instrumento de avaliação.</span></label>

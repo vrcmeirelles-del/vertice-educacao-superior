@@ -4,8 +4,10 @@
  */
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
+import LearningConnected from './LearningConnected';
+import type {Role,Row} from '@/lib/area';
 
-interface Props { institutionId: string; isMaster: boolean; }
+interface Props { institutionId: string; isMaster: boolean; courses: Row[]; role: Role|null; }
 
 interface EnemEscola { year: number; media_geral: number|null; linguagens: number|null; humanas: number|null; natureza: number|null; matematica: number|null; redacao: number|null; participantes: number|null; ranking_estadual: number|null; ranking_nacional: number|null; }
 interface Simulado { simulado_id: string; title: string; applied_date: string; area: string; turma: string|null; participantes: number; media: number|null; percentual_acima_600: number|null; percentual_acima_700: number|null; }
@@ -18,7 +20,7 @@ const FAIXA_COLORS: Record<string,string> = { critico:'#dc2626', baixo:'#ea580c'
 
 function fmt(n: number|null): string { return n !== null && n !== undefined ? n.toFixed(1) : '—'; }
 
-export default function Enem360Escolar({ institutionId, isMaster }: Props) {
+export default function Enem360Escolar({ institutionId, isMaster, courses, role }: Props) {
   const [view, setView] = useState<'painel'|'historico'|'simulados'|'competencias'|'metas'>('painel');
   const [evolucao, setEvolucao] = useState<EnemEscola[]>([]);
   const [simulados, setSimulados] = useState<Simulado[]>([]);
@@ -92,6 +94,7 @@ export default function Enem360Escolar({ institutionId, isMaster }: Props) {
 
   return (
     <div style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+      <LearningConnected key={institutionId} institutionId={institutionId} courses={courses} role={role} schoolMode />
       <div style={{ display: 'flex', gap: 4, marginBottom: 16, flexWrap: 'wrap' }}>
         {nav.map(n => (
           <button key={n.key} onClick={() => setView(n.key as any)} style={{

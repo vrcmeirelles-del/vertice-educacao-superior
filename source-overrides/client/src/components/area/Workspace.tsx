@@ -584,7 +584,7 @@ export default function Workspace({
       ) : tab === "billing" ? (
         role === 'master' ? <BillingPanel /> : <p>Painel financeiro restrito ao administrador da plataforma.</p>
       ) : tab === "escola-enem" ? (
-        <Enem360Escolar institutionId={id} isMaster={role === 'master'} />
+        <Enem360Escolar institutionId={id} isMaster={role === 'master'} courses={data.courses} role={role} />
       ) : tab === "escola-egressos" ? (
         <EgressosEscolar institutionId={id} isMaster={role === 'master'} />
       ) : tab === "validacao" ? (

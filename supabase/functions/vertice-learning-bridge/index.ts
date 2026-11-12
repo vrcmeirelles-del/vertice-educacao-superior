@@ -8,7 +8,7 @@ const ORIGINS=new Set([
 ]);
 const UUID=/^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
 const ALLOWED_ROLES=new Set(["reitor","gestor","diretor_geral","diretor_pedagogico","procurador"]);
-const MODS=new Set(["oab","cfc","enade","enamed","residencia","delegado","pf","estadual","federal","defensoria","mp"]);
+const MODS=new Set(["oab","cfc","enade","enamed","residencia","enem","delegado","pf","estadual","federal","defensoria","mp"]);
 const enc=new TextEncoder();
 const fail=(message:string,status=400)=>Object.assign(new Error(message),{status});
 const env=(name:string)=>String(Deno.env.get(name)||"");
@@ -127,6 +127,12 @@ Deno.serve(async req=>{
   const {url,serviceKey}=cfg();
   const admin=createClient(url,serviceKey,{auth:{persistSession:false}});
   const actor=await authenticate(req,inst,admin);
+  const {data:segment,error:segmentError}=await admin.from("vertice_institutions").select("tier").eq("id",inst).maybeSingle();
+  if(segmentError||!segment)throw fail("Segmento institucional indisponível.",503);
+  const school=segment.tier==="escolas";
+  if(operation==="sync_enem"&&!school)throw fail("ENEM integra exclusivamente a Vértice Escolas.",403);
+  if(operation==="sync"&&school)throw fail("Use a sincronização ENEM da Vértice Escolas.",403);
+  if(operation==="map_subject"&&((str(body.module,30)==="enem")!==school))throw fail("Exame incompatível com o segmento institucional.",403);
   if(operation==="sync_institution"){
    const {data:ies,error}=await admin.from("vertice_institutions")
     .select("id,name,acronym,city,state,status,updated_at").eq("id",inst).maybeSingle();
@@ -143,12 +149,12 @@ Deno.serve(async req=>{
    if(typeof body.enabled!=="boolean"||body.reviewed!==true)
     throw fail("Confirme a ativação institucional e o escopo do compartilhamento.");
    const {data:ies,error:iesError}=await admin.from("vertice_institutions")
-     .select("id,name,status").eq("id",inst).maybeSingle();
+     .select("id,name,status,tier").eq("id",inst).maybeSingle();
    if(iesError||!ies)throw fail("Instituição não cadastrada na Vértice.",404);
    if(body.enabled&&(ies.status!=="ativa"||/(?:teste|fict[ií]ci|demonstrativ)/i.test(ies.name||"")))
     throw fail("O ambiente de demonstração ou instituição inativa não pode compartilhar dados reais.",403);
    const confirmed=await remote("/api/internal/vertice/provision","POST",{
-     institutionId:inst,enabled:body.enabled,authorizedBy:actor,institutionName:ies.name
+     institutionId:inst,enabled:body.enabled,authorizedBy:actor,institutionName:ies.name,educationTier:ies.tier
    });
    return send({ok:true,institutionId:inst,enabled:confirmed.enabled,
      notice:confirmed.notice||"Integração institucional atualizada."},200,origin);
@@ -221,7 +227,7 @@ Deno.serve(async req=>{
    await rpc(admin,"vertice_bridge_refresh_metrics",{p_institution:inst});
    return send({ok:true,...result},200,origin);
   }
-  if(operation==="sync"){
+  if(operation==="sync"||operation==="sync_enem"){
    if(env("VERTICE_BRIDGE_API_KEY").length<32||env("VERTICE_BRIDGE_IDENTITY_KEY").length<32)
     throw fail("Integração ainda sem chaves de servidor.",503);
    const candidates=await remote("/api/internal/vertice/candidates?institutionId="+encodeURIComponent(inst));
@@ -244,7 +250,7 @@ Deno.serve(async req=>{
    let ingested=0,ignored=0,more=false,pages=0;
    for(let i=0;i<4;i++){
     const query=new URLSearchParams({institutionId:inst,after:cursor.after,afterId:cursor.afterId||"",limit:"400"});
-    const page=await remote("/api/internal/vertice/events?"+query.toString());
+    const page=await remote((school?"/api/internal/vertice/school-events?":"/api/internal/vertice/events?")+query.toString());
     const events=page.events||[];pages++;
     if(events.length){
      const result=await rpc(admin,"vertice_bridge_ingest_events",{p_institution:inst,p_events:events});
