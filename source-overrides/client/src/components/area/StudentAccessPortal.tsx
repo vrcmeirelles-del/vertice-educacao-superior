@@ -1,286 +1,372 @@
-// StudentAccessPortal.tsx — Página de acesso do estudante sem senha (magic link)
-// Compartilhado entre Atividades Complementares e Estágio
-import { useState } from 'react';
+// StudentAccessPortal.tsx — Acesso do estudante sem senha (Atividades Complementares / Estágio)
+//
+// Fluxo: o estudante informa matrícula, CPF e e-mail → recebe um link pessoal por e-mail →
+// o link (token de uso único, 30 min) abre uma sessão própria → saldo, solicitações e envio de atividades.
+// Toda leitura e escrita passa pela Edge Function vertice-student-portal; o navegador não consulta
+// tabelas de estudantes diretamente.
+import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import './egressos360.css';
+
+type Purpose = 'complementary_activities' | 'mandatory_internship';
 
 interface Props {
   institutionId: string;
   institutionName: string;
-  purpose: 'complementary_activities' | 'mandatory_internship';
+  purpose: Purpose;
+  token?: string | null;
 }
 
-type Step = 'form' | 'sent' | 'error' | 'not_found' | 'dashboard';
+interface Category { id: string; code: string; label: string; description?: string | null; max_per_item_minutes?: number | null; accepted_documents?: string[] | null }
+interface Submission { id: string; title: string; issuer: string | null; documentary_minutes: number | null; status: string; created_at: string; category_id: string | null }
+interface Placement { id: string; lifecycle: string; starts_at: string | null; ends_at: string | null; advisor_name: string | null }
+interface Dashboard {
+  student: { full_name: string; enrollment_code: string; course_name: string | null };
+  rule: { id: string; rule_version: string; total_required_minutes: number } | null;
+  credited_minutes: number;
+  categories: Category[];
+  submissions: Submission[];
+  placements: Placement[];
+}
 
-export default function StudentAccessPortal({ institutionId, institutionName, purpose }: Props) {
-  const [step, setStep] = useState<Step>('form');
-  const [enrollment, setEnrollment] = useState('');
-  const [cpf, setCpf] = useState('');
-  const [email, setEmail] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState('');
-  const [studentData, setStudentData] = useState<any>(null);
+const SESSION_KEY = 'vx-student-session';
+const STATUS_LABEL: Record<string, string> = {
+  draft: 'Rascunho', submitted: 'Enviada', extracting: 'Em leitura', suggestion_ready: 'Em análise', under_review: 'Em análise',
+  adjustments_requested: 'Ajustes solicitados', approved: 'Aprovada', partially_approved: 'Aprovada parcialmente',
+  denied: 'Indeferida', rejected: 'Indeferida', credited: 'Horas creditadas', report_sent: 'Enviada à secretaria', posting_confirmed: 'Lançada no histórico',
+};
+const ERROR_LABEL: Record<string, string> = {
+  link_invalid: 'Este link é inválido, já foi usado ou expirou. Solicite um novo acesso abaixo.',
+  session_invalid: 'Sua sessão expirou. Solicite um novo link de acesso.',
+  file_type: 'Envie o comprovante em PDF, JPG, PNG ou WEBP.',
+  file_size: 'O arquivo deve ter no máximo 10 MB.',
+  file_missing: 'Não foi possível confirmar o envio do arquivo. Tente novamente.',
+  invalid_submission: 'Preencha título, categoria e carga horária (em horas).',
+  invalid_category: 'Categoria indisponível para o seu regulamento.',
+  no_rule: 'O regulamento do seu curso ainda não foi cadastrado pela coordenação.',
+  too_many: 'Limite diário de envios atingido. Tente novamente amanhã.',
+};
 
-  const purposeLabel = purpose === 'complementary_activities'
-    ? 'Atividades Complementares' : 'Estágio Obrigatório';
+const box: React.CSSProperties = { padding: '8px 12px', border: '1px solid var(--vx-border,#e2e8f0)', borderRadius: 8, background: 'var(--vx-surface,#fff)', marginBottom: 8 };
+const input: React.CSSProperties = { display: 'block', width: '100%', padding: '.5rem .75rem', border: '1px solid var(--vx-border,#e2e8f0)', borderRadius: 6, fontSize: '.875rem', marginTop: 4 };
+const primary: React.CSSProperties = { padding: '.625rem', background: 'var(--vx-accent,#1e3a8a)', color: '#fff', border: 'none', borderRadius: 8, fontSize: '.875rem', fontWeight: 600, cursor: 'pointer' };
+const ghost: React.CSSProperties = { padding: '.5rem 1.25rem', background: 'transparent', border: '1px solid var(--vx-border,#e2e8f0)', borderRadius: 8, fontSize: '.8125rem', cursor: 'pointer' };
+const label: React.CSSProperties = { fontSize: '.8125rem', fontWeight: 600 };
+const small: React.CSSProperties = { fontSize: '.75rem', color: 'var(--vx-muted,#64748b)' };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!enrollment.trim() || !cpf.trim() || !email.trim()) return;
+const moduleParam = (p: Purpose) => (p === 'mandatory_internship' ? 'estagio' : 'ac');
 
-    setLoading(true);
-    setErrorMsg('');
+function minutesToH(m: number | null | undefined): string {
+  if (!m || m <= 0) return '0h';
+  const h = Math.floor(m / 60);
+  const min = m % 60;
+  return min > 0 ? `${h}h${min}min` : `${h}h`;
+}
 
+async function call<T>(body: Record<string, unknown>): Promise<T> {
+  const { data, error } = await supabase.functions.invoke('vertice-student-portal', { body });
+  if (error) {
+    let code = 'unavailable';
+    try { const ctx = (error as { context?: Response }).context; if (ctx) code = ((await ctx.json()) as { error?: string }).error || code; } catch { /* mantém genérico */ }
+    throw new Error(code);
+  }
+  return data as T;
+}
+
+function readSession(institutionId: string): string | null {
+  try {
+    const raw = sessionStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    const s = JSON.parse(raw) as { key: string; ies: string; exp: string };
+    if (s.ies !== institutionId || new Date(s.exp).getTime() <= Date.now()) { sessionStorage.removeItem(SESSION_KEY); return null; }
+    return s.key;
+  } catch { return null; }
+}
+function saveSession(key: string, ies: string, exp: string) {
+  try { sessionStorage.setItem(SESSION_KEY, JSON.stringify({ key, ies, exp })); } catch { /* navegação privada */ }
+}
+function clearSession() { try { sessionStorage.removeItem(SESSION_KEY); } catch { /* noop */ } }
+
+export default function StudentAccessPortal({ institutionId, institutionName, purpose, token }: Props) {
+  const [step, setStep] = useState<'loading' | 'form' | 'sent' | 'dashboard'>(token ? 'loading' : 'form');
+  const [session, setSession] = useState<string | null>(null);
+  const [data, setData] = useState<Dashboard | null>(null);
+  const [notice, setNotice] = useState('');
+  const purposeLabel = purpose === 'mandatory_internship' ? 'Estágio Obrigatório' : 'Atividades Complementares';
+  const mod = moduleParam(purpose);
+
+  // 1) Link do e-mail: troca o token por sessão e remove o token da barra de endereços.
+  // 2) Sem token: retoma sessão existente desta aba, se ainda válida.
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      if (token) {
+        try { window.history.replaceState(null, '', `/acesso-estudante?ies=${encodeURIComponent(institutionId)}&mod=${mod}`); } catch { /* noop */ }
+        try {
+          const r = await call<{ session: string; expires_at: string; data: Dashboard }>({ action: 'redeem', token, module: mod });
+          if (!alive) return;
+          saveSession(r.session, institutionId, r.expires_at);
+          setSession(r.session); setData(r.data); setStep('dashboard');
+        } catch (e) {
+          if (!alive) return;
+          setNotice(ERROR_LABEL[(e as Error).message] || ERROR_LABEL.link_invalid);
+          setStep('form');
+        }
+        return;
+      }
+      const saved = readSession(institutionId);
+      if (!saved) return;
+      setStep('loading');
+      try {
+        const r = await call<{ data: Dashboard }>({ action: 'dashboard', session: saved, module: mod });
+        if (!alive) return;
+        setSession(saved); setData(r.data); setStep('dashboard');
+      } catch {
+        clearSession();
+        if (alive) setStep('form');
+      }
+    })();
+    return () => { alive = false; };
+  }, [token, institutionId, mod]);
+
+  const refresh = useCallback(async () => {
+    if (!session) return;
     try {
-      // Normalize CPF (remove formatting)
-      const cpfClean = cpf.replace(/\D/g, '');
-      if (cpfClean.length !== 11) {
-        setErrorMsg('CPF deve conter 11 dígitos.');
-        setLoading(false);
-        return;
-      }
-
-      // Hash CPF client-side for comparison
-      const encoder = new TextEncoder();
-      const data = encoder.encode(cpfClean);
-      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      const cpfHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-
-      // Check student registry
-      const { data: student, error } = await supabase
-        .from('vertice_student_registry')
-        .select('id, email, verified')
-        .eq('institution_id', institutionId)
-        .eq('enrollment_code', enrollment.trim())
-        .eq('cpf_hash', cpfHash)
-        .maybeSingle();
-
-      if (error || !student) {
-        // Generic response — don't reveal if enrollment exists
-        setStep('sent'); // Always show "sent" to prevent enumeration
-        setLoading(false);
-        return;
-      }
-
-      // Check if email matches registered email
-      if (student.email.toLowerCase() !== email.trim().toLowerCase()) {
-        // Don't reveal that enrollment exists but email doesn't match
-        setStep('sent');
-        setLoading(false);
-        return;
-      }
-
-      // Call Edge Function to send real magic link email
-      supabase.functions.invoke('vertice-student-magic-link', {
-        body: { institution_id: institutionId, enrollment_code: enrollment.trim(), cpf_hash: cpfHash, email: email.trim(), purpose },
-      }).catch(() => {}); // fire and forget — don't block UX
-
-      // Load student data for dashboard (dev/demo: direct access)
-      const studentInfo = await loadStudentDashboardData(student.id, institutionId);
-      if (studentInfo) {
-        setStudentData(studentInfo);
-        setStep('dashboard');
-      } else {
-        setStep('sent'); // Fallback: show "email sent"
-      }
-    } catch (err) {
-      setStep('error');
-      setErrorMsg('Erro ao processar a solicitação. Tente novamente.');
-    } finally {
-      setLoading(false);
+      const r = await call<{ data: Dashboard }>({ action: 'dashboard', session, module: mod });
+      setData(r.data);
+    } catch (e) {
+      if ((e as Error).message === 'session_invalid') { clearSession(); setSession(null); setData(null); setNotice(ERROR_LABEL.session_invalid); setStep('form'); }
     }
-  };
+  }, [session, mod]);
 
-  const formatCpf = (value: string) => {
-    const clean = value.replace(/\D/g, '').slice(0, 11);
-    if (clean.length <= 3) return clean;
-    if (clean.length <= 6) return `${clean.slice(0, 3)}.${clean.slice(3)}`;
-    if (clean.length <= 9) return `${clean.slice(0, 3)}.${clean.slice(3, 6)}.${clean.slice(6)}`;
-    return `${clean.slice(0, 3)}.${clean.slice(3, 6)}.${clean.slice(6, 9)}-${clean.slice(9)}`;
+  const logout = async () => {
+    if (session) await call({ action: 'logout', session }).catch(() => undefined);
+    clearSession(); setSession(null); setData(null); setNotice(''); setStep('form');
   };
 
   return (
-    <div style={{ maxWidth: 480, margin: '2rem auto', padding: '0 1rem' }}>
-      <div style={{ background: 'var(--vx-surface, #fff)', border: '1px solid var(--vx-border, #e2e8f0)', borderRadius: 12, padding: '2rem', boxShadow: '0 1px 3px rgba(0,0,0,.08)' }}>
-
+    <div style={{ maxWidth: step === 'dashboard' ? 760 : 480, margin: '2rem auto', padding: '0 1rem' }}>
+      <div style={{ background: 'var(--vx-surface,#fff)', border: '1px solid var(--vx-border,#e2e8f0)', borderRadius: 12, padding: '2rem', boxShadow: '0 1px 3px rgba(0,0,0,.08)' }}>
         <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-          <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--vx-text, #1e293b)' }}>VÉRTICE</div>
-          <div style={{ fontSize: '.8125rem', color: 'var(--vx-muted, #64748b)', marginTop: 4 }}>{institutionName}</div>
+          <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--vx-text,#1e293b)' }}>VÉRTICE</div>
+          <div style={{ fontSize: '.8125rem', color: 'var(--vx-muted,#64748b)', marginTop: 4 }}>{institutionName}</div>
           <h2 style={{ fontSize: '1.125rem', margin: '1rem 0 .25rem', color: 'var(--vx-text)' }}>{purposeLabel}</h2>
-          <p style={{ fontSize: '.8125rem', color: 'var(--vx-muted)' }}>Solicite acesso para enviar documentos e acompanhar suas solicitações.</p>
+          {step !== 'dashboard' && <p style={{ fontSize: '.8125rem', color: 'var(--vx-muted)' }}>Acesse para enviar comprovantes e acompanhar suas solicitações.</p>}
         </div>
 
-        {step === 'form' && (
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <label style={{ fontSize: '.8125rem', fontWeight: 600 }}>
-              Matrícula
-              <input type="text" value={enrollment} onChange={e => setEnrollment(e.target.value)}
-                placeholder="Ex: 2024001234" required autoComplete="off"
-                style={{ display: 'block', width: '100%', padding: '.5rem .75rem', border: '1px solid var(--vx-border, #e2e8f0)', borderRadius: 6, fontSize: '.875rem', marginTop: 4 }} />
-            </label>
-
-            <label style={{ fontSize: '.8125rem', fontWeight: 600 }}>
-              CPF
-              <input type="text" value={cpf} onChange={e => setCpf(formatCpf(e.target.value))}
-                placeholder="000.000.000-00" required autoComplete="off" inputMode="numeric"
-                style={{ display: 'block', width: '100%', padding: '.5rem .75rem', border: '1px solid var(--vx-border, #e2e8f0)', borderRadius: 6, fontSize: '.875rem', marginTop: 4 }} />
-            </label>
-
-            <label style={{ fontSize: '.8125rem', fontWeight: 600 }}>
-              E-mail institucional
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)}
-                placeholder="seu.email@instituicao.edu.br" required autoComplete="email"
-                style={{ display: 'block', width: '100%', padding: '.5rem .75rem', border: '1px solid var(--vx-border, #e2e8f0)', borderRadius: 6, fontSize: '.875rem', marginTop: 4 }} />
-            </label>
-
-            {errorMsg && <p style={{ color: '#ef4444', fontSize: '.8125rem', margin: 0 }}>{errorMsg}</p>}
-
-            <button type="submit" disabled={loading}
-              style={{ padding: '.625rem', background: 'var(--vx-accent, #2563eb)', color: '#fff', border: 'none', borderRadius: 8, fontSize: '.875rem', fontWeight: 600, cursor: loading ? 'wait' : 'pointer', opacity: loading ? .7 : 1, marginTop: 4 }}>
-              {loading ? 'Verificando…' : 'Solicitar acesso'}
-            </button>
-
-            <p style={{ fontSize: '.75rem', color: 'var(--vx-muted)', textAlign: 'center', margin: '8px 0 0' }}>
-              Um link de acesso será enviado para o e-mail vinculado à sua matrícula.
-            </p>
-          </form>
-        )}
-
+        {step === 'loading' && <p role="status" style={{ textAlign: 'center', ...small }}>Abrindo seu acesso…</p>}
+        {step === 'form' && <RequestForm institutionId={institutionId} module={mod} notice={notice} onSent={() => { setNotice(''); setStep('sent'); }} />}
         {step === 'sent' && (
           <div style={{ textAlign: 'center', padding: '1rem 0' }}>
-            <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>📧</div>
+            <div style={{ fontSize: '2.5rem', marginBottom: 12 }} aria-hidden="true">📧</div>
             <h3 style={{ margin: '0 0 8px' }}>Verifique seu e-mail</h3>
             <p style={{ fontSize: '.875rem', color: 'var(--vx-muted)', lineHeight: 1.5 }}>
-              Se os dados informados correspondem a um vínculo ativo, um link de acesso foi enviado para o e-mail cadastrado pela instituição.
+              Se os dados informados correspondem a um vínculo ativo, enviamos um link de acesso para o e-mail cadastrado pela instituição.
             </p>
-            <p style={{ fontSize: '.8125rem', color: 'var(--vx-muted)', marginTop: 12 }}>
-              O link é de uso único e expira em 30 minutos.
-            </p>
-            <button onClick={() => { setStep('form'); setEnrollment(''); setCpf(''); setEmail(''); }}
-              style={{ marginTop: 16, padding: '.5rem 1.5rem', background: 'transparent', border: '1px solid var(--vx-border)', borderRadius: 8, fontSize: '.8125rem', cursor: 'pointer' }}>
-              Solicitar novamente
-            </button>
+            <p style={{ ...small, marginTop: 12 }}>O link é pessoal, de uso único e expira em 30 minutos. Confira também a caixa de spam.</p>
+            <button type="button" onClick={() => setStep('form')} style={{ ...ghost, marginTop: 16 }}>Solicitar novamente</button>
           </div>
         )}
-
-        {step === 'dashboard' && studentData && (
-          <StudentDashboard data={studentData} purpose={purpose} institutionName={institutionName} onLogout={() => { setStep('form'); setStudentData(null); setEnrollment(''); setCpf(''); setEmail(''); }} />
-        )}
-
-        {step === 'error' && (
-          <div style={{ textAlign: 'center', padding: '1rem 0' }}>
-            <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>⚠️</div>
-            <h3 style={{ margin: '0 0 8px' }}>Erro na solicitação</h3>
-            <p style={{ fontSize: '.875rem', color: 'var(--vx-muted)' }}>{errorMsg || 'Tente novamente em alguns instantes.'}</p>
-            <button onClick={() => setStep('form')}
-              style={{ marginTop: 16, padding: '.5rem 1.5rem', background: 'var(--vx-accent, #2563eb)', color: '#fff', border: 'none', borderRadius: 8, fontSize: '.8125rem', cursor: 'pointer' }}>
-              Tentar novamente
-            </button>
-          </div>
+        {step === 'dashboard' && data && session && (
+          <StudentDashboard data={data} session={session} purpose={purpose} onLogout={logout} onChanged={refresh} />
         )}
       </div>
-
-      <p style={{ fontSize: '.6875rem', color: 'var(--vx-muted, #94a3b8)', textAlign: 'center', marginTop: 16 }}>
+      <p style={{ fontSize: '.6875rem', color: 'var(--vx-muted,#94a3b8)', textAlign: 'center', marginTop: 16 }}>
         Plataforma Vértice Educação Superior · Acesso restrito a estudantes com vínculo ativo
       </p>
     </div>
   );
 }
 
-async function loadStudentDashboardData(studentId: string, institutionId: string) {
-  const [reg, balance, subs, placements] = await Promise.all([
-    supabase.from('vertice_student_registry').select('full_name,enrollment_code,course_id').eq('id', studentId).single(),
-    supabase.from('v_ac_student_balance').select('*').eq('student_id', studentId).maybeSingle().then(r => r).catch(() => ({ data: null })),
-    supabase.from('vertice_ac_submissions').select('id,title,issuer,documentary_minutes,status,created_at').eq('student_id', studentId).order('created_at', { ascending: false }).limit(20).catch(() => ({ data: [] })),
-    supabase.from('vertice_internship_placements').select('id,lifecycle,starts_at,ends_at,advisor_name,organization_id,field_id').eq('student_id', studentId).order('created_at', { ascending: false }).limit(10).catch(() => ({ data: [] })),
-  ]);
-  if (!reg.data) return null;
-  // Enrich placements with org/field names
-  const enriched = await Promise.all(((placements as any).data ?? []).map(async (p: any) => {
-    const [org, field] = await Promise.all([
-      supabase.from('vertice_internship_organizations').select('name,trade_name').eq('id', p.organization_id).maybeSingle(),
-      supabase.from('vertice_internship_fields').select('name').eq('id', p.field_id).maybeSingle(),
-    ]);
-    return { ...p, organization_name: org.data?.trade_name || org.data?.name || '—', field_name: field.data?.name || '—' };
-  }));
-  return {
-    full_name: reg.data.full_name,
-    enrollment_code: reg.data.enrollment_code,
-    ac_balance: (balance as any).data || null,
-    ac_submissions: (subs as any).data ?? [],
-    placements: enriched,
-  };
-}
+function RequestForm({ institutionId, module, notice, onSent }: { institutionId: string; module: string; notice: string; onSent: () => void }) {
+  const [enrollment, setEnrollment] = useState('');
+  const [cpf, setCpf] = useState('');
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-/* ── Dashboard do Aluno (pós-login) ── */
-function StudentDashboard({ data, purpose, institutionName, onLogout }: { data: any; purpose: string; institutionName: string; onLogout: () => void }) {
-  const st = { padding: '6px 10px', border: '1px solid var(--vx-border,#e2e8f0)', borderRadius: 8, background: 'var(--vx-surface,#fff)', marginBottom: 8 };
-  const lbl: React.CSSProperties = { fontSize: '.75rem', color: 'var(--vx-muted,#64748b)', textTransform: 'uppercase', letterSpacing: '.04em' };
-  const val: React.CSSProperties = { fontSize: '1.25rem', fontWeight: 700 };
+  const formatCpf = (value: string) => {
+    const c = value.replace(/\D/g, '').slice(0, 11);
+    if (c.length <= 3) return c;
+    if (c.length <= 6) return `${c.slice(0, 3)}.${c.slice(3)}`;
+    if (c.length <= 9) return `${c.slice(0, 3)}.${c.slice(3, 6)}.${c.slice(6)}`;
+    return `${c.slice(0, 3)}.${c.slice(3, 6)}.${c.slice(6, 9)}-${c.slice(9)}`;
+  };
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    if (cpf.replace(/\D/g, '').length !== 11) { setError('CPF deve conter 11 dígitos.'); return; }
+    setLoading(true);
+    try {
+      await call({ action: 'request', institution_id: institutionId, enrollment_code: enrollment.trim(), cpf, email: email.trim(), module });
+      onSent();
+    } catch {
+      setError('Não foi possível processar agora. Tente novamente em alguns minutos.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div style={{ padding: '1rem 0' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+    <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {notice && <p role="alert" style={{ color: '#b45309', fontSize: '.8125rem', margin: 0 }}>{notice}</p>}
+      <label style={label}>Matrícula
+        <input type="text" value={enrollment} onChange={e => setEnrollment(e.target.value)} placeholder="Ex.: 2024001234" required autoComplete="off" style={input} />
+      </label>
+      <label style={label}>CPF
+        <input type="text" value={cpf} onChange={e => setCpf(formatCpf(e.target.value))} placeholder="000.000.000-00" required autoComplete="off" inputMode="numeric" style={input} />
+      </label>
+      <label style={label}>E-mail cadastrado na instituição
+        <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="seu.email@instituicao.edu.br" required autoComplete="email" style={input} />
+      </label>
+      {error && <p role="alert" style={{ color: '#dc2626', fontSize: '.8125rem', margin: 0 }}>{error}</p>}
+      <button type="submit" disabled={loading} style={{ ...primary, marginTop: 4, opacity: loading ? .7 : 1, cursor: loading ? 'wait' : 'pointer' }}>
+        {loading ? 'Verificando…' : 'Receber link de acesso'}
+      </button>
+      <p style={{ ...small, textAlign: 'center', margin: '8px 0 0' }}>Você receberá um link pessoal no e-mail vinculado à sua matrícula. Não é preciso criar senha.</p>
+    </form>
+  );
+}
+
+function StudentDashboard({ data, session, purpose, onLogout, onChanged }: { data: Dashboard; session: string; purpose: Purpose; onLogout: () => void; onChanged: () => Promise<void> }) {
+  const required = data.rule?.total_required_minutes ?? 0;
+  const remaining = Math.max(0, required - data.credited_minutes);
+  const pending = data.submissions.filter(s => ['submitted', 'extracting', 'suggestion_ready', 'under_review'].includes(s.status)).length;
+  const catLabel = (id: string | null) => data.categories.find(c => c.id === id)?.label ?? '—';
+  const stat: React.CSSProperties = { ...box, marginBottom: 0 };
+  const statLabel: React.CSSProperties = { fontSize: '.6875rem', color: 'var(--vx-muted,#64748b)', textTransform: 'uppercase', letterSpacing: '.04em' };
+  const statValue: React.CSSProperties = { fontSize: '1.25rem', fontWeight: 700 };
+
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
         <div>
-          <div style={{ fontSize: '.75rem', color: 'var(--vx-muted)' }}>{institutionName}</div>
-          <strong>{data.full_name}</strong>
-          <div style={{ fontSize: '.8125rem', color: 'var(--vx-muted)' }}>Matrícula: {data.enrollment_code}</div>
+          <strong>{data.student.full_name}</strong>
+          <div style={small}>Matrícula {data.student.enrollment_code}{data.student.course_name ? ` · ${data.student.course_name}` : ''}</div>
         </div>
-        <button onClick={onLogout} style={{ fontSize: '.75rem', padding: '4px 12px', background: 'transparent', border: '1px solid var(--vx-border,#e2e8f0)', borderRadius: 6, cursor: 'pointer' }}>Sair</button>
+        <button type="button" onClick={onLogout} style={ghost}>Sair</button>
       </div>
 
-      {/* AC — Saldo */}
-      {(purpose === 'complementary_activities' || data.ac_balance) && (
-        <div style={{ marginBottom: 20 }}>
-          <h3 style={{ fontSize: '.875rem', margin: '0 0 8px' }}>📋 Atividades Complementares</h3>
-          {data.ac_balance ? (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
-              <div style={st}><div style={lbl}>Exigido</div><div style={val}>{minutesToH(data.ac_balance.total_required_minutes)}</div></div>
-              <div style={st}><div style={lbl}>Creditado</div><div style={{ ...val, color: '#059669' }}>{minutesToH(data.ac_balance.credited_minutes)}</div></div>
-              <div style={st}><div style={lbl}>Restante</div><div style={{ ...val, color: data.ac_balance.remaining_minutes <= 0 ? '#059669' : '#f59e0b' }}>{data.ac_balance.remaining_minutes <= 0 ? '✓' : minutesToH(data.ac_balance.remaining_minutes)}</div></div>
+      {purpose === 'complementary_activities' && (
+        <>
+          {data.rule ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(130px,1fr))', gap: 8, marginBottom: 20 }}>
+              <div style={stat}><div style={statLabel}>Exigido</div><div style={statValue}>{minutesToH(required)}</div></div>
+              <div style={stat}><div style={statLabel}>Creditado</div><div style={{ ...statValue, color: '#059669' }}>{minutesToH(data.credited_minutes)}</div></div>
+              <div style={stat}><div style={statLabel}>Restante</div><div style={{ ...statValue, color: remaining <= 0 ? '#059669' : '#b45309' }}>{remaining <= 0 ? 'Concluído' : minutesToH(remaining)}</div></div>
+              <div style={stat}><div style={statLabel}>Em análise</div><div style={statValue}>{pending}</div></div>
             </div>
-          ) : <p style={{ fontSize: '.8125rem', color: 'var(--vx-muted)' }}>Nenhum regulamento vinculado ainda.</p>}
-          {data.ac_submissions?.length > 0 && (
-            <div style={{ marginTop: 8 }}>
-              <div style={lbl}>Suas submissões</div>
-              {data.ac_submissions.map((s: any) => (
-                <div key={s.id} style={{ ...st, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div><strong style={{ fontSize: '.8125rem' }}>{s.title}</strong><div style={{ fontSize: '.75rem', color: 'var(--vx-muted)' }}>{s.issuer || '—'} · {s.documentary_minutes ? minutesToH(s.documentary_minutes) : '—'}</div></div>
-                  <span style={{ fontSize: '.75rem', padding: '2px 8px', borderRadius: 4, background: '#f1f5f9' }}>{s.status}</span>
-                </div>
-              ))}
-            </div>
+          ) : (
+            <p role="status" style={{ ...box, background: '#fffbeb' }}>O regulamento do seu curso ainda não foi cadastrado pela coordenação. O envio de atividades fica disponível assim que ele for publicado.</p>
           )}
-        </div>
+
+          {data.rule && data.categories.length > 0 && <SubmitActivity session={session} categories={data.categories} onDone={onChanged} />}
+
+          <h3 style={{ fontSize: '.9375rem', margin: '20px 0 8px' }}>Suas solicitações</h3>
+          {data.submissions.length === 0 ? <p style={small}>Nenhuma atividade enviada ainda.</p> : data.submissions.map(s => (
+            <div key={s.id} style={{ ...box, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+              <div style={{ minWidth: 0 }}>
+                <strong style={{ fontSize: '.8125rem' }}>{s.title}</strong>
+                <div style={small}>{catLabel(s.category_id)} · {s.issuer || 'Emissor não informado'} · {minutesToH(s.documentary_minutes)} declaradas · {new Date(s.created_at).toLocaleDateString('pt-BR')}</div>
+              </div>
+              <span style={{ fontSize: '.75rem', padding: '2px 8px', borderRadius: 4, background: '#f1f5f9', whiteSpace: 'nowrap' }}>{STATUS_LABEL[s.status] ?? s.status}</span>
+            </div>
+          ))}
+          <p style={{ ...small, marginTop: 12 }}>As horas declaradas são conferidas pela coordenação conforme o regulamento. Só contam no saldo depois de creditadas.</p>
+        </>
       )}
 
-      {/* Estágio */}
-      {(purpose === 'mandatory_internship' || data.placements) && (
-        <div>
-          <h3 style={{ fontSize: '.875rem', margin: '0 0 8px' }}>🏢 Estágio Obrigatório</h3>
-          {data.placements?.length > 0 ? data.placements.map((p: any) => (
-            <div key={p.id} style={{ ...st, marginBottom: 10 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <strong style={{ fontSize: '.8125rem' }}>{p.organization_name || 'Concedente'}</strong>
-                <span style={{ fontSize: '.75rem', padding: '2px 8px', borderRadius: 4, background: '#f1f5f9' }}>{p.lifecycle}</span>
-              </div>
-              <div style={{ fontSize: '.75rem', color: 'var(--vx-muted)', marginTop: 4 }}>
-                {p.field_name || 'Campo'}{p.starts_at ? ` · Início: ${new Date(p.starts_at).toLocaleDateString('pt-BR')}` : ''}
-                {p.advisor_name ? ` · Orient.: ${p.advisor_name}` : ''}
-              </div>
-              {p.hours_completed != null && <div style={{ fontSize: '.75rem', marginTop: 4 }}>Horas cumpridas: <strong>{minutesToH(p.hours_completed)}</strong></div>}
+      {purpose === 'mandatory_internship' && (
+        <>
+          <h3 style={{ fontSize: '.9375rem', margin: '0 0 8px' }}>Estágio Obrigatório</h3>
+          {data.placements.length === 0 ? <p style={small}>Nenhum estágio vinculado à sua matrícula.</p> : data.placements.map(p => (
+            <div key={p.id} style={box}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}><strong style={{ fontSize: '.8125rem' }}>Estágio</strong><span style={{ fontSize: '.75rem' }}>{p.lifecycle}</span></div>
+              <div style={small}>{p.starts_at ? `Início ${new Date(p.starts_at).toLocaleDateString('pt-BR')}` : ''}{p.ends_at ? ` · Término ${new Date(p.ends_at).toLocaleDateString('pt-BR')}` : ''}{p.advisor_name ? ` · Orientação: ${p.advisor_name}` : ''}</div>
             </div>
-          )) : <p style={{ fontSize: '.8125rem', color: 'var(--vx-muted)' }}>Nenhum estágio vinculado.</p>}
-        </div>
+          ))}
+        </>
       )}
     </div>
   );
 }
 
-function minutesToH(m: number): string {
-  if (!m || m <= 0) return '0h';
-  const h = Math.floor(m / 60);
-  const min = m % 60;
-  return min > 0 ? `${h}h${min}min` : `${h}h`;
+function SubmitActivity({ session, categories, onDone }: { session: string; categories: Category[]; onDone: () => Promise<void> }) {
+  const [open, setOpen] = useState(false);
+  const [title, setTitle] = useState('');
+  const [issuer, setIssuer] = useState('');
+  const [categoryId, setCategoryId] = useState('');
+  const [hours, setHours] = useState('');
+  const [start, setStart] = useState('');
+  const [end, setEnd] = useState('');
+  const [file, setFile] = useState<File | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+
+  const reset = () => { setTitle(''); setIssuer(''); setCategoryId(''); setHours(''); setStart(''); setEnd(''); setFile(null); };
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setMsg(null);
+    if (!file) { setMsg({ ok: false, text: 'Anexe o comprovante.' }); return; }
+    setSaving(true);
+    try {
+      const up = await call<{ path: string; token: string }>({ action: 'upload_url', session, content_type: file.type, size: file.size });
+      const { error: upErr } = await supabase.storage.from('vertice-documents').uploadToSignedUrl(up.path, up.token, file, { contentType: file.type });
+      if (upErr) throw new Error('file_missing');
+      await call({ action: 'submit', session, title: title.trim(), issuer: issuer.trim(), category_id: categoryId, hours: Number(hours.replace(',', '.')), start_date: start, end_date: end, path: up.path });
+      reset();
+      setOpen(false);
+      setMsg({ ok: true, text: 'Atividade enviada. Ela aparece abaixo como "Enviada" até a análise da coordenação.' });
+      await onDone();
+    } catch (err) {
+      setMsg({ ok: false, text: ERROR_LABEL[(err as Error).message] || 'Não foi possível enviar agora. Tente novamente.' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!open) return (
+    <div>
+      {msg && <p role="status" style={{ fontSize: '.8125rem', color: msg.ok ? '#047857' : '#dc2626' }}>{msg.text}</p>}
+      <button type="button" onClick={() => { setMsg(null); setOpen(true); }} style={{ ...primary, width: '100%' }}>+ Enviar nova atividade</button>
+    </div>
+  );
+
+  const cat = categories.find(c => c.id === categoryId);
+  return (
+    <form onSubmit={submit} style={{ ...box, padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <strong>Nova atividade complementar</strong>
+      <label style={label}>Categoria
+        <select value={categoryId} onChange={e => setCategoryId(e.target.value)} required style={input}>
+          <option value="">Selecione…</option>
+          {categories.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+        </select>
+      </label>
+      {cat?.description && <p style={{ ...small, margin: 0 }}>{cat.description}</p>}
+      {cat?.max_per_item_minutes ? <p style={{ ...small, margin: 0 }}>Limite por atividade nesta categoria: {minutesToH(cat.max_per_item_minutes)}.</p> : null}
+      <label style={label}>Título da atividade
+        <input value={title} onChange={e => setTitle(e.target.value)} maxLength={200} required placeholder="Ex.: Congresso de Direito Constitucional" style={input} />
+      </label>
+      <label style={label}>Instituição emissora do certificado
+        <input value={issuer} onChange={e => setIssuer(e.target.value)} maxLength={200} placeholder="Ex.: OAB/TO" style={input} />
+      </label>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(140px,1fr))', gap: 10 }}>
+        <label style={label}>Carga horária (horas)
+          <input value={hours} onChange={e => setHours(e.target.value)} inputMode="decimal" required placeholder="Ex.: 8" style={input} />
+        </label>
+        <label style={label}>Início<input type="date" value={start} onChange={e => setStart(e.target.value)} style={input} /></label>
+        <label style={label}>Término<input type="date" value={end} onChange={e => setEnd(e.target.value)} style={input} /></label>
+      </div>
+      <label style={label}>Comprovante (PDF ou imagem, até 10 MB)
+        <input type="file" accept="application/pdf,image/jpeg,image/png,image/webp" onChange={e => setFile(e.target.files?.[0] ?? null)} required style={input} />
+      </label>
+      {msg && !msg.ok && <p role="alert" style={{ color: '#dc2626', fontSize: '.8125rem', margin: 0 }}>{msg.text}</p>}
+      <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+        <button type="button" onClick={() => { reset(); setOpen(false); }} style={ghost}>Cancelar</button>
+        <button type="submit" disabled={saving} style={{ ...primary, opacity: saving ? .7 : 1 }}>{saving ? 'Enviando…' : 'Enviar atividade'}</button>
+      </div>
+    </form>
+  );
 }
