@@ -496,31 +496,39 @@ function ConfigCheck({ label, ok, action }: { label: string; ok: boolean; action
 function CsvImportButton({ institutionId, courses, onImported }: { institutionId: string; courses: { id: string; name: string }[]; onImported: (count: number) => void }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [importing, setImporting] = useState(false);
+  const [progress, setProgress] = useState('');
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
     setImporting(true);
+    setProgress('📂 Lendo arquivo...');
     try {
       const text = await file.text();
       const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-      if (lines.length < 2) { alert('CSV vazio ou sem cabeçalho.'); return; }
+      if (lines.length < 2) { setProgress('❌ CSV vazio ou sem cabeçalho.'); setImporting(false); return; }
       // Parse header
       const sep = lines[0].includes(';') ? ';' : ',';
-      const headers = lines[0].split(sep).map(h => h.trim().toLowerCase().replace(/"/g, ''));
-      const nameIdx = headers.findIndex(h => ['nome','full_name','name','aluno'].includes(h));
-      const enrollIdx = headers.findIndex(h => ['matricula','enrollment_code','enrollment','mat'].includes(h));
-      const emailIdx = headers.findIndex(h => ['email','e-mail'].includes(h));
-      const cpfIdx = headers.findIndex(h => ['cpf','cpf_hash'].includes(h));
-      const courseIdx = headers.findIndex(h => ['curso','course','course_name'].includes(h));
-      if (nameIdx < 0 || enrollIdx < 0) { alert('CSV precisa ter colunas "nome" e "matricula" (ou equivalentes).'); return; }
+      const headers = lines[0].split(sep).map(h => h.trim().toLowerCase().replace(/"/g, '').normalize('NFD').replace(/[̀-ͯ]/g, ''));
+      setProgress(`📋 Colunas encontradas: ${headers.join(', ')}`);
+      const nameIdx = headers.findIndex(h => ['nome','full_name','name','aluno','nome_completo','nome completo'].includes(h));
+      const enrollIdx = headers.findIndex(h => ['matricula','enrollment_code','enrollment','mat','codigo_matricula','ra'].includes(h));
+      const emailIdx = headers.findIndex(h => ['email','e-mail','e_mail'].includes(h));
+      const cpfIdx = headers.findIndex(h => ['cpf','cpf_hash','documento'].includes(h));
+      const courseIdx = headers.findIndex(h => ['curso','course','course_name','nome_curso'].includes(h));
+      if (nameIdx < 0 || enrollIdx < 0) {
+        setProgress(`❌ Colunas obrigatórias não encontradas. Precisa ter "nome" (encontrado: ${nameIdx >= 0 ? '✅' : '❌'}) e "matricula" (encontrado: ${enrollIdx >= 0 ? '✅' : '❌'}). Colunas do arquivo: ${headers.join(', ')}`);
+        setImporting(false); return;
+      }
+      setProgress(`✅ Colunas mapeadas: nome=${headers[nameIdx]}, matrícula=${headers[enrollIdx]}${cpfIdx >= 0 ? ', cpf=' + headers[cpfIdx] : ''}${emailIdx >= 0 ? ', email=' + headers[emailIdx] : ''}. Processando ${lines.length - 1} linhas...`);
 
       const rows: any[] = [];
+      let skipped = 0;
       for (let i = 1; i < lines.length; i++) {
         const cols = lines[i].split(sep).map(c => c.trim().replace(/^"|"$/g, ''));
         const name = cols[nameIdx];
         const enrollment = cols[enrollIdx];
-        if (!name || !enrollment) continue;
+        if (!name || !enrollment) { skipped++; continue; }
         // Match course by name
         const courseName = courseIdx >= 0 ? cols[courseIdx] : '';
         const course = courseName ? courses.find(c => c.name.toLowerCase().includes(courseName.toLowerCase())) : courses[0];
@@ -530,7 +538,7 @@ function CsvImportButton({ institutionId, courses, onImported }: { institutionId
           const enc = new TextEncoder().encode(cpfHash);
           const buf = await crypto.subtle.digest('SHA-256', enc);
           cpfHash = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
-        } else { cpfHash = ''; }
+        } else if (cpfHash && cpfHash.length !== 11) { cpfHash = ''; }
 
         rows.push({
           institution_id: institutionId,
@@ -544,31 +552,42 @@ function CsvImportButton({ institutionId, courses, onImported }: { institutionId
         });
       }
 
-      if (rows.length === 0) { alert('Nenhum registro válido encontrado no CSV.'); return; }
+      if (rows.length === 0) { setProgress(`❌ Nenhum registro válido. ${skipped} linhas ignoradas (sem nome ou matrícula).`); setImporting(false); return; }
+      setProgress(`📤 Enviando ${rows.length} alunos para o banco... (${skipped} linhas ignoradas)`);
 
       // Batch upsert
       const batchSize = 100;
       let imported = 0;
       for (let i = 0; i < rows.length; i += batchSize) {
         const batch = rows.slice(i, i + batchSize);
+        setProgress(`📤 Enviando lote ${Math.floor(i/batchSize)+1} de ${Math.ceil(rows.length/batchSize)}... (${imported} importados)`);
         const { error } = await supabase.from('vertice_student_registry').upsert(batch, { onConflict: 'institution_id,enrollment_code' });
-        if (error) { alert(`Erro no lote ${Math.floor(i/batchSize)+1}: ${error.message}`); break; }
+        if (error) {
+          setProgress(`❌ Erro no lote ${Math.floor(i/batchSize)+1}: ${error.message}. ${imported} alunos importados antes do erro.`);
+          setImporting(false); return;
+        }
         imported += batch.length;
       }
+      setProgress(`✅ Importação concluída! ${imported} alunos importados com sucesso.`);
       onImported(imported);
-    } catch (err) { alert('Erro ao processar CSV: ' + (err as Error).message); }
+    } catch (err) { setProgress(`❌ Erro ao processar: ${(err as Error).message}`); }
     finally { setImporting(false); if (fileRef.current) fileRef.current.value = ''; }
   }
 
   return (
     <div>
-      <input ref={fileRef} type="file" accept=".csv,.txt" onChange={handleFile} style={{ display: 'none' }} />
-      <button className="alumni-btn-export" onClick={() => fileRef.current?.click()} disabled={importing}>
-        {importing ? 'Importando…' : '📥 Importar CSV'}
+      <input ref={fileRef} type="file" accept=".csv,.txt,.xlsx" onChange={handleFile} style={{ display: 'none' }} />
+      <button className="alumni-btn-export" onClick={() => fileRef.current?.click()} disabled={importing} style={{fontSize:13,padding:'8px 16px'}}>
+        {importing ? '⏳ Importando…' : '📥 Importar CSV'}
       </button>
-      <p style={{ fontSize: '.6875rem', color: 'var(--vx-muted)', margin: '4px 0 0', textAlign: 'right' }}>
-        Colunas: nome, matricula, email, cpf, curso (opcional)
+      <p style={{ fontSize: '.75rem', color: 'var(--vx-muted)', margin: '6px 0 0' }}>
+        Colunas obrigatórias: <strong>nome</strong> e <strong>matricula</strong>. Opcionais: email, cpf, curso.
       </p>
+      {progress && <div style={{ marginTop: 8, padding: '10px 14px', borderRadius: 8, fontSize: '.8rem', lineHeight: 1.6,
+        background: progress.startsWith('✅') ? '#f0fdf4' : progress.startsWith('❌') ? '#fef2f2' : '#eff6ff',
+        border: '1px solid ' + (progress.startsWith('✅') ? '#86efac' : progress.startsWith('❌') ? '#fecaca' : '#93c5fd'),
+        color: progress.startsWith('✅') ? '#065f46' : progress.startsWith('❌') ? '#991b1b' : '#1e40af'
+      }}>{progress}</div>}
     </div>
   );
 }
