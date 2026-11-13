@@ -17,6 +17,7 @@ const VerticeMobilePublicPreview = lazy(() => import("./components/bi/VerticeMob
 const DemoApp = lazy(() => import("./DemoApp"));
 const ExperiencePortal = lazy(() => import("./pages/public/ExperiencePortal"));
 const ExperienceAdmin = lazy(() => import("./pages/ExperienceAdmin"));
+const ExtensaoConvite = lazy(() => import("./pages/public/ExtensaoConvite"));
 const demoPaths = new Set([
   "/demonstracao",
   "/painel",
@@ -59,6 +60,7 @@ export default function App() {
       if (description) description.content = page.description;
     }
   }, [path, normalized, isPublic, iesActive]);
+  if (normalized === "/extensao-convite") return <ErrorBoundary><Suspense fallback={<main style={{padding:40}} role="status">Carregando convite…</main>}><ExtensaoConvite /></Suspense></ErrorBoundary>;
   if (normalized === "/mobile/apresentacao") return <ErrorBoundary><Suspense fallback={<main role="status">Carregando apresentação Vértice Mobile…</main>}><VerticeMobilePublicPreview /></Suspense></ErrorBoundary>;
   if (normalized === "/mobile") return <ErrorBoundary><Suspense fallback={<main role="status">Carregando Vértice Mobile…</main>}><VerticeMobileBI /></Suspense></ErrorBoundary>;
   if (normalized === "/experience") return <ErrorBoundary><PublicLayout><Suspense fallback={<main className="corp-container corp-section" role="status">Abrindo Vértice Experience…</main>}><ExperiencePortal /></Suspense></PublicLayout></ErrorBoundary>;

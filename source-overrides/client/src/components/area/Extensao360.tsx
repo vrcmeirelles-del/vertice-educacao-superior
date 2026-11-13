@@ -247,7 +247,7 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
       // 3. Buscar convite para gerar link
       const { data: inv } = await supabase.from('vertice_invites').select('id').eq('institution_id', institutionId).eq('email', mail).is('accepted_at', null).order('created_at', { ascending: false }).limit(1);
       const invId = inv?.[0]?.id;
-      const link = `${window.location.origin}/entrar${invId ? '?convite=' + invId : ''}`;
+      const link = `${window.location.origin}/extensao-convite${invId ? '?convite=' + invId : ''}`;
       setInviteLink(link);
       const created = signUpData?.user && !signUpErr;
       setInviteMsg(created
