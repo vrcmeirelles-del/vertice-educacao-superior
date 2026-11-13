@@ -67,7 +67,7 @@ const definitions = new Map(HELP_GROUPS.flatMap(group=>group.entries.map(e=>[nor
 // Exact aliases only: avoid assigning financial or regulatory meanings to unrelated labels.
 const aliases: Record<string,string> = {'total de vinculos':'vinculos','total matriculados':'matriculados','taxa de evasao':'evasao','rf falta':'por falta','rn nota':'por nota','ra apos exame':'apos exame','ocupacao de vagas':'taxa de ocupacao','margem ebitda %':'margem ebitda','grupo de entrada':'grupo de ingresso','email':'e mail','data limite':'prazo'};
 export function findHelp(term: string) {
-  const key=normalizeHelp(term.replace(/\s*\*\s*$/, ''));
+  const key=normalizeHelp(term.replace(/\s*\*\s*$/, '').replace(/\s*\((?:R\$|%|opcional)\)\s*$/i,''));
   return definitions.get(aliases[key] || key);
 }
 export function fieldGuidance(title: string, type='text', required=false) {
@@ -84,4 +84,4 @@ export function fieldGuidance(title: string, type='text', required=false) {
   return instruction+(required?' O preenchimento é obrigatório.':'')+' Se precisar de uma orientação adicional, use o campo de perguntar à IA disponível na plataforma.';
 }
 
-export function helpAnchor(term:string) { const key=normalizeHelp(term); return (aliases[key]||key).replace(/ /g,'-'); }
+export function helpAnchor(term:string) { const key=normalizeHelp(term.replace(/\s*\((?:R\$|%|opcional)\)\s*$/i,'')); return (aliases[key]||key).replace(/ /g,'-'); }

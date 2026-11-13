@@ -15,7 +15,7 @@ it('shows help without submitting, changing a field, or making an AI request',as
  await click(button());expect(document.querySelector('[role="dialog"]')?.textContent).toContain('Nome oficial da instituição.');expect(submit).not.toHaveBeenCalled();expect(change).not.toHaveBeenCalled();expect(container.querySelector<HTMLInputElement>('input')?.value).toBe('UNITOP');expect(fetchSpy).not.toHaveBeenCalled();expect(button().type).toBe('button');expect(container.querySelector('label')?.htmlFor).toBe('name');
 });
 it('does not toggle checkboxes while opening help',async()=>{
- const change=vi.fn();await act(async()=>root.render(React.createElement(HelpLabel,{},React.createElement('input',{type:'checkbox',onChange:change}),'Receber avisos')));await click(button());expect(change).not.toHaveBeenCalled();expect(container.querySelector<HTMLInputElement>('input')?.checked).toBe(false);
+ const change=vi.fn();await act(async()=>root.render(React.createElement(HelpLabel,{},React.createElement('input',{type:'checkbox',onChange:change}),'Receber avisos')));await click(button());expect(change).not.toHaveBeenCalled();expect(container.querySelector<HTMLInputElement>('input')?.checked).toBe(false);const field=container.querySelector<HTMLInputElement>('input')!;expect(container.querySelector('label')?.htmlFor).toBe(field.id);expect(document.getElementById(field.getAttribute('aria-labelledby')!)?.textContent).toBe('Receber avisos');
 });
 it('closes on Escape and restores focus to the trigger',async()=>{
  await act(async()=>root.render(React.createElement(ContextHelp,{title:'EBITDA'})));button().focus();await click(button());expect(button().getAttribute('aria-expanded')).toBe('true');await act(async()=>{document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));await tick()});expect(document.querySelector('[role="dialog"]')).toBeNull();expect(document.activeElement).toBe(button());
@@ -28,4 +28,7 @@ it('preserves select semantics and supports newly rendered fields',async()=>{
 });
 it('covers workspace modules and financial, regulatory, inclusion and school definitions',()=>{
  for(const term of ['EBITDA','ENEM','ENAMED','Residência Médica','PEI','Overhead','CPA e Autoavaliação','Validação Pendente','Aprendizagem Conectada'])expect(findHelp(term),term).toBeTruthy();expect(normalizeHelp('Pré-validação')).toBe(normalizeHelp('pre validacao'));expect(HELP_GROUPS.find(g=>g.group==='Módulos e funcionalidades')?.entries.length).toBeGreaterThan(40);expect(HELP_GROUPS.flatMap(g=>g.entries).length).toBeGreaterThan(150);
+});
+it('toggles the same trigger closed on a second click',async()=>{
+ await act(async()=>root.render(React.createElement(ContextHelp,{title:'EBITDA'})));await click(button());expect(document.querySelector('[role="dialog"]')).not.toBeNull();await click(button());expect(document.querySelector('[role="dialog"]')).toBeNull();
 });

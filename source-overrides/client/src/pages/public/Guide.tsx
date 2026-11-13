@@ -32,8 +32,8 @@ export default function Guide() {
       />
       <section className="corp-container corp-section guide">
         <div className="guide-search">
-          <HelpLabel htmlFor="guide-q">Buscar um termo ou dúvida</HelpLabel>
-          <input id="guide-q" type="search" value={q} onChange={e => setQ(e.target.value)} placeholder="Ex.: EBITDA, ENEM, PEI, evidência, 5W2H" />
+          <HelpLabel htmlFor="guide-q" help="Digite um termo, campo ou funcionalidade para filtrar as explicações e perguntas frequentes. A busca também encontra palavras sem acentos.">Buscar um termo ou dúvida</HelpLabel>
+          <input id="guide-q" aria-label="Buscar um termo ou dúvida" type="search" value={q} onChange={e => setQ(e.target.value)} placeholder="Ex.: EBITDA, ENEM, PEI, evidência, 5W2H" />
         </div>
 
         <p className="guide-field-count">{HELP_GROUPS.reduce((total,group)=>total+group.entries.length,0)} explicações para consulta. Clique no “?” ao lado dos campos e termos durante o uso do portal.</p>
