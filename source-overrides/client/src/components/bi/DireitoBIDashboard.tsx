@@ -85,6 +85,7 @@ export default function DireitoBIDashboard({ institutionId, courseId, courseCode
     { key: 'disciplinas', label: '📚 Disciplinas', color: '#f59e0b' },
     { key: 'fantasmas', label: '👻 Fantasmas', color: '#64748b' },
     { key: 'estrategia', label: '🎯 Estratégia', color: '#059669' },
+    { key: 'alerta262', label: '🚨 Alertas 26.2', color: '#dc2626' },
   ];
 
   return (
@@ -125,6 +126,7 @@ export default function DireitoBIDashboard({ institutionId, courseId, courseCode
       {!drill && tab === 'disciplinas' && <DisciplinasTab outcomes={outcomes} onDrill={setDrill} />}
       {!drill && tab === 'fantasmas' && <FantasmasTab data={fantasmas} evolucao={evolucao} />}
       {!drill && tab === 'estrategia' && <EstrategiaTab profs={profs} profsPerSem={profsPerSem} evolucao={evolucao} />}
+      {!drill && tab === 'alerta262' && <Alertas262Tab outcomes={outcomes} evolucao={evolucao} />}
     </div>
   );
 }
@@ -652,5 +654,189 @@ function EstrategiaTab({ profs, profsPerSem, evolucao }: { profs: any[]; profsPe
         📌 <strong>Ação:</strong> Repetir esta análise completa ao final de 2026/02 para verificar se intervenções surtiram efeito.
       </div>
     </Card>
+  </div>;
+}
+
+/* ============ ALERTAS 2026/02 ============ */
+function Alertas262Tab({ outcomes, evolucao }: { outcomes: any[]; evolucao: any[] }) {
+  const sem = '2026/02';
+  const rows = outcomes.filter(o => o.semester === sem && o.discipline_enrollments > 0);
+  const ev = evolucao.find(e => e.semestre === sem);
+  const totalAlunos = ev?.matriculados || ev?.total_matriculados || 353;
+
+  // Disciplinas com RF já registrado
+  const comRF = rows.filter(r => r.rf > 0).sort((a, b) => b.rf - a.rf);
+  const totalRF = comRF.reduce((s, r) => s + r.rf, 0);
+
+  // Disciplinas sem nenhuma nota (avg_final null e passed_direct = 0) — AV1 não aplicada
+  const semNota = rows.filter(r => !r.avg_final && r.passed_direct === 0 && r.rf === 0);
+
+  // Disciplinas com nota já lançada (parcial)
+  const comNota = rows.filter(r => r.avg_final || r.passed_direct > 0);
+
+  // Turmas com maior número de TR (transferidos = saídas no semestre)
+  const trByTurma: Record<string, number> = {};
+  for (const r of rows) {
+    const trMatch = r.other_status?.match(/TR:(\d+)/);
+    if (trMatch) trByTurma[r.class_label] = Math.max(trByTurma[r.class_label] || 0, parseInt(trMatch[1]));
+  }
+
+  // Períodos com dados
+  const periodos = [...new Set(rows.map(r => r.academic_period))].sort();
+  const byPeriodo: Record<string, typeof rows> = {};
+  for (const r of rows) { if (!byPeriodo[r.academic_period]) byPeriodo[r.academic_period] = []; byPeriodo[r.academic_period].push(r); }
+
+  return <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    {/* Header de alerta */}
+    <div style={{ ...card, borderLeft: '4px solid #dc2626', background: 'linear-gradient(135deg, #fef2f2, #fff)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <strong style={{ fontSize: '1.2rem', color: '#dc2626' }}>🚨 Painel de Alerta — 2026/02 (Semestre em Curso)</strong>
+          <p style={{ fontSize: '.85rem', color: '#64748b', margin: '4px 0 0' }}>Dados parciais: semestre em andamento. O que já sabemos agora e exige ação imediata.</p>
+        </div>
+        <div style={{ textAlign: 'right' }}>
+          <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#dc2626' }}>{totalRF}</div>
+          <div style={{ fontSize: '.7rem', color: '#64748b' }}>RF já registrados</div>
+        </div>
+      </div>
+    </div>
+
+    {/* KPIs rápidos */}
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 8 }}>
+      {[
+        { label: 'Matriculados', value: totalAlunos, color: '#2563eb' },
+        { label: 'Disciplinas ofertadas', value: rows.length, color: '#7c3aed' },
+        { label: 'Com RF registrado', value: comRF.length, color: '#dc2626', bad: true },
+        { label: 'Alunos c/ falta', value: totalRF, color: '#dc2626', bad: true },
+        { label: 'Sem AV1 lançada', value: semNota.length, color: '#f59e0b' },
+        { label: 'Períodos ativos', value: periodos.length, color: '#0891b2' },
+      ].map((k, i) => (
+        <div key={i} style={{ ...card, padding: '10px 12px', borderLeft: `3px solid ${k.color}`, background: k.bad ? '#fef2f2' : undefined }}>
+          <div style={{ fontSize: '1.3rem', fontWeight: 800, color: k.color }}>{k.value}</div>
+          <div style={{ fontSize: '.65rem', color: '#64748b', marginTop: 2 }}>{k.label}</div>
+        </div>
+      ))}
+    </div>
+
+    {/* ALERTA 1: Disciplinas com RF — ação URGENTE */}
+    {comRF.length > 0 && <div style={{ ...card, borderLeft: '4px solid #dc2626' }}>
+      <strong style={{ color: '#dc2626' }}>🔴 URGENTE — {totalRF} alunos já com reprovação por falta em andamento</strong>
+      <p style={{ fontSize: '.8rem', color: '#64748b', margin: '4px 0 10px' }}>Estas disciplinas já registram RF no diário. Alunos pararam de frequentar. Busca ativa imediata.</p>
+      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <thead><tr>{['Disciplina','Professor','Turma','Per.','Alunos','RF','CR','Situação'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
+        <tbody>{comRF.map((r, i) => {
+          const crMatch = r.other_status?.match(/CR:(\d+)/);
+          const cr = crMatch ? parseInt(crMatch[1]) : 0;
+          const pctRF = r.discipline_enrollments > 0 ? Math.round(100 * r.rf / r.discipline_enrollments) : 0;
+          return <tr key={i} style={{ background: '#fef2f2' }}>
+            <td style={{ ...td, fontWeight: 700, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={r.discipline}>{r.discipline}</td>
+            <td style={{ ...td, fontSize: '.7rem', maxWidth: 140 }} title={r.teachers}>{r.teachers?.split(' ').slice(0, 3).join(' ')}</td>
+            <td style={td}>{r.class_label}</td>
+            <td style={tdR}>{r.academic_period}</td>
+            <td style={tdR}>{r.discipline_enrollments}</td>
+            <td style={{ ...tdR, fontWeight: 800, color: '#dc2626', fontSize: '.95rem' }}>{r.rf}</td>
+            <td style={{ ...tdR, color: '#2563eb' }}>{cr}</td>
+            <td style={td}><span style={badge(pctRF > 25 ? '#dc2626' : '#f59e0b')}>{pctRF}% faltando</span></td>
+          </tr>;
+        })}</tbody>
+      </table>
+      <div style={{ marginTop: 10, padding: 10, background: '#eff6ff', borderRadius: 8, fontSize: '.8rem' }}>
+        📌 <strong>Ação imediata:</strong> Contatar os {totalRF} alunos com RF por WhatsApp/telefone AGORA. Perguntar: "O que está acontecendo? Precisa de ajuda?" Notificar cada professor. Ativar tutoria emergencial.
+      </div>
+    </div>}
+
+    {/* ALERTA 2: Turmas superlotadas no 4º período */}
+    <div style={{ ...card, borderLeft: '4px solid #f59e0b' }}>
+      <strong style={{ color: '#f59e0b' }}>⚠ ATENÇÃO — DIR-4A com 53 alunos (133% da capacidade ideal)</strong>
+      <p style={{ fontSize: '.8rem', color: '#64748b', margin: '4px 0 10px' }}>Turma mais lotada do semestre. 7 disciplinas para 49-53 alunos em uma única sala.</p>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 8 }}>
+        {rows.filter(r => r.class_label === 'DIR-4A').map((r, i) => {
+          const crM = r.other_status?.match(/CR:(\d+)/); const trM = r.other_status?.match(/TR:(\d+)/);
+          return <div key={i} style={{ padding: '8px 10px', borderRadius: 8, background: r.rf > 0 ? '#fef2f2' : '#f8fafc', border: '1px solid #e2e8f0', fontSize: '.75rem' }}>
+            <div style={{ fontWeight: 700, marginBottom: 2 }}>{r.discipline?.split('(')[0]?.substring(0, 35)}</div>
+            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+              <span style={badge('#2563eb')}>{r.discipline_enrollments} alunos</span>
+              {r.rf > 0 && <span style={badge('#dc2626')}>{r.rf} RF</span>}
+              {crM && <span style={badge('#16a34a')}>{crM[1]} cursando</span>}
+              {trM && <span style={badge('#64748b')}>{trM[1]} transf.</span>}
+            </div>
+          </div>;
+        })}
+      </div>
+    </div>
+
+    {/* Visão por período */}
+    <div style={card}>
+      <strong>📚 Situação por Período — 2026/02</strong>
+      <p style={{ fontSize: '.8rem', color: '#64748b', margin: '4px 0 12px' }}>Cada período com suas disciplinas, status dos alunos e alertas</p>
+      {periodos.map(per => {
+        const perRows = byPeriodo[per] || [];
+        const maxEnroll = Math.max(...perRows.map(r => r.discipline_enrollments));
+        const perRF = perRows.reduce((s, r) => s + r.rf, 0);
+        const perTR = perRows.reduce((s, r) => { const m = r.other_status?.match(/TR:(\d+)/); return s + (m ? parseInt(m[1]) : 0); }, 0);
+        const perCR = perRows.reduce((s, r) => { const m = r.other_status?.match(/CR:(\d+)/); return s + (m ? parseInt(m[1]) : 0); }, 0);
+        const hasNota = perRows.some(r => r.avg_final);
+        return <div key={per} style={{ marginBottom: 12, padding: 12, borderRadius: 10, background: perRF > 5 ? '#fef2f2' : '#f8fafc', border: '1px solid #e2e8f0' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <strong>{per} período</strong>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <span style={badge('#2563eb')}>~{maxEnroll} alunos</span>
+              <span style={badge('#16a34a')}>{perRows.length} disciplinas</span>
+              {perRF > 0 && <span style={badge('#dc2626')}>{perRF} RF</span>}
+              {!hasNota && <span style={badge('#f59e0b')}>Sem AV1</span>}
+              {hasNota && <span style={badge('#16a34a')}>AV1 lançada</span>}
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+            {perRows.map((r, j) => (
+              <span key={j} style={{ padding: '3px 8px', borderRadius: 6, fontSize: '.65rem', fontWeight: 600, background: r.rf > 0 ? '#fee2e2' : r.avg_final ? '#dcfce7' : '#f1f5f9', color: r.rf > 0 ? '#dc2626' : r.avg_final ? '#16a34a' : '#64748b', border: '1px solid ' + (r.rf > 0 ? '#fecaca' : r.avg_final ? '#bbf7d0' : '#e2e8f0') }}
+                title={`${r.discipline} — ${r.teachers}`}>
+                {r.discipline?.split(' ').slice(0, 3).join(' ')}{r.rf > 0 ? ` ⚠${r.rf}RF` : ''}{r.avg_final ? ` ✓${r.avg_final}` : ''}
+              </span>
+            ))}
+          </div>
+        </div>;
+      })}
+    </div>
+
+    {/* Estratégia para reunião */}
+    <div style={{ ...card, borderLeft: '4px solid #059669', background: 'linear-gradient(135deg, #f0fdf4, #fff)' }}>
+      <strong style={{ fontSize: '1.05rem', color: '#059669' }}>🎯 Estratégia para Reunião — O que apresentar sobre 2026/02</strong>
+      <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={{ padding: 12, background: '#fff', borderRadius: 10, border: '1px solid #e2e8f0' }}>
+          <strong>1. Situação geral:</strong>
+          <p style={{ fontSize: '.85rem', margin: '4px 0', lineHeight: 1.6 }}>353 matriculados em {periodos.length} períodos (1º ao {periodos[periodos.length-1]?.replace('º','')}º). Semestre em curso — maioria das notas ainda não lançada (CR = cursando). {comNota.length} disciplinas com avaliação parcial, {semNota.length} sem nenhuma nota.</p>
+        </div>
+        <div style={{ padding: 12, background: '#fef2f2', borderRadius: 10, border: '1px solid #fecaca' }}>
+          <strong style={{ color: '#dc2626' }}>2. Alerta vermelho — {totalRF} alunos já faltando:</strong>
+          <p style={{ fontSize: '.85rem', margin: '4px 0', lineHeight: 1.6 }}>
+            {comRF.map(r => `${r.discipline?.split('(')[0]?.trim()} (${r.class_label}): ${r.rf} alunos com RF`).join('. ')}.
+            Pior caso: <strong>Formas Consensuais (DIR-4A): 16 RF</strong> de 53 alunos (30%). Segundo: <strong>Linguagem Jurídica (DIR-1A): 8 RF</strong> de 36.
+          </p>
+          <p style={{ fontSize: '.85rem', margin: '4px 0', color: '#dc2626', fontWeight: 600 }}>→ Ação: busca ativa imediata dos {totalRF} alunos. Se não houver intervenção, projeta-se ~{Math.round(totalRF * 1.5)} RF ao final do semestre (padrão histórico: RF duplica na 2ª metade).</p>
+        </div>
+        <div style={{ padding: 12, background: '#fffbeb', borderRadius: 10, border: '1px solid #fde68a' }}>
+          <strong style={{ color: '#f59e0b' }}>3. DIR-4A superlotada:</strong>
+          <p style={{ fontSize: '.85rem', margin: '4px 0', lineHeight: 1.6 }}>53 alunos em 7 disciplinas no 4º período. É a turma que veio do grande ingresso de 2025/01 + rematrículas. 16 já faltando em Formas Consensuais. Lotação 133% do ideal.</p>
+          <p style={{ fontSize: '.85rem', margin: '4px 0', color: '#f59e0b', fontWeight: 600 }}>→ Ação: avaliar desdobramento de turma para 2027/01 (DIR-4A + DIR-4B).</p>
+        </div>
+        <div style={{ padding: 12, background: '#eff6ff', borderRadius: 10, border: '1px solid #bfdbfe' }}>
+          <strong style={{ color: '#2563eb' }}>4. Pontos positivos:</strong>
+          <p style={{ fontSize: '.85rem', margin: '4px 0', lineHeight: 1.6 }}>
+            Curso atingiu {periodos.length} períodos simultâneos pela primeira vez. 353 matriculados — recorde. Taxa de trancamento em 2026/02 é apenas 4% (a mais baixa da história do curso). 8º período já funcionando com NPJ (Prática Real I). O curso está se consolidando.
+          </p>
+        </div>
+        <div style={{ padding: 12, background: '#f5f3ff', borderRadius: 10, border: '1px solid #c4b5fd' }}>
+          <strong style={{ color: '#7c3aed' }}>5. Próximos passos:</strong>
+          <ul style={{ fontSize: '.85rem', margin: '4px 0', lineHeight: 1.8, paddingLeft: 20 }}>
+            <li>Busca ativa dos {totalRF} alunos com RF registrado</li>
+            <li>Monitorar AV1 nas disciplinas que ainda não lançaram nota</li>
+            <li>Planejar desdobramento DIR-4A para 2027/01</li>
+            <li>Acompanhar DIR-8A (NPJ) — primeira turma em prática real</li>
+            <li>Repetir esta análise após AV1 para projetar resultado final</li>
+          </ul>
+        </div>
+      </div>
+    </div>
   </div>;
 }
