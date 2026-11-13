@@ -43,7 +43,7 @@ try {
  await page.getByRole('button',{name:'Salvar preparação',exact:true}).click();
  await expectVisible(page.getByRole('heading',{name:'Campanha sintética',exact:true}));
  await screenshot('desktop-campanhas');
- const link=await page.getByLabel('Link de destino com identificação da campanha').inputValue();
+ const link=await page.getByRole('textbox',{name:'Link de destino com identificação da campanha',exact:true}).inputValue();
  assert.equal(new URL(link).origin,'https://ies.example.invalid');assert.equal(new URL(link).searchParams.get('utm_source'),'meta');
  assert.equal(link.includes('Campanha'),false);assert.equal(link.includes('bb000000'),false);
  await controls({conflict:true});
