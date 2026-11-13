@@ -18,6 +18,7 @@ const mini = (color: string, val: number, max: number) => ({ width: Math.min(100
 export default function DireitoBIDashboard({ institutionId, courseId, courseCode, vacancies }: Props) {
   const [evolucao, setEvolucao] = useState<any[]>([]);
   const [ensalamento, setEnsalamento] = useState<any[]>([]);
+  const [ensalamentoReal, setEnsalamentoReal] = useState<any[]>([]);
   const [profs, setProfs] = useState<any[]>([]);
   const [profsPerSem, setProfsPerSem] = useState<any[]>([]);
   const [outcomes, setOutcomes] = useState<any[]>([]);
@@ -33,10 +34,21 @@ export default function DireitoBIDashboard({ institutionId, courseId, courseCode
       supabase.from('vertice_turma_stats').select('semestre,serie,turma,matriculados').eq('institution_id', institutionId).eq('codigo', courseCode).order('semestre', { ascending: true }),
       supabase.from('vertice_offering_outcomes').select('semester,teachers,discipline,class_label,academic_period,discipline_enrollments,passed_direct,passed_final,rf,rn,ra,avg_final,other_status').eq('institution_id', institutionId).eq('course_code', courseCode).gte('semester', '2023/01').order('semester', { ascending: true }),
       supabase.from('v_ghost_students_analysis').select('*').then(r => r).catch(() => ({ data: [] })),
-    ]).then(([evR, enR, ofR, ghR]) => {
+      supabase.from('vertice_eorbit_direito_raio_x').select('semestre,dados').eq('institution_id', institutionId).eq('tipo', 'quantitativo_turma').order('semestre').then(r => r).catch(() => ({ data: [] })),
+    ]).then(([evR, enR, ofR, ghR, enRealR]) => {
       if (ghR.data) setFantasmas((ghR.data as any[]).filter(g => g.semester < '2026/02'));
       if (evR.data) setEvolucao(evR.data.map((d: any) => ({ ...d.payload, date: d.source_report_at })));
       if (enR.data) setEnsalamento(enR.data);
+      // Build ensalamento real
+      if (enRealR.data) {
+        const real: any[] = [];
+        for (const r of enRealR.data as any[]) {
+          const sem = r.semestre; const d = r.dados;
+          if (d.turmas) { for (const t of d.turmas) real.push({ semestre: sem, turma: t.turma, periodo: t.periodo, total: t.total||0, mat: t.mat||0, tranc: t.tranc||0, cancel: t.cancel||0, transf: t.transf||0 }); }
+          else if (d.turma) { real.push({ semestre: sem, turma: d.turma, periodo: d.periodo, total: d.total||0, mat: d.matriculado||0, tranc: d.trancado||0, cancel: d.cancelado||0, transf: d.transferido||0 }); }
+        }
+        setEnsalamentoReal(real);
+      }
       if (ofR.data) {
         const rows = ofR.data as any[];
         setOutcomes(rows);
@@ -108,7 +120,7 @@ export default function DireitoBIDashboard({ institutionId, courseId, courseCode
 
       {/* Tab content */}
       {!drill && tab === 'evolucao' && <EvolucaoTab data={evolucao} vacancies={vacancies} onDrill={setDrill} />}
-      {!drill && tab === 'ensalamento' && <EnsalamentoTab data={ensalamento} vacancies={vacancies} evolucao={evolucao} onDrill={setDrill} />}
+      {!drill && tab === 'ensalamento' && <EnsalamentoTab data={ensalamento} real={ensalamentoReal} vacancies={vacancies} evolucao={evolucao} onDrill={setDrill} />}
       {!drill && tab === 'profs' && <ProfsTab profs={profs} onDrill={setDrill} />}
       {!drill && tab === 'disciplinas' && <DisciplinasTab outcomes={outcomes} onDrill={setDrill} />}
       {!drill && tab === 'fantasmas' && <FantasmasTab data={fantasmas} evolucao={evolucao} />}
@@ -272,95 +284,107 @@ function EvolucaoTab({ data, vacancies, onDrill }: { data: any[]; vacancies: num
 }
 
 /* ============ ENSALAMENTO ============ */
-function EnsalamentoTab({ data, vacancies, evolucao, onDrill }: { data: any[]; vacancies: number; evolucao: any[]; onDrill: (d: any) => void }) {
-  // Heatmap: semestre × período com snapshot E evolução real
-  const sems = [...new Set(data.map(d => d.semestre))].sort();
-  const maxPer = Math.max(...data.map(d => d.serie));
-  const grid: Record<string, Record<number, { turmas: string[]; total: number }>> = {};
-  for (const e of data) {
-    if (!grid[e.semestre]) grid[e.semestre] = {};
-    if (!grid[e.semestre][e.serie]) grid[e.semestre][e.serie] = { turmas: [], total: 0 };
-    grid[e.semestre][e.serie].turmas.push(`${e.turma}(${e.matriculados})`);
-    grid[e.semestre][e.serie].total += e.matriculados;
+function EnsalamentoTab({ data, real, vacancies, evolucao, onDrill }: { data: any[]; real: any[]; vacancies: number; evolucao: any[]; onDrill: (d: any) => void }) {
+  // Use REAL data (total da época) when available, fallback to turma_stats (só ativos hoje)
+  const IDEAL = 40; // alunos por sala ideal
+  const source = real.length > 0 ? real : data.map(d => ({ semestre: d.semestre, turma: d.turma, periodo: d.serie, total: d.matriculados, mat: d.matriculados, tranc: 0, cancel: 0, transf: 0 }));
+
+  // For 2026/01 and 2026/02, supplement from turma_stats if not in real
+  const realSems = new Set(real.map(r => r.semestre));
+  const supplemented = [...source];
+  if (!realSems.has('2026/01')) {
+    for (const d of data.filter(d => d.semestre === '2026/01')) {
+      const ev = evolucao.find(e => e.semestre === '2026/01');
+      supplemented.push({ semestre: d.semestre, turma: d.turma, periodo: d.serie, total: d.matriculados, mat: d.matriculados, tranc: 0, cancel: 0, transf: 0 });
+    }
   }
-  const periodos = Array.from({ length: Math.min(maxPer, 10) }, (_, i) => i + 1);
+  if (!realSems.has('2026/02')) {
+    for (const d of data.filter(d => d.semestre === '2026/02')) {
+      supplemented.push({ semestre: d.semestre, turma: d.turma, periodo: d.serie, total: d.matriculados, mat: d.matriculados, tranc: 0, cancel: 0, transf: 0 });
+    }
+  }
+
+  const bySem: Record<string, any[]> = {};
+  for (const r of supplemented) { if (!bySem[r.semestre]) bySem[r.semestre] = []; bySem[r.semestre].push(r); }
+  const sems = Object.keys(bySem).sort();
 
   return <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-    {/* Heatmap */}
     <div style={card}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <div><strong style={{ fontSize: '1rem' }}>Mapa de Ensalamento — Semestre × Período</strong><br/><span style={{ fontSize: '.75rem', color: 'var(--vx-muted, #64748b)' }}>Cada célula: alunos matriculados por turma naquele semestre. Clique para detalhar.</span></div>
-        <span style={badge('#7c3aed')}>{vacancies} vagas/sem · {vacancies * 2}/ano</span>
-      </div>
-      <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 3, minWidth: 600 }}>
-          <thead><tr>
-            <th style={{ ...th, position: 'sticky', left: 0, background: 'var(--vx-surface, #fff)', zIndex: 1 }}>Semestre</th>
-            {periodos.map(p => <th key={p} style={{ ...th, textAlign: 'center', minWidth: 65 }}>{p}º per.</th>)}
-            <th style={{ ...th, textAlign: 'right' }}>Total</th>
-            <th style={{ ...th, textAlign: 'right' }}>Turmas</th>
-          </tr></thead>
-          <tbody>{sems.map(sem => {
-            const semTotal = Object.values(grid[sem] || {}).reduce((s, c) => s + c.total, 0);
-            const semTurmas = Object.values(grid[sem] || {}).reduce((s, c) => s + c.turmas.length, 0);
-            return <tr key={sem} style={{ cursor: 'pointer' }} onClick={() => onDrill({ type: 'semestre', data: { semestre: sem } })}
-              onMouseEnter={e => (e.currentTarget.style.opacity = '.85')} onMouseLeave={e => (e.currentTarget.style.opacity = '1')}>
-              <td style={{ padding: '6px 8px', fontWeight: 700, fontSize: '.85rem', position: 'sticky', left: 0, background: 'var(--vx-surface, #fff)', zIndex: 1 }}>{sem}</td>
-              {periodos.map(p => {
-                const cell = grid[sem]?.[p];
-                if (!cell) return <td key={p} style={{ textAlign: 'center', padding: 4, borderRadius: 6, background: '#f8fafc', color: '#e2e8f0', fontSize: '.75rem' }}>—</td>;
-                const intensity = Math.min(1, cell.total / 55);
-                const bg = cell.total > 40 ? `rgba(37, 99, 235, ${0.15 + intensity * 0.35})` : cell.total > 20 ? `rgba(37, 99, 235, ${0.08 + intensity * 0.15})` : '#f0f9ff';
-                return <td key={p} style={{ textAlign: 'center', padding: '6px 4px', borderRadius: 6, background: bg, transition: 'background .2s' }}>
-                  <div style={{ fontWeight: 800, fontSize: '.9rem', color: '#1e293b' }}>{cell.total}</div>
-                  <div style={{ fontSize: '.55rem', color: '#64748b', lineHeight: 1.2 }}>{cell.turmas.length > 1 ? `${cell.turmas.length} turmas` : cell.turmas[0]?.split('(')[0]}</div>
-                </td>;
-              })}
-              <td style={{ textAlign: 'right', padding: '6px 8px', fontWeight: 800, color: '#2563eb', fontSize: '.95rem' }}>{semTotal}</td>
-              <td style={{ textAlign: 'right', padding: '6px 8px', fontWeight: 600, color: '#64748b' }}>{semTurmas}</td>
-            </tr>;
-          })}</tbody>
-        </table>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+        <div><strong style={{ fontSize: '1.05rem' }}>Ensalamento Real — Cada sala, cada semestre</strong><br/>
+        <span style={{ fontSize: '.75rem', color: 'var(--vx-muted, #64748b)' }}>Total de alunos que ESTAVAM na turma naquele semestre (matriculados + trancados + cancelados + transferidos). Ideal: {IDEAL}/sala.</span></div>
+        <span style={badge('#7c3aed')}>{vacancies} vagas/sem</span>
       </div>
     </div>
 
-    {/* Detalhamento semestre a semestre */}
-    <div style={card}>
-      <strong style={{ fontSize: '1rem' }}>Detalhamento por Semestre — Turmas Reais</strong>
-      <p style={{ fontSize: '.75rem', color: 'var(--vx-muted, #64748b)', margin: '4px 0 12px' }}>Evolução semestre a semestre: turmas criadas, alunos, aprovação, reprovação e média</p>
-      {sems.map(sem => {
-        const ev = evolucao.find(e => e.semestre === sem);
-        const mat = ev?.matriculados || ev?.total_matriculados || 0;
-        const tranc = ev?.trancados || ev?.trancado || 0;
-        const canc = ev?.cancelados || ev?.cancelado || 0;
-        const cells = grid[sem] ? Object.entries(grid[sem]).sort(([a],[b]) => Number(a) - Number(b)) : [];
-        const totalAlunos = cells.reduce((s, [, c]) => s + c.total, 0);
-        const totalTurmas = cells.reduce((s, [, c]) => s + c.turmas.length, 0);
-        return <div key={sem} style={{ marginBottom: 12, padding: 12, background: '#f8fafc', borderRadius: 10, border: '1px solid #e2e8f0', cursor: 'pointer' }}
+    {sems.map(sem => {
+      const turmas = bySem[sem].sort((a: any, b: any) => a.periodo - b.periodo || a.turma.localeCompare(b.turma));
+      const totalGeral = turmas.reduce((s: number, t: any) => s + t.total, 0);
+      const totalMat = turmas.reduce((s: number, t: any) => s + t.mat, 0);
+      const totalTranc = turmas.reduce((s: number, t: any) => s + (t.tranc || 0), 0);
+      const totalCancel = turmas.reduce((s: number, t: any) => s + (t.cancel || 0), 0);
+      const salasNecessarias = turmas.filter((t: any) => t.total > 0).length;
+      const ev = evolucao.find(e => e.semestre === sem);
+
+      return <div key={sem} style={{ ...card, padding: '1rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, cursor: 'pointer' }}
           onClick={() => onDrill({ type: 'semestre', data: { semestre: sem } })}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-            <strong style={{ fontSize: '.9rem' }}>{sem}</strong>
-            <div style={{ display: 'flex', gap: 6 }}>
-              <span style={badge('#2563eb')}>{mat} matric.</span>
-              {tranc > 0 && <span style={badge('#f59e0b')}>{tranc} tranc.</span>}
-              {canc > 0 && <span style={badge('#dc2626')}>{canc} cancel.</span>}
-              <span style={badge('#7c3aed')}>{totalTurmas} turmas</span>
-            </div>
+          <div>
+            <strong style={{ fontSize: '1.1rem' }}>{sem}</strong>
+            <span style={{ fontSize: '.8rem', color: '#64748b', marginLeft: 8 }}>{salasNecessarias} sala{salasNecessarias > 1 ? 's' : ''} ativa{salasNecessarias > 1 ? 's' : ''}</span>
           </div>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {cells.map(([per, c]) => c.turmas.map((t, j) => {
-              const nome = t.split('(')[0]; const qtd = parseInt(t.split('(')[1]) || 0;
-              return <div key={`${per}-${j}`} style={{ padding: '4px 10px', borderRadius: 8, background: '#fff', border: '1px solid #e2e8f0', fontSize: '.75rem' }}>
-                <strong>{nome}</strong> <span style={{ color: '#2563eb' }}>{qtd}</span> <span style={{ color: '#94a3b8', fontSize: '.65rem' }}>{per}º per.</span>
-              </div>;
-            }))}
+            <span style={badge('#1e293b')}>{totalGeral} total</span>
+            <span style={badge('#2563eb')}>{totalMat} cursando</span>
+            {totalTranc > 0 && <span style={badge('#f59e0b')}>{totalTranc} tranc.</span>}
+            {totalCancel > 0 && <span style={badge('#dc2626')}>{totalCancel} cancel.</span>}
           </div>
-        </div>;
-      })}
-    </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 8 }}>
+          {turmas.filter((t: any) => t.total > 0).map((t: any, i: number) => {
+            const ocupacao = Math.round(100 * t.total / IDEAL);
+            const overCap = t.total > IDEAL;
+            const barColor = overCap ? '#dc2626' : t.total > IDEAL * 0.75 ? '#f59e0b' : t.total > IDEAL * 0.5 ? '#2563eb' : '#94a3b8';
+            const retenção = t.total > 0 ? Math.round(100 * t.mat / t.total) : 0;
+            return <div key={i} style={{ padding: '10px 12px', borderRadius: 10, background: overCap ? '#fef2f2' : '#f8fafc', border: `1px solid ${overCap ? '#fecaca' : '#e2e8f0'}` }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                <strong style={{ fontSize: '.9rem' }}>{t.turma}</strong>
+                <span style={{ fontSize: '.65rem', color: '#94a3b8' }}>{t.periodo}º período</span>
+              </div>
+              {/* Barra de ocupação */}
+              <div style={{ height: 8, borderRadius: 4, background: '#e2e8f0', marginBottom: 6, position: 'relative' }}>
+                <div style={{ height: 8, borderRadius: 4, background: barColor, width: `${Math.min(100, ocupacao)}%`, transition: 'width .3s' }} />
+                {/* Linha do ideal */}
+                <div style={{ position: 'absolute', left: '100%', top: -2, height: 12, width: 2, background: '#64748b', borderRadius: 1 }} title={`Ideal: ${IDEAL}`} />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '.7rem' }}>
+                <span><strong style={{ color: '#1e293b', fontSize: '.85rem' }}>{t.total}</strong> <span style={{ color: '#64748b' }}>alunos</span></span>
+                <span style={{ color: barColor, fontWeight: 700 }}>{ocupacao}% do ideal</span>
+              </div>
+              {/* Breakdown */}
+              <div style={{ display: 'flex', gap: 4, marginTop: 6, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '.6rem', padding: '1px 6px', borderRadius: 6, background: '#dbeafe', color: '#2563eb' }}>✓ {t.mat} mat.</span>
+                {(t.tranc || 0) > 0 && <span style={{ fontSize: '.6rem', padding: '1px 6px', borderRadius: 6, background: '#fef3c7', color: '#f59e0b' }}>⏸ {t.tranc} tranc.</span>}
+                {(t.cancel || 0) > 0 && <span style={{ fontSize: '.6rem', padding: '1px 6px', borderRadius: 6, background: '#fee2e2', color: '#dc2626' }}>✕ {t.cancel} cancel.</span>}
+                {(t.transf || 0) > 0 && <span style={{ fontSize: '.6rem', padding: '1px 6px', borderRadius: 6, background: '#e2e8f0', color: '#64748b' }}>↗ {t.transf} transf.</span>}
+              </div>
+              {retenção < 50 && <div style={{ marginTop: 4, fontSize: '.65rem', color: '#dc2626', fontWeight: 600 }}>⚠ Retenção: {retenção}% — mais da metade saiu</div>}
+            </div>;
+          })}
+        </div>
+
+        {/* Resumo do semestre */}
+        <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap', fontSize: '.7rem', color: '#64748b' }}>
+          <span>Salas com &gt;40 alunos: <strong style={{ color: salasNecessarias > 0 && turmas.some((t: any) => t.total > IDEAL) ? '#dc2626' : '#16a34a' }}>{turmas.filter((t: any) => t.total > IDEAL).length}</strong></span>
+          <span>Salas com &lt;20 alunos: <strong>{turmas.filter((t: any) => t.total > 0 && t.total < 20).length}</strong></span>
+          <span>Retenção média: <strong style={{ color: totalGeral > 0 && totalMat / totalGeral < 0.5 ? '#dc2626' : '#16a34a' }}>{totalGeral > 0 ? Math.round(100 * totalMat / totalGeral) : 0}%</strong></span>
+        </div>
+      </div>;
+    })}
 
     <div style={{ padding: 12, background: 'linear-gradient(135deg, #f5f3ff, #eff6ff)', borderRadius: 10, fontSize: '.85rem' }}>
-      🏫 Cresceu de <strong>{Object.values(grid[sems[0]] || {}).reduce((s,c) => s + c.turmas.length, 0)} turma</strong> ({sems[0]}) para <strong>{Object.values(grid[sems[sems.length-1]] || {}).reduce((s,c) => s + c.turmas.length, 0)} turmas</strong> ({sems[sems.length-1]}). Até o <strong>{maxPer}º período</strong>. Vagas: {vacancies}/semestre ({vacancies * 2}/ano).
+      🏫 <strong>2023/01:</strong> 1 sala com 44 alunos (110% do ideal). <strong>2026/02:</strong> {bySem['2026/02']?.filter((t: any) => t.total > 0).length || '?'} salas ativas. Ideal: {IDEAL} alunos/sala. Vagas autorizadas: {vacancies}/semestre.
     </div>
   </div>;
 }
