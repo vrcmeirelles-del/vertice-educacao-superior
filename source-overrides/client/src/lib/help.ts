@@ -244,6 +244,15 @@ export const GLOSSARY: { group: string; entries: GlossaryEntry[] }[] = [
     ],
   },
   {
+    group: "Governança Acadêmica",
+    entries: [
+      { term: "Órgão colegiado", text: "NDE (Núcleo Docente Estruturante), Colegiado de Curso, Conselho Superior ou comissão especial — instância deliberativa formal do curso ou da IES. Atas, deliberações, quórum e participação são registrados e vinculados a ações, regulamentos e aprovações dos módulos acadêmicos." },
+      { term: "Deliberação", text: "Decisão formal de um órgão colegiado registrada em ata. Pode aprovar campo de estágio, regulamento de AC, PPC, resolução ou recomendar ação de melhoria. Cada deliberação tem status (pendente, aprovada, rejeitada, executada) e pode ser vinculada a objetos dos módulos TCC, AC, Estágio, Extensão e outros." },
+      { term: "Vínculo de governança", text: "Ligação entre uma deliberação e um objeto do módulo acadêmico (campo de estágio aprovado, regulamento de AC homologado, PPC revisado). Tipos: aprovação, regulamentação, revisão, recomendação. Permite rastrear que toda decisão acadêmica tem amparo colegiado." },
+      { term: "Reunião", text: "Sessão registrada de um órgão colegiado com data, ata e resumo. Cada reunião pode conter múltiplas deliberações. Frequência e regularidade das reuniões são indicadores de gestão participativa (Indicadores 1.18/1.19 do INEP)." },
+    ],
+  },
+  {
     group: "Estágio Obrigatório",
     entries: [
       { term: "Estágio obrigatório", text: "Componente curricular regulado pela Lei 11.788/2008 com campo interno (NPJ, clínica-escola, laboratório) ou externo (empresa, órgão público, escritório). Requer termo de compromisso, plano de atividades, orientador docente e supervisor na concedente. Carga, jornada e requisitos são definidos pelo curso conforme PPC e legislação." },

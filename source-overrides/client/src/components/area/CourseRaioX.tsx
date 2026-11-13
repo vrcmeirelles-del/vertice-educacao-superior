@@ -39,6 +39,7 @@ export default function CourseRaioX({ institutionId, courses, role, onNavigate }
   const [tccData, setTccData] = useState<{ works: number; deposited: number; overdue: number; advisors: number }>({ works: 0, deposited: 0, overdue: 0, advisors: 0 });
   const [acData, setAcData] = useState<{ submissions: number; pending: number; credited_min: number }>({ submissions: 0, pending: 0, credited_min: 0 });
   const [estagioData, setEstagioData] = useState<{ placements: number; active: number; completed: number }>({ placements: 0, active: 0, completed: 0 });
+  const [govData, setGovData] = useState<{ bodies: number; meetings: number; deliberations: number }>({ bodies: 0, meetings: 0, deliberations: 0 });
 
   const course = courses.find(c => c.id === selectedCourse);
   const nav = (tab: string) => onNavigate?.(tab, selectedCourse);
@@ -57,7 +58,11 @@ export default function CourseRaioX({ institutionId, courses, role, onNavigate }
       supabase.from('v_ac_course_summary').select('*').eq('institution_id', institutionId).eq('course_id', selectedCourse).maybeSingle().catch(() => ({ data: null })),
       // Estágio
       supabase.from('v_internship_course_summary').select('*').eq('institution_id', institutionId).eq('course_id', selectedCourse).maybeSingle().catch(() => ({ data: null })),
-    ]).then(([rx, mat, egr, pei, tcc, ac, est]) => {
+      // Governança
+      supabase.from('vertice_governance_bodies').select('id').eq('institution_id', institutionId).or(`course_id.eq.${selectedCourse},course_id.is.null`).eq('active', true).then(r => r).catch(() => ({ data: [] })),
+      supabase.from('vertice_governance_meetings').select('id,body_id').eq('institution_id', institutionId).then(r => r).catch(() => ({ data: [] })),
+      supabase.from('vertice_governance_deliberations').select('id,meeting_id,status').eq('institution_id', institutionId).then(r => r).catch(() => ({ data: [] })),
+    ]).then(([rx, mat, egr, pei, tcc, ac, est, govBodies, govMeetings, govDelibs]) => {
       if (rx.data) setData(rx.data as RaioX);
       if (mat.data?.[0]?.data) { const md = mat.data[0].data as any; setMatriculados(Number(md.matriculados || md.total_matriculados || 0)); setVagas(Number(md.vagas || md.vagas_autorizadas || 0)); } else { setMatriculados(0); setVagas(0); }
       if (egr.data) setEgressosContato((egr.data as any[]).filter(r => r.profile?.email || r.profile?.phone).length);
@@ -77,6 +82,13 @@ export default function CourseRaioX({ institutionId, courses, role, onNavigate }
       // Estágio
       const estd = (est as any).data;
       if (estd) setEstagioData({ placements: estd.placements_total || 0, active: estd.placements_active || 0, completed: estd.completed || 0 });
+      // Governança
+      const bodies = (govBodies as any).data as any[] ?? [];
+      const bodyIds = new Set(bodies.map((b: any) => b.id));
+      const meetings = ((govMeetings as any).data as any[] ?? []).filter((m: any) => bodyIds.has(m.body_id));
+      const meetingIds = new Set(meetings.map((m: any) => m.id));
+      const delibs = ((govDelibs as any).data as any[] ?? []).filter((d: any) => meetingIds.has(d.meeting_id));
+      setGovData({ bodies: bodies.length, meetings: meetings.length, deliberations: delibs.filter((d: any) => d.status === 'executed').length });
     }).finally(() => setLoading(false));
   }, [institutionId, selectedCourse]);
 
@@ -230,10 +242,10 @@ export default function CourseRaioX({ institutionId, courses, role, onNavigate }
           </Block>
 
           <Block title="Governança do Curso" icon="⚖" onClick={() => nav('governanca')}>
-            <Row label="Órgãos ativos" value={d.orgaos_colegiados || 0} />
-            <Row label="Reuniões realizadas" value={d.reunioes || 0} />
-            <Row label="Deliberações executadas" value={d.deliberacoes || 0} good />
-            {(d.orgaos_colegiados || 0) === 0 && <Empty>Nenhum órgão colegiado cadastrado.</Empty>}
+            <Row label="Órgãos ativos" value={govData.bodies} />
+            <Row label="Reuniões realizadas" value={govData.meetings} />
+            <Row label="Deliberações executadas" value={govData.deliberations} good />
+            {govData.bodies === 0 && <Empty>Nenhum órgão colegiado cadastrado.</Empty>}
             <Hint>NDE e Colegiado ativos demonstram gestão participativa (Indicador 1.18/1.19).</Hint>
           </Block>
 
