@@ -56,21 +56,13 @@ export default function ExtensaoConvite() {
     setManualBusy(true); setMsg('');
     try {
       const mail = manualEmail.trim().toLowerCase();
-      // Tentar login direto
       const { error } = await supabase.auth.signInWithPassword({ email: mail, password: '123456' });
-      if (error) {
-        // Se falhar, tentar criar via edge function e logar de novo
-        await supabase.functions.invoke('vertice-convite-simples', {
-          body: { email: mail, institution_id: '1f5fd5b4-93c6-4626-834d-136884915587', role: 'equipe' }
-        }).catch(() => {});
-        const { error: e2 } = await supabase.auth.signInWithPassword({ email: mail, password: '123456' });
-        if (e2) throw e2;
-      }
+      if (error) throw error;
       setStatus('done');
       setMsg('✅ Acesso liberado! Entrando...');
-      setTimeout(() => { window.location.href = '/master'; }, 1200);
-    } catch (err) {
-      setMsg(`Não foi possível acessar. Peça ao coordenador para enviar um novo convite.`);
+      setTimeout(() => { window.location.href = '/master#instituicao=1f5fd5b4-93c6-4626-834d-136884915587'; }, 1200);
+    } catch {
+      setMsg(`E-mail não encontrado. Verifique se é o mesmo e-mail informado ao coordenador.`);
     } finally { setManualBusy(false); }
   }
 

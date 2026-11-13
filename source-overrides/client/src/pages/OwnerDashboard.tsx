@@ -301,7 +301,8 @@ export default function OwnerDashboard(){
     supabase.from('vertice_memberships').select('user_id,institution_id,role'),
     fetchDashboardRows('vertice_academic_reports','source_report_at',false)
    ]);
-   if(results.some(r=>r.error))throw new Error('data unavailable');
+   const failedQuery=results.find(r=>r.error);
+   if(failedQuery)throw new Error('data unavailable: '+(failedQuery.error as any)?.message);
    const snapshots=await fetchAllSnapshots();
    setMaster(Boolean(results[0].data?.length));setInstitutions(results[1].data as Institution[]);setCourses(Array.from(new Map((results[2].data as Course[]).map(c=>[c.id,c])).values()));setMembers(results[3].data as Membership[]);
    setEnrollments(latestEnrollmentSnapshots(snapshots));
@@ -312,7 +313,7 @@ export default function OwnerDashboard(){
     fetchDashboardRows('vertice_diagnosis_items','id',true,'id,institution_id,status,priority')
    ]);
    setMgmt({goals:(g.data??[]) as Row[],actions:(a.data??[]) as Row[],diagnosis:(d.data??[]) as Row[]});
-  }catch{setError('Não foi possível consultar os dados protegidos. Tente novamente.');}
+  }catch(loadErr){setError('Não foi possível consultar os dados protegidos. ' + ((loadErr as Error)?.message || 'Tente novamente.'));}
   finally{setLoading(false);}
  }
  useEffect(()=>{load(); const {data}=supabase.auth.onAuthStateChange((event,current)=>{if(event==='SIGNED_OUT'){setSession(current);setInstitutions([]);setCourses([]);setMembers([]);setEnrollments([]);setReports([]);setMaster(false);setCaptacaoInstitutionId('');resetToVerticeTheme();}});return()=>data.subscription.unsubscribe();},[]);
