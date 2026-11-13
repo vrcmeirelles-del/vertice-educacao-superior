@@ -88,6 +88,7 @@ export default function DireitoBIDashboard({ institutionId, courseId, courseCode
     { key: 'notas', label: '🏆 Notas Altas' },
     { key: 'semestre', label: '📅 Por Semestre' },
     { key: 'fantasmas', label: '👻 Fantasmas' },
+    { key: 'estrategia', label: '🎯 Estratégia' },
   ] as const;
 
   // Professors that never fail and always give high grades
@@ -109,6 +110,7 @@ export default function DireitoBIDashboard({ institutionId, courseId, courseCode
       {tab === 'notas' && <NotasAltasTab data={notasAltas} allProfs={profs} />}
       {tab === 'semestre' && <SemestreTab data={profsPerSem} />}
       {tab === 'fantasmas' && <FantasmasTab data={fantasmas} evolucao={evolucao} />}
+      {tab === 'estrategia' && <EstrategiaTab profs={profs} profsPerSem={profsPerSem} evolucao={evolucao} />}
     </div>
   );
 }
@@ -435,6 +437,184 @@ function FantasmasTab({ data, evolucao }: { data: any[]; evolucao: any[] }) {
       </div>
       <div style={{ marginTop: 12, padding: 10, background: '#eff6ff', borderRadius: 8, fontSize: '.8rem' }}>
         <strong>Conclusão:</strong> Fantasmas se concentram em dois perfis: (1) calouros que matriculam e nunca aparecem (RF no 1º semestre), e (2) alunos de períodos avançados de grades antigas mantidos no sistema. O primeiro é custo operacional e distorce indicadores; o segundo é limpeza cadastral. Ambos devem ser excluídos do cálculo de evasão real.
+      </div>
+    </div>
+  </div>;
+}
+
+function EstrategiaTab({ profs, profsPerSem, evolucao }: { profs: any[]; profsPerSem: any[]; evolucao: any[] }) {
+  // Dados calculados para os cards
+  const mezzaroba = profs.find(p => p.nome?.includes('MEZZAROBA'));
+  const thais = profs.find(p => p.nome === 'THAIS ALMEIDA DE AGUIAR');
+  const thaisSems = profsPerSem.filter(p => p.nome === 'THAIS ALMEIDA DE AGUIAR').sort((a, b) => a.sem.localeCompare(b.sem));
+
+  // Disciplinas gargalo 1º período
+  const disc1per = profsPerSem.filter(p => {
+    const outcomes = profs; // we use aggregated data
+    return true;
+  });
+
+  // Semestres com dados
+  const lastEv = evolucao[evolucao.length - 1];
+  const semAtual = lastEv?.semestre || '2026/02';
+  const isCursando = semAtual === '2026/02';
+
+  const cards = [
+    {
+      icon: '🔴', priority: 'CRÍTICA', color: '#dc2626',
+      title: 'Monitorar Cristiane Mezzaroba',
+      subtitle: 'Taxa de reprovação consistentemente acima de 20% em Penal',
+      metrics: mezzaroba ? [
+        { label: 'Total de alunos', value: mezzaroba.alunos },
+        { label: 'Reprovações', value: mezzaroba.total_rep, bad: true },
+        { label: 'Taxa de reprovação', value: `${mezzaroba.pct_rep}%`, bad: mezzaroba.pct_rep > 15 },
+        { label: 'Média geral', value: mezzaroba.media, bad: (mezzaroba.media ?? 10) < 7 },
+        { label: 'Perfil', value: mezzaroba.rf > mezzaroba.rn ? '⚡ Falta predomina' : '📝 Nota predomina' },
+        { label: 'Turmas', value: mezzaroba.turmas },
+      ] : [],
+      action: 'Verificar se é rigor pedagógico legítimo ou desalinhamento com perfil do aluno. Comparar com média do NDE. Reunião individual de acompanhamento.',
+      evidence: 'Teoria da Pena: 33.3% reprovação em 2024/01 (média 5.62). Crimes em Espécie I: 33.3% em 2024/02. Direito Penal II (3B): 8 RF em 2026/01.',
+    },
+    {
+      icon: '⚡', priority: 'ALTA', color: '#f59e0b',
+      title: 'Reprovação por falta = evasão disfarçada',
+      subtitle: 'Aluno que para de frequentar antes de ser avaliado',
+      metrics: (() => {
+        const totalRF = profs.reduce((s, p) => s + p.rf, 0);
+        const totalRN = profs.reduce((s, p) => s + p.rn, 0);
+        const totalRA = profs.reduce((s, p) => s + p.ra, 0);
+        return [
+          { label: 'Total RF (falta)', value: totalRF, bad: true },
+          { label: 'Total RN (nota)', value: totalRN },
+          { label: 'Total RA (ambos)', value: totalRA, bad: true },
+          { label: 'RF como % do total', value: `${Math.round(100 * totalRF / (totalRF + totalRN + totalRA))}%`, bad: true },
+          { label: 'Recomendação', value: 'Alerta em 25% faltas' },
+        ];
+      })(),
+      action: 'Criar alerta automático quando aluno atinge 25% de faltas, ANTES que vire RF. Notificar coordenador + tutor. Implementar busca ativa por WhatsApp/telefone.',
+      evidence: 'RF é a causa nº 1 de reprovação em todos os semestres. Em 2025/01, 83 RF só no 1º período. Em 2026/01, 43 RF em DIR-1A.',
+    },
+    {
+      icon: '🎯', priority: 'ALTA', color: '#f59e0b',
+      title: 'Disciplinas de 1º período são o gargalo',
+      subtitle: 'Intro. ao Estudo do Direito, Economia Aplicada e Ciências Política',
+      metrics: [
+        { label: 'Intro. ao Est. do Direito', value: 'Média oscilou de 9.7 a 5.7', bad: true },
+        { label: 'Economia Aplicada', value: 'Média 6.0 em 2024/01', bad: true },
+        { label: 'Ciências Política', value: 'Média 6.2 em 2024/01', bad: true },
+        { label: 'Impacto', value: 'Concentram 60%+ das reprovações de calouros' },
+        { label: 'Recomendação', value: 'Tutoria + monitoria nesses componentes' },
+      ],
+      action: 'Fortalecer tutoria nos 3 componentes críticos. Implementar monitoria obrigatória. Acompanhamento semanal de frequência no 1º período.',
+      evidence: 'Intro. ao Estudo do Direito com Sibele (2024/01): 22.6% reprovação, média 5.73. Economia com Casé: 22.8%, média 6.00. Ciências Política com Eronides: 10.9%, média 6.23.',
+    },
+    {
+      icon: '⚠', priority: 'MÉDIA', color: '#7c3aed',
+      title: 'Thais Almeida com sobrecarga',
+      subtitle: 'De 2 turmas em 2023 para 6 em 2026/01',
+      metrics: thais ? [
+        { label: 'Total de alunos (acumulado)', value: thais.alunos },
+        { label: 'Turmas (acumulado)', value: thais.turmas },
+        { label: 'Reprovações totais', value: thais.total_rep, bad: true },
+        { label: 'Taxa de reprovação', value: `${thais.pct_rep}%`, bad: thais.pct_rep > 10 },
+        { label: 'Evolução turmas', value: thaisSems.map(s => `${s.sem}:${s.turmas}`).join(' → ') },
+      ] : [],
+      action: 'Rever distribuição de carga horária. Média das notas caiu e reprovação por falta subiu com o aumento de turmas. Redistribuir ao menos 2 turmas para outro docente.',
+      evidence: thaisSems.length > 0 ? `RF subiu: ${thaisSems.map(s => `${s.sem}: ${s.rf}RF`).join(', ')}` : '',
+    },
+    {
+      icon: '📋', priority: 'MONITORAR', color: '#0891b2',
+      title: '2026/02 — Semestre em curso',
+      subtitle: 'Notas ainda em lançamento (CR = cursando)',
+      metrics: [
+        { label: 'Status', value: isCursando ? 'Em andamento' : 'Encerrado' },
+        { label: 'Matriculados', value: lastEv?.matriculados || lastEv?.total_matriculados || '—' },
+        { label: 'Turmas ativas', value: '10+ (1º ao 10º período)' },
+        { label: 'Ação', value: 'Monitorar fechamento ao final do semestre' },
+      ],
+      action: 'Aguardar fechamento de notas. Repetir esta análise ao final de 2026/02 para verificar se as tendências se mantêm ou se as intervenções surtiram efeito.',
+      evidence: 'Maioria das turmas mostra CR (cursando). Apenas 14 notas lançadas em 2026/02 até agora.',
+    },
+  ];
+
+  return <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+    <div style={{ background: 'var(--vx-surface, #fff)', border: '1px solid var(--vx-border, #e2e8f0)', borderRadius: 10, padding: '1rem' }}>
+      <strong style={{ fontSize: '1.1rem' }}>🎯 Recomendações Estratégicas — Direito UNITOP</strong>
+      <p style={{ fontSize: '.8rem', color: 'var(--vx-muted, #64748b)', margin: '4px 0' }}>Baseadas no cruzamento de dados de 2023/01 a 2026/02. Cada card tem evidência, métricas e ação recomendada.</p>
+    </div>
+
+    {cards.map((card, i) => (
+      <div key={i} style={{ background: 'var(--vx-surface, #fff)', border: `2px solid ${card.color}30`, borderRadius: 10, padding: '1rem', borderLeft: `4px solid ${card.color}` }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
+          <div>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 4 }}>
+              <span style={{ fontSize: '1.25rem' }}>{card.icon}</span>
+              <span style={{ padding: '2px 10px', borderRadius: 12, background: card.color + '18', color: card.color, fontSize: '.6875rem', fontWeight: 700, textTransform: 'uppercase' }}>{card.priority}</span>
+            </div>
+            <strong style={{ fontSize: '1rem' }}>{card.title}</strong>
+            <p style={{ fontSize: '.8rem', color: 'var(--vx-muted, #64748b)', margin: '2px 0 0' }}>{card.subtitle}</p>
+          </div>
+        </div>
+
+        {card.metrics.length > 0 && <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 6, margin: '12px 0' }}>
+          {card.metrics.map((m, j) => (
+            <div key={j} style={{ padding: '6px 10px', borderRadius: 8, background: (m as any).bad ? '#fef2f2' : '#f8fafc', border: '1px solid ' + ((m as any).bad ? '#fecaca' : '#e2e8f0') }}>
+              <div style={{ fontSize: '.6875rem', color: 'var(--vx-muted, #64748b)' }}>{m.label}</div>
+              <div style={{ fontSize: '.875rem', fontWeight: 700, color: (m as any).bad ? '#dc2626' : '#1e293b', marginTop: 2 }}>{m.value}</div>
+            </div>
+          ))}
+        </div>}
+
+        <div style={{ padding: 10, background: '#eff6ff', borderRadius: 8, fontSize: '.8rem', marginTop: 8 }}>
+          <strong>📌 Ação:</strong> {card.action}
+        </div>
+
+        {card.evidence && <div style={{ padding: 8, fontSize: '.75rem', color: 'var(--vx-muted, #64748b)', marginTop: 6, borderTop: '1px solid var(--vx-border, #f1f5f9)' }}>
+          <strong>Evidência:</strong> {card.evidence}
+        </div>}
+      </div>
+    ))}
+
+    {/* Matriz de risco visual */}
+    <div style={{ background: 'var(--vx-surface, #fff)', border: '1px solid var(--vx-border, #e2e8f0)', borderRadius: 10, padding: '1rem' }}>
+      <strong>📊 Matriz de Risco Docente — Reprovação vs Média</strong>
+      <p style={{ fontSize: '.75rem', color: 'var(--vx-muted, #64748b)', margin: '4px 0 12px' }}>Quadrante: Alta reprovação + Baixa média = atenção urgente. Baixa reprovação + Alta média = possível avaliação branda.</p>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+        <div style={{ padding: 10, background: '#fef2f2', borderRadius: 8, border: '1px solid #fecaca' }}>
+          <div style={{ fontSize: '.75rem', fontWeight: 700, color: '#dc2626', marginBottom: 6 }}>🔴 Alta reprovação + Baixa média (&lt;7)</div>
+          {profs.filter(p => p.pct_rep > 10 && (p.media ?? 10) < 7.5 && p.alunos >= 30).map((p, i) => (
+            <div key={i} style={{ fontSize: '.75rem', padding: '3px 0', borderBottom: '1px solid #fecaca' }}>
+              {p.nome.split(' ').slice(0, 3).join(' ')} — {p.pct_rep}% rep, média {p.media}
+            </div>
+          ))}
+        </div>
+        <div style={{ padding: 10, background: '#fffbeb', borderRadius: 8, border: '1px solid #fde68a' }}>
+          <div style={{ fontSize: '.75rem', fontWeight: 700, color: '#f59e0b', marginBottom: 6 }}>🟡 Alta reprovação + Média ok (≥7)</div>
+          {profs.filter(p => p.pct_rep > 10 && (p.media ?? 0) >= 7.5 && p.alunos >= 30).map((p, i) => (
+            <div key={i} style={{ fontSize: '.75rem', padding: '3px 0', borderBottom: '1px solid #fde68a' }}>
+              {p.nome.split(' ').slice(0, 3).join(' ')} — {p.pct_rep}% rep, média {p.media}
+            </div>
+          ))}
+        </div>
+        <div style={{ padding: 10, background: '#f0fdf4', borderRadius: 8, border: '1px solid #bbf7d0' }}>
+          <div style={{ fontSize: '.75rem', fontWeight: 700, color: '#16a34a', marginBottom: 6 }}>🟢 Baixa reprovação + Média equilibrada</div>
+          {profs.filter(p => p.pct_rep <= 10 && (p.media ?? 0) >= 7 && (p.media ?? 0) < 9.5 && p.alunos >= 30).map((p, i) => (
+            <div key={i} style={{ fontSize: '.75rem', padding: '3px 0', borderBottom: '1px solid #bbf7d0' }}>
+              {p.nome.split(' ').slice(0, 3).join(' ')} — {p.pct_rep}% rep, média {p.media}
+            </div>
+          ))}
+        </div>
+        <div style={{ padding: 10, background: '#fefce8', borderRadius: 8, border: '1px solid #fef08a' }}>
+          <div style={{ fontSize: '.75rem', fontWeight: 700, color: '#ca8a04', marginBottom: 6 }}>🔶 Zero reprovação + Média ≥9.5</div>
+          {profs.filter(p => p.total_rep === 0 && (p.media ?? 0) >= 9.5 && p.alunos >= 20).map((p, i) => (
+            <div key={i} style={{ fontSize: '.75rem', padding: '3px 0', borderBottom: '1px solid #fef08a' }}>
+              {p.nome.split(' ').slice(0, 3).join(' ')} — 0% rep, média {p.media}
+            </div>
+          ))}
+        </div>
+      </div>
+      <div style={{ marginTop: 10, fontSize: '.75rem', color: 'var(--vx-muted, #64748b)' }}>
+        Mínimo 20-30 alunos para constar na matriz. Avaliador do INEP observa discrepância entre professores do mesmo curso.
       </div>
     </div>
   </div>;
