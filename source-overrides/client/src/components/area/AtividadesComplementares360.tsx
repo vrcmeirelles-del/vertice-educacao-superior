@@ -174,7 +174,11 @@ export default function AtividadesComplementares360({ institutionId, courses, ro
                   <td><span className="alumni-tag">{AC_STATUS_LABELS[s.status] || s.status}</span></td>
                   <td>{new Date(s.created_at).toLocaleDateString('pt-BR')}</td>
                   <td>{['submitted','under_review','suggestion_ready'].includes(s.status) && (
-                    <div style={{ display: 'flex', gap: 4 }}>
+                    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                      {s.status === 'submitted' && (
+                        <button style={{ fontSize: '.6875rem', padding: '2px 8px', borderRadius: 4, border: '1px solid #7c3aed', background: '#f5f3ff', color: '#7c3aed', cursor: 'pointer' }}
+                          onClick={async () => { setSubmissions(prev => prev.map(x => x.id === s.id ? { ...x, status: 'extracting' } : x)); try { await supabase.functions.invoke('vertice-ac-extract', { body: { submission_id: s.id, institution_id: institutionId } }); setSubmissions(prev => prev.map(x => x.id === s.id ? { ...x, status: 'suggestion_ready' } : x)); } catch { setSubmissions(prev => prev.map(x => x.id === s.id ? { ...x, status: 'submitted' } : x)); alert('Erro na extração IA.'); } }}>🤖 Extrair IA</button>
+                      )}
                       <button style={{ fontSize: '.6875rem', padding: '2px 8px', borderRadius: 4, border: '1px solid #059669', background: '#f0fdf4', color: '#059669', cursor: 'pointer' }}
                         onClick={async () => { try { const r = await approveAcSubmission(s, 'Coordenação'); setSubmissions(prev => prev.map(x => x.id === s.id ? { ...x, status: r.awarded > 0 ? 'credited' : 'approved' } : x)); alert(`Deferido: ${minutesToHours(r.awarded)} creditadas${r.capped ? ` (teto: ${r.limits.join(', ')})` : ''}`); } catch (e) { alert('Erro: ' + (e as Error).message); } }}>✓ Deferir</button>
                       <button style={{ fontSize: '.6875rem', padding: '2px 8px', borderRadius: 4, border: '1px solid #ef4444', background: '#fef2f2', color: '#ef4444', cursor: 'pointer' }}

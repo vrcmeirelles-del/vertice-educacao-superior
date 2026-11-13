@@ -71,7 +71,12 @@ export default function StudentAccessPortal({ institutionId, institutionName, pu
         return;
       }
 
-      // Load student data for dashboard
+      // Call Edge Function to send real magic link email
+      supabase.functions.invoke('vertice-student-magic-link', {
+        body: { institution_id: institutionId, enrollment_code: enrollment.trim(), cpf_hash: cpfHash, email: email.trim(), purpose },
+      }).catch(() => {}); // fire and forget — don't block UX
+
+      // Load student data for dashboard (dev/demo: direct access)
       const studentInfo = await loadStudentDashboardData(student.id, institutionId);
       if (studentInfo) {
         setStudentData(studentInfo);
