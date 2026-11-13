@@ -41,6 +41,10 @@ export default function CourseRaioX({ institutionId, courses, role, onNavigate }
   const [estagioData, setEstagioData] = useState<{ placements: number; active: number; completed: number }>({ placements: 0, active: 0, completed: 0 });
   const [govData, setGovData] = useState<{ bodies: number; meetings: number; deliberations: number }>({ bodies: 0, meetings: 0, deliberations: 0 });
   const [faoLinked, setFaoLinked] = useState(0);
+  const [evolucao, setEvolucao] = useState<any[]>([]);
+  const [ensalamento, setEnsalamento] = useState<any[]>([]);
+  const [topReprovadores, setTopReprovadores] = useState<any[]>([]);
+  const [vagasAutorizadas, setVagasAutorizadas] = useState(0);
 
   const course = courses.find(c => c.id === selectedCourse);
   const nav = (tab: string) => onNavigate?.(tab, selectedCourse);
@@ -50,7 +54,7 @@ export default function CourseRaioX({ institutionId, courses, role, onNavigate }
     setLoading(true);
     Promise.all([
       supabase.from('v_course_raio_x').select('*').eq('institution_id', institutionId).eq('course_id', selectedCourse).maybeSingle(),
-      supabase.from('vertice_academic_reports').select('data').eq('institution_id', institutionId).eq('course_id', selectedCourse).eq('kind', 'quantitativo_alunos').order('report_date', { ascending: false }).limit(1),
+      supabase.from('vertice_academic_reports').select('payload').eq('institution_id', institutionId).eq('course_id', selectedCourse).eq('kind', 'quantitativo_alunos').order('source_report_at', { ascending: false }).limit(1),
       supabase.from('vertice_alumni_education').select('id,profile:vertice_alumni_profiles!profile_id(email,phone)').eq('institution_id', institutionId).eq('course_id', selectedCourse).in('academic_status', ['formado','diplomado','egresso_acompanhado','integralizado','concluinte']),
       supabase.from('student_individual_plans').select('id').eq('institution_id', institutionId).eq('course_id', selectedCourse).eq('status', 'ativo').then(r => r).catch(() => ({ data: [] })),
       // TCC
@@ -65,7 +69,7 @@ export default function CourseRaioX({ institutionId, courses, role, onNavigate }
       supabase.from('vertice_governance_deliberations').select('id,meeting_id,status').eq('institution_id', institutionId).then(r => r).catch(() => ({ data: [] })),
     ]).then(([rx, mat, egr, pei, tcc, ac, est, govBodies, govMeetings, govDelibs]) => {
       if (rx.data) setData(rx.data as RaioX);
-      if (mat.data?.[0]?.data) { const md = mat.data[0].data as any; setMatriculados(Number(md.matriculados || md.total_matriculados || 0)); setVagas(Number(md.vagas || md.vagas_autorizadas || 0)); } else { setMatriculados(0); setVagas(0); }
+      if (mat.data?.[0]?.payload) { const md = mat.data[0].payload as any; setMatriculados(Number(md.matriculados || md.total_matriculados || 0)); setVagas(Number(md.vagas || md.vagas_autorizadas || 0)); } else { setMatriculados(0); setVagas(0); }
       if (egr.data) setEgressosContato((egr.data as any[]).filter(r => r.profile?.email || r.profile?.phone).length);
       if (pei.data) setPeiAtivos((pei.data as any[]).length);
       // TCC
@@ -92,6 +96,41 @@ export default function CourseRaioX({ institutionId, courses, role, onNavigate }
       setGovData({ bodies: bodies.length, meetings: meetings.length, deliberations: delibs.filter((d: any) => d.status === 'executed').length });
       // F&O linked students
       supabase.from('vertice_roster_entries').select('id', { count: 'exact', head: true }).eq('institution_id', institutionId).eq('status', 'linked').then(r => setFaoLinked(r.count ?? 0)).catch(() => {});
+      // Evolução quantitativa
+      supabase.from('vertice_academic_reports').select('payload,source_report_at').eq('institution_id', institutionId).eq('course_id', selectedCourse).eq('kind', 'quantitativo_alunos').order('source_report_at', { ascending: true }).then(r => {
+        if (r.data) setEvolucao(r.data.map((d: any) => ({ ...d.payload, date: d.source_report_at })));
+      }).catch(() => {});
+      // Ensalamento
+      supabase.from('vertice_turma_stats').select('semestre,serie,turma,matriculados').eq('institution_id', institutionId).eq('codigo', course?.code || '027').order('semestre', { ascending: true }).then(r => {
+        if (r.data) setEnsalamento(r.data);
+      }).catch(() => {});
+      // Top reprovadores
+      supabase.from('vertice_offering_outcomes').select('semester,teachers,discipline_enrollments,rf,rn,ra,avg_final').eq('institution_id', institutionId).eq('course_code', course?.code || '027').gte('semester', '2023/01').then(r => {
+        if (!r.data) return;
+        const byProf: Record<string, { turmas: number; alunos: number; rf: number; rn: number; ra: number; total: number; somas_media: number; n_medias: number }> = {};
+        for (const row of r.data as any[]) {
+          const k = row.teachers;
+          if (!k || row.discipline_enrollments === 0) continue;
+          if (!byProf[k]) byProf[k] = { turmas: 0, alunos: 0, rf: 0, rn: 0, ra: 0, total: 0, somas_media: 0, n_medias: 0 };
+          byProf[k].turmas++;
+          byProf[k].alunos += row.discipline_enrollments;
+          byProf[k].rf += row.rf;
+          byProf[k].rn += row.rn;
+          byProf[k].ra += row.ra;
+          byProf[k].total += row.rf + row.rn + row.ra;
+          if (row.avg_final) { byProf[k].somas_media += parseFloat(row.avg_final); byProf[k].n_medias++; }
+        }
+        const arr = Object.entries(byProf)
+          .filter(([, v]) => v.total > 0)
+          .map(([nome, v]) => ({ nome, ...v, pct: v.alunos > 0 ? Math.round(1000 * v.total / v.alunos) / 10 : 0, media: v.n_medias > 0 ? Math.round(100 * v.somas_media / v.n_medias) / 100 : null }))
+          .sort((a, b) => b.total - a.total)
+          .slice(0, 10);
+        setTopReprovadores(arr);
+      }).catch(() => {});
+      // Vagas autorizadas
+      supabase.from('vertice_courses').select('vacancies').eq('id', selectedCourse).maybeSingle().then(r => r).catch(() => ({ data: null })).then((r: any) => {
+        if (r.data?.vacancies) setVagasAutorizadas(r.data.vacancies);
+      });
     }).finally(() => setLoading(false));
   }, [institutionId, selectedCourse]);
 
@@ -277,6 +316,88 @@ export default function CourseRaioX({ institutionId, courses, role, onNavigate }
             <Row label="F&O vinculados" value={faoLinked > 0 ? `${faoLinked} alunos` : 'Não integrado'} good={faoLinked > 0} />
             <Hint>Cruzamento TCC + AC + Estágio + F&O: aluno com pendências em múltiplos módulos é candidato a evasão. Alunos linkados ao Fato & Ordem têm desempenho escolar monitorado.</Hint>
           </Block>
+
+          {/* BI: Evolução de Matrículas e Evasão */}
+          {evolucao.length > 0 && <Block title="Evolução de Matrículas" icon="📈">
+            <table style={{ width: '100%', fontSize: '.75rem', borderCollapse: 'collapse' }}>
+              <thead><tr style={{ borderBottom: '1px solid var(--vx-border, #e2e8f0)' }}>
+                <th style={{ textAlign: 'left', padding: '4px 2px' }}>Sem.</th>
+                <th style={{ textAlign: 'right', padding: '4px 2px' }}>Mat.</th>
+                <th style={{ textAlign: 'right', padding: '4px 2px' }}>Tranc.</th>
+                <th style={{ textAlign: 'right', padding: '4px 2px' }}>Cancel.</th>
+                <th style={{ textAlign: 'right', padding: '4px 2px' }}>Evasão</th>
+              </tr></thead>
+              <tbody>{evolucao.map((e: any, i: number) => {
+                const m = e.matriculados || e.total_matriculados || 0;
+                const t = e.trancados || e.trancado || 0;
+                const c = e.cancelados || e.cancelado || 0;
+                const tr = e.transferidos || e.transferido || 0;
+                const total = e.total || e.total_vinculos || (m + t + c + tr);
+                const evasao = total > 0 ? Math.round(100 * (t + c + tr) / total) : 0;
+                return <tr key={i} style={{ borderBottom: '1px solid var(--vx-border, #f1f5f9)' }}>
+                  <td style={{ padding: '3px 2px', fontWeight: 600 }}>{e.semestre || ''}</td>
+                  <td style={{ textAlign: 'right', padding: '3px 2px', color: '#2563eb' }}>{m}</td>
+                  <td style={{ textAlign: 'right', padding: '3px 2px', color: t > 20 ? '#dc2626' : '#64748b' }}>{t}</td>
+                  <td style={{ textAlign: 'right', padding: '3px 2px', color: c > 10 ? '#dc2626' : '#64748b' }}>{c}</td>
+                  <td style={{ textAlign: 'right', padding: '3px 2px', fontWeight: 700, color: evasao > 30 ? '#dc2626' : evasao > 15 ? '#f59e0b' : '#16a34a' }}>{evasao}%</td>
+                </tr>;
+              })}</tbody>
+            </table>
+            <Hint>Evasão = (trancados + cancelados + transferidos) / total. Acima de 30% é crítico.</Hint>
+          </Block>}
+
+          {/* BI: Ensalamento — turmas por semestre */}
+          {ensalamento.length > 0 && <Block title="Ensalamento e Turmas" icon="🏫">
+            {(() => {
+              const bySem: Record<string, { turmas: string[]; total: number }> = {};
+              for (const e of ensalamento) {
+                if (!bySem[e.semestre]) bySem[e.semestre] = { turmas: [], total: 0 };
+                bySem[e.semestre].turmas.push(`${e.turma}(${e.matriculados})`);
+                bySem[e.semestre].total += e.matriculados;
+              }
+              const sems = Object.entries(bySem).sort(([a], [b]) => a.localeCompare(b));
+              return <table style={{ width: '100%', fontSize: '.75rem', borderCollapse: 'collapse' }}>
+                <thead><tr style={{ borderBottom: '1px solid var(--vx-border, #e2e8f0)' }}>
+                  <th style={{ textAlign: 'left', padding: '4px 2px' }}>Sem.</th>
+                  <th style={{ textAlign: 'right', padding: '4px 2px' }}>Turmas</th>
+                  <th style={{ textAlign: 'right', padding: '4px 2px' }}>Alunos</th>
+                  <th style={{ textAlign: 'left', padding: '4px 6px' }}>Composição</th>
+                </tr></thead>
+                <tbody>{sems.map(([sem, d]) => <tr key={sem} style={{ borderBottom: '1px solid var(--vx-border, #f1f5f9)' }}>
+                  <td style={{ padding: '3px 2px', fontWeight: 600 }}>{sem}</td>
+                  <td style={{ textAlign: 'right', padding: '3px 2px' }}>{d.turmas.length}</td>
+                  <td style={{ textAlign: 'right', padding: '3px 2px', color: '#2563eb', fontWeight: 600 }}>{d.total}</td>
+                  <td style={{ padding: '3px 6px', color: '#64748b', fontSize: '.6875rem' }}>{d.turmas.join(', ')}</td>
+                </tr>)}</tbody>
+              </table>;
+            })()}
+            <Row label="Vagas autorizadas/semestre" value={vagasAutorizadas > 0 ? `${vagasAutorizadas} (${vagasAutorizadas * 2}/ano)` : 'N/D'} />
+            <Hint>Crescimento de 1 turma (2023) para {ensalamento.filter(e => e.semestre === ensalamento[ensalamento.length - 1]?.semestre).length} turmas. Ensalamento reflete demanda real.</Hint>
+          </Block>}
+
+          {/* BI: Top Reprovadores */}
+          {topReprovadores.length > 0 && <Block title="Professores × Reprovação (desde 2023)" icon="🔴">
+            <table style={{ width: '100%', fontSize: '.7rem', borderCollapse: 'collapse' }}>
+              <thead><tr style={{ borderBottom: '1px solid var(--vx-border, #e2e8f0)' }}>
+                <th style={{ textAlign: 'left', padding: '4px 2px' }}>Professor</th>
+                <th style={{ textAlign: 'right', padding: '4px 2px' }}>Alunos</th>
+                <th style={{ textAlign: 'right', padding: '4px 2px' }}>Reprov.</th>
+                <th style={{ textAlign: 'right', padding: '4px 2px' }}>%</th>
+                <th style={{ textAlign: 'right', padding: '4px 2px' }}>Média</th>
+              </tr></thead>
+              <tbody>{topReprovadores.map((p, i) => <tr key={i} style={{ borderBottom: '1px solid var(--vx-border, #f1f5f9)' }}>
+                <td style={{ padding: '3px 2px', maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={p.nome}>{p.nome.split(' ').slice(0, 2).join(' ')}</td>
+                <td style={{ textAlign: 'right', padding: '3px 2px' }}>{p.alunos}</td>
+                <td style={{ textAlign: 'right', padding: '3px 2px', color: p.total > 20 ? '#dc2626' : '#64748b', fontWeight: 600 }}>{p.total}</td>
+                <td style={{ textAlign: 'right', padding: '3px 2px', fontWeight: 700, color: p.pct > 20 ? '#dc2626' : p.pct > 10 ? '#f59e0b' : '#16a34a' }}>{p.pct}%</td>
+                <td style={{ textAlign: 'right', padding: '3px 2px' }}>{p.media ?? '—'}</td>
+              </tr>)}</tbody>
+            </table>
+            <div style={{ marginTop: 6, display: 'flex', gap: 8, fontSize: '.6875rem', color: 'var(--vx-muted, #64748b)' }}>
+              <span>🟢 &lt;10%</span><span>🟡 10-20%</span><span>🔴 &gt;20%</span>
+            </div>
+            <Hint>Reprovação por falta (RF) sinaliza desistência silenciosa. Cruzar com evasão por período.</Hint>
+          </Block>}
 
           <Block title="Vagas e Viabilidade" icon="📉" onClick={() => nav('resultado-curso')}>
             <Row label="Vagas autorizadas" value={vagas} />
