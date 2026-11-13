@@ -100,6 +100,7 @@ function Indicador({ indicador, institutionId, role, documents }: { indicador: I
         <p className="aval-alerta">
           <strong>O que reprova ou segura o conceito.</strong> {indicador.alerta}
         </p>
+        <ModuleIndicators2017 code={indicador.code} />
       </div>
     </details>
   );
@@ -261,5 +262,33 @@ export default function AvaliacaoInstitucional({ institutionId,role }: { institu
         </div>
       )}
     </section>
+  );
+}
+
+// Mapeamento indicador 2017 → módulos acadêmicos
+const IND_2017_MODULES: Record<string, { icon: string; label: string; module: string }[]> = {
+  '1.3':  [{ icon: '🎓', label: 'Egressos acompanhados', module: 'Egressos 360°' }],
+  '1.7':  [{ icon: '🏢', label: 'Estágios supervisionados', module: 'Estágio 360°' }, { icon: '📋', label: 'Campos aprovados', module: 'Estágio 360°' }],
+  '1.8':  [{ icon: '🏢', label: 'Estágios em escolas', module: 'Estágio 360°' }],
+  '1.9':  [{ icon: '🏢', label: 'Estágios concluídos', module: 'Estágio 360°' }],
+  '1.10': [{ icon: '📜', label: 'AC creditadas', module: 'AC 360°' }, { icon: '⏱', label: 'Horas no livro razão', module: 'AC 360°' }],
+  '1.11': [{ icon: '📝', label: 'TCC depositados', module: 'TCC 360°' }, { icon: '🔗', label: 'Evidências PPC validadas', module: 'TCC 360°' }],
+  '1.12': [{ icon: '📝', label: 'Bancas realizadas', module: 'TCC 360°' }],
+};
+
+function ModuleIndicators2017({ code }: { code: string }) {
+  const indicators = IND_2017_MODULES[code];
+  if (!indicators) return null;
+  return (
+    <div style={{ marginTop: 8, padding: '8px 12px', background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: 6 }}>
+      <strong style={{ fontSize: '.75rem', color: '#0369a1' }}>📊 Dados automáticos dos módulos Vértice</strong>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
+        {indicators.map((ind, i) => (
+          <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 8px', background: '#fff', border: '1px solid #e0f2fe', borderRadius: 4, fontSize: '.6875rem' }}>
+            {ind.icon} {ind.label} <span style={{ color: '#64748b' }}>({ind.module})</span>
+          </span>
+        ))}
+      </div>
+    </div>
   );
 }

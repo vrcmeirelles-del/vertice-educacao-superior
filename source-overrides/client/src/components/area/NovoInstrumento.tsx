@@ -533,6 +533,7 @@ function ObjetoLinhas({ o, row, status, ev, aberto, edit, ocupado, onToggle, onS
                 </div>
               );
             })()}
+            <ModuleAutoIndicators objectCode={o.code} />
             <div className="area-form-grid">
               <HelpLabel>
                 Responsável
@@ -969,6 +970,60 @@ function CpaPanel({ institutionId, role, data, reload, fail }: Shared) {
           <button className="corp-button small">Adicionar item</button>
         </form>
       )}
+    </div>
+  );
+}
+
+// ================================================================ Indicadores automáticos dos módulos acadêmicos
+// Mapeamento: objeto do instrumento 2026 → módulos que fornecem dados
+const OBJECT_MODULE_MAP: Record<string, { module: string; label: string; query: string; valueKey: string; icon: string }[]> = {
+  '1.7': [ // Ensino
+    { module: 'tcc', label: 'TCC ativos', query: 'vertice_tcc_works', valueKey: 'count', icon: '📝' },
+    { module: 'ac', label: 'AC creditadas', query: 'v_ac_course_summary', valueKey: 'submissions_approved', icon: '📜' },
+  ],
+  '1.8': [ // Pesquisa
+    { module: 'tcc', label: 'TCC depositados', query: 'vertice_tcc_works', valueKey: 'deposited', icon: '📝' },
+    { module: 'tcc', label: 'Evidências PPC validadas', query: 'vertice_tcc_alignment_decisions', valueKey: 'count', icon: '🔗' },
+  ],
+  '1.9': [ // Extensão
+    { module: 'extensao', label: 'Projetos de extensão', query: 'vertice_extension_projects', valueKey: 'count', icon: '🤝' },
+    { module: 'estagio', label: 'Estágios concluídos', query: 'v_internship_course_summary', valueKey: 'completed', icon: '🏢' },
+  ],
+  '1.14': [ // Egressos
+    { module: 'egressos', label: 'Egressos acompanhados', query: 'vertice_alumni_education', valueKey: 'count', icon: '🎓' },
+    { module: 'tcc', label: 'Produções de egressos', query: 'vertice_alumni_productions', valueKey: 'count', icon: '📚' },
+  ],
+  '2.6': [ // Desenvolvimento docente
+    { module: 'tcc', label: 'Orientadores ativos', query: 'v_tcc_advisor_portfolio', valueKey: 'count', icon: '👨‍🏫' },
+  ],
+  '4.7': [ // Impacto social
+    { module: 'egressos', label: 'Egressos', query: 'vertice_alumni_education', valueKey: 'count', icon: '🎓' },
+    { module: 'extensao', label: 'Projetos extensão', query: 'vertice_extension_projects', valueKey: 'count', icon: '🤝' },
+  ],
+  // Institucional
+  'E3.6': [ // Egressos institucional
+    { module: 'egressos', label: 'Egressos na base', query: 'vertice_alumni_education', valueKey: 'count', icon: '🎓' },
+  ],
+};
+
+function ModuleAutoIndicators({ objectCode }: { objectCode: string }) {
+  const indicators = OBJECT_MODULE_MAP[objectCode];
+  if (!indicators || !indicators.length) return null;
+  return (
+    <div className="ni-espelhamento" style={{ marginTop: 8 }}>
+      <strong>📊 Indicadores automáticos dos módulos</strong>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
+        {indicators.map((ind, i) => (
+          <span key={i} className="ni-espelhamento-item" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 10px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 6, fontSize: '.75rem' }}>
+            <span>{ind.icon}</span>
+            <span style={{ color: '#64748b' }}>{ind.label}</span>
+            <span style={{ fontWeight: 600, color: '#1e293b' }}>→ {ind.query}</span>
+          </span>
+        ))}
+      </div>
+      <p style={{ fontSize: '.6875rem', color: '#94a3b8', margin: '4px 0 0' }}>
+        Dados extraídos em tempo real dos módulos TCC, AC, Estágio, Extensão e Egressos. Use como evidência complementar na avaliação.
+      </p>
     </div>
   );
 }
