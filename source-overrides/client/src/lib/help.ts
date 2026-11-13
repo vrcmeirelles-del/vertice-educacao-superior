@@ -233,6 +233,26 @@ export const GLOSSARY: { group: string; entries: GlossaryEntry[] }[] = [
       { term: "Livro Razão de horas", text: "Registro imutável de horas validadas. Fluxo: declaração → submissão → validação → lançamento no Livro Razão. Estorno é feito por lançamento negativo referenciado, nunca por exclusão. Minutos inteiros na persistência, conversão para horas na apresentação. Horas de TCC e extensão não duplicam — FK de origem cruzada impede dupla contagem da mesma pessoa na mesma atividade." },
     ],
   },
+  {
+    group: "Atividades Complementares",
+    entries: [
+      { term: "Atividade complementar (AC)", text: "Atividade curricular que complementa a formação acadêmica — eventos, cursos, participação em pesquisa, extensão, monitoria, publicações e outras experiências previstas no regulamento do curso. A carga total exigida, as categorias aceitas e os limites são definidos no PPC/matriz." },
+      { term: "Regulamento de AC", text: "Documento institucional versionado que define as regras de aproveitamento: carga total, categorias e subcategorias, limites por item/categoria/período/total, conversões (hora-relógio para hora acadêmica), documentos aceitos, pertinência exigida e período de realização admitido. Cada versão vincula-se a uma matriz e a um PPC. Regra ausente é pendência, não adivinhação." },
+      { term: "Motor de enquadramento", text: "Cálculo determinístico que aplica conversão, teto por item, saldo da categoria, teto do período e saldo global na ordem configurada. Mostra memória de cálculo: carga documental → carga convertida → limites aplicados → horas aproveitáveis → motivo do excedente não aproveitado. Saldos calculados sob lock transacional." },
+      { term: "Protocolo de secretaria", text: "Relatório individual versionado e assinado, encaminhado à secretaria para lançamento no sistema acadêmico. Estados: gerado → aguardando assinatura → assinado → enviado → recebido → lançado. 'Enviado' não significa 'lançado'. Correção gera nova versão vinculada à anterior." },
+      { term: "Acesso estudante (magic link)", text: "Acesso sem senha para o estudante. A coordenação importa a base autorizada; o estudante solicita acesso informando matrícula, CPF e e-mail; o sistema confere e envia link individual de alta entropia, uso único e curta validade para o e-mail institucional. Token armazenado como hash. Recuperação emite novo link sem reenviar o antigo." },
+    ],
+  },
+  {
+    group: "Estágio Obrigatório",
+    entries: [
+      { term: "Estágio obrigatório", text: "Componente curricular regulado pela Lei 11.788/2008 com campo interno (NPJ, clínica-escola, laboratório) ou externo (empresa, órgão público, escritório). Requer termo de compromisso, plano de atividades, orientador docente e supervisor na concedente. Carga, jornada e requisitos são definidos pelo curso conforme PPC e legislação." },
+      { term: "Concedente", text: "Organização que oferece o campo de estágio — pública, privada, escritório, clínica, escola ou outra admitida pelo curso. Cadastro com identificação, contato, área de atuação e status. Concedente cadastrada não equivale a campo aprovado. Histórico de bloqueio/suspensão preservado." },
+      { term: "Campo de estágio", text: "Unidade/setor específico da concedente onde o estágio é realizado. Possui tipo (interno/externo), capacidade, área de prática e status de aprovação. Visita e avaliação registradas. Não confundir com a organização concedente." },
+      { term: "Frequência de estágio", text: "Diário com data, entrada/saída em timestamps com fuso, intervalos e minutos líquidos. Confirmação do campo (supervisor) e decisão acadêmica (orientador) são etapas separadas. Sobreposição e jornada verificadas contra limites do regulamento e Lei 11.788. Horas planejadas ≠ registradas ≠ confirmadas ≠ validadas ≠ lançadas." },
+      { term: "Ciclo de vida do estágio", text: "15 estados: solicitado → em preparação → em análise → ajustes → autorizado → ativo → suspenso/mudança de campo → encerrado operacionalmente → avaliação final → aprovado/reprovado → encaminhado à secretaria → lançamento confirmado. Cada transição auditada com motivo e versão." },
+    ],
+  },
 ];
 
 export const FAQ: { q: string; a: string }[] = [
