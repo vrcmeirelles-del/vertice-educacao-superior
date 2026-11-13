@@ -55,7 +55,7 @@ async function fetchDashboardRows(table:string,order:string,ascending=true,colum
  for(let from=0;;from+=1000){const {data,error}=await supabase.from(table).select(columns).order(order,{ascending}).order('id').range(from,from+999);if(error)throw error;rows.push(...((data??[]) as unknown as Row[]));if(!data||data.length<1000)break;}
  return {data:rows,error:null};
 }
-function readHash(){const p=new URLSearchParams(typeof window==='undefined'?'':window.location.hash.slice(1));return {inst:p.get('instituicao')??'',course:p.get('curso')??'',repositories:p.get('repositorios')==='1',bi:p.get('bi')==='1',captacao:p.get('captacao')==='1',academico:p.get('academico')==='1',painelBi:p.get('painel-bi')==='1',perfis:p.get('perfis')==='1',masters:p.get('masters')==='1',demonstrativos:p.get('demonstrativos')==='1',clientes:p.get('clientes')==='1',governanca:p.get('governanca')==='1',hub:!p.toString(),biVertice:p.get('bi-vertice')==='1',tierFilter:p.get('tier')??'',financeiro:p.get('financeiro')==='1'};}
+function readHash(){const p=new URLSearchParams(typeof window==='undefined'?'':window.location.hash.slice(1));return {inst:p.get('instituicao')??'',course:p.get('curso')??'',repositories:p.get('repositorios')==='1',bi:p.get('bi')==='1',captacao:p.get('captacao')==='1',academico:p.get('academico')==='1',painelBi:p.get('painel-bi')==='1',perfis:p.get('perfis')==='1',masters:p.get('masters')==='1',demonstrativos:p.get('demonstrativos')==='1',clientes:p.get('clientes')==='1',governanca:p.get('governanca')==='1',hub:!p.toString(),biVertice:p.get('bi-vertice')==='1',tierFilter:p.get('tier')??'',financeiro:p.get('financeiro')==='1',tcc:p.get('tcc')==='1',estagio:p.get('estagio')==='1',ac:p.get('ac')==='1',egressos:p.get('egressos')==='1',extensao:p.get('extensao')==='1',dash360:p.get('360')==='1',evasao:p.get('evasao')==='1'};}
 function writeHash(inst:string,course:string,repositories=false,library=false,reitor=false,masters=false){const p=new URLSearchParams();if(masters)p.set('masters','1');if(inst)p.set('instituicao',inst);if(course)p.set('curso',course);if(repositories){if(inst)p.set('aba','repositorio');else p.set('repositorios','1');}if(library)p.set('aba','biblioteca');if(reitor)p.set('aba','reitor');const h=p.toString();window.history.pushState(null,'',h?`#${h}`:window.location.pathname);window.dispatchEvent(new HashChangeEvent('hashchange'));window.scrollTo({top:0});}
 
 type BiItem = {label:string; group:string; value:number; href?:string};
@@ -341,7 +341,7 @@ export default function OwnerDashboard(){
  <form className="access-form" onSubmit={verify}><HelpLabel>Código do autenticador<input autoComplete="one-time-code" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} required value={code} onChange={e=>setCode(e.target.value)}/></HelpLabel><button className="corp-button" disabled={busy}>Validar segundo fator</button></form></>}
  </section>{error&&<p role="alert">{error}</p>}</main>;
  // Determine current navigation section
- const navSection=route.biVertice?'bi-vertice':route.financeiro?'financeiro':route.governanca?'governanca':route.bi?'bi':route.captacao?'captacao':route.academico?'academico':route.painelBi?'painel-bi':route.repositories?'repositorios':route.masters?'masters':route.demonstrativos?'demonstrativos':route.clientes?'clientes':route.perfis?'perfis':route.inst?'instituicao':'hub';
+ const navSection=route.tcc?'tcc':route.estagio?'estagio':route.ac?'ac':route.egressos?'egressos':route.extensao?'extensao':route.dash360?'360':route.evasao?'evasao':route.biVertice?'bi-vertice':route.financeiro?'financeiro':route.governanca?'governanca':route.bi?'bi':route.captacao?'captacao':route.academico?'academico':route.painelBi?'painel-bi':route.repositories?'repositorios':route.masters?'masters':route.demonstrativos?'demonstrativos':route.clientes?'clientes':route.perfis?'perfis':route.inst?'instituicao':'hub';
  const navItems:[string,string,string][]=[
   ['hub','⌂','Visão geral'],
   ['bi','📊','BI Executivo'],
@@ -349,13 +349,19 @@ export default function OwnerDashboard(){
   ['captacao','↗','Captação'],
   ['painel-bi','📈','Painel de Indicadores'],
   ['governanca','🏛️','Governança 360'],
+  ['tcc','📝','TCC e Pesquisa'],
+  ['ac','🏅','Ativ. Complementares'],
+  ['estagio','🏢','Estágio'],
+  ['egressos','🎓','Egressos'],
+  ['360','🔄','360° Integrado'],
+  ['evasao','⚠️','Risco de Evasão'],
   ['repositorios','📁','Repositórios'],
   ['bi-vertice','🔷','BI Vértice'],
   ['financeiro','💰','Financeiro'],
   ['masters','⚙️','Administração'],
  ];
  const navigateTo=(section:string)=>{
-  const map:Record<string,string>={hub:'',bi:'bi=1',academico:'academico=1','painel-bi':'painel-bi=1',captacao:'captacao=1',governanca:'governanca=1',repositorios:'repositorios=1','bi-vertice':'bi-vertice=1',financeiro:'financeiro=1',masters:'masters=1',demonstrativos:'demonstrativos=1',clientes:'clientes=1',perfis:'perfis=1'};
+  const map:Record<string,string>={hub:'',bi:'bi=1',academico:'academico=1','painel-bi':'painel-bi=1',captacao:'captacao=1',governanca:'governanca=1',repositorios:'repositorios=1','bi-vertice':'bi-vertice=1',financeiro:'financeiro=1',masters:'masters=1',demonstrativos:'demonstrativos=1',clientes:'clientes=1',perfis:'perfis=1',tcc:'tcc=1',estagio:'estagio=1',ac:'ac=1',egressos:'egressos=1',extensao:'extensao=1','360':'360=1',evasao:'evasao=1'};
   window.location.hash=map[section]??'';window.dispatchEvent(new HashChangeEvent('hashchange'));window.scrollTo({top:0});
  };
  return <section className="demo-showroom" aria-label="Painel Vértice" style={{minHeight:'100vh',borderRadius:0}}>
@@ -391,7 +397,7 @@ export default function OwnerDashboard(){
     {selectedCaptacaoInstitution
       ? <CaptacaoBI key={selectedCaptacaoInstitution.id} institutionId={selectedCaptacaoInstitution.id} institutionName={selectedCaptacaoInstitution.name}/>
       : <p role="status">Selecione uma instituição autorizada para consultar somente seus indicadores cadastrados de captação.</p>}
-  </section></BIFrame>:route.bi?<PortalBI institutions={institutions} courses={courses} enrollments={enrollments} session={session}/>:master&&route.masters?<MasterDirectory/>:currentInst&&currentCourse?<CourseView key={currentCourse.id} course={currentCourse} institution={currentInst} enrollments={enrollments.filter(row => courses.some(course => course.id === row.course_id && course.institution_id === currentInst.id))} reports={reports} onBack={()=>writeHash(currentInst.id,'')} onPlan={can.record(roleIn(currentInst.id)) ? draft => { storeActionDraft(currentInst.id,draft); window.location.hash = new URLSearchParams({instituicao:currentInst.id,aba:'plano'}).toString(); } : undefined}/>
+  </section></BIFrame>:route.tcc?<AcademicModulesBI key={(route.inst||'all')+'-tcc'} institutionId={route.inst||institutions[0]?.id||''} module="tcc"/>:route.ac?<AcademicModulesBI key={(route.inst||'all')+'-ac'} institutionId={route.inst||institutions[0]?.id||''} module="ac"/>:route.estagio?<AcademicModulesBI key={(route.inst||'all')+'-est'} institutionId={route.inst||institutions[0]?.id||''} module="estagio"/>:route.egressos?<EgressosBI key={route.inst||institutions[0]?.id||''} institutionId={route.inst||institutions[0]?.id||''}/>:route.dash360?<InstitutionalDashboard360 key={(route.inst||institutions[0]?.id||'')+'-360'} institutionId={route.inst||institutions[0]?.id||''}/>:route.evasao?<EvasionRiskPanel key={(route.inst||institutions[0]?.id||'')+'-risk'} institutionId={route.inst||institutions[0]?.id||''} courses={courses.filter(c=>c.institution_id===(route.inst||institutions[0]?.id)).map(c=>({id:c.id,name:c.name}))}/>:route.bi?<PortalBI institutions={institutions} courses={courses} enrollments={enrollments} session={session}/>:master&&route.masters?<MasterDirectory/>:currentInst&&currentCourse?<CourseView key={currentCourse.id} course={currentCourse} institution={currentInst} enrollments={enrollments.filter(row => courses.some(course => course.id === row.course_id && course.institution_id === currentInst.id))} reports={reports} onBack={()=>writeHash(currentInst.id,'')} onPlan={can.record(roleIn(currentInst.id)) ? draft => { storeActionDraft(currentInst.id,draft); window.location.hash = new URLSearchParams({instituicao:currentInst.id,aba:'plano'}).toString(); } : undefined}/>
  :currentInst?<Workspace key={currentInst.id} institution={currentInst as unknown as Row} role={roleIn(currentInst.id)} onBack={()=>writeHash('','')} onChanged={load}
    stats={instStats(currentInst.id)}
    overview={<InstitutionView institution={currentInst} courses={courses} enrollments={enrollments} embedded onOpenCourse={id=>writeHash(currentInst.id,id)} onBack={()=>writeHash('','')}/>}/>
