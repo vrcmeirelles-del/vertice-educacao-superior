@@ -18,6 +18,14 @@ import './egressos360.css';
 
 type Section = 'overview'|'portfolio'|'project'|'supervisions'|'tasks'|'hours'|'defense'|'repository'|'evidence'|'bi'|'config';
 
+const TCC_NEXT_STAGE: Record<string, string> = {
+  draft: 'submitted', submitted: 'under_review', under_review: 'project_approved',
+  project_approved: 'in_execution', in_execution: 'final_submitted',
+  final_submitted: 'defense_scheduled', defense_scheduled: 'assessed',
+  assessed: 'post_defense_changes', post_defense_changes: 'final_validated',
+  final_validated: 'deposited',
+};
+
 interface Props {
   institutionId: string;
   courses: { id: string; name: string; modality?: string }[];
@@ -229,9 +237,17 @@ export default function Tcc360({ institutionId, courses, role, onNavigate }: Pro
                       {STAGE_LABELS[w.stage] || w.stage}
                     </span>
                   </div>
-                  {w.stage_deadline && new Date(w.stage_deadline) < new Date() && w.stage !== 'deposited' && (
-                    <span style={{ fontSize: '.75rem', color: '#ef4444', marginTop: 4, display: 'block' }}>⚠ Prazo vencido: {new Date(w.stage_deadline).toLocaleDateString('pt-BR')}</span>
-                  )}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
+                    {w.stage_deadline && new Date(w.stage_deadline) < new Date() && w.stage !== 'deposited' ? (
+                      <span style={{ fontSize: '.75rem', color: '#ef4444' }}>⚠ Prazo vencido: {new Date(w.stage_deadline).toLocaleDateString('pt-BR')}</span>
+                    ) : <span />}
+                    {TCC_NEXT_STAGE[w.stage] && (
+                      <button style={{ fontSize: '.6875rem', padding: '2px 10px', borderRadius: 4, border: '1px solid #2563eb', background: '#eff6ff', color: '#2563eb', cursor: 'pointer' }}
+                        onClick={async (e) => { e.stopPropagation(); const next = TCC_NEXT_STAGE[w.stage]; await transitionWork(w.id, institutionId, next, 'Avanço pela coordenação', 'Coordenação', 'coordinator', w.version || 0); const refreshed = await fetchWorks(institutionId); setWorks(refreshed); }}>
+                        → {STAGE_LABELS[TCC_NEXT_STAGE[w.stage]] || TCC_NEXT_STAGE[w.stage]}
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
