@@ -419,10 +419,10 @@ export default function Workspace({
           <span className={late > 0 ? "kpi-danger" : "kpi-success"}><b>{late}</b> ações atrasadas</span>
           <span className={openFindings > 0 ? "kpi-warn" : "kpi-success"}><b>{openFindings}</b> achados abertos</span>
         </div>}
-        <Suspense fallback={null}>
-          <ExtensaoDashboard institutionId={String(id)} onNavigate={() => { choose("extensao" as Tab); }} />
-        </Suspense>
       </div>
+      <Suspense fallback={null}>
+        <ExtensaoDashboard institutionId={String(id)} onNavigate={() => { choose("extensao" as Tab); }} />
+      </Suspense>
       <InstitutionTabs enabled={role === "master"} activeTab={tab} activeMacro={activeMacro} onSelectMacro={selectMacro} institutionName={String(institution.name)} availableMacros={MACRO_TABS.filter(m => m.tabs.some(key => availableWorkspaceTabs.some(([k]) => k === key))).map(m => m.key)}>
       <div ref={moduleNavigationRef} className="inst-module-workspace" onChangeCapture={e => { if ((e.target as HTMLElement).closest("input:not([type=search]), textarea, select")) edited.current = true; }}>
       {role === "master" && <InstitutionSubTabs
