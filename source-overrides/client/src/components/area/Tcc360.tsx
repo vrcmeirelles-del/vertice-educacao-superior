@@ -100,7 +100,7 @@ export default function Tcc360({ institutionId, courses, role, onNavigate }: Pro
       const link = `${window.location.origin}/entrar`;
       setInviteLink(link);
       setInviteMsg(result?.created
-        ? `✅ Conta criada para ${mail} com senha 123456. Copie o link e envie por WhatsApp.`
+        ? `✅ Convite criado para ${mail}. Copie o link e envie por WhatsApp.`
         : `✅ ${mail} já tem conta. Acesso liberado. Envie o link abaixo.`);
       setInviteEmail(''); setInviteName('');
     } catch (err) { setInviteMsg(`Erro: ${(err as Error).message}`); }
@@ -122,7 +122,7 @@ export default function Tcc360({ institutionId, courses, role, onNavigate }: Pro
           <input readOnly value={inviteLink} style={{flex:1,padding:'7px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:11,background:'#fff'}} onClick={e=>(e.target as HTMLInputElement).select()}/>
           <button type="button" onClick={()=>navigator.clipboard.writeText(inviteLink).then(()=>setInviteMsg('📋 Link copiado! Cole no WhatsApp.')).catch(()=>{})} style={{padding:'7px 12px',background:'#16a34a',color:'#fff',border:0,borderRadius:6,fontSize:12,fontWeight:600,cursor:'pointer',whiteSpace:'nowrap'}}>📋 Copiar</button>
         </div>}
-        <p style={{fontSize:10,color:'#6b7280',marginTop:6}}>Senha padrão: <strong>123456</strong> · O professor altera depois em Minha Conta.</p>
+        <p style={{fontSize:10,color:'#6b7280',marginTop:6}}>O professor acessa pelo link do convite, sem precisar de senha.</p>
       </div>}
 
       {/* Nav */}

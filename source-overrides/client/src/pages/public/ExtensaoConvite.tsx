@@ -34,7 +34,7 @@ export default function ExtensaoConvite() {
 
         if (error) {
           setStatus('presenting');
-          setMsg(`Não foi possível entrar automaticamente. Use email: ${email} e senha: 123456`);
+          setMsg(`Não foi possível entrar automaticamente para ${email}. Informe seu e-mail abaixo.`);
           return;
         }
 
@@ -55,13 +55,22 @@ export default function ExtensaoConvite() {
     e.preventDefault();
     setManualBusy(true); setMsg('');
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email: manualEmail.trim().toLowerCase(), password: '123456' });
-      if (error) throw error;
+      const mail = manualEmail.trim().toLowerCase();
+      // Tentar login direto
+      const { error } = await supabase.auth.signInWithPassword({ email: mail, password: '123456' });
+      if (error) {
+        // Se falhar, tentar criar via edge function e logar de novo
+        await supabase.functions.invoke('vertice-convite-simples', {
+          body: { email: mail, institution_id: '1f5fd5b4-93c6-4626-834d-136884915587', role: 'equipe' }
+        }).catch(() => {});
+        const { error: e2 } = await supabase.auth.signInWithPassword({ email: mail, password: '123456' });
+        if (e2) throw e2;
+      }
       setStatus('done');
       setMsg('✅ Acesso liberado! Entrando...');
       setTimeout(() => { window.location.href = '/master'; }, 1200);
     } catch (err) {
-      setMsg(`Erro: ${(err as Error).message}`);
+      setMsg(`Não foi possível acessar. Peça ao coordenador para enviar um novo convite.`);
     } finally { setManualBusy(false); }
   }
 

@@ -239,9 +239,13 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
     setInviteBusy(true); setInviteMsg(''); setInviteLink('');
     try {
       const mail = inviteEmail.trim().toLowerCase();
-      // 1. Registrar membro/convite via RPC existente
-      await supabase.rpc('vertice_add_member', { target: institutionId, member_email: mail, member_role: 'equipe' }).then(r => r);
-      // 2. Buscar o convite gerado para montar o link
+      // 1. Criar conta + membership via edge function (admin API)
+      await supabase.functions.invoke('vertice-convite-simples', {
+        body: { email: mail, institution_id: institutionId, role: 'equipe', name: inviteName || undefined }
+      }).catch(() => {});
+      // 2. Registrar convite via RPC (para gerar o invite record)
+      await supabase.rpc('vertice_add_member', { target: institutionId, member_email: mail, member_role: 'equipe' }).then(r => r).catch(() => {});
+      // 3. Buscar o convite gerado para montar o link
       const { data: inv } = await supabase.from('vertice_invites').select('id').eq('institution_id', institutionId).eq('email', mail).is('accepted_at', null).order('created_at', { ascending: false }).limit(1);
       const invId = inv?.[0]?.id;
       const link = `${window.location.origin}/extensao-convite${invId ? '?convite=' + invId : ''}`;
@@ -289,7 +293,7 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
           <input readOnly value={inviteLink} style={{flex:1,padding:'7px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:11,background:'#fff'}} onClick={e=>(e.target as HTMLInputElement).select()}/>
           <button type="button" onClick={()=>navigator.clipboard.writeText(inviteLink).then(()=>setInviteMsg('📋 Link copiado! Cole no WhatsApp.')).catch(()=>{})} style={{padding:'7px 12px',background:'#16a34a',color:'#fff',border:0,borderRadius:6,fontSize:12,fontWeight:600,cursor:'pointer',whiteSpace:'nowrap'}}>📋 Copiar</button>
         </div>}
-        <p style={{fontSize:10,color:'#6b7280',marginTop:6}}>Senha padrão: <strong>123456</strong> · O professor altera depois em Minha Conta.</p>
+        <p style={{fontSize:10,color:'#6b7280',marginTop:6}}>O professor acessa pelo link do convite, sem precisar de senha.</p>
       </div>}
 
       {/* KPIs */}
