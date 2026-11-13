@@ -10,7 +10,7 @@ interface Props {
   purpose: 'complementary_activities' | 'mandatory_internship';
 }
 
-type Step = 'form' | 'sent' | 'error' | 'not_found';
+type Step = 'form' | 'sent' | 'error' | 'not_found' | 'dashboard';
 
 export default function StudentAccessPortal({ institutionId, institutionName, purpose }: Props) {
   const [step, setStep] = useState<Step>('form');
@@ -19,6 +19,7 @@ export default function StudentAccessPortal({ institutionId, institutionName, pu
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [studentData, setStudentData] = useState<any>(null);
 
   const purposeLabel = purpose === 'complementary_activities'
     ? 'Atividades Complementares' : 'Estágio Obrigatório';
@@ -154,6 +155,10 @@ export default function StudentAccessPortal({ institutionId, institutionName, pu
           </div>
         )}
 
+        {step === 'dashboard' && studentData && (
+          <StudentDashboard data={studentData} purpose={purpose} institutionName={institutionName} onLogout={() => { setStep('form'); setStudentData(null); setEnrollment(''); setCpf(''); setEmail(''); }} />
+        )}
+
         {step === 'error' && (
           <div style={{ textAlign: 'center', padding: '1rem 0' }}>
             <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>⚠️</div>
@@ -172,4 +177,76 @@ export default function StudentAccessPortal({ institutionId, institutionName, pu
       </p>
     </div>
   );
+}
+
+/* ── Dashboard do Aluno (pós-login) ── */
+function StudentDashboard({ data, purpose, institutionName, onLogout }: { data: any; purpose: string; institutionName: string; onLogout: () => void }) {
+  const st = { padding: '6px 10px', border: '1px solid var(--vx-border,#e2e8f0)', borderRadius: 8, background: 'var(--vx-surface,#fff)', marginBottom: 8 };
+  const lbl: React.CSSProperties = { fontSize: '.75rem', color: 'var(--vx-muted,#64748b)', textTransform: 'uppercase', letterSpacing: '.04em' };
+  const val: React.CSSProperties = { fontSize: '1.25rem', fontWeight: 700 };
+
+  return (
+    <div style={{ padding: '1rem 0' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <div>
+          <div style={{ fontSize: '.75rem', color: 'var(--vx-muted)' }}>{institutionName}</div>
+          <strong>{data.full_name}</strong>
+          <div style={{ fontSize: '.8125rem', color: 'var(--vx-muted)' }}>Matrícula: {data.enrollment_code}</div>
+        </div>
+        <button onClick={onLogout} style={{ fontSize: '.75rem', padding: '4px 12px', background: 'transparent', border: '1px solid var(--vx-border,#e2e8f0)', borderRadius: 6, cursor: 'pointer' }}>Sair</button>
+      </div>
+
+      {/* AC — Saldo */}
+      {(purpose === 'complementary_activities' || data.ac_balance) && (
+        <div style={{ marginBottom: 20 }}>
+          <h3 style={{ fontSize: '.875rem', margin: '0 0 8px' }}>📋 Atividades Complementares</h3>
+          {data.ac_balance ? (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+              <div style={st}><div style={lbl}>Exigido</div><div style={val}>{minutesToH(data.ac_balance.total_required_minutes)}</div></div>
+              <div style={st}><div style={lbl}>Creditado</div><div style={{ ...val, color: '#059669' }}>{minutesToH(data.ac_balance.credited_minutes)}</div></div>
+              <div style={st}><div style={lbl}>Restante</div><div style={{ ...val, color: data.ac_balance.remaining_minutes <= 0 ? '#059669' : '#f59e0b' }}>{data.ac_balance.remaining_minutes <= 0 ? '✓' : minutesToH(data.ac_balance.remaining_minutes)}</div></div>
+            </div>
+          ) : <p style={{ fontSize: '.8125rem', color: 'var(--vx-muted)' }}>Nenhum regulamento vinculado ainda.</p>}
+          {data.ac_submissions?.length > 0 && (
+            <div style={{ marginTop: 8 }}>
+              <div style={lbl}>Suas submissões</div>
+              {data.ac_submissions.map((s: any) => (
+                <div key={s.id} style={{ ...st, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div><strong style={{ fontSize: '.8125rem' }}>{s.title}</strong><div style={{ fontSize: '.75rem', color: 'var(--vx-muted)' }}>{s.issuer || '—'} · {s.documentary_minutes ? minutesToH(s.documentary_minutes) : '—'}</div></div>
+                  <span style={{ fontSize: '.75rem', padding: '2px 8px', borderRadius: 4, background: '#f1f5f9' }}>{s.status}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Estágio */}
+      {(purpose === 'mandatory_internship' || data.placements) && (
+        <div>
+          <h3 style={{ fontSize: '.875rem', margin: '0 0 8px' }}>🏢 Estágio Obrigatório</h3>
+          {data.placements?.length > 0 ? data.placements.map((p: any) => (
+            <div key={p.id} style={{ ...st, marginBottom: 10 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <strong style={{ fontSize: '.8125rem' }}>{p.organization_name || 'Concedente'}</strong>
+                <span style={{ fontSize: '.75rem', padding: '2px 8px', borderRadius: 4, background: '#f1f5f9' }}>{p.lifecycle}</span>
+              </div>
+              <div style={{ fontSize: '.75rem', color: 'var(--vx-muted)', marginTop: 4 }}>
+                {p.field_name || 'Campo'}{p.starts_at ? ` · Início: ${new Date(p.starts_at).toLocaleDateString('pt-BR')}` : ''}
+                {p.advisor_name ? ` · Orient.: ${p.advisor_name}` : ''}
+              </div>
+              {p.hours_completed != null && <div style={{ fontSize: '.75rem', marginTop: 4 }}>Horas cumpridas: <strong>{minutesToH(p.hours_completed)}</strong></div>}
+            </div>
+          )) : <p style={{ fontSize: '.8125rem', color: 'var(--vx-muted)' }}>Nenhum estágio vinculado.</p>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function minutesToH(m: number): string {
+  if (!m || m <= 0) return '0h';
+  const h = Math.floor(m / 60);
+  const min = m % 60;
+  return min > 0 ? `${h}h${min}min` : `${h}h`;
 }

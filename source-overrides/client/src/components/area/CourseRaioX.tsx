@@ -229,8 +229,17 @@ export default function CourseRaioX({ institutionId, courses, role, onNavigate }
             {estagioData.placements === 0 && <Empty>Nenhum estágio registrado neste curso.</Empty>}
           </Block>
 
+          <Block title="Governança do Curso" icon="⚖" onClick={() => nav('governanca')}>
+            <Row label="Órgãos ativos" value={d.orgaos_colegiados || 0} />
+            <Row label="Reuniões realizadas" value={d.reunioes || 0} />
+            <Row label="Deliberações executadas" value={d.deliberacoes || 0} good />
+            {(d.orgaos_colegiados || 0) === 0 && <Empty>Nenhum órgão colegiado cadastrado.</Empty>}
+            <Hint>NDE e Colegiado ativos demonstram gestão participativa (Indicador 1.18/1.19).</Hint>
+          </Block>
+
           <Block title="Horas Consolidadas" icon="⏱">
-            <Row label="TCC" value={tccData.works > 0 ? `${Math.floor(0)}h validadas` : 'N/D'} />
+            <Row label="TCC" value={tccData.works > 0 ? `${tccData.deposited} depositados` : 'N/D'} />
+            <Row label="AC" value={acData.submissions > 0 ? `${acData.credited_min > 0 ? Math.floor(acData.credited_min / 60) + 'h' : '0h'} creditadas` : 'N/D'} />
             <Row label="Extensão" value={d.extensao_alunos > 0 ? `${d.extensao_alunos} alunos` : 'N/D'} />
             <Row label="Estágio" value={estagioData.placements > 0 ? `${estagioData.completed} concluídos` : 'N/D'} />
             <Hint>FK cruzada impede dupla contagem entre TCC e extensão. Estágio, AC e TCC possuem livros razão separados com controle de origem.</Hint>

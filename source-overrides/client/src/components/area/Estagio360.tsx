@@ -1,6 +1,8 @@
 // Estagio360.tsx — Estágio Obrigatório 360 (Interno e Externo)
 import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
 import { fetchOrganizations, fetchFields, fetchInternshipRules, fetchPlacements, fetchAttendance, fetchReports, fetchInternshipCourseSummary, LIFECYCLE_LABELS, LIFECYCLE_COLORS, minutesToHours, type InternshipOrg, type InternshipField, type InternshipRule, type InternshipPlacement, type InternshipAttendance, type InternshipReport, type InternshipCourseSummary } from '@/lib/estagio';
+import { fetchStudentRegistry, type StudentRegistryEntry } from '@/lib/atividades-complementares';
 import { fetchProtocols, PROTOCOL_STATUS_LABELS } from '@/lib/atividades-complementares';
 import './egressos360.css';
 
@@ -27,8 +29,10 @@ export default function Estagio360({ institutionId, courses, role, onNavigate }:
   const [placements, setPlacements] = useState<InternshipPlacement[]>([]);
   const [summary, setSummary] = useState<InternshipCourseSummary[]>([]);
   const [protocols, setProtocols] = useState<any[]>([]);
+  const [students, setStudents] = useState<StudentRegistryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPlacement, setSelectedPlacement] = useState<string|null>(null);
+  const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -39,8 +43,9 @@ export default function Estagio360({ institutionId, courses, role, onNavigate }:
       fetchPlacements(institutionId),
       fetchInternshipCourseSummary(institutionId),
       fetchProtocols(institutionId, 'mandatory_internship'),
-    ]).then(([o, f, r, p, s, pr]) => {
-      setOrgs(o); setFields(f); setRules(r); setPlacements(p); setSummary(s); setProtocols(pr);
+      fetchStudentRegistry(institutionId),
+    ]).then(([o, f, r, p, s, pr, st]) => {
+      setOrgs(o); setFields(f); setRules(r); setPlacements(p); setSummary(s); setProtocols(pr); setStudents(st);
     }).finally(() => setLoading(false));
   }, [institutionId]);
 
@@ -159,8 +164,12 @@ export default function Estagio360({ institutionId, courses, role, onNavigate }:
         </div>)}
 
         {section === 'placements' && (<div>
-          <header className="alumni-header"><h2>Estágios</h2></header>
-          {placements.length === 0 ? <div className="alumni-info-box">Nenhum estágio registrado.</div> : (
+          <header className="alumni-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h2>Estágios</h2>
+            <button className="alumni-btn-export" onClick={() => setShowForm(v => !v)}>+ Novo Estágio</button>
+          </header>
+          {showForm && <CreatePlacementForm institutionId={institutionId} courses={courses} orgs={orgs} fields={fields} students={students} onCreated={(p) => { setPlacements(prev => [p, ...prev]); setShowForm(false); }} onCancel={() => setShowForm(false)} />}
+          {placements.length === 0 && !showForm ? <div className="alumni-info-box">Nenhum estágio registrado.</div> : (
             <div style={{ display: 'grid', gap: '.75rem' }}>
               {placements.map(p => (
                 <div key={p.id} className="alumni-finding-card" style={{ border: '1px solid var(--vx-border,#e2e8f0)', cursor: 'pointer' }}
@@ -304,5 +313,61 @@ function PlacementAttendance({ placementId, placements, onBack }: { placementId:
         )}
       </>)}
     </div>
+  );
+}
+
+const fld: React.CSSProperties = { display: 'block', width: '100%', padding: '6px 10px', border: '1px solid var(--vx-border,#e2e8f0)', borderRadius: 6, fontSize: '.8125rem', marginTop: 4 };
+
+function CreatePlacementForm({ institutionId, courses, orgs, fields, students, onCreated, onCancel }: {
+  institutionId: string; courses: { id: string; name: string }[]; orgs: InternshipOrg[]; fields: InternshipField[]; students: StudentRegistryEntry[];
+  onCreated: (p: InternshipPlacement) => void; onCancel: () => void;
+}) {
+  const [courseId, setCourseId] = useState(courses[0]?.id || '');
+  const [studentId, setStudentId] = useState('');
+  const [orgId, setOrgId] = useState('');
+  const [fieldId, setFieldId] = useState('');
+  const [locType, setLocType] = useState<'internal'|'external'>('external');
+  const [advisor, setAdvisor] = useState('');
+  const [startsAt, setStartsAt] = useState('');
+  const [endsAt, setEndsAt] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const courseStudents = students.filter(s => s.course_id === courseId);
+  const courseFields = fields.filter(f => f.course_id === courseId);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!studentId || !orgId || !fieldId) return;
+    setSaving(true);
+    const { data, error } = await supabase.from('vertice_internship_placements').insert({
+      institution_id: institutionId, course_id: courseId, student_id: studentId,
+      organization_id: orgId, field_id: fieldId, location_type: locType,
+      advisor_name: advisor || null,
+      starts_at: startsAt || null, ends_at: endsAt || null,
+      lifecycle: 'draft',
+    }).select().single();
+    setSaving(false);
+    if (error) { alert('Erro: ' + error.message); return; }
+    onCreated(data as InternshipPlacement);
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="alumni-info-box" style={{ background: 'var(--vx-surface,#fff)', border: '1px solid var(--vx-border,#e2e8f0)', marginBottom: '1rem' }}>
+      <strong style={{ display: 'block', marginBottom: 12 }}>Novo Vínculo de Estágio</strong>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <label>Curso<select value={courseId} onChange={e => setCourseId(e.target.value)} style={fld}>{courses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
+        <label>Aluno<select value={studentId} onChange={e => setStudentId(e.target.value)} style={fld}><option value="">Selecione…</option>{courseStudents.map(s => <option key={s.id} value={s.id}>{s.full_name} — {s.enrollment_code}</option>)}</select></label>
+        <label>Tipo<select value={locType} onChange={e => setLocType(e.target.value as any)} style={fld}><option value="internal">Interno</option><option value="external">Externo</option></select></label>
+        <label>Concedente<select value={orgId} onChange={e => setOrgId(e.target.value)} style={fld}><option value="">Selecione…</option>{orgs.map(o => <option key={o.id} value={o.id}>{o.trade_name || o.legal_name}</option>)}</select></label>
+        <label>Campo<select value={fieldId} onChange={e => setFieldId(e.target.value)} style={fld}><option value="">Selecione…</option>{courseFields.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}</select></label>
+        <label>Orientador<input value={advisor} onChange={e => setAdvisor(e.target.value)} style={fld} placeholder="Nome do orientador" /></label>
+        <label>Início<input type="date" value={startsAt} onChange={e => setStartsAt(e.target.value)} style={fld} /></label>
+        <label>Término<input type="date" value={endsAt} onChange={e => setEndsAt(e.target.value)} style={fld} /></label>
+      </div>
+      <div style={{ display: 'flex', gap: 8, marginTop: 12, justifyContent: 'flex-end' }}>
+        <button type="button" onClick={onCancel} className="alumni-btn-back">Cancelar</button>
+        <button type="submit" disabled={saving || !studentId || !orgId || !fieldId} className="alumni-btn-export">{saving ? 'Salvando…' : 'Criar Estágio'}</button>
+      </div>
+    </form>
   );
 }

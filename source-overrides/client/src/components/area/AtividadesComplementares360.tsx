@@ -1,5 +1,6 @@
 // AtividadesComplementares360.tsx — AC 360
 import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
 import { fetchAcRules, fetchAcCategories, fetchAcSubmissions, fetchAcStudentBalance, fetchAcCourseSummary, fetchStudentRegistry, fetchProtocols, AC_STATUS_LABELS, PROTOCOL_STATUS_LABELS, minutesToHours, type AcRule, type AcCategory, type AcSubmission, type AcStudentBalance, type AcCourseSummary, type StudentRegistryEntry } from '@/lib/atividades-complementares';
 import './egressos360.css';
 
@@ -27,6 +28,7 @@ export default function AtividadesComplementares360({ institutionId, courses, ro
   const [protocols, setProtocols] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [courseFilter, setCourseFilter] = useState('');
+  const [showAcForm, setShowAcForm] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -152,8 +154,12 @@ export default function AtividadesComplementares360({ institutionId, courses, ro
         </div>)}
 
         {section === 'submissions' && (<div>
-          <header className="alumni-header"><h2>Solicitações</h2></header>
-          {submissions.length === 0 ? <div className="alumni-info-box">Nenhuma solicitação recebida.</div> : (
+          <header className="alumni-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h2>Solicitações</h2>
+            <button className="alumni-btn-export" onClick={() => setShowAcForm(v => !v)}>+ Nova Submissão</button>
+          </header>
+          {showAcForm && <CreateAcSubmissionForm institutionId={institutionId} courses={courses} rules={rules} students={students} onCreated={(s) => { setSubmissions(prev => [s, ...prev]); setShowAcForm(false); }} onCancel={() => setShowAcForm(false)} />}
+          {submissions.length === 0 && !showAcForm ? <div className="alumni-info-box">Nenhuma solicitação recebida.</div> : (
             <table className="alumni-table">
               <thead><tr><th>Título</th><th>Emissor</th><th>Carga Doc.</th><th>Status</th><th>Data</th></tr></thead>
               <tbody>{submissions.slice(0, 100).map(s => (
@@ -280,3 +286,57 @@ function RuleCard({ rule, courseName }: { rule: AcRule; courseName: string }) {
     </div>
   );
 }
+
+function CreateAcSubmissionForm({ institutionId, courses, rules, students, onCreated, onCancel }: {
+  institutionId: string; courses: { id: string; name: string }[]; rules: AcRule[]; students: StudentRegistryEntry[];
+  onCreated: (s: AcSubmission) => void; onCancel: () => void;
+}) {
+  const [courseId, setCourseId] = useState(courses[0]?.id || '');
+  const [studentId, setStudentId] = useState('');
+  const [categoryId, setCategoryId] = useState('');
+  const [title, setTitle] = useState('');
+  const [issuer, setIssuer] = useState('');
+  const [docMinutes, setDocMinutes] = useState('');
+  const [cats, setCats] = useState<AcCategory[]>([]);
+  const [saving, setSaving] = useState(false);
+
+  const rule = rules.find(r => r.course_id === courseId);
+  useEffect(() => { if (rule) fetchAcCategories(rule.id).then(setCats); else setCats([]); }, [rule?.id]);
+
+  const courseStudents = students.filter(s => s.course_id === courseId);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!rule || !studentId || !categoryId || !title) return;
+    setSaving(true);
+    const { data, error } = await supabase.from('vertice_ac_submissions').insert({
+      institution_id: institutionId, rule_id: rule.id, category_id: categoryId,
+      student_id: studentId, title, issuer: issuer || null,
+      documentary_minutes: docMinutes ? parseInt(docMinutes) * 60 : null,
+      status: 'submitted',
+    }).select().single();
+    setSaving(false);
+    if (error) { alert('Erro: ' + error.message); return; }
+    onCreated(data as AcSubmission);
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="alumni-info-box" style={{ background: 'var(--vx-surface,#fff)', border: '1px solid var(--vx-border,#e2e8f0)', marginBottom: '1rem' }}>
+      <strong style={{ display: 'block', marginBottom: 12 }}>Nova Submissão de Atividade Complementar</strong>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <label>Curso<select value={courseId} onChange={e => setCourseId(e.target.value)} style={sel}>{courses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
+        <label>Aluno<select value={studentId} onChange={e => setStudentId(e.target.value)} style={sel}><option value="">Selecione…</option>{courseStudents.map(s => <option key={s.id} value={s.id}>{s.full_name} — {s.enrollment_code}</option>)}</select></label>
+        <label>Categoria<select value={categoryId} onChange={e => setCategoryId(e.target.value)} style={sel}><option value="">Selecione…</option>{cats.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}</select></label>
+        <label>Título da Atividade<input value={title} onChange={e => setTitle(e.target.value)} style={sel} placeholder="Nome do curso, evento, projeto…" /></label>
+        <label>Emissor<input value={issuer} onChange={e => setIssuer(e.target.value)} style={sel} placeholder="Instituição emissora" /></label>
+        <label>Carga Horária (h)<input type="number" value={docMinutes} onChange={e => setDocMinutes(e.target.value)} style={sel} placeholder="Horas no certificado" min="0" /></label>
+      </div>
+      <div style={{ display: 'flex', gap: 8, marginTop: 12, justifyContent: 'flex-end' }}>
+        <button type="button" onClick={onCancel} className="alumni-btn-back">Cancelar</button>
+        <button type="submit" disabled={saving || !studentId || !categoryId || !title} className="alumni-btn-export">{saving ? 'Salvando…' : 'Submeter'}</button>
+      </div>
+    </form>
+  );
+}
+
+const sel: React.CSSProperties = { display: 'block', width: '100%', padding: '6px 10px', border: '1px solid var(--vx-border,#e2e8f0)', borderRadius: 6, fontSize: '.8125rem', marginTop: 4 };
