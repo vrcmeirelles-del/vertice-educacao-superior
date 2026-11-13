@@ -407,6 +407,7 @@ function CreateAcSubmissionForm({ institutionId, courses, rules, students, onCre
   const [docMinutes, setDocMinutes] = useState('');
   const [cats, setCats] = useState<AcCategory[]>([]);
   const [saving, setSaving] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
 
   const rule = rules.find(r => r.course_id === courseId);
   useEffect(() => { if (rule) fetchAcCategories(rule.id).then(setCats); else setCats([]); }, [rule?.id]);
@@ -417,11 +418,23 @@ function CreateAcSubmissionForm({ institutionId, courses, rules, students, onCre
     e.preventDefault();
     if (!rule || !studentId || !categoryId || !title) return;
     setSaving(true);
+
+    // Upload file if present
+    let fileUrl: string | null = null;
+    if (file) {
+      const ext = file.name.split('.').pop() || 'pdf';
+      const path = `ac/${institutionId}/${studentId}/${Date.now()}.${ext}`;
+      const { error: uploadErr } = await supabase.storage.from('vertice-documents').upload(path, file, { contentType: file.type });
+      if (uploadErr) { alert('Erro no upload: ' + uploadErr.message); setSaving(false); return; }
+      fileUrl = path;
+    }
+
     const { data, error } = await supabase.from('vertice_ac_submissions').insert({
       institution_id: institutionId, rule_id: rule.id, category_id: categoryId,
       student_id: studentId, title, issuer: issuer || null,
       documentary_minutes: docMinutes ? parseInt(docMinutes) * 60 : null,
       status: 'submitted',
+      ...(fileUrl ? { external_url: fileUrl } : {}),
     }).select().single();
     setSaving(false);
     if (error) { alert('Erro: ' + error.message); return; }
@@ -438,6 +451,7 @@ function CreateAcSubmissionForm({ institutionId, courses, rules, students, onCre
         <label>Título da Atividade<input value={title} onChange={e => setTitle(e.target.value)} style={sel} placeholder="Nome do curso, evento, projeto…" /></label>
         <label>Emissor<input value={issuer} onChange={e => setIssuer(e.target.value)} style={sel} placeholder="Instituição emissora" /></label>
         <label>Carga Horária (h)<input type="number" value={docMinutes} onChange={e => setDocMinutes(e.target.value)} style={sel} placeholder="Horas no certificado" min="0" /></label>
+        <label>Comprovante (PDF/imagem)<input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => setFile(e.target.files?.[0] || null)} style={{ ...sel, padding: '4px' }} /></label>
       </div>
       <div style={{ display: 'flex', gap: 8, marginTop: 12, justifyContent: 'flex-end' }}>
         <button type="button" onClick={onCancel} className="alumni-btn-back">Cancelar</button>

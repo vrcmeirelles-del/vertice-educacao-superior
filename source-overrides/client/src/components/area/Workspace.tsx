@@ -58,6 +58,9 @@ import DireitoRaioX from "./DireitoRaioX";
 const CourseRaioX = lazy(() => import("./CourseRaioX"));
 const CourseShowcase = lazy(() => import("./CourseShowcase"));
 const MODULE_LABELS: Record<string,string> = { tcc:'TCC', ac:'AC', estagio:'Estágio', extensao:'Extensão', cpa:'CPA', alumni:'Egressos', diagnostico:'Diagnóstico', meta:'Meta', acao:'Ação', ppc:'PPC', governanca:'Governança' };
+function MiniKpi({ label, value, detail, bad }: { label: string; value: number; detail?: string; bad?: boolean }) {
+  return <div style={{ textAlign: 'center' }}><div style={{ fontSize: '1.125rem', fontWeight: 700, color: bad ? '#ef4444' : value > 0 ? '#1e293b' : '#94a3b8' }}>{value}</div><div style={{ fontSize: '.6875rem', color: 'var(--vx-muted,#64748b)' }}>{label}</div>{detail && <div style={{ fontSize: '.625rem', color: bad ? '#ef4444' : '#94a3b8' }}>{detail}</div>}</div>;
+}
 const Tcc360 = lazy(() => import("./Tcc360"));
 const AtividadesComplementares360 = lazy(() => import("./AtividadesComplementares360"));
 const Estagio360 = lazy(() => import("./Estagio360"));
@@ -1274,6 +1277,13 @@ function diagnosisFields(courses: Row[]): Field[] {
 function DiagnosisTab({ institutionId, role, data, reload, onPlan }: { institutionId: string; role: Role | null; data: Data; reload: () => Promise<void>; onPlan: () => void }) {
   const ed = useEditor();
   const [courseId,setCourseId]=useState("");
+  const [moduleIndicators, setModuleIndicators] = useState<any[]>([]);
+  useEffect(() => {
+    if (!courseId) { setModuleIndicators([]); return; }
+    supabase.from('v_diagnosis_with_modules').select('tcc_active,tcc_deposited,tcc_overdue,ac_submissions,ac_approved,ac_pending,estagio_placements,estagio_completed,extensao_projetos,egressos_total,orgaos_ativos,deliberacoes_executadas')
+      .eq('institution_id', institutionId).eq('course_id', courseId).limit(1)
+      .then(r => { if (r.data?.[0]) setModuleIndicators([r.data[0]]); else setModuleIndicators([]); });
+  }, [institutionId, courseId]);
   const groups = useMemo(() => {
     const m = new Map<string, Row[]>();
     for (const d of data.diagnosis.filter(d=>!courseId||d.course_id===courseId)) {
@@ -1295,6 +1305,16 @@ function DiagnosisTab({ institutionId, role, data, reload, onPlan }: { instituti
         {can.record(role) && <button className="corp-button small" onClick={() => ed.open("new")}>Novo critério</button>}
       </div>
       <HelpLabel>Curso do diagnóstico <select value={courseId} onChange={e=>setCourseId(e.target.value)}><option value="">Toda a instituição</option>{data.courses.map(c=><option key={c.id} value={c.id}>{String(c.display_name??c.name)}</option>)}</select></HelpLabel>
+      {courseId && moduleIndicators.length > 0 && (() => { const m = moduleIndicators[0]; return (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 8, margin: '8px 0', padding: 12, background: 'var(--bg-card, #f8fafc)', borderRadius: 8, border: '1px solid var(--vx-border, #e2e8f0)' }}>
+          <MiniKpi label="TCC ativos" value={m.tcc_active} bad={m.tcc_overdue > 0} detail={m.tcc_overdue > 0 ? `${m.tcc_overdue} atrasados` : `${m.tcc_deposited} depositados`} />
+          <MiniKpi label="AC submissões" value={m.ac_submissions} bad={m.ac_pending > 3} detail={`${m.ac_approved} aprovadas`} />
+          <MiniKpi label="Estágio vínculos" value={m.estagio_placements} detail={`${m.estagio_completed} concluídos`} />
+          <MiniKpi label="Extensão" value={m.extensao_projetos} detail="projetos" />
+          <MiniKpi label="Egressos" value={m.egressos_total} />
+          <MiniKpi label="Governança" value={m.orgaos_ativos} detail={`${m.deliberacoes_executadas} deliberações`} />
+        </div>
+      ); })()}
       {ed.editing && (
         <RecordForm institutionId={institutionId}
           title={ed.editing === "new" ? "Novo critério avaliado" : "Editar critério"}
