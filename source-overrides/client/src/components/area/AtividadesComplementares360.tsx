@@ -289,8 +289,24 @@ export default function AtividadesComplementares360({ institutionId, courses, ro
 
         {section === 'config' && (<div>
           <header className="alumni-header"><h2>Configurações</h2></header>
+          <div className="alumni-section" style={{ marginBottom: '1rem' }}>
+            <h3 className="alumni-section-title">URL de Acesso do Estudante</h3>
+            <div style={{ padding: '12px 16px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8, fontSize: '.875rem', fontFamily: 'monospace', wordBreak: 'break-all' }}>
+              {window.location.origin}/acesso-estudante?ies={institutionId}&mod=ac
+            </div>
+            <p style={{ fontSize: '.75rem', color: 'var(--vx-muted)', marginTop: 6 }}>Compartilhe este link com os alunos para acesso sem senha via magic link. O aluno informa matrícula, CPF e e-mail institucional.</p>
+          </div>
+          <div className="alumni-section" style={{ marginBottom: '1rem' }}>
+            <h3 className="alumni-section-title">Checklist de Ativação</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <ConfigCheck label="Regulamento cadastrado por curso" ok={rules.length > 0} action={() => setSection('rules')} />
+              <ConfigCheck label="Categorias definidas com limites e conversão" ok={rules.length > 0} action={() => setSection('rules')} />
+              <ConfigCheck label="Base de alunos importada" ok={students.length > 0} action={() => setSection('students')} />
+              <ConfigCheck label="Módulo ativado para a IES" ok={true} />
+            </div>
+          </div>
           <div className="alumni-info-box">
-            O módulo de Atividades Complementares requer a configuração do regulamento por curso e matriz (<strong>Regulamentos</strong>), a importação da base de alunos (<strong>Base de Alunos</strong>) e a definição das categorias com seus limites e conversões. A URL de acesso do estudante será disponibilizada após a ativação do módulo.
+            <strong>Motor de cálculo:</strong> conversão → teto por item → saldo categoria → teto global. Arredondamento: floor. Estorno por lançamento negativo referenciado. Livro razão imutável com lock transacional.
           </div>
         </div>)}
       </>)}
@@ -462,6 +478,16 @@ function CreateAcSubmissionForm({ institutionId, courses, rules, students, onCre
 }
 
 const sel: React.CSSProperties = { display: 'block', width: '100%', padding: '6px 10px', border: '1px solid var(--vx-border,#e2e8f0)', borderRadius: 6, fontSize: '.8125rem', marginTop: 4 };
+
+function ConfigCheck({ label, ok, action }: { label: string; ok: boolean; action?: () => void }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', background: ok ? '#f0fdf4' : '#fef2f2', borderRadius: 6, border: `1px solid ${ok ? '#bbf7d0' : '#fecaca'}` }}>
+      <span style={{ fontSize: '1rem' }}>{ok ? '✓' : '○'}</span>
+      <span style={{ flex: 1, fontSize: '.8125rem' }}>{label}</span>
+      {!ok && action && <button onClick={action} style={{ fontSize: '.6875rem', padding: '2px 10px', border: '1px solid var(--vx-border)', borderRadius: 4, background: 'transparent', cursor: 'pointer' }}>Configurar →</button>}
+    </div>
+  );
+}
 
 function CsvImportButton({ institutionId, courses, onImported }: { institutionId: string; courses: { id: string; name: string }[]; onImported: (count: number) => void }) {
   const fileRef = useRef<HTMLInputElement>(null);

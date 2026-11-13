@@ -2,6 +2,7 @@
 // Navegação interna: Visão Geral, Carteira, Projeto, Orientações, Atividades,
 // Horas, Banca, Acervo, Evidências PPC/ODS, BI, Configurações
 import { useState, useEffect, useMemo } from 'react';
+import { supabase } from '@/lib/supabase';
 import {
   fetchWorks, fetchWorkTypes, fetchCourseSummary, fetchParticipants,
   fetchTasks, fetchSupervisions, fetchDefenses, fetchVersions,
@@ -766,14 +767,51 @@ function BiSection({ summary, works, institutionId }: { summary: TccCourseSummar
 
 // ── Config ──
 function ConfigSection({ institutionId, workTypes }: { institutionId: string; workTypes: TccWorkType[] }) {
+  const [types, setTypes] = useState(workTypes);
+  const [showAdd, setShowAdd] = useState(false);
+  const [label, setLabel] = useState('');
+  const [desc, setDesc] = useState('');
+  const [defense, setDefense] = useState(false);
+  const [qual, setQual] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  async function addType(e: React.FormEvent) {
+    e.preventDefault();
+    if (!label) return;
+    setSaving(true);
+    const { data, error } = await supabase.from('vertice_tcc_work_types').insert({
+      institution_id: institutionId, label, description: desc || null,
+      requires_defense: defense, requires_qualification: qual,
+    }).select().single();
+    setSaving(false);
+    if (error) { alert('Erro: ' + error.message); return; }
+    setTypes(prev => [...prev, data as TccWorkType]);
+    setShowAdd(false); setLabel(''); setDesc('');
+  }
+
   return (
     <div>
-      <header className="alumni-header"><h2>Configurações do Módulo</h2></header>
+      <header className="alumni-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h2>Configurações do Módulo</h2>
+        <button className="alumni-btn-export" onClick={() => setShowAdd(v => !v)}>+ Novo tipo de trabalho</button>
+      </header>
+      {showAdd && (
+        <form onSubmit={addType} style={{ display: 'grid', gridTemplateColumns: '2fr 2fr auto auto auto', gap: 8, alignItems: 'end', marginBottom: 12, padding: 12, background: 'var(--vx-surface,#fff)', border: '1px solid var(--vx-border,#e2e8f0)', borderRadius: 8 }}>
+          <label style={{ fontSize: '.6875rem' }}>Nome *<input value={label} onChange={e => setLabel(e.target.value)} style={cfgSel} required placeholder="Monografia" /></label>
+          <label style={{ fontSize: '.6875rem' }}>Descrição<input value={desc} onChange={e => setDesc(e.target.value)} style={cfgSel} placeholder="Trabalho final de curso" /></label>
+          <label style={{ fontSize: '.6875rem', display: 'flex', gap: 4, alignItems: 'center' }}><input type="checkbox" checked={defense} onChange={e => setDefense(e.target.checked)} /> Defesa</label>
+          <label style={{ fontSize: '.6875rem', display: 'flex', gap: 4, alignItems: 'center' }}><input type="checkbox" checked={qual} onChange={e => setQual(e.target.checked)} /> Qualif.</label>
+          <div style={{ display: 'flex', gap: 4 }}>
+            <button type="submit" disabled={saving || !label} className="alumni-btn-export" style={{ fontSize: '.6875rem', padding: '4px 10px' }}>{saving ? '…' : '✓'}</button>
+            <button type="button" onClick={() => setShowAdd(false)} style={{ fontSize: '.6875rem', padding: '4px 8px', border: '1px solid var(--vx-border)', borderRadius: 4, background: 'transparent', cursor: 'pointer' }}>✕</button>
+          </div>
+        </form>
+      )}
       <div className="alumni-section">
-        <h3 className="alumni-section-title">Tipos de Trabalho Habilitados</h3>
+        <h3 className="alumni-section-title">Tipos de Trabalho Habilitados ({types.length})</h3>
         <table className="alumni-table">
           <thead><tr><th>Tipo</th><th>Descrição</th><th>Defesa</th><th>Qualificação</th></tr></thead>
-          <tbody>{workTypes.map(wt => (
+          <tbody>{types.map(wt => (
             <tr key={wt.id}>
               <td><strong>{wt.label}</strong></td>
               <td style={{ fontSize: '.8125rem' }}>{wt.description}</td>
@@ -789,6 +827,7 @@ function ConfigSection({ institutionId, workTypes }: { institutionId: string; wo
     </div>
   );
 }
+const cfgSel: React.CSSProperties = { display: 'block', width: '100%', padding: '6px 10px', border: '1px solid var(--vx-border,#e2e8f0)', borderRadius: 6, fontSize: '.8125rem', marginTop: 4 };
 
 // ── Formulário de criação de trabalho ──
 function CreateWorkForm({ institutionId, courses, workTypes, creating, onSubmit, onCancel }: {
