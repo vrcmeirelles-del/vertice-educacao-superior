@@ -57,6 +57,7 @@ import EgressosEscolar from "./EgressosEscolar";
 import DireitoRaioX from "./DireitoRaioX";
 const CourseRaioX = lazy(() => import("./CourseRaioX"));
 const CourseShowcase = lazy(() => import("./CourseShowcase"));
+const MODULE_LABELS: Record<string,string> = { tcc:'TCC', ac:'AC', estagio:'Estágio', extensao:'Extensão', cpa:'CPA', alumni:'Egressos', diagnostico:'Diagnóstico', meta:'Meta', acao:'Ação', ppc:'PPC', governanca:'Governança' };
 const Tcc360 = lazy(() => import("./Tcc360"));
 const AtividadesComplementares360 = lazy(() => import("./AtividadesComplementares360"));
 const Estagio360 = lazy(() => import("./Estagio360"));
@@ -1225,7 +1226,7 @@ function ActionsTab({ institutionId, role, data, reload }: { institutionId: stri
       ) : (
         <div className="table-scroll">
           <table className="area-table">
-            <thead><tr><th>O quê</th><th>Quem</th><th>Quando</th><th>Situação</th><th>Avanço<ContextHelp title="Avanço" /></th><th>Meta<ContextHelp title="Meta" /></th><th>Evidência</th><th /></tr></thead>
+            <thead><tr><th>O quê</th><th>Quem</th><th>Quando</th><th>Situação</th><th>Avanço<ContextHelp title="Avanço" /></th><th>Meta<ContextHelp title="Meta" /></th><th>Origem</th><th>Evidência</th><th /></tr></thead>
             <tbody>
               {rows.map(a => {
                 const late = isLate(a.due_date, a.status);
@@ -1237,6 +1238,7 @@ function ActionsTab({ institutionId, role, data, reload }: { institutionId: stri
                     <td><span className={`badge ${a.status === "concluida" ? "green" : a.status === "bloqueada" ? "red" : a.status === "em_andamento" ? "amber" : "gray"}`}>{label(ACTION_STATUS, a.status)}</span></td>
                     <td>{Number(a.progress ?? 0)}%</td>
                     <td>{goalTitle(a.goal_id) ?? "—"}</td>
+                    <td>{a.origin_type ? <span className="badge" style={{ fontSize: '.6875rem' }} title={a.origin_label ? String(a.origin_label) : undefined}>{MODULE_LABELS[String(a.origin_type)] || String(a.origin_type)}</span> : <small className="area-muted">—</small>}</td>
                     <td>{a.evidence ? <small>{String(a.evidence)}</small> : <small className="area-muted">sem registro</small>}</td>
                     <td className="area-row-actions">
                       {can.record(role) && <button className="corp-login-text-button" onClick={() => ed.open(a)}>Atualizar</button>}
