@@ -6,7 +6,7 @@ import {MasterDirectory, MasterInvitationGate} from '@/components/area/MasterAcc
 import {storeActionDraft} from "@/lib/portal-integration";
 import {institutionEnrollmentSummary} from "@/lib/enrollment-summary";
 import {can, ROLE_LABEL} from "@/lib/area";
-import {useEffect, useRef, useState, type FormEvent} from 'react';
+import {lazy, Suspense, useEffect, useRef, useState, type FormEvent} from 'react';
 import {Link} from 'wouter';
 import {supabase} from '@/lib/supabase';
 import type {Session} from '@supabase/supabase-js';
@@ -38,6 +38,7 @@ import ExperienceAdmin from './ExperienceAdmin';
 import MasterHub from '@/components/area/MasterHub';
 import VerticeBI from '@/components/area/VerticeBI';
 import BillingPanel from '@/components/area/BillingPanel';
+const Extensao360 = lazy(() => import('@/components/area/Extensao360'));
 
 type Membership={user_id:string;institution_id:string;role:string};
 const SNAPSHOT_COLUMNS='id,course_id,semester,class_label,enrolled,capacity,available,source_report_at,reported_total,student_status';
@@ -336,6 +337,22 @@ export default function OwnerDashboard(){
   const {error}=await supabase.auth.mfa.challengeAndVerify({factorId:factor,code});if(error)throw error;setCode('');setQr('');await load();
  }catch{setError('Código não validado. Confira o autenticador e tente novamente.');}finally{setBusy(false);}}
  if(acquisitionsRoute&&!loading&&session&&aal==='aal2')return <GreenHost/>;
+ // Usuário equipe sem MFA: mostrar só a extensão da instituição vinculada
+ const isEquipeOnly = !master && aal !== 'aal2' && session && !loading && members.length > 0;
+ const equipeInstitution = isEquipeOnly ? institutions.find(i => members.some(m => m.user_id === session?.user.id && m.institution_id === i.id)) : null;
+ if (isEquipeOnly && equipeInstitution) {
+   const equipeRole = members.find(m => m.user_id === session.user.id && m.institution_id === equipeInstitution.id)?.role as Role || 'equipe';
+   const equipeCourses = courses.filter(c => c.institution_id === equipeInstitution.id);
+   return <main style={{maxWidth:1100,margin:'0 auto',padding:'20px'}}>
+     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16,flexWrap:'wrap',gap:12}}>
+       <div><strong style={{fontSize:18}}>{String(equipeInstitution.name)}</strong><br/><span style={{fontSize:12,color:'#64748b'}}>Conectado como {session.user.email} · {ROLE_LABEL[equipeRole]}</span></div>
+       <button style={{background:'none',border:'1px solid #e2e8f0',borderRadius:6,padding:'6px 12px',fontSize:12,cursor:'pointer',color:'#64748b'}} onClick={async()=>{await supabase.auth.signOut();}}>Sair</button>
+     </div>
+     <Suspense fallback={<p>Carregando Extensão 360°…</p>}>
+       <Extensao360 institutionId={equipeInstitution.id} role={equipeRole} courses={equipeCourses.map(c=>({id:c.id,name:c.name}))} />
+     </Suspense>
+   </main>;
+ }
  return <main className="corp-container corp-section"><h1>{window.location.pathname.startsWith('/reitor')?'Área reservada da Direção':master&&route.repositories?'Repositórios · visão master':master&&route.demonstrativos?'Convites demonstrativos · Master':master&&route.tierFilter==='superior'?'🏛️ Universidades':master&&route.tierFilter==='escolas'?'🏫 Escolas':master&&route.financeiro?'💰 Financeiro':master?'Painel Vértice':'Painel de gestão'}</h1>
  {master&&(route.tierFilter||route.financeiro)&&!route.inst&&<button onClick={()=>{window.location.hash='';window.dispatchEvent(new HashChangeEvent('hashchange'));}} style={{background:'none',border:'none',color:'#2563eb',cursor:'pointer',fontSize:13,marginBottom:12,padding:0}}>← Voltar ao hub</button>}
  {loading?<p role="status">Verificando acesso…</p>:!session?<><p>Entre para acessar sua conta.</p><Link className="corp-button" href={window.location.pathname.startsWith('/reitor')?'/entrar?destino=reitor':'/entrar'}>Entrar</Link></>:<>
