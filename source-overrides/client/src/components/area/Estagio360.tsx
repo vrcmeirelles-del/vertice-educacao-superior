@@ -253,6 +253,48 @@ export default function Estagio360({ institutionId, courses, role, onNavigate }:
             <KPI label="Internos" value={placements.filter(p => p.location_type === 'internal').length} />
             <KPI label="Externos" value={placements.filter(p => p.location_type === 'external').length} />
           </div>
+          {/* Distribuição por ciclo de vida */}
+          {placements.length > 0 && (() => {
+            const lcCounts = Object.entries(LIFECYCLE_LABELS).map(([k, l]) => ({ key: k, label: l, count: placements.filter(p => p.lifecycle === k).length })).filter(s => s.count > 0);
+            const max = Math.max(...lcCounts.map(c => c.count), 1);
+            return (
+              <div className="alumni-section" style={{ marginTop: '1rem' }}>
+                <h3 className="alumni-section-title">Distribuição por Ciclo de Vida</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {lcCounts.map(s => (
+                    <div key={s.key} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: '.75rem', width: 160, textAlign: 'right', flexShrink: 0, color: 'var(--vx-muted)' }}>{s.label}</span>
+                      <div style={{ flex: 1, height: 20, background: 'var(--vx-border,#e2e8f0)', borderRadius: 4, overflow: 'hidden' }}>
+                        <div style={{ width: `${(s.count / max) * 100}%`, height: '100%', background: LIFECYCLE_COLORS[s.key] || '#94a3b8', borderRadius: 4 }} />
+                      </div>
+                      <span style={{ fontSize: '.75rem', fontWeight: 600, width: 24, textAlign: 'center' }}>{s.count}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Interno vs Externo */}
+          {placements.length > 0 && (() => {
+            const int = placements.filter(p => p.location_type === 'internal').length;
+            const ext = placements.filter(p => p.location_type === 'external').length;
+            const total = int + ext;
+            return (
+              <div className="alumni-section" style={{ marginTop: '1rem' }}>
+                <h3 className="alumni-section-title">Interno vs Externo</h3>
+                <div style={{ display: 'flex', gap: 8, height: 28, borderRadius: 6, overflow: 'hidden' }}>
+                  {int > 0 && <div style={{ width: `${(int/total)*100}%`, background: '#7c3aed', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '.75rem', fontWeight: 600 }}>🏫 {int}</div>}
+                  {ext > 0 && <div style={{ width: `${(ext/total)*100}%`, background: '#0891b2', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '.75rem', fontWeight: 600 }}>🏢 {ext}</div>}
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '.6875rem', color: 'var(--vx-muted)', marginTop: 4 }}>
+                  <span>Interno: {int} ({total > 0 ? Math.round(100*int/total) : 0}%)</span>
+                  <span>Externo: {ext} ({total > 0 ? Math.round(100*ext/total) : 0}%)</span>
+                </div>
+              </div>
+            );
+          })()}
+
           {summary.length > 0 && (
             <div className="alumni-section" style={{ marginTop: '1rem' }}>
               <h3 className="alumni-section-title">Detalhamento por Curso</h3>
@@ -262,6 +304,19 @@ export default function Estagio360({ institutionId, courses, role, onNavigate }:
                   <tr key={s.course_id}><td>{s.course_name}</td><td>{s.placements_total}</td><td>{s.placements_active}</td><td>{s.internal_count}</td><td>{s.external_count}</td><td>{s.students_distinct}</td><td>{s.completed}</td><td>{minutesToHours(s.hours_validated_minutes)}</td><td>{s.organizations_count}</td></tr>
                 ))}</tbody>
               </table>
+            </div>
+          )}
+
+          {/* Concedentes ativas */}
+          {orgs.filter(o => o.status === 'active').length > 0 && (
+            <div className="alumni-section" style={{ marginTop: '1rem' }}>
+              <h3 className="alumni-section-title">Concedentes Ativas</h3>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {orgs.filter(o => o.status === 'active').map(o => {
+                  const count = placements.filter(p => p.organization_id === o.id).length;
+                  return <span key={o.id} className="alumni-tag" style={{ background: count > 0 ? '#eff6ff' : '#f8fafc', color: count > 0 ? '#2563eb' : '#94a3b8' }}>{o.trade_name || o.name} ({count})</span>;
+                })}
+              </div>
             </div>
           )}
         </div>)}

@@ -717,6 +717,29 @@ function BiSection({ summary, works, institutionId }: { summary: TccCourseSummar
         <KPI label="Evidências Validadas" value={totals.validatedEvidence} color="#2563eb" />
       </div>
 
+      {/* Gráfico de distribuição por etapa */}
+      {works.length > 0 && (() => {
+        const stages = Object.entries(STAGE_LABELS).filter(([k]) => !['suspended','cancelled','archived'].includes(k));
+        const counts = stages.map(([k, l]) => ({ key: k, label: l, count: works.filter(w => w.stage === k).length })).filter(s => s.count > 0);
+        const max = Math.max(...counts.map(c => c.count), 1);
+        return (
+          <div className="alumni-section" style={{ marginTop: '1rem' }}>
+            <h3 className="alumni-section-title">Distribuição por Etapa</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {counts.map(s => (
+                <div key={s.key} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: '.75rem', width: 140, textAlign: 'right', flexShrink: 0, color: 'var(--vx-muted)' }}>{s.label}</span>
+                  <div style={{ flex: 1, height: 20, background: 'var(--vx-border,#e2e8f0)', borderRadius: 4, overflow: 'hidden' }}>
+                    <div style={{ width: `${(s.count / max) * 100}%`, height: '100%', background: STAGE_COLORS[s.key] || '#94a3b8', borderRadius: 4, transition: 'width .3s' }} />
+                  </div>
+                  <span style={{ fontSize: '.75rem', fontWeight: 600, width: 24, textAlign: 'center' }}>{s.count}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
+
       {summary.length > 0 && (
         <div className="alumni-section" style={{ marginTop: '1rem' }}>
           <h3 className="alumni-section-title">Detalhamento por Curso</h3>

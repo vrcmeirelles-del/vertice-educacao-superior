@@ -233,6 +233,58 @@ export default function AtividadesComplementares360({ institutionId, courses, ro
             <KPI label="Alunos Aptos" value={balances.filter(b => b.remaining_minutes <= 0).length} color="#059669" />
             <KPI label="Protocolos Pendentes" value={protocols.filter((p: any) => !p.confirmed_posted_at).length} color="#f59e0b" />
           </div>
+
+          {/* Distribuição por status */}
+          {submissions.length > 0 && (() => {
+            const statusCounts = Object.entries(AC_STATUS_LABELS).map(([k, l]) => ({ key: k, label: l, count: submissions.filter(s => s.status === k).length })).filter(s => s.count > 0);
+            const max = Math.max(...statusCounts.map(c => c.count), 1);
+            const colors: Record<string,string> = { submitted: '#3b82f6', extracting: '#8b5cf6', suggestion_ready: '#6366f1', under_review: '#f59e0b', approved: '#10b981', partially_approved: '#0891b2', denied: '#ef4444', credited: '#059669', report_sent: '#14b8a6', posting_confirmed: '#22c55e' };
+            return (
+              <div className="alumni-section" style={{ marginTop: '1rem' }}>
+                <h3 className="alumni-section-title">Distribuição por Status</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {statusCounts.map(s => (
+                    <div key={s.key} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: '.75rem', width: 140, textAlign: 'right', flexShrink: 0, color: 'var(--vx-muted)' }}>{s.label}</span>
+                      <div style={{ flex: 1, height: 20, background: 'var(--vx-border,#e2e8f0)', borderRadius: 4, overflow: 'hidden' }}>
+                        <div style={{ width: `${(s.count / max) * 100}%`, height: '100%', background: colors[s.key] || '#94a3b8', borderRadius: 4 }} />
+                      </div>
+                      <span style={{ fontSize: '.75rem', fontWeight: 600, width: 24, textAlign: 'center' }}>{s.count}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Resumo por curso */}
+          {summary.length > 0 && (
+            <div className="alumni-section" style={{ marginTop: '1rem' }}>
+              <h3 className="alumni-section-title">Resumo por Curso</h3>
+              <table className="alumni-table">
+                <thead><tr><th>Curso</th><th>Alunos</th><th>Submissões</th><th>Pendentes</th><th>Aprovadas</th><th>Horas Creditadas</th></tr></thead>
+                <tbody>{summary.map(s => (
+                  <tr key={s.course_id}>
+                    <td>{s.course_name}</td><td>{s.students_with_rule}</td><td>{s.submissions_total}</td>
+                    <td style={{ color: s.submissions_pending > 0 ? '#f59e0b' : undefined }}>{s.submissions_pending}</td>
+                    <td>{s.submissions_approved}</td><td style={{ color: '#059669', fontWeight: 600 }}>{minutesToHours(s.total_credited_minutes)}</td>
+                  </tr>
+                ))}</tbody>
+              </table>
+            </div>
+          )}
+
+          {/* Alunos com carga cumprida */}
+          {balances.filter(b => b.remaining_minutes <= 0).length > 0 && (
+            <div className="alumni-section" style={{ marginTop: '1rem' }}>
+              <h3 className="alumni-section-title">Alunos com Carga Cumprida ✓</h3>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {balances.filter(b => b.remaining_minutes <= 0).map(b => (
+                  <span key={b.student_id} className="alumni-tag" style={{ background: '#f0fdf4', color: '#059669' }}>{b.full_name} — {minutesToHours(b.credited_minutes)}</span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>)}
 
         {section === 'config' && (<div>
