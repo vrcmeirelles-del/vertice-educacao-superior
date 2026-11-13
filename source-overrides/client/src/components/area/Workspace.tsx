@@ -57,6 +57,7 @@ import EgressosEscolar from "./EgressosEscolar";
 import DireitoRaioX from "./DireitoRaioX";
 const CourseRaioX = lazy(() => import("./CourseRaioX"));
 const CourseShowcase = lazy(() => import("./CourseShowcase"));
+const Tcc360 = lazy(() => import("./Tcc360"));
 import Egressos360 from "./Egressos360";
 import Governanca360 from "./Governanca360";
 import Inclusao360 from "./Inclusao360";
@@ -85,6 +86,7 @@ const TAB_GROUPS: {label:string;subtitle:string;icon:string;tabs:Tab[];tier?:'su
   {label:'Inteligência',subtitle:'Análises, integrações e decisões',icon:'◎',tabs:['analise','ia','fontes','conexoes','reitor','resultado-curso','simulador','raio-x-direito','vitrine-curso','aprendizagem'],tier:'superior'},
   {label:'Egressos',subtitle:'Acompanhamento longitudinal e empregabilidade',icon:'🎓',tabs:['egressos'],tier:'superior'},
   {label:'Extensão',subtitle:'Projetos de extensão, participantes e cobertura',icon:'🤝',tabs:['extensao'],tier:'superior'},
+  {label:'TCC e Pesquisa',subtitle:'Trabalhos, orientações, bancas, acervo e evidências PPC/ODS',icon:'📝',tabs:['tcc'],tier:'superior'},
   {label:'Governança',subtitle:'Órgãos colegiados, deliberações e fluxos',icon:'⚖',tabs:['governanca'],tier:'both'},
   {label:'Acompanhamento',subtitle:'Inclusão, PEI e regimes especiais',icon:'♿',tabs:['inclusao','acompanhamento-especial'],tier:'both'},
   {label:'Aquisições',subtitle:'Compras, fornecedores e ordens',icon:'🛒',tabs:['aquisicoes'],tier:'both'},
@@ -129,6 +131,7 @@ const TAB_DETAILS: Partial<Record<Tab,{icon:string;description:string}>> = {
   inclusao:{icon:'♿',description:'Inclusão, PEI, acessibilidade e Núcleo de Apoio'},
   'acompanhamento-especial':{icon:'📋',description:'Regimes especiais, exercícios domiciliares e planos acadêmicos'},
   'cpa-autoavaliacao':{icon:'📊',description:'CPA: pesquisas, participação, resultados, planos e devolutivas'},
+  tcc:{icon:'📝',description:'TCC e Produção Acadêmica: projetos, orientações, bancas, acervo, horas e evidências PPC/ODS'},
   aquisicoes:{icon:'🛒',description:'Gestão de compras, fornecedores e ordens'},
   conta:{icon:'👤',description:'Pacote, faturas, módulos e dados do contrato'},
   contrato:{icon:'📜',description:'Termos, cláusulas e assinatura digital'},
@@ -170,6 +173,7 @@ const TABS: [Tab, string][] = [
   ["vitrine-curso", "Vitrine do Curso · Avaliador"],
   ["egressos", "Egressos 360°"],
   ["extensao", "Extensão 360°"],
+  ["tcc", "TCC e Pesquisa 360°"],
   ["governanca", "Governança 360°"],
   ["cpa-autoavaliacao", "CPA e Autoavaliação"],
   ["inclusao", "Inclusão 360° · PEI"],
@@ -558,6 +562,8 @@ export default function Workspace({
         (() => { const m=findModuleByTab(moduleCatalog,'egressos'); return <ModulePreview locked={isLocked('egressos')} tasting={isTasting('egressos')} tastingEnds={m?.tasting_ends} moduleCode="GEST_EGRESSOS" moduleName="Egressos 360°" moduleDescription="Acompanhamento longitudinal de egressos, empregabilidade e trajetória profissional." institutionId={id} estimatedFee={m?.estimated_monthly_fee||1000} tier={m?.tier||'gestao'}><Egressos360 institutionId={id} courses={data.courses.map((c: Row) => ({ id: c.id as string, name: c.name as string, modality: c.modality as string }))} role={role as 'master' | 'gestor' | 'equipe'} /></ModulePreview>; })()
       ) : tab === "extensao" ? (
         (() => { const m=findModuleByTab(moduleCatalog,'extensao'); return <ModulePreview locked={isLocked('extensao')} tasting={isTasting('extensao')} tastingEnds={m?.tasting_ends} moduleCode="ACAD_EXTENSAO" moduleName="Extensão 360°" moduleDescription="Repositório de projetos de extensão — participantes, entregas, cobertura por curso e dossiê regulatório." institutionId={id} estimatedFee={m?.estimated_monthly_fee||800} tier={m?.tier||'regulacao'}><Suspense fallback={<p role="status">Carregando Extensão 360°…</p>}><Extensao360 institutionId={id} role={role||'master'} courses={data.courses.map((c: Row) => ({ id: c.id as string, name: c.name as string }))} onBack={()=>choose('geral')} /></Suspense></ModulePreview>; })()
+      ) : tab === "tcc" ? (
+        (() => { const m=findModuleByTab(moduleCatalog,'tcc'); return <ModulePreview locked={isLocked('tcc')} tasting={isTasting('tcc')} tastingEnds={m?.tasting_ends} moduleCode="ACAD_TCC" moduleName="TCC e Pesquisa 360°" moduleDescription="Acompanhamento de projetos, orientações, bancas, acervo, horas e evidências PPC/ODS." institutionId={id} estimatedFee={m?.estimated_monthly_fee||1200} tier={m?.tier||'academico'}><Suspense fallback={<p role="status">Carregando TCC 360°…</p>}><Tcc360 institutionId={id} courses={data.courses.map((c: Row) => ({ id: c.id as string, name: c.name as string, modality: c.modality as string }))} role={role||'master'} /></Suspense></ModulePreview>; })()
       ) : tab === "governanca" ? (
         (() => { const m=findModuleByTab(moduleCatalog,'governanca'); return <ModulePreview locked={isLocked('governanca')} tasting={isTasting('governanca')} tastingEnds={m?.tasting_ends} moduleCode="GEST_GOVERNANCA" moduleName="Governança 360°" moduleDescription="Órgãos colegiados, deliberações, atas e fluxos regulatórios." institutionId={id} estimatedFee={m?.estimated_monthly_fee||1000} tier={m?.tier||'gestao'}><Governanca360 institutionId={id} role={role||'master'} /></ModulePreview>; })()
       ) : tab === "cpa-autoavaliacao" ? (

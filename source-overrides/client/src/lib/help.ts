@@ -220,6 +220,19 @@ export const GLOSSARY: { group: string; entries: GlossaryEntry[] }[] = [
       { term: "Cobertura cadastral", text: "Percentual de egressos com contato válido (email ou telefone) sobre o total de elegíveis. Contato válido não garante alcançabilidade — emails podem estar desatualizados. Sem cobertura cadastral mínima, a pesquisa não alcança os egressos e os indicadores ficam vazios." },
     ],
   },
+  {
+    group: "TCC e Produção Acadêmica",
+    entries: [
+      { term: "Trabalho de Conclusão (TCC)", text: "Produção acadêmica obrigatória ou optativa que integra o currículo do curso. Pode ser monografia, artigo, relatório técnico, projeto aplicado ou produto. O sistema acompanha todo o ciclo: rascunho → submissão → análise → aprovação do projeto → execução → versão final → banca → depósito no acervo." },
+      { term: "Etapa do trabalho", text: "Estado do trabalho no fluxo acadêmico — rascunho, submetido, em análise, ajustes solicitados, projeto aprovado, em execução, versão final submetida, banca agendada, avaliado, correções pós-banca, final validado, depositado. Transições são auditadas com motivo e versão. 'Atrasado' é condição calculada por prazo vencido, não uma etapa que substitui a etapa acadêmica." },
+      { term: "Orientador e coorientador", text: "Orientador: docente responsável pelo acompanhamento da pesquisa, devoluções, reuniões e avaliação. Coorientador: um ou mais, com período e atribuições definidos. Substituição preserva o histórico do vínculo anterior. Uma pessoa pode ter mais de um papel, mas as ações registram em qual papel foram praticadas." },
+      { term: "Versão do trabalho", text: "Cada submissão gera uma versão imutável com autor, data, tipo (projeto, rascunho, revisão, final, pós-banca), hash e referência à fonte documental. Distingue versão entregue, em revisão e final aprovada. O acervo guarda a versão depositada com visibilidade e embargo configuráveis." },
+      { term: "Banca examinadora", text: "Comissão que avalia o trabalho — qualificação e/ou defesa final. Composição com presidente, examinadores, orientador e suplentes. Membros externos não precisam de conta; participam com registro de escopo temporário. Resultado: aprovado, aprovado com ressalvas, reprovado. A IA não atribui nota nem aprova banca." },
+      { term: "Acervo híbrido", text: "O trabalho pode ser registrado como PDF privado, link externo a repositório institucional ou ambos. Link fora do ar não significa inexistência. PDF é validado por extensão, MIME, tamanho e hash. Visibilidade: privado, institucional, embargado ou público autorizado. Depósito não equivale a divulgação pública." },
+      { term: "Cobertura documental", text: "Indicador que mede quantos elementos aplicáveis do referencial PPC (objetivos, competências do perfil do egresso) possuem ao menos uma evidência validada, vigente, de produto final. Numerador: elementos com evidência consistente validada por humano. Denominador: elementos aprovados como aplicáveis. NÃO é 'percentual de formação atingida' — evidência de produto coletivo não comprova formação individual de cada autor." },
+      { term: "Livro Razão de horas", text: "Registro imutável de horas validadas. Fluxo: declaração → submissão → validação → lançamento no Livro Razão. Estorno é feito por lançamento negativo referenciado, nunca por exclusão. Minutos inteiros na persistência, conversão para horas na apresentação. Horas de TCC e extensão não duplicam — FK de origem cruzada impede dupla contagem da mesma pessoa na mesma atividade." },
+    ],
+  },
 ];
 
 export const FAQ: { q: string; a: string }[] = [
