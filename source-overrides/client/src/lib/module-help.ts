@@ -126,6 +126,11 @@ export const MODULE_HELP = [
     "text": "Visão 360° otimizada para reunião com a coordenação. Selecione um curso e veja numa única tela todos os dados da plataforma: matrículas e ocupação, metas com avanço, plano de ação 5W2H com atrasadas destacadas, diagnóstico com nota média e critérios frágeis, evidências regulatórias e pendências, projetos de extensão e participantes, casos de inclusão e PEIs ativos, egressos com cobertura cadastral, achados da CPA e corpo docente. Cada bloco tem link direto para a aba de origem. Ideal para reuniões de NDE, colegiado ou preparação para avaliação in loco."
   },
   {
+    "key": "vitrine-curso",
+    "term": "Vitrine do Curso · Avaliador",
+    "text": "Visão curada do curso para avaliação in loco MEC. Diferente do Raio-X (que mostra tudo, inclusive fragilidades), a Vitrine apresenta apenas os pontos fortes organizados pelas três dimensões do instrumento de avaliação: Organização Didático-Pedagógica, Corpo Docente e Tutorial, e Infraestrutura, mais indicadores transversais como egressos e CPA. Mostra metas concluídas, ações com evidência, extensão curricularizada, qualificação docente (stricto sensu, regime integral), governança ativa (reuniões e deliberações), evidências validadas, acompanhamento de egressos e potencialidades da CPA. Pensada para gerar um resumão positivo que pode ser compartilhado com o avaliador antes ou durante a visita."
+  },
+  {
     "key": "aprendizagem",
     "term": "Aprendizagem Conectada",
     "text": "Integra a Vértice com a plataforma Fato & Ordem para acompanhamento da aprendizagem por simulados. Inclui upload de roster (CSV com alunos por curso), conector de API do sistema acadêmico com mapeamento de campos e sync periódico, comunicação com alunos (email/WhatsApp/SMS) para convocação a exames, e radar de coerência avaliativa entre notas internas e resultados em simulados. O módulo ENADE vincula elegíveis ao banco ENADE do F&O automaticamente. ENAMED e residência médica pertencem ao ensino superior; ENEM pertence à Vértice Escolas. A vinculação do aluno é compulsória pela IES, com opt-out disponível para o estudante."

@@ -56,6 +56,7 @@ import Enem360Escolar from "./Enem360Escolar";
 import EgressosEscolar from "./EgressosEscolar";
 import DireitoRaioX from "./DireitoRaioX";
 const CourseRaioX = lazy(() => import("./CourseRaioX"));
+const CourseShowcase = lazy(() => import("./CourseShowcase"));
 import Egressos360 from "./Egressos360";
 import Governanca360 from "./Governanca360";
 import Inclusao360 from "./Inclusao360";
@@ -81,7 +82,7 @@ const TAB_GROUPS: {label:string;subtitle:string;icon:string;tabs:Tab[];tier?:'su
   {label:'Gestão',subtitle:'Planejamento, metas e governança',icon:'▦',tabs:['base','metas','plano','diagnostico','equipe','cpa-autoavaliacao'],tier:'both'},
   {label:'Regulação',subtitle:'Instrumentos e evidências MEC/INEP',icon:'◇',tabs:['emec','repositorio','validacao','enade','avaliacao','novo_instrumento','biblioteca'],tier:'superior'},
   {label:'Acadêmico',subtitle:'Cursos, estudantes e desempenho',icon:'▤',tabs:['geral','cadastro','visao','eorbit','backups','auditoria'],tier:'superior'},
-  {label:'Inteligência',subtitle:'Análises, integrações e decisões',icon:'◎',tabs:['analise','ia','fontes','conexoes','reitor','resultado-curso','simulador','raio-x-direito','aprendizagem'],tier:'superior'},
+  {label:'Inteligência',subtitle:'Análises, integrações e decisões',icon:'◎',tabs:['analise','ia','fontes','conexoes','reitor','resultado-curso','simulador','raio-x-direito','vitrine-curso','aprendizagem'],tier:'superior'},
   {label:'Egressos',subtitle:'Acompanhamento longitudinal e empregabilidade',icon:'🎓',tabs:['egressos'],tier:'superior'},
   {label:'Extensão',subtitle:'Projetos de extensão, participantes e cobertura',icon:'🤝',tabs:['extensao'],tier:'superior'},
   {label:'Governança',subtitle:'Órgãos colegiados, deliberações e fluxos',icon:'⚖',tabs:['governanca'],tier:'both'},
@@ -120,6 +121,7 @@ const TAB_DETAILS: Partial<Record<Tab,{icon:string;description:string}>> = {
   'resultado-curso':{icon:'▤',description:'Resultado e desempenho por curso'},
   simulador:{icon:'▦',description:'Custos e cenários informados'},
   'raio-x-direito':{icon:'⌕',description:'Visão 360° do curso: matrículas, metas, ações, diagnóstico, extensão, CPA, egressos e inclusão'},
+  'vitrine-curso':{icon:'🏆',description:'Vitrine do curso para avaliador MEC: pontos fortes organizados por dimensão do instrumento'},
   aprendizagem:{icon:'↔',description:'Acompanhamento da aprendizagem'},
   egressos:{icon:'🎓',description:'Egressos, empregabilidade e trajetória profissional'},
   extensao:{icon:'🤝',description:'Projetos de extensão, participantes, entregas e cobertura por curso'},
@@ -165,6 +167,7 @@ const TABS: [Tab, string][] = [
   ["resultado-curso", "Resultado por Curso"],
   ["simulador", "Simulador de Custo"],
   ["raio-x-direito", "Raio-X do Curso"],
+  ["vitrine-curso", "Vitrine do Curso · Avaliador"],
   ["egressos", "Egressos 360°"],
   ["extensao", "Extensão 360°"],
   ["governanca", "Governança 360°"],
@@ -549,6 +552,8 @@ export default function Workspace({
         role === "master" || role === "gestor" ? <CostSimulator institutionId={id} onUploadDocument={openInstrumentUpload}/> : <p>O simulador de custo é reservado ao Gestor da instituição e ao Master.</p>
       ) : tab === "raio-x-direito" ? (
         <Suspense fallback={<p role="status">Carregando Raio-X…</p>}><CourseRaioX institutionId={id} courses={data.courses.map((c: Row) => ({ id: c.id as string, name: c.name as string, modality: c.modality as string, code: c.code as string }))} role={role||'master'} onNavigate={(t, cid) => { if (cid) { /* could set course filter */ } choose(t as Tab); }} /></Suspense>
+      ) : tab === "vitrine-curso" ? (
+        <Suspense fallback={<p role="status">Carregando Vitrine…</p>}><CourseShowcase institutionId={id} courses={data.courses.map((c: Row) => ({ id: c.id as string, name: c.name as string, modality: c.modality as string, code: c.code as string }))} role={role||'master'} onNavigate={(t) => choose(t as Tab)} /></Suspense>
       ) : tab === "egressos" ? (
         (() => { const m=findModuleByTab(moduleCatalog,'egressos'); return <ModulePreview locked={isLocked('egressos')} tasting={isTasting('egressos')} tastingEnds={m?.tasting_ends} moduleCode="GEST_EGRESSOS" moduleName="Egressos 360°" moduleDescription="Acompanhamento longitudinal de egressos, empregabilidade e trajetória profissional." institutionId={id} estimatedFee={m?.estimated_monthly_fee||1000} tier={m?.tier||'gestao'}><Egressos360 institutionId={id} courses={data.courses.map((c: Row) => ({ id: c.id as string, name: c.name as string, modality: c.modality as string }))} role={role as 'master' | 'gestor' | 'equipe'} /></ModulePreview>; })()
       ) : tab === "extensao" ? (
