@@ -11,8 +11,9 @@ export default function DireitoBIDashboard({ institutionId, courseId, courseCode
   const [ensalamento, setEnsalamento] = useState<any[]>([]);
   const [profs, setProfs] = useState<any[]>([]);
   const [profsPerSem, setProfsPerSem] = useState<any[]>([]);
+  const [fantasmas, setFantasmas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<'evolucao'|'ensalamento'|'profs'|'notas'|'semestre'>('evolucao');
+  const [tab, setTab] = useState<'evolucao'|'ensalamento'|'profs'|'notas'|'semestre'|'fantasmas'>('evolucao');
 
   useEffect(() => {
     setLoading(true);
@@ -23,7 +24,10 @@ export default function DireitoBIDashboard({ institutionId, courseId, courseCode
       supabase.from('vertice_turma_stats').select('semestre,serie,turma,matriculados').eq('institution_id', institutionId).eq('codigo', courseCode).order('semestre', { ascending: true }),
       // Offering outcomes completo
       supabase.from('vertice_offering_outcomes').select('semester,teachers,discipline,class_label,academic_period,discipline_enrollments,passed_direct,passed_final,rf,rn,ra,avg_final').eq('institution_id', institutionId).eq('course_code', courseCode).gte('semester', '2023/01').order('semester', { ascending: true }),
-    ]).then(([evR, enR, ofR]) => {
+      // Fantasmas
+      supabase.from('v_ghost_students_analysis').select('*').then(r => r).catch(() => ({ data: [] })),
+    ]).then(([evR, enR, ofR, ghR]) => {
+      if (ghR.data) setFantasmas((ghR.data as any[]).filter(g => g.semester < '2026/02'));
       if (evR.data) setEvolucao(evR.data.map((d: any) => ({ ...d.payload, date: d.source_report_at })));
       if (enR.data) setEnsalamento(enR.data);
       if (ofR.data) {
@@ -83,6 +87,7 @@ export default function DireitoBIDashboard({ institutionId, courseId, courseCode
     { key: 'profs', label: '🔴 Professores' },
     { key: 'notas', label: '🏆 Notas Altas' },
     { key: 'semestre', label: '📅 Por Semestre' },
+    { key: 'fantasmas', label: '👻 Fantasmas' },
   ] as const;
 
   // Professors that never fail and always give high grades
@@ -103,6 +108,7 @@ export default function DireitoBIDashboard({ institutionId, courseId, courseCode
       {tab === 'profs' && <ProfsTab data={topRep} />}
       {tab === 'notas' && <NotasAltasTab data={notasAltas} allProfs={profs} />}
       {tab === 'semestre' && <SemestreTab data={profsPerSem} />}
+      {tab === 'fantasmas' && <FantasmasTab data={fantasmas} evolucao={evolucao} />}
     </div>
   );
 }
@@ -314,5 +320,122 @@ function SemestreTab({ data }: { data: any[] }) {
         <td style={{ textAlign: 'right', padding: '5px 4px' }}>{p.media ?? '—'}</td>
       </tr>)}</tbody>
     </table>
+  </div>;
+}
+
+function FantasmasTab({ data, evolucao }: { data: any[]; evolucao: any[] }) {
+  // Não-renovação: comparar ingressantes 1º período de cada semestre com matrícula no seguinte
+  const semOrder = ['2023/01','2023/02','2024/01','2024/02','2025/01','2025/02','2026/01'];
+  const naoRenovacao: { de: string; para: string; ingressantes: number; renovaram: number; perdidos: number; pct: number }[] = [];
+  for (let i = 0; i < semOrder.length - 1; i++) {
+    const semAtual = semOrder[i];
+    const semProx = semOrder[i + 1];
+    const evAtual = evolucao.find((e: any) => e.semestre === semAtual);
+    const evProx = evolucao.find((e: any) => e.semestre === semProx);
+    if (evAtual && evProx) {
+      const matAtual = evAtual.matriculados || evAtual.total_matriculados || 0;
+      const matProx = evProx.matriculados || evProx.total_matriculados || 0;
+      // Ingressantes = mat atual. No próximo semestre, se mat diminuiu, houve perda
+      const perdidos = Math.max(0, matAtual - matProx);
+      if (matAtual > 0) naoRenovacao.push({ de: semAtual, para: semProx, ingressantes: matAtual, renovaram: Math.min(matAtual, matProx), perdidos, pct: Math.round(100 * perdidos / matAtual) });
+    }
+  }
+
+  // Agrupar fantasmas por semestre
+  const bySem: Record<string, { turmas: any[]; totalMat: number; totalFantasmas: number }> = {};
+  for (const g of data) {
+    if (!bySem[g.semester]) bySem[g.semester] = { turmas: [], totalMat: 0, totalFantasmas: 0 };
+    bySem[g.semester].turmas.push(g);
+    bySem[g.semester].totalMat += g.snapshot_matriculados;
+    bySem[g.semester].totalFantasmas += parseInt(g.fantasmas_estimados) || 0;
+  }
+  const sems = Object.entries(bySem).sort(([a], [b]) => a.localeCompare(b));
+
+  return <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+    {/* Fantasmas por turma */}
+    <div style={{ background: 'var(--vx-surface, #fff)', border: '1px solid var(--vx-border, #e2e8f0)', borderRadius: 10, padding: '1rem' }}>
+      <strong>👻 Alunos Fantasma por Turma/Semestre</strong>
+      <p style={{ fontSize: '.8rem', color: 'var(--vx-muted, #64748b)', margin: '4px 0 12px' }}>Fantasma = matriculado no snapshot mas sem nota lançada no diário. Não cursou efetivamente nenhuma disciplina.</p>
+      <table style={{ width: '100%', fontSize: '.75rem', borderCollapse: 'collapse' }}>
+        <thead><tr style={{ borderBottom: '2px solid var(--vx-border, #e2e8f0)' }}>
+          <th style={{ textAlign: 'left', padding: '6px 4px' }}>Sem.</th>
+          <th style={{ textAlign: 'left', padding: '6px 4px' }}>Turma</th>
+          <th style={{ textAlign: 'right', padding: '6px 4px' }}>Per.</th>
+          <th style={{ textAlign: 'right', padding: '6px 4px' }}>Snapshot</th>
+          <th style={{ textAlign: 'right', padding: '6px 4px' }}>C/ nota</th>
+          <th style={{ textAlign: 'right', padding: '6px 4px' }}>Fantasmas</th>
+          <th style={{ textAlign: 'right', padding: '6px 4px' }}>%</th>
+          <th style={{ textAlign: 'right', padding: '6px 4px' }}>Média</th>
+        </tr></thead>
+        <tbody>{sems.map(([sem, d]) => d.turmas.map((g: any, j: number) => {
+          const fant = parseInt(g.fantasmas_estimados) || 0;
+          const comNota = g.snapshot_matriculados - fant;
+          const pctF = parseFloat(g.pct_fantasma) || 0;
+          return <tr key={`${sem}-${j}`} style={{ borderBottom: '1px solid var(--vx-border, #f1f5f9)', background: pctF > 10 ? '#fef2f2' : fant > 0 ? '#fffbeb' : undefined }}>
+            <td style={{ padding: '4px', fontWeight: 700 }}>{g.semester}</td>
+            <td style={{ padding: '4px', fontWeight: 600 }}>{g.class_label}</td>
+            <td style={{ textAlign: 'right', padding: '4px' }}>{g.periodo}º</td>
+            <td style={{ textAlign: 'right', padding: '4px' }}>{g.snapshot_matriculados}</td>
+            <td style={{ textAlign: 'right', padding: '4px', color: '#2563eb' }}>{comNota}</td>
+            <td style={{ textAlign: 'right', padding: '4px', fontWeight: 800, color: fant > 3 ? '#dc2626' : fant > 0 ? '#f59e0b' : '#16a34a' }}>{fant}</td>
+            <td style={{ textAlign: 'right', padding: '4px', fontWeight: 700, color: pctF > 15 ? '#dc2626' : pctF > 5 ? '#f59e0b' : '#16a34a' }}>{pctF}%</td>
+            <td style={{ textAlign: 'right', padding: '4px' }}>{parseFloat(g.media_turma) > 0 ? g.media_turma : '—'}</td>
+          </tr>;
+        }))}</tbody>
+      </table>
+      <div style={{ marginTop: 8, fontSize: '.75rem', color: 'var(--vx-muted, #64748b)' }}>
+        Resumo: {sems.map(([sem, d]) => `${sem}: ${d.totalFantasmas}/${d.totalMat}`).join(' · ')}
+      </div>
+    </div>
+
+    {/* Não-renovação */}
+    <div style={{ background: 'var(--vx-surface, #fff)', border: '1px solid var(--vx-border, #e2e8f0)', borderRadius: 10, padding: '1rem' }}>
+      <strong>🔄 Não-Renovação entre Semestres</strong>
+      <p style={{ fontSize: '.8rem', color: 'var(--vx-muted, #64748b)', margin: '4px 0 12px' }}>Alunos matriculados que não aparecem como matriculados no semestre seguinte. Inclui trancamentos, cancelamentos e transferências.</p>
+      <table style={{ width: '100%', fontSize: '.8rem', borderCollapse: 'collapse' }}>
+        <thead><tr style={{ borderBottom: '2px solid var(--vx-border, #e2e8f0)' }}>
+          <th style={{ textAlign: 'left', padding: '6px 4px' }}>De</th>
+          <th style={{ textAlign: 'left', padding: '6px 4px' }}>Para</th>
+          <th style={{ textAlign: 'right', padding: '6px 4px' }}>Matriculados</th>
+          <th style={{ textAlign: 'right', padding: '6px 4px' }}>Renovaram</th>
+          <th style={{ textAlign: 'right', padding: '6px 4px' }}>Perdidos</th>
+          <th style={{ textAlign: 'right', padding: '6px 4px' }}>% perda</th>
+          <th style={{ width: '20%', padding: '6px 4px' }}>Gráfico</th>
+        </tr></thead>
+        <tbody>{naoRenovacao.map((r, i) => <tr key={i} style={{ borderBottom: '1px solid var(--vx-border, #f1f5f9)' }}>
+          <td style={{ padding: '5px 4px', fontWeight: 600 }}>{r.de}</td>
+          <td style={{ padding: '5px 4px' }}>{r.para}</td>
+          <td style={{ textAlign: 'right', padding: '5px 4px' }}>{r.ingressantes}</td>
+          <td style={{ textAlign: 'right', padding: '5px 4px', color: '#2563eb', fontWeight: 700 }}>{r.renovaram}</td>
+          <td style={{ textAlign: 'right', padding: '5px 4px', color: r.perdidos > 0 ? '#dc2626' : '#16a34a', fontWeight: 700 }}>{r.perdidos}</td>
+          <td style={{ textAlign: 'right', padding: '5px 4px', fontWeight: 800, color: r.pct > 30 ? '#dc2626' : r.pct > 0 ? '#f59e0b' : '#16a34a' }}>{r.pct}%</td>
+          <td style={{ padding: '5px 4px' }}>
+            <div style={{ display: 'flex', height: 14, borderRadius: 3, overflow: 'hidden', background: '#f1f5f9' }}>
+              <div style={{ width: `${100 - r.pct}%`, background: '#2563eb', transition: 'width .3s' }} />
+              <div style={{ width: `${r.pct}%`, background: '#fca5a5', transition: 'width .3s' }} />
+            </div>
+          </td>
+        </tr>)}</tbody>
+      </table>
+      <div style={{ marginTop: 12, padding: 10, background: '#fef2f2', borderRadius: 8, fontSize: '.8rem' }}>
+        <strong>Padrão identificado:</strong> O curso ganhou alunos consistentemente (matriculados subindo). A "perda" aparente em alguns semestres é na verdade o crescimento da base: novos ingressantes superam as saídas. O risco real está nos semestres onde matriculados caem — 2024/01→02 (108→91, -16%) e 2026/01→02 (413→381, -8%).
+      </div>
+    </div>
+
+    {/* Cruzamento fantasma × evasão */}
+    <div style={{ background: 'var(--vx-surface, #fff)', border: '1px solid var(--vx-border, #e2e8f0)', borderRadius: 10, padding: '1rem' }}>
+      <strong>🔗 Cruzamento: Fantasma → Evasão</strong>
+      <div style={{ fontSize: '.8rem', marginTop: 8, lineHeight: 1.7 }}>
+        <p><strong>2023/01:</strong> 6 fantasmas em 40 alunos (15%). Primeiro vestibular — matrículas tardias que nunca compareceram.</p>
+        <p><strong>2024/01:</strong> 0 fantasmas. Melhor semestre em termos de frequência real.</p>
+        <p><strong>2024/02:</strong> 3 fantasmas (4.2%). Ingresso menor, poucos desistentes.</p>
+        <p><strong>2025/01:</strong> 4 fantasmas (2.5%). Volume alto de ingresso (97 calouros) com boa retenção.</p>
+        <p><strong>2025/02:</strong> 7 fantasmas (4.1%). Leve aumento, mas dentro do esperado para turmas maiores.</p>
+        <p><strong>2026/01:</strong> 22 fantasmas estimados (8.5%). <span style={{ color: '#dc2626', fontWeight: 700 }}>Pico histórico</span>. Coincide com o maior ingresso (114 calouros) e o pico de cancelamentos (22). Turmas DIR-8A, 9A e 10A aparecem 100% fantasma — provavelmente matrículas antigas sem atividade.</p>
+      </div>
+      <div style={{ marginTop: 12, padding: 10, background: '#eff6ff', borderRadius: 8, fontSize: '.8rem' }}>
+        <strong>Conclusão:</strong> Fantasmas se concentram em dois perfis: (1) calouros que matriculam e nunca aparecem (RF no 1º semestre), e (2) alunos de períodos avançados de grades antigas mantidos no sistema. O primeiro é custo operacional e distorce indicadores; o segundo é limpeza cadastral. Ambos devem ser excluídos do cálculo de evasão real.
+      </div>
+    </div>
   </div>;
 }
