@@ -273,6 +273,7 @@ function EvolucaoTab({ data, vacancies, onDrill }: { data: any[]; vacancies: num
 
 /* ============ ENSALAMENTO ============ */
 function EnsalamentoTab({ data, vacancies, evolucao, onDrill }: { data: any[]; vacancies: number; evolucao: any[]; onDrill: (d: any) => void }) {
+  // Heatmap: semestre × período com snapshot E evolução real
   const sems = [...new Set(data.map(d => d.semestre))].sort();
   const maxPer = Math.max(...data.map(d => d.serie));
   const grid: Record<string, Record<number, { turmas: string[]; total: number }>> = {};
@@ -283,41 +284,83 @@ function EnsalamentoTab({ data, vacancies, evolucao, onDrill }: { data: any[]; v
     grid[e.semestre][e.serie].total += e.matriculados;
   }
   const periodos = Array.from({ length: Math.min(maxPer, 10) }, (_, i) => i + 1);
-  return <div style={card}>
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-      <div><strong style={{ fontSize: '1rem' }}>Mapa de Ensalamento</strong><br/><span style={{ fontSize: '.75rem', color: 'var(--vx-muted, #64748b)' }}>Semestre × Período — cada célula mostra turmas e alunos. Clique no semestre para detalhar.</span></div>
-      <span style={badge('#7c3aed')}>{vacancies} vagas/sem · {vacancies * 2}/ano</span>
+
+  return <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    {/* Heatmap */}
+    <div style={card}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <div><strong style={{ fontSize: '1rem' }}>Mapa de Ensalamento — Semestre × Período</strong><br/><span style={{ fontSize: '.75rem', color: 'var(--vx-muted, #64748b)' }}>Cada célula: alunos matriculados por turma naquele semestre. Clique para detalhar.</span></div>
+        <span style={badge('#7c3aed')}>{vacancies} vagas/sem · {vacancies * 2}/ano</span>
+      </div>
+      <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 3, minWidth: 600 }}>
+          <thead><tr>
+            <th style={{ ...th, position: 'sticky', left: 0, background: 'var(--vx-surface, #fff)', zIndex: 1 }}>Semestre</th>
+            {periodos.map(p => <th key={p} style={{ ...th, textAlign: 'center', minWidth: 65 }}>{p}º per.</th>)}
+            <th style={{ ...th, textAlign: 'right' }}>Total</th>
+            <th style={{ ...th, textAlign: 'right' }}>Turmas</th>
+          </tr></thead>
+          <tbody>{sems.map(sem => {
+            const semTotal = Object.values(grid[sem] || {}).reduce((s, c) => s + c.total, 0);
+            const semTurmas = Object.values(grid[sem] || {}).reduce((s, c) => s + c.turmas.length, 0);
+            return <tr key={sem} style={{ cursor: 'pointer' }} onClick={() => onDrill({ type: 'semestre', data: { semestre: sem } })}
+              onMouseEnter={e => (e.currentTarget.style.opacity = '.85')} onMouseLeave={e => (e.currentTarget.style.opacity = '1')}>
+              <td style={{ padding: '6px 8px', fontWeight: 700, fontSize: '.85rem', position: 'sticky', left: 0, background: 'var(--vx-surface, #fff)', zIndex: 1 }}>{sem}</td>
+              {periodos.map(p => {
+                const cell = grid[sem]?.[p];
+                if (!cell) return <td key={p} style={{ textAlign: 'center', padding: 4, borderRadius: 6, background: '#f8fafc', color: '#e2e8f0', fontSize: '.75rem' }}>—</td>;
+                const intensity = Math.min(1, cell.total / 55);
+                const bg = cell.total > 40 ? `rgba(37, 99, 235, ${0.15 + intensity * 0.35})` : cell.total > 20 ? `rgba(37, 99, 235, ${0.08 + intensity * 0.15})` : '#f0f9ff';
+                return <td key={p} style={{ textAlign: 'center', padding: '6px 4px', borderRadius: 6, background: bg, transition: 'background .2s' }}>
+                  <div style={{ fontWeight: 800, fontSize: '.9rem', color: '#1e293b' }}>{cell.total}</div>
+                  <div style={{ fontSize: '.55rem', color: '#64748b', lineHeight: 1.2 }}>{cell.turmas.length > 1 ? `${cell.turmas.length} turmas` : cell.turmas[0]?.split('(')[0]}</div>
+                </td>;
+              })}
+              <td style={{ textAlign: 'right', padding: '6px 8px', fontWeight: 800, color: '#2563eb', fontSize: '.95rem' }}>{semTotal}</td>
+              <td style={{ textAlign: 'right', padding: '6px 8px', fontWeight: 600, color: '#64748b' }}>{semTurmas}</td>
+            </tr>;
+          })}</tbody>
+        </table>
+      </div>
     </div>
-    <div style={{ overflowX: 'auto' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 600 }}>
-        <thead><tr>
-          <th style={{ ...th, position: 'sticky', left: 0, background: 'var(--vx-surface, #fff)', zIndex: 1 }}>Semestre</th>
-          {periodos.map(p => <th key={p} style={{ ...th, textAlign: 'center', minWidth: 70 }}>{p}º</th>)}
-          <th style={{ ...th, textAlign: 'right' }}>Total</th>
-        </tr></thead>
-        <tbody>{sems.map(sem => {
-          const semTotal = Object.values(grid[sem] || {}).reduce((s, c) => s + c.total, 0);
-          const ev = evolucao.find(e => e.semestre === sem);
-          return <tr key={sem} style={{ cursor: 'pointer' }} onClick={() => onDrill({ type: 'semestre', data: { semestre: sem } })}
-            onMouseEnter={e => (e.currentTarget.style.background = '#f8fafc')} onMouseLeave={e => (e.currentTarget.style.background = '')}>
-            <td style={{ ...td, fontWeight: 700, position: 'sticky', left: 0, background: 'inherit', zIndex: 1 }}>{sem}</td>
-            {periodos.map(p => {
-              const cell = grid[sem]?.[p];
-              if (!cell) return <td key={p} style={{ ...td, textAlign: 'center', color: '#e2e8f0' }}>—</td>;
-              const intensity = Math.min(1, cell.total / 60);
-              const bg = `rgba(37, 99, 235, ${0.05 + intensity * 0.2})`;
-              return <td key={p} style={{ ...td, textAlign: 'center', background: bg, borderRadius: 4 }}>
-                <div style={{ fontWeight: 700, fontSize: '.85rem', color: '#1e293b' }}>{cell.total}</div>
-                <div style={{ fontSize: '.6rem', color: '#64748b' }}>{cell.turmas.length} turma{cell.turmas.length > 1 ? 's' : ''}</div>
-              </td>;
-            })}
-            <td style={{ ...tdR, fontWeight: 800, color: '#2563eb' }}>{semTotal}</td>
-          </tr>;
-        })}</tbody>
-      </table>
+
+    {/* Detalhamento semestre a semestre */}
+    <div style={card}>
+      <strong style={{ fontSize: '1rem' }}>Detalhamento por Semestre — Turmas Reais</strong>
+      <p style={{ fontSize: '.75rem', color: 'var(--vx-muted, #64748b)', margin: '4px 0 12px' }}>Evolução semestre a semestre: turmas criadas, alunos, aprovação, reprovação e média</p>
+      {sems.map(sem => {
+        const ev = evolucao.find(e => e.semestre === sem);
+        const mat = ev?.matriculados || ev?.total_matriculados || 0;
+        const tranc = ev?.trancados || ev?.trancado || 0;
+        const canc = ev?.cancelados || ev?.cancelado || 0;
+        const cells = grid[sem] ? Object.entries(grid[sem]).sort(([a],[b]) => Number(a) - Number(b)) : [];
+        const totalAlunos = cells.reduce((s, [, c]) => s + c.total, 0);
+        const totalTurmas = cells.reduce((s, [, c]) => s + c.turmas.length, 0);
+        return <div key={sem} style={{ marginBottom: 12, padding: 12, background: '#f8fafc', borderRadius: 10, border: '1px solid #e2e8f0', cursor: 'pointer' }}
+          onClick={() => onDrill({ type: 'semestre', data: { semestre: sem } })}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+            <strong style={{ fontSize: '.9rem' }}>{sem}</strong>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <span style={badge('#2563eb')}>{mat} matric.</span>
+              {tranc > 0 && <span style={badge('#f59e0b')}>{tranc} tranc.</span>}
+              {canc > 0 && <span style={badge('#dc2626')}>{canc} cancel.</span>}
+              <span style={badge('#7c3aed')}>{totalTurmas} turmas</span>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {cells.map(([per, c]) => c.turmas.map((t, j) => {
+              const nome = t.split('(')[0]; const qtd = parseInt(t.split('(')[1]) || 0;
+              return <div key={`${per}-${j}`} style={{ padding: '4px 10px', borderRadius: 8, background: '#fff', border: '1px solid #e2e8f0', fontSize: '.75rem' }}>
+                <strong>{nome}</strong> <span style={{ color: '#2563eb' }}>{qtd}</span> <span style={{ color: '#94a3b8', fontSize: '.65rem' }}>{per}º per.</span>
+              </div>;
+            }))}
+          </div>
+        </div>;
+      })}
     </div>
-    <div style={{ marginTop: 16, padding: 12, background: 'linear-gradient(135deg, #f5f3ff, #eff6ff)', borderRadius: 10, fontSize: '.85rem' }}>
-      🏫 Cresceu de <strong>{Object.values(grid[sems[0]] || {}).reduce((s,c) => s + c.turmas.length, 0)} turma</strong> ({sems[0]}) para <strong>{Object.values(grid[sems[sems.length-1]] || {}).reduce((s,c) => s + c.turmas.length, 0)} turmas</strong> ({sems[sems.length-1]}). Curso atingiu o <strong>{maxPer}º período</strong>.
+
+    <div style={{ padding: 12, background: 'linear-gradient(135deg, #f5f3ff, #eff6ff)', borderRadius: 10, fontSize: '.85rem' }}>
+      🏫 Cresceu de <strong>{Object.values(grid[sems[0]] || {}).reduce((s,c) => s + c.turmas.length, 0)} turma</strong> ({sems[0]}) para <strong>{Object.values(grid[sems[sems.length-1]] || {}).reduce((s,c) => s + c.turmas.length, 0)} turmas</strong> ({sems[sems.length-1]}). Até o <strong>{maxPer}º período</strong>. Vagas: {vacancies}/semestre ({vacancies * 2}/ano).
     </div>
   </div>;
 }
@@ -462,31 +505,128 @@ function FantasmasTab({ data, evolucao }: { data: any[]; evolucao: any[] }) {
 
 /* ============ ESTRATÉGIA ============ */
 function EstrategiaTab({ profs, profsPerSem, evolucao }: { profs: any[]; profsPerSem: any[]; evolucao: any[] }) {
-  const mezz = profs.find(p => p.nome?.includes('MEZZAROBA'));
-  const thais = profs.find(p => p.nome === 'THAIS ALMEIDA DE AGUIAR');
   const totalRF = profs.reduce((s,p) => s + p.rf, 0); const totalRN = profs.reduce((s,p) => s + p.rn, 0); const totalRA = profs.reduce((s,p) => s + p.ra, 0);
-  const cards = [
-    { icon: '🔴', prio: 'CRÍTICA', color: '#dc2626', title: 'Cristiane Mezzaroba — Penal', sub: 'Taxa >20% persistente', metrics: mezz ? [`${mezz.alunos} alunos`, `${mezz.total_rep} reprovações (${mezz.pct_rep}%)`, `RF:${mezz.rf} RN:${mezz.rn} RA:${mezz.ra}`, `Média ${mezz.media}`] : [], action: 'Reunião individual. Comparar com média do NDE. Verificar se é rigor ou desalinhamento.', evidence: 'Teoria da Pena 2024/01: 33.3%, média 5.62. Penal II (3B) 2026/01: 8 RF.' },
-    { icon: '⚡', prio: 'ALTA', color: '#f59e0b', title: 'RF = evasão disfarçada', sub: 'Aluno para de ir antes de ser avaliado', metrics: [`RF total: ${totalRF}`, `RN total: ${totalRN}`, `RA total: ${totalRA}`, `RF = ${Math.round(100*totalRF/(totalRF+totalRN+totalRA))}% das reprovações`], action: 'Alerta automático em 25% de faltas. Busca ativa por WhatsApp. Notificar coordenador + tutor.', evidence: '2025/01: 83 RF no 1º período. 2026/01: 43 RF em DIR-1A.' },
-    { icon: '🎯', prio: 'ALTA', color: '#f59e0b', title: 'Gargalo do 1º período', sub: 'IED, Economia e Ciência Política', metrics: ['IED: média oscilou de 9.7 a 5.7', 'Economia: média 6.0 em 2024/01', 'Ciência Política: média 6.2', '60%+ das reprovações de calouros'], action: 'Tutoria + monitoria obrigatória nos 3 componentes críticos. Acompanhamento semanal de frequência.', evidence: 'IED com Sibele: 22.6% rep, média 5.73. Economia com Casé: 22.8%, média 6.00.' },
-    { icon: '⚠', prio: 'MÉDIA', color: '#7c3aed', title: 'Thais com sobrecarga', sub: '2→6 turmas, média caiu, RF subiu', metrics: thais ? [`${thais.alunos} alunos total`, `${thais.turmas} turmas`, `${thais.total_rep} reprovações (${thais.pct_rep}%)`, `RF: ${thais.rf} (${Math.round(100*thais.rf/Math.max(thais.total_rep,1))}% das reprova.)`] : [], action: 'Redistribuir ao menos 2 turmas. Média caiu e RF subiu com a sobrecarga.', evidence: 'De 2 turmas (2023) para 6 (2026/01). RF: 76 acumulados.' },
-    { icon: '📋', prio: 'MONITORAR', color: '#0891b2', title: '2026/02 em andamento', sub: 'Notas em lançamento', metrics: ['Status: CR (cursando)', `${evolucao[evolucao.length-1]?.matriculados || '?'} matriculados`, '10+ turmas (1º ao 10º)'], action: 'Repetir análise ao final do semestre.', evidence: 'Apenas 14 notas lançadas até agora.' },
-  ];
-  return <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-    {cards.map((c, i) => (
-      <div key={i} style={{ ...card, borderLeft: `4px solid ${c.color}`, padding: '1.25rem' }}>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
-          <span style={{ fontSize: '1.25rem' }}>{c.icon}</span>
-          <span style={{ ...badge(c.color), textTransform: 'uppercase' }}>{c.prio}</span>
-        </div>
-        <strong style={{ fontSize: '1.05rem' }}>{c.title}</strong>
-        <p style={{ fontSize: '.8rem', color: 'var(--vx-muted, #64748b)', margin: '2px 0 10px' }}>{c.sub}</p>
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
-          {c.metrics.map((m, j) => <span key={j} style={{ padding: '4px 10px', borderRadius: 8, background: '#f8fafc', border: '1px solid #e2e8f0', fontSize: '.75rem' }}>{m}</span>)}
-        </div>
-        <div style={{ padding: 10, background: '#eff6ff', borderRadius: 8, fontSize: '.8rem' }}>📌 <strong>Ação:</strong> {c.action}</div>
-        {c.evidence && <div style={{ marginTop: 6, fontSize: '.75rem', color: 'var(--vx-muted, #64748b)' }}>📎 {c.evidence}</div>}
+  const totalRep = totalRF + totalRN + totalRA;
+  const thais = profs.find(p => p.nome === 'THAIS ALMEIDA DE AGUIAR');
+
+  // Gerar alertas docentes automaticamente
+  const alertasDocentes = profs.filter(p => p.alunos >= 20 && (p.pct_rep > 15 || (p.total_rep === 0 && (p.media ?? 0) >= 9.5))).map(p => {
+    if (p.total_rep === 0 && (p.media ?? 0) >= 9.5) return { prof: p, tipo: 'branda' as const, color: '#ca8a04', prio: 'ATENÇÃO' };
+    if (p.pct_rep > 20) return { prof: p, tipo: 'critico' as const, color: '#dc2626', prio: 'CRÍTICA' };
+    return { prof: p, tipo: 'alerta' as const, color: '#f59e0b', prio: 'ALTA' };
+  }).sort((a, b) => {
+    const order = { critico: 0, alerta: 1, branda: 2 };
+    return order[a.tipo] - order[b.tipo] || b.prof.total_rep - a.prof.total_rep;
+  });
+
+  // Professores com sobrecarga (>5 turmas em um semestre)
+  const sobrecarga = profsPerSem.filter(p => p.turmas >= 5).sort((a, b) => b.turmas - a.turmas);
+
+  const Card = ({ icon, prio, color, title, sub, children }: { icon: string; prio: string; color: string; title: string; sub: string; children: React.ReactNode }) => (
+    <div style={{ ...card, borderLeft: `4px solid ${color}`, padding: '1.25rem' }}>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
+        <span style={{ fontSize: '1.25rem' }}>{icon}</span>
+        <span style={{ ...badge(color), textTransform: 'uppercase' }}>{prio}</span>
       </div>
-    ))}
+      <strong style={{ fontSize: '1.05rem' }}>{title}</strong>
+      <p style={{ fontSize: '.8rem', color: 'var(--vx-muted, #64748b)', margin: '2px 0 10px' }}>{sub}</p>
+      {children}
+    </div>
+  );
+
+  return <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    {/* 1. Alertas de reprovação docente — TODOS que ultrapassam limiar */}
+    <Card icon="🔴" prio="DOCENTES EM ALERTA" color="#dc2626" title={`${alertasDocentes.length} professores com indicadores fora do padrão`} sub="Taxa de reprovação >15% persistente OU zero reprovação com média ≥9.5">
+      <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 10 }}>
+        <thead><tr>{['Professor','Alunos','Reprov.','%','RF','RN','RA','Média','Diagnóstico'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
+        <tbody>{alertasDocentes.map((a, i) => {
+          const p = a.prof;
+          const diag = a.tipo === 'branda' ? 'Possível avaliação branda' : p.rf > p.rn + p.ra ? 'Evasão silenciosa (RF alto)' : p.rn > p.rf ? 'Rigor avaliativo (RN alto)' : 'Múltiplas causas (RF+RN+RA)';
+          return <tr key={i} style={{ background: a.tipo === 'critico' ? '#fef2f2' : a.tipo === 'branda' ? '#fefce8' : '#fffbeb' }}>
+            <td style={{ ...td, fontWeight: 700, maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={p.nome}>{p.nome}</td>
+            <td style={tdR}>{p.alunos}</td>
+            <td style={{ ...tdR, fontWeight: 700, color: a.color }}>{p.total_rep}</td>
+            <td style={{ ...tdR, fontWeight: 800, color: a.color }}>{p.pct_rep}%</td>
+            <td style={{ ...tdR, color: p.rf > 10 ? '#dc2626' : '#64748b' }}>{p.rf}</td>
+            <td style={{ ...tdR, color: p.rn > 5 ? '#7c3aed' : '#64748b' }}>{p.rn}</td>
+            <td style={{ ...tdR, color: p.ra > 5 ? '#dc2626' : '#64748b' }}>{p.ra}</td>
+            <td style={{ ...tdR, color: (p.media ?? 10) < 7 ? '#dc2626' : '#1e293b' }}>{p.media ?? '—'}</td>
+            <td style={{ ...td, fontSize: '.7rem' }}><span style={badge(a.color)}>{diag}</span></td>
+          </tr>;
+        })}</tbody>
+      </table>
+      <div style={{ padding: 10, background: '#eff6ff', borderRadius: 8, fontSize: '.8rem' }}>
+        📌 <strong>Ação:</strong> Reunião individual com cada docente em alerta. Comparar resultados com a média do NDE. Analisar se é perfil de disciplina (Penal é tradicionalmente mais difícil) ou desalinhamento pedagógico. Professores com média ≥9.5 e zero reprovação devem ter avaliações auditadas.
+      </div>
+    </Card>
+
+    {/* 2. RF = evasão */}
+    <Card icon="⚡" prio="ALTA" color="#f59e0b" title="Reprovação por falta = evasão disfarçada" sub="Aluno para de frequentar antes de ser avaliado">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 8, marginBottom: 10 }}>
+        {[
+          { label: 'RF (Falta)', value: totalRF, color: '#dc2626', pct: Math.round(100*totalRF/totalRep) },
+          { label: 'RN (Nota)', value: totalRN, color: '#7c3aed', pct: Math.round(100*totalRN/totalRep) },
+          { label: 'RA (Ambos)', value: totalRA, color: '#f59e0b', pct: Math.round(100*totalRA/totalRep) },
+        ].map((m, i) => <div key={i} style={{ padding: '8px 10px', borderRadius: 8, background: '#f8fafc', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+          <div style={{ fontSize: '1.1rem', fontWeight: 800, color: m.color }}>{m.value}</div>
+          <div style={{ fontSize: '.65rem', color: '#64748b' }}>{m.label} ({m.pct}%)</div>
+          <div style={{ height: 4, borderRadius: 2, background: '#e2e8f0', marginTop: 4 }}><div style={{ height: 4, borderRadius: 2, background: m.color, width: `${m.pct}%` }} /></div>
+        </div>)}
+      </div>
+      <div style={{ padding: 10, background: '#eff6ff', borderRadius: 8, fontSize: '.8rem' }}>
+        📌 <strong>Ação:</strong> Alerta automático em 25% de faltas. Busca ativa por WhatsApp/telefone. Notificar coordenador + tutor antes que o aluno vire RF.
+      </div>
+      <div style={{ marginTop: 6, fontSize: '.75rem', color: 'var(--vx-muted, #64748b)' }}>📎 2025/01: 83 RF no 1º período. 2026/01: 43 RF em DIR-1A. RF predomina em {Math.round(100*totalRF/totalRep)}% das reprovações.</div>
+    </Card>
+
+    {/* 3. Gargalo 1º período */}
+    <Card icon="🎯" prio="ALTA" color="#f59e0b" title="Disciplinas gargalo do 1º período" sub="Onde se perde a maioria dos calouros">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
+        {['INTRODUÇÃO AO ESTUDO DO DIREITO', 'ECONOMIA APLICADA AO DIREITO', 'CIÊNCIAS POLÍTICA', 'CIÊNCIA POLÍTICA E TEORIA GERAL DO ESTADO', 'FUNDAMENTOS DA LÍNGUA PORTUGUESA E REDAÇÃO OFICIAL', 'HISTÓRIA DO DIREITO E DAS INSTITUIÇÕES JURÍDICAS'].map(disc => {
+          const p = profs.find(p => p.nome && profsPerSem.some(ps => ps.nome === p.nome)); // won't use this
+          // aggregate from profsPerSem data is not great here, let's just show disc name
+          return null; // simplified below
+        }).filter(Boolean)}
+      </div>
+      <div style={{ fontSize: '.8rem', lineHeight: 1.8 }}>
+        <div style={{ padding: '6px 10px', background: '#fef2f2', borderRadius: 6, marginBottom: 4 }}>📚 <strong>Intro. ao Estudo do Direito</strong> — média oscilou de 9.7 (2023, Julio) a 5.7 (2024, Sibele) a 6.7 (2026, Thais). Disciplina mais sensível ao professor.</div>
+        <div style={{ padding: '6px 10px', background: '#fef2f2', borderRadius: 6, marginBottom: 4 }}>📚 <strong>Economia Aplicada</strong> — média 6.0 em 2024/01 (Casé, 22.8% rep). Melhorou para 6.9 em 2025/01 com o mesmo professor.</div>
+        <div style={{ padding: '6px 10px', background: '#fffbeb', borderRadius: 6, marginBottom: 4 }}>📚 <strong>Ciência Política</strong> — média 6.2 em 2024/01 (Eronides), 6.6 em 2025/01 (mesmo prof, 25% rep com 95 alunos).</div>
+        <div style={{ padding: '6px 10px', background: '#fffbeb', borderRadius: 6, marginBottom: 4 }}>📚 <strong>História do Direito</strong> — caiu de 9.5 (2023) para 5.85 (2025/01, Thais com 97 alunos e 35 aprovações de 97).</div>
+      </div>
+      <div style={{ padding: 10, background: '#eff6ff', borderRadius: 8, fontSize: '.8rem', marginTop: 8 }}>
+        📌 <strong>Ação:</strong> Tutoria e monitoria obrigatória nestas disciplinas. Acompanhamento semanal de frequência no 1º período. Considerar professor dedicado para IED e Economia.
+      </div>
+    </Card>
+
+    {/* 4. Sobrecarga */}
+    <Card icon="⚠" prio="MÉDIA" color="#7c3aed" title="Professores com sobrecarga" sub="Docentes com 5+ turmas em um semestre — correlação com queda de média e aumento de RF">
+      {sobrecarga.length > 0 ? <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 10 }}>
+        <thead><tr>{['Professor','Semestre','Turmas','Alunos','Reprov.','%','Média'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
+        <tbody>{sobrecarga.map((s, i) => <tr key={i} style={{ background: s.turmas >= 6 ? '#f5f3ff' : undefined }}>
+          <td style={{ ...td, fontWeight: 600, maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={s.nome}>{s.nome.split(' ').slice(0, 3).join(' ')}</td>
+          <td style={td}>{s.sem}</td><td style={{ ...tdR, fontWeight: 700, color: '#7c3aed' }}>{s.turmas}</td><td style={tdR}>{s.alunos}</td>
+          <td style={{ ...tdR, color: s.total_rep > 10 ? '#dc2626' : '#64748b' }}>{s.total_rep}</td>
+          <td style={{ ...tdR, fontWeight: 700, color: s.pct > 15 ? '#dc2626' : s.pct > 10 ? '#f59e0b' : '#16a34a' }}>{s.pct}%</td>
+          <td style={tdR}>{s.media ?? '—'}</td>
+        </tr>)}</tbody>
+      </table> : <p style={{ fontSize: '.8rem', color: '#64748b' }}>Nenhum professor com 5+ turmas em um semestre.</p>}
+      {thais && <div style={{ marginTop: 6, fontSize: '.75rem', color: 'var(--vx-muted, #64748b)' }}>📎 Thais: de 2 turmas (2023) para {thais.turmas} acumuladas. RF acumulado: {thais.rf}. Redistribuir carga.</div>}
+      <div style={{ padding: 10, background: '#eff6ff', borderRadius: 8, fontSize: '.8rem', marginTop: 8 }}>
+        📌 <strong>Ação:</strong> Limitar a 4 turmas/semestre por docente. Redistribuir excedente. Monitorar correlação turmas × queda de média.
+      </div>
+    </Card>
+
+    {/* 5. Monitorar */}
+    <Card icon="📋" prio="MONITORAR" color="#0891b2" title="2026/02 — Semestre em curso" sub="Notas ainda em lançamento (CR = cursando)">
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
+        <span style={{ padding: '4px 10px', borderRadius: 8, background: '#f8fafc', border: '1px solid #e2e8f0', fontSize: '.75rem' }}>Status: CR (cursando)</span>
+        <span style={{ padding: '4px 10px', borderRadius: 8, background: '#f8fafc', border: '1px solid #e2e8f0', fontSize: '.75rem' }}>{evolucao[evolucao.length-1]?.matriculados || '?'} matriculados</span>
+        <span style={{ padding: '4px 10px', borderRadius: 8, background: '#f8fafc', border: '1px solid #e2e8f0', fontSize: '.75rem' }}>10+ turmas (1º ao 10º período)</span>
+      </div>
+      <div style={{ padding: 10, background: '#eff6ff', borderRadius: 8, fontSize: '.8rem' }}>
+        📌 <strong>Ação:</strong> Repetir esta análise completa ao final de 2026/02 para verificar se intervenções surtiram efeito.
+      </div>
+    </Card>
   </div>;
 }
