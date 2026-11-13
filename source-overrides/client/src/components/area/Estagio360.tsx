@@ -32,7 +32,7 @@ export default function Estagio360({ institutionId, courses, role, onNavigate }:
   const [students, setStudents] = useState<StudentRegistryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPlacement, setSelectedPlacement] = useState<string|null>(null);
-  const [showForm, setShowForm] = useState(false);
+  const [showForm, setShowForm] = useState<false|'placement'|'org'|'field'>(false);
 
   useEffect(() => {
     setLoading(true);
@@ -140,8 +140,12 @@ export default function Estagio360({ institutionId, courses, role, onNavigate }:
         </div>)}
 
         {section === 'organizations' && (<div>
-          <header className="alumni-header"><h2>Organizações Concedentes</h2></header>
-          {orgs.length === 0 ? <div className="alumni-info-box">Nenhuma organização cadastrada.</div> : (
+          <header className="alumni-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h2>Organizações Concedentes</h2>
+            <button className="alumni-btn-export" onClick={() => setShowForm(v => v === 'org' ? false : 'org' as any)}>+ Nova Organização</button>
+          </header>
+          {showForm === 'org' && <CreateOrgForm institutionId={institutionId} onCreated={(o) => { setOrgs(prev => [o, ...prev]); setShowForm(false); }} onCancel={() => setShowForm(false)} />}
+          {orgs.length === 0 && showForm !== 'org' ? <div className="alumni-info-box">Nenhuma organização cadastrada.</div> : (
             <table className="alumni-table">
               <thead><tr><th>Nome</th><th>CNPJ</th><th>Cidade</th><th>Status</th><th>Campos</th></tr></thead>
               <tbody>{orgs.map(o => (
@@ -152,8 +156,12 @@ export default function Estagio360({ institutionId, courses, role, onNavigate }:
         </div>)}
 
         {section === 'fields' && (<div>
-          <header className="alumni-header"><h2>Campos de Estágio</h2></header>
-          {fields.length === 0 ? <div className="alumni-info-box">Nenhum campo cadastrado.</div> : (
+          <header className="alumni-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h2>Campos de Estágio</h2>
+            <button className="alumni-btn-export" onClick={() => setShowForm(v => v === 'field' ? false : 'field' as any)}>+ Novo Campo</button>
+          </header>
+          {showForm === 'field' && <CreateFieldForm institutionId={institutionId} courses={courses} orgs={orgs} onCreated={(f) => { setFields(prev => [f, ...prev]); setShowForm(false); }} onCancel={() => setShowForm(false)} />}
+          {fields.length === 0 && showForm !== 'field' ? <div className="alumni-info-box">Nenhum campo cadastrado.</div> : (
             <table className="alumni-table">
               <thead><tr><th>Campo</th><th>Concedente</th><th>Tipo</th><th>Área</th><th>Capacidade</th><th>Status</th></tr></thead>
               <tbody>{fields.map(f => (
@@ -166,9 +174,9 @@ export default function Estagio360({ institutionId, courses, role, onNavigate }:
         {section === 'placements' && (<div>
           <header className="alumni-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h2>Estágios</h2>
-            <button className="alumni-btn-export" onClick={() => setShowForm(v => !v)}>+ Novo Estágio</button>
+            <button className="alumni-btn-export" onClick={() => setShowForm(v => v === 'placement' ? false : 'placement')}>+ Novo Estágio</button>
           </header>
-          {showForm && <CreatePlacementForm institutionId={institutionId} courses={courses} orgs={orgs} fields={fields} students={students} onCreated={(p) => { setPlacements(prev => [p, ...prev]); setShowForm(false); }} onCancel={() => setShowForm(false)} />}
+          {showForm === 'placement' && <CreatePlacementForm institutionId={institutionId} courses={courses} orgs={orgs} fields={fields} students={students} onCreated={(p) => { setPlacements(prev => [p, ...prev]); setShowForm(false); }} onCancel={() => setShowForm(false)} />}
           {placements.length === 0 && !showForm ? <div className="alumni-info-box">Nenhum estágio registrado.</div> : (
             <div style={{ display: 'grid', gap: '.75rem' }}>
               {placements.map(p => (
@@ -367,6 +375,94 @@ function CreatePlacementForm({ institutionId, courses, orgs, fields, students, o
       <div style={{ display: 'flex', gap: 8, marginTop: 12, justifyContent: 'flex-end' }}>
         <button type="button" onClick={onCancel} className="alumni-btn-back">Cancelar</button>
         <button type="submit" disabled={saving || !studentId || !orgId || !fieldId} className="alumni-btn-export">{saving ? 'Salvando…' : 'Criar Estágio'}</button>
+      </div>
+    </form>
+  );
+}
+
+function CreateOrgForm({ institutionId, onCreated, onCancel }: { institutionId: string; onCreated: (o: InternshipOrg) => void; onCancel: () => void }) {
+  const [name, setName] = useState('');
+  const [tradeName, setTradeName] = useState('');
+  const [identifier, setIdentifier] = useState('');
+  const [city, setCity] = useState('');
+  const [contactName, setContactName] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!name) return;
+    setSaving(true);
+    const { data, error } = await supabase.from('vertice_internship_organizations').insert({
+      institution_id: institutionId, legal_name: name, trade_name: tradeName || null,
+      identifier: identifier || null, city: city || null,
+      contact_name: contactName || null, contact_email: contactEmail || null,
+      status: 'active',
+    }).select().single();
+    setSaving(false);
+    if (error) { alert('Erro: ' + error.message); return; }
+    onCreated(data as InternshipOrg);
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="alumni-info-box" style={{ background: 'var(--vx-surface,#fff)', border: '1px solid var(--vx-border,#e2e8f0)', marginBottom: '1rem' }}>
+      <strong style={{ display: 'block', marginBottom: 12 }}>Nova Organização Concedente</strong>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <label>Razão Social *<input value={name} onChange={e => setName(e.target.value)} style={fld} placeholder="Nome completo da organização" required /></label>
+        <label>Nome Fantasia<input value={tradeName} onChange={e => setTradeName(e.target.value)} style={fld} placeholder="Opcional" /></label>
+        <label>CNPJ<input value={identifier} onChange={e => setIdentifier(e.target.value)} style={fld} placeholder="00.000.000/0000-00" /></label>
+        <label>Cidade<input value={city} onChange={e => setCity(e.target.value)} style={fld} placeholder="Cidade/UF" /></label>
+        <label>Contato (nome)<input value={contactName} onChange={e => setContactName(e.target.value)} style={fld} placeholder="Responsável pelo convênio" /></label>
+        <label>Contato (e-mail)<input type="email" value={contactEmail} onChange={e => setContactEmail(e.target.value)} style={fld} placeholder="email@empresa.com" /></label>
+      </div>
+      <div style={{ display: 'flex', gap: 8, marginTop: 12, justifyContent: 'flex-end' }}>
+        <button type="button" onClick={onCancel} className="alumni-btn-back">Cancelar</button>
+        <button type="submit" disabled={saving || !name} className="alumni-btn-export">{saving ? 'Salvando…' : 'Cadastrar'}</button>
+      </div>
+    </form>
+  );
+}
+
+function CreateFieldForm({ institutionId, courses, orgs, onCreated, onCancel }: {
+  institutionId: string; courses: { id: string; name: string }[]; orgs: InternshipOrg[];
+  onCreated: (f: InternshipField) => void; onCancel: () => void;
+}) {
+  const [courseId, setCourseId] = useState(courses[0]?.id || '');
+  const [orgId, setOrgId] = useState('');
+  const [name, setName] = useState('');
+  const [locType, setLocType] = useState<'internal'|'external'>('external');
+  const [area, setArea] = useState('');
+  const [capacity, setCapacity] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!name || !orgId) return;
+    setSaving(true);
+    const { data, error } = await supabase.from('vertice_internship_fields').insert({
+      institution_id: institutionId, course_id: courseId, organization_id: orgId,
+      name, location_type: locType, area_of_practice: area || null,
+      capacity: capacity ? parseInt(capacity) : null, status: 'active',
+    }).select().single();
+    setSaving(false);
+    if (error) { alert('Erro: ' + error.message); return; }
+    onCreated(data as InternshipField);
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="alumni-info-box" style={{ background: 'var(--vx-surface,#fff)', border: '1px solid var(--vx-border,#e2e8f0)', marginBottom: '1rem' }}>
+      <strong style={{ display: 'block', marginBottom: 12 }}>Novo Campo de Estágio</strong>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <label>Nome do Campo *<input value={name} onChange={e => setName(e.target.value)} style={fld} placeholder="Ex: Setor jurídico — DPE/TO" required /></label>
+        <label>Concedente *<select value={orgId} onChange={e => setOrgId(e.target.value)} style={fld}><option value="">Selecione…</option>{orgs.map(o => <option key={o.id} value={o.id}>{o.trade_name || o.legal_name}</option>)}</select></label>
+        <label>Curso<select value={courseId} onChange={e => setCourseId(e.target.value)} style={fld}>{courses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
+        <label>Tipo<select value={locType} onChange={e => setLocType(e.target.value as any)} style={fld}><option value="internal">Interno</option><option value="external">Externo</option></select></label>
+        <label>Área de prática<input value={area} onChange={e => setArea(e.target.value)} style={fld} placeholder="Direito civil, administrativo…" /></label>
+        <label>Capacidade (vagas)<input type="number" value={capacity} onChange={e => setCapacity(e.target.value)} style={fld} min="1" /></label>
+      </div>
+      <div style={{ display: 'flex', gap: 8, marginTop: 12, justifyContent: 'flex-end' }}>
+        <button type="button" onClick={onCancel} className="alumni-btn-back">Cancelar</button>
+        <button type="submit" disabled={saving || !name || !orgId} className="alumni-btn-export">{saving ? 'Salvando…' : 'Cadastrar Campo'}</button>
       </div>
     </form>
   );

@@ -29,6 +29,7 @@ export default function AtividadesComplementares360({ institutionId, courses, ro
   const [loading, setLoading] = useState(true);
   const [courseFilter, setCourseFilter] = useState('');
   const [showAcForm, setShowAcForm] = useState(false);
+  const [showRuleForm, setShowRuleForm] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -119,8 +120,12 @@ export default function AtividadesComplementares360({ institutionId, courses, ro
         </div>)}
 
         {section === 'rules' && (<div>
-          <header className="alumni-header"><h2>Regulamentos por Curso</h2></header>
-          {rules.length === 0 ? <div className="alumni-info-box">Nenhum regulamento cadastrado. Configure as regras de AC por curso e matriz.</div> : (
+          <header className="alumni-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h2>Regulamentos por Curso</h2>
+            <button className="alumni-btn-export" onClick={() => setShowRuleForm(v => !v)}>+ Novo Regulamento</button>
+          </header>
+          {showRuleForm && <CreateAcRuleForm institutionId={institutionId} courses={courses} onCreated={(r) => { setRules(prev => [r, ...prev]); setShowRuleForm(false); }} onCancel={() => setShowRuleForm(false)} />}
+          {rules.length === 0 && !showRuleForm ? <div className="alumni-info-box">Nenhum regulamento cadastrado. Configure as regras de AC por curso e matriz.</div> : (
             <div style={{ display: 'grid', gap: '.75rem' }}>
               {rules.map(r => (
                 <RuleCard key={r.id} rule={r} courseName={courseName(r.course_id)} />
@@ -340,3 +345,46 @@ function CreateAcSubmissionForm({ institutionId, courses, rules, students, onCre
 }
 
 const sel: React.CSSProperties = { display: 'block', width: '100%', padding: '6px 10px', border: '1px solid var(--vx-border,#e2e8f0)', borderRadius: 6, fontSize: '.8125rem', marginTop: 4 };
+
+function CreateAcRuleForm({ institutionId, courses, onCreated, onCancel }: {
+  institutionId: string; courses: { id: string; name: string }[];
+  onCreated: (r: AcRule) => void; onCancel: () => void;
+}) {
+  const [courseId, setCourseId] = useState(courses[0]?.id || '');
+  const [currVersion, setCurrVersion] = useState('2024');
+  const [ruleVersion, setRuleVersion] = useState('v1.0');
+  const [totalHours, setTotalHours] = useState('200');
+  const [saving, setSaving] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!courseId || !totalHours) return;
+    setSaving(true);
+    const { data, error } = await supabase.from('vertice_ac_rules').insert({
+      institution_id: institutionId, course_id: courseId,
+      curriculum_version: currVersion, rule_version: ruleVersion,
+      total_required_minutes: parseInt(totalHours) * 60,
+      active: true,
+    }).select().single();
+    setSaving(false);
+    if (error) { alert('Erro: ' + error.message); return; }
+    onCreated(data as AcRule);
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="alumni-info-box" style={{ background: 'var(--vx-surface,#fff)', border: '1px solid var(--vx-border,#e2e8f0)', marginBottom: '1rem' }}>
+      <strong style={{ display: 'block', marginBottom: 12 }}>Novo Regulamento de Atividades Complementares</strong>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <label>Curso *<select value={courseId} onChange={e => setCourseId(e.target.value)} style={sel}>{courses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
+        <label>Versão da Matriz<input value={currVersion} onChange={e => setCurrVersion(e.target.value)} style={sel} placeholder="Ex: 2024" /></label>
+        <label>Versão do Regulamento<input value={ruleVersion} onChange={e => setRuleVersion(e.target.value)} style={sel} placeholder="Ex: v1.0" /></label>
+        <label>Carga Total Exigida (h) *<input type="number" value={totalHours} onChange={e => setTotalHours(e.target.value)} style={sel} min="1" required /></label>
+      </div>
+      <p style={{ fontSize: '.75rem', color: 'var(--vx-muted)', margin: '8px 0 0' }}>Após criar o regulamento, adicione as categorias com limites e conversões clicando no regulamento na lista.</p>
+      <div style={{ display: 'flex', gap: 8, marginTop: 12, justifyContent: 'flex-end' }}>
+        <button type="button" onClick={onCancel} className="alumni-btn-back">Cancelar</button>
+        <button type="submit" disabled={saving || !courseId || !totalHours} className="alumni-btn-export">{saving ? 'Salvando…' : 'Criar Regulamento'}</button>
+      </div>
+    </form>
+  );
+}
