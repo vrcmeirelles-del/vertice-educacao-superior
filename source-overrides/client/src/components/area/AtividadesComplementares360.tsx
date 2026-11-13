@@ -1,5 +1,5 @@
 // AtividadesComplementares360.tsx — AC 360
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { fetchAcRules, fetchAcCategories, fetchAcSubmissions, fetchAcStudentBalance, fetchAcCourseSummary, fetchStudentRegistry, fetchProtocols, approveAcSubmission, AC_STATUS_LABELS, PROTOCOL_STATUS_LABELS, minutesToHours, type AcRule, type AcCategory, type AcSubmission, type AcStudentBalance, type AcCourseSummary, type StudentRegistryEntry } from '@/lib/atividades-complementares';
 import './egressos360.css';
@@ -135,9 +135,9 @@ export default function AtividadesComplementares360({ institutionId, courses, ro
         </div>)}
 
         {section === 'students' && (<div>
-          <header className="alumni-header">
-            <h2>Base de Alunos</h2>
-            <p className="alumni-subtitle">Estudantes com vínculo verificado para acesso sem senha</p>
+          <header className="alumni-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
+            <div><h2>Base de Alunos</h2><p className="alumni-subtitle">Estudantes com vínculo verificado para acesso sem senha</p></div>
+            <CsvImportButton institutionId={institutionId} courses={courses} onImported={(count) => { fetchStudentRegistry(institutionId).then(setStudents); alert(`${count} aluno(s) importado(s).`); }} />
           </header>
           <div className="alumni-kpis">
             <KPI label="Total" value={students.length} />
@@ -396,6 +396,86 @@ function CreateAcSubmissionForm({ institutionId, courses, rules, students, onCre
 }
 
 const sel: React.CSSProperties = { display: 'block', width: '100%', padding: '6px 10px', border: '1px solid var(--vx-border,#e2e8f0)', borderRadius: 6, fontSize: '.8125rem', marginTop: 4 };
+
+function CsvImportButton({ institutionId, courses, onImported }: { institutionId: string; courses: { id: string; name: string }[]; onImported: (count: number) => void }) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [importing, setImporting] = useState(false);
+
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImporting(true);
+    try {
+      const text = await file.text();
+      const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+      if (lines.length < 2) { alert('CSV vazio ou sem cabeçalho.'); return; }
+      // Parse header
+      const sep = lines[0].includes(';') ? ';' : ',';
+      const headers = lines[0].split(sep).map(h => h.trim().toLowerCase().replace(/"/g, ''));
+      const nameIdx = headers.findIndex(h => ['nome','full_name','name','aluno'].includes(h));
+      const enrollIdx = headers.findIndex(h => ['matricula','enrollment_code','enrollment','mat'].includes(h));
+      const emailIdx = headers.findIndex(h => ['email','e-mail'].includes(h));
+      const cpfIdx = headers.findIndex(h => ['cpf','cpf_hash'].includes(h));
+      const courseIdx = headers.findIndex(h => ['curso','course','course_name'].includes(h));
+      if (nameIdx < 0 || enrollIdx < 0) { alert('CSV precisa ter colunas "nome" e "matricula" (ou equivalentes).'); return; }
+
+      const rows: any[] = [];
+      for (let i = 1; i < lines.length; i++) {
+        const cols = lines[i].split(sep).map(c => c.trim().replace(/^"|"$/g, ''));
+        const name = cols[nameIdx];
+        const enrollment = cols[enrollIdx];
+        if (!name || !enrollment) continue;
+        // Match course by name
+        const courseName = courseIdx >= 0 ? cols[courseIdx] : '';
+        const course = courseName ? courses.find(c => c.name.toLowerCase().includes(courseName.toLowerCase())) : courses[0];
+        // Hash CPF if provided as plain digits
+        let cpfHash = cpfIdx >= 0 ? cols[cpfIdx]?.replace(/\D/g, '') : '';
+        if (cpfHash && cpfHash.length === 11) {
+          const enc = new TextEncoder().encode(cpfHash);
+          const buf = await crypto.subtle.digest('SHA-256', enc);
+          cpfHash = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+        } else { cpfHash = ''; }
+
+        rows.push({
+          institution_id: institutionId,
+          course_id: course?.id || courses[0]?.id,
+          full_name: name,
+          enrollment_code: enrollment,
+          email: emailIdx >= 0 ? cols[emailIdx] || '' : '',
+          cpf_hash: cpfHash || null,
+          academic_status: 'matriculado',
+          verified: false,
+        });
+      }
+
+      if (rows.length === 0) { alert('Nenhum registro válido encontrado no CSV.'); return; }
+
+      // Batch upsert
+      const batchSize = 100;
+      let imported = 0;
+      for (let i = 0; i < rows.length; i += batchSize) {
+        const batch = rows.slice(i, i + batchSize);
+        const { error } = await supabase.from('vertice_student_registry').upsert(batch, { onConflict: 'institution_id,enrollment_code' });
+        if (error) { alert(`Erro no lote ${Math.floor(i/batchSize)+1}: ${error.message}`); break; }
+        imported += batch.length;
+      }
+      onImported(imported);
+    } catch (err) { alert('Erro ao processar CSV: ' + (err as Error).message); }
+    finally { setImporting(false); if (fileRef.current) fileRef.current.value = ''; }
+  }
+
+  return (
+    <div>
+      <input ref={fileRef} type="file" accept=".csv,.txt" onChange={handleFile} style={{ display: 'none' }} />
+      <button className="alumni-btn-export" onClick={() => fileRef.current?.click()} disabled={importing}>
+        {importing ? 'Importando…' : '📥 Importar CSV'}
+      </button>
+      <p style={{ fontSize: '.6875rem', color: 'var(--vx-muted)', margin: '4px 0 0', textAlign: 'right' }}>
+        Colunas: nome, matricula, email, cpf, curso (opcional)
+      </p>
+    </div>
+  );
+}
 
 function CreateAcRuleForm({ institutionId, courses, onCreated, onCancel }: {
   institutionId: string; courses: { id: string; name: string }[];
