@@ -444,7 +444,7 @@ export default function DocumentManager({ institutionId, isMaster }: Props) {
               <div style={{ fontWeight: 600, fontSize: 13 }}>{r.title}</div>
               <div style={{ fontSize: 11, color: '#999' }}>{r.category_label} · Score: {r.ai_compliance_score?.toFixed(0) || '—'}</div>
               <div style={{ fontSize: 12, color: '#555', marginTop: 4 }}
-                dangerouslySetInnerHTML={{ __html: (r.snippet || '').replace(/\*\*/g, '<mark>').replace(/<mark>(.*?)<mark>/g, '<mark>$1</mark>') }}
+                dangerouslySetInnerHTML={{ __html: (r.snippet || '').replace(/[&<>"']/g, (c: string) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' } as Record<string, string>)[c]).replace(/\*\*(.*?)\*\*/g, '<mark>$1</mark>') }}
               />
             </div>
           ))}
