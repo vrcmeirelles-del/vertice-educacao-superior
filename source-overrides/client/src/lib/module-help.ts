@@ -122,8 +122,8 @@ export const MODULE_HELP = [
   },
   {
     "key": "raio-x-direito",
-    "term": "Raio-X Direito",
-    "text": "Análise dedicada ao curso de Direito com dados 100% reais do sistema acadêmico: quantitativo geral (vínculos, matriculados, trancados, cancelados), evolução semestral, roster de professores com disciplinas, distribuição por status acadêmico e evolução do corpo docente ao longo dos semestres. Use para acompanhar a expansão do curso, identificar gargalos de titulação docente, verificar evasão por período e preparar o reconhecimento de curso. Os dados são específicos da UNITOP via e-ORBIT."
+    "term": "Raio-X do Curso",
+    "text": "Visão 360° otimizada para reunião com a coordenação. Selecione um curso e veja numa única tela todos os dados da plataforma: matrículas e ocupação, metas com avanço, plano de ação 5W2H com atrasadas destacadas, diagnóstico com nota média e critérios frágeis, evidências regulatórias e pendências, projetos de extensão e participantes, casos de inclusão e PEIs ativos, egressos com cobertura cadastral, achados da CPA e corpo docente. Cada bloco tem link direto para a aba de origem. Ideal para reuniões de NDE, colegiado ou preparação para avaliação in loco."
   },
   {
     "key": "aprendizagem",

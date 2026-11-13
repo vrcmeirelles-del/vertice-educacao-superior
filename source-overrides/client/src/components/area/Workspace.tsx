@@ -55,6 +55,7 @@ import DocumentManager from "./DocumentManager";
 import Enem360Escolar from "./Enem360Escolar";
 import EgressosEscolar from "./EgressosEscolar";
 import DireitoRaioX from "./DireitoRaioX";
+const CourseRaioX = lazy(() => import("./CourseRaioX"));
 import Egressos360 from "./Egressos360";
 import Governanca360 from "./Governanca360";
 import Inclusao360 from "./Inclusao360";
@@ -118,7 +119,7 @@ const TAB_DETAILS: Partial<Record<Tab,{icon:string;description:string}>> = {
   reitor:{icon:'◉',description:'Indicadores econômicos e financeiros da Direção'},
   'resultado-curso':{icon:'▤',description:'Resultado e desempenho por curso'},
   simulador:{icon:'▦',description:'Custos e cenários informados'},
-  'raio-x-direito':{icon:'⌕',description:'Análise dedicada ao curso de Direito'},
+  'raio-x-direito':{icon:'⌕',description:'Visão 360° do curso: matrículas, metas, ações, diagnóstico, extensão, CPA, egressos e inclusão'},
   aprendizagem:{icon:'↔',description:'Acompanhamento da aprendizagem'},
   egressos:{icon:'🎓',description:'Egressos, empregabilidade e trajetória profissional'},
   extensao:{icon:'🤝',description:'Projetos de extensão, participantes, entregas e cobertura por curso'},
@@ -163,7 +164,7 @@ const TABS: [Tab, string][] = [
   ["reitor", "Área da Direção · EBITDA"],
   ["resultado-curso", "Resultado por Curso"],
   ["simulador", "Simulador de Custo"],
-  ["raio-x-direito", "Raio-X Direito"],
+  ["raio-x-direito", "Raio-X do Curso"],
   ["egressos", "Egressos 360°"],
   ["extensao", "Extensão 360°"],
   ["governanca", "Governança 360°"],
@@ -547,9 +548,7 @@ export default function Workspace({
       ) : tab === "simulador" ? (
         role === "master" || role === "gestor" ? <CostSimulator institutionId={id} onUploadDocument={openInstrumentUpload}/> : <p>O simulador de custo é reservado ao Gestor da instituição e ao Master.</p>
       ) : tab === "raio-x-direito" ? (
-        id === "1f5fd5b4-93c6-4626-834d-136884915587"
-          ? <DireitoRaioX institutionId={id}/>
-          : <p role="status">O Raio-X do Direito utiliza exclusivamente informações institucionais da UNITOP. Este conjunto de dados não é compartilhado com outras IES.</p>
+        <Suspense fallback={<p role="status">Carregando Raio-X…</p>}><CourseRaioX institutionId={id} courses={data.courses.map((c: Row) => ({ id: c.id as string, name: c.name as string, modality: c.modality as string, code: c.code as string }))} role={role||'master'} onNavigate={(t, cid) => { if (cid) { /* could set course filter */ } choose(t as Tab); }} /></Suspense>
       ) : tab === "egressos" ? (
         (() => { const m=findModuleByTab(moduleCatalog,'egressos'); return <ModulePreview locked={isLocked('egressos')} tasting={isTasting('egressos')} tastingEnds={m?.tasting_ends} moduleCode="GEST_EGRESSOS" moduleName="Egressos 360°" moduleDescription="Acompanhamento longitudinal de egressos, empregabilidade e trajetória profissional." institutionId={id} estimatedFee={m?.estimated_monthly_fee||1000} tier={m?.tier||'gestao'}><Egressos360 institutionId={id} courses={data.courses.map((c: Row) => ({ id: c.id as string, name: c.name as string, modality: c.modality as string }))} role={role as 'master' | 'gestor' | 'equipe'} /></ModulePreview>; })()
       ) : tab === "extensao" ? (
