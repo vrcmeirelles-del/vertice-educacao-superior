@@ -58,6 +58,11 @@ export default function Tcc360({ institutionId, courses, role, onNavigate }: Pro
   const [selectedWork, setSelectedWork] = useState<string | null>(null);
   const [courseFilter, setCourseFilter] = useState('');
   const [loading, setLoading] = useState(true);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteName, setInviteName] = useState('');
+  const [inviteBusy, setInviteBusy] = useState(false);
+  const [inviteMsg, setInviteMsg] = useState('');
+  const [inviteLink, setInviteLink] = useState('');
 
   useEffect(() => {
     setLoading(true);
@@ -81,8 +86,41 @@ export default function Tcc360({ institutionId, courses, role, onNavigate }: Pro
   const overdue = active.filter(w => w.stage_deadline && new Date(w.stage_deadline) < new Date());
   const deposited = filtered.filter(w => w.stage === 'deposited');
 
+  const canEdit = role === 'master' || role === 'gestor';
+  async function sendInvite(e: React.FormEvent) {
+    e.preventDefault();
+    setInviteBusy(true); setInviteMsg(''); setInviteLink('');
+    try {
+      const mail = inviteEmail.trim().toLowerCase();
+      await supabase.auth.signUp({ email: mail, password: '123456', options: { data: { full_name: inviteName || mail.split('@')[0] } } });
+      await supabase.rpc('vertice_add_member', { target: institutionId, member_email: mail, member_role: 'equipe' });
+      const { data: inv } = await supabase.from('vertice_invites').select('id').eq('institution_id', institutionId).eq('email', mail).is('accepted_at', null).order('created_at', { ascending: false }).limit(1);
+      const link = `${window.location.origin}/entrar${inv?.[0]?.id ? '?convite=' + inv[0].id : ''}`;
+      setInviteLink(link);
+      setInviteMsg(`✅ Convite criado para ${mail}. Senha padrão: 123456. Copie o link e envie por WhatsApp.`);
+      setInviteEmail(''); setInviteName('');
+    } catch (err) { setInviteMsg(`Erro: ${(err as Error).message}`); }
+    finally { setInviteBusy(false); }
+  }
+
   return (
     <div className="alumni-360">
+      {/* Convite simplificado */}
+      {canEdit && <div style={{padding:'14px 18px',background:'#f0fdf4',border:'1px solid #86efac',borderRadius:10,marginBottom:16}}>
+        <strong style={{fontSize:13,color:'#166534'}}>📩 Convidar orientador / professor para o TCC</strong>
+        <form onSubmit={sendInvite} style={{display:'flex',gap:8,alignItems:'flex-end',flexWrap:'wrap',marginTop:8}}>
+          <label style={{display:'grid',gap:4,fontSize:12,flex:1,minWidth:160}}>Nome<input value={inviteName} onChange={e=>setInviteName(e.target.value)} placeholder="Prof. Maria Silva" style={{padding:'7px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:13}}/></label>
+          <label style={{display:'grid',gap:4,fontSize:12,flex:1,minWidth:200}}>E-mail *<input type="email" required value={inviteEmail} onChange={e=>setInviteEmail(e.target.value)} placeholder="professor@email.com" style={{padding:'7px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:13}}/></label>
+          <button type="submit" disabled={inviteBusy} style={{padding:'7px 14px',background:'#16a34a',color:'#fff',border:0,borderRadius:6,fontSize:13,fontWeight:600,cursor:'pointer',whiteSpace:'nowrap'}}>{inviteBusy?'Enviando…':'Enviar convite'}</button>
+        </form>
+        {inviteMsg&&<p style={{fontSize:12,margin:'8px 0 0',color:inviteMsg.startsWith('✅')?'#166534':'#991b1b'}}>{inviteMsg}</p>}
+        {inviteLink&&<div style={{display:'flex',gap:8,alignItems:'center',marginTop:8}}>
+          <input readOnly value={inviteLink} style={{flex:1,padding:'7px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:11,background:'#fff'}} onClick={e=>(e.target as HTMLInputElement).select()}/>
+          <button type="button" onClick={()=>navigator.clipboard.writeText(inviteLink).then(()=>setInviteMsg('📋 Link copiado! Cole no WhatsApp.')).catch(()=>{})} style={{padding:'7px 12px',background:'#16a34a',color:'#fff',border:0,borderRadius:6,fontSize:12,fontWeight:600,cursor:'pointer',whiteSpace:'nowrap'}}>📋 Copiar</button>
+        </div>}
+        <p style={{fontSize:10,color:'#6b7280',marginTop:6}}>Senha padrão: <strong>123456</strong> · O professor altera depois em Minha Conta.</p>
+      </div>}
+
       {/* Nav */}
       <nav className="alumni-nav" role="tablist">
         {NAV.map(n => (
