@@ -1,7 +1,7 @@
-// CourseRaioX.tsx — Raio-X 360° por curso
-// Visão otimizada para reunião com coordenador: puxa todos os dados
-// da plataforma sobre o curso, cada bloco com link para a aba de origem.
-import { useState, useEffect, useMemo } from 'react';
+// CourseRaioX.tsx — Raio-X 360° completo por curso
+// Visão otimizada para reunião com coordenador: tudo que a plataforma sabe, numa tela.
+// Cada bloco com link "Abrir aba →" para detalhar na aba de origem.
+import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import './egressos360.css';
 
@@ -12,335 +12,226 @@ interface Props {
   onNavigate?: (tab: string, course?: string) => void;
 }
 
-interface CourseData {
-  // Matrículas
-  matriculados: number; vagas: number; evasao: number;
-  // Metas
-  metas_total: number; metas_concluidas: number; metas_atrasadas: number;
-  // Ações
-  acoes_total: number; acoes_concluidas: number; acoes_atrasadas: number;
-  // Diagnóstico
-  diagnostico_total: number; diagnostico_media: number | null;
-  diagnostico_frageis: number;
-  // Evidências
-  evidencias_total: number; evidencias_validadas: number; evidencias_pendentes: number;
-  // Extensão
-  extensao_projetos: number; extensao_alunos: number;
-  // Inclusão/PEI
-  pei_ativos: number; regimes_especiais: number;
-  // Egressos
-  egressos_total: number; egressos_contato: number;
-  // CPA
+interface RaioX {
+  course_id: string; course_name: string; modality: string; code: string;
+  docentes_total: number; docentes_doutores: number; docentes_mestres: number;
+  docentes_integral: number; docentes_parcial: number; docentes_horista: number;
+  alunos_risco: number;
+  reprovacoes_total: number; reprovacoes_falta: number; reprovacoes_nota: number;
+  orgaos_colegiados: number; ultima_reuniao: string | null; deliberacoes_pendentes: number;
   cpa_achados: number; cpa_fragilidades: number;
-  // Docentes
-  docentes: number;
+  egressos_total: number;
+  extensao_projetos: number; extensao_alunos: number;
+  metas_total: number; metas_concluidas: number;
+  acoes_total: number; acoes_concluidas: number;
+  diagnostico_total: number; diagnostico_media: number | null; diagnostico_frageis: number;
+  evidencias_total: number; evidencias_validadas: number;
 }
-
-const EMPTY: CourseData = {
-  matriculados:0,vagas:0,evasao:0,
-  metas_total:0,metas_concluidas:0,metas_atrasadas:0,
-  acoes_total:0,acoes_concluidas:0,acoes_atrasadas:0,
-  diagnostico_total:0,diagnostico_media:null,diagnostico_frageis:0,
-  evidencias_total:0,evidencias_validadas:0,evidencias_pendentes:0,
-  extensao_projetos:0,extensao_alunos:0,
-  pei_ativos:0,regimes_especiais:0,
-  egressos_total:0,egressos_contato:0,
-  cpa_achados:0,cpa_fragilidades:0,
-  docentes:0,
-};
 
 export default function CourseRaioX({ institutionId, courses, role, onNavigate }: Props) {
   const [selectedCourse, setSelectedCourse] = useState('');
-  const [data, setData] = useState<CourseData>(EMPTY);
+  const [data, setData] = useState<RaioX | null>(null);
   const [loading, setLoading] = useState(false);
+  const [matriculados, setMatriculados] = useState(0);
+  const [vagas, setVagas] = useState(0);
+  const [egressosContato, setEgressosContato] = useState(0);
+  const [peiAtivos, setPeiAtivos] = useState(0);
 
   const course = courses.find(c => c.id === selectedCourse);
+  const nav = (tab: string) => onNavigate?.(tab, selectedCourse);
 
   useEffect(() => {
     if (!selectedCourse) return;
     setLoading(true);
-    loadCourseData(institutionId, selectedCourse).then(setData).finally(() => setLoading(false));
+    Promise.all([
+      supabase.from('v_course_raio_x').select('*').eq('institution_id', institutionId).eq('course_id', selectedCourse).maybeSingle(),
+      supabase.from('vertice_academic_reports').select('data').eq('institution_id', institutionId).eq('course_id', selectedCourse).eq('kind', 'quantitativo_alunos').order('report_date', { ascending: false }).limit(1),
+      supabase.from('vertice_alumni_education').select('id,profile:vertice_alumni_profiles!profile_id(email,phone)').eq('institution_id', institutionId).eq('course_id', selectedCourse).in('academic_status', ['formado','diplomado','egresso_acompanhado','integralizado','concluinte']),
+      supabase.from('student_individual_plans').select('id').eq('institution_id', institutionId).eq('course_id', selectedCourse).eq('status', 'ativo').then(r => r).catch(() => ({ data: [] })),
+    ]).then(([rx, mat, egr, pei]) => {
+      if (rx.data) setData(rx.data as RaioX);
+      if (mat.data?.[0]?.data) { const md = mat.data[0].data as any; setMatriculados(Number(md.matriculados || md.total_matriculados || 0)); setVagas(Number(md.vagas || md.vagas_autorizadas || 0)); } else { setMatriculados(0); setVagas(0); }
+      if (egr.data) setEgressosContato((egr.data as any[]).filter(r => r.profile?.email || r.profile?.phone).length);
+      if (pei.data) setPeiAtivos((pei.data as any[]).length);
+    }).finally(() => setLoading(false));
   }, [institutionId, selectedCourse]);
 
-  const nav = (tab: string) => {
-    if (onNavigate) onNavigate(tab, selectedCourse);
-  };
-
-  if (!selectedCourse) {
-    return (
-      <div className="alumni-360">
-        <header className="alumni-header">
-          <h2>Raio-X do Curso</h2>
-          <p className="alumni-subtitle">Selecione um curso para ver a visão 360° otimizada para reunião com a coordenação</p>
-        </header>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem', marginTop: '1.5rem' }}>
-          {courses.map(c => (
-            <button key={c.id} onClick={() => setSelectedCourse(c.id)}
-              style={{ background: 'var(--vx-surface, #fff)', border: '1px solid var(--vx-border, #e2e8f0)', borderRadius: 12, padding: '1.25rem', textAlign: 'left', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 4, transition: 'all .15s' }}
-              onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--vx-accent, #2563eb)')}
-              onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--vx-border, #e2e8f0)')}>
-              <strong style={{ fontSize: '1rem', color: 'var(--vx-text, #1e293b)' }}>{c.name}</strong>
-              <span style={{ fontSize: '.8125rem', color: 'var(--vx-muted, #64748b)' }}>{c.modality || '—'}{c.code ? ` · ${c.code}` : ''}</span>
-            </button>
-          ))}
-        </div>
+  if (!selectedCourse) return (
+    <div className="alumni-360">
+      <header className="alumni-header"><h2>Raio-X do Curso</h2><p className="alumni-subtitle">Selecione um curso para ver a visão 360°</p></header>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem', marginTop: '1.5rem' }}>
+        {courses.map(c => (
+          <button key={c.id} onClick={() => setSelectedCourse(c.id)} className="alumni-finding-card" style={{ cursor: 'pointer', textAlign: 'left', border: '1px solid var(--vx-border, #e2e8f0)' }}>
+            <strong style={{ fontSize: '1rem' }}>{c.name}</strong>
+            <span style={{ fontSize: '.8125rem', color: 'var(--vx-muted, #64748b)' }}>{c.modality || '—'}{c.code ? ` · ${c.code}` : ''}</span>
+          </button>
+        ))}
       </div>
-    );
-  }
+    </div>
+  );
+
+  const d = data;
+  const pctDoc = (n: number) => d && d.docentes_total > 0 ? `${Math.round(100 * n / d.docentes_total)}%` : '—';
 
   return (
     <div className="alumni-360">
       <header className="alumni-header">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
           <div>
-            <button onClick={() => setSelectedCourse('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--vx-accent, #2563eb)', fontSize: '.8125rem', padding: 0, marginBottom: 4 }}>← Todos os cursos</button>
+            <button onClick={() => { setSelectedCourse(''); setData(null); }} className="alumni-btn-back">← Todos os cursos</button>
             <h2 style={{ margin: 0 }}>Raio-X · {course?.name}</h2>
-            <p className="alumni-subtitle">{course?.modality}{course?.code ? ` · Código ${course.code}` : ''}</p>
+            <p className="alumni-subtitle">{course?.modality}{course?.code ? ` · ${course.code}` : ''}</p>
           </div>
-          <select value={selectedCourse} onChange={e => setSelectedCourse(e.target.value)}
-            style={{ padding: '.375rem .75rem', border: '1px solid var(--vx-border, #e2e8f0)', borderRadius: 6, fontSize: '.8125rem' }}>
+          <select value={selectedCourse} onChange={e => setSelectedCourse(e.target.value)} style={{ padding: '.375rem .75rem', border: '1px solid var(--vx-border, #e2e8f0)', borderRadius: 6, fontSize: '.8125rem' }}>
             {courses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
         </div>
       </header>
 
-      {loading ? <p className="alumni-loading">Carregando Raio-X…</p> : (
-        <>
-          {/* KPIs principais */}
-          <div className="alumni-kpis" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))' }}>
-            <KPI label="Matriculados" value={data.matriculados} color="#2563eb" onClick={() => nav('visao')} />
-            <KPI label="Vagas" value={data.vagas} sub={data.vagas > 0 ? `${Math.round(100 * data.matriculados / data.vagas)}% ocupação` : undefined} color="#7c3aed" onClick={() => nav('visao')} />
-            <KPI label="Evasão" value={data.evasao} sub="vínculos" color="#dc2626" onClick={() => nav('auditoria')} />
-            <KPI label="Docentes" value={data.docentes} color="#0891b2" onClick={() => nav('geral')} />
-          </div>
+      {loading || !d ? <p className="alumni-loading">Carregando Raio-X…</p> : (<>
+        <div className="alumni-kpis" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))' }}>
+          <KPI label="Matriculados" value={matriculados} color="#2563eb" onClick={() => nav('visao')} />
+          <KPI label="Vagas" value={vagas} sub={vagas > 0 ? `${Math.round(100 * matriculados / vagas)}% ocupação` : undefined} color="#7c3aed" />
+          <KPI label="Docentes" value={d.docentes_total} sub={d.docentes_total > 0 ? `${pctDoc(d.docentes_doutores + d.docentes_mestres)} stricto` : undefined} color="#0891b2" />
+          <KPI label="Em risco" value={d.alunos_risco} color="#dc2626" bad={d.alunos_risco > 0} onClick={() => nav('auditoria')} />
+          <KPI label="Egressos" value={d.egressos_total} color="#16a34a" onClick={() => nav('egressos')} />
+        </div>
 
-          {/* Blocos detalhados */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1rem', marginTop: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem', marginTop: '1rem' }}>
 
-            {/* Metas */}
-            <Block title="Metas e Indicadores" icon="🎯" onClick={() => nav('metas')}>
-              <Row label="Total de metas" value={data.metas_total} />
-              <Row label="Concluídas" value={data.metas_concluidas} good />
-              <Row label="Atrasadas" value={data.metas_atrasadas} bad={data.metas_atrasadas > 0} />
-              {data.metas_total === 0 && <Empty>Nenhuma meta cadastrada para este curso.</Empty>}
-            </Block>
+          <Block title="Corpo Docente" icon="👨‍🏫" onClick={() => nav('geral')}>
+            <Row label="Total" value={d.docentes_total} />
+            <Row label="Doutores" value={d.docentes_doutores} sub={pctDoc(d.docentes_doutores)} />
+            <Row label="Mestres" value={d.docentes_mestres} sub={pctDoc(d.docentes_mestres)} />
+            <Row label="Stricto sensu" value={d.docentes_doutores + d.docentes_mestres} sub={pctDoc(d.docentes_doutores + d.docentes_mestres)} good />
+            <Divider />
+            <Row label="Integral" value={d.docentes_integral} sub={pctDoc(d.docentes_integral)} />
+            <Row label="Parcial" value={d.docentes_parcial} sub={pctDoc(d.docentes_parcial)} />
+            <Row label="Horistas" value={d.docentes_horista} sub={pctDoc(d.docentes_horista)} bad={d.docentes_horista > d.docentes_integral} />
+            {d.docentes_total === 0 && <Empty>Sem dados de docentes.</Empty>}
+          </Block>
 
-            {/* Plano de ação */}
-            <Block title="Plano de Ação 5W2H" icon="📋" onClick={() => nav('plano')}>
-              <Row label="Ações totais" value={data.acoes_total} />
-              <Row label="Concluídas" value={data.acoes_concluidas} good />
-              <Row label="Atrasadas" value={data.acoes_atrasadas} bad={data.acoes_atrasadas > 0} />
-              {data.acoes_total === 0 && <Empty>Nenhuma ação vinculada a este curso.</Empty>}
-            </Block>
+          <Block title="Risco Acadêmico" icon="⚠" onClick={() => nav('auditoria')}>
+            <Row label="Alunos em risco" value={d.alunos_risco} bad={d.alunos_risco > 0} />
+            <Row label="Reprovações totais" value={d.reprovacoes_total} />
+            <Row label="Por falta" value={d.reprovacoes_falta} bad={d.reprovacoes_falta > d.reprovacoes_nota} />
+            <Row label="Por nota" value={d.reprovacoes_nota} />
+            {d.alunos_risco === 0 && d.reprovacoes_total === 0 && <Empty>Sem dados de risco.</Empty>}
+            <Hint>Reprovação por falta alta pode indicar matrículas fantasma ou desistência silenciosa.</Hint>
+          </Block>
 
-            {/* Diagnóstico */}
-            <Block title="Diagnóstico" icon="🔍" onClick={() => nav('diagnostico')}>
-              <Row label="Critérios avaliados" value={data.diagnostico_total} />
-              <Row label="Nota média" value={data.diagnostico_media !== null ? data.diagnostico_media.toFixed(1) : 'N/D'} />
-              <Row label="Critérios frágeis (≤2)" value={data.diagnostico_frageis} bad={data.diagnostico_frageis > 0} />
-              {data.diagnostico_total === 0 && <Empty>Nenhum critério avaliado para este curso.</Empty>}
-            </Block>
+          <Block title="NDE e Colegiado" icon="⚖" onClick={() => nav('governanca')}>
+            <Row label="Órgãos ativos" value={d.orgaos_colegiados} />
+            <Row label="Última reunião" value={d.ultima_reuniao ? new Date(d.ultima_reuniao).toLocaleDateString('pt-BR') : 'Nunca'} bad={!d.ultima_reuniao} />
+            <Row label="Deliberações pendentes" value={d.deliberacoes_pendentes} bad={d.deliberacoes_pendentes > 0} />
+            {d.orgaos_colegiados === 0 && <Empty>Nenhum NDE ou colegiado cadastrado.</Empty>}
+            <Hint>Avaliador pergunta: "quando foi a última reunião do NDE?"</Hint>
+          </Block>
 
-            {/* Evidências regulatórias */}
-            <Block title="Evidências Regulatórias" icon="📂" onClick={() => nav('repositorio')}>
-              <Row label="Itens no repositório" value={data.evidencias_total} />
-              <Row label="Validadas" value={data.evidencias_validadas} good />
-              <Row label="Pendentes" value={data.evidencias_pendentes} bad={data.evidencias_pendentes > 0} />
-              {data.evidencias_total === 0 && <Empty>Nenhuma evidência vinculada a este curso.</Empty>}
-            </Block>
+          <Block title="Metas e Indicadores" icon="🎯" onClick={() => nav('metas')}>
+            <Row label="Metas do curso" value={d.metas_total} />
+            <Row label="Concluídas" value={d.metas_concluidas} good />
+            <ProgressBar value={d.metas_total > 0 ? Math.round(100 * d.metas_concluidas / d.metas_total) : 0} label="Progresso" />
+            {d.metas_total === 0 && <Empty>Nenhuma meta vinculada.</Empty>}
+          </Block>
 
-            {/* Extensão */}
-            <Block title="Extensão 360°" icon="🤝" onClick={() => nav('extensao')}>
-              <Row label="Projetos vinculados" value={data.extensao_projetos} />
-              <Row label="Alunos participantes" value={data.extensao_alunos} />
-              {data.extensao_projetos === 0 && <Empty>Nenhum projeto de extensão vinculado.</Empty>}
-            </Block>
+          <Block title="Plano 5W2H" icon="📋" onClick={() => nav('plano')}>
+            <Row label="Ações do curso" value={d.acoes_total} />
+            <Row label="Executadas" value={d.acoes_concluidas} good />
+            <Row label="Pendentes" value={d.acoes_total - d.acoes_concluidas} bad={d.acoes_total - d.acoes_concluidas > 3} />
+            {d.acoes_total === 0 && <Empty>Nenhuma ação vinculada.</Empty>}
+          </Block>
 
-            {/* Inclusão / PEI */}
-            <Block title="Inclusão e PEI" icon="♿" onClick={() => nav('inclusao')}>
-              <Row label="PEIs ativos" value={data.pei_ativos} />
-              <Row label="Regimes especiais" value={data.regimes_especiais} />
-              {data.pei_ativos === 0 && data.regimes_especiais === 0 && <Empty>Nenhum acompanhamento registrado.</Empty>}
-            </Block>
+          <Block title="Diagnóstico" icon="🔍" onClick={() => nav('diagnostico')}>
+            <Row label="Critérios avaliados" value={d.diagnostico_total} />
+            <Row label="Nota média" value={d.diagnostico_media !== null ? Number(d.diagnostico_media).toFixed(1) + '/5' : 'N/D'} good={d.diagnostico_media !== null && d.diagnostico_media >= 3.5} bad={d.diagnostico_media !== null && d.diagnostico_media < 3} />
+            <Row label="Frágeis (≤2)" value={d.diagnostico_frageis} bad={d.diagnostico_frageis > 0} />
+            {d.diagnostico_total === 0 && <Empty>Nenhum critério avaliado.</Empty>}
+          </Block>
 
-            {/* Egressos */}
-            <Block title="Egressos 360°" icon="🎓" onClick={() => nav('egressos')}>
-              <Row label="Total de egressos" value={data.egressos_total} />
-              <Row label="Com contato válido" value={data.egressos_contato} />
-              <Row label="Cobertura" value={data.egressos_total > 0 ? `${Math.round(100 * data.egressos_contato / data.egressos_total)}%` : 'N/D'} />
-              {data.egressos_total === 0 && <Empty>Nenhum egresso cadastrado para este curso.</Empty>}
-            </Block>
+          <Block title="Evidências Regulatórias" icon="📂" onClick={() => nav('repositorio')}>
+            <Row label="Itens" value={d.evidencias_total} />
+            <Row label="Validados" value={d.evidencias_validadas} good />
+            <Row label="Pendentes" value={d.evidencias_total - d.evidencias_validadas} bad={d.evidencias_total - d.evidencias_validadas > 5} />
+            <ProgressBar value={d.evidencias_total > 0 ? Math.round(100 * d.evidencias_validadas / d.evidencias_total) : 0} label="Cobertura" />
+            {d.evidencias_total === 0 && <Empty>Nenhuma evidência vinculada.</Empty>}
+          </Block>
 
-            {/* CPA */}
-            <Block title="CPA — Achados" icon="📊" onClick={() => nav('cpa-autoavaliacao')}>
-              <Row label="Achados do curso" value={data.cpa_achados} />
-              <Row label="Fragilidades" value={data.cpa_fragilidades} bad={data.cpa_fragilidades > 0} />
-              {data.cpa_achados === 0 && <Empty>Nenhum achado CPA vinculado a este curso.</Empty>}
-            </Block>
+          <Block title="Extensão 360°" icon="🤝" onClick={() => nav('extensao')}>
+            <Row label="Projetos" value={d.extensao_projetos} />
+            <Row label="Alunos participantes" value={d.extensao_alunos} />
+            {matriculados > 0 && <Row label="% em extensão" value={`${Math.round(100 * d.extensao_alunos / matriculados)}%`} bad={d.extensao_alunos / matriculados < 0.1} />}
+            {d.extensao_projetos === 0 && <Empty>Nenhum projeto. Res. 7/2018 exige 10% da carga.</Empty>}
+          </Block>
 
-          </div>
+          <Block title="Inclusão e PEI" icon="♿" onClick={() => nav('inclusao')}>
+            <Row label="PEIs ativos" value={peiAtivos} />
+            {peiAtivos === 0 && <Empty>Nenhum PEI registrado.</Empty>}
+          </Block>
 
-          <div className="alumni-info-box" style={{ marginTop: '1.5rem' }}>
-            <strong>Como usar o Raio-X:</strong> Cada bloco mostra os dados do curso naquele módulo. Clique no título para abrir a aba de origem com todos os detalhes. Use em reuniões com coordenadores — tudo que a plataforma sabe sobre o curso, numa tela.
-          </div>
-        </>
-      )}
+          <Block title="Egressos 360°" icon="🎓" onClick={() => nav('egressos')}>
+            <Row label="Total de egressos" value={d.egressos_total} />
+            <Row label="Com contato válido" value={egressosContato} />
+            <Row label="Cobertura" value={d.egressos_total > 0 ? `${Math.round(100 * egressosContato / d.egressos_total)}%` : 'N/D'} />
+            {d.egressos_total === 0 && <Empty>Nenhum egresso cadastrado.</Empty>}
+          </Block>
+
+          <Block title="CPA — Achados do Curso" icon="📊" onClick={() => nav('cpa-autoavaliacao')}>
+            <Row label="Achados" value={d.cpa_achados} />
+            <Row label="Fragilidades" value={d.cpa_fragilidades} bad={d.cpa_fragilidades > 0} />
+            <Row label="Potencialidades" value={d.cpa_achados - d.cpa_fragilidades} good />
+            {d.cpa_achados === 0 && <Empty>Nenhum achado CPA vinculado.</Empty>}
+            <Hint>Indicador 3.7: o que dizem deste curso na autoavaliação.</Hint>
+          </Block>
+
+          <Block title="Vagas e Viabilidade" icon="📉" onClick={() => nav('resultado-curso')}>
+            <Row label="Vagas autorizadas" value={vagas} />
+            <Row label="Matriculados" value={matriculados} />
+            <Row label="Ocupação" value={vagas > 0 ? `${Math.round(100 * matriculados / vagas)}%` : 'N/D'} bad={vagas > 0 && matriculados / vagas < 0.5} />
+            <Row label="Vagas ociosas" value={Math.max(0, vagas - matriculados)} bad={vagas > 0 && matriculados / vagas < 0.5} />
+            {vagas === 0 && <Empty>Sem dados de vagas.</Empty>}
+            <Hint>Ocupação abaixo de 50% compromete viabilidade financeira.</Hint>
+          </Block>
+
+        </div>
+
+        <div className="alumni-info-box" style={{ marginTop: '1.5rem' }}>
+          <strong>Raio-X do Curso:</strong> Cada bloco puxa os dados do curso naquele módulo. Clique em <em>"Abrir aba →"</em> para destrinchar. Ideal para reuniões de NDE, colegiado ou preparação para avaliação in loco.
+        </div>
+      </>)}
     </div>
   );
 }
 
-/* ── Loader de dados ── */
-
-async function loadCourseData(instId: string, courseId: string): Promise<CourseData> {
-  const d = { ...EMPTY };
-
-  const results = await Promise.allSettled([
-    // Matrículas (academic_reports)
-    supabase.from('vertice_academic_reports').select('data').eq('institution_id', instId).eq('course_id', courseId).eq('kind', 'quantitativo_alunos').order('report_date', { ascending: false }).limit(1),
-    // Metas
-    supabase.from('vertice_goals').select('id,status,due_date').eq('institution_id', instId).eq('course_id', courseId),
-    // Ações
-    supabase.from('vertice_actions').select('id,status,due_date').eq('institution_id', instId).eq('course_id', courseId),
-    // Diagnóstico
-    supabase.from('vertice_diagnosis_items').select('id,score,status').eq('institution_id', instId).eq('course_id', courseId),
-    // Evidências (checklist)
-    supabase.from('vertice_instrumento_checklist').select('id,status').eq('institution_id', instId).eq('course_id', courseId),
-    // Extensão (projetos com alunos deste curso)
-    supabase.from('vertice_extension_students').select('id,project_id').eq('course_id', courseId),
-    // Inclusão — student_individual_plans por curso
-    supabase.rpc('count_pei_by_course', { p_institution_id: instId, p_course_id: courseId }).then(r => r).catch(() => ({ data: null })),
-    // Egressos
-    supabase.from('vertice_alumni_education').select('id,profile:vertice_alumni_profiles!profile_id(email,phone)').eq('institution_id', instId).eq('course_id', courseId).in('academic_status', ['formado','diplomado','egresso_acompanhado','integralizado','concluinte']),
-    // CPA findings
-    supabase.from('vertice_cpa_findings').select('id,finding_type').eq('institution_id', instId).eq('course_id', courseId),
-    // Docentes (se existir tabela)
-    supabase.from('vertice_eorbit_cursos').select('id').eq('instituicao_id', instId).limit(1).then(() =>
-      supabase.rpc('count_docentes_by_course', { p_institution_id: instId, p_course_id: courseId })
-    ).catch(() => ({ data: null })),
-  ]);
-
-  // Matrículas
-  const matR = results[0];
-  if (matR.status === 'fulfilled' && matR.value.data?.[0]?.data) {
-    const md = matR.value.data[0].data as any;
-    d.matriculados = Number(md.matriculados || md.total_matriculados || 0);
-    d.vagas = Number(md.vagas || md.vagas_autorizadas || 0);
-    d.evasao = Number(md.evasao || md.evadidos || md.cancelados || 0);
-  }
-
-  // Metas
-  const metR = results[1];
-  if (metR.status === 'fulfilled' && metR.value.data) {
-    const rows = metR.value.data as any[];
-    d.metas_total = rows.length;
-    d.metas_concluidas = rows.filter(r => r.status === 'concluida').length;
-    const now = new Date().toISOString().slice(0, 10);
-    d.metas_atrasadas = rows.filter(r => r.due_date && r.due_date < now && r.status !== 'concluida' && r.status !== 'cancelada').length;
-  }
-
-  // Ações
-  const actR = results[2];
-  if (actR.status === 'fulfilled' && actR.value.data) {
-    const rows = actR.value.data as any[];
-    d.acoes_total = rows.length;
-    d.acoes_concluidas = rows.filter(r => r.status === 'concluida' || r.status === 'executada' || r.status === 'avaliada').length;
-    const now = new Date().toISOString().slice(0, 10);
-    d.acoes_atrasadas = rows.filter(r => r.due_date && r.due_date < now && !['concluida','executada','avaliada','cancelada'].includes(r.status)).length;
-  }
-
-  // Diagnóstico
-  const diagR = results[3];
-  if (diagR.status === 'fulfilled' && diagR.value.data) {
-    const rows = diagR.value.data as any[];
-    d.diagnostico_total = rows.length;
-    const scores = rows.filter(r => r.score != null).map(r => Number(r.score));
-    d.diagnostico_media = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : null;
-    d.diagnostico_frageis = scores.filter(s => s <= 2).length;
-  }
-
-  // Evidências
-  const evR = results[4];
-  if (evR.status === 'fulfilled' && evR.value.data) {
-    const rows = evR.value.data as any[];
-    d.evidencias_total = rows.length;
-    d.evidencias_validadas = rows.filter(r => r.status === 'validado' || r.status === 'atende').length;
-    d.evidencias_pendentes = rows.filter(r => r.status === 'pendente' || r.status === 'nao_atende').length;
-  }
-
-  // Extensão
-  const extR = results[5];
-  if (extR.status === 'fulfilled' && extR.value.data) {
-    const rows = extR.value.data as any[];
-    d.extensao_alunos = rows.length;
-    d.extensao_projetos = new Set(rows.map(r => r.project_id)).size;
-  }
-
-  // PEI (fallback se RPC não existe)
-  const peiR = results[6];
-  if (peiR.status === 'fulfilled' && (peiR.value as any).data != null) {
-    const val = (peiR.value as any).data;
-    d.pei_ativos = Number(val?.pei_count || val || 0);
-    d.regimes_especiais = Number(val?.special_count || 0);
-  }
-
-  // Egressos
-  const egrR = results[7];
-  if (egrR.status === 'fulfilled' && egrR.value.data) {
-    const rows = egrR.value.data as any[];
-    d.egressos_total = rows.length;
-    d.egressos_contato = rows.filter(r => r.profile?.email || r.profile?.phone).length;
-  }
-
-  // CPA
-  const cpaR = results[8];
-  if (cpaR.status === 'fulfilled' && cpaR.value.data) {
-    const rows = cpaR.value.data as any[];
-    d.cpa_achados = rows.length;
-    d.cpa_fragilidades = rows.filter(r => r.finding_type === 'fragilidade').length;
-  }
-
-  // Docentes
-  const docR = results[9];
-  if (docR.status === 'fulfilled' && (docR.value as any).data != null) {
-    d.docentes = Number((docR.value as any).data || 0);
-  }
-
-  return d;
+function KPI({ label, value, sub, color, bad, onClick }: { label: string; value: number; sub?: string; color: string; bad?: boolean; onClick?: () => void }) {
+  return (<div className="alumni-kpi" style={{ borderLeftColor: bad ? '#dc2626' : color, cursor: onClick ? 'pointer' : undefined }} onClick={onClick}>
+    <span className="alumni-kpi-value" style={bad ? { color: '#dc2626' } : undefined}>{value.toLocaleString('pt-BR')}</span>
+    {sub && <span className="alumni-kpi-pct">{sub}</span>}
+    <span className="alumni-kpi-label">{label}</span>
+  </div>);
 }
-
-/* ── Componentes auxiliares ── */
-
-function KPI({ label, value, sub, color, onClick }: { label: string; value: number; sub?: string; color: string; onClick?: () => void }) {
-  return (
-    <div className="alumni-kpi" style={{ borderLeftColor: color, cursor: onClick ? 'pointer' : undefined }} onClick={onClick}>
-      <span className="alumni-kpi-value">{typeof value === 'number' ? value.toLocaleString('pt-BR') : value}</span>
-      {sub && <span className="alumni-kpi-pct">{sub}</span>}
-      <span className="alumni-kpi-label">{label}</span>
-    </div>
-  );
-}
-
 function Block({ title, icon, onClick, children }: { title: string; icon: string; onClick?: () => void; children: React.ReactNode }) {
-  return (
-    <div style={{ background: 'var(--vx-surface, #fff)', border: '1px solid var(--vx-border, #e2e8f0)', borderRadius: 10, padding: '1rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '.75rem' }}>
-        <strong style={{ fontSize: '.9375rem' }}>{icon} {title}</strong>
-        {onClick && <button onClick={onClick} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--vx-accent, #2563eb)', fontSize: '.75rem', fontWeight: 600 }}>Abrir aba →</button>}
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>{children}</div>
+  return (<div style={{ background: 'var(--vx-surface, #fff)', border: '1px solid var(--vx-border, #e2e8f0)', borderRadius: 10, padding: '1rem' }}>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '.75rem' }}>
+      <strong style={{ fontSize: '.9375rem' }}>{icon} {title}</strong>
+      {onClick && <button onClick={onClick} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--vx-accent, #2563eb)', fontSize: '.75rem', fontWeight: 600 }}>Abrir aba →</button>}
     </div>
-  );
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>{children}</div>
+  </div>);
 }
-
-function Row({ label, value, good, bad }: { label: string; value: string | number; good?: boolean; bad?: boolean }) {
-  return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '.8125rem', padding: '3px 0' }}>
-      <span style={{ color: 'var(--vx-muted, #64748b)' }}>{label}</span>
+function Row({ label, value, sub, good, bad }: { label: string; value: string | number; sub?: string; good?: boolean; bad?: boolean }) {
+  return (<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '.8125rem', padding: '2px 0' }}>
+    <span style={{ color: 'var(--vx-muted, #64748b)' }}>{label}</span>
+    <span style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+      {sub && <span style={{ fontSize: '.6875rem', color: 'var(--vx-muted, #94a3b8)' }}>{sub}</span>}
       <strong style={{ color: bad ? '#dc2626' : good ? '#16a34a' : 'var(--vx-text, #1e293b)' }}>{typeof value === 'number' ? value.toLocaleString('pt-BR') : value}</strong>
-    </div>
-  );
+    </span>
+  </div>);
 }
-
-function Empty({ children }: { children: React.ReactNode }) {
-  return <p style={{ fontSize: '.75rem', color: 'var(--vx-muted, #94a3b8)', margin: '4px 0 0', fontStyle: 'italic' }}>{children}</p>;
+function ProgressBar({ label, value }: { label: string; value: number }) {
+  const color = value >= 70 ? '#16a34a' : value >= 40 ? '#d97706' : '#dc2626';
+  return (<div style={{ padding: '4px 0' }}><div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '.75rem', marginBottom: 2 }}><span style={{ color: 'var(--vx-muted, #64748b)' }}>{label}</span><span>{value}%</span></div><div style={{ height: 6, background: 'var(--vx-border, #e2e8f0)', borderRadius: 3 }}><div style={{ width: `${Math.min(value, 100)}%`, height: 6, borderRadius: 3, background: color }} /></div></div>);
 }
+function Divider() { return <div style={{ borderTop: '1px solid var(--vx-border-light, #f1f5f9)', margin: '4px 0' }} />; }
+function Empty({ children }: { children: React.ReactNode }) { return <p style={{ fontSize: '.75rem', color: 'var(--vx-muted, #94a3b8)', margin: '4px 0 0', fontStyle: 'italic' }}>{children}</p>; }
+function Hint({ children }: { children: React.ReactNode }) { return <p style={{ fontSize: '.6875rem', color: 'var(--vx-warning, #d97706)', margin: '6px 0 0' }}>💡 {children}</p>; }
