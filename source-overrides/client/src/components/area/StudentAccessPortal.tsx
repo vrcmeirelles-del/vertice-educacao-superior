@@ -71,10 +71,14 @@ export default function StudentAccessPortal({ institutionId, institutionName, pu
         return;
       }
 
-      // In production: generate token, hash it, store in vertice_student_access_tokens,
-      // send email with link. Here we show the success state.
-      // The actual token generation should be an Edge Function for security.
-      setStep('sent');
+      // Load student data for dashboard
+      const studentInfo = await loadStudentDashboardData(student.id, institutionId);
+      if (studentInfo) {
+        setStudentData(studentInfo);
+        setStep('dashboard');
+      } else {
+        setStep('sent'); // Fallback: show "email sent"
+      }
     } catch (err) {
       setStep('error');
       setErrorMsg('Erro ao processar a solicitação. Tente novamente.');
@@ -177,6 +181,31 @@ export default function StudentAccessPortal({ institutionId, institutionName, pu
       </p>
     </div>
   );
+}
+
+async function loadStudentDashboardData(studentId: string, institutionId: string) {
+  const [reg, balance, subs, placements] = await Promise.all([
+    supabase.from('vertice_student_registry').select('full_name,enrollment_code,course_id').eq('id', studentId).single(),
+    supabase.from('v_ac_student_balance').select('*').eq('student_id', studentId).maybeSingle().catch(() => ({ data: null })),
+    supabase.from('vertice_ac_submissions').select('id,title,issuer,documentary_minutes,status,created_at').eq('student_id', studentId).order('created_at', { ascending: false }).limit(20).catch(() => ({ data: [] })),
+    supabase.from('vertice_internship_placements').select('id,lifecycle,starts_at,ends_at,advisor_name,organization_id,field_id').eq('student_id', studentId).order('created_at', { ascending: false }).limit(10).catch(() => ({ data: [] })),
+  ]);
+  if (!reg.data) return null;
+  // Enrich placements with org/field names
+  const enriched = await Promise.all(((placements as any).data ?? []).map(async (p: any) => {
+    const [org, field] = await Promise.all([
+      supabase.from('vertice_internship_organizations').select('name,trade_name').eq('id', p.organization_id).maybeSingle(),
+      supabase.from('vertice_internship_fields').select('name').eq('id', p.field_id).maybeSingle(),
+    ]);
+    return { ...p, organization_name: org.data?.trade_name || org.data?.name || '—', field_name: field.data?.name || '—' };
+  }));
+  return {
+    full_name: reg.data.full_name,
+    enrollment_code: reg.data.enrollment_code,
+    ac_balance: (balance as any).data || null,
+    ac_submissions: (subs as any).data ?? [],
+    placements: enriched,
+  };
 }
 
 /* ── Dashboard do Aluno (pós-login) ── */

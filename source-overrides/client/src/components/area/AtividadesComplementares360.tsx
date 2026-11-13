@@ -1,7 +1,7 @@
 // AtividadesComplementares360.tsx — AC 360
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { fetchAcRules, fetchAcCategories, fetchAcSubmissions, fetchAcStudentBalance, fetchAcCourseSummary, fetchStudentRegistry, fetchProtocols, AC_STATUS_LABELS, PROTOCOL_STATUS_LABELS, minutesToHours, type AcRule, type AcCategory, type AcSubmission, type AcStudentBalance, type AcCourseSummary, type StudentRegistryEntry } from '@/lib/atividades-complementares';
+import { fetchAcRules, fetchAcCategories, fetchAcSubmissions, fetchAcStudentBalance, fetchAcCourseSummary, fetchStudentRegistry, fetchProtocols, approveAcSubmission, AC_STATUS_LABELS, PROTOCOL_STATUS_LABELS, minutesToHours, type AcRule, type AcCategory, type AcSubmission, type AcStudentBalance, type AcCourseSummary, type StudentRegistryEntry } from '@/lib/atividades-complementares';
 import './egressos360.css';
 
 type Section = 'overview'|'rules'|'students'|'submissions'|'balance'|'protocols'|'bi'|'config';
@@ -176,7 +176,7 @@ export default function AtividadesComplementares360({ institutionId, courses, ro
                   <td>{['submitted','under_review','suggestion_ready'].includes(s.status) && (
                     <div style={{ display: 'flex', gap: 4 }}>
                       <button style={{ fontSize: '.6875rem', padding: '2px 8px', borderRadius: 4, border: '1px solid #059669', background: '#f0fdf4', color: '#059669', cursor: 'pointer' }}
-                        onClick={async () => { await supabase.from('vertice_ac_submissions').update({ status: 'approved' }).eq('id', s.id); setSubmissions(prev => prev.map(x => x.id === s.id ? { ...x, status: 'approved' } : x)); }}>✓ Deferir</button>
+                        onClick={async () => { try { const r = await approveAcSubmission(s, 'Coordenação'); setSubmissions(prev => prev.map(x => x.id === s.id ? { ...x, status: r.awarded > 0 ? 'credited' : 'approved' } : x)); alert(`Deferido: ${minutesToHours(r.awarded)} creditadas${r.capped ? ` (teto: ${r.limits.join(', ')})` : ''}`); } catch (e) { alert('Erro: ' + (e as Error).message); } }}>✓ Deferir</button>
                       <button style={{ fontSize: '.6875rem', padding: '2px 8px', borderRadius: 4, border: '1px solid #ef4444', background: '#fef2f2', color: '#ef4444', cursor: 'pointer' }}
                         onClick={async () => { await supabase.from('vertice_ac_submissions').update({ status: 'rejected' }).eq('id', s.id); setSubmissions(prev => prev.map(x => x.id === s.id ? { ...x, status: 'rejected' } : x)); }}>✕ Indeferir</button>
                     </div>

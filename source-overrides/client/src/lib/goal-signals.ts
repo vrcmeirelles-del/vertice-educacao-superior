@@ -26,7 +26,8 @@ export function goalSignalDate(now = new Date()): string {
   return new Intl.DateTimeFormat('sv-SE', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
 }
 
-export function goalSignals(goals: Row[], measurements: Row[], date = goalSignalDate()) {
+/** autoMeasures: Map<goal_id, { auto_current_value, progress_pct }> from v_goals_with_auto_measure */
+export function goalSignals(goals: Row[], measurements: Row[], date = goalSignalDate(), autoMeasures?: Map<string, { auto_current_value: number | null; progress_pct: number | null }>) {
   const now = day(date)!;
   const byGoal = new Map<string, Row[]>();
   for (const m of measurements) {
@@ -48,10 +49,13 @@ export function goalSignals(goals: Row[], measurements: Row[], date = goalSignal
     const normalizedOwner = ownerName.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
     const ownerPending = /designacao pendente|a (definir|designar|pactuar)|nao (definido|designado|informado)|sem responsavel/.test(normalizedOwner);
     const hasOwner = Boolean(String(goal.owner_user_id ?? '').trim() || String(goal.owner_email ?? '').trim() || (ownerName && !ownerPending));
-    const hasMeasurement = value !== null;
+    // Auto-measure: if goal has an automatic source, prefer auto value
+    const autoM = autoMeasures?.get(goal.id);
+    const effectiveValue = autoM?.auto_current_value ?? value;
+    const hasMeasurement = effectiveValue !== null;
     const knownDirection = ['aumentar', 'reduzir', 'manter'].includes(String(goal.direction));
-    const hit = value !== null && target !== null && knownDirection && (goal.direction === 'reduzir' ? value <= target : goal.direction === 'manter' ? Math.abs(value - target) <= (Math.abs(target) * .05 || .5) : value >= target);
-    const progress = !hasMeasurement || target === null || !knownDirection ? null : goal.direction === 'manter' ? (hit ? 100 : 50) : baseline === null || baseline === target ? (hit ? 100 : 0) : Math.max(0, Math.min(100, Math.round((value! - baseline) / (target - baseline) * 100)));
+    const hit = effectiveValue !== null && target !== null && knownDirection && (goal.direction === 'reduzir' ? effectiveValue <= target : goal.direction === 'manter' ? Math.abs(effectiveValue - target) <= (Math.abs(target) * .05 || .5) : effectiveValue >= target);
+    const progress = autoM?.progress_pct != null ? autoM.progress_pct : (!hasMeasurement || target === null || !knownDirection ? null : goal.direction === 'manter' ? (hit ? 100 : 50) : baseline === null || baseline === target ? (hit ? 100 : 0) : Math.max(0, Math.min(100, Math.round((effectiveValue! - baseline) / (target - baseline) * 100))));
     const intervals: Record<string, number> = { mensal: 31, bimestral: 62, trimestral: 93, semestral: 186, anual: 366 };
     const interval = intervals[String(goal.frequency)];
     const stale = Boolean(latest && interval && now - day(latest.measured_on)! > interval);

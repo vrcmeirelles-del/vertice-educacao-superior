@@ -60,3 +60,80 @@ export function minutesToHours(m: number): string {
   const h = Math.floor(m / 60); const min = m % 60;
   return min > 0 ? `${h}h${min}min` : `${h}h`;
 }
+
+/** Deferir submissão com cálculo determinístico e gravação no livro razão */
+export async function approveAcSubmission(submission: AcSubmission, reviewerName: string): Promise<{ awarded: number; capped: boolean; limits: string[] }> {
+  // 1) Buscar categoria
+  if (!submission.category_id) throw new Error('Submissão sem categoria vinculada.');
+  const { data: cat } = await supabase.from('vertice_ac_categories').select('*').eq('id', submission.category_id).single();
+  if (!cat) throw new Error('Categoria não encontrada.');
+
+  // 2) Buscar saldo do aluno via view
+  const { data: balRow } = await supabase.from('v_ac_student_balance')
+    .select('*').eq('student_id', submission.student_id).eq('rule_id', submission.rule_id).maybeSingle();
+
+  const categoryUsed = balRow ? await getCategoryUsedMinutes(submission.student_id, submission.rule_id, submission.category_id) : 0;
+  const catMax = cat.max_category_minutes ?? 999999;
+  const categoryRemaining = Math.max(0, catMax - categoryUsed);
+  const totalRemaining = balRow ? Math.max(0, balRow.remaining_minutes) : 99999;
+
+  // 3) Calcular
+  const result = calculateComplementaryAward({
+    documentaryMinutes: submission.documentary_minutes,
+    conversionNumerator: cat.conversion_numerator,
+    conversionDenominator: cat.conversion_denominator,
+    maxPerItemMinutes: cat.max_per_item_minutes,
+    categoryRemainingMinutes: categoryRemaining,
+    totalRemainingMinutes: totalRemaining,
+  });
+
+  if (result.state === 'manual_review') throw new Error(`Revisão manual necessária: ${result.reason}`);
+
+  // 4) Gravar decisão
+  await supabase.from('vertice_ac_decisions').insert({
+    submission_id: submission.id, decision: 'approved',
+    awarded_minutes: result.awardedMinutes,
+    reviewer_name: reviewerName,
+    reason: `Calc.: ${minutesToHours(result.convertedMinutes)} convertidas → ${minutesToHours(result.awardedMinutes)} creditadas${result.capped ? ` (teto: ${result.appliedLimits.join(', ')})` : ''}`,
+  });
+
+  // 5) Gravar no livro razão
+  await supabase.from('vertice_ac_ledger_entries').insert({
+    institution_id: balRow?.institution_id || submission.institution_id,
+    student_id: submission.student_id, rule_id: submission.rule_id,
+    category_id: submission.category_id, submission_id: submission.id,
+    delta_minutes: result.awardedMinutes,
+    entry_type: 'credit', description: `Deferimento: ${submission.title}`,
+  });
+
+  // 6) Atualizar status da submissão
+  const newStatus = result.awardedMinutes > 0 ? 'credited' : 'approved';
+  await supabase.from('vertice_ac_submissions').update({ status: newStatus }).eq('id', submission.id);
+
+  return { awarded: result.awardedMinutes, capped: result.capped, limits: result.appliedLimits };
+}
+
+function calculateComplementaryAward(input: {
+  documentaryMinutes: number | null;
+  conversionNumerator: number; conversionDenominator: number;
+  maxPerItemMinutes: number | null;
+  categoryRemainingMinutes: number; totalRemainingMinutes: number;
+}): { state: 'manual_review'; reason: string } | { state: 'calculated'; convertedMinutes: number; awardedMinutes: number; capped: boolean; appliedLimits: string[] } {
+  if (input.documentaryMinutes === null) return { state: 'manual_review', reason: 'Carga documental não comprovada.' };
+  const product = input.documentaryMinutes * input.conversionNumerator;
+  const convertedMinutes = Math.floor(product / input.conversionDenominator);
+  const limits: [string, number][] = [
+    ['item', input.maxPerItemMinutes ?? convertedMinutes],
+    ['category', input.categoryRemainingMinutes],
+    ['total', input.totalRemainingMinutes],
+  ];
+  const awardedMinutes = Math.min(convertedMinutes, ...limits.map(([, n]) => n));
+  return { state: 'calculated', convertedMinutes, awardedMinutes, capped: awardedMinutes < convertedMinutes,
+    appliedLimits: limits.filter(([, n]) => n < convertedMinutes).map(([name]) => name) };
+}
+
+async function getCategoryUsedMinutes(studentId: string, ruleId: string, categoryId: string): Promise<number> {
+  const { data } = await supabase.from('vertice_ac_ledger_entries')
+    .select('delta_minutes').eq('student_id', studentId).eq('rule_id', ruleId).eq('category_id', categoryId);
+  return (data ?? []).reduce((sum, r) => sum + (r.delta_minutes || 0), 0);
+}

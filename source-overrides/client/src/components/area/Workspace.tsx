@@ -241,6 +241,7 @@ export default function Workspace({
   const [activeTabs,setActiveTabs]=useState<Set<string>>(new Set());
   const [moduleCatalog,setModuleCatalog]=useState<CatalogModule[]>([]);
   const [offerModule,setOfferModule]=useState<CatalogModule|null>(null);
+  const [autoMeasures,setAutoMeasures]=useState<Map<string,{auto_current_value:number|null;progress_pct:number|null}>>(new Map());
   useEffect(()=>{
     getActiveTabs(id).then(setActiveTabs);
     getModuleCatalog(id).then(setModuleCatalog);
@@ -262,6 +263,10 @@ export default function Workspace({
         listRepository("vertice_repository_files",id),
       ]);
       setData({ courses:displayCourseRows(courses,requests,goals), goals, measurements, actions, diagnosis, requests, files });
+      // Load auto-measures for goals with automatic sources
+      supabase.from('v_goals_with_auto_measure').select('id,auto_current_value,progress_pct').eq('institution_id', id).then(r => {
+        if (r.data) { const m = new Map<string,{auto_current_value:number|null;progress_pct:number|null}>(); r.data.forEach((row: any) => m.set(row.id, { auto_current_value: row.auto_current_value, progress_pct: row.progress_pct })); setAutoMeasures(m); }
+      });
     } catch {
       setError("Não foi possível carregar os dados de gestão. Atualize a página.");
     } finally {
@@ -534,7 +539,7 @@ export default function Workspace({
       ) : tab === "analise" ? (
         error ? <p role="alert">Análise indisponível enquanto houver falha no carregamento. Atualize a página.</p> : <><ManagementReview key={id} data={data} courses={data.courses} institutionId={id} /><ApprovedSourcesBI institutionId={id}/></>
       ) : tab === "geral" ? (
-        <OverviewTab data={data} stats={stats} onGo={choose} />
+        <OverviewTab data={data} stats={stats} onGo={choose} autoMeasures={autoMeasures} />
       ) : tab === "emec" ? (
         <EmecPanel key={id} institution={institution} role={role}/>
       ) : tab === "auditoria" ? (
@@ -733,8 +738,8 @@ function Bar({ value, max = 100, tone = "" }: { value: number; max?: number; ton
   return <div className={`area-bar ${tone}`}><span style={{ width: `${p}%` }} /></div>;
 }
 
-function OverviewTab({ data, stats, onGo }: { data: Data; stats?: { enrolled: number; semester?: string }; onGo: (t: Tab) => void }) {
-  const entries = goalSignals(data.goals, data.measurements);
+function OverviewTab({ data, stats, onGo, autoMeasures }: { data: Data; stats?: { enrolled: number; semester?: string }; onGo: (t: Tab) => void; autoMeasures?: Map<string,{auto_current_value:number|null;progress_pct:number|null}> }) {
+  const entries = goalSignals(data.goals, data.measurements, undefined, autoMeasures);
   const live = entries.filter(e => e.goal.status !== "cancelada");
   const acts = data.actions.filter(a => a.status !== "cancelada");
   const done = acts.filter(a => a.status === "concluida").length;
@@ -978,7 +983,7 @@ function GoalsTab({ institutionId, role, data, reload, onRepository }: { institu
   useEffect(() => { if (ed.editing || measuring) formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); }, [ed.editing, measuring]);
   const referenceDate = goalSignalDate();
   useEffect(()=>setCoursePage(0),[courseSearch, course, signalFilter, goalSearch]);
-  const entries = useMemo(() => goalSignals(data.goals, data.measurements, referenceDate), [data.goals, data.measurements, referenceDate]);
+  const entries = useMemo(() => goalSignals(data.goals, data.measurements, referenceDate, autoMeasures), [data.goals, data.measurements, referenceDate, autoMeasures]);
   const courseName = (cid: unknown) => data.courses.find(c => c.id === cid)?.display_name ?? data.courses.find(c => c.id === cid)?.name;
   const classification = useCourseFilters(data.courses, () => setCoursePage(0));
   const courseRows=data.courses.filter(classification.matches).filter(c=>`${c.display_name??c.name} ${c.code??""} ${c.modality??""}`.toLocaleLowerCase("pt-BR").includes(courseSearch.toLocaleLowerCase("pt-BR")));
