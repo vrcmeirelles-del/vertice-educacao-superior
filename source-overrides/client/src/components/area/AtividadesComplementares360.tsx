@@ -493,101 +493,157 @@ function ConfigCheck({ label, ok, action }: { label: string; ok: boolean; action
   );
 }
 
+const STATUS_MAP: Record<string,string> = {
+  'matriculado':'active','ativo':'active','active':'active',
+  'trancado':'locked','locked':'locked',
+  'concluido':'graduated','graduado':'graduated','graduated':'graduated',
+  'cancelado':'cancelled','cancelled':'cancelled',
+  'transferido':'transferred','transferred':'transferred',
+};
+const STATUS_LABELS: Record<string,string> = { active:'Matriculado', locked:'Trancado', graduated:'Concluído', cancelled:'Cancelado', transferred:'Transferido' };
+
 function CsvImportButton({ institutionId, courses, onImported }: { institutionId: string; courses: { id: string; name: string }[]; onImported: (count: number) => void }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [importing, setImporting] = useState(false);
   const [progress, setProgress] = useState('');
+  const [preview, setPreview] = useState<{rows:any[];skipped:number;errors:string[]}|null>(null);
+  const [defaultStatus, setDefaultStatus] = useState('active');
+  const [selectedCourse, setSelectedCourse] = useState(courses[0]?.id || '');
+
+  function norm(s:string){return s.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/"/g,'');}
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    setImporting(true);
+    setImporting(true); setPreview(null);
     setProgress('📂 Lendo arquivo...');
     try {
       const text = await file.text();
       const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
       if (lines.length < 2) { setProgress('❌ CSV vazio ou sem cabeçalho.'); setImporting(false); return; }
-      // Parse header
       const sep = lines[0].includes(';') ? ';' : ',';
-      const headers = lines[0].split(sep).map(h => h.trim().toLowerCase().replace(/"/g, '').normalize('NFD').replace(/[̀-ͯ]/g, ''));
-      setProgress(`📋 Colunas encontradas: ${headers.join(', ')}`);
-      const nameIdx = headers.findIndex(h => ['nome','full_name','name','aluno','nome_completo','nome completo'].includes(h));
-      const enrollIdx = headers.findIndex(h => ['matricula','enrollment_code','enrollment','mat','codigo_matricula','ra'].includes(h));
-      const emailIdx = headers.findIndex(h => ['email','e-mail','e_mail'].includes(h));
-      const cpfIdx = headers.findIndex(h => ['cpf','cpf_hash','documento'].includes(h));
-      const courseIdx = headers.findIndex(h => ['curso','course','course_name','nome_curso'].includes(h));
+      const headers = lines[0].split(sep).map(norm);
+      setProgress(`📋 Colunas: ${headers.join(', ')}`);
+      const find = (opts:string[]) => headers.findIndex(h => opts.includes(h));
+      const nameIdx = find(['nome','full_name','name','aluno','nome_completo','nome completo']);
+      const enrollIdx = find(['matricula','enrollment_code','enrollment','mat','codigo_matricula','ra']);
+      const emailIdx = find(['email','e-mail','e_mail']);
+      const cpfIdx = find(['cpf','cpf_hash','documento']);
+      const courseIdx = find(['curso','course','course_name','nome_curso']);
+      const statusIdx = find(['situacao','status','academic_status','situacao_academica']);
+      const phoneIdx = find(['telefone','phone','celular','tel']);
+      const periodIdx = find(['periodo','period','semestre']);
       if (nameIdx < 0 || enrollIdx < 0) {
-        setProgress(`❌ Colunas obrigatórias não encontradas. Precisa ter "nome" (encontrado: ${nameIdx >= 0 ? '✅' : '❌'}) e "matricula" (encontrado: ${enrollIdx >= 0 ? '✅' : '❌'}). Colunas do arquivo: ${headers.join(', ')}`);
+        setProgress(`❌ Colunas obrigatórias não encontradas. Precisa: "nome" (${nameIdx>=0?'✅':'❌'}) e "matricula" (${enrollIdx>=0?'✅':'❌'}). Colunas: ${headers.join(', ')}`);
         setImporting(false); return;
       }
-      setProgress(`✅ Colunas mapeadas: nome=${headers[nameIdx]}, matrícula=${headers[enrollIdx]}${cpfIdx >= 0 ? ', cpf=' + headers[cpfIdx] : ''}${emailIdx >= 0 ? ', email=' + headers[emailIdx] : ''}. Processando ${lines.length - 1} linhas...`);
 
-      const rows: any[] = [];
+      const rows: any[] = [], errors: string[] = [];
       let skipped = 0;
       for (let i = 1; i < lines.length; i++) {
         const cols = lines[i].split(sep).map(c => c.trim().replace(/^"|"$/g, ''));
-        const name = cols[nameIdx];
-        const enrollment = cols[enrollIdx];
+        const name = cols[nameIdx]?.trim();
+        const enrollment = cols[enrollIdx]?.trim();
         if (!name || !enrollment) { skipped++; continue; }
-        // Match course by name
         const courseName = courseIdx >= 0 ? cols[courseIdx] : '';
-        const course = courseName ? courses.find(c => c.name.toLowerCase().includes(courseName.toLowerCase())) : courses[0];
-        // Hash CPF if provided as plain digits
-        let cpfHash = cpfIdx >= 0 ? cols[cpfIdx]?.replace(/\D/g, '') : '';
-        if (cpfHash && cpfHash.length === 11) {
-          const enc = new TextEncoder().encode(cpfHash);
-          const buf = await crypto.subtle.digest('SHA-256', enc);
-          cpfHash = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
-        } else if (cpfHash && cpfHash.length !== 11) { cpfHash = ''; }
-
+        const course = courseName ? courses.find(c => c.name.toLowerCase().includes(courseName.toLowerCase())) : null;
+        // CPF: preservar zeros à esquerda, hashear
+        let rawCpf = cpfIdx >= 0 ? cols[cpfIdx]?.replace(/\D/g, '') : '';
+        let cpfHash = '';
+        if (rawCpf && rawCpf.length === 11) {
+          const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(rawCpf));
+          cpfHash = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+        } else if (rawCpf && rawCpf.length > 0) { errors.push(`Linha ${i+1}: CPF "${cols[cpfIdx]}" inválido (${rawCpf.length} dígitos)`); }
+        // Status
+        let status = 'active';
+        if (statusIdx >= 0 && cols[statusIdx]) {
+          const mapped = STATUS_MAP[norm(cols[statusIdx])];
+          if (mapped) { status = mapped; }
+          else { errors.push(`Linha ${i+1}: situação "${cols[statusIdx]}" não reconhecida`); status = ''; }
+        }
         rows.push({
           institution_id: institutionId,
-          course_id: course?.id || courses[0]?.id,
+          course_id: course?.id || selectedCourse,
           full_name: name,
           enrollment_code: enrollment,
-          email: emailIdx >= 0 ? cols[emailIdx] || '' : '',
+          email: emailIdx >= 0 ? cols[emailIdx]?.trim() || null : null,
           cpf_hash: cpfHash || null,
-          academic_status: 'matriculado',
+          phone: phoneIdx >= 0 ? cols[phoneIdx]?.trim() || null : null,
+          academic_status: status || defaultStatus,
           verified: false,
         });
       }
-
-      if (rows.length === 0) { setProgress(`❌ Nenhum registro válido. ${skipped} linhas ignoradas (sem nome ou matrícula).`); setImporting(false); return; }
-      setProgress(`📤 Enviando ${rows.length} alunos para o banco... (${skipped} linhas ignoradas)`);
-
-      // Batch upsert
-      const batchSize = 100;
-      let imported = 0;
-      for (let i = 0; i < rows.length; i += batchSize) {
-        const batch = rows.slice(i, i + batchSize);
-        setProgress(`📤 Enviando lote ${Math.floor(i/batchSize)+1} de ${Math.ceil(rows.length/batchSize)}... (${imported} importados)`);
-        const { error } = await supabase.from('vertice_student_registry').upsert(batch, { onConflict: 'institution_id,enrollment_code' });
-        if (error) {
-          setProgress(`❌ Erro no lote ${Math.floor(i/batchSize)+1}: ${error.message}. ${imported} alunos importados antes do erro.`);
-          setImporting(false); return;
-        }
-        imported += batch.length;
-      }
-      setProgress(`✅ Importação concluída! ${imported} alunos importados com sucesso.`);
-      onImported(imported);
-    } catch (err) { setProgress(`❌ Erro ao processar: ${(err as Error).message}`); }
-    finally { setImporting(false); if (fileRef.current) fileRef.current.value = ''; }
+      setPreview({ rows, skipped, errors });
+      setProgress(`📋 ${rows.length} alunos prontos para importar. ${skipped} linhas ignoradas. ${errors.length} avisos.`);
+      setImporting(false);
+    } catch (err) { setProgress(`❌ Erro ao processar: ${(err as Error).message}`); setImporting(false); }
+    finally { if (fileRef.current) fileRef.current.value = ''; }
   }
+
+  async function confirmImport() {
+    if (!preview) return;
+    setImporting(true);
+    const rows = preview.rows.map(r => ({ ...r, academic_status: r.academic_status || defaultStatus }));
+    const batchSize = 100;
+    let imported = 0;
+    for (let i = 0; i < rows.length; i += batchSize) {
+      const batch = rows.slice(i, i + batchSize);
+      setProgress(`📤 Lote ${Math.floor(i/batchSize)+1} de ${Math.ceil(rows.length/batchSize)}... (${imported} importados)`);
+      const { error } = await supabase.from('vertice_student_registry').upsert(batch, { onConflict: 'institution_id,enrollment_code' });
+      if (error) {
+        setProgress(`❌ Erro no lote ${Math.floor(i/batchSize)+1}: ${error.message}. ${imported} importados antes do erro.`);
+        setImporting(false); return;
+      }
+      imported += batch.length;
+    }
+    setProgress(`✅ Importação concluída! ${imported} alunos importados.`);
+    setPreview(null);
+    setImporting(false);
+    onImported(imported);
+  }
+
+  const courseName = courses.find(c => c.id === selectedCourse)?.name || 'Nenhum';
 
   return (
     <div>
-      <input ref={fileRef} type="file" accept=".csv,.txt,.xlsx" onChange={handleFile} style={{ display: 'none' }} />
-      <button className="alumni-btn-export" onClick={() => fileRef.current?.click()} disabled={importing} style={{fontSize:13,padding:'8px 16px'}}>
-        {importing ? '⏳ Importando…' : '📥 Importar CSV'}
-      </button>
-      <p style={{ fontSize: '.75rem', color: 'var(--vx-muted)', margin: '6px 0 0' }}>
-        Colunas obrigatórias: <strong>nome</strong> e <strong>matricula</strong>. Opcionais: email, cpf, curso.
+      <input ref={fileRef} type="file" accept=".csv,.txt" onChange={handleFile} style={{ display: 'none' }} />
+      {!preview && <div style={{display:'flex',gap:10,alignItems:'flex-end',flexWrap:'wrap',marginBottom:8}}>
+        <label style={{display:'grid',gap:4,fontSize:12,fontWeight:600}}>Curso destino
+          <select value={selectedCourse} onChange={e=>setSelectedCourse(e.target.value)} style={{padding:'7px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:13}}>
+            {courses.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+        </label>
+        <label style={{display:'grid',gap:4,fontSize:12,fontWeight:600}}>Situação padrão
+          <select value={defaultStatus} onChange={e=>setDefaultStatus(e.target.value)} style={{padding:'7px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:13}}>
+            {Object.entries(STATUS_LABELS).map(([k,v])=><option key={k} value={k}>{v}</option>)}
+          </select>
+        </label>
+        <button className="alumni-btn-export" onClick={() => fileRef.current?.click()} disabled={importing} style={{fontSize:13,padding:'8px 16px'}}>
+          {importing ? '⏳ Processando…' : '📥 Importar CSV'}
+        </button>
+      </div>}
+      <p style={{ fontSize: '.75rem', color: 'var(--vx-muted)', margin: '0 0 6px' }}>
+        Colunas: <strong>nome</strong>, <strong>matricula</strong>. Opcionais: email, cpf, telefone, periodo, curso, situacao.
       </p>
       {progress && <div style={{ marginTop: 8, padding: '10px 14px', borderRadius: 8, fontSize: '.8rem', lineHeight: 1.6,
         background: progress.startsWith('✅') ? '#f0fdf4' : progress.startsWith('❌') ? '#fef2f2' : '#eff6ff',
         border: '1px solid ' + (progress.startsWith('✅') ? '#86efac' : progress.startsWith('❌') ? '#fecaca' : '#93c5fd'),
         color: progress.startsWith('✅') ? '#065f46' : progress.startsWith('❌') ? '#991b1b' : '#1e40af'
       }}>{progress}</div>}
+      {preview && !importing && <div style={{marginTop:12,padding:16,background:'#fffbeb',border:'1px solid #fde68a',borderRadius:10}}>
+        <strong style={{fontSize:14,color:'#92400e'}}>📋 Prévia da importação</strong>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(140px,1fr))',gap:8,margin:'10px 0'}}>
+          <div style={{padding:10,background:'#fff',borderRadius:8,border:'1px solid #e5e7eb'}}><strong style={{fontSize:20}}>{preview.rows.length}</strong><br/><span style={{fontSize:11,color:'#6b7280'}}>Alunos a importar</span></div>
+          <div style={{padding:10,background:'#fff',borderRadius:8,border:'1px solid #e5e7eb'}}><strong style={{fontSize:20}}>{preview.skipped}</strong><br/><span style={{fontSize:11,color:'#6b7280'}}>Linhas ignoradas</span></div>
+          <div style={{padding:10,background:'#fff',borderRadius:8,border:'1px solid #e5e7eb'}}><strong style={{fontSize:20}}>{preview.errors.length}</strong><br/><span style={{fontSize:11,color:'#6b7280'}}>Avisos</span></div>
+        </div>
+        <p style={{fontSize:12,color:'#78350f'}}>Instituição: <strong>UNITOP</strong> · Curso: <strong>{courseName}</strong> · Situação: <strong>{STATUS_LABELS[defaultStatus]}</strong></p>
+        {preview.errors.length > 0 && <details style={{fontSize:12,margin:'8px 0'}}><summary style={{cursor:'pointer',color:'#92400e'}}>⚠️ {preview.errors.length} avisos</summary><ul style={{margin:'6px 0',paddingLeft:18}}>{preview.errors.slice(0,20).map((e,i)=><li key={i}>{e}</li>)}{preview.errors.length>20&&<li>...e mais {preview.errors.length-20}</li>}</ul></details>}
+        <div style={{display:'flex',gap:8,marginTop:10}}>
+          <button onClick={confirmImport} style={{padding:'9px 18px',background:'#059669',color:'#fff',border:0,borderRadius:6,fontSize:13,fontWeight:700,cursor:'pointer'}}>✅ Confirmar importação</button>
+          <button onClick={()=>{setPreview(null);setProgress('');}} style={{padding:'9px 18px',background:'#fff',color:'#64748b',border:'1px solid #d1d5db',borderRadius:6,fontSize:13,cursor:'pointer'}}>Cancelar</button>
+        </div>
+      </div>}
     </div>
   );
 }
