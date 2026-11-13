@@ -68,8 +68,7 @@ export default function App() {
   return (
     <ErrorBoundary>
       <DemoTelemetry /><InstitutionDirectoryNotice />
-      {["/master", "/gestor", "/admin-ies", "/painel-real"].includes(normalized) && <nav className="corp-container" aria-label="Cadastro institucional"><a className="corp-button" href="/master#ies=1">Cadastro e convites de instituições</a><a className="corp-button" href="/master/experience" style={{marginLeft:8}}>Convites Vértice Experience</a><a className="corp-button" href="/mobile" style={{ marginLeft: 8 }}>Abrir Vértice Mobile</a><a className="corp-button" href="/demonstracao?perfil=faculdade&bi=1" style={{ marginLeft: 8 }}>BI Premium • demonstração</a></nav>}
-      {passwordCallback ? <PublicLayout><ResetPassword /></PublicLayout> : normalized === "/master/aquisicoes" ? <Suspense fallback={<p>Verificando acesso…</p>}><OwnerDashboard /></Suspense> : ["/master", "/gestor", "/admin-ies", "/painel-real", "/reitor/reservado"].includes(normalized) ? <PublicLayout><Suspense fallback={<p>Verificando acesso…</p>}><OwnerDashboard /></Suspense></PublicLayout> : isPublic ? (
+      {passwordCallback ? <PublicLayout><ResetPassword /></PublicLayout> : normalized === "/master/aquisicoes" ? <Suspense fallback={<p>Verificando acesso…</p>}><OwnerDashboard /></Suspense> : ["/master", "/gestor", "/admin-ies", "/painel-real", "/reitor/reservado"].includes(normalized) ? <Suspense fallback={<p style={{padding:40}}>Verificando acesso…</p>}><OwnerDashboard /></Suspense> : isPublic ? (
         <PublicApp />
       ) : demoPaths.has(normalized) ? (
         <Suspense

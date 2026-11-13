@@ -26,6 +26,7 @@ import GreenHost from '@/components/acquisitions/GreenHost';
 import DemoLeads from '@/components/DemoLeads';
 import CaptacaoBI from '@/components/area/CaptacaoBI';
 import './owner-dashboard-redesign.css';
+import '@/components/demo-showroom.css';
 import AcademicoBI from '@/components/bi/AcademicoBI';
 import EgressosBI from '@/components/bi/EgressosBI';
 import AcademicModulesBI from '@/components/bi/AcademicModulesBI';
@@ -331,15 +332,38 @@ export default function OwnerDashboard(){
   const {error}=await supabase.auth.mfa.challengeAndVerify({factorId:factor,code});if(error)throw error;setCode('');setQr('');await load();
  }catch{setError('Código não validado. Confira o autenticador e tente novamente.');}finally{setBusy(false);}}
  if(acquisitionsRoute&&!loading&&session&&aal==='aal2')return <GreenHost/>;
- return <main className="corp-container corp-section"><h1>{window.location.pathname.startsWith('/reitor')?'Área reservada da Direção':master&&route.repositories?'Repositórios · visão master':master&&route.demonstrativos?'Convites demonstrativos · Master':master&&route.tierFilter==='superior'?'🏛️ Universidades':master&&route.tierFilter==='escolas'?'🏫 Escolas':master&&route.financeiro?'💰 Financeiro':master?'Painel Vértice':'Painel de gestão'}</h1>
- {master&&(route.tierFilter||route.financeiro)&&!route.inst&&<button onClick={()=>{window.location.hash='';window.dispatchEvent(new HashChangeEvent('hashchange'));}} style={{background:'none',border:'none',color:'#2563eb',cursor:'pointer',fontSize:13,marginBottom:12,padding:0}}>← Voltar ao hub</button>}
- {loading?<p role="status">Verificando acesso…</p>:!session?<><p>Entre para acessar sua conta.</p><Link className="corp-button" href={window.location.pathname.startsWith('/reitor')?'/entrar?destino=reitor':'/entrar'}>Entrar</Link></>:<>
- <p>Conectado como <strong>{session.user.email}</strong>.</p>
- {aal!=='aal2'?<section className="corp-login-card"><h2>Proteja seu acesso</h2><p>O segundo fator é obrigatório para consultar os dados das instituições.</p>
+ // Pre-MFA / login screens keep the old layout
+ if(loading)return <main className="corp-container corp-section"><h1>Painel Vértice</h1><p role="status">Verificando acesso…</p></main>;
+ if(!session)return <main className="corp-container corp-section"><h1>Painel Vértice</h1><p>Entre para acessar sua conta.</p><Link className="corp-button" href={window.location.pathname.startsWith('/reitor')?'/entrar?destino=reitor':'/entrar'}>Entrar</Link></main>;
+ if(aal!=='aal2')return <main className="corp-container corp-section"><h1>Painel Vértice</h1><p>Conectado como <strong>{session.user.email}</strong>.</p><section className="corp-login-card"><h2>Proteja seu acesso</h2><p>O segundo fator é obrigatório para consultar os dados das instituições.</p>
  {!factor?<button className="corp-button" disabled={busy} onClick={enroll}>Configurar aplicativo autenticador</button>:<>
  {qr&&<><p>Leia o QR code no seu aplicativo autenticador. Não compartilhe esta imagem.</p><img alt="QR code para configurar seu autenticador" src={qr} width={200} height={200}/></>}
  <form className="access-form" onSubmit={verify}><HelpLabel>Código do autenticador<input autoComplete="one-time-code" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} required value={code} onChange={e=>setCode(e.target.value)}/></HelpLabel><button className="corp-button" disabled={busy}>Validar segundo fator</button></form></>}
- </section>:<><MasterInvitationGate onAccepted={load}/>
+ </section>{error&&<p role="alert">{error}</p>}</main>;
+ // Determine current navigation section
+ const navSection=route.biVertice?'bi-vertice':route.financeiro?'financeiro':route.governanca?'governanca':route.bi?'bi':route.captacao?'captacao':route.academico?'academico':route.painelBi?'painel-bi':route.repositories?'repositorios':route.masters?'masters':route.demonstrativos?'demonstrativos':route.clientes?'clientes':route.perfis?'perfis':route.inst?'instituicao':'hub';
+ const navItems:[string,string,string][]=[
+  ['hub','⌂','Visão geral'],
+  ['bi','📊','BI Executivo'],
+  ['academico','📚','BI Acadêmico'],
+  ['captacao','↗','Captação'],
+  ['painel-bi','📈','Painel de Indicadores'],
+  ['governanca','🏛️','Governança 360'],
+  ['repositorios','📁','Repositórios'],
+  ['bi-vertice','🔷','BI Vértice'],
+  ['financeiro','💰','Financeiro'],
+  ['masters','⚙️','Administração'],
+ ];
+ const navigateTo=(section:string)=>{
+  const map:Record<string,string>={hub:'',bi:'bi=1',academico:'academico=1','painel-bi':'painel-bi=1',captacao:'captacao=1',governanca:'governanca=1',repositorios:'repositorios=1','bi-vertice':'bi-vertice=1',financeiro:'financeiro=1',masters:'masters=1',demonstrativos:'demonstrativos=1',clientes:'clientes=1',perfis:'perfis=1'};
+  window.location.hash=map[section]??'';window.dispatchEvent(new HashChangeEvent('hashchange'));window.scrollTo({top:0});
+ };
+ return <section className="demo-showroom" aria-label="Painel Vértice" style={{minHeight:'100vh',borderRadius:0}}>
+  <div className="ds-topbar"><div><span className="ds-avatar">V</span><div><strong>Vértice Educação Superior</strong><small>{session.user.email} · {master?'Master':'Gestão institucional'}</small></div></div><span className="ds-demo-badge" style={{background:'#e8f5e9',color:'#2e7d32'}}>DADOS REAIS</span></div>
+  <div className="ds-frame" style={{minHeight:'calc(100vh - 80px)'}}>
+   <aside className="ds-sidebar"><span className="ds-nav-caption">GESTÃO ESTRATÉGICA</span><nav aria-label="Navegação principal">{navItems.filter(([id])=>master||!['masters','bi-vertice','financeiro'].includes(id)).map(([id,icon,label])=><button key={id} type="button" aria-current={navSection===id?'page':undefined} onClick={()=>navigateTo(id)}><span style={{fontSize:16,width:20,textAlign:'center',flexShrink:0}}>{icon}</span><span>{label}</span></button>)}</nav><div className="ds-sidebar-foot"><p>Painel de gestão institucional com dados autenticados.</p><a href="/" style={{color:'#d5e9f3',fontSize:11,textDecoration:'none'}}>← Voltar ao site</a><button type="button" onClick={async()=>{const {error:e}=await supabase.auth.signOut();if(e)setError('Não foi possível encerrar a sessão.');}} style={{color:'#f8a0a0',border:0,background:'none',cursor:'pointer',fontSize:11,padding:'8px 0'}}>Sair da conta</button></div></aside>
+   <div className="ds-main">
+    <MasterInvitationGate onAccepted={load}/>
  {route.biVertice&&master?<VerticeBI onBack={()=>{window.location.hash='';window.dispatchEvent(new HashChangeEvent('hashchange'));}}/>:route.financeiro&&master?<><button onClick={()=>{window.location.hash='';window.dispatchEvent(new HashChangeEvent('hashchange'));}} style={{background:'none',border:'none',color:'#2563eb',cursor:'pointer',fontSize:13,padding:0,marginBottom:12}}>← Voltar ao hub</button><BillingPanel/></>:route.hub&&master?<MasterHub onNavigate={(dest,instId)=>{
   if(dest==='bi-vertice'){window.location.hash='bi-vertice=1';}
   else if(dest==='universidades'){window.location.hash='tier=superior';}
@@ -428,8 +452,9 @@ export default function OwnerDashboard(){
     })}</div>}
    {!!institutions.length&&!institutions.some(i=>[i.name,(i as unknown as Row).acronym,(i as unknown as Row).cnpj].some(value=>String(value??'').toLocaleLowerCase('pt-BR').includes(institutionSearch.trim().toLocaleLowerCase('pt-BR'))))&&<p className="vx-inst-empty">Nenhuma instituição corresponde à pesquisa.</p>}
  </section></>}
- <p>Os dados desta área vêm do banco. Os exemplos da demonstração permanecem separados.</p><button className="corp-login-text-button" onClick={load}>Atualizar dados</button></>}
  </>}
- <button className="corp-login-text-button" onClick={async()=>{const {error}=await supabase.auth.signOut();if(error)setError('Não foi possível encerrar a sessão.');}}>Sair da conta</button></>}
- {error&&<p role="alert">{error}</p>}<p><Link href="/privacidade.html">Privacidade</Link> · <Link href="/">Voltar ao site</Link></p></main>;
+ {error&&<p role="alert">{error}</p>}
+   </div>
+  </div>
+ </section>;
 }
