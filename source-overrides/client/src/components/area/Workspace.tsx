@@ -1387,6 +1387,7 @@ function TeamTab({ institutionId, role }: { institutionId: string; role: Role | 
   const [newRole, setNewRole] = useState<Role>("equipe");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
+  const [inviteLink, setInviteLink] = useState("");
   const roles: Role[] = role === "master" ? ["gestor", "equipe", "leitor"] : ["equipe", "leitor"];
 
   const load = useCallback(async () => {
@@ -1405,16 +1406,23 @@ function TeamTab({ institutionId, role }: { institutionId: string; role: Role | 
     e.preventDefault();
     setBusy(true);
     setMsg("");
+    setInviteLink("");
     try {
       const mail = email.trim().toLowerCase();
       const { data, error } = await supabase.rpc("vertice_add_member", { target: institutionId, member_email: mail, member_role: newRole });
       if (error) throw error;
       if (data === "convite_pendente") {
-        const sent = await supabase.functions.invoke("vertice-convite", { body: { institution_id: institutionId, email: mail } });
+        // Buscar o convite recém-criado para gerar o link
+        const { data: inv } = await supabase.from(TABLES.invites).select("id").eq("institution_id", institutionId).eq("email", mail).is("accepted_at", null).order("created_at", { ascending: false }).limit(1);
+        const inviteId = inv?.[0]?.id;
+        const link = inviteId ? `${window.location.origin}/entrar?convite=${inviteId}` : "";
+        // Tentar enviar e-mail, mas não depender dele
+        const sent = await supabase.functions.invoke("vertice-convite", { body: { institution_id: institutionId, email: mail } }).catch(() => ({ error: true }));
+        if (link) setInviteLink(link);
         setMsg(
           sent.error
-            ? "Convite registrado. O e-mail de acesso não pôde ser enviado automaticamente; peça à administração da Vértice para enviar o convite."
-            : "Convite enviado por e-mail. O acesso é liberado quando a pessoa definir a senha e o segundo fator."
+            ? "Convite registrado! Copie o link abaixo e envie por WhatsApp para a pessoa criar a conta."
+            : "Convite enviado por e-mail. Você também pode copiar o link abaixo e enviar por WhatsApp."
         );
       } else {
         setMsg("Conta existente vinculada a esta instituição.");
@@ -1425,6 +1433,12 @@ function TeamTab({ institutionId, role }: { institutionId: string; role: Role | 
       setMsg(explain(err));
     } finally {
       setBusy(false);
+    }
+  }
+
+  function copyLink() {
+    if (inviteLink) {
+      navigator.clipboard.writeText(inviteLink).then(() => setMsg("Link copiado! Cole no WhatsApp e envie para a pessoa.")).catch(() => {});
     }
   }
 
@@ -1453,8 +1467,12 @@ function TeamTab({ institutionId, role }: { institutionId: string; role: Role | 
         </HelpLabel>
         <button className="corp-button small" disabled={busy}>{busy ? "Enviando…" : "Dar acesso"}</button>
       </form>
-      <p className="area-field-help">Use o e-mail institucional da pessoa. Se ela ainda não tiver conta, receberá um convite para criar senha e segundo fator.</p>
+      <p className="area-field-help">Use o e-mail institucional da pessoa. Se ela ainda não tiver conta, será criado um convite por link.</p>
       {msg && <p role="status" className="area-note">{msg}</p>}
+      {inviteLink && <div style={{display:'flex',gap:8,alignItems:'center',margin:'8px 0 12px',padding:12,background:'#f0fdf4',border:'1px solid #86efac',borderRadius:8}}>
+        <input readOnly value={inviteLink} style={{flex:1,padding:'8px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:12,color:'#1e3a5f',background:'#fff'}} onClick={e=>(e.target as HTMLInputElement).select()} />
+        <button type="button" className="corp-button small" onClick={copyLink} style={{whiteSpace:'nowrap',background:'#16a34a',borderColor:'#16a34a'}}>📋 Copiar link</button>
+      </div>}
       <dl className="area-roles">
         <div><dt>Gestor<ContextHelp title="Gestor" /></dt><dd>cadastra cursos, define metas, gere a equipe (equipe e leitura) e remove registros.</dd></div>
         <div><dt>Equipe<ContextHelp title="Equipe" /></dt><dd>registra medições, ações 5W2H e critérios do diagnóstico; não altera metas nem remove registros.</dd></div>
@@ -1478,9 +1496,10 @@ function TeamTab({ institutionId, role }: { institutionId: string; role: Role | 
                 <td>{manageable(m) && <button className="corp-login-text-button area-danger" onClick={() => remove(m)}>Retirar acesso</button>}</td>
               </tr>
             ))}
-            {invites.map(i => (
-              <tr key={i.id} className="pending">
-                <td>{String(i.email)}</td>
+            {invites.map(i => {
+              const iLink = `${window.location.origin}/entrar?convite=${i.id}`;
+              return <tr key={i.id} className="pending">
+                <td>{String(i.email)}<br/><button type="button" style={{fontSize:10,color:'#16a34a',background:'none',border:0,cursor:'pointer',padding:'2px 0'}} onClick={()=>{navigator.clipboard.writeText(iLink).then(()=>setMsg(`Link copiado para ${i.email}!`)).catch(()=>{});}}>📋 Copiar link de convite</button></td>
                 <td>{ROLE_LABEL[i.role as Role]} <small className="area-muted">(convite pendente)</small></td>
                 <td>{fmtDate(String(i.created_at).slice(0, 10))}</td>
                 <td>
@@ -1488,8 +1507,8 @@ function TeamTab({ institutionId, role }: { institutionId: string; role: Role | 
                     <RemoveButton label="Cancelar convite" onConfirm={async () => { await deleteRow(TABLES.invites, i.id); await load(); }} />
                   )}
                 </td>
-              </tr>
-            ))}
+              </tr>;
+            })}
           </tbody>
         </table>
       </div>

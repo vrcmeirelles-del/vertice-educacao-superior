@@ -1,17 +1,15 @@
 /* The same module choices remain visible while reading the selected content. */
 .inst-subtabs {
-  position: sticky;
-  top: 88px;
+  position: relative;
   z-index: 10;
-  margin: 0 0 16px;
-  padding: 14px;
+  margin: 0 0 12px;
+  padding: 10px 14px;
   background: #fff;
   border: 1px solid #dce9e7;
   border-radius: 12px;
   box-shadow: 0 4px 16px rgb(25 62 74 / 7%);
-  max-height: min(40vh, 280px);
-  overflow-y: auto;
-  scrollbar-width: thin;
+  max-height: none;
+  overflow-y: visible;
 }
 .inst-subtabs-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; color: #173f43; }
 .inst-subtabs-tools { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
