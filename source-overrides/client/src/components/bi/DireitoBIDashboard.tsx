@@ -85,6 +85,7 @@ export default function DireitoBIDashboard({ institutionId, courseId, courseCode
     { key: 'disciplinas', label: '📚 Disciplinas', color: '#f59e0b' },
     { key: 'fantasmas', label: '👻 Fantasmas', color: '#64748b' },
     { key: 'estrategia', label: '🎯 Estratégia', color: '#059669' },
+    { key: 'vagas', label: '📊 Vagas & Extensão', color: '#7c3aed' },
     { key: 'alerta262', label: '🚨 Alertas 26.2', color: '#dc2626' },
   ];
 
@@ -126,6 +127,7 @@ export default function DireitoBIDashboard({ institutionId, courseId, courseCode
       {!drill && tab === 'disciplinas' && <DisciplinasTab outcomes={outcomes} onDrill={setDrill} />}
       {!drill && tab === 'fantasmas' && <FantasmasTab data={fantasmas} evolucao={evolucao} />}
       {!drill && tab === 'estrategia' && <EstrategiaTab profs={profs} profsPerSem={profsPerSem} evolucao={evolucao} />}
+      {!drill && tab === 'vagas' && <VagasExtensaoTab outcomes={outcomes} evolucao={evolucao} vacancies={vacancies} />}
       {!drill && tab === 'alerta262' && <Alertas262Tab outcomes={outcomes} evolucao={evolucao} />}
     </div>
   );
@@ -654,6 +656,170 @@ function EstrategiaTab({ profs, profsPerSem, evolucao }: { profs: any[]; profsPe
         📌 <strong>Ação:</strong> Repetir esta análise completa ao final de 2026/02 para verificar se intervenções surtiram efeito.
       </div>
     </Card>
+  </div>;
+}
+
+/* ============ VAGAS & EXTENSÃO ============ */
+function VagasExtensaoTab({ outcomes, evolucao, vacancies }: { outcomes: any[]; evolucao: any[]; vacancies: number }) {
+  const VAGAS_ANUAIS = vacancies; // 75
+
+  // Ingressantes por ano (1º período apenas)
+  // Dados da série histórica: ingressantes_1per
+  const ingressantesPorSem: Record<string, number> = {
+    '2023/01': 40, '2023/02': 0, '2024/01': 59, '2024/02': 29,
+    '2025/01': 97, '2025/02': 40, '2026/01': 114, '2026/02': 38,
+  };
+  const anos = ['2023', '2024', '2025', '2026'];
+  const vagasData = anos.map(ano => {
+    const s1 = ingressantesPorSem[`${ano}/01`] || 0;
+    const s2 = ingressantesPorSem[`${ano}/02`] || 0;
+    const total = s1 + s2;
+    const ociosas = Math.max(0, VAGAS_ANUAIS - total);
+    const excedente = Math.max(0, total - VAGAS_ANUAIS);
+    return { ano, s1, s2, total, ociosas, excedente, pctOcupacao: Math.round(100 * total / VAGAS_ANUAIS) };
+  });
+
+  // Extensão (CE) em 2026/02
+  const ce262 = outcomes.filter(o => o.semester === '2026/02' && o.discipline_enrollments > 0 && (o.discipline?.includes('(CE)') || o.discipline?.includes('INTEGRADOR')));
+  const totalExtensao = ce262.reduce((s, o) => s + o.discipline_enrollments, 0);
+  // Extensão histórica
+  const ceBySem: Record<string, { discs: any[]; total: number }> = {};
+  for (const o of outcomes) {
+    if (o.discipline_enrollments > 0 && (o.discipline?.includes('(CE)') || o.discipline?.includes('INTEGRADOR') || o.discipline?.includes('RESOC'))) {
+      if (!ceBySem[o.semester]) ceBySem[o.semester] = { discs: [], total: 0 };
+      ceBySem[o.semester].discs.push(o);
+      ceBySem[o.semester].total += o.discipline_enrollments;
+    }
+  }
+
+  // Estágio (Prática) em 2026/02
+  const est262 = outcomes.filter(o => o.semester === '2026/02' && o.discipline_enrollments > 0 && (o.discipline?.includes('PRÁTICA') || o.discipline?.includes('PRATICA')));
+  const totalEstagio = est262.reduce((s, o) => s + o.discipline_enrollments, 0);
+  // Estágio histórico
+  const estBySem: Record<string, number> = {};
+  for (const o of outcomes) {
+    if (o.discipline_enrollments > 0 && (o.discipline?.includes('PRÁTICA') || o.discipline?.includes('PRATICA'))) {
+      estBySem[o.semester] = (estBySem[o.semester] || 0) + o.discipline_enrollments;
+    }
+  }
+
+  const totalMatric262 = evolucao.find(e => e.semestre === '2026/02')?.matriculados || 353;
+
+  return <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    {/* VAGAS OCIOSAS */}
+    <div style={card}>
+      <strong style={{ fontSize: '1.1rem' }}>📊 Vagas Ociosas — Evolução Anual</strong>
+      <p style={{ fontSize: '.8rem', color: 'var(--vx-muted, #64748b)', margin: '4px 0 12px' }}>Vagas autorizadas: <strong>{VAGAS_ANUAIS}/ano</strong>. Ingressantes = alunos que entraram no 1º período (não conta reposição de estoque a partir do 2º período).</p>
+
+      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <thead><tr>{['Ano', '1º sem', '2º sem', 'Total ingress.', 'Vagas', 'Ociosas', 'Excedente', 'Ocupação'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
+        <tbody>{vagasData.map((v, i) => (
+          <tr key={i} style={{ background: v.ociosas > 0 ? '#fef2f2' : v.excedente > 30 ? '#f0fdf4' : undefined }}>
+            <td style={{ ...td, fontWeight: 800, fontSize: '.95rem' }}>{v.ano}</td>
+            <td style={tdR}>{v.s1 || '—'}</td>
+            <td style={tdR}>{v.s2 || '—'}</td>
+            <td style={{ ...tdR, fontWeight: 700, color: '#2563eb' }}>{v.total}</td>
+            <td style={tdR}>{VAGAS_ANUAIS}</td>
+            <td style={{ ...tdR, fontWeight: 800, color: v.ociosas > 0 ? '#dc2626' : '#16a34a' }}>{v.ociosas > 0 ? v.ociosas : '—'}</td>
+            <td style={{ ...tdR, fontWeight: 700, color: v.excedente > 0 ? '#16a34a' : '#64748b' }}>{v.excedente > 0 ? `+${v.excedente}` : '—'}</td>
+            <td style={tdR}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'flex-end' }}>
+                <div style={{ width: 60, height: 8, borderRadius: 4, background: '#e2e8f0', overflow: 'hidden' }}>
+                  <div style={{ height: 8, borderRadius: 4, background: v.pctOcupacao >= 100 ? '#16a34a' : v.pctOcupacao >= 70 ? '#f59e0b' : '#dc2626', width: `${Math.min(100, v.pctOcupacao)}%` }} />
+                </div>
+                <strong style={{ color: v.pctOcupacao >= 100 ? '#16a34a' : '#dc2626' }}>{v.pctOcupacao}%</strong>
+              </div>
+            </td>
+          </tr>
+        ))}</tbody>
+      </table>
+
+      <div style={{ marginTop: 16, padding: 12, borderRadius: 10, background: vagasData[0].ociosas > 0 ? 'linear-gradient(135deg, #fef2f2, #fffbeb)' : 'linear-gradient(135deg, #f0fdf4, #eff6ff)' }}>
+        <strong>Resumo:</strong> Em 2023 houve <strong style={{ color: '#dc2626' }}>35 vagas ociosas</strong> (primeiro vestibular, 40 ingressantes de 75). A partir de 2024 o curso <strong style={{ color: '#16a34a' }}>superou as vagas todos os anos</strong>. Em 2026: 152 ingressantes para 75 vagas = <strong style={{ color: '#16a34a' }}>+77 excedente (203% de ocupação)</strong>.
+        <br/><span style={{ fontSize: '.8rem', color: '#64748b' }}>Total de vagas ociosas acumuladas desde 2023: <strong>35</strong> (apenas no 1º ano).</span>
+      </div>
+    </div>
+
+    {/* EXTENSÃO */}
+    <div style={card}>
+      <strong style={{ fontSize: '1.1rem' }}>🤝 Extensão (CE) — Alunos Matriculados</strong>
+      <p style={{ fontSize: '.8rem', color: 'var(--vx-muted, #64748b)', margin: '4px 0 12px' }}>Disciplinas com código (CE) ou Projeto Integrador = extensão curricular. Res. 7/2018 exige 10% da carga.</p>
+
+      {/* 2026/02 destaque */}
+      <div style={{ padding: 12, background: '#f0fdf4', borderRadius: 10, border: '1px solid #bbf7d0', marginBottom: 12 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <strong style={{ color: '#059669' }}>2026/02 — {totalExtensao} alunos em extensão</strong>
+          <span style={badge('#059669')}>{Math.round(100 * totalExtensao / totalMatric262)}% dos matriculados</span>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: 8, marginTop: 10 }}>
+          {ce262.map((d, i) => (
+            <div key={i} style={{ padding: '8px 10px', borderRadius: 8, background: '#fff', border: '1px solid #e2e8f0' }}>
+              <div style={{ fontWeight: 700, fontSize: '.8rem' }}>{d.discipline}</div>
+              <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
+                <span style={badge('#2563eb')}>{d.discipline_enrollments} alunos</span>
+                <span style={badge('#64748b')}>{d.class_label} · {d.academic_period}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Evolução histórica */}
+      <strong style={{ fontSize: '.85rem' }}>Evolução por semestre</strong>
+      <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 8 }}>
+        <thead><tr>{['Semestre', 'Disciplinas CE', 'Matrículas em CE', 'Total curso', '% em extensão'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
+        <tbody>{Object.entries(ceBySem).sort(([a],[b]) => a.localeCompare(b)).map(([sem, d]) => {
+          const evSem = evolucao.find(e => e.semestre === sem);
+          const matSem = evSem?.matriculados || evSem?.total_matriculados || 1;
+          const pct = Math.round(100 * d.total / matSem);
+          return <tr key={sem}>
+            <td style={{ ...td, fontWeight: 700 }}>{sem}</td>
+            <td style={tdR}>{d.discs.length}</td>
+            <td style={{ ...tdR, fontWeight: 700, color: '#059669' }}>{d.total}</td>
+            <td style={tdR}>{matSem}</td>
+            <td style={{ ...tdR, fontWeight: 700, color: pct >= 30 ? '#16a34a' : pct >= 10 ? '#f59e0b' : '#dc2626' }}>{pct}%</td>
+          </tr>;
+        })}</tbody>
+      </table>
+    </div>
+
+    {/* ESTÁGIO */}
+    <div style={card}>
+      <strong style={{ fontSize: '1.1rem' }}>⚖ Estágio (Prática Jurídica) — Alunos Matriculados</strong>
+      <p style={{ fontSize: '.8rem', color: 'var(--vx-muted, #64748b)', margin: '4px 0 12px' }}>Prática Simulada (a partir do 6º per.) + Prática Real / NPJ (a partir do 8º per.)</p>
+
+      <div style={{ padding: 12, background: '#eff6ff', borderRadius: 10, border: '1px solid #bfdbfe', marginBottom: 12 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <strong style={{ color: '#2563eb' }}>2026/02 — {totalEstagio} alunos em prática jurídica</strong>
+          <span style={badge('#2563eb')}>{Math.round(100 * totalEstagio / totalMatric262)}% dos matriculados</span>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: 8, marginTop: 10 }}>
+          {est262.map((d, i) => (
+            <div key={i} style={{ padding: '8px 10px', borderRadius: 8, background: '#fff', border: '1px solid #e2e8f0' }}>
+              <div style={{ fontWeight: 700, fontSize: '.8rem' }}>{d.discipline}</div>
+              <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
+                <span style={badge(d.discipline_enrollments > 0 ? '#2563eb' : '#dc2626')}>{d.discipline_enrollments} alunos</span>
+                <span style={badge('#64748b')}>{d.class_label} · {d.academic_period}</span>
+                {d.rf > 0 && <span style={badge('#dc2626')}>{d.rf} RF</span>}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Evolução histórica */}
+      <strong style={{ fontSize: '.85rem' }}>Evolução por semestre</strong>
+      <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 8 }}>
+        <thead><tr>{['Semestre', 'Matrículas estágio'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
+        <tbody>{Object.entries(estBySem).sort(([a],[b]) => a.localeCompare(b)).map(([sem, total]) => (
+          <tr key={sem}><td style={{ ...td, fontWeight: 700 }}>{sem}</td><td style={{ ...tdR, fontWeight: 700, color: '#2563eb' }}>{total}</td></tr>
+        ))}</tbody>
+      </table>
+
+      <div style={{ marginTop: 12, padding: 10, background: '#f8fafc', borderRadius: 8, fontSize: '.8rem', color: '#64748b' }}>
+        NPJ (Prática Real I) iniciou em 2026/02 com 13 alunos. Prática Real II e III estão com turma vazia (DIR-9A e DIR-10A) — primeiros alunos chegarão em 2027.
+      </div>
+    </div>
   </div>;
 }
 
