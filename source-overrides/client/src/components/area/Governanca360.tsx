@@ -8,7 +8,8 @@ interface Member { id:string; body_id:string; institution_id:string; member_name
 interface Meeting { id:string; body_id:string; institution_id:string; meeting_number?:string; meeting_type:string; scheduled_date:string; scheduled_time?:string; location?:string; status:string; quorum_present?:number; quorum_total?:number; agenda?:any; notes?:string; }
 interface Deliberation { id:string; meeting_id:string; institution_id:string; body_id:string; protocol:string; subject:string; full_text:string; decision_type:string; nature?:string; priority?:string; due_date?:string; responsible_name?:string; responsible_user_id?:string; status:string; action_id?:string; goal_id?:string; target_sector?:string; ai_extracted?:boolean; created_at:string; }
 
-type View = 'orgaos'|'reunioes'|'deliberacoes'|'timeline';
+type View = 'orgaos'|'reunioes'|'deliberacoes'|'timeline'|'vinculos';
+interface GovLink { id:string; deliberation_id:string; target_module:string; target_label:string|null; link_type:string; notes:string|null; }
 
 interface Props { institutionId:string; role:string; }
 
@@ -18,6 +19,7 @@ export default function Governanca360({institutionId, role}:Props) {
   const [members, setMembers] = useState<Member[]>([]);
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [deliberations, setDeliberations] = useState<Deliberation[]>([]);
+  const [govLinks, setGovLinks] = useState<GovLink[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedBody, setSelectedBody] = useState<string|null>(null);
   const [showForm, setShowForm] = useState<'body'|'meeting'|'deliberation'|null>(null);
@@ -39,6 +41,8 @@ export default function Governanca360({institutionId, role}:Props) {
     if(m.data) setMembers(m.data);
     if(mt.data) setMeetings(mt.data);
     if(d.data) setDeliberations(d.data);
+    // Load academic module links
+    supabase.from('vertice_governance_links').select('*').eq('institution_id',institutionId).then(r => { if(r.data) setGovLinks(r.data); });
     setLoading(false);
   },[institutionId]);
 
@@ -146,9 +150,9 @@ export default function Governanca360({institutionId, role}:Props) {
 
       {/* Nav */}
       <div className="gov-nav">
-        {(['orgaos','reunioes','deliberacoes','timeline'] as View[]).map(v=>(
+        {(['orgaos','reunioes','deliberacoes','timeline','vinculos'] as View[]).map(v=>(
           <button key={v} className={`gov-nav-btn${view===v?' active':''}`} onClick={()=>setView(v)}>
-            {v==='orgaos'?'Órgãos':v==='reunioes'?'Reuniões':v==='deliberacoes'?'Deliberações':'Timeline'}
+            {v==='orgaos'?'Órgãos':v==='reunioes'?'Reuniões':v==='deliberacoes'?'Deliberações':v==='vinculos'?'🔗 Módulos':'Timeline'}
           </button>
         ))}
         {bodies.length>0 && (
@@ -348,6 +352,40 @@ export default function Governanca360({institutionId, role}:Props) {
             ))}
             {meetings.length===0 && deliberations.length===0 && <div className="gov-empty">Nenhum evento registrado</div>}
           </div>
+        </div>
+      )}
+
+      {view==='vinculos' && (
+        <div className="gov-section">
+          <h3>Vínculos com Módulos Acadêmicos</h3>
+          <p style={{fontSize:'.8125rem',color:'var(--vx-muted)',marginBottom:12}}>Deliberações vinculadas a objetos dos módulos TCC, AC, Estágio, Extensão, CPA e outros. Cada vínculo demonstra que a decisão acadêmica tem amparo colegiado.</p>
+          {govLinks.length === 0 ? (
+            <div className="gov-empty">Nenhum vínculo registrado. Vincule deliberações a módulos para demonstrar gestão participativa.</div>
+          ) : (
+            <table style={{width:'100%',borderCollapse:'collapse',fontSize:'.8125rem'}}>
+              <thead><tr style={{borderBottom:'2px solid var(--vx-border,#e2e8f0)'}}>
+                <th style={{textAlign:'left',padding:'6px 8px'}}>Deliberação</th>
+                <th style={{textAlign:'left',padding:'6px 8px'}}>Módulo</th>
+                <th style={{textAlign:'left',padding:'6px 8px'}}>Tipo</th>
+                <th style={{textAlign:'left',padding:'6px 8px'}}>Objeto</th>
+                <th style={{textAlign:'left',padding:'6px 8px'}}>Notas</th>
+              </tr></thead>
+              <tbody>{govLinks.map(gl => {
+                const delib = deliberations.find(d => d.id === gl.deliberation_id);
+                const modLabels: Record<string,string> = { tcc:'📝 TCC', ac:'📜 AC', estagio:'🏢 Estágio', extensao:'🤝 Extensão', cpa:'📊 CPA', alumni:'🎓 Egressos', ppc:'📘 PPC' };
+                const typeLabels: Record<string,string> = { approval:'Aprovação', regulation:'Regulamentação', review:'Revisão', recommendation:'Recomendação', other:'Outro' };
+                return (
+                  <tr key={gl.id} style={{borderBottom:'1px solid var(--vx-border,#e2e8f0)'}}>
+                    <td style={{padding:'6px 8px'}}><strong>{delib?.protocol || '—'}</strong><div style={{fontSize:'.75rem',color:'var(--vx-muted)'}}>{delib?.subject || '—'}</div></td>
+                    <td style={{padding:'6px 8px'}}>{modLabels[gl.target_module] || gl.target_module}</td>
+                    <td style={{padding:'6px 8px'}}><span className="gov-tag">{typeLabels[gl.link_type] || gl.link_type}</span></td>
+                    <td style={{padding:'6px 8px'}}>{gl.target_label || '—'}</td>
+                    <td style={{padding:'6px 8px',fontSize:'.75rem',color:'var(--vx-muted)'}}>{gl.notes || '—'}</td>
+                  </tr>
+                );
+              })}</tbody>
+            </table>
+          )}
         </div>
       )}
     </div>
