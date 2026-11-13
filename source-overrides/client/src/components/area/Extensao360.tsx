@@ -239,18 +239,14 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
     setInviteBusy(true); setInviteMsg(''); setInviteLink('');
     try {
       const mail = inviteEmail.trim().toLowerCase();
-      // Criar conta via edge function (admin API, email confirmado automaticamente)
-      const { data: result, error: fnErr } = await supabase.functions.invoke('vertice-convite-simples', {
-        body: { email: mail, institution_id: institutionId, role: 'equipe', name: inviteName || undefined }
-      });
-      if (fnErr) throw fnErr;
-      if (result && !result.ok) throw new Error(result.error || 'Erro ao criar convite');
-      const link = `${window.location.origin}/extensao-convite`;
+      // 1. Registrar membro/convite via RPC existente
+      await supabase.rpc('vertice_add_member', { target: institutionId, member_email: mail, member_role: 'equipe' }).then(r => r);
+      // 2. Buscar o convite gerado para montar o link
+      const { data: inv } = await supabase.from('vertice_invites').select('id').eq('institution_id', institutionId).eq('email', mail).is('accepted_at', null).order('created_at', { ascending: false }).limit(1);
+      const invId = inv?.[0]?.id;
+      const link = `${window.location.origin}/extensao-convite${invId ? '?convite=' + invId : ''}`;
       setInviteLink(link);
-      setInviteMsg(result?.created
-        ? `✅ Conta criada para ${mail} com senha 123456. Copie o link e envie por WhatsApp.`
-        : `✅ ${mail} já tem conta. Acesso à instituição liberado. Envie o link abaixo.`
-      );
+      setInviteMsg(`✅ Convite registrado para ${mail}. Copie o link e envie por WhatsApp.`);
       setInviteEmail(''); setInviteName('');
     } catch (err) {
       setInviteMsg(`Erro: ${(err as Error).message}`);
