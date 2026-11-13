@@ -184,7 +184,7 @@ export default function Estagio360({ institutionId, courses, role, onNavigate }:
             <h2>Estágios</h2>
             <button className="alumni-btn-export" onClick={() => setShowForm(v => v === 'placement' ? false : 'placement')}>+ Novo Estágio</button>
           </header>
-          {showForm === 'placement' && <CreatePlacementForm institutionId={institutionId} courses={courses} orgs={orgs} fields={fields} students={students} onCreated={(p) => { setPlacements(prev => [p, ...prev]); setShowForm(false); }} onCancel={() => setShowForm(false)} />}
+          {showForm === 'placement' && <CreatePlacementForm institutionId={institutionId} courses={courses} orgs={orgs} fields={fields} students={students} rules={rules} onCreated={(p) => { setPlacements(prev => [p, ...prev]); setShowForm(false); }} onCancel={() => setShowForm(false)} />}
           {placements.length === 0 && !showForm ? <div className="alumni-info-box">Nenhum estágio registrado.</div> : (
             <div style={{ display: 'grid', gap: '.75rem' }}>
               {placements.map(p => (
@@ -342,8 +342,8 @@ function PlacementAttendance({ placementId, placements, onBack }: { placementId:
 
 const fld: React.CSSProperties = { display: 'block', width: '100%', padding: '6px 10px', border: '1px solid var(--vx-border,#e2e8f0)', borderRadius: 6, fontSize: '.8125rem', marginTop: 4 };
 
-function CreatePlacementForm({ institutionId, courses, orgs, fields, students, onCreated, onCancel }: {
-  institutionId: string; courses: { id: string; name: string }[]; orgs: InternshipOrg[]; fields: InternshipField[]; students: StudentRegistryEntry[];
+function CreatePlacementForm({ institutionId, courses, orgs, fields, students, rules, onCreated, onCancel }: {
+  institutionId: string; courses: { id: string; name: string }[]; orgs: InternshipOrg[]; fields: InternshipField[]; students: StudentRegistryEntry[]; rules: InternshipRule[];
   onCreated: (p: InternshipPlacement) => void; onCancel: () => void;
 }) {
   const [courseId, setCourseId] = useState(courses[0]?.id || '');
@@ -357,7 +357,7 @@ function CreatePlacementForm({ institutionId, courses, orgs, fields, students, o
   const [saving, setSaving] = useState(false);
 
   const courseStudents = students.filter(s => s.course_id === courseId);
-  const courseFields = fields.filter(f => f.course_id === courseId);
+  const courseRule = rules.find(r => r.course_id === courseId);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -366,6 +366,7 @@ function CreatePlacementForm({ institutionId, courses, orgs, fields, students, o
     const { data, error } = await supabase.from('vertice_internship_placements').insert({
       institution_id: institutionId, course_id: courseId, student_id: studentId,
       organization_id: orgId, field_id: fieldId, location_type: locType,
+      rule_id: courseRule?.id || null,
       advisor_name: advisor || null,
       starts_at: startsAt || null, ends_at: endsAt || null,
       lifecycle: 'draft',
@@ -383,7 +384,7 @@ function CreatePlacementForm({ institutionId, courses, orgs, fields, students, o
         <label>Aluno<select value={studentId} onChange={e => setStudentId(e.target.value)} style={fld}><option value="">Selecione…</option>{courseStudents.map(s => <option key={s.id} value={s.id}>{s.full_name} — {s.enrollment_code}</option>)}</select></label>
         <label>Tipo<select value={locType} onChange={e => setLocType(e.target.value as any)} style={fld}><option value="internal">Interno</option><option value="external">Externo</option></select></label>
         <label>Concedente<select value={orgId} onChange={e => setOrgId(e.target.value)} style={fld}><option value="">Selecione…</option>{orgs.map(o => <option key={o.id} value={o.id}>{o.trade_name || o.legal_name}</option>)}</select></label>
-        <label>Campo<select value={fieldId} onChange={e => setFieldId(e.target.value)} style={fld}><option value="">Selecione…</option>{courseFields.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}</select></label>
+        <label>Campo<select value={fieldId} onChange={e => setFieldId(e.target.value)} style={fld}><option value="">Selecione…</option>{fields.filter(f => !orgId || f.organization_id === orgId).map(f => <option key={f.id} value={f.id}>{f.name}</option>)}</select></label>
         <label>Orientador<input value={advisor} onChange={e => setAdvisor(e.target.value)} style={fld} placeholder="Nome do orientador" /></label>
         <label>Início<input type="date" value={startsAt} onChange={e => setStartsAt(e.target.value)} style={fld} /></label>
         <label>Término<input type="date" value={endsAt} onChange={e => setEndsAt(e.target.value)} style={fld} /></label>
@@ -410,7 +411,7 @@ function CreateOrgForm({ institutionId, onCreated, onCancel }: { institutionId: 
     if (!name) return;
     setSaving(true);
     const { data, error } = await supabase.from('vertice_internship_organizations').insert({
-      institution_id: institutionId, legal_name: name, trade_name: tradeName || null,
+      institution_id: institutionId, name, trade_name: tradeName || null,
       identifier: identifier || null, city: city || null,
       contact_name: contactName || null, contact_email: contactEmail || null,
       status: 'active',
@@ -456,7 +457,7 @@ function CreateFieldForm({ institutionId, courses, orgs, onCreated, onCancel }: 
     if (!name || !orgId) return;
     setSaving(true);
     const { data, error } = await supabase.from('vertice_internship_fields').insert({
-      institution_id: institutionId, course_id: courseId, organization_id: orgId,
+      institution_id: institutionId, organization_id: orgId,
       name, location_type: locType, area_of_practice: area || null,
       capacity: capacity ? parseInt(capacity) : null, status: 'active',
     }).select().single();
