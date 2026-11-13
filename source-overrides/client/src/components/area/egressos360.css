@@ -3,14 +3,14 @@
 .alumni-header { margin-bottom: 1.5rem; }
 .alumni-header h2 { font-size: 1.5rem; font-weight: 700; color: var(--vx-text, #1e293b); margin: 0 0 .25rem; }
 .alumni-subtitle { color: var(--vx-muted, #64748b); font-size: .875rem; margin: 0 0 1rem; }
-.alumni-nav { display: flex; gap: .5rem; flex-wrap: wrap; }
+.alumni-nav { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: .5rem; margin-bottom: 1rem; }
 .alumni-nav-btn {
-  padding: .5rem 1rem; border-radius: 8px; border: 1px solid var(--vx-border, #e2e8f0);
-  background: var(--vx-surface, #fff); color: var(--vx-text, #1e293b); font-size: .8125rem;
-  cursor: pointer; transition: all .15s;
+  padding: .6rem .75rem; border-radius: 10px; border: 1px solid var(--vx-border, #e2e8f0);
+  background: var(--vx-surface, #fff); color: var(--vx-text, #1e293b); font-size: .8rem;
+  cursor: pointer; transition: all .15s; text-align: center;
 }
-.alumni-nav-btn:hover { background: var(--vx-hover, #f1f5f9); }
-.alumni-nav-btn.active { background: var(--vx-accent, #2563eb); color: #fff; border-color: var(--vx-accent, #2563eb); }
+.alumni-nav-btn:hover { background: var(--vx-hover, #f0f9ff); border-color: var(--vx-accent, #2563eb); color: var(--vx-accent, #2563eb); }
+.alumni-nav-btn.active, .alumni-nav-btn-active { background: var(--vx-accent, #2563eb); color: #fff; border-color: var(--vx-accent, #2563eb); box-shadow: 0 2px 8px rgba(37,99,235,.25); }
 
 /* KPIs */
 .alumni-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
