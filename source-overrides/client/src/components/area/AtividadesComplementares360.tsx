@@ -281,21 +281,64 @@ export function calculateComplementaryAward(input: {
 function RuleCard({ rule, courseName }: { rule: AcRule; courseName: string }) {
   const [categories, setCategories] = useState<AcCategory[]>([]);
   const [open, setOpen] = useState(false);
+  const [showCatForm, setShowCatForm] = useState(false);
+  const [catLabel, setCatLabel] = useState('');
+  const [catMaxItem, setCatMaxItem] = useState('');
+  const [catMaxCat, setCatMaxCat] = useState('');
+  const [catConvNum, setCatConvNum] = useState('1');
+  const [catConvDen, setCatConvDen] = useState('1');
+  const [saving, setSaving] = useState(false);
   useEffect(() => { if (open) fetchAcCategories(rule.id).then(setCategories); }, [open, rule.id]);
+
+  async function addCategory(e: React.FormEvent) {
+    e.preventDefault();
+    if (!catLabel) return;
+    setSaving(true);
+    const { data, error } = await supabase.from('vertice_ac_categories').insert({
+      rule_id: rule.id, institution_id: rule.institution_id,
+      label: catLabel, sort_order: categories.length + 1,
+      max_per_item_minutes: catMaxItem ? parseInt(catMaxItem) * 60 : null,
+      max_category_minutes: catMaxCat ? parseInt(catMaxCat) * 60 : null,
+      conversion_numerator: parseInt(catConvNum) || 1,
+      conversion_denominator: parseInt(catConvDen) || 1,
+    }).select().single();
+    setSaving(false);
+    if (error) { alert('Erro: ' + error.message); return; }
+    setCategories(prev => [...prev, data as AcCategory]);
+    setShowCatForm(false); setCatLabel(''); setCatMaxItem(''); setCatMaxCat(''); setCatConvNum('1'); setCatConvDen('1');
+  }
+
   return (
     <div className="alumni-finding-card" style={{ border: '1px solid var(--vx-border,#e2e8f0)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', cursor: 'pointer' }} onClick={() => setOpen(!open)}>
         <div><strong>{courseName}</strong><span style={{ fontSize: '.8125rem', color: 'var(--vx-muted)', marginLeft: 8 }}>Matriz {rule.curriculum_version} · {rule.rule_version}</span></div>
         <div><span className="alumni-tag" style={{ background: '#dbeafe', color: '#1d4ed8' }}>{minutesToHours(rule.total_required_minutes)} exigidas</span> {open ? '▾' : '▸'}</div>
       </div>
-      {open && categories.length > 0 && (
-        <table className="alumni-table" style={{ marginTop: 8 }}>
-          <thead><tr><th>Categoria</th><th>Máx/Item</th><th>Máx/Cat.</th><th>Conversão</th></tr></thead>
-          <tbody>{categories.map(c => (
-            <tr key={c.id}><td>{c.label}</td><td>{c.max_per_item_minutes ? minutesToHours(c.max_per_item_minutes) : '—'}</td><td>{c.max_category_minutes ? minutesToHours(c.max_category_minutes) : '—'}</td><td>{c.conversion_numerator}:{c.conversion_denominator}</td></tr>
-          ))}</tbody>
-        </table>
-      )}
+      {open && (<>
+        {categories.length > 0 && (
+          <table className="alumni-table" style={{ marginTop: 8 }}>
+            <thead><tr><th>Categoria</th><th>Máx/Item</th><th>Máx/Cat.</th><th>Conversão</th></tr></thead>
+            <tbody>{categories.map(c => (
+              <tr key={c.id}><td>{c.label}</td><td>{c.max_per_item_minutes ? minutesToHours(c.max_per_item_minutes) : '—'}</td><td>{c.max_category_minutes ? minutesToHours(c.max_category_minutes) : '—'}</td><td>{c.conversion_numerator}:{c.conversion_denominator}</td></tr>
+            ))}</tbody>
+          </table>
+        )}
+        {!showCatForm ? (
+          <button style={{ fontSize: '.75rem', marginTop: 8, padding: '4px 12px', border: '1px solid var(--vx-border,#e2e8f0)', borderRadius: 6, background: 'transparent', cursor: 'pointer' }} onClick={() => setShowCatForm(true)}>+ Adicionar categoria</button>
+        ) : (
+          <form onSubmit={addCategory} style={{ marginTop: 8, display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr auto', gap: 6, alignItems: 'end' }}>
+            <label style={{ fontSize: '.6875rem' }}>Nome<input value={catLabel} onChange={e => setCatLabel(e.target.value)} style={sel} required placeholder="Eventos acadêmicos" /></label>
+            <label style={{ fontSize: '.6875rem' }}>Máx/Item (h)<input type="number" value={catMaxItem} onChange={e => setCatMaxItem(e.target.value)} style={sel} min="0" /></label>
+            <label style={{ fontSize: '.6875rem' }}>Máx/Cat. (h)<input type="number" value={catMaxCat} onChange={e => setCatMaxCat(e.target.value)} style={sel} min="0" /></label>
+            <label style={{ fontSize: '.6875rem' }}>Conv. Num<input type="number" value={catConvNum} onChange={e => setCatConvNum(e.target.value)} style={sel} min="1" /></label>
+            <label style={{ fontSize: '.6875rem' }}>Conv. Den<input type="number" value={catConvDen} onChange={e => setCatConvDen(e.target.value)} style={sel} min="1" /></label>
+            <div style={{ display: 'flex', gap: 4 }}>
+              <button type="submit" disabled={saving || !catLabel} className="alumni-btn-export" style={{ fontSize: '.6875rem', padding: '4px 10px' }}>{saving ? '…' : '✓'}</button>
+              <button type="button" onClick={() => setShowCatForm(false)} style={{ fontSize: '.6875rem', padding: '4px 8px', border: '1px solid var(--vx-border)', borderRadius: 4, background: 'transparent', cursor: 'pointer' }}>✕</button>
+            </div>
+          </form>
+        )}
+      </>)}
     </div>
   );
 }
