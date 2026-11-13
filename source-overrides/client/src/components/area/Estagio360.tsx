@@ -5,7 +5,7 @@ import { fetchProtocols, PROTOCOL_STATUS_LABELS } from '@/lib/atividades-complem
 import './egressos360.css';
 
 type Section = 'overview'|'organizations'|'fields'|'placements'|'attendance'|'reports'|'protocols'|'bi'|'config';
-interface Props { institutionId: string; courses: { id: string; name: string }[]; role: string; }
+interface Props { institutionId: string; courses: { id: string; name: string }[]; role: string; onNavigate?: (tab: string) => void; }
 
 const NAV: { key: Section; label: string; icon: string }[] = [
   { key: 'overview', label: 'Visão Geral', icon: '◎' },
@@ -19,7 +19,7 @@ const NAV: { key: Section; label: string; icon: string }[] = [
   { key: 'config', label: 'Configurações', icon: '⚙' },
 ];
 
-export default function Estagio360({ institutionId, courses, role }: Props) {
+export default function Estagio360({ institutionId, courses, role, onNavigate }: Props) {
   const [section, setSection] = useState<Section>('overview');
   const [orgs, setOrgs] = useState<InternshipOrg[]>([]);
   const [fields, setFields] = useState<InternshipField[]>([]);
@@ -97,6 +97,39 @@ export default function Estagio360({ institutionId, courses, role }: Props) {
                   <tr key={s.course_id}><td>{s.course_name}</td><td>{s.placements_total}</td><td>{s.placements_active}</td><td>{s.internal_count}</td><td>{s.external_count}</td><td>{s.students_distinct}</td><td>{s.completed}</td><td>{minutesToHours(s.hours_validated_minutes)}</td></tr>
                 ))}</tbody>
               </table>
+            </div>
+          )}
+
+          {/* Conexões com outros módulos */}
+          {onNavigate && (
+            <div className="alumni-section" style={{ marginTop: '1rem' }}>
+              <h3 className="alumni-section-title">Módulos Conectados</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 8 }}>
+                <button className="alumni-finding-card" style={{ cursor: 'pointer', textAlign: 'left', border: '1px solid var(--vx-border,#e2e8f0)' }} onClick={() => onNavigate('extensao')}>
+                  <strong>🤝 Extensão 360°</strong>
+                  <span style={{ fontSize: '.75rem', color: 'var(--vx-muted)', display: 'block' }}>Atividade de extensão pode originar estágio. Horas não duplicam entre módulos.</span>
+                </button>
+                <button className="alumni-finding-card" style={{ cursor: 'pointer', textAlign: 'left', border: '1px solid var(--vx-border,#e2e8f0)' }} onClick={() => onNavigate('tcc')}>
+                  <strong>📝 TCC e Pesquisa</strong>
+                  <span style={{ fontSize: '.75rem', color: 'var(--vx-muted)', display: 'block' }}>Estágio pode gerar material para TCC. Créditos registrados separadamente.</span>
+                </button>
+                <button className="alumni-finding-card" style={{ cursor: 'pointer', textAlign: 'left', border: '1px solid var(--vx-border,#e2e8f0)' }} onClick={() => onNavigate('atividades-complementares')}>
+                  <strong>📜 Atividades Complementares</strong>
+                  <span style={{ fontSize: '.75rem', color: 'var(--vx-muted)', display: 'block' }}>Estágio não obrigatório pode ser apresentado como AC conforme regulamento.</span>
+                </button>
+                <button className="alumni-finding-card" style={{ cursor: 'pointer', textAlign: 'left', border: '1px solid var(--vx-border,#e2e8f0)' }} onClick={() => onNavigate('governanca')}>
+                  <strong>⚖ Governança</strong>
+                  <span style={{ fontSize: '.75rem', color: 'var(--vx-muted)', display: 'block' }}>Colegiado delibera sobre aproveitamento e campos de estágio.</span>
+                </button>
+                <button className="alumni-finding-card" style={{ cursor: 'pointer', textAlign: 'left', border: '1px solid var(--vx-border,#e2e8f0)' }} onClick={() => onNavigate('raio-x-direito')}>
+                  <strong>⌕ Raio-X do Curso</strong>
+                  <span style={{ fontSize: '.75rem', color: 'var(--vx-muted)', display: 'block' }}>Bloco Estágio no raio-x com vínculos ativos e concluídos por curso.</span>
+                </button>
+                <button className="alumni-finding-card" style={{ cursor: 'pointer', textAlign: 'left', border: '1px solid var(--vx-border,#e2e8f0)' }} onClick={() => onNavigate('inclusao')}>
+                  <strong>♿ Inclusão / PEI</strong>
+                  <span style={{ fontSize: '.75rem', color: 'var(--vx-muted)', display: 'block' }}>Alunos com PEI podem ter adaptações no plano de estágio.</span>
+                </button>
+              </div>
             </div>
           )}
         </div>)}

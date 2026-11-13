@@ -4,7 +4,7 @@ import { fetchAcRules, fetchAcCategories, fetchAcSubmissions, fetchAcStudentBala
 import './egressos360.css';
 
 type Section = 'overview'|'rules'|'students'|'submissions'|'balance'|'protocols'|'bi'|'config';
-interface Props { institutionId: string; courses: { id: string; name: string }[]; role: string; }
+interface Props { institutionId: string; courses: { id: string; name: string }[]; role: string; onNavigate?: (tab: string) => void; }
 
 const NAV: { key: Section; label: string; icon: string }[] = [
   { key: 'overview', label: 'Visão Geral', icon: '◎' },
@@ -17,7 +17,7 @@ const NAV: { key: Section; label: string; icon: string }[] = [
   { key: 'config', label: 'Configurações', icon: '⚙' },
 ];
 
-export default function AtividadesComplementares360({ institutionId, courses, role }: Props) {
+export default function AtividadesComplementares360({ institutionId, courses, role, onNavigate }: Props) {
   const [section, setSection] = useState<Section>('overview');
   const [rules, setRules] = useState<AcRule[]>([]);
   const [summary, setSummary] = useState<AcCourseSummary[]>([]);
@@ -87,6 +87,31 @@ export default function AtividadesComplementares360({ institutionId, courses, ro
                   </tr>
                 ))}</tbody>
               </table>
+            </div>
+          )}
+
+          {/* Conexões com outros módulos */}
+          {onNavigate && (
+            <div className="alumni-section" style={{ marginTop: '1rem' }}>
+              <h3 className="alumni-section-title">Módulos Conectados</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 8 }}>
+                <button className="alumni-finding-card" style={{ cursor: 'pointer', textAlign: 'left', border: '1px solid var(--vx-border,#e2e8f0)' }} onClick={() => onNavigate('extensao')}>
+                  <strong>🤝 Extensão 360°</strong>
+                  <span style={{ fontSize: '.75rem', color: 'var(--vx-muted)', display: 'block' }}>Atividades de extensão podem ser reconhecidas como AC quando o regulamento permitir.</span>
+                </button>
+                <button className="alumni-finding-card" style={{ cursor: 'pointer', textAlign: 'left', border: '1px solid var(--vx-border,#e2e8f0)' }} onClick={() => onNavigate('tcc')}>
+                  <strong>📝 TCC e Pesquisa</strong>
+                  <span style={{ fontSize: '.75rem', color: 'var(--vx-muted)', display: 'block' }}>Participação em pesquisa/monitoria pode gerar AC. Horas não duplicam entre módulos.</span>
+                </button>
+                <button className="alumni-finding-card" style={{ cursor: 'pointer', textAlign: 'left', border: '1px solid var(--vx-border,#e2e8f0)' }} onClick={() => onNavigate('estagio')}>
+                  <strong>🏢 Estágio</strong>
+                  <span style={{ fontSize: '.75rem', color: 'var(--vx-muted)', display: 'block' }}>Estágio não obrigatório pode ser apresentado como AC conforme regulamento.</span>
+                </button>
+                <button className="alumni-finding-card" style={{ cursor: 'pointer', textAlign: 'left', border: '1px solid var(--vx-border,#e2e8f0)' }} onClick={() => onNavigate('raio-x-direito')}>
+                  <strong>⌕ Raio-X do Curso</strong>
+                  <span style={{ fontSize: '.75rem', color: 'var(--vx-muted)', display: 'block' }}>Bloco AC no raio-x com solicitações pendentes e horas creditadas por curso.</span>
+                </button>
+              </div>
             </div>
           )}
         </div>)}
@@ -204,6 +229,34 @@ export default function AtividadesComplementares360({ institutionId, courses, ro
 
 function KPI({ label, value, color }: { label: string; value: number|string; color?: string }) {
   return <div className="alumni-kpi" style={{ borderLeftColor: color || 'var(--vx-accent,#2563eb)' }}><span className="alumni-kpi-value">{value}</span><span className="alumni-kpi-label">{label}</span></div>;
+}
+
+// ── Motor de cálculo determinístico (conforme Anexo 2 do prompt) ──
+export function calculateComplementaryAward(input: {
+  documentaryMinutes: number | null;
+  conversionNumerator: number;
+  conversionDenominator: number;
+  maxPerItemMinutes: number | null;
+  categoryRemainingMinutes: number;
+  totalRemainingMinutes: number;
+}): { state: 'manual_review'; reason: string } | { state: 'calculated'; convertedMinutes: number; awardedMinutes: number; capped: boolean; appliedLimits: string[] } {
+  const nonNegativeInt = (n: number) => Number.isSafeInteger(n) && n >= 0;
+  if (input.documentaryMinutes === null) return { state: 'manual_review', reason: 'Carga documental não comprovada.' };
+  const values = [input.documentaryMinutes, input.categoryRemainingMinutes, input.totalRemainingMinutes];
+  if (!values.every(nonNegativeInt) || input.conversionNumerator <= 0 || input.conversionDenominator <= 0 ||
+      (input.maxPerItemMinutes !== null && !nonNegativeInt(input.maxPerItemMinutes)))
+    throw new Error('Entrada de cálculo inválida.');
+  const product = input.documentaryMinutes * input.conversionNumerator;
+  if (!Number.isSafeInteger(product)) throw new Error('Conversão excede limite numérico.');
+  const convertedMinutes = Math.floor(product / input.conversionDenominator);
+  const limits: [string, number][] = [
+    ['item', input.maxPerItemMinutes ?? convertedMinutes],
+    ['category', input.categoryRemainingMinutes],
+    ['total', input.totalRemainingMinutes],
+  ];
+  const awardedMinutes = Math.min(convertedMinutes, ...limits.map(([, n]) => n));
+  return { state: 'calculated', convertedMinutes, awardedMinutes, capped: awardedMinutes < convertedMinutes,
+    appliedLimits: limits.filter(([, n]) => n < convertedMinutes).map(([name]) => name) };
 }
 
 function RuleCard({ rule, courseName }: { rule: AcRule; courseName: string }) {

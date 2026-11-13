@@ -22,6 +22,7 @@ interface Props {
   institutionId: string;
   courses: { id: string; name: string; modality?: string }[];
   role: string;
+  onNavigate?: (tab: string) => void;
 }
 
 const NAV: { key: Section; label: string; icon: string }[] = [
@@ -38,11 +39,13 @@ const NAV: { key: Section; label: string; icon: string }[] = [
   { key: 'config', label: 'Configurações', icon: '⚙' },
 ];
 
-export default function Tcc360({ institutionId, courses, role }: Props) {
+export default function Tcc360({ institutionId, courses, role, onNavigate }: Props) {
   const [section, setSection] = useState<Section>('overview');
   const [works, setWorks] = useState<TccWork[]>([]);
   const [workTypes, setWorkTypes] = useState<TccWorkType[]>([]);
   const [summary, setSummary] = useState<TccCourseSummary[]>([]);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [creating, setCreating] = useState(false);
   const [selectedWork, setSelectedWork] = useState<string | null>(null);
   const [courseFilter, setCourseFilter] = useState('');
   const [loading, setLoading] = useState(true);
@@ -141,6 +144,39 @@ export default function Tcc360({ institutionId, courses, role }: Props) {
               <strong>⚠ {overdue.length} trabalho(s) com prazo vencido.</strong> Verifique a carteira para detalhes.
             </div>
           )}
+
+          {/* Conexões com outros módulos */}
+          {onNavigate && (
+            <div className="alumni-section" style={{ marginTop: '1rem' }}>
+              <h3 className="alumni-section-title">Módulos Conectados</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 8 }}>
+                <button className="alumni-finding-card" style={{ cursor: 'pointer', textAlign: 'left', border: '1px solid var(--vx-border,#e2e8f0)' }} onClick={() => onNavigate('extensao')}>
+                  <strong>🤝 Extensão 360°</strong>
+                  <span style={{ fontSize: '.75rem', color: 'var(--vx-muted)', display: 'block' }}>Projetos de extensão podem originar pesquisa/TCC. Horas não duplicam entre módulos.</span>
+                </button>
+                <button className="alumni-finding-card" style={{ cursor: 'pointer', textAlign: 'left', border: '1px solid var(--vx-border,#e2e8f0)' }} onClick={() => onNavigate('egressos')}>
+                  <strong>🎓 Egressos 360°</strong>
+                  <span style={{ fontSize: '.75rem', color: 'var(--vx-muted)', display: 'block' }}>Trabalhos depositados alimentam o perfil do egresso e indicadores de produção.</span>
+                </button>
+                <button className="alumni-finding-card" style={{ cursor: 'pointer', textAlign: 'left', border: '1px solid var(--vx-border,#e2e8f0)' }} onClick={() => onNavigate('cpa-autoavaliacao')}>
+                  <strong>📊 CPA</strong>
+                  <span style={{ fontSize: '.75rem', color: 'var(--vx-muted)', display: 'block' }}>Achados da CPA sobre TCC geram ações de melhoria vinculadas.</span>
+                </button>
+                <button className="alumni-finding-card" style={{ cursor: 'pointer', textAlign: 'left', border: '1px solid var(--vx-border,#e2e8f0)' }} onClick={() => onNavigate('governanca')}>
+                  <strong>⚖ Governança</strong>
+                  <span style={{ fontSize: '.75rem', color: 'var(--vx-muted)', display: 'block' }}>NDE revisa referenciais PPC e valida evidências dos trabalhos.</span>
+                </button>
+                <button className="alumni-finding-card" style={{ cursor: 'pointer', textAlign: 'left', border: '1px solid var(--vx-border,#e2e8f0)' }} onClick={() => onNavigate('raio-x-direito')}>
+                  <strong>⌕ Raio-X do Curso</strong>
+                  <span style={{ fontSize: '.75rem', color: 'var(--vx-muted)', display: 'block' }}>Bloco TCC no raio-x com trabalhos ativos, depositados e atrasados por curso.</span>
+                </button>
+                <button className="alumni-finding-card" style={{ cursor: 'pointer', textAlign: 'left', border: '1px solid var(--vx-border,#e2e8f0)' }} onClick={() => onNavigate('repositorio')}>
+                  <strong>📂 Repositório Documental</strong>
+                  <span style={{ fontSize: '.75rem', color: 'var(--vx-muted)', display: 'block' }}>Versões finais e PPC vinculados ao repositório de evidências regulatórias.</span>
+                </button>
+              </div>
+            </div>
+          )}
         </div>)}
 
         {/* ── CARTEIRA ── */}
@@ -153,11 +189,30 @@ export default function Tcc360({ institutionId, courses, role }: Props) {
                 <option value="">Todos os cursos</option>
                 {courses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
+              <button onClick={() => setShowCreateForm(!showCreateForm)} style={{ padding: '.375rem .75rem', background: 'var(--vx-accent,#2563eb)', color: '#fff', border: 'none', borderRadius: 6, fontSize: '.8125rem', cursor: 'pointer' }}>
+                + Novo trabalho
+              </button>
             </div>
           </header>
 
-          {filtered.length === 0 ? (
-            <div className="alumni-info-box">Nenhum trabalho cadastrado{courseFilter ? ' neste curso' : ''}.</div>
+          {showCreateForm && (
+            <CreateWorkForm institutionId={institutionId} courses={courses} workTypes={workTypes} creating={creating}
+              onSubmit={async (data) => {
+                setCreating(true);
+                try {
+                  await createWork(data);
+                  const w = await fetchWorks(institutionId);
+                  setWorks(w);
+                  setShowCreateForm(false);
+                } catch (e) { alert('Erro ao criar trabalho: ' + (e as Error).message); }
+                finally { setCreating(false); }
+              }}
+              onCancel={() => setShowCreateForm(false)}
+            />
+          )}
+
+          {filtered.length === 0 && !showCreateForm ? (
+            <div className="alumni-info-box">Nenhum trabalho cadastrado{courseFilter ? ' neste curso' : ''}. Use o botão <strong>+ Novo trabalho</strong> para começar.</div>
           ) : (
             <div style={{ display: 'grid', gap: '0.75rem' }}>
               {filtered.map(w => (
@@ -691,6 +746,57 @@ function ConfigSection({ institutionId, workTypes }: { institutionId: string; wo
       </div>
       <div className="alumni-info-box" style={{ marginTop: '1rem' }}>
         Configurações avançadas (limites de arquivo, fluxo de aprovação de horas, análise IA) podem ser ajustadas por curso na tabela <code>vertice_tcc_config</code>.
+      </div>
+    </div>
+  );
+}
+
+// ── Formulário de criação de trabalho ──
+function CreateWorkForm({ institutionId, courses, workTypes, creating, onSubmit, onCancel }: {
+  institutionId: string; courses: { id: string; name: string }[]; workTypes: TccWorkType[];
+  creating: boolean; onSubmit: (data: any) => void; onCancel: () => void;
+}) {
+  const [form, setForm] = useState({ course_id: '', work_type_id: '', title: '', academic_term: '2026.2', research_line: '', general_objective: '', keywords: '' });
+  const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }));
+  const valid = form.course_id && form.work_type_id && form.title.trim();
+  return (
+    <div className="alumni-section" style={{ border: '2px solid var(--vx-accent,#2563eb)', borderRadius: 10, padding: '1.25rem', marginBottom: '1rem' }}>
+      <h3 className="alumni-section-title">Novo Trabalho</h3>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10 }}>
+        <label style={{ fontSize: '.8125rem', fontWeight: 600 }}>Curso *
+          <select value={form.course_id} onChange={e => set('course_id', e.target.value)} style={{ display: 'block', width: '100%', padding: '.375rem', border: '1px solid var(--vx-border)', borderRadius: 6, fontSize: '.8125rem', marginTop: 2 }}>
+            <option value="">Selecione</option>{courses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+        </label>
+        <label style={{ fontSize: '.8125rem', fontWeight: 600 }}>Tipo *
+          <select value={form.work_type_id} onChange={e => set('work_type_id', e.target.value)} style={{ display: 'block', width: '100%', padding: '.375rem', border: '1px solid var(--vx-border)', borderRadius: 6, fontSize: '.8125rem', marginTop: 2 }}>
+            <option value="">Selecione</option>{workTypes.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
+          </select>
+        </label>
+        <label style={{ fontSize: '.8125rem', fontWeight: 600 }}>Semestre
+          <input value={form.academic_term} onChange={e => set('academic_term', e.target.value)} style={{ display: 'block', width: '100%', padding: '.375rem', border: '1px solid var(--vx-border)', borderRadius: 6, fontSize: '.8125rem', marginTop: 2 }} />
+        </label>
+      </div>
+      <label style={{ fontSize: '.8125rem', fontWeight: 600, display: 'block', marginTop: 10 }}>Título *
+        <input value={form.title} onChange={e => set('title', e.target.value)} placeholder="Título do trabalho" style={{ display: 'block', width: '100%', padding: '.375rem', border: '1px solid var(--vx-border)', borderRadius: 6, fontSize: '.8125rem', marginTop: 2 }} />
+      </label>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 10 }}>
+        <label style={{ fontSize: '.8125rem', fontWeight: 600 }}>Linha de pesquisa
+          <input value={form.research_line} onChange={e => set('research_line', e.target.value)} style={{ display: 'block', width: '100%', padding: '.375rem', border: '1px solid var(--vx-border)', borderRadius: 6, fontSize: '.8125rem', marginTop: 2 }} />
+        </label>
+        <label style={{ fontSize: '.8125rem', fontWeight: 600 }}>Palavras-chave (separadas por vírgula)
+          <input value={form.keywords} onChange={e => set('keywords', e.target.value)} style={{ display: 'block', width: '100%', padding: '.375rem', border: '1px solid var(--vx-border)', borderRadius: 6, fontSize: '.8125rem', marginTop: 2 }} />
+        </label>
+      </div>
+      <label style={{ fontSize: '.8125rem', fontWeight: 600, display: 'block', marginTop: 10 }}>Objetivo geral
+        <textarea value={form.general_objective} onChange={e => set('general_objective', e.target.value)} rows={2} style={{ display: 'block', width: '100%', padding: '.375rem', border: '1px solid var(--vx-border)', borderRadius: 6, fontSize: '.8125rem', marginTop: 2, resize: 'vertical' }} />
+      </label>
+      <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+        <button disabled={!valid || creating} onClick={() => onSubmit({ institution_id: institutionId, course_id: form.course_id, work_type_id: form.work_type_id, title: form.title.trim(), academic_term: form.academic_term, research_line: form.research_line || undefined, general_objective: form.general_objective || undefined, keywords: form.keywords ? form.keywords.split(',').map(k => k.trim()).filter(Boolean) : undefined })}
+          style={{ padding: '.5rem 1.25rem', background: valid && !creating ? 'var(--vx-accent,#2563eb)' : '#94a3b8', color: '#fff', border: 'none', borderRadius: 8, fontSize: '.8125rem', cursor: valid && !creating ? 'pointer' : 'not-allowed' }}>
+          {creating ? 'Criando…' : 'Criar trabalho'}
+        </button>
+        <button onClick={onCancel} style={{ padding: '.5rem 1.25rem', background: 'transparent', border: '1px solid var(--vx-border)', borderRadius: 8, fontSize: '.8125rem', cursor: 'pointer' }}>Cancelar</button>
       </div>
     </div>
   );
