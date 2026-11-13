@@ -166,13 +166,21 @@ export default function AtividadesComplementares360({ institutionId, courses, ro
           {showAcForm && <CreateAcSubmissionForm institutionId={institutionId} courses={courses} rules={rules} students={students} onCreated={(s) => { setSubmissions(prev => [s, ...prev]); setShowAcForm(false); }} onCancel={() => setShowAcForm(false)} />}
           {submissions.length === 0 && !showAcForm ? <div className="alumni-info-box">Nenhuma solicitação recebida.</div> : (
             <table className="alumni-table">
-              <thead><tr><th>Título</th><th>Emissor</th><th>Carga Doc.</th><th>Status</th><th>Data</th></tr></thead>
+              <thead><tr><th>Título</th><th>Emissor</th><th>Carga Doc.</th><th>Status</th><th>Data</th><th>Ações</th></tr></thead>
               <tbody>{submissions.slice(0, 100).map(s => (
                 <tr key={s.id}>
                   <td>{s.title}</td><td>{s.issuer || '—'}</td>
                   <td>{s.documentary_minutes ? minutesToHours(s.documentary_minutes) : '—'}</td>
                   <td><span className="alumni-tag">{AC_STATUS_LABELS[s.status] || s.status}</span></td>
                   <td>{new Date(s.created_at).toLocaleDateString('pt-BR')}</td>
+                  <td>{['submitted','under_review','suggestion_ready'].includes(s.status) && (
+                    <div style={{ display: 'flex', gap: 4 }}>
+                      <button style={{ fontSize: '.6875rem', padding: '2px 8px', borderRadius: 4, border: '1px solid #059669', background: '#f0fdf4', color: '#059669', cursor: 'pointer' }}
+                        onClick={async () => { await supabase.from('vertice_ac_submissions').update({ status: 'approved' }).eq('id', s.id); setSubmissions(prev => prev.map(x => x.id === s.id ? { ...x, status: 'approved' } : x)); }}>✓ Deferir</button>
+                      <button style={{ fontSize: '.6875rem', padding: '2px 8px', borderRadius: 4, border: '1px solid #ef4444', background: '#fef2f2', color: '#ef4444', cursor: 'pointer' }}
+                        onClick={async () => { await supabase.from('vertice_ac_submissions').update({ status: 'rejected' }).eq('id', s.id); setSubmissions(prev => prev.map(x => x.id === s.id ? { ...x, status: 'rejected' } : x)); }}>✕ Indeferir</button>
+                    </div>
+                  )}</td>
                 </tr>
               ))}</tbody>
             </table>

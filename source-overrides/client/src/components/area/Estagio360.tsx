@@ -49,6 +49,14 @@ export default function Estagio360({ institutionId, courses, role, onNavigate }:
     }).finally(() => setLoading(false));
   }, [institutionId]);
 
+  const LIFECYCLE_ORDER: Record<string, string> = {
+    draft: 'preparing', preparing: 'under_review', under_review: 'authorized',
+    authorized: 'active', active: 'operationally_closed',
+    operationally_closed: 'final_assessment', final_assessment: 'academic_approved',
+    academic_approved: 'sent_to_secretariat', sent_to_secretariat: 'posting_confirmed',
+  };
+  const nextLifecycle = (current: string): string | null => LIFECYCLE_ORDER[current] || null;
+
   const courseName = (id: string) => courses.find(c => c.id === id)?.name || '—';
   const orgName = (id: string) => orgs.find(o => o.id === id)?.name || '—';
   const fieldName = (id: string) => fields.find(f => f.id === id)?.name || '—';
@@ -196,9 +204,17 @@ export default function Estagio360({ institutionId, courses, role, onNavigate }:
                       {LIFECYCLE_LABELS[p.lifecycle] || p.lifecycle}
                     </span>
                   </div>
-                  <div style={{ fontSize: '.75rem', color: 'var(--vx-muted)', marginTop: 4 }}>
-                    {p.starts_at && `Início: ${new Date(p.starts_at).toLocaleDateString('pt-BR')}`}
-                    {p.ends_at && ` · Fim: ${new Date(p.ends_at).toLocaleDateString('pt-BR')}`}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
+                    <span style={{ fontSize: '.75rem', color: 'var(--vx-muted)' }}>
+                      {p.starts_at && `Início: ${new Date(p.starts_at).toLocaleDateString('pt-BR')}`}
+                      {p.ends_at && ` · Fim: ${new Date(p.ends_at).toLocaleDateString('pt-BR')}`}
+                    </span>
+                    {nextLifecycle(p.lifecycle) && (
+                      <button style={{ fontSize: '.6875rem', padding: '2px 10px', borderRadius: 4, border: '1px solid #2563eb', background: '#eff6ff', color: '#2563eb', cursor: 'pointer' }}
+                        onClick={async (e) => { e.stopPropagation(); const next = nextLifecycle(p.lifecycle)!; await supabase.from('vertice_internship_placements').update({ lifecycle: next }).eq('id', p.id); setPlacements(prev => prev.map(x => x.id === p.id ? { ...x, lifecycle: next } : x)); }}>
+                        → {LIFECYCLE_LABELS[nextLifecycle(p.lifecycle)!] || nextLifecycle(p.lifecycle)}
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
