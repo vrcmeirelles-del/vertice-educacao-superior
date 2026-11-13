@@ -106,6 +106,11 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('todos');
   const [staffList, setStaffList] = useState<{full_name:string;email:string|null;source:string}[]>([]);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteName, setInviteName] = useState('');
+  const [inviteBusy, setInviteBusy] = useState(false);
+  const [inviteMsg, setInviteMsg] = useState('');
+  const [inviteLink, setInviteLink] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -229,6 +234,34 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
     load();
   }
 
+  async function sendInvite(e: React.FormEvent) {
+    e.preventDefault();
+    setInviteBusy(true); setInviteMsg(''); setInviteLink('');
+    try {
+      const mail = inviteEmail.trim().toLowerCase();
+      // 1. Tentar criar conta com senha padrão via signUp
+      const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({ email: mail, password: '123456', options: { data: { full_name: inviteName || mail.split('@')[0] } } });
+      // signUp pode retornar user mesmo se já existe (fake signup)
+      // 2. Adicionar como membro via RPC
+      const { error: memberErr } = await supabase.rpc('vertice_add_member', { target: institutionId, member_email: mail, member_role: 'equipe' });
+      // 3. Buscar convite para gerar link
+      const { data: inv } = await supabase.from('vertice_invites').select('id').eq('institution_id', institutionId).eq('email', mail).is('accepted_at', null).order('created_at', { ascending: false }).limit(1);
+      const invId = inv?.[0]?.id;
+      const link = `${window.location.origin}/entrar${invId ? '?convite=' + invId : ''}`;
+      setInviteLink(link);
+      const created = signUpData?.user && !signUpErr;
+      setInviteMsg(created
+        ? `✅ Conta criada para ${mail} com senha padrão 123456. Copie o link e envie por WhatsApp.`
+        : memberErr
+        ? `⚠️ Não foi possível vincular: ${memberErr.message}. Tente pela aba Equipe.`
+        : `✅ Convite registrado para ${mail}. Copie o link abaixo.`
+      );
+      setInviteEmail(''); setInviteName('');
+    } catch (err) {
+      setInviteMsg(`Erro: ${(err as Error).message}`);
+    } finally { setInviteBusy(false); }
+  }
+
   const projTeam = selectedProject ? team.filter(t => t.project_id === selectedProject) : [];
   const projStudents = selectedProject ? students.filter(s => s.project_id === selectedProject) : [];
   const projDeliverables = selectedProject ? deliverables.filter(d => d.project_id === selectedProject) : [];
@@ -251,6 +284,22 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
           </div>
         )}
       </div>
+
+      {/* Convite simplificado */}
+      {canEdit && <div style={{padding:'14px 18px',background:'#f0fdf4',border:'1px solid #86efac',borderRadius:10,marginBottom:16}}>
+        <strong style={{fontSize:13,color:'#166534'}}>📩 Convidar professor para a Extensão</strong>
+        <form onSubmit={sendInvite} style={{display:'flex',gap:8,alignItems:'flex-end',flexWrap:'wrap',marginTop:8}}>
+          <label style={{display:'grid',gap:4,fontSize:12,flex:1,minWidth:160}}>Nome<input value={inviteName} onChange={e=>setInviteName(e.target.value)} placeholder="Prof. João Silva" style={{padding:'7px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:13}}/></label>
+          <label style={{display:'grid',gap:4,fontSize:12,flex:1,minWidth:200}}>E-mail *<input type="email" required value={inviteEmail} onChange={e=>setInviteEmail(e.target.value)} placeholder="professor@email.com" style={{padding:'7px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:13}}/></label>
+          <button type="submit" disabled={inviteBusy} style={{padding:'7px 14px',background:'#16a34a',color:'#fff',border:0,borderRadius:6,fontSize:13,fontWeight:600,cursor:'pointer',whiteSpace:'nowrap'}}>{inviteBusy?'Enviando…':'Enviar convite'}</button>
+        </form>
+        {inviteMsg&&<p style={{fontSize:12,margin:'8px 0 0',color:inviteMsg.startsWith('✅')?'#166534':inviteMsg.startsWith('⚠')?'#92400e':'#991b1b'}}>{inviteMsg}</p>}
+        {inviteLink&&<div style={{display:'flex',gap:8,alignItems:'center',marginTop:8}}>
+          <input readOnly value={inviteLink} style={{flex:1,padding:'7px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:11,background:'#fff'}} onClick={e=>(e.target as HTMLInputElement).select()}/>
+          <button type="button" onClick={()=>navigator.clipboard.writeText(inviteLink).then(()=>setInviteMsg('📋 Link copiado! Cole no WhatsApp.')).catch(()=>{})} style={{padding:'7px 12px',background:'#16a34a',color:'#fff',border:0,borderRadius:6,fontSize:12,fontWeight:600,cursor:'pointer',whiteSpace:'nowrap'}}>📋 Copiar</button>
+        </div>}
+        <p style={{fontSize:10,color:'#6b7280',marginTop:6}}>Senha padrão: <strong>123456</strong> · O professor altera depois em Minha Conta.</p>
+      </div>}
 
       {/* KPIs */}
       <div className="ext-kpis">

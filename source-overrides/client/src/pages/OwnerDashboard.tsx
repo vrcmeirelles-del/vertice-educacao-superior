@@ -285,7 +285,11 @@ export default function OwnerDashboard(){
    setAal(assurance.currentLevel??'aal1');
    if(assurance.currentLevel!=='aal2'){
     const {data,error:fError}=await supabase.auth.mfa.listFactors();if(fError)throw fError;
-    setFactor(data.totp[0]?.id??'');return;
+    setFactor(data.totp[0]?.id??'');
+    // Verificar se é admin (master) — se for, exigir MFA
+    const {data:adminCheck}=await supabase.from('vertice_admins').select('user_id').eq('user_id',current.user.id);
+    if(adminCheck?.length){return;} // Master precisa de MFA
+    // Equipe/gestor pode continuar sem MFA
    }
    // Aquisições depende apenas da sessão e do MFA; seu backend aplica as permissões.
    if(acquisitionsRoute)return;
@@ -335,7 +339,7 @@ export default function OwnerDashboard(){
  {master&&(route.tierFilter||route.financeiro)&&!route.inst&&<button onClick={()=>{window.location.hash='';window.dispatchEvent(new HashChangeEvent('hashchange'));}} style={{background:'none',border:'none',color:'#2563eb',cursor:'pointer',fontSize:13,marginBottom:12,padding:0}}>← Voltar ao hub</button>}
  {loading?<p role="status">Verificando acesso…</p>:!session?<><p>Entre para acessar sua conta.</p><Link className="corp-button" href={window.location.pathname.startsWith('/reitor')?'/entrar?destino=reitor':'/entrar'}>Entrar</Link></>:<>
  <p>Conectado como <strong>{session.user.email}</strong>.</p>
- {aal!=='aal2'?<section className="corp-login-card"><h2>Proteja seu acesso</h2><p>O segundo fator é obrigatório para consultar os dados das instituições.</p>
+ {aal!=='aal2'&&master?<section className="corp-login-card"><h2>Proteja seu acesso</h2><p>O segundo fator é obrigatório para consultar os dados das instituições como administrador.</p>
  {!factor?<button className="corp-button" disabled={busy} onClick={enroll}>Configurar aplicativo autenticador</button>:<>
  {qr&&<><p>Leia o QR code no seu aplicativo autenticador. Não compartilhe esta imagem.</p><img alt="QR code para configurar seu autenticador" src={qr} width={200} height={200}/></>}
  <form className="access-form" onSubmit={verify}><HelpLabel>Código do autenticador<input autoComplete="one-time-code" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} required value={code} onChange={e=>setCode(e.target.value)}/></HelpLabel><button className="corp-button" disabled={busy}>Validar segundo fator</button></form></>}
