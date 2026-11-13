@@ -368,15 +368,14 @@ h4 {
   flex-direction: column;
 }
 .topbar {
-  height: 42px;
+  height: 56px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
+  padding: 0 28px;
   border-bottom: 1px solid var(--border);
   background: var(--card);
   box-shadow: var(--shadow-xs);
-  font-size: 13px;
 }
 .breadcrumb {
   display: flex;

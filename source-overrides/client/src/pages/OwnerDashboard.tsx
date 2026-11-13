@@ -26,7 +26,6 @@ import GreenHost from '@/components/acquisitions/GreenHost';
 import DemoLeads from '@/components/DemoLeads';
 import CaptacaoBI from '@/components/area/CaptacaoBI';
 import './owner-dashboard-redesign.css';
-import '@/components/demo-showroom.css';
 import AcademicoBI from '@/components/bi/AcademicoBI';
 import EgressosBI from '@/components/bi/EgressosBI';
 import AcademicModulesBI from '@/components/bi/AcademicModulesBI';
@@ -55,7 +54,7 @@ async function fetchDashboardRows(table:string,order:string,ascending=true,colum
  for(let from=0;;from+=1000){const {data,error}=await supabase.from(table).select(columns).order(order,{ascending}).order('id').range(from,from+999);if(error)throw error;rows.push(...((data??[]) as unknown as Row[]));if(!data||data.length<1000)break;}
  return {data:rows,error:null};
 }
-function readHash(){const p=new URLSearchParams(typeof window==='undefined'?'':window.location.hash.slice(1));return {inst:p.get('instituicao')??'',course:p.get('curso')??'',repositories:p.get('repositorios')==='1',bi:p.get('bi')==='1',captacao:p.get('captacao')==='1',academico:p.get('academico')==='1',painelBi:p.get('painel-bi')==='1',perfis:p.get('perfis')==='1',masters:p.get('masters')==='1',demonstrativos:p.get('demonstrativos')==='1',clientes:p.get('clientes')==='1',governanca:p.get('governanca')==='1',hub:!p.toString(),biVertice:p.get('bi-vertice')==='1',tierFilter:p.get('tier')??'',financeiro:p.get('financeiro')==='1',tcc:p.get('tcc')==='1',estagio:p.get('estagio')==='1',ac:p.get('ac')==='1',egressos:p.get('egressos')==='1',extensao:p.get('extensao')==='1',dash360:p.get('360')==='1',evasao:p.get('evasao')==='1'};}
+function readHash(){const p=new URLSearchParams(typeof window==='undefined'?'':window.location.hash.slice(1));return {inst:p.get('instituicao')??'',course:p.get('curso')??'',repositories:p.get('repositorios')==='1',bi:p.get('bi')==='1',captacao:p.get('captacao')==='1',academico:p.get('academico')==='1',painelBi:p.get('painel-bi')==='1',perfis:p.get('perfis')==='1',masters:p.get('masters')==='1',demonstrativos:p.get('demonstrativos')==='1',clientes:p.get('clientes')==='1',governanca:p.get('governanca')==='1',hub:!p.toString(),biVertice:p.get('bi-vertice')==='1',tierFilter:p.get('tier')??'',financeiro:p.get('financeiro')==='1'};}
 function writeHash(inst:string,course:string,repositories=false,library=false,reitor=false,masters=false){const p=new URLSearchParams();if(masters)p.set('masters','1');if(inst)p.set('instituicao',inst);if(course)p.set('curso',course);if(repositories){if(inst)p.set('aba','repositorio');else p.set('repositorios','1');}if(library)p.set('aba','biblioteca');if(reitor)p.set('aba','reitor');const h=p.toString();window.history.pushState(null,'',h?`#${h}`:window.location.pathname);window.dispatchEvent(new HashChangeEvent('hashchange'));window.scrollTo({top:0});}
 
 type BiItem = {label:string; group:string; value:number; href?:string};
@@ -208,7 +207,7 @@ export function PortalBI({institutions,courses,enrollments,session}:{institution
  {['Investimento em captação (R$)','Matrículas atribuídas à campanha','Despesas de permanência (R$)','Alunos acompanhados'].map((label,i)=><HelpLabel key={label}>{label}<input type="number" min="0" step={i%2?'1':'0.01'} value={manual[i]} onChange={event=>{const value=event.target.value;setManual(previous=>previous.map((old,index)=>index===i?value:old));}}/></HelpLabel>)}
  <p>Por matrícula confirmada <strong>{ratio(manual[0],manual[1])}</strong></p><p>Por aluno acompanhado <strong>{ratio(manual[2],manual[3])}</strong></p></div></article>;
  return <section ref={panel} className="portal-bi" aria-label="BI da Reitoria">
- <style>{'.portal-bi{background:#edf0f3;color:#0d1a2b;padding:0;overflow:auto}.portal-bi h2{margin:0;font-size:clamp(26px,4vw,48px)}.pbi-toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:18px 0}.portal-bi button,.portal-bi select,.portal-bi input{border:1px solid #d4d9ea;background:white;color:inherit;padding:9px;border-radius:8px}.portal-bi button[aria-pressed=true]{background:#0b3c80;color:white}.pbi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,310px),1fr));gap:18px}.pbi-card{background:white;border:1px solid #e0e4f1;border-radius:16px;padding:20px;min-width:0}.pbi-card h3{margin:5px 0 18px;font-size:24px}.pbi-card small{color:#535b78}.pbi-donut{display:block;width:min(68%,220px);margin:auto}.pbi-donut circle[stroke-dasharray]{cursor:pointer}.pbi-columns{height:165px;display:flex;align-items:flex-end;gap:5px;padding:24px 0 0;margin:14px 0}.pbi-columns button{position:relative;flex:1;min-width:0;border:0;padding:0;border-radius:5px 5px 0 0}.pbi-columns span{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);font-size:11px}.pbi-legend{display:grid;gap:5px;max-height:260px;overflow:auto;margin-top:14px}.pbi-legend button{display:flex;gap:8px;align-items:center;text-align:left}.pbi-legend i{flex:none;width:11px;height:11px;border-radius:3px}.pbi-legend b{margin-left:auto}.pbi-card label{display:grid;gap:6px}.portal-bi dialog{max-width:min(720px,90vw);max-height:80vh;border:1px solid #d4d9ea;border-radius:16px;padding:24px;color:#1b2440}.portal-bi dialog::backdrop{background:#18142b99}.portal-bi:fullscreen .pbi-card{max-width:1400px;margin:auto}.portal-bi:fullscreen .pbi-donut{width:min(48vh,390px)}.portal-bi:fullscreen .pbi-columns{height:40vh}'}</style>
+ <style>{'.portal-bi{background:#f1f8f7;color:#163e48;padding:clamp(16px,3vw,42px);overflow:auto}.portal-bi h2{margin:0;font-size:clamp(26px,4vw,48px)}.pbi-toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:18px 0}.portal-bi button,.portal-bi select,.portal-bi input{border:1px solid #d4d9ea;background:white;color:inherit;padding:9px;border-radius:8px}.portal-bi button[aria-pressed=true]{background:#0b857c;color:white}.pbi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,310px),1fr));gap:18px}.pbi-card{background:white;border:1px solid #e0e4f1;border-radius:16px;padding:20px;min-width:0}.pbi-card h3{margin:5px 0 18px;font-size:24px}.pbi-card small{color:#535b78}.pbi-donut{display:block;width:min(68%,220px);margin:auto}.pbi-donut circle[stroke-dasharray]{cursor:pointer}.pbi-columns{height:165px;display:flex;align-items:flex-end;gap:5px;padding:24px 0 0;margin:14px 0}.pbi-columns button{position:relative;flex:1;min-width:0;border:0;padding:0;border-radius:5px 5px 0 0}.pbi-columns span{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);font-size:11px}.pbi-legend{display:grid;gap:5px;max-height:260px;overflow:auto;margin-top:14px}.pbi-legend button{display:flex;gap:8px;align-items:center;text-align:left}.pbi-legend i{flex:none;width:11px;height:11px;border-radius:3px}.pbi-legend b{margin-left:auto}.pbi-card label{display:grid;gap:6px}.portal-bi dialog{max-width:min(720px,90vw);max-height:80vh;border:1px solid #d4d9ea;border-radius:16px;padding:24px;color:#1b2440}.portal-bi dialog::backdrop{background:#18142b99}.portal-bi:fullscreen .pbi-card{max-width:1400px;margin:auto}.portal-bi:fullscreen .pbi-donut{width:min(48vh,390px)}.portal-bi:fullscreen .pbi-columns{height:40vh}'}</style>
  <div className="exe-screen-layout">
  <aside className="exe-sidebar" aria-label="Navegação do BI Executivo">
   <div className="exe-sidebar-brand"><b>V</b><span><strong>Vértice</strong><small>Educação Superior</small></span></div>
@@ -332,44 +331,15 @@ export default function OwnerDashboard(){
   const {error}=await supabase.auth.mfa.challengeAndVerify({factorId:factor,code});if(error)throw error;setCode('');setQr('');await load();
  }catch{setError('Código não validado. Confira o autenticador e tente novamente.');}finally{setBusy(false);}}
  if(acquisitionsRoute&&!loading&&session&&aal==='aal2')return <GreenHost/>;
- // Pre-MFA / login screens keep the old layout
- if(loading)return <main className="corp-container corp-section"><h1>Painel Vértice</h1><p role="status">Verificando acesso…</p></main>;
- if(!session)return <main className="corp-container corp-section"><h1>Painel Vértice</h1><p>Entre para acessar sua conta.</p><Link className="corp-button" href={window.location.pathname.startsWith('/reitor')?'/entrar?destino=reitor':'/entrar'}>Entrar</Link></main>;
- if(aal!=='aal2')return <main className="corp-container corp-section"><h1>Painel Vértice</h1><p>Conectado como <strong>{session.user.email}</strong>.</p><section className="corp-login-card"><h2>Proteja seu acesso</h2><p>O segundo fator é obrigatório para consultar os dados das instituições.</p>
+ return <main className="corp-container corp-section"><h1>{window.location.pathname.startsWith('/reitor')?'Área reservada da Direção':master&&route.repositories?'Repositórios · visão master':master&&route.demonstrativos?'Convites demonstrativos · Master':master&&route.tierFilter==='superior'?'🏛️ Universidades':master&&route.tierFilter==='escolas'?'🏫 Escolas':master&&route.financeiro?'💰 Financeiro':master?'Painel Vértice':'Painel de gestão'}</h1>
+ {master&&(route.tierFilter||route.financeiro)&&!route.inst&&<button onClick={()=>{window.location.hash='';window.dispatchEvent(new HashChangeEvent('hashchange'));}} style={{background:'none',border:'none',color:'#2563eb',cursor:'pointer',fontSize:13,marginBottom:12,padding:0}}>← Voltar ao hub</button>}
+ {loading?<p role="status">Verificando acesso…</p>:!session?<><p>Entre para acessar sua conta.</p><Link className="corp-button" href={window.location.pathname.startsWith('/reitor')?'/entrar?destino=reitor':'/entrar'}>Entrar</Link></>:<>
+ <p>Conectado como <strong>{session.user.email}</strong>.</p>
+ {aal!=='aal2'?<section className="corp-login-card"><h2>Proteja seu acesso</h2><p>O segundo fator é obrigatório para consultar os dados das instituições.</p>
  {!factor?<button className="corp-button" disabled={busy} onClick={enroll}>Configurar aplicativo autenticador</button>:<>
  {qr&&<><p>Leia o QR code no seu aplicativo autenticador. Não compartilhe esta imagem.</p><img alt="QR code para configurar seu autenticador" src={qr} width={200} height={200}/></>}
  <form className="access-form" onSubmit={verify}><HelpLabel>Código do autenticador<input autoComplete="one-time-code" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} required value={code} onChange={e=>setCode(e.target.value)}/></HelpLabel><button className="corp-button" disabled={busy}>Validar segundo fator</button></form></>}
- </section>{error&&<p role="alert">{error}</p>}</main>;
- // Determine current navigation section
- const navSection=route.tcc?'tcc':route.estagio?'estagio':route.ac?'ac':route.egressos?'egressos':route.extensao?'extensao':route.dash360?'360':route.evasao?'evasao':route.biVertice?'bi-vertice':route.financeiro?'financeiro':route.governanca?'governanca':route.bi?'bi':route.captacao?'captacao':route.academico?'academico':route.painelBi?'painel-bi':route.repositories?'repositorios':route.masters?'masters':route.demonstrativos?'demonstrativos':route.clientes?'clientes':route.perfis?'perfis':route.inst?'instituicao':'hub';
- const navItems:[string,string,string][]=[
-  ['hub','⌂','Visão geral'],
-  ['bi','📊','BI Executivo'],
-  ['academico','📚','BI Acadêmico'],
-  ['captacao','↗','Captação'],
-  ['painel-bi','📈','Painel de Indicadores'],
-  ['governanca','🏛️','Governança 360'],
-  ['tcc','📝','TCC e Pesquisa'],
-  ['ac','🏅','Ativ. Complementares'],
-  ['estagio','🏢','Estágio'],
-  ['egressos','🎓','Egressos'],
-  ['360','🔄','360° Integrado'],
-  ['evasao','⚠️','Risco de Evasão'],
-  ['repositorios','📁','Repositórios'],
-  ['bi-vertice','🔷','BI Vértice'],
-  ['financeiro','💰','Financeiro'],
-  ['masters','⚙️','Administração'],
- ];
- const navigateTo=(section:string)=>{
-  const map:Record<string,string>={hub:'',bi:'bi=1',academico:'academico=1','painel-bi':'painel-bi=1',captacao:'captacao=1',governanca:'governanca=1',repositorios:'repositorios=1','bi-vertice':'bi-vertice=1',financeiro:'financeiro=1',masters:'masters=1',demonstrativos:'demonstrativos=1',clientes:'clientes=1',perfis:'perfis=1',tcc:'tcc=1',estagio:'estagio=1',ac:'ac=1',egressos:'egressos=1',extensao:'extensao=1','360':'360=1',evasao:'evasao=1'};
-  window.location.hash=map[section]??'';window.dispatchEvent(new HashChangeEvent('hashchange'));window.scrollTo({top:0});
- };
- return <section className="demo-showroom" aria-label="Painel Vértice" style={{minHeight:'100vh',borderRadius:0}}>
-  <div className="ds-topbar"><div><span className="ds-avatar">V</span><div><strong>Vértice Educação Superior</strong><small>{session.user.email} · {master?'Master':'Gestão institucional'}</small></div></div><span className="ds-demo-badge" style={{background:'#e8f5e9',color:'#2e7d32'}}>DADOS REAIS</span></div>
-  <div className="ds-frame" style={{minHeight:'calc(100vh - 80px)'}}>
-   <aside className="ds-sidebar"><span className="ds-nav-caption">GESTÃO ESTRATÉGICA</span><nav aria-label="Navegação principal">{navItems.filter(([id])=>master||!['masters','bi-vertice','financeiro'].includes(id)).map(([id,icon,label])=><button key={id} type="button" aria-current={navSection===id?'page':undefined} onClick={()=>navigateTo(id)}><span style={{fontSize:16,width:20,textAlign:'center',flexShrink:0}}>{icon}</span><span>{label}</span></button>)}</nav><div className="ds-sidebar-foot"><p>Painel de gestão institucional com dados autenticados.</p><a href="/" style={{color:'#d5e9f3',fontSize:11,textDecoration:'none'}}>← Voltar ao site</a><button type="button" onClick={async()=>{const {error:e}=await supabase.auth.signOut();if(e)setError('Não foi possível encerrar a sessão.');}} style={{color:'#f8a0a0',border:0,background:'none',cursor:'pointer',fontSize:11,padding:'8px 0'}}>Sair da conta</button></div></aside>
-   <div className="ds-main">
-    <MasterInvitationGate onAccepted={load}/>
+ </section>:<><MasterInvitationGate onAccepted={load}/>
  {route.biVertice&&master?<VerticeBI onBack={()=>{window.location.hash='';window.dispatchEvent(new HashChangeEvent('hashchange'));}}/>:route.financeiro&&master?<><button onClick={()=>{window.location.hash='';window.dispatchEvent(new HashChangeEvent('hashchange'));}} style={{background:'none',border:'none',color:'#2563eb',cursor:'pointer',fontSize:13,padding:0,marginBottom:12}}>← Voltar ao hub</button><BillingPanel/></>:route.hub&&master?<MasterHub onNavigate={(dest,instId)=>{
   if(dest==='bi-vertice'){window.location.hash='bi-vertice=1';}
   else if(dest==='universidades'){window.location.hash='tier=superior';}
@@ -397,7 +367,7 @@ export default function OwnerDashboard(){
     {selectedCaptacaoInstitution
       ? <CaptacaoBI key={selectedCaptacaoInstitution.id} institutionId={selectedCaptacaoInstitution.id} institutionName={selectedCaptacaoInstitution.name}/>
       : <p role="status">Selecione uma instituição autorizada para consultar somente seus indicadores cadastrados de captação.</p>}
-  </section></BIFrame>:route.tcc?<AcademicModulesBI key={(route.inst||'all')+'-tcc'} institutionId={route.inst||institutions[0]?.id||''} module="tcc"/>:route.ac?<AcademicModulesBI key={(route.inst||'all')+'-ac'} institutionId={route.inst||institutions[0]?.id||''} module="ac"/>:route.estagio?<AcademicModulesBI key={(route.inst||'all')+'-est'} institutionId={route.inst||institutions[0]?.id||''} module="estagio"/>:route.egressos?<EgressosBI key={route.inst||institutions[0]?.id||''} institutionId={route.inst||institutions[0]?.id||''}/>:route.dash360?<InstitutionalDashboard360 key={(route.inst||institutions[0]?.id||'')+'-360'} institutionId={route.inst||institutions[0]?.id||''}/>:route.evasao?<EvasionRiskPanel key={(route.inst||institutions[0]?.id||'')+'-risk'} institutionId={route.inst||institutions[0]?.id||''} courses={courses.filter(c=>c.institution_id===(route.inst||institutions[0]?.id)).map(c=>({id:c.id,name:c.name}))}/>:route.bi?<PortalBI institutions={institutions} courses={courses} enrollments={enrollments} session={session}/>:master&&route.masters?<MasterDirectory/>:currentInst&&currentCourse?<CourseView key={currentCourse.id} course={currentCourse} institution={currentInst} enrollments={enrollments.filter(row => courses.some(course => course.id === row.course_id && course.institution_id === currentInst.id))} reports={reports} onBack={()=>writeHash(currentInst.id,'')} onPlan={can.record(roleIn(currentInst.id)) ? draft => { storeActionDraft(currentInst.id,draft); window.location.hash = new URLSearchParams({instituicao:currentInst.id,aba:'plano'}).toString(); } : undefined}/>
+  </section></BIFrame>:route.bi?<PortalBI institutions={institutions} courses={courses} enrollments={enrollments} session={session}/>:master&&route.masters?<MasterDirectory/>:currentInst&&currentCourse?<CourseView key={currentCourse.id} course={currentCourse} institution={currentInst} enrollments={enrollments.filter(row => courses.some(course => course.id === row.course_id && course.institution_id === currentInst.id))} reports={reports} onBack={()=>writeHash(currentInst.id,'')} onPlan={can.record(roleIn(currentInst.id)) ? draft => { storeActionDraft(currentInst.id,draft); window.location.hash = new URLSearchParams({instituicao:currentInst.id,aba:'plano'}).toString(); } : undefined}/>
  :currentInst?<Workspace key={currentInst.id} institution={currentInst as unknown as Row} role={roleIn(currentInst.id)} onBack={()=>writeHash('','')} onChanged={load}
    stats={instStats(currentInst.id)}
    overview={<InstitutionView institution={currentInst} courses={courses} enrollments={enrollments} embedded onOpenCourse={id=>writeHash(currentInst.id,id)} onBack={()=>writeHash('','')}/>}/>
@@ -458,9 +428,8 @@ export default function OwnerDashboard(){
     })}</div>}
    {!!institutions.length&&!institutions.some(i=>[i.name,(i as unknown as Row).acronym,(i as unknown as Row).cnpj].some(value=>String(value??'').toLocaleLowerCase('pt-BR').includes(institutionSearch.trim().toLocaleLowerCase('pt-BR'))))&&<p className="vx-inst-empty">Nenhuma instituição corresponde à pesquisa.</p>}
  </section></>}
+ <p>Os dados desta área vêm do banco. Os exemplos da demonstração permanecem separados.</p><button className="corp-login-text-button" onClick={load}>Atualizar dados</button></>}
  </>}
- {error&&<p role="alert">{error}</p>}
-   </div>
-  </div>
- </section>;
+ <button className="corp-login-text-button" onClick={async()=>{const {error}=await supabase.auth.signOut();if(error)setError('Não foi possível encerrar a sessão.');}}>Sair da conta</button></>}
+ {error&&<p role="alert">{error}</p>}<p><Link href="/privacidade.html">Privacidade</Link> · <Link href="/">Voltar ao site</Link></p></main>;
 }

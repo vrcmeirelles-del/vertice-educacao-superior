@@ -19,9 +19,9 @@
 /* ---- Right sidebar nav ---- */
 .inst-tabs-nav {
   position: sticky;
-  top: 52px;
+  top: 72px;               /* adjust if header height differs */
   align-self: start;
-  max-height: calc(100vh - 60px);
+  max-height: calc(100vh - 88px);
   overflow-y: auto;
   background: #f8f9fc;
   border-left: 1px solid #e2e5ef;
