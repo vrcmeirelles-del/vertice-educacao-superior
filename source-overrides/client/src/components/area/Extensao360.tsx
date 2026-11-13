@@ -281,7 +281,7 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
       </div>
 
       {/* Convite simplificado */}
-      {canEdit && <div style={{padding:'14px 18px',background:'#f0fdf4',border:'1px solid #86efac',borderRadius:10,marginBottom:16}}>
+      {role === 'master' && <div style={{padding:'14px 18px',background:'#f0fdf4',border:'1px solid #86efac',borderRadius:10,marginBottom:16}}>
         <strong style={{fontSize:13,color:'#166534'}}>📩 Convidar professor para a Extensão</strong>
         <form onSubmit={sendInvite} style={{display:'flex',gap:8,alignItems:'flex-end',flexWrap:'wrap',marginTop:8}}>
           <label style={{display:'grid',gap:4,fontSize:12,flex:1,minWidth:160}}>Nome<input value={inviteName} onChange={e=>setInviteName(e.target.value)} placeholder="Prof. João Silva" style={{padding:'7px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:13}}/></label>
