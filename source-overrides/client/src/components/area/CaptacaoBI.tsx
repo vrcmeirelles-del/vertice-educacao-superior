@@ -359,6 +359,56 @@ function CaptacaoBIContent({ institutionId, institutionName }: { institutionId: 
       </>
     )}
 
+    {/* Engajamento acadêmico cross-module */}
+    <section className="cbi-card" style={{ marginTop: 16 }}>
+      <h3>📊 Engajamento Acadêmico dos Matriculados</h3>
+      <small className="cbi-subtitle">Cruzamento captação → módulos acadêmicos: quantos matriculados estão ativos em TCC, AC, Estágio e Extensão</small>
+      <AcademicEngagement institutionId={institutionId} />
+    </section>
+
     <ImportDialog institutionId={institutionId} onImported={loadData} dialogRef={importRef} />
   </section>;
+}
+
+function AcademicEngagement({ institutionId }: { institutionId: string }) {
+  const [data, setData] = useState<{ tcc: number; ac: number; estagio: number; extensao: number; fo: number } | null>(null);
+  useEffect(() => {
+    Promise.all([
+      supabase.from('vertice_tcc_works').select('id', { count: 'exact', head: true }).eq('institution_id', institutionId).not('stage', 'in', '(cancelled,archived)'),
+      supabase.from('v_ac_course_summary').select('submissions_approved').eq('institution_id', institutionId),
+      supabase.from('v_internship_course_summary').select('placements_total,completed').eq('institution_id', institutionId),
+      supabase.from('vertice_extension_projects').select('id', { count: 'exact', head: true }).eq('institution_id', institutionId),
+      supabase.from('vertice_roster_entries').select('id', { count: 'exact', head: true }).eq('institution_id', institutionId).eq('status', 'linked'),
+    ]).then(([tcc, ac, est, ext, fo]) => {
+      setData({
+        tcc: tcc.count ?? 0,
+        ac: ((ac.data ?? []) as any[]).reduce((s, r) => s + (r.submissions_approved || 0), 0),
+        estagio: ((est.data ?? []) as any[]).reduce((s, r) => s + (r.placements_total || 0), 0),
+        extensao: ext.count ?? 0,
+        fo: fo.count ?? 0,
+      });
+    }).catch(() => {});
+  }, [institutionId]);
+
+  if (!data) return <p style={{ fontSize: '.8125rem', color: '#94a3b8' }}>Carregando…</p>;
+
+  const items = [
+    { label: 'TCC ativos', value: data.tcc, icon: '📝', color: '#3b82f6' },
+    { label: 'AC aprovadas', value: data.ac, icon: '📜', color: '#059669' },
+    { label: 'Estágios', value: data.estagio, icon: '🏢', color: '#0891b2' },
+    { label: 'Extensão', value: data.extensao, icon: '🤝', color: '#7c3aed' },
+    { label: 'F&O linkados', value: data.fo, icon: '🎯', color: '#f59e0b' },
+  ];
+
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: 8, marginTop: 8 }}>
+      {items.map(it => (
+        <div key={it.label} style={{ textAlign: 'center', padding: '10px 8px', borderRadius: 8, background: it.value > 0 ? it.color + '11' : '#f8fafc', border: `1px solid ${it.value > 0 ? it.color + '44' : '#e2e8f0'}` }}>
+          <div style={{ fontSize: '1.25rem' }}>{it.icon}</div>
+          <div style={{ fontSize: '1.125rem', fontWeight: 700, color: it.value > 0 ? it.color : '#94a3b8' }}>{it.value}</div>
+          <div style={{ fontSize: '.6875rem', color: '#64748b' }}>{it.label}</div>
+        </div>
+      ))}
+    </div>
+  );
 }

@@ -40,6 +40,7 @@ export default function CourseRaioX({ institutionId, courses, role, onNavigate }
   const [acData, setAcData] = useState<{ submissions: number; pending: number; credited_min: number }>({ submissions: 0, pending: 0, credited_min: 0 });
   const [estagioData, setEstagioData] = useState<{ placements: number; active: number; completed: number }>({ placements: 0, active: 0, completed: 0 });
   const [govData, setGovData] = useState<{ bodies: number; meetings: number; deliberations: number }>({ bodies: 0, meetings: 0, deliberations: 0 });
+  const [faoLinked, setFaoLinked] = useState(0);
 
   const course = courses.find(c => c.id === selectedCourse);
   const nav = (tab: string) => onNavigate?.(tab, selectedCourse);
@@ -89,6 +90,8 @@ export default function CourseRaioX({ institutionId, courses, role, onNavigate }
       const meetingIds = new Set(meetings.map((m: any) => m.id));
       const delibs = ((govDelibs as any).data as any[] ?? []).filter((d: any) => meetingIds.has(d.meeting_id));
       setGovData({ bodies: bodies.length, meetings: meetings.length, deliberations: delibs.filter((d: any) => d.status === 'executed').length });
+      // F&O linked students
+      supabase.from('vertice_roster_entries').select('id', { count: 'exact', head: true }).eq('institution_id', institutionId).eq('status', 'linked').then(r => setFaoLinked(r.count ?? 0)).catch(() => {});
     }).finally(() => setLoading(false));
   }, [institutionId, selectedCourse]);
 
@@ -265,6 +268,14 @@ export default function CourseRaioX({ institutionId, courses, role, onNavigate }
             {d.egressos_total === 0 && <Row label="⚠ Sem egressos" value="Pendente" bad />}
             {tccData.overdue === 0 && acData.pending <= 3 && d.cpa_fragilidades === 0 && d.extensao_projetos > 0 && d.egressos_total > 0 && <Row label="✓ Sem alertas" value="OK" good />}
             <Hint>Visão cruzada de pendências entre todos os módulos acadêmicos deste curso.</Hint>
+          </Block>
+
+          <Block title="Risco de Evasão · Módulos" icon="🚨">
+            <Row label="Alunos sem AC" value={acData.submissions === 0 ? 'Nenhuma submissão' : `${acData.pending} pendentes`} bad={acData.submissions === 0} />
+            <Row label="TCC atrasados" value={tccData.overdue} bad={tccData.overdue > 0} />
+            <Row label="Sem estágio vinculado" value={estagioData.placements === 0 ? 'Nenhum' : `${estagioData.placements - estagioData.completed} em andamento`} bad={estagioData.placements === 0} />
+            <Row label="F&O vinculados" value={faoLinked > 0 ? `${faoLinked} alunos` : 'Não integrado'} good={faoLinked > 0} />
+            <Hint>Cruzamento TCC + AC + Estágio + F&O: aluno com pendências em múltiplos módulos é candidato a evasão. Alunos linkados ao Fato & Ordem têm desempenho escolar monitorado.</Hint>
           </Block>
 
           <Block title="Vagas e Viabilidade" icon="📉" onClick={() => nav('resultado-curso')}>

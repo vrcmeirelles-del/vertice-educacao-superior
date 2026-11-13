@@ -30,6 +30,7 @@ import AcademicoBI from '@/components/bi/AcademicoBI';
 import EgressosBI from '@/components/bi/EgressosBI';
 import AcademicModulesBI from '@/components/bi/AcademicModulesBI';
 import InstitutionalDashboard360 from '@/components/bi/InstitutionalDashboard360';
+import EvasionRiskPanel from '@/components/bi/EvasionRiskPanel';
 import PainelBI from '@/components/bi/PainelBI';
 import BIFrame from '@/components/bi/BIFrame';
 import ProfileSimulator from '@/components/area/ProfileSimulator';
@@ -58,7 +59,7 @@ function writeHash(inst:string,course:string,repositories=false,library=false,re
 
 type BiItem = {label:string; group:string; value:number; href?:string};
 type BiSource = {items:BiItem[]; error?:boolean};
-const BI_NAMES=['Metas','Matrículas','Documentação','Reconhecimento de Curso','Aquisições','Captação e permanência','Egressos','TCC e Pesquisa','Ativ. Complementares','Estágio','360° Integrado'];
+const BI_NAMES=['Metas','Matrículas','Documentação','Reconhecimento de Curso','Aquisições','Captação e permanência','Egressos','TCC e Pesquisa','Ativ. Complementares','Estágio','360° Integrado','Risco de Evasão'];
 const BI_COLORS=['#0b9185','#daa94e','#e5765e','#368aa6','#6bbf9f','#b58b3b','#116d78'];
 const biNumber=new Intl.NumberFormat('pt-BR');
 const biMoney=new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'});
@@ -243,7 +244,7 @@ export function PortalBI({institutions,courses,enrollments,session}:{institution
    onNavigate={navigateExecutive}
  />}
  <div className="pbi-toolbar vx-bi-tabs"><button type="button" aria-pressed={page<0} onClick={()=>{setPage(-1);setTv(false);}}>Visão geral</button>{BI_NAMES.map((name,index)=><button type="button" key={name} aria-pressed={page===index} onClick={()=>setPage(index)}>{name}</button>)}</div>
- {page<0?null:page===5?<><section aria-label="Captação cadastrada da instituição"><p role="note">Fonte: registros de captação da instituição selecionada. Recorte: todo o histórico cadastrado; o seletor de semestre de matrículas acadêmicas não filtra esta seção. Etapas informadas não comprovam matrícula acadêmica.</p><CaptacaoBI key={id} institutionId={id} institutionName={institutions.find(i=>i.id===id)?.name??''}/></section><details><summary>Simulação manual separada dos registros</summary><div className="pbi-grid">{costs}</div></details></>:page===6?<EgressosBI key={id} institutionId={id}/>:page===7?<AcademicModulesBI key={id+'-tcc'} institutionId={id} module="tcc"/>:page===8?<AcademicModulesBI key={id+'-ac'} institutionId={id} module="ac"/>:page===9?<AcademicModulesBI key={id+'-est'} institutionId={id} module="estagio"/>:page===10?<InstitutionalDashboard360 key={id+'-360'} institutionId={id}/>:chart(page)}
+ {page<0?null:page===5?<><section aria-label="Captação cadastrada da instituição"><p role="note">Fonte: registros de captação da instituição selecionada. Recorte: todo o histórico cadastrado; o seletor de semestre de matrículas acadêmicas não filtra esta seção. Etapas informadas não comprovam matrícula acadêmica.</p><CaptacaoBI key={id} institutionId={id} institutionName={institutions.find(i=>i.id===id)?.name??''}/></section><details><summary>Simulação manual separada dos registros</summary><div className="pbi-grid">{costs}</div></details></>:page===6?<EgressosBI key={id} institutionId={id}/>:page===7?<AcademicModulesBI key={id+'-tcc'} institutionId={id} module="tcc"/>:page===8?<AcademicModulesBI key={id+'-ac'} institutionId={id} module="ac"/>:page===9?<AcademicModulesBI key={id+'-est'} institutionId={id} module="estagio"/>:page===10?<InstitutionalDashboard360 key={id+'-360'} institutionId={id}/>:page===11?<EvasionRiskPanel key={id+'-risk'} institutionId={id} courses={courses.filter(c=>c.institution_id===id).map(c=>({id:c.id,name:c.name}))}/>:chart(page)}
  </div></div>
  <dialog ref={dialog} onClose={()=>setDetail(null)}>{detail&&<><h3>{detail.title}</h3><p>{biNumber.format(detail.items.length)} registros</p><ul>{detail.items.map((item,index)=><li key={index}>{item.href?<a href={item.href} onClick={()=>dialog.current?.close()}>{item.label}</a>:item.label}{item.value!==1?' · '+biNumber.format(item.value):''}</li>)}</ul></>}<form method="dialog"><button>Fechar detalhes</button></form></dialog>
  </section>;
