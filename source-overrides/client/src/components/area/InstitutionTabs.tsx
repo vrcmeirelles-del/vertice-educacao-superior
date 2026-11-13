@@ -46,7 +46,7 @@ export const MACRO_TABS: MacroTabDef[] = [
     label: 'Gestores e Acessos',
     icon: '♙',
     description: 'Equipe, convites e permissões',
-    tabs: ['equipe', 'metas', 'plano', 'diagnostico', 'governanca', 'inclusao', 'acompanhamento-especial', 'extensao', 'aquisicoes', 'egressos', 'cpa-autoavaliacao'],
+    tabs: ['equipe', 'metas', 'plano', 'diagnostico', 'governanca', 'inclusao', 'acompanhamento-especial', 'extensao', 'aquisicoes', 'egressos', 'cpa-autoavaliacao', 'tcc', 'atividades-complementares', 'estagio'],
   },
   {
     key: 'integracoes',
