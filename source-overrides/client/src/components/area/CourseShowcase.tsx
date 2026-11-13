@@ -41,6 +41,8 @@ interface ShowcaseData {
   tcc_works: number; tcc_deposited: number;
   // Estágio
   estagio_placements: number; estagio_completed: number;
+  // AC
+  ac_submissions: number; ac_credited: number;
 }
 
 export default function CourseShowcase({ institutionId, courses, role, onNavigate }: Props) {
@@ -109,6 +111,7 @@ export default function CourseShowcase({ institutionId, courses, role, onNavigat
           {d.evidencias_validadas > 0 && <HighlightKPI label="Evidências Validadas" value={`${d.evidencias_validadas}/${d.evidencias_total}`} detail="repositório documental" color="#16a34a" />}
           {d.extensao_pct > 0 && <HighlightKPI label="Extensão" value={`${d.extensao_pct}%`} detail="dos alunos em projetos" color="#0891b2" />}
           {d.egressos_total > 0 && <HighlightKPI label="Egressos Acompanhados" value={d.egressos_total.toLocaleString('pt-BR')} detail="base longitudinal" color="#d97706" />}
+          {d.ac_credited > 0 && <HighlightKPI label="AC Creditadas" value={`${d.ac_credited}`} detail={`de ${d.ac_submissions} submissões`} color="#059669" />}
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1rem', marginTop: '1rem' }}>
@@ -141,6 +144,7 @@ export default function CourseShowcase({ institutionId, courses, role, onNavigat
             {d.cpa_potencialidades > 0 && <Strength icon="📊" title="Autoavaliação com resultados positivos" detail={`${d.cpa_potencialidades} potencialidades identificadas pela CPA vinculadas a este curso.`} />}
             {d.tcc_deposited > 0 && <Strength icon="📝" title="Produção acadêmica com acervo depositado" detail={`${d.tcc_deposited} trabalho(s) depositado(s) de ${d.tcc_works} ativo(s). Acompanhamento completo com orientação, banca e evidências PPC/ODS.`} />}
             {d.estagio_completed > 0 && <Strength icon="🏢" title="Estágio obrigatório com acompanhamento integral" detail={`${d.estagio_completed} estágio(s) concluído(s) de ${d.estagio_placements} vínculo(s). Campos internos e externos com frequência validada e avaliação.`} />}
+            {d.ac_credited > 0 && <Strength icon="📋" title="Atividades Complementares com processo validado" detail={`${d.ac_credited} atividade(s) creditada(s) de ${d.ac_submissions} submetida(s). Motor de cálculo determinístico com conversão, teto por item, categoria e total.`} />}
           </Dimension>
 
         </div>
@@ -170,6 +174,8 @@ async function loadShowcaseData(instId: string, courseId: string, courseName: st
     supabase.from('vertice_tcc_works').select('id,stage').eq('institution_id', instId).eq('course_id', courseId).not('stage', 'in', '(cancelled,archived)').then(r => r).catch(() => ({ data: [] })),
     // Estágio
     supabase.from('v_internship_course_summary').select('*').eq('institution_id', instId).eq('course_id', courseId).maybeSingle().catch(() => ({ data: null })),
+    // AC
+    supabase.from('v_ac_course_summary').select('*').eq('institution_id', instId).eq('course_id', courseId).maybeSingle().catch(() => ({ data: null })),
   ]);
 
   const rx = results[0].status === 'fulfilled' ? results[0].value.data : null;
@@ -180,6 +186,7 @@ async function loadShowcaseData(instId: string, courseId: string, courseName: st
   const acoes = results[5].status === 'fulfilled' ? (results[5].value.data as any[] ?? []) : [];
   const tccWorks = results[6].status === 'fulfilled' ? ((results[6].value as any).data as any[] ?? []) : [];
   const estData = results[7].status === 'fulfilled' ? (results[7].value as any).data : null;
+  const acData = results[8].status === 'fulfilled' ? (results[8].value as any).data : null;
 
   const matriculados = mat ? Number(mat.matriculados || mat.total_matriculados || 0) : 0;
   const docTotal = Number(rx?.docentes_total || 0);
@@ -222,6 +229,8 @@ async function loadShowcaseData(instId: string, courseId: string, courseName: st
     tcc_deposited: tccWorks.filter((w: any) => w.stage === 'deposited').length,
     estagio_placements: Number(estData?.placements_total || 0),
     estagio_completed: Number(estData?.completed || 0),
+    ac_submissions: Number(acData?.submissions_total || 0),
+    ac_credited: Number(acData?.credited || 0),
   };
 }
 
