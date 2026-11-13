@@ -37,6 +37,10 @@ interface ShowcaseData {
   extensao_pct: number;
   // Ações concluídas
   acoes_concluidas: number; acoes_com_evidencia: number;
+  // TCC
+  tcc_works: number; tcc_deposited: number;
+  // Estágio
+  estagio_placements: number; estagio_completed: number;
 }
 
 export default function CourseShowcase({ institutionId, courses, role, onNavigate }: Props) {
@@ -135,6 +139,8 @@ export default function CourseShowcase({ institutionId, courses, role, onNavigat
           <Dimension num="+" title="Indicadores Transversais">
             {d.egressos_total > 0 && <Strength icon="🎓" title="Acompanhamento de egressos (Indicador 3.7)" detail={`Base de ${d.egressos_total} egressos com ${d.egressos_contato > 0 ? Math.round(100 * d.egressos_contato / d.egressos_total) + '% de cobertura cadastral' : 'acompanhamento em implantação'}. Pesquisa longitudinal por ondas.`} />}
             {d.cpa_potencialidades > 0 && <Strength icon="📊" title="Autoavaliação com resultados positivos" detail={`${d.cpa_potencialidades} potencialidades identificadas pela CPA vinculadas a este curso.`} />}
+            {d.tcc_deposited > 0 && <Strength icon="📝" title="Produção acadêmica com acervo depositado" detail={`${d.tcc_deposited} trabalho(s) depositado(s) de ${d.tcc_works} ativo(s). Acompanhamento completo com orientação, banca e evidências PPC/ODS.`} />}
+            {d.estagio_completed > 0 && <Strength icon="🏢" title="Estágio obrigatório com acompanhamento integral" detail={`${d.estagio_completed} estágio(s) concluído(s) de ${d.estagio_placements} vínculo(s). Campos internos e externos com frequência validada e avaliação.`} />}
           </Dimension>
 
         </div>
@@ -160,6 +166,10 @@ async function loadShowcaseData(instId: string, courseId: string, courseName: st
     supabase.rpc('count_deliberations_by_course', { p_institution_id: instId, p_course_id: courseId }).catch(() => ({ data: null })),
     // Ações com evidência
     supabase.from('vertice_actions').select('id,status,evidence').eq('institution_id', instId).eq('course_id', courseId).in('status', ['concluida','executada','avaliada']),
+    // TCC
+    supabase.from('vertice_tcc_works').select('id,stage').eq('institution_id', instId).eq('course_id', courseId).not('stage', 'in', '(cancelled,archived)').then(r => r).catch(() => ({ data: [] })),
+    // Estágio
+    supabase.from('v_internship_course_summary').select('*').eq('institution_id', instId).eq('course_id', courseId).maybeSingle().catch(() => ({ data: null })),
   ]);
 
   const rx = results[0].status === 'fulfilled' ? results[0].value.data : null;
@@ -168,6 +178,8 @@ async function loadShowcaseData(instId: string, courseId: string, courseName: st
   const meetCount = results[3].status === 'fulfilled' ? Number((results[3].value as any).data || 0) : 0;
   const delibCount = results[4].status === 'fulfilled' ? Number((results[4].value as any).data || 0) : 0;
   const acoes = results[5].status === 'fulfilled' ? (results[5].value.data as any[] ?? []) : [];
+  const tccWorks = results[6].status === 'fulfilled' ? ((results[6].value as any).data as any[] ?? []) : [];
+  const estData = results[7].status === 'fulfilled' ? (results[7].value as any).data : null;
 
   const matriculados = mat ? Number(mat.matriculados || mat.total_matriculados || 0) : 0;
   const docTotal = Number(rx?.docentes_total || 0);
@@ -206,6 +218,10 @@ async function loadShowcaseData(instId: string, courseId: string, courseName: st
     extensao_pct: matriculados > 0 ? Math.round(100 * extAlunos / matriculados) : 0,
     acoes_concluidas: acoes.length,
     acoes_com_evidencia: acoes.filter(a => a.evidence).length,
+    tcc_works: tccWorks.length,
+    tcc_deposited: tccWorks.filter((w: any) => w.stage === 'deposited').length,
+    estagio_placements: Number(estData?.placements_total || 0),
+    estagio_completed: Number(estData?.completed || 0),
   };
 }
 

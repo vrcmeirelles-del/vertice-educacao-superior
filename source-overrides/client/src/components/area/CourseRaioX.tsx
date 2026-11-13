@@ -36,6 +36,9 @@ export default function CourseRaioX({ institutionId, courses, role, onNavigate }
   const [vagas, setVagas] = useState(0);
   const [egressosContato, setEgressosContato] = useState(0);
   const [peiAtivos, setPeiAtivos] = useState(0);
+  const [tccData, setTccData] = useState<{ works: number; deposited: number; overdue: number; advisors: number }>({ works: 0, deposited: 0, overdue: 0, advisors: 0 });
+  const [acData, setAcData] = useState<{ submissions: number; pending: number; credited_min: number }>({ submissions: 0, pending: 0, credited_min: 0 });
+  const [estagioData, setEstagioData] = useState<{ placements: number; active: number; completed: number }>({ placements: 0, active: 0, completed: 0 });
 
   const course = courses.find(c => c.id === selectedCourse);
   const nav = (tab: string) => onNavigate?.(tab, selectedCourse);
@@ -48,11 +51,32 @@ export default function CourseRaioX({ institutionId, courses, role, onNavigate }
       supabase.from('vertice_academic_reports').select('data').eq('institution_id', institutionId).eq('course_id', selectedCourse).eq('kind', 'quantitativo_alunos').order('report_date', { ascending: false }).limit(1),
       supabase.from('vertice_alumni_education').select('id,profile:vertice_alumni_profiles!profile_id(email,phone)').eq('institution_id', institutionId).eq('course_id', selectedCourse).in('academic_status', ['formado','diplomado','egresso_acompanhado','integralizado','concluinte']),
       supabase.from('student_individual_plans').select('id').eq('institution_id', institutionId).eq('course_id', selectedCourse).eq('status', 'ativo').then(r => r).catch(() => ({ data: [] })),
-    ]).then(([rx, mat, egr, pei]) => {
+      // TCC
+      supabase.from('vertice_tcc_works').select('id,stage,stage_deadline').eq('institution_id', institutionId).eq('course_id', selectedCourse).not('stage', 'in', '(cancelled,archived)').then(r => r).catch(() => ({ data: [] })),
+      // AC
+      supabase.from('v_ac_course_summary').select('*').eq('institution_id', institutionId).eq('course_id', selectedCourse).maybeSingle().catch(() => ({ data: null })),
+      // Estágio
+      supabase.from('v_internship_course_summary').select('*').eq('institution_id', institutionId).eq('course_id', selectedCourse).maybeSingle().catch(() => ({ data: null })),
+    ]).then(([rx, mat, egr, pei, tcc, ac, est]) => {
       if (rx.data) setData(rx.data as RaioX);
       if (mat.data?.[0]?.data) { const md = mat.data[0].data as any; setMatriculados(Number(md.matriculados || md.total_matriculados || 0)); setVagas(Number(md.vagas || md.vagas_autorizadas || 0)); } else { setMatriculados(0); setVagas(0); }
       if (egr.data) setEgressosContato((egr.data as any[]).filter(r => r.profile?.email || r.profile?.phone).length);
       if (pei.data) setPeiAtivos((pei.data as any[]).length);
+      // TCC
+      const tccWorks = (tcc as any).data as any[] ?? [];
+      const now = new Date();
+      setTccData({
+        works: tccWorks.length,
+        deposited: tccWorks.filter((w: any) => w.stage === 'deposited').length,
+        overdue: tccWorks.filter((w: any) => w.stage_deadline && new Date(w.stage_deadline) < now && w.stage !== 'deposited').length,
+        advisors: 0, // seria necessário join
+      });
+      // AC
+      const acd = (ac as any).data;
+      if (acd) setAcData({ submissions: acd.submissions_total || 0, pending: acd.submissions_pending || 0, credited_min: acd.total_credited_minutes || 0 });
+      // Estágio
+      const estd = (est as any).data;
+      if (estd) setEstagioData({ placements: estd.placements_total || 0, active: estd.placements_active || 0, completed: estd.completed || 0 });
     }).finally(() => setLoading(false));
   }, [institutionId, selectedCourse]);
 
@@ -182,6 +206,27 @@ export default function CourseRaioX({ institutionId, courses, role, onNavigate }
             <Row label="Potencialidades" value={d.cpa_achados - d.cpa_fragilidades} good />
             {d.cpa_achados === 0 && <Empty>Nenhum achado CPA vinculado.</Empty>}
             <Hint>Indicador 3.7: o que dizem deste curso na autoavaliação.</Hint>
+          </Block>
+
+          <Block title="TCC e Pesquisa" icon="📝" onClick={() => nav('tcc')}>
+            <Row label="Trabalhos ativos" value={tccData.works} />
+            <Row label="Depositados" value={tccData.deposited} good />
+            <Row label="Com prazo vencido" value={tccData.overdue} bad={tccData.overdue > 0} />
+            {tccData.works === 0 && <Empty>Nenhum trabalho cadastrado neste curso.</Empty>}
+          </Block>
+
+          <Block title="Atividades Complementares" icon="📜" onClick={() => nav('atividades-complementares')}>
+            <Row label="Solicitações" value={acData.submissions} />
+            <Row label="Pendentes de análise" value={acData.pending} bad={acData.pending > 3} />
+            <Row label="Horas creditadas" value={acData.credited_min > 0 ? `${Math.floor(acData.credited_min / 60)}h` : '0h'} good />
+            {acData.submissions === 0 && <Empty>Nenhuma solicitação de AC neste curso.</Empty>}
+          </Block>
+
+          <Block title="Estágio Obrigatório" icon="🏢" onClick={() => nav('estagio')}>
+            <Row label="Vínculos" value={estagioData.placements} />
+            <Row label="Em andamento" value={estagioData.active} />
+            <Row label="Concluídos" value={estagioData.completed} good />
+            {estagioData.placements === 0 && <Empty>Nenhum estágio registrado neste curso.</Empty>}
           </Block>
 
           <Block title="Vagas e Viabilidade" icon="📉" onClick={() => nav('resultado-curso')}>
