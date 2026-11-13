@@ -1,3 +1,4 @@
+import { ContextHelp } from '@/components/ContextHelp';
 // MinhaConta.tsx — Painel financeiro da IES (visão do cliente)
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
@@ -77,7 +78,7 @@ export default function MinhaConta({ institutionId, institutionName }: { institu
   return (
     <div className="mc-container">
       <div className="mc-header">
-        <h2>Minha Conta</h2>
+        <h2>Minha Conta<ContextHelp title="Minha Conta" /></h2>
         <p>{institutionName}</p>
       </div>
 

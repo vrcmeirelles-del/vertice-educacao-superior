@@ -1,3 +1,5 @@
+import { ContextHelp } from '@/components/ContextHelp';
+import { HelpLabel } from '@/components/ContextHelp';
 /**
  * Painel de Avaliação Simulada — integra no RepositoryTab como view "simulacao".
  *
@@ -221,7 +223,7 @@ export default function AvaliacaoSimuladaPanel({ institutionId, courseId, role, 
               <table className="area-table avs-table">
                 <thead>
                   <tr>
-                    <th style={{ width: "5rem" }}>Indicador</th>
+                    <th style={{ width: "5rem" }}>Indicador<ContextHelp title="Indicador" /></th>
                     <th>Nome</th>
                     <th style={{ width: "7rem" }}>Conceito atual</th>
                     <th style={{ width: "7rem" }}>Conceito viável</th>
@@ -497,7 +499,7 @@ function DetalheIndicador({
 
       {campos.map(([campo, label, valor, set]) => (
         <div key={campo} className="avs-campo">
-          <label><strong>{label}</strong></label>
+          <HelpLabel><strong>{label}</strong></HelpLabel>
           {edit ? (
             <textarea
               value={valor}

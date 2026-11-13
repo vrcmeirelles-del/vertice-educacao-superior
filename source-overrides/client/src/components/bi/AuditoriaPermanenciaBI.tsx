@@ -1,3 +1,5 @@
+import { ContextHelp } from '@/components/ContextHelp';
+import { HelpLabel } from '@/components/ContextHelp';
 import {useEffect,useMemo,useState} from "react";
 import {supabase} from "@/lib/supabase";
 import "./auditoria-permanencia-bi.css";
@@ -134,12 +136,12 @@ export default function AuditoriaPermanenciaBI({institutionId,institutionName}:{
       {tab==="cursos"&&<div className="vxa-card">
         <h3>Reprovações por curso e semestre — recorte analítico</h3>
         <div className="vxa-filters">
-          <label>Curso <select value={currentId} onChange={e=>{setCourseId(e.target.value);setSemester("");}}>
+          <HelpLabel>Curso <select value={currentId} onChange={e=>{setCourseId(e.target.value);setSemester("");}}>
             {listedCourses.map(c=><option key={c.id} value={c.id}>{c.code?c.code+" · ":""}{c.name}{listedCourses.filter(x=>x.code===c.code&&c.code).length>1?" · "+String((courseIndicators.get(c.id)?.payload.reprobation_series??[]).length)+" períodos na fonte":""}</option>)}
-          </select></label>
-          <label>Semestre <select value={chosenSemester} onChange={e=>setSemester(e.target.value)}>
+          </select></HelpLabel>
+          <HelpLabel>Semestre <select value={chosenSemester} onChange={e=>setSemester(e.target.value)}>
             <option value="">Todos os disponíveis</option>{semesters.map(s=><option key={s} value={s}>{s}</option>)}
-          </select></label>
+          </select></HelpLabel>
         </div>
         {currentCourse?<p><strong>{currentCourse.name}</strong> · código {currentCourse.code??"não informado"} · total de vínculos em disciplinas, não alunos únicos</p>:<p>Não há relatório por curso identificado.</p>}
         {duplicateCodes.some(c=>c.code===currentCourse?.code)&&<p className="vxa-alert"><strong>Atenção:</strong> existem cadastros distintos com o mesmo código de curso. Seus recortes não foram somados automaticamente; selecione o histórico adequado antes de interpretar o indicador.</p>}
@@ -153,20 +155,20 @@ export default function AuditoriaPermanenciaBI({institutionId,institutionName}:{
           <article><small>Categoria RA na fonte</small><strong>{fmt(totalRA)}</strong></article>
           <article><small>Vínculos em disciplinas</small><strong>{fmt(totalDiaries)}</strong></article>
         </div>
-        {visibleSeries.length>0?<div className="vxa-scroll"><table><thead><tr><th>Semestre</th><th>RF</th><th>RN</th><th>RA</th><th>Reprovações</th><th>Vínculos disciplina</th></tr></thead>
+        {visibleSeries.length>0?<div className="vxa-scroll"><table><thead><tr><th>Semestre<ContextHelp title="Semestre" /></th><th>RF</th><th>RN</th><th>RA</th><th>Reprovações</th><th>Vínculos disciplina</th></tr></thead>
           <tbody>{visibleSeries.map((s,i)=><tr key={i}><td>{s.semester}</td><td>{fmt(s.RF)}</td><td>{fmt(s.RN)}</td><td>{fmt(s.RA)}</td><td>{fmt(s.failures)}</td><td>{fmt(s.discipline_enrollments)}</td></tr>)}</tbody></table></div>:<p>Série de reprovações não disponibilizada para este curso.</p>}
         {selectedCohorts.length>0&&<p className="vxa-source">Há {fmt(selectedCohorts.length)} turmas de ingresso com histórico de primeiro vínculo disponíveis para este curso.</p>}
         <p className="vxa-source">Fonte: vertice_academic_reports, tipo course_indicators (série de reprovações). RF/RN/RA seguem a codificação original. Não é possível descontar matrículas sem participação ou medir aprovação posterior sem o histórico individual.</p>
         <h3>Impacto nos indicadores — taxas brutas e ajustes pendentes</h3>
         <p>Estas taxas históricas abrangem vínculos em disciplinas da instituição e <strong>não são taxas de alunos únicos</strong>. O denominador ajustado só será calculado quando for possível verificar individualmente as condições de primeiro vínculo, gratuidade e ausência real nas duas avaliações.</p>
-        <div className="vxa-scroll"><table><thead><tr><th>Semestre</th><th>Reprovações brutas</th><th>Vínculos em disciplinas</th><th>Taxa bruta</th><th>Taxa gerencial ajustada</th></tr></thead>
+        <div className="vxa-scroll"><table><thead><tr><th>Semestre<ContextHelp title="Semestre" /></th><th>Reprovações brutas</th><th>Vínculos em disciplinas</th><th>Taxa bruta</th><th>Taxa gerencial ajustada</th></tr></thead>
         <tbody>{rawReprobation.map((r,i)=><tr key={i}><td>{r.semester}</td><td>{fmt(r.failures)}</td><td>{fmt(r.enrollmentEvents)}</td><td>{r.reportedRate==="—"?"—":r.reportedRate+"%"}</td><td>Sem base individual verificada</td></tr>)}</tbody></table></div>
         <p className="vxa-source">Fonte: reprovacoes_semestre, relatório histórico institucional. Não substituir indicadores oficiais por taxas ajustadas sem regras aprovadas, validação e rastreabilidade das exclusões gerenciais.</p>
       </div>}
       {tab==="disciplinas"&&<div className="vxa-card">
         <h3>Disciplinas com reprovações — ranking institucional</h3>
         <p>Selecione uma disciplina, por exemplo, Anatomia. O ranking existente é institucional, sem chave confiável para distribuir a contagem entre curso, docente, semestre ou estudante.</p>
-        <label>Pesquisar disciplina <input value={subjectSearch} onChange={e=>setSubjectSearch(e.target.value)} placeholder="Ex.: Anatomia" /></label>
+        <HelpLabel>Pesquisar disciplina <input value={subjectSearch} onChange={e=>setSubjectSearch(e.target.value)} placeholder="Ex.: Anatomia" /></HelpLabel>
         <div className="vxa-layout"><div className="vxa-results">{rankedSubjects.length?rankedSubjects.map(s=><button type="button" key={s.id} onClick={()=>setSelectedSubject(s.id)} aria-pressed={s.id===selectedSubject} className={s.id===selectedSubject?"vxa-active":""}>
           <span>{s.rank}º · {s.name}</span><strong>{fmt(s.total)}</strong></button>):<p>Nenhuma disciplina localizada neste filtro.</p>}</div>
         <aside className="vxa-detail"><h4>{selectedDiscipline?.name??"Selecione uma disciplina"}</h4>
@@ -178,7 +180,7 @@ export default function AuditoriaPermanenciaBI({institutionId,institutionName}:{
       {tab==="professores"&&<div className="vxa-card">
         <h3>Professores e reprovações — ranking institucional</h3>
         <p>Reprovações associadas aos docentes na fonte histórica; não são medidas isoladas de qualidade docente. Compare com turma, perfil de ingresso e participação antes de qualquer conclusão.</p>
-        <label>Pesquisar professor <input value={teacherSearch} onChange={e=>setTeacherSearch(e.target.value)} placeholder="Nome do docente" /></label>
+        <HelpLabel>Pesquisar professor <input value={teacherSearch} onChange={e=>setTeacherSearch(e.target.value)} placeholder="Nome do docente" /></HelpLabel>
         <div className="vxa-layout"><div className="vxa-results">{rankedProfessors.map(p=><button type="button" key={p.id} aria-pressed={p.id===selectedTeacher} onClick={()=>setSelectedTeacher(p.id)} className={p.id===selectedTeacher?"vxa-active":""}>
           <span>{p.rank}º · {p.name}</span><strong>{fmt(p.total)}</strong></button>)}</div>
           <aside className="vxa-detail"><h4>{selectedProfessor?.name??"Selecione um docente"}</h4>

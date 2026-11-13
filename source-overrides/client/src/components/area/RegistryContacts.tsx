@@ -1,3 +1,4 @@
+import { HelpLabel } from '@/components/ContextHelp';
 import {useEffect,useState,type FormEvent} from "react";
 import {supabase} from "@/lib/supabase";
 import type {Row} from "@/lib/area";
@@ -79,11 +80,11 @@ export default function RegistryContacts({institutionId,courses,manage,firstVisi
   {manage&&<details><summary>Gerenciar funções e contatos</summary>
    <p>Registre a função, o vínculo e o contato de cada pessoa. O perfil de acesso é escolhido separadamente no convite da Equipe.</p>
    <form className="area-form" key={editing?.id??"new"} onSubmit={saveContact}>
-    <label>Função <select value={position} onChange={e=>setPosition(e.target.value)}>{Object.entries(labels).map(([id,label])=><option key={id} value={id}>{label}</option>)}</select></label>
-    {coursePositions.includes(position)&&<label>Curso <select required value={course} onChange={e=>setCourse(e.target.value)}><option value="">Selecione</option>{courses.map(c=><option key={c.id} value={c.id}>{String(c.display_name??c.name)}</option>)}</select></label>}
-    <label>Nome <input name="name" required maxLength={160} defaultValue={String(editing?.name??"")}/></label>
-    <label>E-mail <input name="email" type="email" required maxLength={254} defaultValue={String(editing?.email??"")}/></label>
-    <label>Telefone com código do país <input name="phone" type="tel" required placeholder="+5563999999999" defaultValue={String(editing?.phone??"")}/></label>
+    <HelpLabel>Função <select value={position} onChange={e=>setPosition(e.target.value)}>{Object.entries(labels).map(([id,label])=><option key={id} value={id}>{label}</option>)}</select></HelpLabel>
+    {coursePositions.includes(position)&&<HelpLabel>Curso <select required value={course} onChange={e=>setCourse(e.target.value)}><option value="">Selecione</option>{courses.map(c=><option key={c.id} value={c.id}>{String(c.display_name??c.name)}</option>)}</select></HelpLabel>}
+    <HelpLabel>Nome <input name="name" required maxLength={160} defaultValue={String(editing?.name??"")}/></HelpLabel>
+    <HelpLabel>E-mail <input name="email" type="email" required maxLength={254} defaultValue={String(editing?.email??"")}/></HelpLabel>
+    <HelpLabel>Telefone com código do país <input name="phone" type="tel" required placeholder="+5563999999999" defaultValue={String(editing?.phone??"")}/></HelpLabel>
     <button className="corp-button small" disabled={busy}>Salvar contato</button>
     {editing&&<button type="button" onClick={()=>setEditing(null)}>Cancelar edição</button>}
    </form>
@@ -92,9 +93,9 @@ export default function RegistryContacts({institutionId,courses,manage,firstVisi
   <details open={firstVisit || undefined}><summary>Minhas preferências de comunicação</summary>
    <p>Escolha como receber avisos de gestão acadêmica desta instituição. A escolha é opcional e pode ser alterada aqui a qualquer momento.</p>
    <form className="area-form" onSubmit={saveChoices}>
-    <label><input type="checkbox" checked={email} onChange={e=>setEmail(e.target.checked)}/> Aceito receber avisos por e-mail na minha conta</label>
-    <label><input type="checkbox" checked={whatsapp} onChange={e=>setWhatsapp(e.target.checked)}/> Aceito receber avisos pelo WhatsApp</label>
-    {whatsapp&&<label>Meu número de WhatsApp <input type="tel" required value={number} onChange={e=>setNumber(e.target.value)} placeholder="+5563999999999"/></label>}
+    <HelpLabel><input type="checkbox" checked={email} onChange={e=>setEmail(e.target.checked)}/> Aceito receber avisos por e-mail na minha conta</HelpLabel>
+    <HelpLabel><input type="checkbox" checked={whatsapp} onChange={e=>setWhatsapp(e.target.checked)}/> Aceito receber avisos pelo WhatsApp</HelpLabel>
+    {whatsapp&&<HelpLabel>Meu número de WhatsApp <input type="tel" required value={number} onChange={e=>setNumber(e.target.value)} placeholder="+5563999999999"/></HelpLabel>}
     <button className="corp-button small" disabled={!ready||busy}>{firstVisit && !email && !whatsapp ? "Continuar sem avisos" : "Salvar preferências"}</button>
    </form>
   </details>

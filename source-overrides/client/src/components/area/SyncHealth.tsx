@@ -1,3 +1,4 @@
+import { ContextHelp } from '@/components/ContextHelp';
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import "./sync-health.css";
@@ -100,7 +101,7 @@ export default function SyncHealth({ institutionId }:Props) {
           <thead>
             <tr>
               <th>Módulo</th>
-              <th>Fonte</th>
+              <th>Fonte<ContextHelp title="Fonte" /></th>
               <th>Destino</th>
               <th>Registros</th>
               <th>Status</th>
@@ -131,7 +132,7 @@ export default function SyncHealth({ institutionId }:Props) {
         <summary>Inventário completo de dados ({totalProv} fontes)</summary>
         <div className="sh-table-wrap">
           <table className="sh-table sh-table-sm">
-            <thead><tr><th>Tabela</th><th>Conjunto</th><th>Fonte</th><th>Método</th><th>Linhas</th><th>Status</th><th>Congelado</th><th>Data</th></tr></thead>
+            <thead><tr><th>Tabela</th><th>Conjunto</th><th>Fonte<ContextHelp title="Fonte" /></th><th>Método</th><th>Linhas</th><th>Status</th><th>Congelado</th><th>Data</th></tr></thead>
             <tbody>
               {provenance.map((p, i) => (
                 <tr key={i}>

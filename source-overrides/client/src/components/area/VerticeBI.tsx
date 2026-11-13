@@ -1,3 +1,4 @@
+import { ContextHelp } from '@/components/ContextHelp';
 /**
  * VerticeBI.tsx — BI unificado da plataforma Vértice
  * Visão cross-tier: Universidades + Escolas
@@ -162,7 +163,7 @@ export default function VerticeBI({ onBack }: Props) {
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
         <thead>
           <tr style={{ borderBottom: '2px solid #eee', textAlign: 'left' }}>
-            <th style={{ padding: '8px 6px', fontSize: 11, fontWeight: 600, color: '#666' }}>INSTITUIÇÃO</th>
+            <th style={{ padding: '8px 6px', fontSize: 11, fontWeight: 600, color: '#666' }}>INSTITUIÇÃO<ContextHelp title="INSTITUIÇÃO" /></th>
             <th style={{ padding: '8px 6px', fontSize: 11, fontWeight: 600, color: '#666' }}>TIPO</th>
             <th style={{ padding: '8px 6px', fontSize: 11, fontWeight: 600, color: '#666' }}>CIDADE/UF</th>
             <th style={{ padding: '8px 6px', fontSize: 11, fontWeight: 600, color: '#666' }}>DOCS</th>

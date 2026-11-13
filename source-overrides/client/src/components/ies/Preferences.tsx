@@ -1,3 +1,4 @@
+import { HelpLabel } from '@/components/ContextHelp';
 import { useEffect, useState, type FormEvent } from "react";
 import { type IesApi } from "@/lib/ies/api";
 import {
@@ -56,7 +57,7 @@ export default function Preferences({
             <fieldset disabled={task.busy}>
               <legend>Escolhas opcionais por finalidade e canal</legend>
               {fields.map(([key, label]) => (
-                <label className="ies-check" key={key}>
+                <HelpLabel className="ies-check" key={key}>
                   <input
                     type="checkbox"
                     checked={values[key]}
@@ -65,7 +66,7 @@ export default function Preferences({
                     }
                   />
                   {label}
-                </label>
+                </HelpLabel>
               ))}
             </fieldset>
             <button disabled={task.busy}>Salvar preferências</button>
@@ -163,7 +164,7 @@ export function ReviewPolicy({
         curso. Reativar este padrão não remove dispensas específicas já
         registradas por curso.
       </p>
-      <label>
+      <HelpLabel>
         Escopo explícito
         <select
           aria-label="Escopo explícito"
@@ -183,7 +184,7 @@ export function ReviewPolicy({
             </option>
           ))}
         </select>
-      </label>
+      </HelpLabel>
       {courses.length === 100 && (
         <p>
           Lista limitada a 100 cursos. Não altere política de um curso que não
@@ -205,7 +206,7 @@ export function ReviewPolicy({
               : ""}
             .
           </p>
-          <label className="ies-check">
+          <HelpLabel className="ies-check">
             <input
               type="checkbox"
               checked={required}
@@ -216,9 +217,9 @@ export function ReviewPolicy({
               }}
             />
             Exigir dupla checagem
-          </label>
+          </HelpLabel>
           {!required && (
-            <label className="ies-check">
+            <HelpLabel className="ies-check">
               <input
                 type="checkbox"
                 checked={ack}
@@ -226,9 +227,9 @@ export function ReviewPolicy({
               />
               Compreendo o aumento do risco documental ao dispensar revisão
               superior neste escopo.
-            </label>
+            </HelpLabel>
           )}
-          <label className="ies-check">
+          <HelpLabel className="ies-check">
             <input
               type="checkbox"
               checked={confirm}
@@ -239,7 +240,7 @@ export function ReviewPolicy({
               ? courses.find((c) => c.course_id === course)?.name
               : `padrão institucional de ${institution.name}`}
             .
-          </label>
+          </HelpLabel>
           <button
             disabled={task.busy || !notice || !confirm || (!required && !ack)}
             onClick={save}

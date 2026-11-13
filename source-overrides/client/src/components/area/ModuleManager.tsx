@@ -1,3 +1,5 @@
+import { ContextHelp } from '@/components/ContextHelp';
+import { HelpLabel } from '@/components/ContextHelp';
 // ModuleManager.tsx — Painel master para ativar/desativar módulos por IES
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
@@ -121,17 +123,17 @@ export default function ModuleManager() {
   return (
     <div className="mm-container">
       <div className="mm-header">
-        <h2>⚙️ Gerenciar Módulos</h2>
+        <h2>⚙️ Gerenciar Módulos<ContextHelp title="⚙️ Gerenciar Módulos" /></h2>
         <p>Ative ou desative módulos por IES. Alterações são imediatas.</p>
       </div>
 
       <div className="mm-ies-select">
-        <label>Instituição
+        <HelpLabel>Instituição
           <select value={selectedIes} onChange={e => setSelectedIes(e.target.value)}>
             <option value="">Selecione uma IES...</option>
             {institutions.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
           </select>
-        </label>
+        </HelpLabel>
         {selectedIes && <span className="mm-counter">{activeCount}/{totalCount} módulos ativos</span>}
       </div>
 

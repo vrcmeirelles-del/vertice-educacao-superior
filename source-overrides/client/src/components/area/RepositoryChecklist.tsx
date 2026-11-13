@@ -1,3 +1,4 @@
+import { HelpLabel } from '@/components/ContextHelp';
 import {
   repositoryDocumentCode,
   repositoryTemplateCode,
@@ -145,7 +146,7 @@ export default function RepositoryChecklist({
         </button>
       </div>
       <div className="repo-form-grid">
-        <label>
+        <HelpLabel>
           Perfil do checklist (confira)
           <select
             value={area}
@@ -158,8 +159,8 @@ export default function RepositoryChecklist({
             <option value="juridica">Jurídico</option>
             <option value="saude">Saúde</option>
           </select>
-        </label>
-        <label>
+        </HelpLabel>
+        <HelpLabel>
           Semestre
           <input
             required
@@ -168,16 +169,16 @@ export default function RepositoryChecklist({
             onChange={(e) => setSem(e.target.value)}
             placeholder="2026-2"
           />
-        </label>
-        <label>
+        </HelpLabel>
+        <HelpLabel>
           Prazo para as entregas
           <input
             type="date"
             value={due}
             onChange={(e) => setDue(e.target.value)}
           />
-        </label>
-        <label>
+        </HelpLabel>
+        <HelpLabel>
           Responsável
           <select value={owner} onChange={(e) => setOwner(e.target.value)}>
             <option value="">Definir depois / responsável da meta</option>
@@ -187,8 +188,8 @@ export default function RepositoryChecklist({
               </option>
             ))}
           </select>
-        </label>
-        <label>
+        </HelpLabel>
+        <HelpLabel>
           Vincular à meta (opcional)
           <select value={goal} onChange={(e) => setGoal(e.target.value)}>
             <option value="">Sem meta vinculada</option>
@@ -200,15 +201,15 @@ export default function RepositoryChecklist({
                 </option>
               ))}
           </select>
-        </label>
-        <label>
+        </HelpLabel>
+        <HelpLabel>
           Buscar modelo
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Código ou documento"
           />
-        </label>
+        </HelpLabel>
       </div>
       <div className="repo-toolbar">
         <button
@@ -229,7 +230,7 @@ export default function RepositoryChecklist({
       </div>
       <div className="repo-template-list">
         {visible.map((t) => (
-          <label
+          <HelpLabel
             key={t.codigo}
             className={exists(t.codigo) ? "configured" : ""}
           >
@@ -253,7 +254,7 @@ export default function RepositoryChecklist({
                 {exists(t.codigo) ? " · Já configurado neste semestre" : ""}
               </small>
             </span>
-          </label>
+          </HelpLabel>
         ))}
       </div>
       <p className="repo-footnote">

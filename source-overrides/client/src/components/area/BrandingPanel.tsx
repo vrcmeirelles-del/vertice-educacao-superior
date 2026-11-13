@@ -1,3 +1,4 @@
+import { HelpLabel } from '@/components/ContextHelp';
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { explain, type Row } from "@/lib/area";
@@ -161,7 +162,7 @@ export default function BrandingPanel({
         /* Modo edição */
         <div className="area-form-grid">
           {/* Logo upload */}
-          <label className="wide">
+          <HelpLabel className="wide">
             <span>Logo da instituição</span>
             {logoUrl && (
               <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 8 }}>
@@ -199,10 +200,10 @@ export default function BrandingPanel({
               }}
             />
             <small>PNG, JPG, SVG ou WebP — até 2 MB</small>
-          </label>
+          </HelpLabel>
 
           {/* Display name */}
-          <label className="wide">
+          <HelpLabel className="wide">
             <span>Nome exibido no cabeçalho dos documentos</span>
             <input
               type="text"
@@ -214,10 +215,10 @@ export default function BrandingPanel({
             <small>
               Se vazio, será usado o nome cadastrado da instituição.
             </small>
-          </label>
+          </HelpLabel>
 
           {/* Color picker */}
-          <label>
+          <HelpLabel>
             <span>Cor predominante</span>
             <div className="area-color-row">
               <input
@@ -239,7 +240,7 @@ export default function BrandingPanel({
             <small>
               Usada nas bordas e destaques dos documentos da instituição.
             </small>
-          </label>
+          </HelpLabel>
 
           {/* Feedback */}
           {error && <p className="area-error wide">{error}</p>}

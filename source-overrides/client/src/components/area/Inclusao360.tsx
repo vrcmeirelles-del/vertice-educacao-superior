@@ -1,3 +1,5 @@
+import { ContextHelp } from '@/components/ContextHelp';
+import { HelpLabel } from '@/components/ContextHelp';
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { buildSupportPayload, checkedWrite, readableObjectives, accommodationCategories } from "@/lib/student-support-contracts";
@@ -140,7 +142,7 @@ function Inclusao360Content({institutionId,role}:Props) {
           )}
           <div className="inc-table-wrap">
             <table className="inc-table">
-              <thead><tr><th>Estudante</th><th>Prioridade</th><th>Status</th><th>Aberto em</th><th>Solicitações</th><th>Plano</th></tr></thead>
+              <thead><tr><th>Estudante</th><th>Prioridade<ContextHelp title="Prioridade" /></th><th>Status</th><th>Aberto em</th><th>Solicitações</th><th>Plano</th></tr></thead>
               <tbody>
                 {cases.map(c=>{
                   const cr = requests.filter(r=>r.case_id===c.id);
@@ -223,8 +225,8 @@ function Inclusao360Content({institutionId,role}:Props) {
                 </select>
               </div>
               <div className="inc-form-row">
-                <label>Vigência início<input type="date" value={formPlan.effective_from} onChange={e=>setFormPlan({...formPlan,effective_from:e.target.value})} /></label>
-                <label>Vigência fim<input type="date" value={formPlan.effective_until} onChange={e=>setFormPlan({...formPlan,effective_until:e.target.value})} /></label>
+                <HelpLabel>Vigência início<input type="date" value={formPlan.effective_from} onChange={e=>setFormPlan({...formPlan,effective_from:e.target.value})} /></HelpLabel>
+                <HelpLabel>Vigência fim<input type="date" value={formPlan.effective_until} onChange={e=>setFormPlan({...formPlan,effective_until:e.target.value})} /></HelpLabel>
               </div>
               <textarea placeholder="Objetivos do plano" value={formPlan.objectives} onChange={e=>setFormPlan({...formPlan,objectives:e.target.value})} rows={3} />
               <div className="inc-form-actions">

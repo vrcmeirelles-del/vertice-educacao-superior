@@ -1,3 +1,5 @@
+import { ContextHelp } from '@/components/ContextHelp';
+import { HelpLabel } from '@/components/ContextHelp';
 import { useEffect, useState, useMemo, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import "./cost-simulator.css";
@@ -267,21 +269,21 @@ export default function CostSimulator({ institutionId, onUploadDocument }: { ins
           <h4>Parâmetros do simulador</h4>
           <p className="cost-sim-sub">Fonte declarada: {params.fonte_cct}. Esta referência não implica validação automática. Confira a CCT registrada no MTE, a categoria profissional, a base territorial, os aditivos e a vigência.</p>
           <div className="cost-sim-params-grid">
-            <label>Fonte da CCT / registro oficial<input type="text" maxLength={300} value={draft.fonte_cct} onChange={e=>setDraft({...draft,fonte_cct:e.target.value})} placeholder="Ex.: CCT · registro MTE · vigência · abrangência" /></label>
-            <label>Hora-aula Graduado<input type="number" step="0.01" value={draft.hora_aula_graduado} onChange={e => setDraft({ ...draft, hora_aula_graduado: +e.target.value })} /></label>
-            <label>Hora-aula Especialista<input type="number" step="0.01" value={draft.hora_aula_especialista} onChange={e => setDraft({ ...draft, hora_aula_especialista: +e.target.value })} /></label>
-            <label>Hora-aula Mestre<input type="number" step="0.01" value={draft.hora_aula_mestre} onChange={e => setDraft({ ...draft, hora_aula_mestre: +e.target.value })} /></label>
-            <label>Hora-aula Doutor<input type="number" step="0.01" value={draft.hora_aula_doutor} onChange={e => setDraft({ ...draft, hora_aula_doutor: +e.target.value })} /></label>
-            <label>Encargos sobre folha (%)<input type="number" step="0.01" value={Math.round(draft.encargos_pct * 100)} onChange={e => setDraft({ ...draft, encargos_pct: +e.target.value / 100 })} /></label>
-            <label title="Percentual hipotético de custos indiretos aplicado à receita estimada; não é despesa efetivamente auditada.">Custos indiretos operacionais (%)<input type="number" step="1" value={Math.round(draft.overhead_pct * 100)} onChange={e => setDraft({ ...draft, overhead_pct: +e.target.value / 100 })} /></label>
-            <label>Ticket presencial (R$/mês)<input type="number" step="10" value={draft.ticket_presencial} onChange={e => setDraft({ ...draft, ticket_presencial: +e.target.value })} /></label>
-            <label>Ticket semipresencial (R$/mês)<input type="number" step="10" value={draft.ticket_semipresencial} onChange={e => setDraft({ ...draft, ticket_semipresencial: +e.target.value })} /></label>
-            <label>Ticket EAD (R$/mês)<input type="number" step="10" value={draft.ticket_ead} onChange={e => setDraft({ ...draft, ticket_ead: +e.target.value })} /></label>
-            <label>Ensalamento ideal presencial<input type="number" value={draft.ensalamento_ideal_presencial} onChange={e => setDraft({ ...draft, ensalamento_ideal_presencial: +e.target.value })} /></label>
-            <label>Ensalamento ideal semipresencial<input type="number" value={draft.ensalamento_ideal_semipresencial} onChange={e => setDraft({ ...draft, ensalamento_ideal_semipresencial: +e.target.value })} /></label>
-            <label>Ensalamento ideal EAD<input type="number" value={draft.ensalamento_ideal_ead} onChange={e => setDraft({ ...draft, ensalamento_ideal_ead: +e.target.value })} /></label>
-            <label>CH semanal média/prof<input type="number" value={draft.ch_semanal_media} onChange={e => setDraft({ ...draft, ch_semanal_media: +e.target.value })} /></label>
-            <label>Meses letivos/semestre<input type="number" value={draft.meses_letivos} onChange={e => setDraft({ ...draft, meses_letivos: +e.target.value })} /></label>
+            <HelpLabel>Fonte da CCT / registro oficial<input type="text" maxLength={300} value={draft.fonte_cct} onChange={e=>setDraft({...draft,fonte_cct:e.target.value})} placeholder="Ex.: CCT · registro MTE · vigência · abrangência" /></HelpLabel>
+            <HelpLabel>Hora-aula Graduado<input type="number" step="0.01" value={draft.hora_aula_graduado} onChange={e => setDraft({ ...draft, hora_aula_graduado: +e.target.value })} /></HelpLabel>
+            <HelpLabel>Hora-aula Especialista<input type="number" step="0.01" value={draft.hora_aula_especialista} onChange={e => setDraft({ ...draft, hora_aula_especialista: +e.target.value })} /></HelpLabel>
+            <HelpLabel>Hora-aula Mestre<input type="number" step="0.01" value={draft.hora_aula_mestre} onChange={e => setDraft({ ...draft, hora_aula_mestre: +e.target.value })} /></HelpLabel>
+            <HelpLabel>Hora-aula Doutor<input type="number" step="0.01" value={draft.hora_aula_doutor} onChange={e => setDraft({ ...draft, hora_aula_doutor: +e.target.value })} /></HelpLabel>
+            <HelpLabel>Encargos sobre folha (%)<input type="number" step="0.01" value={Math.round(draft.encargos_pct * 100)} onChange={e => setDraft({ ...draft, encargos_pct: +e.target.value / 100 })} /></HelpLabel>
+            <HelpLabel title="Percentual hipotético de custos indiretos aplicado à receita estimada; não é despesa efetivamente auditada.">Custos indiretos operacionais (%)<input type="number" step="1" value={Math.round(draft.overhead_pct * 100)} onChange={e => setDraft({ ...draft, overhead_pct: +e.target.value / 100 })} /></HelpLabel>
+            <HelpLabel>Ticket presencial (R$/mês)<input type="number" step="10" value={draft.ticket_presencial} onChange={e => setDraft({ ...draft, ticket_presencial: +e.target.value })} /></HelpLabel>
+            <HelpLabel>Ticket semipresencial (R$/mês)<input type="number" step="10" value={draft.ticket_semipresencial} onChange={e => setDraft({ ...draft, ticket_semipresencial: +e.target.value })} /></HelpLabel>
+            <HelpLabel>Ticket EAD (R$/mês)<input type="number" step="10" value={draft.ticket_ead} onChange={e => setDraft({ ...draft, ticket_ead: +e.target.value })} /></HelpLabel>
+            <HelpLabel>Ensalamento ideal presencial<input type="number" value={draft.ensalamento_ideal_presencial} onChange={e => setDraft({ ...draft, ensalamento_ideal_presencial: +e.target.value })} /></HelpLabel>
+            <HelpLabel>Ensalamento ideal semipresencial<input type="number" value={draft.ensalamento_ideal_semipresencial} onChange={e => setDraft({ ...draft, ensalamento_ideal_semipresencial: +e.target.value })} /></HelpLabel>
+            <HelpLabel>Ensalamento ideal EAD<input type="number" value={draft.ensalamento_ideal_ead} onChange={e => setDraft({ ...draft, ensalamento_ideal_ead: +e.target.value })} /></HelpLabel>
+            <HelpLabel>CH semanal média/prof<input type="number" value={draft.ch_semanal_media} onChange={e => setDraft({ ...draft, ch_semanal_media: +e.target.value })} /></HelpLabel>
+            <HelpLabel>Meses letivos/semestre<input type="number" value={draft.meses_letivos} onChange={e => setDraft({ ...draft, meses_letivos: +e.target.value })} /></HelpLabel>
           </div>
           <button type="button" className="corp-button" disabled={saving} onClick={saveParams}>
             {saving ? 'Salvando…' : 'Salvar parâmetros'}
@@ -299,7 +301,7 @@ export default function CostSimulator({ institutionId, onUploadDocument }: { ins
           <div className="cost-sim-kpi"><small>Capacidade das salas</small><strong>Não disponibilizada</strong></div>
           <div className="cost-sim-kpi"><small>Ocupação física real</small><strong>Não apurada</strong></div>
         </div>
-        {classrooms.length>0&&<div className="cost-sim-table-wrap"><table className="cost-sim-table"><thead><tr><th>Turma</th><th>Matrículas</th><th>Vínculos em disciplinas</th><th>Sala e turno</th></tr></thead><tbody>{classrooms.slice(0,70).map((c,i)=><tr key={i}><td>{c.name}</td><td>{c.students===null?'Não informado':NUM.format(c.students)}</td><td>{c.vinculos===null?'Não informado':NUM.format(c.vinculos)}</td><td>Não disponibilizado</td></tr>)}</tbody></table></div>}
+        {classrooms.length>0&&<div className="cost-sim-table-wrap"><table className="cost-sim-table"><thead><tr><th>Turma</th><th>Matrículas<ContextHelp title="Matrículas" /></th><th>Vínculos em disciplinas</th><th>Sala e turno</th></tr></thead><tbody>{classrooms.slice(0,70).map((c,i)=><tr key={i}><td>{c.name}</td><td>{c.students===null?'Não informado':NUM.format(c.students)}</td><td>{c.vinculos===null?'Não informado':NUM.format(c.vinculos)}</td><td>Não disponibilizado</td></tr>)}</tbody></table></div>}
       </section>
       <CostEvidence institutionId={institutionId} onUpload={onUploadDocument}/>
       {!results.length&&<p className="area-note">Sem quantitativos acadêmicos suficientes neste semestre. Não é possível calcular resultados estimados por curso.</p>}
@@ -341,7 +343,7 @@ export default function CostSimulator({ institutionId, onUploadDocument }: { ins
           <thead>
             <tr>
               <th></th>
-              <th>Curso</th>
+              <th>Curso<ContextHelp title="Curso" /></th>
               <th>Mod.</th>
               <th>Matr.</th>
               <th title="Número de turmas hipotéticas = matrículas do curso divididas pelo tamanho ideal de cada turma, arredondado para cima. Não é ocupação física.">Turmas necessárias · estimativa</th>

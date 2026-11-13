@@ -1,3 +1,5 @@
+import { ContextHelp } from '@/components/ContextHelp';
+import { HelpLabel } from '@/components/ContextHelp';
 import React,{useEffect,useMemo,useRef,useState,type ReactNode} from 'react';
 import {demoInstitutionProfiles,type DemoCourse,type DemoInstitutionMode} from '@/lib/demo-showroom';
 
@@ -112,7 +114,7 @@ export default function PremiumBI({mode,courses,foFeed,initialPage='overview'}:P
   {risk.map(r=><button key={r.id} type="button" onClick={()=>chooseCourse(r.id)}>
    <span>{r.name} – {term}</span><span className="vp-track"><i className={'vp-fill '+riskTone(r.risk)} style={{width:String(bound(r.risk*5.2))+'%'}}/></span><strong>{pct(r.risk)}</strong>
   </button>)}</div>;
- const plan=<div className="vp-table-scroll"><table className="vp-5w2h"><thead><tr><th/><th>Ação</th><th>O quê?</th><th>Responsável</th><th>Prazo</th><th>Status</th></tr></thead><tbody>{[
+ const plan=<div className="vp-table-scroll"><table className="vp-5w2h"><thead><tr><th/><th>Ação<ContextHelp title="Ação" /></th><th>O quê?</th><th>Responsável<ContextHelp title="Responsável" /></th><th>Prazo</th><th>Status</th></tr></thead><tbody>{[
   {acao:'Reduzir evasão em cursos de maior risco',oque:'Implantar plano de permanência (tutoria, acompanhamento e bolsas)',resp:'Prograd',prazo:'31/03/'+term.slice(0,4),chip:'alta',status:'⚑ Prioritária'},
   {acao:'Ajustar indicadores do MEC / INEP',oque:'Plano de correções e evidências nas dimensões 2 e 3',resp:'Qualidade Acadêmica',prazo:'30/04/'+term.slice(0,4),chip:'andamento',status:'↻ Em andamento'},
   {acao:'Ampliar captação de matrículas',oque:'Campanha digital e ações com colégios parceiros',resp:'Marketing',prazo:'15/03/'+term.slice(0,4),chip:'aberta',status:'✓ Aberta'}
@@ -127,7 +129,7 @@ export default function PremiumBI({mode,courses,foFeed,initialPage='overview'}:P
   {foValid?<><p><strong style={{color:'#fff'}}>{fmt(foFeed!.summary.students)} alunos fictícios</strong> recebidos do cenário demonstrativo Fato & Ordem.</p><span className="vp-fo-badge">▦ OAB, CFC e ENADE em acompanhamento demonstrativo.</span></>
   :<><p>Feed demonstrativo não confirmado nesta sessão. Nenhum número é apresentado como sincronizado.</p><span className="vp-fo-badge">▦ OAB, CFC e ENADE em acompanhamento demonstrativo.</span></>}
   <p style={{fontSize:11,opacity:.8}}>Cenário sintético — sem dados reais de alunos.</p></div>;
- const table=<div className="vp-table-scroll"><table className="vp-table"><thead><tr><th>Curso</th><th>Matrículas</th><th>Ocupação</th><th>Nota</th><th>Falta</th><th>Detalhes</th></tr></thead><tbody>{rows.map(r=><tr key={r.id} tabIndex={0} role="button" onClick={()=>chooseCourse(r.id)} onKeyDown={e=>{if(e.key==='Enter')chooseCourse(r.id);}}><td>{r.name}</td><td>{fmt(r.students)}</td><td>{pct(r.occupancy)}</td><td>{pct(r.note)}</td><td>{pct(r.absence)}</td><td>Ver ›</td></tr>)}</tbody></table></div>;
+ const table=<div className="vp-table-scroll"><table className="vp-table"><thead><tr><th>Curso<ContextHelp title="Curso" /></th><th>Matrículas<ContextHelp title="Matrículas" /></th><th>Ocupação</th><th>Nota<ContextHelp title="Nota" /></th><th>Falta</th><th>Detalhes</th></tr></thead><tbody>{rows.map(r=><tr key={r.id} tabIndex={0} role="button" onClick={()=>chooseCourse(r.id)} onKeyDown={e=>{if(e.key==='Enter')chooseCourse(r.id);}}><td>{r.name}</td><td>{fmt(r.students)}</td><td>{pct(r.occupancy)}</td><td>{pct(r.note)}</td><td>{pct(r.absence)}</td><td>Ver ›</td></tr>)}</tbody></table></div>;
  return <div className={'vp-bi'+(tv?' tv':'')} ref={host} aria-label={'BI Demonstrativo: '+demoInstitutionProfiles[mode].name}>
   <aside className="vp-side">
    <div className="vp-side-logo"><i>V</i><div><strong>Vértice</strong><small>Educação Superior</small></div></div>
@@ -140,9 +142,9 @@ export default function PremiumBI({mode,courses,foFeed,initialPage='overview'}:P
     <div className="vp-top-controls"><span className="vp-demo-pill">◉ Ambiente Demo</span><button type="button" onClick={()=>void enterTv()}>▣ Modo TV</button></div>
    </header>
    <div className="vp-canvas">
-   <div className="vp-filters"><label>Semestre<select value={term} onChange={e=>setTerm(e.target.value as Term)}>{TERMS.map(t=><option key={t}>{t}</option>)}</select></label>
-   <label>Curso<select value={course} onChange={e=>setCourse(e.target.value)}><option value="all">Todos os cursos</option>{courses.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
-   <label>Comparar com<select value={compare} onChange={e=>setCompare(e.target.value as 'year'|'previous')}><option value="year">Mesmo semestre do ano anterior</option><option value="previous">Semestre anterior</option></select></label>
+   <div className="vp-filters"><HelpLabel>Semestre<select value={term} onChange={e=>setTerm(e.target.value as Term)}>{TERMS.map(t=><option key={t}>{t}</option>)}</select></HelpLabel>
+   <HelpLabel>Curso<select value={course} onChange={e=>setCourse(e.target.value)}><option value="all">Todos os cursos</option>{courses.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></HelpLabel>
+   <HelpLabel>Comparar com<select value={compare} onChange={e=>setCompare(e.target.value as 'year'|'previous')}><option value="year">Mesmo semestre do ano anterior</option><option value="previous">Semestre anterior</option></select></HelpLabel>
    <button type="button" onClick={()=>{setTerm('2026/2');setCourse('all');setCompare('year');setPage('overview');}}>Limpar filtros</button></div>
    {kpis}
    {(page==='overview'||page==='matriculas')&&<div className="vp-grid">

@@ -1,3 +1,5 @@
+import { ContextHelp } from '@/components/ContextHelp';
+import { HelpLabel } from '@/components/ContextHelp';
 // Aquisicoes360.tsx — Módulo de Gestão de Aquisições
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
@@ -109,7 +111,7 @@ export default function Aquisicoes360({ institutionId, role }: { institutionId: 
     <div className="aq-container">
       <div className="aq-header">
         <div>
-          <h2>Aquisições 360°</h2>
+          <h2>Aquisições 360°<ContextHelp title="Aquisições 360°" /></h2>
           <p>Gestão de compras, fornecedores, cotações e ordens de compra</p>
         </div>
       </div>
@@ -144,23 +146,23 @@ export default function Aquisicoes360({ institutionId, role }: { institutionId: 
                 <div className="aq-form">
                   <h3>{formData.id ? 'Editar' : 'Nova'} Requisição</h3>
                   <div className="aq-form-grid">
-                    <label>Solicitante<input value={formData.requester_name || ''} onChange={e => setFormData({ ...formData, requester_name: e.target.value })} /></label>
-                    <label>Setor<input value={formData.department || ''} onChange={e => setFormData({ ...formData, department: e.target.value })} /></label>
-                    <label>Descrição<input value={formData.description || ''} onChange={e => setFormData({ ...formData, description: e.target.value })} /></label>
-                    <label>Categoria<input value={formData.category || ''} onChange={e => setFormData({ ...formData, category: e.target.value })} placeholder="Ex: material_didatico, TI" /></label>
-                    <label>Qtd<input type="number" value={formData.quantity || ''} onChange={e => setFormData({ ...formData, quantity: +e.target.value })} /></label>
-                    <label>Unidade<input value={formData.unit || 'un'} onChange={e => setFormData({ ...formData, unit: e.target.value })} /></label>
-                    <label>Preço unitário estimado<input type="number" step="0.01" value={formData.estimated_unit_price || ''} onChange={e => setFormData({ ...formData, estimated_unit_price: +e.target.value })} /></label>
-                    <label>Urgência
+                    <HelpLabel>Solicitante<input value={formData.requester_name || ''} onChange={e => setFormData({ ...formData, requester_name: e.target.value })} /></HelpLabel>
+                    <HelpLabel>Setor<input value={formData.department || ''} onChange={e => setFormData({ ...formData, department: e.target.value })} /></HelpLabel>
+                    <HelpLabel>Descrição<input value={formData.description || ''} onChange={e => setFormData({ ...formData, description: e.target.value })} /></HelpLabel>
+                    <HelpLabel>Categoria<input value={formData.category || ''} onChange={e => setFormData({ ...formData, category: e.target.value })} placeholder="Ex: material_didatico, TI" /></HelpLabel>
+                    <HelpLabel>Qtd<input type="number" value={formData.quantity || ''} onChange={e => setFormData({ ...formData, quantity: +e.target.value })} /></HelpLabel>
+                    <HelpLabel>Unidade<input value={formData.unit || 'un'} onChange={e => setFormData({ ...formData, unit: e.target.value })} /></HelpLabel>
+                    <HelpLabel>Preço unitário estimado<input type="number" step="0.01" value={formData.estimated_unit_price || ''} onChange={e => setFormData({ ...formData, estimated_unit_price: +e.target.value })} /></HelpLabel>
+                    <HelpLabel>Urgência
                       <select value={formData.urgency || 'normal'} onChange={e => setFormData({ ...formData, urgency: e.target.value })}>
                         <option value="baixa">Baixa</option>
                         <option value="normal">Normal</option>
                         <option value="alta">Alta</option>
                         <option value="emergencial">Emergencial</option>
                       </select>
-                    </label>
+                    </HelpLabel>
                   </div>
-                  <label className="aq-form-full">Justificativa<textarea value={formData.justification || ''} onChange={e => setFormData({ ...formData, justification: e.target.value })} rows={3} /></label>
+                  <HelpLabel className="aq-form-full">Justificativa<textarea value={formData.justification || ''} onChange={e => setFormData({ ...formData, justification: e.target.value })} rows={3} /></HelpLabel>
                   <div className="aq-form-actions">
                     <button className="aq-btn-save" onClick={saveRequest}>Salvar</button>
                     <button className="aq-btn-cancel" onClick={() => setShowForm(false)}>Cancelar</button>
@@ -197,12 +199,12 @@ export default function Aquisicoes360({ institutionId, role }: { institutionId: 
                 <div className="aq-form">
                   <h3>{formData.id ? 'Editar' : 'Novo'} Fornecedor</h3>
                   <div className="aq-form-grid">
-                    <label>Nome/Razão Social<input value={formData.name || ''} onChange={e => setFormData({ ...formData, name: e.target.value })} /></label>
-                    <label>CNPJ<input value={formData.cnpj || ''} onChange={e => setFormData({ ...formData, cnpj: e.target.value })} /></label>
-                    <label>Contato<input value={formData.contact_name || ''} onChange={e => setFormData({ ...formData, contact_name: e.target.value })} /></label>
-                    <label>E-mail<input value={formData.contact_email || ''} onChange={e => setFormData({ ...formData, contact_email: e.target.value })} /></label>
-                    <label>Telefone<input value={formData.contact_phone || ''} onChange={e => setFormData({ ...formData, contact_phone: e.target.value })} /></label>
-                    <label>Categoria<input value={formData.category || ''} onChange={e => setFormData({ ...formData, category: e.target.value })} placeholder="material_didatico, servicos, TI" /></label>
+                    <HelpLabel>Nome/Razão Social<input value={formData.name || ''} onChange={e => setFormData({ ...formData, name: e.target.value })} /></HelpLabel>
+                    <HelpLabel>CNPJ<input value={formData.cnpj || ''} onChange={e => setFormData({ ...formData, cnpj: e.target.value })} /></HelpLabel>
+                    <HelpLabel>Contato<input value={formData.contact_name || ''} onChange={e => setFormData({ ...formData, contact_name: e.target.value })} /></HelpLabel>
+                    <HelpLabel>E-mail<input value={formData.contact_email || ''} onChange={e => setFormData({ ...formData, contact_email: e.target.value })} /></HelpLabel>
+                    <HelpLabel>Telefone<input value={formData.contact_phone || ''} onChange={e => setFormData({ ...formData, contact_phone: e.target.value })} /></HelpLabel>
+                    <HelpLabel>Categoria<input value={formData.category || ''} onChange={e => setFormData({ ...formData, category: e.target.value })} placeholder="material_didatico, servicos, TI" /></HelpLabel>
                   </div>
                   <div className="aq-form-actions">
                     <button className="aq-btn-save" onClick={saveSupplier}>Salvar</button>
@@ -212,7 +214,7 @@ export default function Aquisicoes360({ institutionId, role }: { institutionId: 
               )}
               {suppliers.length === 0 ? <p className="aq-empty">Nenhum fornecedor cadastrado.</p> : (
                 <table className="aq-table">
-                  <thead><tr><th>Nome</th><th>CNPJ</th><th>Contato</th><th>E-mail</th><th>Categoria</th><th>Status</th></tr></thead>
+                  <thead><tr><th>Nome</th><th>CNPJ<ContextHelp title="CNPJ" /></th><th>Contato</th><th>E-mail<ContextHelp title="E-mail" /></th><th>Categoria</th><th>Status</th></tr></thead>
                   <tbody>
                     {suppliers.map(s => (
                       <tr key={s.id} className={canEdit ? 'clickable' : ''} onClick={() => { if (canEdit) { setFormData(s); setShowForm(true); } }}>

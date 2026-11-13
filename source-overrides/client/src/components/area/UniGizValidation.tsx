@@ -1,3 +1,4 @@
+import { HelpLabel } from '@/components/ContextHelp';
 import {useCallback,useEffect,useState} from "react";
 import {supabase} from "@/lib/supabase";
 import {validateUniGizStructuralFiles,uniGizSha256,type UniGizCheckResult} from "@/lib/uni-giz-structural-validation";
@@ -97,16 +98,16 @@ export default function UniGizValidation({institutionId,backupId}:{institutionId
    <strong>Pré-requisito:</strong> a execução do SQL Server deve ter gerado os relatórios. O recebimento do BAK no cofre não produz automaticamente esses documentos. Não envie o BAK ou o RAR nesta seção.
   </div>
   {!backupId?<p role="status">Nenhum BAK recebido foi localizado para vincular a conferência.</p>:<div className="vx-unigiz-form">
-   <label>Manifesto de conciliação
+   <HelpLabel>Manifesto de conciliação
     <input id="vx-unigiz-manifest" type="file" accept=".json,application/json"
      onChange={e=>{setManifest(e.target.files?.[0]??null);setResult(null)}}/>
     <small>00_manifesto_conciliacao.json</small>
-   </label>
-   <label>Relatório com as 642 tabelas
+   </HelpLabel>
+   <HelpLabel>Relatório com as 642 tabelas
     <input id="vx-unigiz-tables" type="file" accept=".csv,text/csv"
      onChange={e=>{setTables(e.target.files?.[0]??null);setResult(null)}}/>
     <small>02_642_tabelas.csv</small>
-   </label>
+   </HelpLabel>
    <button type="button" className="vx-unigiz-primary" onClick={()=>void preview()} disabled={busy||!manifest||!tables}>
     {busy?"Conferindo…":"Conferir relatórios sem publicar no BI"}
    </button>

@@ -1,3 +1,4 @@
+import { HelpLabel } from '@/components/ContextHelp';
 /**
  * ExtensaoODS — Vinculação de projetos aos ODS com fundamentação
  */
@@ -175,7 +176,7 @@ export default function ExtensaoODS({
                 ODS {selectedGoal}: {goals.find(g => g.id === selectedGoal)?.title_pt}
               </p>
 
-              <label>Meta
+              <HelpLabel>Meta
                 <select value={formData.target_id || ''} onChange={e => setFormData({ ...formData, target_id: +e.target.value })}>
                   <option value="">— Selecionar meta —</option>
                   {filteredTargets.map(t => (
@@ -184,24 +185,24 @@ export default function ExtensaoODS({
                     </option>
                   ))}
                 </select>
-              </label>
+              </HelpLabel>
 
-              <label>Tipo de contribuição
+              <HelpLabel>Tipo de contribuição
                 <select value={formData.contribution_type} onChange={e => setFormData({ ...formData, contribution_type: e.target.value })}>
                   <option value="produto">Produto (entrega direta)</option>
                   <option value="resultado">Resultado (mudança observada)</option>
                   <option value="impacto_demonstrado">Impacto demonstrado (evidência mensurável)</option>
                 </select>
-              </label>
+              </HelpLabel>
 
-              <label className="ext-form-full">Fundamentação (obrigatória)
+              <HelpLabel className="ext-form-full">Fundamentação (obrigatória)
                 <textarea
                   value={formData.justification}
                   onChange={e => setFormData({ ...formData, justification: e.target.value })}
                   rows={3}
                   placeholder="Por que este projeto contribui para esta meta ODS? Qual a evidência ou entrega que sustenta a vinculação?"
                 />
-              </label>
+              </HelpLabel>
 
               <div className="ext-form-actions">
                 <button className="ext-btn-save" onClick={saveLink}>Vincular</button>

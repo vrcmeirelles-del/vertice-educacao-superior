@@ -1,3 +1,4 @@
+import { HelpLabel } from '@/components/ContextHelp';
 import {useCallback,useEffect,useMemo,useState} from "react";
 import {supabase} from "@/lib/supabase";
 import "./unicaldas-regulatory-bi.css";
@@ -131,7 +132,7 @@ export default function UnicaldasRegulatoryBI({institutionId}:{institutionId:str
     <div className="ub-filter">
      <div><strong>{view==="emec"?"Registros regulatórios":view==="courses"?"Cadastro de cursos":view==="library"?"Itens da biblioteca":view==="documents"?"Documentos recebidos":view==="catalog"?"Estrutura do sistema GIZ":"Lacunas de cobertura"}</strong>
      <small>{filtered.length.toLocaleString("pt-BR")} resultados · clique nos cartões, barras ou abas para explorar</small></div>
-     <label>Pesquisar nesta seção<input type="search" value={search} onChange={e=>{setSearch(e.target.value);setLimit(35);}} placeholder="Nome, código, assunto ou situação"/></label>
+     <HelpLabel>Pesquisar nesta seção<input type="search" value={search} onChange={e=>{setSearch(e.target.value);setLimit(35);}} placeholder="Nome, código, assunto ou situação"/></HelpLabel>
     </div>
     {view==="emec"&&<div className="ub-types">
      <button type="button" aria-pressed={kind==="all"} onClick={()=>{setKind("all");setLimit(35)}}>Todos ({records.length})</button>

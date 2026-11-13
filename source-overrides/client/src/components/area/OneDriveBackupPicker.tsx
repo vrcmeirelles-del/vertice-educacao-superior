@@ -1,3 +1,5 @@
+import { ContextHelp } from '@/components/ContextHelp';
+import { HelpLabel } from '@/components/ContextHelp';
 import {useState} from "react";
 import {supabase} from "@/lib/supabase";
 type DriveBackup={id:string;name:string;size:number;modified:string};
@@ -53,10 +55,10 @@ export default function OneDriveBackupPicker({institutionId,onImported}:{institu
   </button>
   <p role="status" className="vx-backup-stage"><strong>Andamento:</strong> {stage}</p>
   {files.length>0&&<>
-   <label>Competência ou referência (opcional)
+   <HelpLabel>Competência ou referência (opcional)
     <input maxLength={35} value={referencePeriod} onChange={e=>setReferencePeriod(e.target.value)} placeholder="Ex.: 2026/02"/>
-   </label>
-   <div className="vx-backup-scroll"><table><thead><tr><th>Arquivo no OneDrive</th><th>Tamanho</th><th>Ação</th></tr></thead>
+   </HelpLabel>
+   <div className="vx-backup-scroll"><table><thead><tr><th>Arquivo no OneDrive</th><th>Tamanho</th><th>Ação<ContextHelp title="Ação" /></th></tr></thead>
     <tbody>{files.map(file=><tr key={file.id}>
      <td>{file.name}</td><td>{(file.size/1024/1024).toLocaleString("pt-BR",{maximumFractionDigits:2})} MiB</td>
      <td><button type="button" disabled={!!copying} onClick={()=>void copy(file)}>

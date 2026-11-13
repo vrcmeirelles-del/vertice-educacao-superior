@@ -1,3 +1,5 @@
+import { ContextHelp } from '@/components/ContextHelp';
+import { HelpLabel } from '@/components/ContextHelp';
 import {useEffect,useMemo,useState} from "react";
 import {supabase} from "@/lib/supabase";
 import "./migration-catalog.css";
@@ -70,27 +72,27 @@ export default function MigrationCatalog({institutionId}:{institutionId:string})
      <strong>Inventário carregado · restauração pendente.</strong> O arquivo BAK foi recebido, mas a mídia ainda necessita de RESTORE VERIFYONLY e restauração em SQL Server isolado. O catálogo não comprova a presença de linhas em nenhuma tabela.
     </div>
     <div className="vx-migcat-filters">
-     <label>Buscar tabela
+     <HelpLabel>Buscar tabela
       <input type="search" value={search} onChange={e=>{setSearch(e.target.value);setLimit(INITIAL)}} placeholder="Ex.: ALUNOGER, FALTASGLOBAIS"/>
-     </label>
-     <label>Área sugerida
+     </HelpLabel>
+     <HelpLabel>Área sugerida
       <select value={area} onChange={e=>{setArea(e.target.value);setLimit(INITIAL)}}>
        <option value="todas">Todas as áreas</option>
        {options.map(x=><option value={x} key={x}>{x}</option>)}
       </select>
-     </label>
-     <label>Prioridade sugerida
+     </HelpLabel>
+     <HelpLabel>Prioridade sugerida
       <select value={priority} onChange={e=>{setPriority(e.target.value);setLimit(INITIAL)}}>
        <option value="todas">Todas</option>
        <option value="1">1 · Primeira extração</option>
        <option value="2">2 · Complementares</option>
        <option value="3">3 · Posteriores</option>
       </select>
-     </label>
+     </HelpLabel>
     </div>
     <p className="vx-migcat-count">Mostrando {Math.min(limit,filtered.length)} de {filtered.length} tabelas correspondentes aos filtros · {entries.length} cadastradas ao todo.</p>
     <div className="vx-migcat-scroll"><table>
-     <thead><tr><th>Tabela</th><th>Área sugerida</th><th>Prioridade</th><th>Validação</th></tr></thead>
+     <thead><tr><th>Tabela</th><th>Área sugerida</th><th>Prioridade<ContextHelp title="Prioridade" /></th><th>Validação</th></tr></thead>
      <tbody>{filtered.slice(0,limit).map(x=><tr key={x.table_schema+"."+x.table_name}>
       <td><strong>{x.table_schema}.{x.table_name}</strong></td>
       <td>{x.area_sugerida??"Não classificada"}</td>

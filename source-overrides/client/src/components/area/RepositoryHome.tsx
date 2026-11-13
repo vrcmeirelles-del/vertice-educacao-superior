@@ -1,3 +1,5 @@
+import { ContextHelp } from '@/components/ContextHelp';
+import { HelpLabel } from '@/components/ContextHelp';
 import { useState } from "react";
 import {
   fmtDate,
@@ -125,15 +127,15 @@ export function RepositoryCourseHome({
         </button>
       </div>
       <div className="repo-toolbar">
-        <label>
+        <HelpLabel>
           Buscar curso
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Nome, código ou coordenação"
           />
-        </label>
-        <label>
+        </HelpLabel>
+        <HelpLabel>
           Mostrar
           <select value={filter} onChange={(e) => setFilter(e.target.value)}>
             <option value="todos">Todos os cursos</option>
@@ -141,7 +143,7 @@ export function RepositoryCourseHome({
             <option value="configurar">Checklist não configurado</option>
             <option value="validado">Documentação validada</option>
           </select>
-        </label>
+        </HelpLabel>
         <span>
           {rows.length} de {courses.length} cursos
         </span>
@@ -284,8 +286,8 @@ export function RepositoryCoverage({
                 <thead>
                   <tr>
                     <th>Documento</th>
-                    <th>Referência</th>
-                    <th>Responsável</th>
+                    <th>Referência<ContextHelp title="Referência" /></th>
+                    <th>Responsável<ContextHelp title="Responsável" /></th>
                     <th>Prazo</th>
                     <th>Situação</th>
                     <th />

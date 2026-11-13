@@ -1,3 +1,4 @@
+import { HelpLabel } from '@/components/ContextHelp';
 import {useCallback,useEffect,useMemo,useState} from "react";
 import {supabase} from "@/lib/supabase";
 import {can,type Role} from "@/lib/area";
@@ -150,7 +151,7 @@ export function NovoObjetoDocumentos2026({state,role,object,initialPeriod="2026-
  return <div className="rec17-indicator-docs">
   <div className="rec17-indicator-head"><h5>Documentos e evidências · {object.code}</h5><span className={"rec17-status "+(status==="validado"?"rec17-status-validado":status==="enviado"?"rec17-status-enviado":status==="devolvido"?"rec17-status-devolvido":status==="nsa"?"rec17-status-nsa":"rec17-status-pendente")}>{stateLabel(status)}</span></div>
   <p className="rec17-help">{object.hint} — roteiro preliminar, não rol oficial definitivo de exigências.</p>
-  <label className="rec17-period-filter">Semestre da documentação <select value={period} onChange={e=>{setPeriod(e.target.value);setOpen(false);setReviewing(null);setShowHistory(false);}}>{options.map(o=><option key={o.value} value={o.value}>{o.label}</option>)}</select></label>
+  <HelpLabel className="rec17-period-filter">Semestre da documentação <select value={period} onChange={e=>{setPeriod(e.target.value);setOpen(false);setReviewing(null);setShowHistory(false);}}>{options.map(o=><option key={o.value} value={o.value}>{o.label}</option>)}</select></HelpLabel>
   <div className="rec17-row">
    <div className="rec17-row-main"><strong>{request?.title??"Documento de suporte ao objeto "+object.code}</strong>
     <small>{request?.due_date?"Prazo: "+request.due_date+" · ":""}{request?.assignee_email?"Responsável: "+request.assignee_email:""}</small>
@@ -170,21 +171,21 @@ export function NovoObjetoDocumentos2026({state,role,object,initialPeriod="2026-
   {open&&manager&&<div className="rec17-editor" role="group" aria-label={"Enviar documento ao objeto "+object.code}>
     <h5>Registrar evidência · {object.title}</h5>
     <div className="rec17-form-grid">
-      <label>Semestre de referência<input value={period.replace("-","/")} disabled readOnly/></label>
-      <label>Prazo (opcional)<input type="date" value={deadline} onChange={e=>setDeadline(e.target.value)} disabled={!!request}/></label>
-      <label>Responsável pela entrega<select value={assigneeId} onChange={e=>setAssigneeId(e.target.value)} disabled={!!request}><option value="">Gestão da instituição</option>{state.members.filter(m=>["gestor","equipe"].includes(m.role)).map(m=><option key={m.user_id} value={m.user_id}>{m.email}</option>)}</select></label>
-      <label>Tipo de registro<select value={nsa?"nsa":"arquivo"} onChange={e=>setNsa(e.target.value==="nsa")}><option value="arquivo">Arquivo</option><option value="nsa">Não se aplica (NSA)</option></select></label>
+      <HelpLabel>Semestre de referência<input value={period.replace("-","/")} disabled readOnly/></HelpLabel>
+      <HelpLabel>Prazo (opcional)<input type="date" value={deadline} onChange={e=>setDeadline(e.target.value)} disabled={!!request}/></HelpLabel>
+      <HelpLabel>Responsável pela entrega<select value={assigneeId} onChange={e=>setAssigneeId(e.target.value)} disabled={!!request}><option value="">Gestão da instituição</option>{state.members.filter(m=>["gestor","equipe"].includes(m.role)).map(m=><option key={m.user_id} value={m.user_id}>{m.email}</option>)}</select></HelpLabel>
+      <HelpLabel>Tipo de registro<select value={nsa?"nsa":"arquivo"} onChange={e=>setNsa(e.target.value==="nsa")}><option value="arquivo">Arquivo</option><option value="nsa">Não se aplica (NSA)</option></select></HelpLabel>
     </div>
-    {nsa?<label>Justificativa de não aplicabilidade<textarea required value={nsaReason} onChange={e=>setNsaReason(e.target.value)} maxLength={4000}/></label>:<>
-      <label>Arquivo<input type="file" accept=".pdf,.docx,.xlsx,.pptx,.png,.jpg,.jpeg,.txt,.csv" onChange={e=>setFile(e.target.files?.[0]??null)}/></label>
-      <label>Referência<input value={reference} maxLength={250} onChange={e=>setReference(e.target.value)} placeholder="Ex.: PDI, relatório de CPA, ata"/></label>
-      <label>Observação de entrega<textarea value={note} maxLength={4000} onChange={e=>setNote(e.target.value)} placeholder="Identifique páginas e critérios atendidos"/></label>
+    {nsa?<HelpLabel>Justificativa de não aplicabilidade<textarea required value={nsaReason} onChange={e=>setNsaReason(e.target.value)} maxLength={4000}/></HelpLabel>:<>
+      <HelpLabel>Arquivo<input type="file" accept=".pdf,.docx,.xlsx,.pptx,.png,.jpg,.jpeg,.txt,.csv" onChange={e=>setFile(e.target.files?.[0]??null)}/></HelpLabel>
+      <HelpLabel>Referência<input value={reference} maxLength={250} onChange={e=>setReference(e.target.value)} placeholder="Ex.: PDI, relatório de CPA, ata"/></HelpLabel>
+      <HelpLabel>Observação de entrega<textarea value={note} maxLength={4000} onChange={e=>setNote(e.target.value)} placeholder="Identifique páginas e critérios atendidos"/></HelpLabel>
     </>}
     <div className="rec17-editor-actions"><button type="button" onClick={()=>setOpen(false)}>Cancelar</button><button type="button" disabled={saving||(!nsa&&!file)||(nsa&&!nsaReason.trim())} onClick={()=>void submit()}>{saving?"Gravando…":nsa?"Registrar NSA":"Enviar evidência"}</button></div>
    </div>}
   {reviewing&&manager&&<div className="rec17-editor"><h5>Analisar versão · {reviewing.file_name}</h5>
-    <label>Decisão<select value={decision} onChange={e=>setDecision(e.target.value as "validado"|"devolvido")}><option value="validado">Validar</option><option value="devolvido">Devolver</option></select></label>
-    <label>Parecer<textarea value={reviewNote} onChange={e=>setReviewNote(e.target.value)} maxLength={4000}/></label>
+    <HelpLabel>Decisão<select value={decision} onChange={e=>setDecision(e.target.value as "validado"|"devolvido")}><option value="validado">Validar</option><option value="devolvido">Devolver</option></select></HelpLabel>
+    <HelpLabel>Parecer<textarea value={reviewNote} onChange={e=>setReviewNote(e.target.value)} maxLength={4000}/></HelpLabel>
     <div className="rec17-editor-actions"><button type="button" onClick={()=>setReviewing(null)}>Cancelar</button><button type="button" disabled={saving||(decision==="devolvido"&&!reviewNote.trim())} onClick={()=>void review()}>{saving?"Salvando…":"Registrar decisão"}</button></div>
    </div>}
  </div>;

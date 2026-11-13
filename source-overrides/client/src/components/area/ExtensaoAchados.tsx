@@ -1,3 +1,4 @@
+import { HelpLabel } from '@/components/ContextHelp';
 /**
  * ExtensaoAchados — Achados e Plano de Ação 5W2H
  */
@@ -130,25 +131,25 @@ export default function ExtensaoAchados({
         <div className="ext-form">
           <h3>Registrar achado</h3>
           <div className="ext-form-grid">
-            <label>Título *<input value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} /></label>
-            <label>Severidade
+            <HelpLabel>Título *<input value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} /></HelpLabel>
+            <HelpLabel>Severidade
               <select value={formData.severity} onChange={e => setFormData({ ...formData, severity: e.target.value })}>
                 {Object.entries(SEVERITY_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
               </select>
-            </label>
-            <label>Categoria
+            </HelpLabel>
+            <HelpLabel>Categoria
               <select value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })}>
                 {Object.entries(CATEGORY_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
               </select>
-            </label>
-            <label>Origem
+            </HelpLabel>
+            <HelpLabel>Origem
               <select value={formData.source_type} onChange={e => setFormData({ ...formData, source_type: e.target.value })}>
                 {Object.entries(SOURCE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
               </select>
-            </label>
+            </HelpLabel>
           </div>
-          <label className="ext-form-full">Descrição *<textarea value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} rows={3} /></label>
-          <label className="ext-form-full">Impacto potencial<textarea value={formData.potential_impact} onChange={e => setFormData({ ...formData, potential_impact: e.target.value })} rows={2} /></label>
+          <HelpLabel className="ext-form-full">Descrição *<textarea value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} rows={3} /></HelpLabel>
+          <HelpLabel className="ext-form-full">Impacto potencial<textarea value={formData.potential_impact} onChange={e => setFormData({ ...formData, potential_impact: e.target.value })} rows={2} /></HelpLabel>
           <div className="ext-form-actions">
             <button className="ext-btn-save" onClick={saveFinding}>Salvar</button>
             <button className="ext-btn-cancel" onClick={() => setShowForm(false)}>Cancelar</button>

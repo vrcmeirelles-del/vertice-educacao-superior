@@ -1,3 +1,4 @@
+import { HelpLabel } from '@/components/ContextHelp';
 import {useCallback,useEffect,useState} from "react";
 import {supabase} from "@/lib/supabase";
 import "./cost-evidence.css";
@@ -43,8 +44,8 @@ export default function CostEvidence({institutionId,onUpload,compact=false}:{ins
  }
  return <section className="cost-evidence area-panel" aria-label="Base documental para cruzamento de custos">
   <div className="cost-evidence-head"><div><small>BASE DOCUMENTAL · CUSTOS</small><h3>Convenções e documentos da IES</h3><p>Arquivos privados vinculados à instituição, reutilizáveis na análise de custos. Anexar não valida automaticamente pisos, jornadas, encargos ou valores.</p></div><button type="button" onClick={()=>void refresh()} disabled={loading}>Atualizar lista</button></div>
-  {onUpload&&<div className="cost-evidence-upload"><label>Documento a cadastrar
-   <select value={kind} onChange={e=>setKind(e.target.value)}>{TYPES.map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></label>
+  {onUpload&&<div className="cost-evidence-upload"><HelpLabel>Documento a cadastrar
+   <select value={kind} onChange={e=>setKind(e.target.value)}>{TYPES.map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></HelpLabel>
    <button type="button" className="corp-button" onClick={send}>Enviar arquivo pelo repositório privado</button></div>}
   <p className="cost-evidence-info">Para a CCT, registre o PDF integral, instrumento/registro, sindicato, abrangência, categoria e datas de vigência. Também podem ser enviados aditivos, folha, horários, contratos, custos operacionais e ensalamento. A validação permanece humana.</p>
   {error&&<p role="alert" className="area-error">{error}</p>}

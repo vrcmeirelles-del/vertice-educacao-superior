@@ -1,3 +1,4 @@
+import { HelpLabel } from '@/components/ContextHelp';
 import React, { useEffect, useRef, useState } from 'react';
 import { getPendingMasterInvitation, clearPendingMasterInvitation } from '@/lib/master-invitation-bootstrap';
 import { acceptMasterInvitation, createMasterRequestGuard, previewMasterInvitation, type MasterPreview } from '@/lib/master-invitations';
@@ -37,7 +38,7 @@ export default function MasterInvitationAcceptance({ userId, backendReady = fals
     {error && <p role="alert">{error}</p>}
     {!preview && <button type="button" disabled={!backendReady || busy || uncertain} onClick={() => void verify()}>Verificar convite</button>}
     {preview && <><p>Para <strong>{preview.email}</strong>. Válido até {new Date(preview.expiresAt).toLocaleString('pt-BR')}.</p>
-      <label><input type="checkbox" disabled={busy} checked={confirmed} onChange={event => setConfirmed(event.target.checked)} /> Entendi o acesso global e desejo aceitar o perfil Master nesta conta.</label>
+      <HelpLabel><input type="checkbox" disabled={busy} checked={confirmed} onChange={event => setConfirmed(event.target.checked)} /> Entendi o acesso global e desejo aceitar o perfil Master nesta conta.</HelpLabel>
       <button type="button" disabled={!backendReady || busy || !confirmed || uncertain} onClick={() => void accept()}>Aceitar acesso de Master</button></>}
     <button type="button" disabled={busy} onClick={() => { guard.current.invalidate(); clearPendingMasterInvitation(); setCredential(null); setPreview(null); }}>Descartar link desta sessão</button>
     <p><small>O link foi removido da URL. Recarregar ou sair pode exigir abrir o convite novamente. Descartar o link não revoga o convite.</small></p>

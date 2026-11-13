@@ -1,3 +1,5 @@
+import { ContextHelp } from '@/components/ContextHelp';
+import { HelpLabel } from '@/components/ContextHelp';
 import {useCallback,useEffect,useState,type FormEvent} from "react";
 import {supabase} from "@/lib/supabase";
 import type {Role,Row} from "@/lib/area";
@@ -204,7 +206,7 @@ export default function EnadeEligibility({institutionId,courses,role}:{
     <h4>Configuração de cursos para o ENADE</h4>
     <button className="corp-button small" onClick={()=>{setEditing("new");setForm({course_name:"",area_enade:"",total_periodos:10,carga_horaria_total:0,proximo_enade_ano:2027,ingressante_max_pct:0.25,concludente_min_pct:0.80,eorbit_curso_id:"",modalidade:"presencial"});}}>+ Adicionar curso</button>
    </div>
-   {configs.length>0&&<table className="enade-table"><thead><tr><th>Curso</th><th>Área ENADE</th><th>Períodos</th><th>Próximo ENADE</th><th>Ingressante ≤</th><th>Concludente ≥</th><th></th></tr></thead>
+   {configs.length>0&&<table className="enade-table"><thead><tr><th>Curso<ContextHelp title="Curso" /></th><th>Área ENADE</th><th>Períodos</th><th>Próximo ENADE</th><th>Ingressante ≤</th><th>Concludente ≥</th><th></th></tr></thead>
     <tbody>{configs.map(c=><tr key={c.id}>
      <td><strong>{c.course_name}</strong><small>{c.modalidade}</small></td>
      <td>{c.area_enade}</td><td>{c.total_periodos}</td>
@@ -224,19 +226,19 @@ export default function EnadeEligibility({institutionId,courses,role}:{
   {editing&&<div className="enade-panel enade-form-panel">
    <h4>{editing==="new"?"Novo curso":"Editar curso"}</h4>
    <form className="enade-form" onSubmit={saveConfig}>
-    <label>Nome do curso<input required value={form.course_name} onChange={e=>setForm(f=>({...f,course_name:e.target.value}))} placeholder="Direito"/></label>
-    <label>Área ENADE<select value={form.area_enade} onChange={e=>setForm(f=>({...f,area_enade:e.target.value}))} required>
+    <HelpLabel>Nome do curso<input required value={form.course_name} onChange={e=>setForm(f=>({...f,course_name:e.target.value}))} placeholder="Direito"/></HelpLabel>
+    <HelpLabel>Área ENADE<select value={form.area_enade} onChange={e=>setForm(f=>({...f,area_enade:e.target.value}))} required>
      <option value="">Selecione</option>{AREAS.map(a=><option key={a} value={a}>{a}</option>)}
-    </select></label>
-    <label>Modalidade<select value={form.modalidade} onChange={e=>setForm(f=>({...f,modalidade:e.target.value}))}>
+    </select></HelpLabel>
+    <HelpLabel>Modalidade<select value={form.modalidade} onChange={e=>setForm(f=>({...f,modalidade:e.target.value}))}>
      <option value="presencial">Presencial</option><option value="semipresencial">Semipresencial</option><option value="ead">EAD</option>
-    </select></label>
-    <label>Total de períodos<input type="number" min={1} max={20} required value={form.total_periodos} onChange={e=>setForm(f=>({...f,total_periodos:Number(e.target.value)}))}/></label>
-    <label>Carga horária total (h)<input type="number" min={0} value={form.carga_horaria_total} onChange={e=>setForm(f=>({...f,carga_horaria_total:Number(e.target.value)}))}/></label>
-    <label>Próximo ENADE (ano)<input type="number" min={2025} max={2035} value={form.proximo_enade_ano} onChange={e=>setForm(f=>({...f,proximo_enade_ano:Number(e.target.value)}))}/></label>
-    <label>ID curso e-ORBIT<input value={form.eorbit_curso_id} onChange={e=>setForm(f=>({...f,eorbit_curso_id:e.target.value}))} placeholder="Opcional — ID numérico do e-ORBIT"/></label>
-    <label>Ingressante: até<input type="number" step={0.01} min={0} max={1} value={form.ingressante_max_pct} onChange={e=>setForm(f=>({...f,ingressante_max_pct:Number(e.target.value)}))}/><small>INEP padrão: 0.25 (25%)</small></label>
-    <label>Concludente: a partir de<input type="number" step={0.01} min={0} max={1} value={form.concludente_min_pct} onChange={e=>setForm(f=>({...f,concludente_min_pct:Number(e.target.value)}))}/><small>INEP padrão: 0.80 (80%)</small></label>
+    </select></HelpLabel>
+    <HelpLabel>Total de períodos<input type="number" min={1} max={20} required value={form.total_periodos} onChange={e=>setForm(f=>({...f,total_periodos:Number(e.target.value)}))}/></HelpLabel>
+    <HelpLabel>Carga horária total (h)<input type="number" min={0} value={form.carga_horaria_total} onChange={e=>setForm(f=>({...f,carga_horaria_total:Number(e.target.value)}))}/></HelpLabel>
+    <HelpLabel>Próximo ENADE (ano)<input type="number" min={2025} max={2035} value={form.proximo_enade_ano} onChange={e=>setForm(f=>({...f,proximo_enade_ano:Number(e.target.value)}))}/></HelpLabel>
+    <HelpLabel>ID curso e-ORBIT<input value={form.eorbit_curso_id} onChange={e=>setForm(f=>({...f,eorbit_curso_id:e.target.value}))} placeholder="Opcional — ID numérico do e-ORBIT"/></HelpLabel>
+    <HelpLabel>Ingressante: até<input type="number" step={0.01} min={0} max={1} value={form.ingressante_max_pct} onChange={e=>setForm(f=>({...f,ingressante_max_pct:Number(e.target.value)}))}/><small>INEP padrão: 0.25 (25%)</small></HelpLabel>
+    <HelpLabel>Concludente: a partir de<input type="number" step={0.01} min={0} max={1} value={form.concludente_min_pct} onChange={e=>setForm(f=>({...f,concludente_min_pct:Number(e.target.value)}))}/><small>INEP padrão: 0.80 (80%)</small></HelpLabel>
     <div className="enade-actions">
      <button className="corp-button" type="submit" disabled={busy}>{busy?"Salvando…":"Salvar"}</button>
      <button className="corp-button outline" type="button" onClick={()=>setEditing(null)}>Cancelar</button>
@@ -279,7 +281,7 @@ export default function EnadeEligibility({institutionId,courses,role}:{
     </div>
    </div>
    <div className="enade-scroll"><table className="enade-table"><thead><tr>
-    <th>Aluno</th><th>Matrícula</th><th>Curso</th><th>Período</th><th>% Conclusão</th><th>Tipo</th><th>CPF</th><th>Status</th>
+    <th>Aluno</th><th>Matrícula</th><th>Curso<ContextHelp title="Curso" /></th><th>Período<ContextHelp title="Período" /></th><th>% Conclusão</th><th>Tipo</th><th>CPF</th><th>Status</th>
    </tr></thead><tbody>{filtered.slice(0,200).map(e=><tr key={e.id} className={e.elegibility_type==="concludente"?"row-concludente":e.elegibility_type==="ingressante"?"row-ingressante":""}>
     <td>{e.student_name}</td><td>{e.matricula}</td><td>{e.curso_name}</td>
     <td>{e.periodo}º</td><td>{pct(e.pct_conclusao)}</td>

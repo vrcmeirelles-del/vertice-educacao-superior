@@ -1,3 +1,6 @@
+import { ContextHelp } from "@/components/ContextHelp";
+import { MODULE_HELP } from "@/lib/module-help";
+import { HelpLabel } from '@/components/ContextHelp';
 import InstitutionSubTabs from "./InstitutionSubTabs";
 import InstitutionTabs, { MACRO_TABS, macroTabFor, macroDestination, type MacroTab } from "./InstitutionTabs";
 import {actionDraftKey,parseActionDraft,storeActionDraft,validateActionLinks,changeActionScope} from "@/lib/portal-integration";
@@ -437,10 +440,10 @@ export default function Workspace({
             <p>Escolha um módulo para consultar dados, documentos e ferramentas disponíveis à sua instituição.</p>
           </div>
           <div className="vx-modules-tools">
-            <label className="vx-modules-search">
+            <HelpLabel className="vx-modules-search">
               <span>Buscar módulo</span>
               <input type="search" value={moduleSearch} onChange={e=>setModuleSearch(e.target.value)} placeholder="Ex.: matrículas, recredenciamento..." aria-label="Buscar módulo" />
-            </label>
+            </HelpLabel>
             <button type="button" className={onlyFavorites?"vx-modules-fav-filter selected":"vx-modules-fav-filter"} aria-pressed={onlyFavorites} onClick={()=>setOnlyFavorites(value=>!value)}>
               {onlyFavorites?"★ Exibindo favoritos":"☆ Favoritos"}
             </button>
@@ -496,6 +499,7 @@ export default function Workspace({
       </header>}
       {tab === 'base' && <InstitutionAddress institutionId={id} manage={role==='master'}/>}
       {error && <p role="alert" className="area-error">{error}</p>}
+      {MODULE_HELP.some(item=>item.key===tab) && <div className="vx-module-help"><span>Como usar esta área</span><ContextHelp title={TABS.find(([key])=>key===tab)?.[1] || "Módulo"} text={MODULE_HELP.find(item=>item.key===tab)?.text} /></div>}
       {TAB_HELP[tab] && tab!=="repositorio" && <TabHelp id={tab} />}
       {tab === "visao" ? (
         overview
@@ -841,8 +845,8 @@ function RegistryTab({ institution, role, courses, reload, onChanged }: { instit
         ) : (
           <dl className="area-dl">
             <div><dt>Sigla</dt><dd>{String(institution.acronym ?? "—")}</dd></div>
-            <div><dt>CNPJ</dt><dd>{cnpj}</dd></div>
-            <div><dt>Código e-MEC</dt><dd>{String(institution.emec_code ?? "—")}</dd></div>
+            <div><dt>CNPJ<ContextHelp title="CNPJ" /></dt><dd>{cnpj}</dd></div>
+            <div><dt>Código e-MEC<ContextHelp title="Código e-MEC" /></dt><dd>{String(institution.emec_code ?? "—")}</dd></div>
             <div><dt>Mantenedora</dt><dd>{String(institution.maintainer ?? "—")}</dd></div>
             <div><dt>Município/UF</dt><dd>{[institution.city, institution.state].filter(Boolean).join("/") || "—"}</dd></div>
             <div><dt>Situação</dt><dd>{institution.status === "arquivada" ? "Arquivada" : "Ativa"}</dd></div>
@@ -874,7 +878,7 @@ function RegistryTab({ institution, role, courses, reload, onChanged }: { instit
           />
         )}
         <div className="area-inline">{classification.controls}</div>
-        <label className="area-search">Buscar curso <input value={q} onChange={e => setQ(e.target.value)} placeholder="Nome ou código" /></label>
+        <HelpLabel className="area-search">Buscar curso <input value={q} onChange={e => setQ(e.target.value)} placeholder="Nome ou código" /></HelpLabel>
         {!courses.length ? (
           <p className="area-muted">Nenhum curso cadastrado.</p>
         ) : !list.length ? (
@@ -882,7 +886,7 @@ function RegistryTab({ institution, role, courses, reload, onChanged }: { instit
         ) : (
           <div className="table-scroll">
             <table className="area-table">
-              <thead><tr><th>Código</th><th>Curso</th><th>Grau</th><th>Modalidade</th><th>Situação</th><th>Vagas</th><th>Coordenação</th><th /></tr></thead>
+              <thead><tr><th>Código</th><th>Curso<ContextHelp title="Curso" /></th><th>Grau</th><th>Modalidade<ContextHelp title="Modalidade" /></th><th>Situação</th><th>Vagas</th><th>Coordenação</th><th /></tr></thead>
               <tbody>
                 {list.map(c => (
                   <tr key={c.id}>
@@ -985,7 +989,7 @@ function GoalsTab({ institutionId, role, data, reload, onRepository }: { institu
   return (
     <div className="area-panel goals-panel">
       <div className="area-panel-head">
-        <div><p className="goals-eyebrow">PAINEL DE ACOMPANHAMENTO</p><h3>Metas e indicadores</h3></div>
+        <div><p className="goals-eyebrow">PAINEL DE ACOMPANHAMENTO</p><h3>Metas e indicadores<ContextHelp title="Metas e indicadores" /></h3></div>
         <div className="area-inline">
           <select aria-label="Filtrar por curso" value={course} onChange={e => chooseCourse(e.target.value)}>
             <option value="">Toda a instituição</option>
@@ -995,7 +999,7 @@ function GoalsTab({ institutionId, role, data, reload, onRepository }: { institu
           {can.manageGoals(role) && <button className="corp-button small" onClick={() => ed.open("new")}>Nova meta</button>}
         </div>
       </div>
-      {!course && <div className="goals-toolbar"><div className="area-inline">{classification.controls}<label className="area-search">Buscar curso<input value={courseSearch} onChange={e=>setCourseSearch(e.target.value)} placeholder="Nome, código ou modalidade"/></label></div></div>}
+      {!course && <div className="goals-toolbar"><div className="area-inline">{classification.controls}<HelpLabel className="area-search">Buscar curso<input value={courseSearch} onChange={e=>setCourseSearch(e.target.value)} placeholder="Nome, código ou modalidade"/></HelpLabel></div></div>}
       {course && <p className="goals-back"><button className="corp-login-text-button" onClick={()=>{chooseCourse("");setSignalFilter("");}}>← Visão de todos os cursos</button></p>}
       <GoalsDashboard entries={scopeEntries} filter={signalFilter} onFilter={setSignalFilter} referenceDate={referenceDate} courseLabel={id=>id ? String(courseName(id)||"Curso vinculado") : "Institucional"} onOpen={entry=>{chooseCourse(String(entry.goal.course_id||"institution"));setSignalFilter("");setGoalSearch(String(entry.goal.title));}} />
       <div ref={formRef}>
@@ -1031,7 +1035,7 @@ function GoalsTab({ institutionId, role, data, reload, onRepository }: { institu
       )}
       </div>
       <div className="goals-list-heading"><h4>{course ? (course === "institution" ? "Metas institucionais" : String(courseName(course) || "Metas do curso")) : "Acompanhamento por curso"}</h4><span className="area-muted small">{course ? `${goals.length} meta(s)` : `${groups.length} grupo(s)`}{signalFilter ? ` · ${GOAL_SIGNALS.find(s=>s.key===signalFilter)!.label}` : ""}</span>{signalFilter && <button className="corp-login-text-button" onClick={()=>setSignalFilter("")}>Limpar filtro de alerta</button>}</div>
-      {course && <label className="area-search">Buscar meta ou indicador<input value={goalSearch} onChange={e=>setGoalSearch(e.target.value)} placeholder="Título ou indicador"/></label>}
+      {course && <HelpLabel className="area-search">Buscar meta ou indicador<input value={goalSearch} onChange={e=>setGoalSearch(e.target.value)} placeholder="Título ou indicador"/></HelpLabel>}
       {!course ? <>
         <p className="area-muted small">Cursos com alertas aparecem primeiro. “Planejada” indica proposta sujeita à pactuação; não significa atividade iniciada.</p>
         {!groups.length && <p className="goals-empty">Nenhum curso ou meta corresponde aos filtros.</p>}
@@ -1066,7 +1070,7 @@ function GoalsTab({ institutionId, role, data, reload, onRepository }: { institu
                 <p className="goals-alert-reason">{entry.reasons.join(" ")}</p>
                 <p className="area-muted">Documentos: {docs.sent}/{docs.total} com envio · {docs.validated} validados · {docs.pending} pendentes · {docs.late} em atraso · {docs.nsa} NSA</p>
                 <p className="area-muted">{String(g.indicator)}{g.owner_name||g.owner_email ? ` · ${String(g.owner_name||g.owner_email)}` : ""}</p>
-                {(Boolean(g.formula)||Boolean(g.source)||Boolean(g.notes))&&<details className="area-goal-details"><summary>Plano e critérios da meta</summary>{Boolean(g.formula)&&<p><strong>Cálculo:</strong> {String(g.formula)}</p>}{Boolean(g.source)&&<p><strong>Fonte:</strong> {String(g.source)}</p>}{Boolean(g.notes)&&<p style={{whiteSpace:"pre-wrap"}}>{String(g.notes)}</p>}</details>}
+                {(Boolean(g.formula)||Boolean(g.source)||Boolean(g.notes))&&<details className="area-goal-details"><summary>Plano e critérios da meta</summary>{Boolean(g.formula)&&<p><strong>Cálculo:</strong> {String(g.formula)}</p>}{Boolean(g.source)&&<p><strong>Fonte:<ContextHelp title="Fonte:" /></strong> {String(g.source)}</p>}{Boolean(g.notes)&&<p style={{whiteSpace:"pre-wrap"}}>{String(g.notes)}</p>}</details>}
                 <div className="area-goal-numbers">
                   <div><small>Linha de base</small><b>{fmtNum(g.baseline, g.unit)}</b></div>
                   <div><small>Última medição</small><b>{fmtNum(last, g.unit)}</b></div>
@@ -1088,7 +1092,7 @@ function GoalsTab({ institutionId, role, data, reload, onRepository }: { institu
                   <div className="table-scroll">
                     {!ms.length ? <p className="area-muted">Sem medições.</p> : (
                       <table className="area-table compact">
-                        <thead><tr><th>Data</th><th>Valor</th><th>Fonte</th><th>Observação</th><th /></tr></thead>
+                        <thead><tr><th>Data</th><th>Valor</th><th>Fonte<ContextHelp title="Fonte" /></th><th>Observação</th><th /></tr></thead>
                         <tbody>
                           {ms.slice().reverse().map(m => (
                             <tr key={m.id}>
@@ -1194,7 +1198,7 @@ function ActionsTab({ institutionId, role, data, reload }: { institutionId: stri
       ) : (
         <div className="table-scroll">
           <table className="area-table">
-            <thead><tr><th>O quê</th><th>Quem</th><th>Quando</th><th>Situação</th><th>Avanço</th><th>Meta</th><th>Evidência</th><th /></tr></thead>
+            <thead><tr><th>O quê</th><th>Quem</th><th>Quando</th><th>Situação</th><th>Avanço<ContextHelp title="Avanço" /></th><th>Meta<ContextHelp title="Meta" /></th><th>Evidência</th><th /></tr></thead>
             <tbody>
               {rows.map(a => {
                 const late = isLate(a.due_date, a.status);
@@ -1261,7 +1265,7 @@ function DiagnosisTab({ institutionId, role, data, reload, onPlan }: { instituti
         <h3>Diagnóstico ({data.diagnosis.length} critérios)</h3>
         {can.record(role) && <button className="corp-button small" onClick={() => ed.open("new")}>Novo critério</button>}
       </div>
-      <label>Curso do diagnóstico <select value={courseId} onChange={e=>setCourseId(e.target.value)}><option value="">Toda a instituição</option>{data.courses.map(c=><option key={c.id} value={c.id}>{String(c.display_name??c.name)}</option>)}</select></label>
+      <HelpLabel>Curso do diagnóstico <select value={courseId} onChange={e=>setCourseId(e.target.value)}><option value="">Toda a instituição</option>{data.courses.map(c=><option key={c.id} value={c.id}>{String(c.display_name??c.name)}</option>)}</select></HelpLabel>
       {ed.editing && (
         <RecordForm institutionId={institutionId}
           title={ed.editing === "new" ? "Novo critério avaliado" : "Editar critério"}
@@ -1286,7 +1290,7 @@ function DiagnosisTab({ institutionId, role, data, reload, onPlan }: { instituti
               <div className="dimension-summary"><span className={`badge ${low.length?"red":open.length?"amber":scored.length?"green":"gray"}`}>{low.length?"Prioridade de melhoria":open.length?"Acompanhar pendências":scored.length?"Sem achados abertos":"Avaliação pendente"}</span><strong>{scored.length}/{rows.length} critérios com nota</strong><p>{low.length?`${low.length} indicador(es) abaixo de 3: ${low.map(r=>String(r.criterion)).join(", ")}. Priorize os achados correspondentes e registre a evidência da melhoria.`:"Não há nota abaixo de 3 entre os critérios avaliados."} {without.length?`${without.length} achado(s) aberto(s) ainda sem ação ativa vinculada.`:"Os achados abertos possuem ações ativas, quando existentes."}</p><p className="area-muted">Síntese gerencial da dimensão: média simples dos critérios registrados, sem substituir o conceito oficial. Notas ausentes ficam fora da média. As causas e providências estão no detalhamento abaixo.</p></div>
               <details><summary>Ver indicadores, achados e providências ({rows.length})</summary><div className="table-scroll">
                 <table className="area-table">
-                  <thead><tr><th>Critério</th><th>Nota</th><th>Achado</th><th>Prioridade</th><th>Situação</th><th>Ações</th><th /></tr></thead>
+                  <thead><tr><th>Critério<ContextHelp title="Critério" /></th><th>Nota<ContextHelp title="Nota" /></th><th>Achado<ContextHelp title="Achado" /></th><th>Prioridade<ContextHelp title="Prioridade" /></th><th>Situação</th><th>Ações</th><th /></tr></thead>
                   <tbody>
                     {rows.map(d => (
                       <tr key={d.id}>
@@ -1392,24 +1396,24 @@ function TeamTab({ institutionId, role }: { institutionId: string; role: Role | 
     <div className="area-panel">
       <div className="area-panel-head"><h3>Equipe com acesso ({members.length})</h3></div>
       <form className="area-form area-inline-form" onSubmit={add}>
-        <label>E-mail <input type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="nome@instituicao.edu.br" /></label>
-        <label>Perfil
+        <HelpLabel>E-mail <input type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="nome@instituicao.edu.br" /></HelpLabel>
+        <HelpLabel>Perfil
           <select value={newRole} onChange={e => setNewRole(e.target.value as Role)}>
             {roles.map(r => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
           </select>
-        </label>
+        </HelpLabel>
         <button className="corp-button small" disabled={busy}>{busy ? "Enviando…" : "Dar acesso"}</button>
       </form>
       <p className="area-field-help">Use o e-mail institucional da pessoa. Se ela ainda não tiver conta, receberá um convite para criar senha e segundo fator.</p>
       {msg && <p role="status" className="area-note">{msg}</p>}
       <dl className="area-roles">
-        <div><dt>Gestor</dt><dd>cadastra cursos, define metas, gere a equipe (equipe e leitura) e remove registros.</dd></div>
-        <div><dt>Equipe</dt><dd>registra medições, ações 5W2H e critérios do diagnóstico; não altera metas nem remove registros.</dd></div>
-        <div><dt>Leitura</dt><dd>apenas consulta.</dd></div>
+        <div><dt>Gestor<ContextHelp title="Gestor" /></dt><dd>cadastra cursos, define metas, gere a equipe (equipe e leitura) e remove registros.</dd></div>
+        <div><dt>Equipe<ContextHelp title="Equipe" /></dt><dd>registra medições, ações 5W2H e critérios do diagnóstico; não altera metas nem remove registros.</dd></div>
+        <div><dt>Leitura<ContextHelp title="Leitura" /></dt><dd>apenas consulta.</dd></div>
       </dl>
       <div className="table-scroll">
         <table className="area-table">
-          <thead><tr><th>E-mail</th><th>Perfil</th><th>Desde</th><th /></tr></thead>
+          <thead><tr><th>E-mail<ContextHelp title="E-mail" /></th><th>Perfil</th><th>Desde</th><th /></tr></thead>
           <tbody>
             {members.map(m => (
               <tr key={m.user_id}>

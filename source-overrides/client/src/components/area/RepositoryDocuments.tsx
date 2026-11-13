@@ -1,3 +1,4 @@
+import { HelpLabel } from '@/components/ContextHelp';
 import { requestDocumentStatus } from "@/lib/repository";
 import {
   repositoryDocumentCode,
@@ -300,7 +301,7 @@ export default function RepositoryDocuments({
           imagens e documentos Office, até 30 MB.
         </p>
         <div className="repo-form-grid">
-          <label>
+          <HelpLabel>
             Vincular o arquivo a
             <select
               value={uploadTarget}
@@ -322,20 +323,20 @@ export default function RepositoryDocuments({
                   </option>
                 ))}
             </select>
-          </label>
+          </HelpLabel>
           {manager && !uploadTarget && (
-            <label>
+            <HelpLabel>
               Nome do documento (opcional)
               <input
                 value={uploadTitle}
                 onChange={(e) => setUploadTitle(e.target.value)}
                 placeholder="Ex.: Ata do NDE — 2026/2"
               />
-            </label>
+            </HelpLabel>
           )}
         </div>
         {(manager || uploadTarget) && (
-          <label className="repo-upload-button">
+          <HelpLabel className="repo-upload-button">
             {busy ? "Enviando arquivo…" : "Selecionar arquivo e enviar"}
             <input
               type="file"
@@ -384,7 +385,7 @@ export default function RepositoryDocuments({
                 }
               }}
             />
-          </label>
+          </HelpLabel>
         )}
         {!manager && !uploadTarget && (
           <p>
@@ -428,7 +429,7 @@ export default function RepositoryDocuments({
       {manager && editing && (
         <div className="area-panel">
           {editing === "new" && (
-            <label>
+            <HelpLabel>
               Usar modelo do catálogo (opcional)
               <select
                 value={template}
@@ -449,7 +450,7 @@ export default function RepositoryDocuments({
                 Modelos do repositório original. Confira a aplicabilidade ao
                 curso antes de exigir.
               </small>
-            </label>
+            </HelpLabel>
           )}
           <RecordForm
             key={`${editing === "new" ? "new" : editing.id}:${template}`}
@@ -496,7 +497,7 @@ export default function RepositoryDocuments({
         </div>
       )}
       <div className="area-inline">
-        <label>
+        <HelpLabel>
           Meta
           <select
             value={goalFilter}
@@ -509,8 +510,8 @@ export default function RepositoryDocuments({
               </option>
             ))}
           </select>
-        </label>
-        <label>
+        </HelpLabel>
+        <HelpLabel>
           Curso
           <select value={course} onChange={(e) => setCourse(e.target.value)}>
             <option value="">Todos os cursos</option>
@@ -520,8 +521,8 @@ export default function RepositoryDocuments({
               </option>
             ))}
           </select>
-        </label>
-        <label>
+        </HelpLabel>
+        <HelpLabel>
           Situação
           <select value={status} onChange={(e) => setStatus(e.target.value)}>
             <option value="">Todas</option>
@@ -531,23 +532,23 @@ export default function RepositoryDocuments({
               </option>
             ))}
           </select>
-        </label>
-        <label>
+        </HelpLabel>
+        <HelpLabel>
           Buscar
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Documento ou responsável"
           />
-        </label>
-        <label>
+        </HelpLabel>
+        <HelpLabel>
           <input
             type="checkbox"
             checked={showArchived}
             onChange={(e) => setShowArchived(e.target.checked)}
           />{" "}
           Incluir arquivadas
-        </label>
+        </HelpLabel>
         <button className="corp-login-text-button" onClick={reload}>
           Atualizar entregas
         </button>
@@ -603,7 +604,7 @@ export default function RepositoryDocuments({
           }}
         >
           <h4>Analisar · {String(review.file_name)}</h4>
-          <label>
+          <HelpLabel>
             Decisão
             <select
               value={reviewStatus}
@@ -612,8 +613,8 @@ export default function RepositoryDocuments({
               <option value="validado">Validar documento</option>
               <option value="devolvido">Devolver para correção</option>
             </select>
-          </label>
-          <label>
+          </HelpLabel>
+          <HelpLabel>
             Parecer
             <textarea
               required={reviewStatus === "devolvido"}
@@ -621,7 +622,7 @@ export default function RepositoryDocuments({
               value={reviewNote}
               onChange={(e) => setReviewNote(e.target.value)}
             />
-          </label>
+          </HelpLabel>
           <div className="area-row-actions">
             <button className="corp-button small" disabled={Boolean(busy)}>
               Registrar análise
@@ -712,7 +713,7 @@ export default function RepositoryDocuments({
                 )}
                 <div className="area-row-actions">
                   {mayUpload && (
-                    <label className="corp-login-text-button">
+                    <HelpLabel className="corp-login-text-button">
                       {busy === r.id
                         ? "Enviando…"
                         : f
@@ -731,7 +732,7 @@ export default function RepositoryDocuments({
                           e.target.value = "";
                         }}
                       />
-                    </label>
+                    </HelpLabel>
                   )}
                   {f && (
                     <button

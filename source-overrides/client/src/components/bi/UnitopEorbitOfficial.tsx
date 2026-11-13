@@ -1,3 +1,4 @@
+import { HelpLabel } from '@/components/ContextHelp';
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
@@ -167,10 +168,10 @@ export default function UnitopEorbitOfficial({
         </div>
         <p className="vm-muted">A tabela resumida antiga permanece em conciliação. Estes valores são lidos diretamente da base e-ORBIT existente, sem substituir registros originais nem afirmar que vínculos são alunos únicos. O comparativo com 2025/02 só será liberado após validação de equivalência e cobertura das fontes.</p>
         {showCourses && <>
-          <label className="vm-search">Buscar curso no relatório 2
+          <HelpLabel className="vm-search">Buscar curso no relatório 2
             <input type="search" value={search} onChange={event => setSearch(event.target.value)}
               placeholder="Nome ou modalidade" />
-          </label>
+          </HelpLabel>
           <div className="vm-course-list">
             {filtered.map(c => <article className="vm-course" key={c.id}>
               <span><strong>{c.nome}</strong>

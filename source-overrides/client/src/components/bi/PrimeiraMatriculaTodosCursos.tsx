@@ -1,3 +1,5 @@
+import { ContextHelp } from '@/components/ContextHelp';
+import { HelpLabel } from '@/components/ContextHelp';
 import { useMemo, useState } from "react";
 import "./primeira-matricula-todos-cursos.css";
 
@@ -105,18 +107,18 @@ export default function PrimeiraMatriculaTodosCursos({ reports, courses }: { rep
       <span className="vxa-first-counter">{format(scoped.length)} cadastros no recorte</span>
     </div>
     <div className="vxa-first-filters">
-      <label>Curso
+      <HelpLabel>Curso
         <select value={validScope} onChange={e => { setCourseId(e.target.value); setSemester(""); setSearch(""); }}>
           <option value="">Todos os cursos · visão institucional</option>
           {courseList.map(c => <option key={c.id} value={c.id}>{c.code ? c.code + " · " : ""}{c.name}{c.code && (codeCounts.get(c.code) ?? 0) > 1 ? " · cadastro " + c.id.slice(0, 8) : ""}</option>)}
         </select>
-      </label>
-      <label>Semestre de ingresso
+      </HelpLabel>
+      <HelpLabel>Semestre de ingresso
         <select value={validSemester} onChange={e => setSemester(e.target.value)}>
           <option value="">Todos os semestres disponíveis</option>
           {semesters.map(s => <option value={s} key={s}>{s.replace("/0", "/")}</option>)}
         </select>
-      </label>
+      </HelpLabel>
     </div>
     <div className="vxa-first-metrics">
       <article><small>Cadastros de curso no recorte</small><strong>{format(scoped.length)}</strong><span>Catálogo institucional, não turmas de ingresso</span></article>
@@ -133,7 +135,7 @@ export default function PrimeiraMatriculaTodosCursos({ reports, courses }: { rep
         <article className="vxa-first-warning"><small>Sem vínculo e sem AV1 positiva</small><strong>{format(needsReview)}</strong><span>{entrants !== null && needsReview !== null ? percentage(needsReview, entrants) : "Sem base"} dos ingressantes analisáveis; exige investigação</span></article>
       </div>
       {visibleRows.length ? <div className="vxa-scroll"><table className="vxa-first-table">
-        <thead><tr><th>Curso</th><th>Semestre de ingresso</th><th>Ingressantes</th><th>Sem vínculo seguinte</th><th>Sem vínculo e sem AV1 positiva</th><th>% em investigação</th></tr></thead>
+        <thead><tr><th>Curso<ContextHelp title="Curso" /></th><th>Semestre de ingresso</th><th>Ingressantes</th><th>Sem vínculo seguinte</th><th>Sem vínculo e sem AV1 positiva</th><th>% em investigação</th></tr></thead>
         <tbody>{visibleRows.map(row => <tr key={row.id}>
           <td>{courseList.find(c => c.id === row.courseId)?.name ?? "Curso sem cadastro"}</td>
           <td>{row.term.replace("/0", "/")}</td><td>{format(row.entrants)}</td><td>{format(row.noNext)}</td>
@@ -143,9 +145,9 @@ export default function PrimeiraMatriculaTodosCursos({ reports, courses }: { rep
     </div>
     <div className="vxa-first-card">
       <div className="vxa-first-head compact"><div><small>COBERTURA E PENDÊNCIAS</small><h4>Mapa de disponibilidade — curso por curso</h4><p>Permite acompanhar todos os cursos, sem restringir a análise ao Direito.</p></div>
-        <label className="vxa-first-checkbox"><input type="checkbox" checked={onlyPending} onChange={e => setOnlyPending(e.target.checked)}/> Somente pendentes</label>
+        <HelpLabel className="vxa-first-checkbox"><input type="checkbox" checked={onlyPending} onChange={e => setOnlyPending(e.target.checked)}/> Somente pendentes</HelpLabel>
       </div>
-      <label className="vxa-first-search">Localizar curso <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Pesquisar nome ou código…" /></label>
+      <HelpLabel className="vxa-first-search">Localizar curso <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Pesquisar nome ou código…" /></HelpLabel>
       <div className="vxa-first-course-list">
         {!filteredCourses.length ? <p>Nenhum curso encontrado neste filtro.</p> :
         filteredCourses.map(course => {

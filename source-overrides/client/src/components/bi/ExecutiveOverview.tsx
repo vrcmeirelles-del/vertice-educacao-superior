@@ -1,3 +1,4 @@
+import { ContextHelp } from '@/components/ContextHelp';
 import {useState} from "react";
 import "./executive-overview.css";
 
@@ -62,10 +63,10 @@ export default function ExecutiveOverview({institutionName,term,comparison,metri
     {!diagnosticAvailable&&<p className="exe-empty">Não há conceito regulatório validado disponível para este painel. A cobertura de documentos não é nota MEC.</p>}
    </Card>
    <Card title="Plano de ação · 5W2H" description="Registros da instituição, com responsáveis e prazos" action={()=>onNavigate("Planos de ação")}>
-    {top.length?<div className="exe-table-scroll"><table><thead><tr><th>Ação</th><th>Responsável</th><th>Prazo</th><th>Status</th></tr></thead><tbody>{top.map((a,i)=><tr key={i}><td>{a.name}</td><td>{a.owner}</td><td>{a.due}</td><td><span className="exe-chip">{a.status}</span></td></tr>)}</tbody></table></div>:<p className="exe-empty">Nenhuma ação 5W2H registrada no recorte. Abra o plano para cadastrar e acompanhar ações.</p>}
+    {top.length?<div className="exe-table-scroll"><table><thead><tr><th>Ação<ContextHelp title="Ação" /></th><th>Responsável<ContextHelp title="Responsável" /></th><th>Prazo</th><th>Status</th></tr></thead><tbody>{top.map((a,i)=><tr key={i}><td>{a.name}</td><td>{a.owner}</td><td>{a.due}</td><td><span className="exe-chip">{a.status}</span></td></tr>)}</tbody></table></div>:<p className="exe-empty">Nenhuma ação 5W2H registrada no recorte. Abra o plano para cadastrar e acompanhar ações.</p>}
    </Card>
    <Card title="Risco acadêmico" description="Evasão e reprovação por nota × falta" action={()=>onNavigate("Matrículas")}>
-    <div className="exe-risk"><span>EVASÃO</span><strong>Não apurada</strong><small>Exige coortes conciliadas e definição de desligamento</small><span>REPROVAÇÃO</span><strong>Não apurada</strong><small>Exige notas, faltas e ofertas vinculadas ao semestre</small></div>
+    <div className="exe-risk"><span>EVASÃO<ContextHelp title="EVASÃO" /></span><strong>Não apurada</strong><small>Exige coortes conciliadas e definição de desligamento</small><span>REPROVAÇÃO<ContextHelp title="REPROVAÇÃO" /></span><strong>Não apurada</strong><small>Exige notas, faltas e ofertas vinculadas ao semestre</small></div>
    </Card>
   </div>
   <div className="exe-layout exe-third">

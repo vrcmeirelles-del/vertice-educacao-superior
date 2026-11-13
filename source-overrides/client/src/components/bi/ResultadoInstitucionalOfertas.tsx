@@ -1,3 +1,5 @@
+import { ContextHelp } from '@/components/ContextHelp';
+import { HelpLabel } from '@/components/ContextHelp';
 import {useEffect,useMemo,useState} from "react";
 import {supabase} from "@/lib/supabase";
 import "./resultado-institucional-ofertas.css";
@@ -108,20 +110,20 @@ export default function ResultadoInstitucionalOfertas({institutionId}:{instituti
      <div><span>RA · Após avaliação final</span><strong>{integer(total.ra)}</strong></div>
    </div>
    <div className="vxo-tools">
-    <label>Semestre
+    <HelpLabel>Semestre
      <select value={semester} onChange={e=>{setSemester(e.target.value);reset();}}>
        <option value="">Todo o histórico</option>{semesters.map(s=><option key={s} value={s}>{s}</option>)}
      </select>
-    </label>
-    <label>Perspectiva
+    </HelpLabel>
+    <HelpLabel>Perspectiva
      <select value={perspective} onChange={e=>{setPerspective(e.target.value as "curso"|"docente");reset();}}>
        <option value="curso">Curso → disciplina → professor</option>
        <option value="docente">Professor → curso → disciplina</option>
      </select>
-    </label>
-    <label>Localizar na lista
+    </HelpLabel>
+    <HelpLabel>Localizar na lista
       <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={perspective==="curso"?"Buscar curso ou disciplina":"Buscar docente"} />
-    </label>
+    </HelpLabel>
    </div>
    <p className="vxo-context">{course?<><button type="button" onClick={()=>{setCourse("");setDiscipline("");setTeacher("");}}>Todos os cursos</button> / <strong>{courseName(course)} ({course})</strong></>:<strong>Todos os cursos</strong>}
       {discipline&&<> / <button type="button" onClick={()=>{setDiscipline("");setTeacher("");}}>{discipline}</button></>}
@@ -129,7 +131,7 @@ export default function ResultadoInstitucionalOfertas({institutionId}:{instituti
    {perspective==="curso"?<>
     {!course&&<div className="vxo-card">
      <h4>Escolha o curso — {integer(coursesSummary.length)} códigos no recorte</h4>
-     <div className="vxo-scroll"><table><thead><tr><th>Curso</th><th>RF</th><th>RN</th><th>RA</th><th>Reprovações</th><th>Vínculos disciplina</th><th>Incidência</th></tr></thead>
+     <div className="vxo-scroll"><table><thead><tr><th>Curso<ContextHelp title="Curso" /></th><th>RF</th><th>RN</th><th>RA</th><th>Reprovações</th><th>Vínculos disciplina</th><th>Incidência</th></tr></thead>
      <tbody>{coursesSummary.filter(x=>searchKey(courseName(x.label)+" "+x.label).includes(searchKey(search.trim()))).map(x=>
       <tr key={x.label}><td><button type="button" className="vxo-link" onClick={()=>chooseCourse(x.label)}>{x.label} · {courseName(x.label)}</button><div className="vxo-bar"><span style={{width:(100*x.fails/maxBar)+"%"}}/></div></td>
       <td>{integer(x.rf)}</td><td>{integer(x.rn)}</td><td>{integer(x.ra)}</td><td><b>{integer(x.fails)}</b></td><td>{integer(x.enrollments)}</td><td>{percent(x.fails,x.enrollments)}</td></tr>)}</tbody></table></div>
@@ -152,7 +154,7 @@ export default function ResultadoInstitucionalOfertas({institutionId}:{instituti
          <td>{integer(x.rf)}</td><td>{integer(x.rn)}</td><td>{integer(x.ra)}</td><td><b>{integer(x.fails)}</b></td><td>{integer(x.enrollments)}</td><td>{percent(x.fails,x.enrollments)}</td></tr>)}</tbody></table></div>
      </div>}
      {teacher&&!course&&<div className="vxo-card"><h4>Em quais cursos {teacher} lecionou</h4>
-       <div className="vxo-scroll"><table><thead><tr><th>Curso</th><th>RF</th><th>RN</th><th>RA</th><th>Reprovações</th><th>Ofertas</th></tr></thead><tbody>{teacherCourses.map(x=>
+       <div className="vxo-scroll"><table><thead><tr><th>Curso<ContextHelp title="Curso" /></th><th>RF</th><th>RN</th><th>RA</th><th>Reprovações</th><th>Ofertas</th></tr></thead><tbody>{teacherCourses.map(x=>
         <tr key={x.label}><td><button className="vxo-link" type="button" onClick={()=>{setCourse(x.label);setDiscipline("");}}>{x.label} · {courseName(x.label)}</button></td>
           <td>{integer(x.rf)}</td><td>{integer(x.rn)}</td><td>{integer(x.ra)}</td><td>{integer(x.fails)}</td><td>{integer(x.rows)}</td></tr>)}</tbody></table></div>
      </div>}
@@ -175,7 +177,7 @@ function OfferingsTable({rows,courseName}:{rows:Offering[];courseName:(code:stri
  return <div className="vxo-card">
    <h4>Detalhamento por semestre e turma · {integer(rows.length)} ofertas</h4>
    <p className="vxo-summary">{integer(sum.fails)} reprovações ({integer(sum.rf)} falta · {integer(sum.rn)} nota · {integer(sum.ra)} após final) em {integer(sum.enrollments)} vínculos em disciplinas.</p>
-   <div className="vxo-scroll"><table><thead><tr><th>Semestre</th><th>Curso</th><th>Disciplina</th><th>Turma</th><th>Período</th><th>Docentes</th><th>RF</th><th>RN</th><th>RA</th><th>Total</th><th>Após final aprovados</th><th>Vínculos</th></tr></thead>
+   <div className="vxo-scroll"><table><thead><tr><th>Semestre<ContextHelp title="Semestre" /></th><th>Curso<ContextHelp title="Curso" /></th><th>Disciplina</th><th>Turma</th><th>Período<ContextHelp title="Período" /></th><th>Docentes</th><th>RF</th><th>RN</th><th>RA</th><th>Total</th><th>Após final aprovados</th><th>Vínculos</th></tr></thead>
      <tbody>{rows.map(r=><tr key={r.id}><td>{r.semester}</td><td>{courseName(r.course_code)}</td>
       <td>{r.discipline}</td><td>{r.class_label||"—"}</td><td>{r.academic_period||"—"}</td><td>{r.teachers}</td>
       <td>{integer(r.rf)}</td><td>{integer(r.rn)}</td><td>{integer(r.ra)}</td><td><b>{integer(r.source_failures)}</b></td>

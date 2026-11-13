@@ -1,3 +1,5 @@
+import { ContextHelp } from '@/components/ContextHelp';
+import { HelpLabel } from '@/components/ContextHelp';
 import React,{useCallback,useEffect,useMemo,useState,type FormEvent} from 'react';
 import {Link} from 'wouter';
 import {Copy,ExternalLink,LockKeyhole,RefreshCw,ShieldCheck,Trash2} from 'lucide-react';
@@ -100,17 +102,17 @@ export default function ExperienceAdmin({embedded=false}:{embedded?:boolean}={})
        <h2 style={{marginTop:0}}>Gerar convite comercial</h2>
        <p>Envie acesso à Faculdade, Centro Universitário ou Universidade Vértice sem conceder acesso a dados de clientes.</p>
        <form id="vertice-invite-form" onSubmit={create} style={{display:'grid',gap:13,scrollMarginTop:110}}>
-         <label>Nome do destinatário (opcional)<input value={name} maxLength={120} onChange={e=>setName(e.target.value)} placeholder="Ex.: dirigente convidado"/></label>
-         <label>E-mail do destinatário<input type="email" required maxLength={254} value={email} onChange={e=>setEmail(e.target.value)} placeholder="gestor@instituicao.edu.br"/></label>
-         <label>Organização acadêmica<select value={mode} onChange={e=>setMode(e.target.value as DemoInstitutionMode)}>
+         <HelpLabel>Nome do destinatário (opcional)<input value={name} maxLength={120} onChange={e=>setName(e.target.value)} placeholder="Ex.: dirigente convidado"/></HelpLabel>
+         <HelpLabel>E-mail do destinatário<input type="email" required maxLength={254} value={email} onChange={e=>setEmail(e.target.value)} placeholder="gestor@instituicao.edu.br"/></HelpLabel>
+         <HelpLabel>Organização acadêmica<select value={mode} onChange={e=>setMode(e.target.value as DemoInstitutionMode)}>
           {(['escola','faculdade','centro','universidade'] as DemoInstitutionMode[]).map(k=><option key={k} value={k}>{demoInstitutionProfiles[k].name}</option>)}
-         </select></label>
-         <label>Trilha do visitante<select value={role} onChange={e=>setRole(e.target.value as ExperienceRole)}>
+         </select></HelpLabel>
+         <HelpLabel>Trilha do visitante<select value={role} onChange={e=>setRole(e.target.value as ExperienceRole)}>
           {(['mantenedor','reitor','coordenador'] as ExperienceRole[]).map(k=><option key={k} value={k}>{roleLabels[k]}</option>)}
-         </select></label>
-         <label>Validade<select value={hours} onChange={e=>setHours(Number(e.target.value))}>
+         </select></HelpLabel>
+         <HelpLabel>Validade<select value={hours} onChange={e=>setHours(Number(e.target.value))}>
            <option value={24}>24 horas</option><option value={72}>3 dias</option><option value={168}>7 dias</option><option value={336}>14 dias</option>
-         </select></label>
+         </select></HelpLabel>
          <button className="corp-button" disabled={busy||!email.trim()} type="submit">{busy?'Registrando…':'Criar convite temporário'}</button>
        </form>
        {link&&<section style={{marginTop:22,overflowWrap:'anywhere'}}>
@@ -128,7 +130,7 @@ export default function ExperienceAdmin({embedded=false}:{embedded?:boolean}={})
        <p>Visão comercial por convite: o que foi explorado, quantas alterações fictícias foram realizadas e quais módulos despertaram interesse.</p>
        <button type="button" className="demo-link-button" disabled={!invites.length} onClick={exportCsv}>Exportar relatório CSV</button>
        {!invites.length&&<p>Não há convites registrados neste ambiente.</p>}
-       <div className="table-scroll"><table><thead><tr><th>Destinatário / cenário</th><th>Visitas</th><th>Utilização</th><th>Situação</th><th>Ação</th></tr></thead><tbody>
+       <div className="table-scroll"><table><thead><tr><th>Destinatário / cenário</th><th>Visitas</th><th>Utilização</th><th>Situação</th><th>Ação<ContextHelp title="Ação" /></th></tr></thead><tbody>
         {invites.map(x=>{
          const expired=Date.parse(x.expires_at)<=Date.now();
          const usage=Object.entries(x.usage??{}).filter(([k])=>k!=='opened'&&k!=='save').sort((a,b)=>b[1]-a[1]).slice(0,3);

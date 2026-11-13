@@ -1,3 +1,4 @@
+import { HelpLabel } from '@/components/ContextHelp';
 import {useCallback,useEffect,useState} from "react";
 import {supabase} from "@/lib/supabase";
 import type {Role} from "@/lib/area";
@@ -109,10 +110,10 @@ export default function StudentNotifications({institutionId,role}:{institutionId
     <p><strong>Canais de envio:</strong></p>
     <div className="notif-pills">
      {Object.entries(CHANNEL_LABELS).map(([k,v])=>
-      <label key={k} className={"notif-channel-check"+(form.channels.includes(k)?" active":"")}>
+      <HelpLabel key={k} className={"notif-channel-check"+(form.channels.includes(k)?" active":"")}>
        <input type="checkbox" checked={form.channels.includes(k)} onChange={()=>toggleChannel(k)}/>
        {v}
-      </label>
+      </HelpLabel>
      )}
     </div>
    </div>

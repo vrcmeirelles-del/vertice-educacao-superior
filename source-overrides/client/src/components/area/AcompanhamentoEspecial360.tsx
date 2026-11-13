@@ -1,3 +1,4 @@
+import { HelpLabel } from '@/components/ContextHelp';
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { buildSupportPayload, checkedWrite, specialOrigins } from "@/lib/student-support-contracts";
@@ -147,7 +148,7 @@ function AcompanhamentoEspecial360Content({institutionId,role}:Props) {
                 <input placeholder="Base legal (ex: Lei 6.202/1975)" value={formCat.legal_basis} onChange={e=>setFormCat({...formCat,legal_basis:e.target.value})} />
               </div>
               <textarea placeholder="Descrição" value={formCat.description} onChange={e=>setFormCat({...formCat,description:e.target.value})} rows={2} />
-              <label className="ae-checkbox"><input type="checkbox" checked={formCat.requires_documentation} onChange={e=>setFormCat({...formCat,requires_documentation:e.target.checked})} /> Exige documentação comprobatória</label>
+              <HelpLabel className="ae-checkbox"><input type="checkbox" checked={formCat.requires_documentation} onChange={e=>setFormCat({...formCat,requires_documentation:e.target.checked})} /> Exige documentação comprobatória</HelpLabel>
               <div className="ae-form-actions">
                 <button className="ae-btn-primary" onClick={saveCategory} disabled={saving||!formCat.label||!formCat.code}>Salvar</button>
                 <button className="ae-btn-secondary" onClick={()=>setShowForm(null)}>Fechar</button>
@@ -210,7 +211,7 @@ function AcompanhamentoEspecial360Content({institutionId,role}:Props) {
           <div className="ae-header"><h3>Requerimentos de Regime Especial</h3><button className="ae-btn-primary" onClick={()=>setShowForm('request')}>+ Novo requerimento</button></div>
           {showForm==='request' && (
             <div className="ae-form">
-              <label>Origem<select value={formReq.origin} onChange={e=>setFormReq({...formReq,origin:e.target.value})}>{specialOrigins.map(o=><option key={o} value={o}>{o.replaceAll('_',' ')}</option>)}</select></label>
+              <HelpLabel>Origem<select value={formReq.origin} onChange={e=>setFormReq({...formReq,origin:e.target.value})}>{specialOrigins.map(o=><option key={o} value={o}>{o.replaceAll('_',' ')}</option>)}</select></HelpLabel>
               <select value={formReq.case_id} onChange={e=>setFormReq({...formReq,case_id:e.target.value})}>
                 <option value="">Vincular a caso</option>
                 {cases.map(c=><option key={c.id} value={c.id}>{c.student_name}</option>)}
@@ -223,8 +224,8 @@ function AcompanhamentoEspecial360Content({institutionId,role}:Props) {
                 <input placeholder="Nome do solicitante" value={formReq.requester_name} onChange={e=>setFormReq({...formReq,requester_name:e.target.value})} />
               </div>
               <div className="ae-form-row">
-                <label>Período início<input type="date" value={formReq.requested_period_start} onChange={e=>setFormReq({...formReq,requested_period_start:e.target.value})} /></label>
-                <label>Período fim<input type="date" value={formReq.requested_period_end} onChange={e=>setFormReq({...formReq,requested_period_end:e.target.value})} /></label>
+                <HelpLabel>Período início<input type="date" value={formReq.requested_period_start} onChange={e=>setFormReq({...formReq,requested_period_start:e.target.value})} /></HelpLabel>
+                <HelpLabel>Período fim<input type="date" value={formReq.requested_period_end} onChange={e=>setFormReq({...formReq,requested_period_end:e.target.value})} /></HelpLabel>
               </div>
               <textarea placeholder="Descrição / justificativa" value={formReq.description} onChange={e=>setFormReq({...formReq,description:e.target.value})} rows={3} />
               <div className="ae-form-actions">

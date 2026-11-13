@@ -1,3 +1,5 @@
+import { ContextHelp } from '@/components/ContextHelp';
+import { HelpLabel } from '@/components/ContextHelp';
 import {useCallback,useEffect,useMemo,useRef,useState} from "react";
 import {supabase} from "@/lib/supabase";
 import type {Role,Row} from "@/lib/area";
@@ -179,9 +181,9 @@ export default function RosterUpload({institutionId,courses,role}:{
     </header>
 
     <div className="roster-form">
-      <label>Planilha de alunos (.csv, .txt, .tsv)
+      <HelpLabel>Planilha de alunos (.csv, .txt, .tsv)
         <input ref={fileRef} type="file" accept=".csv,.txt,.tsv" onChange={onFile}/>
-      </label>
+      </HelpLabel>
     </div>
 
     {courseGroups.length>0&&<div className="roster-course-map">
@@ -202,7 +204,7 @@ export default function RosterUpload({institutionId,courses,role}:{
 
     {preview.length>0&&<div className="roster-preview">
       <p><strong>{number(preview.length)} registros</strong> em {courseGroups.length} curso(s){allMapped?" — todos mapeados":" — mapeie os cursos acima"}</p>
-      <div className="roster-scroll"><table><thead><tr><th>Nome</th><th>CPF</th><th>Curso</th><th>Turma</th>{hasContacts&&<><th>E-mail</th><th>Telefone</th></>}<th>Período</th></tr></thead>
+      <div className="roster-scroll"><table><thead><tr><th>Nome</th><th>CPF</th><th>Curso<ContextHelp title="Curso" /></th><th>Turma</th>{hasContacts&&<><th>E-mail<ContextHelp title="E-mail" /></th><th>Telefone<ContextHelp title="Telefone" /></th></>}<th>Período<ContextHelp title="Período" /></th></tr></thead>
         <tbody>{preview.slice(0,15).map((r,i)=><tr key={i}>
           <td>{r.name}</td><td>{maskCpf(r.cpf)}</td><td>{r.curso}</td><td>{r.turma}</td>
           {hasContacts&&<><td>{maskEmail(r.email)}</td><td>{maskPhone(r.telefone)}</td></>}
@@ -219,7 +221,7 @@ export default function RosterUpload({institutionId,courses,role}:{
 
     {imports.length>0&&<div className="roster-history">
       <h5>Histórico de importações</h5>
-      <table><thead><tr><th>Arquivo</th><th>Curso</th><th>Data</th><th>Total</th><th>Vinculados</th><th>Não encontrados</th><th>Status</th><th></th></tr></thead>
+      <table><thead><tr><th>Arquivo</th><th>Curso<ContextHelp title="Curso" /></th><th>Data</th><th>Total</th><th>Vinculados</th><th>Não encontrados</th><th>Status</th><th></th></tr></thead>
         <tbody>{imports.map(imp=><tr key={imp.id}>
           <td>{imp.filename||"—"}</td>
           <td>{courseNames.get(imp.course_id)||imp.course_id.slice(0,8)}</td>

@@ -1,3 +1,4 @@
+import { ContextHelp } from '@/components/ContextHelp';
 import React from "react";
 import { Link } from "wouter";
 import { ArrowUpRight, FileText, ShieldCheck } from "lucide-react";
@@ -99,7 +100,7 @@ export default function CaseStudy() {
               <thead>
                 <tr>
                   <th>Código</th>
-                  <th>Indicador</th>
+                  <th>Indicador<ContextHelp title="Indicador" /></th>
                   <th>Peso</th>
                 </tr>
               </thead>

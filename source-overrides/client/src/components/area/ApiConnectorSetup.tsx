@@ -1,3 +1,4 @@
+import { HelpLabel } from '@/components/ContextHelp';
 import {useCallback,useEffect,useState} from "react";
 import {supabase} from "@/lib/supabase";
 import type {Role} from "@/lib/area";
@@ -126,20 +127,20 @@ export default function ApiConnectorSetup({institutionId,role}:{institutionId:st
   </div>}
 
   {editing&&<div className="api-form">
-   <label>Nome do conector<input value={form.label} onChange={e=>setForm(f=>({...f,label:e.target.value}))} placeholder="Ex: API e-ORBIT UNITOP"/></label>
-   <label>URL base da API<input value={form.api_base_url} onChange={e=>setForm(f=>({...f,api_base_url:e.target.value}))} placeholder="https://api.sistema-academico.com.br"/></label>
-   <label>Endpoint do roster<input value={form.api_roster_endpoint} onChange={e=>setForm(f=>({...f,api_roster_endpoint:e.target.value}))} placeholder="/alunos/matriculados"/></label>
-   <label>Autenticação
+   <HelpLabel>Nome do conector<input value={form.label} onChange={e=>setForm(f=>({...f,label:e.target.value}))} placeholder="Ex: API e-ORBIT UNITOP"/></HelpLabel>
+   <HelpLabel>URL base da API<input value={form.api_base_url} onChange={e=>setForm(f=>({...f,api_base_url:e.target.value}))} placeholder="https://api.sistema-academico.com.br"/></HelpLabel>
+   <HelpLabel>Endpoint do roster<input value={form.api_roster_endpoint} onChange={e=>setForm(f=>({...f,api_roster_endpoint:e.target.value}))} placeholder="/alunos/matriculados"/></HelpLabel>
+   <HelpLabel>Autenticação
     <select value={form.api_auth_type} onChange={e=>setForm(f=>({...f,api_auth_type:e.target.value}))}>
      {AUTH_TYPES.map(([k,v])=><option key={k} value={k}>{v}</option>)}
     </select>
-   </label>
-   <label>Credencial (token/chave)<input type="password" value={form.api_auth_value} onChange={e=>setForm(f=>({...f,api_auth_value:e.target.value}))} placeholder={connector?"(manter atual)":"Token de acesso"}/></label>
-   <label className="wide">Mapeamento de campos (JSON)<textarea rows={5} value={form.api_response_mapping} onChange={e=>setForm(f=>({...f,api_response_mapping:e.target.value}))}/></label>
-   <label>Intervalo de sync (horas)<input type="number" min={1} max={168} value={form.sync_interval_hours} onChange={e=>setForm(f=>({...f,sync_interval_hours:Number(e.target.value)}))}/></label>
-   <label>Status do aluno para incluir<input value={form.sync_filter_status} onChange={e=>setForm(f=>({...f,sync_filter_status:e.target.value}))} placeholder="matriculado,ativo,cursando"/></label>
-   <label className="api-check"><input type="checkbox" checked={form.sync_enabled} onChange={e=>setForm(f=>({...f,sync_enabled:e.target.checked}))}/><span>Ativar sincronização automática</span></label>
-   <label className="api-check"><input type="checkbox" checked={form.sync_auto_link} onChange={e=>setForm(f=>({...f,sync_auto_link:e.target.checked}))}/><span>Vincular automaticamente ao Fato & Ordem</span></label>
+   </HelpLabel>
+   <HelpLabel>Credencial (token/chave)<input type="password" value={form.api_auth_value} onChange={e=>setForm(f=>({...f,api_auth_value:e.target.value}))} placeholder={connector?"(manter atual)":"Token de acesso"}/></HelpLabel>
+   <HelpLabel className="wide">Mapeamento de campos (JSON)<textarea rows={5} value={form.api_response_mapping} onChange={e=>setForm(f=>({...f,api_response_mapping:e.target.value}))}/></HelpLabel>
+   <HelpLabel>Intervalo de sync (horas)<input type="number" min={1} max={168} value={form.sync_interval_hours} onChange={e=>setForm(f=>({...f,sync_interval_hours:Number(e.target.value)}))}/></HelpLabel>
+   <HelpLabel>Status do aluno para incluir<input value={form.sync_filter_status} onChange={e=>setForm(f=>({...f,sync_filter_status:e.target.value}))} placeholder="matriculado,ativo,cursando"/></HelpLabel>
+   <HelpLabel className="api-check"><input type="checkbox" checked={form.sync_enabled} onChange={e=>setForm(f=>({...f,sync_enabled:e.target.checked}))}/><span>Ativar sincronização automática</span></HelpLabel>
+   <HelpLabel className="api-check"><input type="checkbox" checked={form.sync_auto_link} onChange={e=>setForm(f=>({...f,sync_auto_link:e.target.checked}))}/><span>Vincular automaticamente ao Fato & Ordem</span></HelpLabel>
    <div className="api-actions">
     <button className="corp-button" disabled={busy} onClick={()=>void save()}>{busy?"Salvando…":"Salvar conector"}</button>
     <button className="corp-button outline" onClick={()=>setEditing(false)}>Cancelar</button>

@@ -1,3 +1,4 @@
+import { ContextHelp } from '@/components/ContextHelp';
 // CpaAutoavaliacao.tsx — Módulo CPA e Autoavaliação Institucional
 // Módulo independente. CPA não é subordinada a Egressos.
 import { useState, useEffect, useMemo } from 'react';
@@ -185,7 +186,7 @@ function ReferenciaisCPA() {
       <h3>Biblioteca de Referenciais INEP</h3>
       <p className="alumni-hint">Referenciais versionados. Não confundir instrumento vigente com proposta em consulta pública.</p>
       <div className="alumni-table-wrapper">
-        <table className="alumni-table"><thead><tr><th>Referencial</th><th>Versão</th><th>Status</th><th>Fonte</th><th></th></tr></thead>
+        <table className="alumni-table"><thead><tr><th>Referencial</th><th>Versão</th><th>Status</th><th>Fonte<ContextHelp title="Fonte" /></th><th></th></tr></thead>
         <tbody>{refs.map(r=><tr key={r.id}>
           <td><strong>{r.title}</strong></td><td>{r.version}</td>
           <td><span className="alumni-status-pill" style={{background:r.status==='vigente'?'#16a34a':r.status==='proposta'?'#d97706':'#6b7280'}}>{r.status}</span></td>
@@ -222,7 +223,7 @@ function CiclosCPA({ institutionId, role }: { institutionId: string; role: strin
       </div>
       {cycles.length===0?<EmptyState msg="Nenhum ciclo criado. Cada ciclo representa um período de autoavaliação." />:(
         <div className="alumni-table-wrapper">
-          <table className="alumni-table"><thead><tr><th>Ciclo</th><th>Status</th><th>Período</th><th>Metodologia</th></tr></thead>
+          <table className="alumni-table"><thead><tr><th>Ciclo</th><th>Status</th><th>Período<ContextHelp title="Período" /></th><th>Metodologia</th></tr></thead>
           <tbody>{cycles.map(c=><tr key={c.id}><td><strong>{c.title}</strong></td>
             <td><span className="alumni-status-pill" style={{background:c.status==='encerrado'?'#6b7280':'#16a34a'}}>{c.status}</span></td>
             <td>{c.start_date?new Date(c.start_date).toLocaleDateString('pt-BR'):'—'} → {c.end_date?new Date(c.end_date).toLocaleDateString('pt-BR'):'—'}</td>
@@ -272,7 +273,7 @@ function CampanhasCPA({ institutionId, role }: { institutionId: string; role: st
       <p className="alumni-hint">Cada campanha vincula ciclo, instrumento, público e período. Não envia campanhas reais sem autorização.</p>
       {campaigns.length===0?<EmptyState msg="Nenhuma campanha criada. Vincule um instrumento a um ciclo para começar." />:(
         <div className="alumni-table-wrapper">
-          <table className="alumni-table"><thead><tr><th>Campanha</th><th>Público</th><th>Canais</th><th>Período</th><th>Status</th><th>Horas</th></tr></thead>
+          <table className="alumni-table"><thead><tr><th>Campanha</th><th>Público</th><th>Canais</th><th>Período<ContextHelp title="Período" /></th><th>Status</th><th>Horas</th></tr></thead>
           <tbody>{campaigns.map(c=><tr key={c.id}><td><strong>{c.title}</strong></td><td>{c.target_audience}</td><td>{c.channels.join(', ')}</td>
             <td>{new Date(c.opens_at).toLocaleDateString('pt-BR')} → {new Date(c.closes_at).toLocaleDateString('pt-BR')}</td>
             <td><span className="alumni-status-pill" style={{background:c.status==='ativa'?'#16a34a':c.status==='encerrada'?'#6b7280':'#d97706'}}>{c.status}</span></td>
@@ -356,7 +357,7 @@ function PlanosCPA({ institutionId, role }: { institutionId: string; role: strin
       <p className="alumni-hint">Trilha: Referencial → descritor → resultado → achado → decisão → ação → evidência → avaliação de eficácia → devolutiva.</p>
       {actions.length===0?<EmptyState msg="Nenhuma ação criada. Registre achados primeiro, depois vincule ações de melhoria." />:(
         <div className="alumni-table-wrapper">
-          <table className="alumni-table"><thead><tr><th>Ação</th><th>Responsável</th><th>Prazo</th><th>Status</th><th>Evidência</th><th>Eficácia</th><th></th></tr></thead>
+          <table className="alumni-table"><thead><tr><th>Ação<ContextHelp title="Ação" /></th><th>Responsável<ContextHelp title="Responsável" /></th><th>Prazo</th><th>Status</th><th>Evidência</th><th>Eficácia</th><th></th></tr></thead>
           <tbody>{actions.map(a=><tr key={a.id}><td><strong>{a.title}</strong></td><td>{a.responsible||'—'}</td>
             <td>{a.due_date?new Date(a.due_date).toLocaleDateString('pt-BR'):'—'}</td>
             <td><span className={`alumni-action-status ${a.status}`}>{a.status.replace('_',' ')}</span></td>

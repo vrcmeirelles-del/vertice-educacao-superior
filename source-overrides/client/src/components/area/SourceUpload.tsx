@@ -1,3 +1,5 @@
+import { ContextHelp } from '@/components/ContextHelp';
+import { HelpLabel } from '@/components/ContextHelp';
 import {useCallback,useEffect,useState,type FormEvent} from "react";
 import {supabase} from "@/lib/supabase";
 import "./source-upload.css";
@@ -173,33 +175,33 @@ export default function SourceUpload({institutionId,institutionName,onBackups}:{
   <div className="vx-source-warning"><strong>Etapa 2 · Receber arquivos e links.</strong>
    Os arquivos ficam armazenados em bucket privado. A importação para matrículas, BI ou indicadores só poderá ocorrer após mapeamento, conferência de dados e aprovação específica.</div>
   <form onSubmit={upload} className="vx-source-form">
-   <label>Site ou sistema de origem
+   <HelpLabel>Site ou sistema de origem
     <select value={source} onChange={e=>selectSource(e.target.value)}>{SOURCES.map(([k,l])=><option key={k} value={k}>{l}</option>)}</select>
-   </label>
-   <label>Nome da fonte
+   </HelpLabel>
+   <HelpLabel>Nome da fonte
     <input value={sourceName} maxLength={180} required minLength={2} onChange={e=>setSourceName(e.target.value)} placeholder="Nome do sistema ou site"/>
-   </label>
-   <label>Endereço da página de origem (opcional)
+   </HelpLabel>
+   <HelpLabel>Endereço da página de origem (opcional)
     <input type="url" value={url} maxLength={1000} onChange={e=>setUrl(e.target.value)} placeholder="https://..."/>
-   </label>
-   <label>Competência / semestre (opcional)
+   </HelpLabel>
+   <HelpLabel>Competência / semestre (opcional)
     <input value={period} maxLength={35} onChange={e=>setPeriod(e.target.value)} placeholder="Ex.: 2026/02"/>
-   </label>
-   <label>Data efetiva da extração (opcional)
+   </HelpLabel>
+   <HelpLabel>Data efetiva da extração (opcional)
     <input type="date" value={date} onChange={e=>setDate(e.target.value)}/>
-   </label>
-   <label className="vx-source-wide">Arquivo da extração (opcional quando houver link)
+   </HelpLabel>
+   <HelpLabel className="vx-source-wide">Arquivo da extração (opcional quando houver link)
     <input id="vx-source-file" type="file" accept=".pdf,.csv,.xlsx,.json,.txt,.html,.htm,.xml" onChange={e=>setFile(e.target.files?.[0]??null)}/>
     <small>PDF, CSV, XLSX, JSON, TXT, HTML ou XML — máximo 25 MB. Não envie credenciais, senhas nem dados pessoais desnecessários.</small>
-   </label>
-   <label className="vx-source-wide">Link de Google Drive ou OneDrive / SharePoint (opcional)
+   </HelpLabel>
+   <HelpLabel className="vx-source-wide">Link de Google Drive ou OneDrive / SharePoint (opcional)
     <input type="url" maxLength={1800} value={driveUrl} onChange={e=>setDriveUrl(e.target.value)}
      placeholder="https://drive.google.com/... ou https://...sharepoint.com/..."/>
     <small>Você pode registrar somente o link ou anexar arquivo e link juntos. Não há leitura automática de pastas privadas. Autorize o acesso separadamente.</small>
-   </label>
-   <label className="vx-source-wide">Observações de origem (opcional)
+   </HelpLabel>
+   <HelpLabel className="vx-source-wide">Observações de origem (opcional)
     <textarea rows={2} value={description} maxLength={1500} onChange={e=>setDescription(e.target.value)} placeholder="Ex.: Relatório 2 completo do sistema, todas as grades do semestre; conferir total de matrículas."/>
-   </label>
+   </HelpLabel>
    <button type="submit" disabled={busy||(!file&&!driveUrl.trim())}>{busy?"Registrando…":file?"Enviar arquivo para conferência":"Registrar referência do Drive"}</button>
   </form>
   {error&&<p role="alert" className="vx-source-error">{error}</p>}
@@ -216,7 +218,7 @@ export default function SourceUpload({institutionId,institutionName,onBackups}:{
   </div>}
   <div className="vx-source-list"><h4>Histórico de arquivos recebidos</h4>
    {loading?<p>Carregando histórico…</p>:rows.length===0?<p>Ainda não existem arquivos recebidos por esta área para a instituição.</p>:
-   <div className="vx-source-scroll"><table><thead><tr><th>Arquivo</th><th>Fonte</th><th>Competência</th><th>Recebimento</th><th>Situação</th><th>Ação</th></tr></thead><tbody>
+   <div className="vx-source-scroll"><table><thead><tr><th>Arquivo</th><th>Fonte<ContextHelp title="Fonte" /></th><th>Competência</th><th>Recebimento</th><th>Situação</th><th>Ação<ContextHelp title="Ação" /></th></tr></thead><tbody>
    {rows.map(row=><tr key={row.id}>
      <td><strong>{row.original_name}</strong><small>{(row.bytes/1024/1024).toLocaleString("pt-BR",{maximumFractionDigits:2})} MB</small></td>
      <td>{row.source_name}{row.source_url&&<small>URL registrada</small>}{row.drive_url&&<small><a href={row.drive_url} target="_blank" rel="noopener noreferrer">Referência no Drive ↗</a></small>}</td>

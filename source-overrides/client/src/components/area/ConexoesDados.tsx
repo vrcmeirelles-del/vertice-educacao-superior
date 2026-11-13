@@ -1,3 +1,4 @@
+import { HelpLabel } from '@/components/ContextHelp';
 import {useEffect,useState} from "react";
 import {supabase} from "@/lib/supabase";
 
@@ -90,8 +91,8 @@ export default function ConexoesDados({institutionId,institutionName,role}:{inst
     setBusy(false);
   };
   const campo=(label:string,k:string,ph="",type="text")=>
-    <label style={{display:"block",margin:"8px 0"}}>{label}<br/>
-      <input type={type} value={String((f as any)[k])} placeholder={ph} autoComplete="off" onChange={e=>set(k,e.target.value)} style={{width:"100%",maxWidth:480}}/></label>;
+    <HelpLabel style={{display:"block",margin:"8px 0"}}>{label}<br/>
+      <input type={type} value={String((f as any)[k])} placeholder={ph} autoComplete="off" onChange={e=>set(k,e.target.value)} style={{width:"100%",maxWidth:480}}/></HelpLabel>;
 
   return (
     <section aria-label="Conexões de dados" style={{margin:"16px 0",padding:16,border:"1px solid var(--line, #d9dde3)",borderRadius:12}}>
@@ -126,8 +127,8 @@ export default function ConexoesDados({institutionId,institutionName,role}:{inst
         </ul>
       </div>
       <h4 style={{margin:"0 0 8px"}}>Nova conexão</h4>
-      <label style={{display:"block",margin:"8px 0"}}>Tipo<br/>
-        <select value={f.tipo} onChange={e=>set("tipo",e.target.value)}>{Object.entries(TIPOS).map(([k,v])=><option key={k} value={k}>{v}</option>)}</select></label>
+      <HelpLabel style={{display:"block",margin:"8px 0"}}>Tipo<br/>
+        <select value={f.tipo} onChange={e=>set("tipo",e.target.value)}>{Object.entries(TIPOS).map(([k,v])=><option key={k} value={k}>{v}</option>)}</select></HelpLabel>
       {campo("Sistema / fornecedor","fornecedor","ex.: e-ORBIT, TOTVS, Gennera, GIZ")}
       {campo("Nome da conexão","rotulo","ex.: Acadêmico principal")}
       {f.tipo==="api"&&<>
@@ -135,14 +136,14 @@ export default function ConexoesDados({institutionId,institutionName,role}:{inst
         {campo("Caminho de teste","test_path","/")}
         {campo("Cabeçalho da chave","header_name","Authorization")}
         {campo("Prefixo (vazio se a chave vai pura)","scheme","Bearer")}
-        <label style={{display:"block",margin:"8px 0"}}>Conjuntos de dados a puxar (um por linha: nome;/caminho;categoria;chave-da-lista opcional)<br/>
-          <textarea value={f.datasets} rows={4} placeholder={"cursos;/cursos;agregado\nmatriculas;/matriculas;agregado;dados\nfolha_por_curso;/folha/curso;pessoal"} onChange={e=>set("datasets",e.target.value)} style={{width:"100%",maxWidth:480}}/></label>
+        <HelpLabel style={{display:"block",margin:"8px 0"}}>Conjuntos de dados a puxar (um por linha: nome;/caminho;categoria;chave-da-lista opcional)<br/>
+          <textarea value={f.datasets} rows={4} placeholder={"cursos;/cursos;agregado\nmatriculas;/matriculas;agregado;dados\nfolha_por_curso;/folha/curso;pessoal"} onChange={e=>set("datasets",e.target.value)} style={{width:"100%",maxWidth:480}}/></HelpLabel>
         <p role="note" style={{margin:"0 0 8px"}}>Categorias: <strong>agregado</strong>, <strong>nominal</strong> (exige escopo nominal e aprovação do master), <strong>pessoal</strong> (exige autorização de gasto com pessoal) e <strong>financeiro</strong> (exige financeiro completo e aprovação). Campos como CPF, RG, e-mail, telefone e endereço são descartados sempre; nome e matrícula só ficam na categoria nominal.</p>
         {campo("Chave / token da API","secret","","password")}
       </>}
       {f.tipo==="sql"&&<>
-        <label style={{display:"block",margin:"8px 0"}}>Banco<br/>
-          <select value={f.engine} onChange={e=>set("engine",e.target.value)}><option value="postgres">PostgreSQL</option><option value="mysql">MySQL</option><option value="sqlserver">SQL Server</option></select></label>
+        <HelpLabel style={{display:"block",margin:"8px 0"}}>Banco<br/>
+          <select value={f.engine} onChange={e=>set("engine",e.target.value)}><option value="postgres">PostgreSQL</option><option value="mysql">MySQL</option><option value="sqlserver">SQL Server</option></select></HelpLabel>
         {campo("Servidor (nome público)","host","bd.ies.edu.br")}
         {campo("Porta (opcional)","port","")}
         {campo("Banco de dados","database","")}
@@ -152,25 +153,25 @@ export default function ConexoesDados({institutionId,institutionName,role}:{inst
       {f.tipo==="agente"&&<p>Ao criar, o portal gera um token <strong>exibido uma única vez</strong>. O agente da IES usa esse token para enviar os dados.</p>}
       {f.tipo==="onedrive"&&campo("Link da pasta compartilhada","link","https://…sharepoint.com/…")}
 
-      <label style={{display:"block",margin:"8px 0"}}>Dados que a conexão pode trazer<br/>
+      <HelpLabel style={{display:"block",margin:"8px 0"}}>Dados que a conexão pode trazer<br/>
         <select value={f.escopo} onChange={e=>set("escopo",e.target.value)}>
           <option value="agregado">Só agregados (totais por curso/semestre)</option>
           <option value="nominal">Agregados + nominais de alunos (acesso restrito)</option>
-        </select></label>
+        </select></HelpLabel>
       {f.escopo==="nominal"&&<p role="note">Dados nominais ficam sob acesso restrito. CPF, RG, documentos e dados financeiros de alunos nunca são extraídos.</p>}
-      <label style={{display:"block",margin:"8px 0"}}>Parte financeira e contábil: a IES autoriza o acesso?<br/>
+      <HelpLabel style={{display:"block",margin:"8px 0"}}>Parte financeira e contábil: a IES autoriza o acesso?<br/>
         <select value={f.fin} onChange={e=>set("fin",e.target.value)}>
           <option value="nenhum">Não autorizo acesso financeiro/contábil</option>
           <option value="pessoal">Autorizo somente o gasto com pessoal</option>
           <option value="completo">Autorizo financeiro e contábil completos (exige aprovação do master)</option>
-        </select></label>
+        </select></HelpLabel>
       <p role="note" style={{margin:"4px 0 8px"}}>O gasto com pessoal é importante para analisar, ainda que parcialmente, a viabilidade econômica do curso. Sem ele, o Simulador de Custo e o Resultado por Curso trabalham apenas com parâmetros estimados. Ele é lido de forma agregada por curso e titulação, sem identificar o salário de cada pessoa.</p>
-      {f.fin!=="nenhum"&&<label style={{display:"block",margin:"8px 0"}}>
+      {f.fin!=="nenhum"&&<HelpLabel style={{display:"block",margin:"8px 0"}}>
         <input type="checkbox" checked={f.aceiteFin} onChange={e=>set("aceiteFin",e.target.checked)}/> Confirmo, como gestor de {institutionName}, que autorizo o acesso a {f.fin==="pessoal"?"dados de gasto com pessoal":"dados financeiros e contábeis"} e que sei que essas informações serão usadas nas análises da Vértice.
-      </label>}
-      <label style={{display:"block",margin:"8px 0"}}>
+      </HelpLabel>}
+      <HelpLabel style={{display:"block",margin:"8px 0"}}>
         <input type="checkbox" checked={f.aceite} onChange={e=>set("aceite",e.target.checked)}/> Declaro que {institutionName} autoriza a Vértice, como operadora, a ler estes dados para fins de gestão acadêmica e regulatória, e que a credencial informada é de acesso somente leitura.
-      </label>
+      </HelpLabel>
       <button type="button" disabled={busy||!f.aceite||!f.fornecedor||!f.rotulo||(f.fin!=="nenhum"&&!f.aceiteFin)} onClick={criar}>{busy?"Processando…":"Vincular e testar"}</button>
 
       {msg&&<p role="status" style={{margin:"8px 0 0"}}>{msg}</p>}

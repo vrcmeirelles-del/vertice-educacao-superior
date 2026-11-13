@@ -1,3 +1,5 @@
+import { ContextHelp } from '@/components/ContextHelp';
+import { HelpLabel } from '@/components/ContextHelp';
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { can, deleteRow, explain, fmtDate, saveRow, today, type Role, type Row } from "@/lib/area";
 import { supabase } from "@/lib/supabase";
@@ -64,7 +66,7 @@ export default function NovoInstrumento({ institutionId, role, courses, onUpload
     <div className="ni">
       <div className="area-panel ni-instrument-picker">
         <div><strong>Instrumentos de avaliação · preparação regulatória</strong><p className="area-muted small">Selecione o instrumento específico. A proposta de recredenciamento de 2026 é preliminar; a versão histórica de 2017 permanece disponível em outra aba.</p></div>
-        <label className="area-search ni-scope">Instrumento
+        <HelpLabel className="area-search ni-scope">Instrumento
           <select aria-label="Selecionar instrumento" value={tipo} onChange={e => {
             const next = e.target.value as TipoInstrumento;
             setTipo(next);
@@ -74,19 +76,19 @@ export default function NovoInstrumento({ institutionId, role, courses, onUpload
           }}>
             {TIPOS_INSTRUMENTO.map(([key, label]) => <option key={key} value={key}>{label}</option>)}
           </select>
-        </label>
+        </HelpLabel>
         {tipo === "curso" && <button className="corp-button" type="button" onClick={() => {
           setTipo("institucional");
           const hash = new URLSearchParams(window.location.hash.slice(1));
           hash.set("instrumento", "institucional");
           window.history.replaceState(null, "", "#" + hash.toString());
         }}>Abrir proposta de Recredenciamento 2026</button>}
-        {tipo === "curso" && <label className="area-search ni-scope">Curso para o envio
+        {tipo === "curso" && <HelpLabel className="area-search ni-scope">Curso para o envio
           <select aria-label="Curso para o envio de documento" value={courseId} onChange={e => setCourseId(e.target.value)}>
             <option value="">Selecione o curso…</option>
             {courses.map(c=><option key={c.id} value={String(c.id)}>{String(c.display_name??c.name)}</option>)}
           </select>
-        </label>}
+        </HelpLabel>}
         <p className="area-muted small ni-instrument-upload-hint">Para enviar evidências com rastreabilidade, abra o objeto de avaliação. Os documentos são armazenados no acervo privado específico de 2026.</p>
       </div>
       {tipo === "curso" && <div role="tablist" aria-label="Novo Instrumento INEP" className="area-tabs ni-subtabs">
@@ -156,8 +158,8 @@ function InstitucionalPanel({ institutionId, role, onUploadDocument }: { institu
         })}
       </div>
       <div className="ni-filters" style={{marginTop:12}}>
-        <label className="area-search"><input placeholder="Buscar objeto" value={busca} onChange={e => setBusca(e.target.value)} /></label>
-        <label className="area-search">Tema transversal <select value={filtroTema} onChange={e => setFiltroTema(e.target.value)}><option value="">Todos</option>{TEMAS.map(([k,l])=><option key={k} value={k}>{l}</option>)}</select></label>
+        <HelpLabel className="area-search"><input placeholder="Buscar objeto" value={busca} onChange={e => setBusca(e.target.value)} /></HelpLabel>
+        <HelpLabel className="area-search">Tema transversal <select value={filtroTema} onChange={e => setFiltroTema(e.target.value)}><option value="">Todos</option>{TEMAS.map(([k,l])=><option key={k} value={k}>{l}</option>)}</select></HelpLabel>
       </div>
       <p className="area-muted" style={{marginTop:8}}>{objetos.length} objeto(s) exibido(s)</p>
       <div className="ni-obj-list">
@@ -235,7 +237,7 @@ function Barra({ pct, warn }: { pct: number; warn?: boolean }) {
 
 function SeletorEscopo({ courses, value, onChange }: { courses: Row[]; value: string; onChange: (v: string) => void }) {
   return (
-    <label className="area-search ni-scope">
+    <HelpLabel className="area-search ni-scope">
       Escopo da avaliação
       <select value={value} onChange={e => onChange(e.target.value)}>
         <option value="">Institucional (dimensões 1 a 3)</option>
@@ -246,7 +248,7 @@ function SeletorEscopo({ courses, value, onChange }: { courses: Row[]; value: st
           </option>
         ))}
       </select>
-    </label>
+    </HelpLabel>
   );
 }
 
@@ -383,11 +385,11 @@ function ChecklistPanel({ institutionId, role, data, reload, fail, courses, cour
 
       <div className="area-panel">
         <div className="area-inline ni-filters">
-          <label className="area-search">
+          <HelpLabel className="area-search">
             Buscar objeto
             <input type="search" value={q} onChange={e => setQ(e.target.value)} placeholder="Código ou nome" />
-          </label>
-          <label className="area-search">
+          </HelpLabel>
+          <HelpLabel className="area-search">
             Dimensão
             <select value={dim} onChange={e => setDim(e.target.value)}>
               <option value="">Todas</option>
@@ -397,8 +399,8 @@ function ChecklistPanel({ institutionId, role, data, reload, fail, courses, cour
                 </option>
               ))}
             </select>
-          </label>
-          <label className="area-search">
+          </HelpLabel>
+          <HelpLabel className="area-search">
             Situação
             <select value={st} onChange={e => setSt(e.target.value)}>
               <option value="">Todas</option>
@@ -406,8 +408,8 @@ function ChecklistPanel({ institutionId, role, data, reload, fail, courses, cour
                 <option key={k} value={k}>{l}</option>
               ))}
             </select>
-          </label>
-          <label className="area-search">
+          </HelpLabel>
+          <HelpLabel className="area-search">
             Tema transversal
             <select value={tema} onChange={e => setTema(e.target.value)}>
               <option value="">Todos</option>
@@ -415,7 +417,7 @@ function ChecklistPanel({ institutionId, role, data, reload, fail, courses, cour
                 <option key={k} value={k}>{l}</option>
               ))}
             </select>
-          </label>
+          </HelpLabel>
         </div>
         {dim === "4" && !course && (
           <p className="area-note">A dimensão 4 não possui pontuação institucional. {primeiroCursoDim4 ? "Escolha um curso no seletor acima ou abra diretamente a avaliação específica." : "Nenhum curso com perfil específico identificado; confira o cadastro e a classificação dos cursos."} {primeiroCursoDim4 && <button type="button" className="corp-login-text-button" onClick={abrirDim4}>Selecionar curso</button>}</p>
@@ -434,7 +436,7 @@ function ChecklistPanel({ institutionId, role, data, reload, fail, courses, cour
               <div className="table-scroll">
                 <table className="area-table ni-table">
                   <thead>
-                    <tr><th>Código</th><th>Objeto de avaliação</th><th>Situação</th><th>Responsável</th><th>Evidências</th><th /></tr>
+                    <tr><th>Código</th><th>Objeto de avaliação</th><th>Situação</th><th>Responsável<ContextHelp title="Responsável" /></th><th>Evidências</th><th /></tr>
                   </thead>
                   <tbody>
                     {lista.map(({ o, row, status }) => {
@@ -532,14 +534,14 @@ function ObjetoLinhas({ o, row, status, ev, aberto, edit, ocupado, onToggle, onS
               );
             })()}
             <div className="area-form-grid">
-              <label>
+              <HelpLabel>
                 Responsável
                 <input value={resp} maxLength={200} disabled={!edit} onChange={e => setResp(e.target.value)} />
-              </label>
-              <label className="wide">
+              </HelpLabel>
+              <HelpLabel className="wide">
                 Observações e achados
                 <textarea rows={3} maxLength={4000} value={notes} disabled={!edit} onChange={e => setNotes(e.target.value)} />
-              </label>
+              </HelpLabel>
             </div>
             {edit && (
               <div className="area-form-actions">
@@ -605,12 +607,12 @@ function EvidenciasPanel({ institutionId, role, data, reload, fail, courses, cou
         <div className="area-panel-head"><h3>Documentos de trabalho · proposta 2026</h3><SeletorEscopo courses={courses} value={courseId??""} onChange={onCourse}/></div>
         {!course?<p className="area-note">Selecione um curso para consultar documentos, versões, prazos, responsáveis e decisões da gestão.</p>:<>
           <NovoDocumentosResumo2026 state={documents}/>
-          <label className="area-search">Objeto para consultar evidências
+          <HelpLabel className="area-search">Objeto para consultar evidências
             <select value={docObject} onChange={e=>setDocObject(e.target.value)}>
               <option value="">Selecione um objeto…</option>
               {objetos.map(o=><option key={o.code} value={o.code}>{o.code} · {o.title}</option>)}
             </select>
-          </label>
+          </HelpLabel>
           {docObject&&objetos.filter(o=>o.code===docObject).map(o=><NovoObjetoDocumentos2026 key={o.code} state={documents} role={role} object={{code:o.code,title:o.title,hint:o.hint}}/>)}
         </>}
       </div>
@@ -628,7 +630,7 @@ function EvidenciasPanel({ institutionId, role, data, reload, fail, courses, cou
           <form className="area-form" onSubmit={enviar}>
             <h3>Registrar evidência</h3>
             <div className="area-form-grid">
-              <label>
+              <HelpLabel>
                 Objeto de avaliação <em>*</em>
                 <select required value={code} onChange={e => setCode(e.target.value)}>
                   <option value="">Selecione…</option>
@@ -636,20 +638,20 @@ function EvidenciasPanel({ institutionId, role, data, reload, fail, courses, cou
                     <option key={o.code} value={o.code}>{o.code} · {o.title}</option>
                   ))}
                 </select>
-              </label>
-              <label>
+              </HelpLabel>
+              <HelpLabel>
                 Nome do documento <em>*</em>
                 <input required maxLength={250} value={nome} onChange={e => setNome(e.target.value)} placeholder="Ex.: Portaria do NDE 2026" />
-              </label>
-              <label>
+              </HelpLabel>
+              <HelpLabel>
                 Link do documento
                 <input type="url" maxLength={2000} value={url} onChange={e => setUrl(e.target.value)} placeholder="https://…" />
                 <small>Endereço do arquivo no repositório da IES ou em nuvem. Aceita somente https.</small>
-              </label>
-              <label className="wide">
+              </HelpLabel>
+              <HelpLabel className="wide">
                 Descrição
                 <textarea rows={2} maxLength={2000} value={desc} onChange={e => setDesc(e.target.value)} />
-              </label>
+              </HelpLabel>
             </div>
             {msg && <p role="alert" className="area-error">{msg}</p>}
             <div className="area-form-actions">
@@ -673,7 +675,7 @@ function EvidenciasPanel({ institutionId, role, data, reload, fail, courses, cou
       <div className="area-panel">
         <div className="area-panel-head">
           <h3>Evidências do escopo</h3>
-          <label className="area-search">
+          <HelpLabel className="area-search">
             Filtrar por objeto
             <select value={filtro} onChange={e => setFiltro(e.target.value)}>
               <option value="">Todos</option>
@@ -681,7 +683,7 @@ function EvidenciasPanel({ institutionId, role, data, reload, fail, courses, cou
                 <option key={o.code} value={o.code}>{o.code} · {o.title}</option>
               ))}
             </select>
-          </label>
+          </HelpLabel>
         </div>
         {!exibidas.length ? (
           <p className="area-muted">Nenhuma evidência registrada neste escopo.</p>
@@ -768,14 +770,14 @@ function CronogramaPanel({ institutionId, role, data, reload, fail }: Shared) {
     <div className="area-panel">
       <div className="area-panel-head">
         <h3>Cronograma do ciclo trienal</h3>
-        <label className="area-search">
+        <HelpLabel className="area-search">
           Ciclo
           <select value={ciclo} onChange={e => setCiclo(Number(e.target.value))}>
             {Object.keys(CICLO_BASE).map(n => (
               <option key={n} value={n}>{cicloRotulo(Number(n))}</option>
             ))}
           </select>
-        </label>
+        </HelpLabel>
       </div>
       <div className="ni-timeline-wrap">
         <svg className="ni-timeline" viewBox="0 0 600 130" role="img" aria-label={`Linha do tempo do ciclo ${inicio} a ${inicio + 2}: ${fases.map(f => `${f.title}, ${f.pct}% concluído`).join("; ")}`}>
@@ -913,7 +915,7 @@ function CpaPanel({ institutionId, role, data, reload, fail }: Shared) {
       </div>
       <div className="table-scroll">
         <table className="area-table ni-table">
-          <thead><tr><th>Item de prontidão</th><th>Situação</th><th>Responsável</th><th>Prazo</th><th>Observações</th><th /></tr></thead>
+          <thead><tr><th>Item de prontidão</th><th>Situação</th><th>Responsável<ContextHelp title="Responsável" /></th><th>Prazo</th><th>Observações</th><th /></tr></thead>
           <tbody>
             {rows.map(r => {
               const s = (r.status as AndamentoStatus) ?? "pendente";
@@ -960,10 +962,10 @@ function CpaPanel({ institutionId, role, data, reload, fail }: Shared) {
       {!rows.length && <p className="area-muted">Nenhum item registrado.</p>}
       {edit && (
         <form className="area-inline-form ni-add" onSubmit={adicionar}>
-          <label>
+          <HelpLabel>
             Novo item de prontidão
             <input required maxLength={300} value={novo} onChange={e => setNovo(e.target.value)} placeholder="Descreva o item" />
-          </label>
+          </HelpLabel>
           <button className="corp-button small">Adicionar item</button>
         </form>
       )}

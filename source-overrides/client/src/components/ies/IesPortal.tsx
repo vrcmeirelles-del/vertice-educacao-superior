@@ -1,3 +1,4 @@
+import { HelpLabel } from '@/components/ContextHelp';
 import {
   useCallback,
   useEffect,
@@ -241,7 +242,7 @@ export default function IesPortal() {
           {verifyError && <p role="alert">{verifyError}</p>}
           {access.factor ? (
             <form onSubmit={verify}>
-              <label>
+              <HelpLabel>
                 Código do autenticador
                 <input
                   autoComplete="one-time-code"
@@ -252,7 +253,7 @@ export default function IesPortal() {
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
                 />
-              </label>
+              </HelpLabel>
               <button disabled={busy}>Validar código</button>
             </form>
           ) : (

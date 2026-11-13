@@ -1,3 +1,4 @@
+import { HelpLabel } from '@/components/ContextHelp';
 import { useEffect, useState, lazy, Suspense } from "react";
 import { supabase } from "@/lib/supabase";
 import { type Row, explain } from "@/lib/area";
@@ -29,15 +30,15 @@ export default function RepositoryFiles({ files, requests, other=false, manager,
  return <section className="er-card">
   <header className="er-card-head"><h3>{other?"Outros documentos":"Evidências do instrumento"}</h3><span>{rows.length} arquivos</span></header>
   <div className="er-toolbar">
-   <label>Buscar arquivo<input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Nome ou indicador" /></label>
-   {other?<label>Categoria<select value={category} onChange={e=>setCategory(e.target.value)}><option value="">Todas</option>{Object.entries(REPOSITORY_CATEGORIES).filter(([k])=>k!=="instrumento").map(([k,v])=><option key={k} value={k}>{v}</option>)}</select></label>:<label>Dimensão<select value={dimension} onChange={e=>setDimension(e.target.value)}><option value="">Todas</option>{["1","2","3"].map(k=><option key={k} value={k}>{k} — {REPOSITORY_DIMENSIONS[k]}</option>)}</select></label>}
+   <HelpLabel>Buscar arquivo<input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Nome ou indicador" /></HelpLabel>
+   {other?<HelpLabel>Categoria<select value={category} onChange={e=>setCategory(e.target.value)}><option value="">Todas</option>{Object.entries(REPOSITORY_CATEGORIES).filter(([k])=>k!=="instrumento").map(([k,v])=><option key={k} value={k}>{v}</option>)}</select></HelpLabel>:<HelpLabel>Dimensão<select value={dimension} onChange={e=>setDimension(e.target.value)}><option value="">Todas</option>{["1","2","3"].map(k=><option key={k} value={k}>{k} — {REPOSITORY_DIMENSIONS[k]}</option>)}</select></HelpLabel>}
   </div>
   {error&&<p role="alert" className="er-alert error">{error}</p>}
   {editing&&<form className="er-classify" onSubmit={e=>{e.preventDefault();void save();}}>
    <strong>Classificar: {String(editing.file_name)}</strong>
-   <label>Categoria<select value={selection} onChange={e=>setSelection(e.target.value)}>{Object.entries(REPOSITORY_CATEGORIES).map(([k,v])=><option key={k} value={k}>{v}</option>)}</select></label>
-   {selection==="instrumento"&&<label>Indicadores<input value={indicators} onChange={e=>setIndicators(e.target.value)} placeholder="1.5, 3.6" required /></label>}
-   <label>Justificativa<textarea value={note} onChange={e=>setNote(e.target.value)} maxLength={4000}/></label>
+   <HelpLabel>Categoria<select value={selection} onChange={e=>setSelection(e.target.value)}>{Object.entries(REPOSITORY_CATEGORIES).map(([k,v])=><option key={k} value={k}>{v}</option>)}</select></HelpLabel>
+   {selection==="instrumento"&&<HelpLabel>Indicadores<input value={indicators} onChange={e=>setIndicators(e.target.value)} placeholder="1.5, 3.6" required /></HelpLabel>}
+   <HelpLabel>Justificativa<textarea value={note} onChange={e=>setNote(e.target.value)} maxLength={4000}/></HelpLabel>
    <div className="er-actions"><button className="er-btn er-primary" disabled={busy}>Salvar classificação</button><button className="er-btn" type="button" disabled={busy} onClick={()=>setEditing(null)}>Cancelar</button></div>
   </form>}
   {prevalidating && institutionId && <Suspense fallback={<p>Carregando painel de pré-validação…</p>}><PreValidationPanel file={prevalidating} institutionId={institutionId} sourceTable="vertice_repository_files" onClose={()=>setPrevalidating(null)} onLinksUpdated={()=>void reload()} /></Suspense>}

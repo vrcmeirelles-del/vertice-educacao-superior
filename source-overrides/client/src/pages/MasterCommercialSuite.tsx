@@ -1,3 +1,4 @@
+import { HelpLabel } from '@/components/ContextHelp';
 import {useMemo,useState} from "react";
 import {ArrowRight,BookOpenCheck,Building2,Check,ClipboardCopy,ExternalLink,FileCheck2,GraduationCap,Link2,ShieldCheck,TrendingUp,Users} from "lucide-react";
 import type {DemoInstitutionMode} from "@/lib/demo-showroom";
@@ -125,11 +126,11 @@ export default function MasterCommercialSuite({mode,name,email,verticeInvite,onC
     <div><strong>Emissão dos convites privados</strong><p>Os convites Vértice Experience são emitidos nesta página. O Fato & Ordem tem seu próprio gerenciador, com login administrativo, escolha de perfil, validade e revogação.</p></div>
     <a href={FATO_ORDEM+"/admin/demonstracao-ies"} target="_blank" rel="noopener noreferrer" className="corp-button vcds-outline">Administrar convites do Fato & Ordem <ExternalLink size={16}/></a>
    </div>
-   <label className="vcds-token">Convite privado Fato & Ordem (opcional, cole o link gerado no painel de administração)
+   <HelpLabel className="vcds-token">Convite privado Fato & Ordem (opcional, cole o link gerado no painel de administração)
      <input type="url" value={foInvitation} onChange={e=>{setFoInvitation(e.target.value);setNotice("");}} autoComplete="off" spellCheck={false}
        placeholder="https://www.fatoeordem.com.br/demonstracao-ies#convite=..." aria-invalid={invalidInvitation}/>
      <small>{invalidInvitation?"Use o link HTTPS original do Fato & Ordem, com o fragmento #convite válido.":foPrivate?"Convite temporário reconhecido no formato esperado. Prazo e revogação devem ser conferidos no Fato & Ordem.":"Sem convite privado: a apresentação utilizará o cenário público fictício."}</small>
-   </label>
+   </HelpLabel>
   </section>
   <section className="vcds-copy" aria-label="Texto persuasivo para o convidado">
    <div className="vcds-copy-title">
@@ -140,10 +141,10 @@ export default function MasterCommercialSuite({mode,name,email,verticeInvite,onC
        <ClipboardCopy size={16}/> Copiar convite conjunto
      </button>
    </div>
-   <label>Assunto sugerido <input type="text" value={subject} readOnly onFocus={e=>e.currentTarget.select()}/></label>
-   <label>Apresentação comercial com dor, proposta e chamada para ação
+   <HelpLabel>Assunto sugerido <input type="text" value={subject} readOnly onFocus={e=>e.currentTarget.select()}/></HelpLabel>
+   <HelpLabel>Apresentação comercial com dor, proposta e chamada para ação
      <textarea value={body} readOnly rows={17} onFocus={e=>e.currentTarget.select()}/>
-   </label>
+   </HelpLabel>
    <div className="vcds-copy-footer">
     <span><Check size={15}/> Personalizado para {email.trim()||"o destinatário do convite"}</span>
     <span><Link2 size={15}/> Vértice + Fato & Ordem</span>

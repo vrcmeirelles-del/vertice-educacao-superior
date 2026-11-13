@@ -1,3 +1,5 @@
+import { ContextHelp } from '@/components/ContextHelp';
+import { HelpLabel } from '@/components/ContextHelp';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import './resultado-curso-bi.css';
@@ -425,7 +427,7 @@ function Simulador() {
   };
 
   const field = (label: string, key: keyof SimValues, opts?: { money?: boolean; pct?: boolean }) => (
-    <label className="rbi-sim-field">
+    <HelpLabel className="rbi-sim-field">
       <span>{label}</span>
       <div className="rbi-sim-input-wrap">
         {opts?.money && <span className="rbi-sim-prefix">R$</span>}
@@ -439,7 +441,7 @@ function Simulador() {
         />
         {opts?.pct && <span className="rbi-sim-suffix">%</span>}
       </div>
-    </label>
+    </HelpLabel>
   );
 
   return (
@@ -493,7 +495,7 @@ function Simulador() {
               <strong className="rbi-neg">– {fmtMoney.format(custos_totais)}</strong>
             </div>
             <div className="rbi-sim-kpi">
-              <span>Depreciação</span>
+              <span>Depreciação<ContextHelp title="Depreciação" /></span>
               <strong className="rbi-neg">– {fmtMoney.format(values.depreciacao)}</strong>
             </div>
             <hr />
@@ -527,9 +529,9 @@ function Simulador() {
             <table className="rbi-table">
               <thead>
                 <tr>
-                  <th>Curso</th>
+                  <th>Curso<ContextHelp title="Curso" /></th>
                   <th>Alunos</th>
-                  <th>Ticket médio</th>
+                  <th>Ticket médio<ContextHelp title="Ticket médio" /></th>
                   <th>Receita líquida</th>
                   <th>Custos totais</th>
                   <th>Resultado</th>

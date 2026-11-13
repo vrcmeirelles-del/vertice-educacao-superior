@@ -1,3 +1,4 @@
+import { HelpLabel } from '@/components/ContextHelp';
 /**
  * EgressosEscolar.tsx — Egressos 360° para Escolas
  * Destino pós-escola, aprovações em vestibular, pesquisas, vitrine
@@ -238,23 +239,23 @@ export default function EgressosEscolar({ institutionId, isMaster }: Props) {
           <h3 style={{ margin: '0 0 16px' }}>Inserir dados de egressos</h3>
           <div style={{ display: 'grid', gap: 12, maxWidth: 500 }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <div><label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 4 }}>Ano de formatura *</label><input type="number" value={formYear} onChange={e => setFormYear(e.target.value)} style={inputStyle} /></div>
-              <div><label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 4 }}>Turma</label><input type="text" value={formTurma} onChange={e => setFormTurma(e.target.value)} placeholder="Ex: 3A" style={inputStyle} /></div>
+              <div><HelpLabel style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 4 }}>Ano de formatura *</HelpLabel><input type="number" value={formYear} onChange={e => setFormYear(e.target.value)} style={inputStyle} /></div>
+              <div><HelpLabel style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 4 }}>Turma</HelpLabel><input type="text" value={formTurma} onChange={e => setFormTurma(e.target.value)} placeholder="Ex: 3A" style={inputStyle} /></div>
             </div>
-            <div><label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 4 }}>Total de formados *</label><input type="number" value={formTotal} onChange={e => setFormTotal(e.target.value)} style={inputStyle} /></div>
+            <div><HelpLabel style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 4 }}>Total de formados *</HelpLabel><input type="number" value={formTotal} onChange={e => setFormTotal(e.target.value)} style={inputStyle} /></div>
             <div style={{ fontSize: 12, fontWeight: 600, color: '#666', marginTop: 8 }}>DESTINOS</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
-              <div><label style={{ fontSize: 11 }}>Univ. pública</label><input type="number" value={formPublica} onChange={e => setFormPublica(e.target.value)} style={inputStyle} /></div>
-              <div><label style={{ fontSize: 11 }}>Univ. privada</label><input type="number" value={formPrivada} onChange={e => setFormPrivada(e.target.value)} style={inputStyle} /></div>
-              <div><label style={{ fontSize: 11 }}>Técnico</label><input type="number" value={formTecnico} onChange={e => setFormTecnico(e.target.value)} style={inputStyle} /></div>
-              <div><label style={{ fontSize: 11 }}>Mercado</label><input type="number" value={formMercado} onChange={e => setFormMercado(e.target.value)} style={inputStyle} /></div>
-              <div><label style={{ fontSize: 11 }}>Exterior</label><input type="number" value={formExterior} onChange={e => setFormExterior(e.target.value)} style={inputStyle} /></div>
+              <div><HelpLabel style={{ fontSize: 11 }}>Univ. pública</HelpLabel><input type="number" value={formPublica} onChange={e => setFormPublica(e.target.value)} style={inputStyle} /></div>
+              <div><HelpLabel style={{ fontSize: 11 }}>Univ. privada</HelpLabel><input type="number" value={formPrivada} onChange={e => setFormPrivada(e.target.value)} style={inputStyle} /></div>
+              <div><HelpLabel style={{ fontSize: 11 }}>Técnico</HelpLabel><input type="number" value={formTecnico} onChange={e => setFormTecnico(e.target.value)} style={inputStyle} /></div>
+              <div><HelpLabel style={{ fontSize: 11 }}>Mercado</HelpLabel><input type="number" value={formMercado} onChange={e => setFormMercado(e.target.value)} style={inputStyle} /></div>
+              <div><HelpLabel style={{ fontSize: 11 }}>Exterior</HelpLabel><input type="number" value={formExterior} onChange={e => setFormExterior(e.target.value)} style={inputStyle} /></div>
             </div>
             <div style={{ fontSize: 12, fontWeight: 600, color: '#666', marginTop: 8 }}>APROVAÇÕES</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
-              <div><label style={{ fontSize: 11 }}>Total aprovados</label><input type="number" value={formAprovados} onChange={e => setFormAprovados(e.target.value)} style={inputStyle} /></div>
-              <div><label style={{ fontSize: 11 }}>Via SISU</label><input type="number" value={formSisu} onChange={e => setFormSisu(e.target.value)} style={inputStyle} /></div>
-              <div><label style={{ fontSize: 11 }}>ProUni</label><input type="number" value={formProuni} onChange={e => setFormProuni(e.target.value)} style={inputStyle} /></div>
+              <div><HelpLabel style={{ fontSize: 11 }}>Total aprovados</HelpLabel><input type="number" value={formAprovados} onChange={e => setFormAprovados(e.target.value)} style={inputStyle} /></div>
+              <div><HelpLabel style={{ fontSize: 11 }}>Via SISU</HelpLabel><input type="number" value={formSisu} onChange={e => setFormSisu(e.target.value)} style={inputStyle} /></div>
+              <div><HelpLabel style={{ fontSize: 11 }}>ProUni</HelpLabel><input type="number" value={formProuni} onChange={e => setFormProuni(e.target.value)} style={inputStyle} /></div>
             </div>
             <button onClick={handleInsert} disabled={saving || !formYear || !formTotal} style={{
               padding: '8px 16px', background: '#7c3aed', color: '#fff', border: 'none',

@@ -1,3 +1,5 @@
+import { ContextHelp } from '@/components/ContextHelp';
+import { HelpLabel } from '@/components/ContextHelp';
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { type IesApi, IesError } from "@/lib/ies/api";
 import {
@@ -165,7 +167,7 @@ export default function Invitations({
           </section>
         ) : (
           <form onSubmit={submit}>
-            <label>
+            <HelpLabel>
               E-mail do destinatário
               <input
                 type="email"
@@ -178,8 +180,8 @@ export default function Invitations({
                   setLink("");
                 }}
               />
-            </label>
-            <label>
+            </HelpLabel>
+            <HelpLabel>
               Perfil
               <select
                 aria-label="Perfil"
@@ -196,8 +198,8 @@ export default function Invitations({
                   </option>
                 ))}
               </select>
-            </label>
-            <label>
+            </HelpLabel>
+            <HelpLabel>
               Composição
               <select
                 aria-label="Composição"
@@ -208,17 +210,17 @@ export default function Invitations({
                 <option value="adjunto">Adjunto(a)</option>
                 <option value="membro">Membro</option>
               </select>
-            </label>
+            </HelpLabel>
             {courseRole && (
               <>
-                <label>
+                <HelpLabel>
                   Buscar curso (quando não estiver na lista)
                   <input
                     maxLength={200}
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                   />
-                </label>
+                </HelpLabel>
                 <button
                   type="button"
                   disabled={courseTask.busy}
@@ -241,7 +243,7 @@ export default function Invitations({
                     localizar outro curso.
                   </p>
                 )}
-                <label>
+                <HelpLabel>
                   Curso
                   <select
                     aria-label="Curso"
@@ -257,7 +259,7 @@ export default function Invitations({
                       </option>
                     ))}
                   </select>
-                </label>
+                </HelpLabel>
               </>
             )}
             <button disabled={task.busy || courseTask.busy}>
@@ -272,7 +274,7 @@ export default function Invitations({
             Escolher onde compartilhar este link não altera preferências de
             comunicação futura. O link ficará disponível somente nesta tela.
           </p>
-          <label>
+          <HelpLabel>
             Link do convite
             <textarea
               aria-label="Link do convite"
@@ -281,7 +283,7 @@ export default function Invitations({
               value={link}
               onFocus={(e) => e.target.select()}
             />
-          </label>
+          </HelpLabel>
           <div className="ies-actions">
             <button onClick={() => void copy()}>
               Copiar link para WhatsApp ou e-mail
@@ -448,7 +450,7 @@ export function AcceptInvitation({
       ) : preview ? (
         <>
           <dl>
-            <dt>Instituição</dt>
+            <dt>Instituição<ContextHelp title="Instituição" /></dt>
             <dd>
               {preview.institution_name} · e-MEC {preview.emec_code}
             </dd>
@@ -456,13 +458,13 @@ export function AcceptInvitation({
             <dd>
               {roleNames[preview.role]} · {preview.capacity}
             </dd>
-            <dt>Curso</dt>
+            <dt>Curso<ContextHelp title="Curso" /></dt>
             <dd>{preview.course_name || "Escopo institucional"}</dd>
             <dt>Validade</dt>
             <dd>{new Date(preview.expires_at).toLocaleString("pt-BR")}</dd>
           </dl>
           <p>A integração documental permanece indisponível.</p>
-          <label className="ies-check">
+          <HelpLabel className="ies-check">
             <input
               type="checkbox"
               checked={ack}
@@ -470,7 +472,7 @@ export function AcceptInvitation({
             />
             Conferi a instituição, o perfil e o escopo e desejo aceitar este
             vínculo.
-          </label>
+          </HelpLabel>
           <button disabled={!ack || task.busy} onClick={accept}>
             Aceitar convite
           </button>

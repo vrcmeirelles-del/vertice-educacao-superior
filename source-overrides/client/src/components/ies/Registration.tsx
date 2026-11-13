@@ -1,3 +1,5 @@
+import { ContextHelp } from '@/components/ContextHelp';
+import { HelpLabel } from '@/components/ContextHelp';
 import { useEffect, useState, type FormEvent } from "react";
 import { type IesApi } from "@/lib/ies/api";
 import { type Detail } from "@/lib/ies/contracts";
@@ -84,7 +86,7 @@ export default function Registration({
           <dl>
             <dt>Nome</dt>
             <dd>{detail.name}</dd>
-            <dt>Código e-MEC</dt>
+            <dt>Código e-MEC<ContextHelp title="Código e-MEC" /></dt>
             <dd>{detail.emec_code}</dd>
             <dt>Referência informada, não verificada</dt>
             <dd>{detail.source_reference || "Não informada"}</dd>
@@ -102,7 +104,7 @@ export default function Registration({
           </dl>
           {detail.status === "pending_review" ? (
             <>
-              <label className="ies-check">
+              <HelpLabel className="ies-check">
                 <input
                   type="checkbox"
                   checked={ack}
@@ -110,7 +112,7 @@ export default function Registration({
                 />
                 Revisei os dados acima e compreendo que a aprovação consolida a
                 instituição, sem afirmar verificação oficial no e-MEC.
-              </label>
+              </HelpLabel>
               <div className="ies-actions">
                 <button
                   disabled={!ack || task.busy}
@@ -188,7 +190,7 @@ export default function Registration({
           <dl>
             <dt>Nome</dt>
             <dd>{name}</dd>
-            <dt>Código e-MEC</dt>
+            <dt>Código e-MEC<ContextHelp title="Código e-MEC" /></dt>
             <dd>{emec}</dd>
             <dt>Referência não verificada</dt>
             <dd>{source || "Não informada"}</dd>
@@ -208,7 +210,7 @@ export default function Registration({
         </>
       ) : (
         <form onSubmit={submit}>
-          <label>
+          <HelpLabel>
             Nome da instituição
             <input
               required
@@ -217,8 +219,8 @@ export default function Registration({
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
-          </label>
-          <label>
+          </HelpLabel>
+          <HelpLabel>
             Código e-MEC
             <input
               required
@@ -228,15 +230,15 @@ export default function Registration({
               value={emec}
               onChange={(e) => setEmec(e.target.value)}
             />
-          </label>
-          <label>
+          </HelpLabel>
+          <HelpLabel>
             Referência consultada (opcional)
             <input
               maxLength={1000}
               value={source}
               onChange={(e) => setSource(e.target.value)}
             />
-          </label>
+          </HelpLabel>
           <button disabled={task.busy}>Revisar dados</button>
         </form>
       )}

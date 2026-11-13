@@ -1,3 +1,5 @@
+import { ContextHelp } from '@/components/ContextHelp';
+import { HelpLabel } from '@/components/ContextHelp';
 import {useCallback,useEffect,useMemo,useState} from "react";
 import {supabase} from "@/lib/supabase";
 import {guessMapping,normalizeInput,parseTabular,type InputRow,type Mapping,type Indicator} from "@/lib/source-curation";
@@ -259,16 +261,16 @@ export default function SourceCuration({institutionId,files}:Props){
          <div key={area}><strong>{count}</strong><span>{area}</span></div>)}
      </div>
      <div className="vx-curation-mapping">
-       <label>Pesquisar tabela
+       <HelpLabel>Pesquisar tabela
          <input type="search" value={tableSearch} onChange={e=>setTableSearch(e.target.value)} placeholder="Ex.: ALUNOGER, CURSOS, DISCIPL, FALTAS"/>
-       </label>
-       <label>Filtrar área
+       </HelpLabel>
+       <HelpLabel>Filtrar área
          <select value={tableArea} onChange={e=>setTableArea(e.target.value as CatalogArea|"todas")}>
            <option value="todas">Todas as áreas</option>
            {Object.entries(tableCatalog.counts).filter(([_,count])=>count>0).map(([area,count])=>
              <option key={area} value={area}>{area} ({count})</option>)}
          </select>
-       </label>
+       </HelpLabel>
      </div>
      <p>Exibindo {Math.min(120,catalogFiltered.length).toLocaleString("pt-BR")} de {catalogFiltered.length.toLocaleString("pt-BR")} tabelas correspondentes ao filtro. <strong>O arquivo completo foi reconhecido.</strong></p>
      <div className="vx-curation-scroll"><table>
@@ -284,25 +286,25 @@ export default function SourceCuration({institutionId,files}:Props){
      <p>Tipo de raiz: <strong>{jsonStructure.rootType}</strong> · {jsonStructure.datasets.length} conjunto(s) tabular(es) identificado(s).</p>
      {jsonStructure.topLevelKeys.length>0&&<p><strong>Seções principais:</strong> {jsonStructure.topLevelKeys.join(" · ")}</p>}
      {jsonStructure.notes.map((item,i)=><p key={i} className="vx-curation-alert">{item}</p>)}
-     <label>Conjunto de dados para análise
+     <HelpLabel>Conjunto de dados para análise
       <select value={jsonPath} onChange={e=>selectJsonPath(e.target.value)}>
        <option value="">Selecione a tabela interna do JSON</option>
        {jsonStructure.datasets.map(dataset=><option key={dataset.path} value={dataset.path}>
         {dataset.path} — {dataset.count.toLocaleString("pt-BR")} registros{dataset.previewEligible?"":" · requer lotes"}
        </option>)}
       </select>
-     </label>
+     </HelpLabel>
      {jsonPath&&jsonStructure.datasets.find(d=>d.path===jsonPath)&&<p>
       <strong>Campos identificados:</strong> {jsonStructure.datasets.find(d=>d.path===jsonPath)!.columns.join(" · ")}
      </p>}
      <small>Apenas nomes de campos são exibidos nesta visão estrutural. Dados pessoais não são enviados à IA. Bases acima de 500 linhas não podem ser aprovadas parcialmente.</small>
    </div>}
    {readingStage&&<p role="status" className="vx-source-stage">{readingStage}</p>}
-   {sheets.length>1&&<label>Aba do arquivo Excel
+   {sheets.length>1&&<HelpLabel>Aba do arquivo Excel
     <select value={activeSheet} disabled={busy} onChange={e=>void changeSheet(e.target.value)}>
       {sheets.map(sheet=><option key={sheet.path} value={sheet.path}>{sheet.name}</option>)}
     </select>
-   </label>}
+   </HelpLabel>}
    {rawRows.length>0&&<>
     <div className="vx-curation-mapping">
      {([
@@ -310,17 +312,17 @@ export default function SourceCuration({institutionId,files}:Props){
       ["period","Coluna de competência"],
       ["value","Coluna do valor"],
       ["unit","Coluna da unidade (opcional)"]
-     ] as const).map(([key,label])=><label key={key}>{label}
+     ] as const).map(([key,label])=><HelpLabel key={key}>{label}
       <select value={map[key]} onChange={e=>{setMap(old=>({...old,[key]:e.target.value}));setCandidate([]);}}>
        <option value="">Selecionar coluna</option>{headers.map(h=><option key={h} value={h}>{h}</option>)}
-      </select></label>)}
-     <label>Unidade padrão<input value={unit} maxLength={30} onChange={e=>setUnit(e.target.value)}/></label>
+      </select></HelpLabel>)}
+     <HelpLabel>Unidade padrão<input value={unit} maxLength={30} onChange={e=>setUnit(e.target.value)}/></HelpLabel>
     </div>
     <button type="button" onClick={validate} disabled={busy}>Preparar análise e comparar</button>
     <p>Linhas da fonte: {rawRows.length}. Os valores numéricos devem estar sem separador de milhar ambíguo. Não agregamos turmas automaticamente.</p>
    </>}
    {candidate.length>0&&<div className="vx-curation-preview"><h5>Prévia dos indicadores</h5>
-    <div className="vx-curation-scroll"><table><thead><tr><th>Indicador</th><th>Período</th><th>Valor</th><th>Unidade</th></tr></thead><tbody>
+    <div className="vx-curation-scroll"><table><thead><tr><th>Indicador<ContextHelp title="Indicador" /></th><th>Período<ContextHelp title="Período" /></th><th>Valor</th><th>Unidade</th></tr></thead><tbody>
      {candidate.slice(0,12).map((r,i)=><tr key={i}><td>{r.indicador}</td><td>{r.periodo}</td><td>{fmt(r.valor)}</td><td>{r.unidade}</td></tr>)}
     </tbody></table></div><small>Amostra de até 12 de {candidate.length} linhas; o total estará no registro de curadoria.</small>
    </div>}
@@ -334,20 +336,20 @@ export default function SourceCuration({institutionId,files}:Props){
     <small>A divergência não é corrigida automaticamente. A aprovação exige conferir os dados e justificar a decisão.</small>
    </div>}
    {rawRows.length>0&&(!review||["analisado","devolvido"].includes(review.state))&&<>
-    <label>Conclusão preliminar / fonte<textarea rows={2} maxLength={2500} value={note} onChange={e=>setNote(e.target.value)} placeholder="Descreva a origem, a competência e os critérios usados na conferência."/></label>
+    <HelpLabel>Conclusão preliminar / fonte<textarea rows={2} maxLength={2500} value={note} onChange={e=>setNote(e.target.value)} placeholder="Descreva a origem, a competência e os critérios usados na conferência."/></HelpLabel>
     <button type="button" disabled={busy||!candidate.length||!sha} onClick={()=>void saveReview()}>Salvar análise em curadoria</button>
    </>}
    {review&&["analisado","devolvido"].includes(review.state)&&!matchingReview&&<p role="status">Salve primeiro a versão da análise exibida para poder submetê-la.</p>}
    {review&&["analisado","devolvido"].includes(review.state)&&<button type="button" disabled={busy||!consent||!matchingReview} onClick={()=>void move("submetido")}>Submeter à validação superior</button>}
    {review?.state==="submetido"&&<>
      <button type="button" onClick={()=>void compare()}>Comparar com versões aprovadas</button>
-     {review.submitted_by!==userId&&<><label>Justificativa da decisão<textarea rows={2} value={reviewNote} onChange={e=>setReviewNote(e.target.value)} placeholder="Fundamente a aprovação ou devolução; consulte a fonte e o mapeamento."/></label>
+     {review.submitted_by!==userId&&<><HelpLabel>Justificativa da decisão<textarea rows={2} value={reviewNote} onChange={e=>setReviewNote(e.target.value)} placeholder="Fundamente a aprovação ou devolução; consulte a fonte e o mapeamento."/></HelpLabel>
       <div className="vx-curation-actions"><button type="button" disabled={busy||reviewNote.trim().length<8||!consent} onClick={()=>void move("aprovado")}>Aprovar e incorporar ao BI externo</button>
       <button type="button" disabled={busy||reviewNote.trim().length<8} onClick={()=>void move("devolvido")}>Devolver para correções</button></div>
      </>}
      {review.submitted_by===userId&&<p>O autor do envio não pode aprovar a própria carga.</p>}
    </>}
-   {review&&review.state!=="aprovado"&&<label className="vx-curation-check"><input type="checkbox" checked={consent} onChange={e=>setConsent(e.target.checked)}/> Confirmo a conferência das fontes, colunas, valores e divergências. Entendo que os dados aprovados integrarão somente o BI externo homologado, sem substituir métricas legadas.</label>}
+   {review&&review.state!=="aprovado"&&<HelpLabel className="vx-curation-check"><input type="checkbox" checked={consent} onChange={e=>setConsent(e.target.checked)}/> Confirmo a conferência das fontes, colunas, valores e divergências. Entendo que os dados aprovados integrarão somente o BI externo homologado, sem substituir métricas legadas.</HelpLabel>}
    {review?.state==="aprovado"&&<p role="status">Dataset homologado por revisor diferente do autor. Disponível no painel de Indicadores externos homologados.</p>}
   </div>}
   {error&&<p role="alert" className="vx-curation-error">{error}</p>}

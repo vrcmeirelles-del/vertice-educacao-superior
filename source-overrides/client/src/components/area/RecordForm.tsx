@@ -1,3 +1,4 @@
+import { HelpLabel } from '@/components/ContextHelp';
 import { useEffect,useState, type FormEvent } from "react";
 import {supabase} from "@/lib/supabase";
 import { clean, explain, type Field, type Row } from "@/lib/area";
@@ -70,7 +71,7 @@ export default function RecordForm({
           const showSuggestions=suggestions.length>0;
           return (
             <div key={f.name} className={"vx-form-field "+(f.wide || f.type === "textarea" ? "wide" : "")}>
-              <label htmlFor={id}>
+              <HelpLabel htmlFor={id} help={f.help}>
               <span>
                 {f.label}
                 {f.required && <em aria-hidden="true"> *</em>}
@@ -100,7 +101,7 @@ export default function RecordForm({
                   onChange={e => set(f.name, e.target.value)}
                 />
               )}
-              </label>
+              </HelpLabel>
               {showSuggestions&&<div className="vx-suggestion-box">
                 <span className="vx-suggestion-caption">Sugestões padronizadas (opcionais)</span>
                 <select id={id+"-suggestions"} value={suggestionMode[f.name]??""} onChange={e=>{
@@ -113,10 +114,10 @@ export default function RecordForm({
                   {suggestions.map((text,i)=><option key={i} value={String(i)}>{text.length>105?text.slice(0,105)+"…":text}</option>)}
                   <option value="outro">Outro — digitar texto personalizado</option>
                 </select>
-                {suggestionMode[f.name]==="outro"&&<label className="vx-suggestion-other">
+                {suggestionMode[f.name]==="outro"&&<HelpLabel className="vx-suggestion-other">
                   <span>Outro — texto personalizado</span>
                   <textarea rows={3} value={String(values[f.name]??"")} placeholder="Digite sua redação" onChange={e=>set(f.name,e.target.value)}/>
-                </label>}
+                </HelpLabel>}
               </div>}
               {f.help && <small>{f.help}</small>}
             </div>

@@ -1,3 +1,5 @@
+import { ContextHelp } from '@/components/ContextHelp';
+import { HelpLabel } from '@/components/ContextHelp';
 import {useEffect,useMemo,useState,type FormEvent} from "react";
 import {supabase} from "@/lib/supabase";
 import type {Role,Row} from "@/lib/area";
@@ -128,14 +130,14 @@ export default function LearningConnected({institutionId,courses,role,schoolMode
      <div className="learning-head"><div><h4>Radar de coerência avaliativa</h4>
        <p>Valores normalizados na escala 0–100%, sempre com amostras e proveniência. Divergência é um sinal para investigação, não uma nota do docente ou previsão oficial de exame.</p></div></div>
      <div className="learning-filters">
-       <label>Curso <select value={filterCourse} onChange={e=>setFilterCourse(e.target.value)}><option value="">Todos os cursos</option>{courses.map(c=><option key={String(c.id)} value={String(c.id)}>{String(c.display_name??c.name)} · {String(c.code??"sem código")}</option>)}</select></label>
-       <label>Semestre <select value={filterPeriod} onChange={e=>setFilterPeriod(e.target.value)}><option value="">Todos os períodos com evidência</option>{periods.map(p=><option key={p} value={p}>{p}</option>)}</select></label>
-       <label>Exame <select value={filterModule} onChange={e=>setFilterModule(e.target.value)}><option value="">Todas as avaliações</option>{modules.map(([k,v])=><option key={k} value={k}>{v}</option>)}</select></label>
+       <HelpLabel>Curso <select value={filterCourse} onChange={e=>setFilterCourse(e.target.value)}><option value="">Todos os cursos</option>{courses.map(c=><option key={String(c.id)} value={String(c.id)}>{String(c.display_name??c.name)} · {String(c.code??"sem código")}</option>)}</select></HelpLabel>
+       <HelpLabel>Semestre <select value={filterPeriod} onChange={e=>setFilterPeriod(e.target.value)}><option value="">Todos os períodos com evidência</option>{periods.map(p=><option key={p} value={p}>{p}</option>)}</select></HelpLabel>
+       <HelpLabel>Exame <select value={filterModule} onChange={e=>setFilterModule(e.target.value)}><option value="">Todas as avaliações</option>{modules.map(([k,v])=><option key={k} value={k}>{v}</option>)}</select></HelpLabel>
      </div>
      {!filtered.length?<div className="learning-empty">
        <strong>Nenhum diagnóstico pareado disponível nesta seleção.</strong>
        <p>O painel não presume vínculo acadêmico nem calcula índices artificiais. É necessário confirmar os estudantes por CPF, carregar notas curriculares verificadas, vincular as competências às disciplinas e sincronizar eventos do Fato & Ordem.</p>
-     </div>:<div className="learning-scroll"><table><thead><tr><th>Curso / Disciplina</th><th>Período</th><th>Exame / competência</th><th>Participantes</th><th>Acertos objetivos</th><th>Nota curricular</th><th>Resultado externo</th><th>Diferença</th></tr></thead><tbody>
+     </div>:<div className="learning-scroll"><table><thead><tr><th>Curso / Disciplina</th><th>Período<ContextHelp title="Período" /></th><th>Exame / competência</th><th>Participantes</th><th>Acertos objetivos</th><th>Nota curricular</th><th>Resultado externo</th><th>Diferença</th></tr></thead><tbody>
        {filtered.map((row,i)=>{
          const grade=row.comparison_gap,marker=grade===null?"indisponível":Math.abs(grade)>=.2?"atenção":"comparável";
          return <tr key={i}><td><strong>{courseNames.get(row.course_id)||"Curso cadastrado"}</strong><small>{row.subject_code}</small></td>
@@ -179,12 +181,12 @@ export default function LearningConnected({institutionId,courses,role,schoolMode
      <h4>Mapa validado: disciplina × competência × exame</h4>
      <p>Utilize o código real da disciplina e a competência documentada. O sistema não associa conteúdos por nome parecido, nem presume que as provas avaliam automaticamente toda a matriz curricular.</p>
      <form className="learning-map" onSubmit={onMap}>
-       <label>Curso <select value={mapping.courseId} required onChange={e=>setMapping(v=>({...v,courseId:e.target.value}))}><option value="">Selecione o curso</option>{courses.map(c=><option key={String(c.id)} value={String(c.id)}>{String(c.display_name??c.name)} · {String(c.code??"")}</option>)}</select></label>
-       <label>Código da disciplina<input required value={mapping.subjectCode} maxLength={120} onChange={e=>setMapping(v=>({...v,subjectCode:e.target.value}))} placeholder="Código cadastrado no sistema acadêmico"/></label>
-       <label>Exame <select value={mapping.module} onChange={e=>setMapping(v=>({...v,module:e.target.value}))}>{modules.map(([k,v])=><option key={k} value={k}>{v}</option>)}</select></label>
-       <label>Competência avaliada<input required minLength={3} value={mapping.competency} maxLength={500} onChange={e=>setMapping(v=>({...v,competency:e.target.value}))} placeholder="Competência documentada na matriz e no plano de ensino"/></label>
-       <label className="wide">Evidência de vínculo curricular<input required minLength={3} value={mapping.evidenceRef} maxLength={1000} onChange={e=>setMapping(v=>({...v,evidenceRef:e.target.value}))} placeholder="Matriz de referência, plano de ensino ou documentação institucional"/></label>
-       <label className="wide learning-check"><input type="checkbox" checked={mapping.reviewed} onChange={e=>setMapping(v=>({...v,reviewed:e.target.checked}))} required/><span>Confirmei pessoalmente a correspondência entre disciplina, competência e instrumento de avaliação.</span></label>
+       <HelpLabel>Curso <select value={mapping.courseId} required onChange={e=>setMapping(v=>({...v,courseId:e.target.value}))}><option value="">Selecione o curso</option>{courses.map(c=><option key={String(c.id)} value={String(c.id)}>{String(c.display_name??c.name)} · {String(c.code??"")}</option>)}</select></HelpLabel>
+       <HelpLabel>Código da disciplina<input required value={mapping.subjectCode} maxLength={120} onChange={e=>setMapping(v=>({...v,subjectCode:e.target.value}))} placeholder="Código cadastrado no sistema acadêmico"/></HelpLabel>
+       <HelpLabel>Exame <select value={mapping.module} onChange={e=>setMapping(v=>({...v,module:e.target.value}))}>{modules.map(([k,v])=><option key={k} value={k}>{v}</option>)}</select></HelpLabel>
+       <HelpLabel>Competência avaliada<input required minLength={3} value={mapping.competency} maxLength={500} onChange={e=>setMapping(v=>({...v,competency:e.target.value}))} placeholder="Competência documentada na matriz e no plano de ensino"/></HelpLabel>
+       <HelpLabel className="wide">Evidência de vínculo curricular<input required minLength={3} value={mapping.evidenceRef} maxLength={1000} onChange={e=>setMapping(v=>({...v,evidenceRef:e.target.value}))} placeholder="Matriz de referência, plano de ensino ou documentação institucional"/></HelpLabel>
+       <HelpLabel className="wide learning-check"><input type="checkbox" checked={mapping.reviewed} onChange={e=>setMapping(v=>({...v,reviewed:e.target.checked}))} required/><span>Confirmei pessoalmente a correspondência entre disciplina, competência e instrumento de avaliação.</span></HelpLabel>
        <button className="corp-button small" type="submit" disabled={busy||!status?.configured}>Validar mapeamento</button>
      </form>
    </section>}

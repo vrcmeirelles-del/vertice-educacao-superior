@@ -1,3 +1,4 @@
+import { HelpLabel } from '@/components/ContextHelp';
 // ============================================================
 // Vértice – Editor de Tema (componente para o painel do gestor)
 // Arquivo: client/components/ThemeEditor.tsx
@@ -84,7 +85,7 @@ export function ThemeEditor({ institutionId, isMaster }: ThemeEditorProps) {
 
       <div className="theme-editor__grid">
         {/* Cor primária */}
-        <label className="theme-editor__field">
+        <HelpLabel className="theme-editor__field">
           <span>Cor principal</span>
           <div className="theme-editor__color-row">
             <input
@@ -100,10 +101,10 @@ export function ThemeEditor({ institutionId, isMaster }: ThemeEditorProps) {
               maxLength={7}
             />
           </div>
-        </label>
+        </HelpLabel>
 
         {/* Cor secundária */}
-        <label className="theme-editor__field">
+        <HelpLabel className="theme-editor__field">
           <span>Cor secundária</span>
           <div className="theme-editor__color-row">
             <input
@@ -119,10 +120,10 @@ export function ThemeEditor({ institutionId, isMaster }: ThemeEditorProps) {
               maxLength={7}
             />
           </div>
-        </label>
+        </HelpLabel>
 
         {/* Cor de destaque */}
-        <label className="theme-editor__field">
+        <HelpLabel className="theme-editor__field">
           <span>Cor de destaque</span>
           <div className="theme-editor__color-row">
             <input
@@ -138,10 +139,10 @@ export function ThemeEditor({ institutionId, isMaster }: ThemeEditorProps) {
               maxLength={7}
             />
           </div>
-        </label>
+        </HelpLabel>
 
         {/* Logo */}
-        <label className="theme-editor__field">
+        <HelpLabel className="theme-editor__field">
           <span>Logo da instituição</span>
           <input type="file" accept="image/*" onChange={handleLogoUpload} />
           {theme.logo_url && (
@@ -151,10 +152,10 @@ export function ThemeEditor({ institutionId, isMaster }: ThemeEditorProps) {
               className="theme-editor__logo-preview"
             />
           )}
-        </label>
+        </HelpLabel>
 
         {/* Estilo sidebar */}
-        <label className="theme-editor__field">
+        <HelpLabel className="theme-editor__field">
           <span>Sidebar</span>
           <select
             value={(theme.sidebar_style as string) || 'dark'}
@@ -163,18 +164,18 @@ export function ThemeEditor({ institutionId, isMaster }: ThemeEditorProps) {
             <option value="dark">Escura</option>
             <option value="light">Clara</option>
           </select>
-        </label>
+        </HelpLabel>
 
         {/* Powered by (só master pode desligar) */}
         {isMaster && (
-          <label className="theme-editor__field theme-editor__field--checkbox">
+          <HelpLabel className="theme-editor__field theme-editor__field--checkbox">
             <input
               type="checkbox"
               checked={theme.powered_by !== false}
               onChange={(e) => handleColor('powered_by' as any, e.target.checked as any)}
             />
             <span>Exibir "Powered by Vértice"</span>
-          </label>
+          </HelpLabel>
         )}
       </div>
 

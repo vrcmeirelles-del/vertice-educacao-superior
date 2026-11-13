@@ -1,3 +1,5 @@
+import { ContextHelp } from '@/components/ContextHelp';
+import { HelpLabel } from '@/components/ContextHelp';
 import React, { useEffect, useRef, useState, type FormEvent } from 'react';
 import { canonicalMasterEmail } from '@/lib/master-invitation-token';
 import { createMasterRequestGuard, issueMasterInvitation, listMasters, listMasterInvitations, revokeMasterInvitation, type IssuedMasterInvitation, type MasterCursor, type MasterInvitation, type MasterProfile } from '@/lib/master-invitations';
@@ -84,8 +86,8 @@ export default function MasterInvitations({ userId, isMaster, backendReady = fal
     <p>O destinatário precisa de uma conta Vértice ativada pela administração, com e-mail confirmado e segundo fator. Este convite não cria conta nem senha.</p>
     <form onSubmit={issue}>
       <fieldset disabled={!canAct} style={{ display: 'grid', gap: 12, border: 0, padding: 0 }}>
-        <label>E-mail da conta Vértice<input type="email" required maxLength={254} autoComplete="off" value={email} onChange={event => { setEmail(event.target.value); setConfirmed(false); }} /></label>
-        <label><input type="checkbox" checked={confirmed} onChange={event => setConfirmed(event.target.checked)} /> Conferi {canonicalMasterEmail(email) || 'o e-mail'} e autorizo o convite com acesso global de Master.</label>
+        <HelpLabel>E-mail da conta Vértice<input type="email" required maxLength={254} autoComplete="off" value={email} onChange={event => { setEmail(event.target.value); setConfirmed(false); }} /></HelpLabel>
+        <HelpLabel><input type="checkbox" checked={confirmed} onChange={event => setConfirmed(event.target.checked)} /> Conferi {canonicalMasterEmail(email) || 'o e-mail'} e autorizo o convite com acesso global de Master.</HelpLabel>
         <button className="corp-button" type="submit" disabled={!confirmed || !canonicalMasterEmail(email)}>Criar convite de Master</button>
       </fieldset>
     </form>
@@ -93,14 +95,14 @@ export default function MasterInvitations({ userId, isMaster, backendReady = fal
     {created && <div style={{ marginTop: 16, overflowWrap: 'anywhere' }}>
       <p>Destinatário: <strong>{created.email}</strong>. Válido até {displayDate(created.expiresAt)}.</p>
       <p>Compartilhe este link confidencial somente com a pessoa indicada. O link não é salvo no navegador nem enviado automaticamente.</p>
-      <label>Link do convite<textarea rows={4} readOnly spellCheck={false} autoComplete="off" value={created.link} style={{ width: '100%' }} /></label>
+      <HelpLabel>Link do convite<textarea rows={4} readOnly spellCheck={false} autoComplete="off" value={created.link} style={{ width: '100%' }} /></HelpLabel>
       <button type="button" onClick={() => { setCreated(null); setNotice('Link ocultado. O convite continua válido até ser aceito, revogado ou expirar.'); }}>Ocultar link</button>
     </div>}
     <div className="area-list-head"><h3>Masters cadastrados</h3><button type="button" disabled={!available || busy || state === 'loading'} onClick={() => { setCreated(null); void load(); }}>Atualizar listas</button></div>
     {available && state === 'loading' && <p role="status">Consultando o acesso e as listas…</p>}
     {available && state === 'error' && <p role="alert">Não foi possível carregar as listas. Isso não significa que estejam vazias. As ações ficam bloqueadas até uma consulta bem-sucedida.</p>}
     {state === 'ready' && <>
-      {!masters.length ? <p>Nenhum registro retornado pelo serviço.</p> : <div className="table-scroll"><table><thead><tr><th>E-mail</th><th>Master desde</th></tr></thead><tbody>{masters.map(profile => <tr key={profile.userId}><td>{profile.email}{profile.userId === userId ? ' (você)' : ''}</td><td>{displayDate(profile.createdAt)}</td></tr>)}</tbody></table></div>}
+      {!masters.length ? <p>Nenhum registro retornado pelo serviço.</p> : <div className="table-scroll"><table><thead><tr><th>E-mail<ContextHelp title="E-mail" /></th><th>Master desde</th></tr></thead><tbody>{masters.map(profile => <tr key={profile.userId}><td>{profile.email}{profile.userId === userId ? ' (você)' : ''}</td><td>{displayDate(profile.createdAt)}</td></tr>)}</tbody></table></div>}
       {masterNext && <button disabled={busy} onClick={() => void load('masters')}>Carregar mais Masters</button>}
       <h3>Convites de Master</h3>
       {!invitations.length ? <p>Nenhum convite encontrado.</p> : <div className="table-scroll"><table><thead><tr><th>Destinatário</th><th>Validade</th><th>Situação</th><th>Ações</th></tr></thead><tbody>{invitations.map(invitation => <tr key={invitation.id}>

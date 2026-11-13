@@ -1,3 +1,4 @@
+import { HelpLabel } from '@/components/ContextHelp';
 import { useMemo, useState } from "react";
 import {
   NIVEIS,
@@ -191,7 +192,7 @@ export default function AvaliacaoInstitucional({ institutionId,role }: { institu
         </p>
         <div className="aval-eixos">
           {instrumento.axes.map((a) => (
-            <label key={a.code}>
+            <HelpLabel key={a.code}>
               <span>
                 Eixo {a.code} · {nomeDoEixo(a.code)}
                 <small>peso {pesoDoEixo(a.code)}</small>
@@ -210,7 +211,7 @@ export default function AvaliacaoInstitucional({ institutionId,role }: { institu
                   <option key={n} value={n}>{n}</option>
                 ))}
               </select>
-            </label>
+            </HelpLabel>
           ))}
         </div>
         <p className="aval-resultado">
@@ -220,7 +221,7 @@ export default function AvaliacaoInstitucional({ institutionId,role }: { institu
       </div>
 
       <div className="aval-filtros">
-        <label>
+        <HelpLabel>
           Buscar
           <input
             type="search"
@@ -228,8 +229,8 @@ export default function AvaliacaoInstitucional({ institutionId,role }: { institu
             onChange={(e) => setBusca(e.target.value)}
             placeholder="Indicador, critério ou palavra-chave"
           />
-        </label>
-        <label>
+        </HelpLabel>
+        <HelpLabel>
           Eixo
           <select value={eixo} onChange={(e) => setEixo(e.target.value)}>
             <option value="">Todos</option>
@@ -239,15 +240,15 @@ export default function AvaliacaoInstitucional({ institutionId,role }: { institu
               </option>
             ))}
           </select>
-        </label>
-        <label className="aval-checkbox">
+        </HelpLabel>
+        <HelpLabel className="aval-checkbox">
           <input
             type="checkbox"
             checked={somenteRestritos}
             onChange={(e) => setSomenteRestritos(e.target.checked)}
           />
           Somente com aplicabilidade restrita
-        </label>
+        </HelpLabel>
       </div>
 
       {resultados.length === 0 ? (

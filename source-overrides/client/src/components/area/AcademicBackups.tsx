@@ -1,3 +1,4 @@
+import { HelpLabel } from '@/components/ContextHelp';
 import {useCallback,useEffect,useState,type FormEvent} from "react";
 import {supabase} from "@/lib/supabase";
 import OneDriveBackupPicker from "./OneDriveBackupPicker";
@@ -231,28 +232,28 @@ export default function AcademicBackups({institutionId,institutionName}:{institu
    <strong>Regra de segurança:</strong> um backup recebido é apenas um arquivo preservado. A assinatura RAR/ZIP e o hash identificam o arquivo; a validade de um BAK SQL Server somente pode ser confirmada em um processo técnico de restauração isolada.
   </div>
   <form className="vx-backup-form" onSubmit={upload}>
-   <label>Sistema acadêmico de origem
+   <HelpLabel>Sistema acadêmico de origem
      <input required minLength={2} maxLength={120} value={sourceSystem} onChange={e=>setSourceSystem(e.target.value)} placeholder="Ex.: UNI_GIZ"/>
-   </label>
-   <label>Competência ou data de referência (opcional)
+   </HelpLabel>
+   <HelpLabel>Competência ou data de referência (opcional)
      <input maxLength={35} value={referencePeriod} onChange={e=>setReferencePeriod(e.target.value)} placeholder="Ex.: 2026/02 ou 21/07/2026"/>
-   </label>
-   <label className="wide">Arquivo original do backup
+   </HelpLabel>
+   <HelpLabel className="wide">Arquivo original do backup
      <input id="vx-academic-backup-file" type="file" accept=".rar,.zip,.bak"
        onChange={e=>setFile(e.target.files?.[0]??null)} required/>
      <small>RAR, ZIP ou BAK, máximo 50 MiB. O BAK da UNICALDAS pode ser selecionado nesta área; não é necessário transformá-lo em CSV para armazenar.</small>
-   </label>
+   </HelpLabel>
    {file&&<p className="wide vx-backup-selected">
      <strong>Selecionado:</strong> {file.name} · {fmtSize(file.size)} · sem envio até clicar em Receber backup
    </p>}
-   <label className="wide">Link do OneDrive / SharePoint ou Google Drive (referência opcional)
+   <HelpLabel className="wide">Link do OneDrive / SharePoint ou Google Drive (referência opcional)
      <input type="url" maxLength={1800} value={sourceUrl} onChange={e=>setSourceUrl(e.target.value)} placeholder="https://...sharepoint.com/..."/>
      <small>O link documenta a origem. Não concede acesso automático nem substitui o anexo do arquivo.</small>
-   </label>
-   <label className="wide">Observações para a restauração (opcional)
+   </HelpLabel>
+   <HelpLabel className="wide">Observações para a restauração (opcional)
      <textarea rows={3} maxLength={1500} value={description} onChange={e=>setDescription(e.target.value)}
        placeholder="Ex.: Backup UNI_GIZ de 21/07/2026. Confirmar versão SQL Server, consistência e quais tabelas fazem parte do escopo."/>
-   </label>
+   </HelpLabel>
    <button type="submit" disabled={busy||!file}>{busy?"Registrando e enviando backup…":"Receber backup em ambiente isolado"}</button>
   </form>
   <p role="status" className="vx-backup-stage"><strong>Andamento:</strong> {stage}</p>

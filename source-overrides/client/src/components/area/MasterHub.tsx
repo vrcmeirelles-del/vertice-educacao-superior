@@ -1,3 +1,4 @@
+import { HelpLabel } from '@/components/ContextHelp';
 /**
  * MasterHub.tsx — Painel master de primeiro nível
  * Hub que separa Universidades, Escolas, Financeiro e BI Vértice
@@ -299,19 +300,19 @@ export default function MasterHub({ onNavigate }: Props) {
         {showInvite && (
           <div>
             <form onSubmit={createInvite} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
-              <label style={{ fontSize: 13, fontWeight: 600, color: '#374151' }}>
+              <HelpLabel style={{ fontSize: 13, fontWeight: 600, color: '#374151' }}>
                 Nome do destinatário
                 <input type="text" required value={invName} onChange={e => setInvName(e.target.value)}
                   placeholder="Ex: Prof. João Silva"
                   style={{ display: 'block', width: '100%', marginTop: 4, padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }} />
-              </label>
-              <label style={{ fontSize: 13, fontWeight: 600, color: '#374151' }}>
+              </HelpLabel>
+              <HelpLabel style={{ fontSize: 13, fontWeight: 600, color: '#374151' }}>
                 E-mail
                 <input type="email" required value={invEmail} onChange={e => setInvEmail(e.target.value)}
                   placeholder="joao@instituicao.edu.br"
                   style={{ display: 'block', width: '100%', marginTop: 4, padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }} />
-              </label>
-              <label style={{ fontSize: 13, fontWeight: 600, color: '#374151' }}>
+              </HelpLabel>
+              <HelpLabel style={{ fontSize: 13, fontWeight: 600, color: '#374151' }}>
                 Tipo de instituição
                 <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
                   <button type="button" onClick={() => { setInvTier('faculdade'); setInvRole('reitor'); }}
@@ -323,8 +324,8 @@ export default function MasterHub({ onNavigate }: Props) {
                     🏫 Escola
                   </button>
                 </div>
-              </label>
-              <label style={{ fontSize: 13, fontWeight: 600, color: '#374151' }}>
+              </HelpLabel>
+              <HelpLabel style={{ fontSize: 13, fontWeight: 600, color: '#374151' }}>
                 Prazo de acesso
                 <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
                   {[7, 15, 30].map(d => (
@@ -334,16 +335,16 @@ export default function MasterHub({ onNavigate }: Props) {
                     </button>
                   ))}
                 </div>
-              </label>
+              </HelpLabel>
               {invTier === 'faculdade' && (
-                <label style={{ fontSize: 13, fontWeight: 600, color: '#374151', gridColumn: '1 / -1' }}>
+                <HelpLabel style={{ fontSize: 13, fontWeight: 600, color: '#374151', gridColumn: '1 / -1' }}>
                   Perfil de acesso
                   <select value={invRole} onChange={e => setInvRole(e.target.value as ExperienceRole)}
                     style={{ display: 'block', width: '100%', marginTop: 4, padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14 }}>
                     <option value="reitor">Direção / Mantenedor (acesso total)</option>
                     <option value="coordenador">Coordenador de Curso</option>
                   </select>
-                </label>
+                </HelpLabel>
               )}
               <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 12, alignItems: 'center' }}>
                 <button type="submit" disabled={invBusy}

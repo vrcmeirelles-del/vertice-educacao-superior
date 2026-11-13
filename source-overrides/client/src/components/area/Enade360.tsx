@@ -1,3 +1,5 @@
+import { ContextHelp } from '@/components/ContextHelp';
+import { HelpLabel } from '@/components/ContextHelp';
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { supabase } from "@/lib/supabase";
 import EnadeCross from "./EnadeCross";
@@ -205,10 +207,10 @@ export default function Enade360({institutionId,courses,actions,goals,role,onPla
     <section className="enade360-panel">
       <div className="enade360-panel-head">
         <div><h4>Mapa institucional de cursos</h4><p>{fmt.format(filtered.length)} de {fmt.format(allCourses.length)} cursos, sem exceção por área</p></div>
-        <label>Localizar curso <input type="search" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Nome, código ou grau"/></label>
+        <HelpLabel>Localizar curso <input type="search" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Nome, código ou grau"/></HelpLabel>
       </div>
       <div className="enade360-table-wrap">
-        <table><thead><tr><th>Curso</th><th>Registros</th><th>Diagnóstico</th><th>Ações</th><th /></tr></thead><tbody>
+        <table><thead><tr><th>Curso<ContextHelp title="Curso" /></th><th>Registros</th><th>Diagnóstico<ContextHelp title="Diagnóstico" /></th><th>Ações</th><th /></tr></thead><tbody>
           {filtered.map(course=>{
             const state=courseStatus(course);
             return <tr key={course.id} className={courseId===course.id?"enade360-selected":""}>
@@ -235,22 +237,22 @@ export default function Enade360({institutionId,courses,actions,goals,role,onPla
         <span><b>{current.actions}</b> ações registradas</span>
       </div>
       {newRecord?<form className="enade360-form" onSubmit={e=>void register(e)}>
-        <label>Tipo de registro<select value={draft.kind} onChange={e=>setDraft(v=>({...v,kind:e.target.value as Kind}))}>
+        <HelpLabel>Tipo de registro<select value={draft.kind} onChange={e=>setDraft(v=>({...v,kind:e.target.value as Kind}))}>
           {Object.entries(KIND_LABEL).map(([k,v])=><option key={k} value={k}>{v}</option>)}
-        </select></label>
-        <label>Título<input required minLength={3} maxLength={250} value={draft.title} onChange={e=>setDraft(v=>({...v,title:e.target.value}))}/></label>
-        <label>Competência/tema<input value={draft.competency} maxLength={250} onChange={e=>setDraft(v=>({...v,competency:e.target.value}))}/></label>
-        <label>Ano de referência<input type="number" min={2000} max={2100} value={draft.year} onChange={e=>setDraft(v=>({...v,year:e.target.value}))}/></label>
+        </select></HelpLabel>
+        <HelpLabel>Título<input required minLength={3} maxLength={250} value={draft.title} onChange={e=>setDraft(v=>({...v,title:e.target.value}))}/></HelpLabel>
+        <HelpLabel>Competência/tema<input value={draft.competency} maxLength={250} onChange={e=>setDraft(v=>({...v,competency:e.target.value}))}/></HelpLabel>
+        <HelpLabel>Ano de referência<input type="number" min={2000} max={2100} value={draft.year} onChange={e=>setDraft(v=>({...v,year:e.target.value}))}/></HelpLabel>
         {draft.kind==="diagnostico"?<>
-          <label>Estudantes na amostra<input type="number" min={1} step={1} required value={draft.sample} onChange={e=>setDraft(v=>({...v,sample:e.target.value}))}/></label>
-          <label>Aproveitamento interno (%)<input type="number" min={0} max={100} step="0.01" required value={draft.score} onChange={e=>setDraft(v=>({...v,score:e.target.value}))}/></label>
+          <HelpLabel>Estudantes na amostra<input type="number" min={1} step={1} required value={draft.sample} onChange={e=>setDraft(v=>({...v,sample:e.target.value}))}/></HelpLabel>
+          <HelpLabel>Aproveitamento interno (%)<input type="number" min={0} max={100} step="0.01" required value={draft.score} onChange={e=>setDraft(v=>({...v,score:e.target.value}))}/></HelpLabel>
         </>:null}
-        <label>Origem<select value={draft.kind==="resultado_oficial"?"oficial":draft.source} disabled={draft.kind==="resultado_oficial"} onChange={e=>setDraft(v=>({...v,source:e.target.value as Draft["source"]}))}>
+        <HelpLabel>Origem<select value={draft.kind==="resultado_oficial"?"oficial":draft.source} disabled={draft.kind==="resultado_oficial"} onChange={e=>setDraft(v=>({...v,source:e.target.value as Draft["source"]}))}>
           <option value="institucional">Avaliação institucional</option><option value="oficial">Fonte oficial documentada</option><option value="espelho">Extração de sistema acadêmico</option>
-        </select></label>
-        <label>Endereço da fonte (HTTPS)<input type="url" placeholder="https://..." required={draft.kind==="resultado_oficial"} value={draft.sourceRef} onChange={e=>setDraft(v=>({...v,sourceRef:e.target.value}))}/></label>
-        <label className="wide">Evidência e metodologia<textarea rows={2} maxLength={4000} value={draft.evidence} onChange={e=>setDraft(v=>({...v,evidence:e.target.value}))}/></label>
-        <label className="wide">Observações<textarea rows={2} maxLength={4000} value={draft.notes} onChange={e=>setDraft(v=>({...v,notes:e.target.value}))}/></label>
+        </select></HelpLabel>
+        <HelpLabel>Endereço da fonte (HTTPS)<input type="url" placeholder="https://..." required={draft.kind==="resultado_oficial"} value={draft.sourceRef} onChange={e=>setDraft(v=>({...v,sourceRef:e.target.value}))}/></HelpLabel>
+        <HelpLabel className="wide">Evidência e metodologia<textarea rows={2} maxLength={4000} value={draft.evidence} onChange={e=>setDraft(v=>({...v,evidence:e.target.value}))}/></HelpLabel>
+        <HelpLabel className="wide">Observações<textarea rows={2} maxLength={4000} value={draft.notes} onChange={e=>setDraft(v=>({...v,notes:e.target.value}))}/></HelpLabel>
         <div className="wide"><button className="corp-button" disabled={busy} type="submit">Salvar como pendente de validação</button></div>
       </form>:null}
       <h5>Histórico de evidências e evolução</h5>

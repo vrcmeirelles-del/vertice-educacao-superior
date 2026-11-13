@@ -1,3 +1,5 @@
+import { ContextHelp } from '@/components/ContextHelp';
+import { HelpLabel } from '@/components/ContextHelp';
 import {useCallback,useEffect,useMemo,useState} from "react";
 import {supabase} from "@/lib/supabase";
 import "./source-curation.css";
@@ -24,8 +26,8 @@ export default function ApprovedSourcesBI({institutionId}:{institutionId:string}
   </div>
   {error&&<p role="alert" className="vx-curation-error">{error}</p>}
   <div className="vx-approved-kpis"><div><small>Fontes aprovadas</small><strong>{reviews.length}</strong></div><div><small>Registros no recorte</small><strong>{distinct}</strong></div><div><small>Indicadores distintos</small><strong>{indicators}</strong></div></div>
-  <label>Competência<select value={period} onChange={e=>setPeriod(e.target.value)}><option value="">Todos os períodos homologados</option>{periods.map(p=><option key={p} value={p}>{p}</option>)}</select></label>
-  {shown.length?<div className="vx-curation-scroll"><table><thead><tr><th>Indicador</th><th>Semestre</th><th>Valor</th><th>Unidade</th><th>Homologação</th></tr></thead><tbody>
+  <HelpLabel>Competência<select value={period} onChange={e=>setPeriod(e.target.value)}><option value="">Todos os períodos homologados</option>{periods.map(p=><option key={p} value={p}>{p}</option>)}</select></HelpLabel>
+  {shown.length?<div className="vx-curation-scroll"><table><thead><tr><th>Indicador<ContextHelp title="Indicador" /></th><th>Semestre<ContextHelp title="Semestre" /></th><th>Valor</th><th>Unidade</th><th>Homologação</th></tr></thead><tbody>
    {shown.slice(0,150).map((r,i)=><tr key={r.version+"-"+i}><td>{r.indicador}</td><td>{r.periodo}</td><td>{r.valor.toLocaleString("pt-BR",{maximumFractionDigits:3})}</td><td>{r.unidade}</td><td>{date(r.approvedAt)}</td></tr>)}
   </tbody></table></div>:<p>Não existem cargas externas aprovadas nesta instituição e competência.</p>}
   <small>Exibição limitada às últimas 100 análises aprovadas e 150 linhas no recorte. Revisões históricas podem apresentar indicadores repetidos; não somar versões sem escolher a fonte vigente. A publicação não altera matrículas, relatórios nem tabelas do e-ORBIT.</small>

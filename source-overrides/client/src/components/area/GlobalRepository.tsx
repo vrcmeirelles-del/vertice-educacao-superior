@@ -1,3 +1,5 @@
+import { ContextHelp } from '@/components/ContextHelp';
+import { HelpLabel } from '@/components/ContextHelp';
 import { useCallback, useEffect, useState } from "react";
 import type { Row } from "@/lib/area";
 import { listAllRepository } from "@/lib/repository-data";
@@ -69,14 +71,14 @@ export default function GlobalRepository({
             files={files}
           />
           <div className="repo-toolbar">
-            <label>
+            <HelpLabel>
               Buscar instituição
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Nome ou sigla da IES"
               />
-            </label>
+            </HelpLabel>
             <span>
               {institutions.length} instituições · acesso master sem filtro por
               responsável
@@ -86,7 +88,7 @@ export default function GlobalRepository({
             <table className="repo-table">
               <thead>
                 <tr>
-                  <th>Instituição</th>
+                  <th>Instituição<ContextHelp title="Instituição" /></th>
                   <th>Cursos</th>
                   <th>Documentos com envio</th>
                   <th>Validados</th>

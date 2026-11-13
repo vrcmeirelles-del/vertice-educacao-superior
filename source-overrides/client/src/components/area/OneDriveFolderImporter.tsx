@@ -1,3 +1,5 @@
+import { ContextHelp } from '@/components/ContextHelp';
+import { HelpLabel } from '@/components/ContextHelp';
 import {useEffect,useState} from "react";
 import {supabase} from "@/lib/supabase";
 import "./source-curation.css";
@@ -60,12 +62,12 @@ export default function OneDriveFolderImporter({institutionId,onImported}:Props)
   {folder&&<p>Diretório: {folder}</p>}
   {files.length>0&&<div className="vx-curation-detail">
    <div className="vx-curation-mapping">
-    <label>Competência da carga<input type="text" placeholder="Ex.: 2026/02" value={period} maxLength={35} onChange={e=>setPeriod(e.target.value)}/></label>
-    <label>Tipo da fonte<select value={kind} onChange={e=>setKind(e.target.value)}>
+    <HelpLabel>Competência da carga<input type="text" placeholder="Ex.: 2026/02" value={period} maxLength={35} onChange={e=>setPeriod(e.target.value)}/></HelpLabel>
+    <HelpLabel>Tipo da fonte<select value={kind} onChange={e=>setKind(e.target.value)}>
      <option value="eorbit">e-ORBIT</option><option value="emec">e-MEC</option><option value="censo">Censo</option><option value="enade">ENADE</option><option value="secretaria">Secretaria</option><option value="outro">Outro</option>
-    </select></label>
+    </select></HelpLabel>
    </div>
-   <div className="vx-curation-scroll"><table><thead><tr><th>Arquivo</th><th>Tamanho</th><th>Ação</th></tr></thead><tbody>
+   <div className="vx-curation-scroll"><table><thead><tr><th>Arquivo</th><th>Tamanho</th><th>Ação<ContextHelp title="Ação" /></th></tr></thead><tbody>
     {files.map(file=><tr key={file.id}><td>{file.name}</td><td>{(file.size/1024/1024).toLocaleString("pt-BR",{maximumFractionDigits:2})} MB</td>
       <td><button type="button" disabled={!!importing} onClick={()=>void importFile(file)}>{importing===file.id?"Importando…":"Importar para curadoria"}</button></td></tr>)}
    </tbody></table></div>

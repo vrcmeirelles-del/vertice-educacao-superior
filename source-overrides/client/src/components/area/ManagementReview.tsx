@@ -1,3 +1,4 @@
+import { HelpLabel } from '@/components/ContextHelp';
 import { useMemo, useState } from 'react';
 import type { Row } from '@/lib/area';
 import { managementReview, type ReviewData } from '@/lib/management-review';
@@ -14,7 +15,7 @@ export default function ManagementReview({ data, courses, institutionId }: { dat
   return <section className="area-panel mr-panel" aria-labelledby="review-title">
     <header className="mr-hero"><p className="mr-eyebrow">VÉRTICE · INTELIGÊNCIA GERENCIAL</p><h3 id="review-title">Conciliação de metas e evidências</h3>
     <p>Devolutiva automática baseada em regras e vínculos cadastrados. Não utiliza IA generativa, não lê o conteúdo dos arquivos e não envia dados a terceiros.</p>
-    </header><div className="mr-body"><div className="area-form area-inline-form mr-filters"><label>Curso<select value={courseId} onChange={e => {setCourseId(e.target.value);setSemester('');}}><option value="">Selecione um curso</option>{coursesHere.map(c => <option value={c.id} key={c.id}>{String(c.display_name??c.name)}{c.code ? ` · ${c.code}` : ''}</option>)}</select></label><label>Semestre dos documentos<select value={semester} onChange={e=>setSemester(e.target.value)}><option value="">Todos os períodos cadastrados</option>{periods.map(p=><option key={p}>{p}</option>)}</select></label></div>
+    </header><div className="mr-body"><div className="area-form area-inline-form mr-filters"><HelpLabel>Curso<select value={courseId} onChange={e => {setCourseId(e.target.value);setSemester('');}}><option value="">Selecione um curso</option>{coursesHere.map(c => <option value={c.id} key={c.id}>{String(c.display_name??c.name)}{c.code ? ` · ${c.code}` : ''}</option>)}</select></HelpLabel><HelpLabel>Semestre dos documentos<select value={semester} onChange={e=>setSemester(e.target.value)}><option value="">Todos os períodos cadastrados</option>{periods.map(p=><option key={p}>{p}</option>)}</select></HelpLabel></div>
     {!validCourse && <div className="mr-start"><span aria-hidden="true">◉</span><b>Transforme os registros em uma visão de gestão</b><p>Selecione um curso para ver a composição documental, as metas com medição e as prioridades da próxima reunião. Os gráficos usam somente os dados cadastrados.</p></div>}
     {validCourse && <>
       <ManagementCharts report={report} />

@@ -1,3 +1,5 @@
+import { ContextHelp } from '@/components/ContextHelp';
+import { HelpLabel } from '@/components/ContextHelp';
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { can, type Role } from "@/lib/area";
@@ -98,9 +100,9 @@ export default function CorrespondenciasInstitucionais({ institutionId, role, on
     <p className="area-muted small">Nenhuma indicação de correspondência equivale à validação da evidência ou à atribuição de conceito no novo instrumento. A confirmação apenas registra um vínculo entre os instrumentos.</p>
     {error&&<p className="area-error" role="alert">{error}</p>}
     {message&&<p className="area-note" role="status">{message}</p>}
-    <label className="ni-crosswalk-toggle"><input type="checkbox" checked={showDiscarded} onChange={e=>setShowDiscarded(e.target.checked)}/> Mostrar vínculos descartados</label>
+    <HelpLabel className="ni-crosswalk-toggle"><input type="checkbox" checked={showDiscarded} onChange={e=>setShowDiscarded(e.target.checked)}/> Mostrar vínculos descartados</HelpLabel>
     {!visible.length?<p className="area-muted">Nenhuma correspondência registrada. Use “Analisar e atualizar correspondências” para verificar os documentos institucionais já cadastrados.</p>:<div className="table-scroll"><table className="area-table ni-crosswalk-table">
-      <thead><tr><th>Documento de origem</th><th>Objeto da proposta 2026</th><th>Análise e rastreabilidade</th><th>Situação</th><th>Ação</th></tr></thead>
+      <thead><tr><th>Documento de origem</th><th>Objeto da proposta 2026</th><th>Análise e rastreabilidade</th><th>Situação</th><th>Ação<ContextHelp title="Ação" /></th></tr></thead>
       <tbody>{visible.map(link=>{
         const f=fileById.get(link.source_file_id);
         const req=f?reqById.get(f.request_id):null;

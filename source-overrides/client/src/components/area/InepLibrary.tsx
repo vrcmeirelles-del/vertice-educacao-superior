@@ -1,3 +1,4 @@
+import { HelpLabel } from '@/components/ContextHelp';
 import React, { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { LIBRARY_DIMENSIONS, filterLibrary, type LibraryDocument } from '@/lib/inep-library';
@@ -68,11 +69,11 @@ export default function InepLibrary({ institutionId }: { institutionId: string }
       <span className="inep-library-count">{loading ? 'Consultando arquivos…' : loadError ? 'Consulta indisponível' : `${documents.length} arquivos`}</span></header>
     <p className="inep-library-guidance">Baixe, revise e adapte o documento ao seu curso. Depois, envie a versão preenchida no Repositório. Consultar a biblioteca não atende uma pendência. Os arquivos REF indicam evidências a preparar.</p>
     <div className="inep-library-filters">
-      <label>Buscar documento<input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="Código INEP, nome ou palavra-chave" /></label>
-      <label>Dimensão<select value={dimension} onChange={e => { setDimension(e.target.value); setIndicator(''); }}><option value="">Todas</option>{LIBRARY_DIMENSIONS.map(([key, name]) => <option key={key} value={key}>{name}</option>)}</select></label>
-      <label>Indicador<select value={indicator} onChange={e => setIndicator(e.target.value)}><option value="">Todos</option>{structure.indicadores.filter(i => !dimension || i.dimensao === dimension).map(i => <option key={i.codigo} value={i.codigo}>{i.codigo} · {i.nome}</option>)}</select></label>
-      <label>Formato<select value={format} onChange={e => setFormat(e.target.value)}><option value="">Todos</option>{['docx', 'pdf', 'xlsx'].map(f => <option key={f} value={f}>{f.toUpperCase()}</option>)}</select></label>
-      <label className="inep-library-checkbox"><input type="checkbox" checked={references} onChange={e => setReferences(e.target.checked)} />Somente referências a preencher</label>
+      <HelpLabel>Buscar documento<input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="Código INEP, nome ou palavra-chave" /></HelpLabel>
+      <HelpLabel>Dimensão<select value={dimension} onChange={e => { setDimension(e.target.value); setIndicator(''); }}><option value="">Todas</option>{LIBRARY_DIMENSIONS.map(([key, name]) => <option key={key} value={key}>{name}</option>)}</select></HelpLabel>
+      <HelpLabel>Indicador<select value={indicator} onChange={e => setIndicator(e.target.value)}><option value="">Todos</option>{structure.indicadores.filter(i => !dimension || i.dimensao === dimension).map(i => <option key={i.codigo} value={i.codigo}>{i.codigo} · {i.nome}</option>)}</select></HelpLabel>
+      <HelpLabel>Formato<select value={format} onChange={e => setFormat(e.target.value)}><option value="">Todos</option>{['docx', 'pdf', 'xlsx'].map(f => <option key={f} value={f}>{f.toUpperCase()}</option>)}</select></HelpLabel>
+      <HelpLabel className="inep-library-checkbox"><input type="checkbox" checked={references} onChange={e => setReferences(e.target.checked)} />Somente referências a preencher</HelpLabel>
     </div>
     {downloadError && <p role="alert" className="area-error">{downloadError}</p>}
     {loading ? <p role="status">Carregando a biblioteca…</p> : loadError ? <div><p role="alert" className="area-error">{loadError}</p><button className="corp-button small" onClick={() => { setLoading(true); setLoadAttempt(value => value + 1); }}>Tentar novamente</button></div> : !documents.length ? <p>Não há documentos da biblioteca disponibilizados para esta instituição.</p> : <>

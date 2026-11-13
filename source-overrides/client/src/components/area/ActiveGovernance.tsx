@@ -1,3 +1,4 @@
+import { HelpLabel } from '@/components/ContextHelp';
 import {useCallback,useEffect,useMemo,useState} from "react";
 import {supabase} from "@/lib/supabase";
 import {fmtDate,type Row} from "@/lib/area";
@@ -151,23 +152,23 @@ export default function ActiveGovernance({institutionId,actions,role,onChanged}:
     <h4>{String(selectedAction.what)}</h4>
     <div className="vx-active-gov-deadline"><strong>{active===null?"Sem vencimento":active<0?"Vencida há "+Math.abs(active)+" dia(s)":active===0?"Vence hoje":active+" dia(s) para vencer"}</strong><small>Contagem regressiva: {timeRemaining(selectedAction.due_date,clock)} · Prazo: {selectedAction.due_date?fmtDate(selectedAction.due_date):"Não definido"}</small></div>
     <div className="vx-active-gov-vitality"><span>Vitalidade operacional: <b>{vitalityScore===null?"Sem check-in":vitalityScore+"/100"}</b></span><small>Critérios: progresso (40), atualização nos últimos 7 dias (25), ausência de bloqueio (15), prazo (20). Não equivale à aprovação.</small></div>
-    {reviewer&&<label>Executor responsável (conta institucional)
+    {reviewer&&<HelpLabel>Executor responsável (conta institucional)
      <select value={assigned} onChange={e=>setAssigned(e.target.value)}><option value="">Sem vínculo nominal</option>{members.map(m=><option key={m.user_id} value={m.user_id}>{m.email} · {m.role}</option>)}</select>
      <button type="button" disabled={busy||assigned===String(selectedAction.responsible_user_id??"")} onClick={()=>void assignExecutor()}>Salvar atribuição</button>
-    </label>}
+    </HelpLabel>}
     <div className="vx-active-gov-pair"><span>Declarado: <b>{current?.declared_progress??selectedAction.progress??0}%</b></span><span>Validado: <b>{current?.validated_progress??0}%</b></span></div>
     <p><strong>Situação da prestação de contas:</strong> {stateName[current?.review_status??"rascunho"]}</p>
     <div className="vx-active-gov-ack"><span><strong>Última ciência da tarefa:</strong> {lastAcknowledgement?formatTime(lastAcknowledgement.acknowledged_at):"Ainda não registrada"}</span>
     {contributor&&<button type="button" disabled={busy} onClick={()=>void acknowledge()}>Registrar que tomei ciência</button>}</div>
     {contributor&&(!current||current.review_status==="rascunho"||current.review_status==="devolvido")&&<>
-     <label className="vx-active-gov-progress">Progresso da execução <b>{percent}%</b><input type="range" min="0" max="100" step="5" value={percent} onChange={e=>setPercent(Number(e.target.value))}/></label>
-     <label>O que foi realizado? <textarea maxLength={3000} rows={2} value={note} onChange={e=>setNote(e.target.value)} placeholder="Descreva a entrega, o link da evidência ou a atividade realizada"/></label>
-     <label>O que está impedindo o avanço? <textarea maxLength={2000} rows={2} value={blocker} onChange={e=>setBlocker(e.target.value)} placeholder="Opcional: obstáculo ou dependência"/></label>
+     <HelpLabel className="vx-active-gov-progress">Progresso da execução <b>{percent}%</b><input type="range" min="0" max="100" step="5" value={percent} onChange={e=>setPercent(Number(e.target.value))}/></HelpLabel>
+     <HelpLabel>O que foi realizado? <textarea maxLength={3000} rows={2} value={note} onChange={e=>setNote(e.target.value)} placeholder="Descreva a entrega, o link da evidência ou a atividade realizada"/></HelpLabel>
+     <HelpLabel>O que está impedindo o avanço? <textarea maxLength={2000} rows={2} value={blocker} onChange={e=>setBlocker(e.target.value)} placeholder="Opcional: obstáculo ou dependência"/></HelpLabel>
      <div className="vx-active-gov-buttons"><button type="button" disabled={busy} onClick={()=>void save("checkin")}>Registrar check-in</button>
      {current&&current.declared_progress===100&&current.note.trim().length>=5&&<button type="button" disabled={busy} onClick={()=>void save("enviado")}>Enviar para validação</button>}</div>
     </>}
     {reviewer&&current?.review_status==="enviado"&&<>
-     <label>Justificativa da decisão<textarea rows={2} maxLength={3000} value={reviewNote} onChange={e=>setReviewNote(e.target.value)} placeholder="Motivo da validação ou correções solicitadas"/></label>
+     <HelpLabel>Justificativa da decisão<textarea rows={2} maxLength={3000} value={reviewNote} onChange={e=>setReviewNote(e.target.value)} placeholder="Motivo da validação ou correções solicitadas"/></HelpLabel>
      {current.submitted_by===userId?<p role="status">O responsável pelo envio não pode aprovar a própria entrega.</p>:<div className="vx-active-gov-buttons"><button type="button" disabled={busy||reviewNote.trim().length<5} onClick={()=>void save("aprovado")}>Validar entrega</button><button type="button" disabled={busy||reviewNote.trim().length<5} onClick={()=>void save("devolvido")}>Devolver para ajuste</button></div>}
     </>}
     {current?.review_status==="devolvido"&&<p><strong>Justificativa da devolução:</strong> {current.review_note??"Não informada"}</p>}

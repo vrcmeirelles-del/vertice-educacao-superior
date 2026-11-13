@@ -1,3 +1,4 @@
+import { HelpLabel } from '@/components/ContextHelp';
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
@@ -194,61 +195,61 @@ export default function OutcomesMobileBreakdown({ institutionId }: { institution
     </div>
     <p className="vm-muted">Escolha dois períodos. O comparativo usa exclusivamente as ofertas acadêmicas da mesma fonte e, por padrão, apenas os códigos de cursos presentes em ambos os recortes.</p>
     <div className="vm-filters">
-      <label>Tipo de comparação
+      <HelpLabel>Tipo de comparação
         <select value={mode} onChange={event => { setMode(event.target.value as Mode); setCourseFilter(""); }}>
           <option value="semestres">Semestre × semestre</option>
           <option value="anos">Ano letivo × ano letivo</option>
         </select>
-      </label>
+      </HelpLabel>
       {mode === "semestres" ? <>
-        <label>Período de referência
+        <HelpLabel>Período de referência
           <select value={semesterBefore} onChange={event => setSemesterBefore(event.target.value)}>
             {semesters.map(term => <option key={term} value={term}>{term}</option>)}
           </select>
-        </label>
-        <label>Período de comparação
+        </HelpLabel>
+        <HelpLabel>Período de comparação
           <select value={semesterAfter} onChange={event => setSemesterAfter(event.target.value)}>
             {semesters.map(term => <option key={term} value={term}>{term}</option>)}
           </select>
-        </label>
+        </HelpLabel>
       </> : <>
-        <label>Ano de referência
+        <HelpLabel>Ano de referência
           <select value={yearBefore} onChange={event => setYearBefore(event.target.value)}>
             {years.map(year => <option key={year} value={year}>{year}</option>)}
           </select>
-        </label>
-        <label>Ano de comparação
+        </HelpLabel>
+        <HelpLabel>Ano de comparação
           <select value={yearAfter} onChange={event => setYearAfter(event.target.value)}>
             {years.map(year => <option key={year} value={year}>{year}</option>)}
           </select>
-        </label>
+        </HelpLabel>
       </>}
     </div>
     <div className="vm-filters">
-      <label>Curso (código do e-ORBIT)
+      <HelpLabel>Curso (código do e-ORBIT)
         <select value={courseFilter} disabled={loading || !courses.length} onChange={event => setCourseFilter(event.target.value)}>
           <option value="">Todos os cursos</option>
           {courses.map(code => <option key={code} value={code}>{code}</option>)}
         </select>
-      </label>
-      <label>Organizar resultados por
+      </HelpLabel>
+      <HelpLabel>Organizar resultados por
         <select value={level} onChange={event => setLevel(event.target.value as Level)}>
           <option value="curso">Curso</option>
           <option value="disciplina">Disciplina</option>
           <option value="docente">Equipe docente</option>
         </select>
-      </label>
-      <label>Ordenação
+      </HelpLabel>
+      <HelpLabel>Ordenação
         <select value={sort} onChange={event => setSort(event.target.value as Sort)}>
           <option value="volume">Maior volume somado</option>
           <option value="aumento">Maior aumento</option>
           <option value="queda">Maior redução</option>
         </select>
-      </label>
+      </HelpLabel>
     </div>
-    <label className="vm-search">Pesquisar disciplina nas ofertas
+    <HelpLabel className="vm-search">Pesquisar disciplina nas ofertas
       <input type="search" value={textFilter} onChange={event => setTextFilter(event.target.value)} placeholder="Ex.: Anatomia" />
-    </label>
+    </HelpLabel>
     <p className="vm-muted">{comparisonType} · {beforeLabel} versus {afterLabel}</p>
     {loading ? <p role="status">Consultando os dois períodos e verificando a cobertura dos cursos…</p> :
       error ? <p role="alert">Não foi possível carregar integralmente os períodos. Nenhuma comparação foi estimada.</p> :

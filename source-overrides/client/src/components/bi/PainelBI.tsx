@@ -1,3 +1,5 @@
+import { ContextHelp } from '@/components/ContextHelp';
+import { HelpLabel } from '@/components/ContextHelp';
 /**
  * Painel Executivo de BI — Vértice Superior
  *
@@ -103,7 +105,7 @@ function BlocoHeroi({ kpis }: { kpis: KpiResumo[] }) {
         <p className="bi-heroi-rotulo">{principal.rotulo}</p>
         <div className="bi-heroi-numero">{fmtKPI(principal.valor, principal.unidade)}</div>
         <div className="bi-hero-comparison">
-          <label htmlFor="bi-compare-mode">Comparar matrículas com</label>
+          <HelpLabel htmlFor="bi-compare-mode">Comparar matrículas com</HelpLabel>
           <select id="bi-compare-mode" value={modo} onChange={e => setModo(e.target.value as 'homologo' | 'anterior')}>
             <option value="homologo">Mesmo semestre do ano anterior</option>
             <option value="anterior">Semestre imediatamente anterior</option>
@@ -271,7 +273,7 @@ function TabelaRisco({ cursos }: { cursos: CursoRisco[] }) {
         <thead>
           <tr>
             <th></th>
-            <th>Curso</th>
+            <th>Curso<ContextHelp title="Curso" /></th>
             <th>Grau</th>
             <th>Ocupação</th>
             <th>Tendência</th>
@@ -449,12 +451,12 @@ function ReprovacoesAnuais({ reports }: { reports: BIReport[] }) {
     <p className="bi-meta">Fonte: indicadores de curso das planilhas e-ORBIT. Cada total soma as matrículas em disciplinas nos semestres disponíveis para o ano escolhido.</p>
     {!years.length ? <p>Dado não disponível para a instituição selecionada.</p> : <>
       <div className="bi-filtros">
-        <label>Ano-base <select value={selectedA} onChange={e => setYearA(e.target.value)}>
+        <HelpLabel>Ano-base <select value={selectedA} onChange={e => setYearA(e.target.value)}>
           {years.map(year => <option key={year}>{year}</option>)}
-        </select></label>
-        <label>Ano de comparação <select value={selectedB} onChange={e => setYearB(e.target.value)}>
+        </select></HelpLabel>
+        <HelpLabel>Ano de comparação <select value={selectedB} onChange={e => setYearB(e.target.value)}>
           {years.map(year => <option key={year}>{year}</option>)}
-        </select></label>
+        </select></HelpLabel>
       </div>
       <div className="bi-annual-coverage" aria-label="Cobertura dos dados por ano">
         <div><span className="bi-annual-coverage-label">Ano-base · {selectedA}</span><strong>{left.length} registros de curso/semestre</strong><small>{summarize(left)}</small></div>
@@ -630,20 +632,20 @@ export default function PainelBI({ institutions, courses, enrollments, session, 
 
       {/* ---- Filtros ---- */}
       <div className="bi-filtros">
-        <label>
+        <HelpLabel>
           Instituição
           <select value={instId} onChange={e => { setInstId(e.target.value); setSemestre(''); }}>
             {institutions.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
           </select>
-        </label>
-        <label>
+        </HelpLabel>
+        <HelpLabel>
           Semestre
           <select value={semestre} onChange={e => setSemestre(e.target.value)}>
             <option value="">Todos</option>
             {semestres.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
-        </label>
-        <label>
+        </HelpLabel>
+        <HelpLabel>
           Grau
           <select value={grau} onChange={e => setGrau(e.target.value)}>
             <option value="">Todos</option>
@@ -652,7 +654,7 @@ export default function PainelBI({ institutions, courses, enrollments, session, 
             <option value="tecnologo">Tecnólogo</option>
             <option value="especializacao">Especialização</option>
           </select>
-        </label>
+        </HelpLabel>
         <button type="button" className="bi-refresh" onClick={loadAll}>
           ⟳ Atualizar
         </button>

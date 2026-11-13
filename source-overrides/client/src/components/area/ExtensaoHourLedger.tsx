@@ -1,3 +1,4 @@
+import { HelpLabel } from '@/components/ContextHelp';
 /**
  * ExtensaoHourLedger — Livro-razão de horas de extensão (v2 — 8 estados)
  * Interface para lançamentos append-only com workflow completo:
@@ -207,41 +208,41 @@ export default function ExtensaoHourLedger({
         <div className="ext-form">
           <h3>Novo lançamento</h3>
           <div className="ext-form-grid">
-            <label>Tipo
+            <HelpLabel>Tipo
               <select value={formData.entry_type} onChange={e => setFormData({ ...formData, entry_type: e.target.value as any })}>
                 <option value="credit">Crédito</option>
                 <option value="correction">Correção</option>
                 <option value="reversal">Estorno</option>
               </select>
-            </label>
-            <label>Estado inicial
+            </HelpLabel>
+            <HelpLabel>Estado inicial
               <select value={formData.hour_state} onChange={e => setFormData({ ...formData, hour_state: e.target.value as HourState })}>
                 <option value="prevista">Prevista</option>
                 <option value="programada">Programada</option>
                 <option value="executada">Executada</option>
                 <option value="declarada">Declarada</option>
               </select>
-            </label>
-            <label>Minutos
+            </HelpLabel>
+            <HelpLabel>Minutos
               <input type="number" min={1} value={formData.minutes} onChange={e => setFormData({ ...formData, minutes: +e.target.value })} />
-            </label>
-            <label>Data
+            </HelpLabel>
+            <HelpLabel>Data
               <input type="date" value={formData.activity_date} onChange={e => setFormData({ ...formData, activity_date: e.target.value })} />
-            </label>
+            </HelpLabel>
             {formData.entry_type !== 'credit' && (
-              <label>Referência
+              <HelpLabel>Referência
                 <select value={formData.reference_entry_id || ''} onChange={e => setFormData({ ...formData, reference_entry_id: e.target.value || null })}>
                   <option value="">— Selecionar —</option>
                   {entries.filter(e => e.entry_type === 'credit').map(e => (
                     <option key={e.id} value={e.id}>{fmtDate(e.activity_date)} — {fmtMinutes(e.minutes)} — {e.description.slice(0, 30)}</option>
                   ))}
                 </select>
-              </label>
+              </HelpLabel>
             )}
           </div>
-          <label className="ext-form-full">Descrição *
+          <HelpLabel className="ext-form-full">Descrição *
             <textarea value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} rows={2} placeholder="Descreva a atividade..." />
-          </label>
+          </HelpLabel>
           <div className="ext-form-actions">
             <button className="ext-btn-save" onClick={saveEntry}>Lançar</button>
             <button className="ext-btn-cancel" onClick={() => setShowForm(false)}>Cancelar</button>

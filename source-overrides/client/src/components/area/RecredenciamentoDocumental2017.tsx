@@ -1,3 +1,4 @@
+import { HelpLabel } from '@/components/ContextHelp';
 import {useCallback,useEffect,useMemo,useRef,useState} from "react";
 import {supabase} from "@/lib/supabase";
 import {can,type Role} from "@/lib/area";
@@ -207,7 +208,7 @@ export function Recred2017IndicatorDocs({institutionId,role,indicador,state}:{
     <div className="rec17-indicator-head"><h5>Formulários e evidências do indicador {indicador.code}</h5>
       <span>{validated}/{total} validadas · {pending} em análise</span></div>
     <p className="rec17-help">Cada evidência possui cadastro próprio, histórico de arquivos, decisão da gestão e justificativa de NSA. Nenhuma entrega altera automaticamente o conceito institucional simulado.</p>
-    <label className="rec17-period-filter">Semestre da documentação <select value={period} onChange={e=>{setPeriod(e.target.value);setSelected(null);setReview(null);setHistoryCode(null);}}>{Array.from({length:12},(_,i)=>{const year=2023+Math.floor(i/2);const val=year+"-"+(i%2+1);return <option key={val} value={val}>{year}/{i%2+1}</option>;})}</select></label>
+    <HelpLabel className="rec17-period-filter">Semestre da documentação <select value={period} onChange={e=>{setPeriod(e.target.value);setSelected(null);setReview(null);setHistoryCode(null);}}>{Array.from({length:12},(_,i)=>{const year=2023+Math.floor(i/2);const val=year+"-"+(i%2+1);return <option key={val} value={val}>{year}/{i%2+1}</option>;})}</select></HelpLabel>
     {(["obrig","compl","resultado"] as Kind[]).map(kind=>{
       const list=items.filter(x=>x.kind===kind);
       return <div key={kind} className="rec17-kind">
@@ -239,28 +240,28 @@ export function Recred2017IndicatorDocs({institutionId,role,indicador,state}:{
     {selected&&<div className="rec17-editor" role="group" aria-label="Formulário de entrega da evidência">
       <h5>Registrar evidência · Indicador {indicador.code}</h5><p>{selected.title}</p>
       <div className="rec17-form-grid">
-        <label>Semestre de referência<select value={semester} onChange={e=>setSemester(e.target.value)} disabled={Boolean(byCode.get(selected.id))||actionBusy}>
+        <HelpLabel>Semestre de referência<select value={semester} onChange={e=>setSemester(e.target.value)} disabled={Boolean(byCode.get(selected.id))||actionBusy}>
           {Array.from({length:12},(_,i)=>{const year=2023+Math.floor(i/2);const v=year+"-"+(i%2+1);return <option value={v} key={v}>{year}/{i%2+1}</option>;})}
-        </select></label>
-        <label>Data limite (opcional)<input type="date" value={deadline} onChange={e=>setDeadline(e.target.value)} disabled={Boolean(byCode.get(selected.id))||actionBusy}/></label>
-        <label>Responsável autorizado (opcional)<select value={assigneeId} onChange={e=>setAssigneeId(e.target.value)} disabled={Boolean(byCode.get(selected.id))||actionBusy}><option value="">Gestão institucional</option>{members.filter(m=>["gestor","equipe"].includes(m.role)).map(m=><option key={m.user_id} value={m.user_id}>{m.email} · {m.role}</option>)}</select></label>
-        <label>Tipo de entrega<select value={nsa?"nsa":"arquivo"} onChange={e=>setNsa(e.target.value==="nsa")} disabled={actionBusy}>
+        </select></HelpLabel>
+        <HelpLabel>Data limite (opcional)<input type="date" value={deadline} onChange={e=>setDeadline(e.target.value)} disabled={Boolean(byCode.get(selected.id))||actionBusy}/></HelpLabel>
+        <HelpLabel>Responsável autorizado (opcional)<select value={assigneeId} onChange={e=>setAssigneeId(e.target.value)} disabled={Boolean(byCode.get(selected.id))||actionBusy}><option value="">Gestão institucional</option>{members.filter(m=>["gestor","equipe"].includes(m.role)).map(m=><option key={m.user_id} value={m.user_id}>{m.email} · {m.role}</option>)}</select></HelpLabel>
+        <HelpLabel>Tipo de entrega<select value={nsa?"nsa":"arquivo"} onChange={e=>setNsa(e.target.value==="nsa")} disabled={actionBusy}>
           <option value="arquivo">Enviar arquivo</option><option value="nsa">Não se aplica (NSA)</option>
-        </select></label>
+        </select></HelpLabel>
       </div>
-      {nsa?<label>Justificativa de NSA<textarea value={justification} onChange={e=>setJustification(e.target.value)} maxLength={4000} required placeholder="Explique por que esta evidência não se aplica à instituição"/></label>:
+      {nsa?<HelpLabel>Justificativa de NSA<textarea value={justification} onChange={e=>setJustification(e.target.value)} maxLength={4000} required placeholder="Explique por que esta evidência não se aplica à instituição"/></HelpLabel>:
       <>
         <input ref={input} type="file" accept=".pdf,.docx,.xlsx,.pptx,.png,.jpg,.jpeg,.txt,.csv" onChange={e=>setFile(e.target.files?.[0]??null)} disabled={actionBusy}/>
-        <label>Referência do documento (opcional)<input value={reference} maxLength={250} onChange={e=>setReference(e.target.value)} placeholder="Ex.: Ata de reunião nº 03/2026"/></label>
-        <label>Observações de envio<textarea value={note} maxLength={4000} onChange={e=>setNote(e.target.value)} placeholder="Descreva qual requisito é atendido e onde localizar a evidência no arquivo"/></label>
+        <HelpLabel>Referência do documento (opcional)<input value={reference} maxLength={250} onChange={e=>setReference(e.target.value)} placeholder="Ex.: Ata de reunião nº 03/2026"/></HelpLabel>
+        <HelpLabel>Observações de envio<textarea value={note} maxLength={4000} onChange={e=>setNote(e.target.value)} placeholder="Descreva qual requisito é atendido e onde localizar a evidência no arquivo"/></HelpLabel>
       </>}
       <div className="rec17-editor-actions"><button type="button" onClick={()=>{setSelected(null);setFile(null);}}>Cancelar</button>
         <button type="button" disabled={actionBusy||(!file&&!nsa)||(nsa&&!justification.trim())} onClick={()=>void submit()}>{actionBusy?"Registrando…":nsa?"Registrar NSA":"Enviar evidência"}</button></div>
     </div>}
     {review&&<div className="rec17-editor" role="group" aria-label="Formulário de validação">
       <h5>Análise pela gestão</h5><p>{review.file_name}</p>
-      <label>Decisão<select value={decision} onChange={e=>setDecision(e.target.value as "validado"|"devolvido")}><option value="validado">Validar documento</option><option value="devolvido">Devolver para ajustes</option></select></label>
-      <label>Parecer / justificativa<textarea value={reviewNote} onChange={e=>setReviewNote(e.target.value)} maxLength={4000} placeholder="Descreva a conferência e eventuais pendências"/></label>
+      <HelpLabel>Decisão<select value={decision} onChange={e=>setDecision(e.target.value as "validado"|"devolvido")}><option value="validado">Validar documento</option><option value="devolvido">Devolver para ajustes</option></select></HelpLabel>
+      <HelpLabel>Parecer / justificativa<textarea value={reviewNote} onChange={e=>setReviewNote(e.target.value)} maxLength={4000} placeholder="Descreva a conferência e eventuais pendências"/></HelpLabel>
       <div className="rec17-editor-actions"><button type="button" onClick={()=>setReview(null)}>Cancelar</button><button type="button" disabled={actionBusy||(decision==="devolvido"&&!reviewNote.trim())} onClick={()=>void reviewFile()}>{actionBusy?"Salvando…":"Registrar decisão"}</button></div>
     </div>}
   </section>;

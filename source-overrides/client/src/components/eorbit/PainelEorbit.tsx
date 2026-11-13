@@ -1,3 +1,5 @@
+import { ContextHelp } from '@/components/ContextHelp';
+import { HelpLabel } from '@/components/ContextHelp';
 /**
  * Painel e-ORBIT — Espelho Acadêmico
  *
@@ -142,7 +144,7 @@ function TabQuantitativo({
         <table className="eo-tabela">
           <thead>
             <tr>
-              <th>Semestre</th>
+              <th>Semestre<ContextHelp title="Semestre" /></th>
               <th>Matriculados</th>
               <th>Vínculos</th>
               <th>Pré-matric.</th>
@@ -220,7 +222,7 @@ function TabCompliance({
             <table className="eo-tabela">
               <thead>
                 <tr>
-                  <th>Semestre</th>
+                  <th>Semestre<ContextHelp title="Semestre" /></th>
                   <th>Total</th>
                   <th>Enviados</th>
                   <th>Envio</th>
@@ -247,7 +249,7 @@ function TabCompliance({
             <table className="eo-tabela">
               <thead>
                 <tr>
-                  <th>Semestre</th>
+                  <th>Semestre<ContextHelp title="Semestre" /></th>
                   <th>Total</th>
                   <th>Postadas</th>
                   <th>Postagem</th>
@@ -295,12 +297,12 @@ function TabEnade({
   return (
     <>
       <div className="eo-filtros">
-        <label>
+        <HelpLabel>
           Semestre ENADE
           <select value={semSel} onChange={e => setSemSel(e.target.value)}>
             {semestres.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
-        </label>
+        </HelpLabel>
       </div>
 
       <div className="eo-kpi-strip">
@@ -319,7 +321,7 @@ function TabEnade({
         <table className="eo-tabela">
           <thead>
             <tr>
-              <th>Curso</th>
+              <th>Curso<ContextHelp title="Curso" /></th>
               <th>Habilitados</th>
               <th>Participação</th>
             </tr>
@@ -459,7 +461,7 @@ function TabDiario({
         <table className="eo-tabela">
           <thead>
             <tr>
-              <th>Semestre</th>
+              <th>Semestre<ContextHelp title="Semestre" /></th>
               <th>Registros</th>
               <th>Plano</th>
               <th>Notas</th>
@@ -531,7 +533,7 @@ function TabProfessores({
         ))}
       </div>
 
-      <label style={{ display: 'block', marginBottom: 12 }}>
+      <HelpLabel style={{ display: 'block', marginBottom: 12 }}>
         Buscar professor
         <input
           value={query}
@@ -539,7 +541,7 @@ function TabProfessores({
           placeholder="Nome ou titulação"
           style={{ marginLeft: 8, padding: '5px 10px', border: '1px solid var(--eo-borda)', borderRadius: 'var(--eo-radius)' }}
         />
-      </label>
+      </HelpLabel>
 
       <div className="eo-tabela-wrap">
         <table className="eo-tabela">

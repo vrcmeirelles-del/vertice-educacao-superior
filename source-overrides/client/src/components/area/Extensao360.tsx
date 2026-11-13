@@ -1,3 +1,5 @@
+import { ContextHelp } from '@/components/ContextHelp';
+import { HelpLabel } from '@/components/ContextHelp';
 // Extensao360.tsx — Repositório de Projetos de Extensão (v3 — Impacto integrado)
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
@@ -237,7 +239,7 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
       <div className="ext-header">
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '.75rem' }}>
-            <h2 style={{ margin: 0 }}>🤝 Extensão 360°</h2>
+            <h2 style={{ margin: 0 }}>🤝 Extensão 360°<ContextHelp title="🤝 Extensão 360°" /></h2>
             <ExtensaoNotificacoes institutionId={institutionId} />
           </div>
           <p>Pró-Reitoria de Extensão · DCNs: mínimo 10% da carga horária</p>
@@ -308,10 +310,10 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
                 <div className="ext-form">
                   <h3>{formData.id ? 'Editar' : 'Novo'} Eixo Temático</h3>
                   <div className="ext-form-grid">
-                    <label>Nome do eixo<input value={formData.name || ''} onChange={e => setFormData({ ...formData, name: e.target.value })} placeholder="Ex: Direitos Humanos e Cidadania" /></label>
-                    <label>ODS vinculados<input value={formData.ods_text ?? (formData.ods_alignment || []).join(', ')} onChange={e => setFormData({ ...formData, ods_text: e.target.value })} placeholder="ODS4, ODS10, ODS16" /></label>
+                    <HelpLabel>Nome do eixo<input value={formData.name || ''} onChange={e => setFormData({ ...formData, name: e.target.value })} placeholder="Ex: Direitos Humanos e Cidadania" /></HelpLabel>
+                    <HelpLabel>ODS vinculados<input value={formData.ods_text ?? (formData.ods_alignment || []).join(', ')} onChange={e => setFormData({ ...formData, ods_text: e.target.value })} placeholder="ODS4, ODS10, ODS16" /></HelpLabel>
                   </div>
-                  <label className="ext-form-full">Descrição<textarea value={formData.description || ''} onChange={e => setFormData({ ...formData, description: e.target.value })} rows={2} /></label>
+                  <HelpLabel className="ext-form-full">Descrição<textarea value={formData.description || ''} onChange={e => setFormData({ ...formData, description: e.target.value })} rows={2} /></HelpLabel>
                   {/* Eixos pré-cadastrados por ODS */}
                   {!formData.id && axes.length > 0 && (
                     <div style={{marginTop:'.75rem'}}>
@@ -335,13 +337,13 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
                 <div className="ext-form">
                   <h3>{formData.id ? 'Editar' : 'Novo'} Projeto de Extensão</h3>
                   <div className="ext-form-grid">
-                    <label>Título<input value={formData.title || ''} onChange={e => setFormData({ ...formData, title: e.target.value })} /></label>
-                    <label>Código<input value={formData.code || ''} readOnly style={{background:'var(--bg-card,#f3f4f6)',cursor:'default',fontFamily:'monospace',fontWeight:600}} title="Gerado automaticamente" /></label>
-                    <label>Tipo
+                    <HelpLabel>Título<input value={formData.title || ''} onChange={e => setFormData({ ...formData, title: e.target.value })} /></HelpLabel>
+                    <HelpLabel>Código<input value={formData.code || ''} readOnly style={{background:'var(--bg-card,#f3f4f6)',cursor:'default',fontFamily:'monospace',fontWeight:600}} title="Gerado automaticamente" /></HelpLabel>
+                    <HelpLabel>Tipo
                       <select value={formData.project_type || 'projeto'} onChange={e => setFormData({ ...formData, project_type: e.target.value })}>
                         {Object.entries(TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                       </select>
-                    </label>
+                    </HelpLabel>
                     <div style={{gridColumn:'1 / -1'}}>
                       <strong style={{fontSize:'.8rem',display:'block',marginBottom:'.35rem'}}>Eixos temáticos vinculados (selecione um ou mais):</strong>
                       <div className="ext-course-chips">
@@ -354,7 +356,7 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
                         })}
                       </div>
                     </div>
-                    <label>Coordenador
+                    <HelpLabel>Coordenador
                       <select value={formData.coordinator_name || ''} onChange={e => {
                         const staff = staffList.find(s => s.full_name === e.target.value);
                         setFormData({ ...formData, coordinator_name: e.target.value, coordinator_email: staff?.email || formData.coordinator_email || '' });
@@ -363,57 +365,57 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
                         {staffList.map((s, i) => <option key={i} value={s.full_name}>{s.full_name}{s.email ? ` (${s.email})` : ''} · {s.source === 'coordenador_curso' ? 'Coord. Curso' : s.source === 'governanca' ? 'Governança' : 'Extensão'}</option>)}
                         <option value="__outro">Outro (digitar manualmente)</option>
                       </select>
-                    </label>
-                    {formData.coordinator_name === '__outro' && <label>Nome do coordenador<input value={formData.coordinator_name_manual || ''} onChange={e => setFormData({ ...formData, coordinator_name: e.target.value })} placeholder="Nome completo" /></label>}
-                    <label>E-mail coordenador<input type="email" value={formData.coordinator_email || ''} onChange={e => setFormData({ ...formData, coordinator_email: e.target.value })} /></label>
-                    <label>Comunidade atendida<input value={formData.target_community || ''} onChange={e => setFormData({ ...formData, target_community: e.target.value })} placeholder="Ex: moradores do Jardim Aureny" /></label>
-                    <label>Público estimado<input type="number" value={formData.target_audience_count || ''} onChange={e => setFormData({ ...formData, target_audience_count: +e.target.value })} /></label>
-                    <label>Semestre<input value={formData.semester || ''} onChange={e => setFormData({ ...formData, semester: e.target.value })} placeholder="2026/01" /></label>
-                    <label>Carga horária total<input type="number" value={formData.total_hours || ''} onChange={e => setFormData({ ...formData, total_hours: +e.target.value })} /></label>
-                    <label>Início<input type="date" value={formData.start_date || ''} onChange={e => setFormData({ ...formData, start_date: e.target.value })} /></label>
-                    <label>Término<input type="date" value={formData.end_date || ''} onChange={e => setFormData({ ...formData, end_date: e.target.value })} /></label>
-                    <label>Status
+                    </HelpLabel>
+                    {formData.coordinator_name === '__outro' && <HelpLabel>Nome do coordenador<input value={formData.coordinator_name_manual || ''} onChange={e => setFormData({ ...formData, coordinator_name: e.target.value })} placeholder="Nome completo" /></HelpLabel>}
+                    <HelpLabel>E-mail coordenador<input type="email" value={formData.coordinator_email || ''} onChange={e => setFormData({ ...formData, coordinator_email: e.target.value })} /></HelpLabel>
+                    <HelpLabel>Comunidade atendida<input value={formData.target_community || ''} onChange={e => setFormData({ ...formData, target_community: e.target.value })} placeholder="Ex: moradores do Jardim Aureny" /></HelpLabel>
+                    <HelpLabel>Público estimado<input type="number" value={formData.target_audience_count || ''} onChange={e => setFormData({ ...formData, target_audience_count: +e.target.value })} /></HelpLabel>
+                    <HelpLabel>Semestre<input value={formData.semester || ''} onChange={e => setFormData({ ...formData, semester: e.target.value })} placeholder="2026/01" /></HelpLabel>
+                    <HelpLabel>Carga horária total<input type="number" value={formData.total_hours || ''} onChange={e => setFormData({ ...formData, total_hours: +e.target.value })} /></HelpLabel>
+                    <HelpLabel>Início<input type="date" value={formData.start_date || ''} onChange={e => setFormData({ ...formData, start_date: e.target.value })} /></HelpLabel>
+                    <HelpLabel>Término<input type="date" value={formData.end_date || ''} onChange={e => setFormData({ ...formData, end_date: e.target.value })} /></HelpLabel>
+                    <HelpLabel>Status
                       <select value={formData.status || 'planejamento'} onChange={e => setFormData({ ...formData, status: e.target.value })}>
                         {Object.entries(STATUS_LABELS).filter(([k]) => !['ativo','desligado','trancado','pendente','em_analise','ajuste_solicitado','rejeitado'].includes(k)).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                       </select>
-                    </label>
-                    <label>Orçamento estimado<input type="number" step="0.01" value={formData.budget_estimated || ''} onChange={e => setFormData({ ...formData, budget_estimated: +e.target.value })} /></label>
-                    <label>Parceiros<input value={formData.partner_institutions_text ?? (formData.partner_institutions || []).join(', ')} onChange={e => setFormData({ ...formData, partner_institutions_text: e.target.value })} placeholder="OAB, Defensoria, CRAS" /></label>
-                    <label>ODS<input value={formData.ods_goals_text ?? (formData.ods_goals || []).join(', ')} onChange={e => setFormData({ ...formData, ods_goals_text: e.target.value })} placeholder="ODS4, ODS16" /></label>
+                    </HelpLabel>
+                    <HelpLabel>Orçamento estimado<input type="number" step="0.01" value={formData.budget_estimated || ''} onChange={e => setFormData({ ...formData, budget_estimated: +e.target.value })} /></HelpLabel>
+                    <HelpLabel>Parceiros<input value={formData.partner_institutions_text ?? (formData.partner_institutions || []).join(', ')} onChange={e => setFormData({ ...formData, partner_institutions_text: e.target.value })} placeholder="OAB, Defensoria, CRAS" /></HelpLabel>
+                    <HelpLabel>ODS<input value={formData.ods_goals_text ?? (formData.ods_goals || []).join(', ')} onChange={e => setFormData({ ...formData, ods_goals_text: e.target.value })} placeholder="ODS4, ODS16" /></HelpLabel>
                   </div>
-                  <label className="ext-form-full">Descrição<textarea value={formData.description || ''} onChange={e => setFormData({ ...formData, description: e.target.value })} rows={3} /></label>
+                  <HelpLabel className="ext-form-full">Descrição<textarea value={formData.description || ''} onChange={e => setFormData({ ...formData, description: e.target.value })} rows={3} /></HelpLabel>
 
                   {/* Campos Impacto */}
                   <div style={{ borderTop: '1px solid var(--border,#e5e7eb)', paddingTop: '1rem', marginTop: '.5rem' }}>
                     <h4 style={{ margin: '0 0 .75rem', fontSize: '.9rem', color: 'var(--accent,#0b9185)' }}>📋 Detalhamento Impacto</h4>
-                    <label className="ext-form-full">Problema social identificado
+                    <HelpLabel className="ext-form-full">Problema social identificado
                       <textarea value={formData.social_problem || ''} onChange={e => setFormData({ ...formData, social_problem: e.target.value })} rows={2} placeholder="Qual problema social o projeto visa resolver?" />
-                    </label>
-                    <label className="ext-form-full">Objetivo geral
+                    </HelpLabel>
+                    <HelpLabel className="ext-form-full">Objetivo geral
                       <textarea value={formData.general_objective || ''} onChange={e => setFormData({ ...formData, general_objective: e.target.value })} rows={2} placeholder="Objetivo geral do projeto" />
-                    </label>
-                    <label className="ext-form-full">Objetivos específicos (um por linha)
+                    </HelpLabel>
+                    <HelpLabel className="ext-form-full">Objetivos específicos (um por linha)
                       <textarea value={(formData.specific_objectives || []).join('\n')} onChange={e => setFormData({ ...formData, specific_objectives: e.target.value.split('\n').filter((s: string) => s.trim()) })} rows={3} placeholder="Um objetivo por linha" />
-                    </label>
+                    </HelpLabel>
                     <div className="ext-form-grid">
-                      <label>Perfil do público beneficiário
+                      <HelpLabel>Perfil do público beneficiário
                         <input value={formData.beneficiary_profile || ''} onChange={e => setFormData({ ...formData, beneficiary_profile: e.target.value })} placeholder="Ex: famílias em vulnerabilidade" />
-                      </label>
-                      <label>Comunidade externa envolvida
+                      </HelpLabel>
+                      <HelpLabel>Comunidade externa envolvida
                         <input value={formData.external_community || ''} onChange={e => setFormData({ ...formData, external_community: e.target.value })} placeholder="Instituições, associações, ONGs..." />
-                      </label>
+                      </HelpLabel>
                     </div>
-                    <label className="ext-form-full">Metodologia
+                    <HelpLabel className="ext-form-full">Metodologia
                       <textarea value={formData.methodology || ''} onChange={e => setFormData({ ...formData, methodology: e.target.value })} rows={3} placeholder="Como o projeto será executado" />
-                    </label>
-                    <label className="ext-form-full">Recursos necessários
+                    </HelpLabel>
+                    <HelpLabel className="ext-form-full">Recursos necessários
                       <textarea value={formData.required_resources || ''} onChange={e => setFormData({ ...formData, required_resources: e.target.value })} rows={2} placeholder="Materiais, infraestrutura, transporte..." />
-                    </label>
-                    <label className="ext-form-full">Resultados esperados (um por linha)
+                    </HelpLabel>
+                    <HelpLabel className="ext-form-full">Resultados esperados (um por linha)
                       <textarea value={(formData.expected_results || []).join('\n')} onChange={e => setFormData({ ...formData, expected_results: e.target.value.split('\n').filter((s: string) => s.trim()) })} rows={2} placeholder="Um resultado por linha" />
-                    </label>
+                    </HelpLabel>
                     <div className="ext-form-grid">
-                      <label>Status de revisão
+                      <HelpLabel>Status de revisão
                         <select value={formData.review_status || 'rascunho'} onChange={e => setFormData({ ...formData, review_status: e.target.value })}>
                           <option value="rascunho">Rascunho</option>
                           <option value="submetido">Submetido</option>
@@ -427,7 +429,7 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
                           <option value="reprovado">Reprovado</option>
                           <option value="arquivado">Arquivado</option>
                         </select>
-                      </label>
+                      </HelpLabel>
                     </div>
                   </div>
 
@@ -551,14 +553,14 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
                 <div className="ext-form">
                   <h3>{formData.id ? 'Editar' : 'Vincular'} Professor / Coordenador</h3>
                   <div className="ext-form-grid">
-                    <label>Nome completo<input value={formData.full_name || ''} onChange={e => setFormData({ ...formData, full_name: e.target.value })} /></label>
-                    <label>Função <select value={formData.role_type || 'professor'} onChange={e => setFormData({ ...formData, role_type: e.target.value })}>
+                    <HelpLabel>Nome completo<input value={formData.full_name || ''} onChange={e => setFormData({ ...formData, full_name: e.target.value })} /></HelpLabel>
+                    <HelpLabel>Função <select value={formData.role_type || 'professor'} onChange={e => setFormData({ ...formData, role_type: e.target.value })}>
                       <option value="coordenador">Coordenador</option><option value="professor">Professor</option><option value="tutor">Tutor</option><option value="supervisor">Supervisor</option>
-                    </select></label>
-                    <label>E-mail<input type="email" value={formData.email || ''} onChange={e => setFormData({ ...formData, email: e.target.value })} /></label>
-                    <label>CPF<input value={formData.cpf || ''} onChange={e => setFormData({ ...formData, cpf: e.target.value })} placeholder="000.000.000-00" /></label>
-                    <label>Horas atribuídas<input type="number" value={formData.hours_assigned || ''} onChange={e => setFormData({ ...formData, hours_assigned: +e.target.value })} /></label>
-                    <label>Lattes<input value={formData.lattes_url || ''} onChange={e => setFormData({ ...formData, lattes_url: e.target.value })} placeholder="http://lattes.cnpq.br/..." /></label>
+                    </select></HelpLabel>
+                    <HelpLabel>E-mail<input type="email" value={formData.email || ''} onChange={e => setFormData({ ...formData, email: e.target.value })} /></HelpLabel>
+                    <HelpLabel>CPF<input value={formData.cpf || ''} onChange={e => setFormData({ ...formData, cpf: e.target.value })} placeholder="000.000.000-00" /></HelpLabel>
+                    <HelpLabel>Horas atribuídas<input type="number" value={formData.hours_assigned || ''} onChange={e => setFormData({ ...formData, hours_assigned: +e.target.value })} /></HelpLabel>
+                    <HelpLabel>Lattes<input value={formData.lattes_url || ''} onChange={e => setFormData({ ...formData, lattes_url: e.target.value })} placeholder="http://lattes.cnpq.br/..." /></HelpLabel>
                   </div>
                   <div className="ext-form-actions">
                     <button className="ext-btn-save" onClick={saveTeamMember}>Salvar</button>
@@ -567,7 +569,7 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
                 </div>
               )}
               {(selectedProject ? projTeam : team).length === 0 ? <p className="ext-empty">{selectedProject ? 'Nenhum membro vinculado.' : 'Selecione um projeto.'}</p> : (
-                <table className="ext-table"><thead><tr><th>Nome</th><th>Função</th><th>E-mail</th><th>CPF</th><th>Horas</th><th>Ativo</th></tr></thead>
+                <table className="ext-table"><thead><tr><th>Nome</th><th>Função</th><th>E-mail<ContextHelp title="E-mail" /></th><th>CPF</th><th>Horas</th><th>Ativo</th></tr></thead>
                 <tbody>{(selectedProject ? projTeam : team).map(t => (
                   <tr key={t.id} className={canEdit?'clickable':''} onClick={() => { if(canEdit){setFormType('team');setFormData(t);setSelectedProject(t.project_id);setShowForm(true);} }}>
                     <td><strong>{t.full_name}</strong></td><td>{t.role_type}</td><td>{t.email||'—'}</td><td className="mono">{t.cpf||'—'}</td><td className="num">{t.hours_assigned||0}h</td><td>{t.is_active?'✅':'❌'}</td>
@@ -586,20 +588,20 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
                 <div className="ext-form">
                   <h3>{formData.id ? 'Editar' : 'Vincular'} Aluno</h3>
                   <div className="ext-form-grid">
-                    <label>Nome completo<input value={formData.full_name || ''} onChange={e => setFormData({ ...formData, full_name: e.target.value })} /></label>
-                    <label>E-mail<input type="email" value={formData.email || ''} onChange={e => setFormData({ ...formData, email: e.target.value })} /></label>
-                    <label>Telefone / WhatsApp<input value={formData.phone || ''} onChange={e => setFormData({ ...formData, phone: e.target.value })} placeholder="(63) 99999-0000" /></label>
-                    <label>Matrícula<input value={formData.registration_number || ''} onChange={e => setFormData({ ...formData, registration_number: e.target.value })} /></label>
-                    <label>CPF<input value={formData.cpf || ''} onChange={e => setFormData({ ...formData, cpf: e.target.value })} placeholder="000.000.000-00" /></label>
-                    <label>Curso <select value={formData.course_id || ''} onChange={e => setFormData({ ...formData, course_id: e.target.value || null })}>
+                    <HelpLabel>Nome completo<input value={formData.full_name || ''} onChange={e => setFormData({ ...formData, full_name: e.target.value })} /></HelpLabel>
+                    <HelpLabel>E-mail<input type="email" value={formData.email || ''} onChange={e => setFormData({ ...formData, email: e.target.value })} /></HelpLabel>
+                    <HelpLabel>Telefone / WhatsApp<input value={formData.phone || ''} onChange={e => setFormData({ ...formData, phone: e.target.value })} placeholder="(63) 99999-0000" /></HelpLabel>
+                    <HelpLabel>Matrícula<input value={formData.registration_number || ''} onChange={e => setFormData({ ...formData, registration_number: e.target.value })} /></HelpLabel>
+                    <HelpLabel>CPF<input value={formData.cpf || ''} onChange={e => setFormData({ ...formData, cpf: e.target.value })} placeholder="000.000.000-00" /></HelpLabel>
+                    <HelpLabel>Curso <select value={formData.course_id || ''} onChange={e => setFormData({ ...formData, course_id: e.target.value || null })}>
                       <option value="">— Selecionar —</option>
                       {courses?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                    </select></label>
-                    <label>Horas atribuídas<input type="number" value={formData.hours_assigned || ''} onChange={e => setFormData({ ...formData, hours_assigned: +e.target.value })} /></label>
-                    <label>Horas cumpridas<input type="number" value={formData.hours_completed || ''} onChange={e => setFormData({ ...formData, hours_completed: +e.target.value })} /></label>
-                    <label>Bolsista? <select value={formData.is_scholarship?'sim':'nao'} onChange={e => setFormData({ ...formData, is_scholarship: e.target.value==='sim' })}>
+                    </select></HelpLabel>
+                    <HelpLabel>Horas atribuídas<input type="number" value={formData.hours_assigned || ''} onChange={e => setFormData({ ...formData, hours_assigned: +e.target.value })} /></HelpLabel>
+                    <HelpLabel>Horas cumpridas<input type="number" value={formData.hours_completed || ''} onChange={e => setFormData({ ...formData, hours_completed: +e.target.value })} /></HelpLabel>
+                    <HelpLabel>Bolsista? <select value={formData.is_scholarship?'sim':'nao'} onChange={e => setFormData({ ...formData, is_scholarship: e.target.value==='sim' })}>
                       <option value="nao">Não</option><option value="sim">Sim</option>
-                    </select></label>
+                    </select></HelpLabel>
                   </div>
                   <div className="ext-form-actions">
                     <button className="ext-btn-save" onClick={saveStudent}>Salvar</button>
@@ -608,7 +610,7 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
                 </div>
               )}
               {(selectedProject ? projStudents : students).length === 0 ? <p className="ext-empty">{selectedProject ? 'Nenhum aluno vinculado.' : 'Selecione um projeto.'}</p> : (
-                <table className="ext-table"><thead><tr><th>Nome</th><th>E-mail</th><th>WhatsApp</th><th>Matrícula</th><th>Horas</th><th>Bolsista</th><th>Status</th><th>Ações</th></tr></thead>
+                <table className="ext-table"><thead><tr><th>Nome</th><th>E-mail<ContextHelp title="E-mail" /></th><th>WhatsApp</th><th>Matrícula</th><th>Horas</th><th>Bolsista</th><th>Status</th><th>Ações</th></tr></thead>
                 <tbody>{(selectedProject ? projStudents : students).map(s => (
                   <tr key={s.id} className={canEdit?'clickable':''} onClick={() => { if(canEdit){setFormType('student');setFormData(s);setSelectedProject(s.project_id);setShowForm(true);} }}>
                     <td><strong>{s.full_name}</strong></td><td>{s.email||'—'}</td><td>{s.phone||'—'}</td><td className="mono">{s.registration_number||'—'}</td><td className="num">{s.hours_completed||0}/{s.hours_assigned||0}h</td><td>{s.is_scholarship?'✅':'—'}</td><td><Badge status={s.status}/></td>
@@ -628,14 +630,14 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
                 <div className="ext-form">
                   <h3>{formData.id ? 'Editar' : 'Nova'} Entrega</h3>
                   <div className="ext-form-grid">
-                    <label>Título<input value={formData.title || ''} onChange={e => setFormData({ ...formData, title: e.target.value })} /></label>
-                    <label>Tipo <select value={formData.deliverable_type || 'relatorio_final'} onChange={e => setFormData({ ...formData, deliverable_type: e.target.value })}>
+                    <HelpLabel>Título<input value={formData.title || ''} onChange={e => setFormData({ ...formData, title: e.target.value })} /></HelpLabel>
+                    <HelpLabel>Tipo <select value={formData.deliverable_type || 'relatorio_final'} onChange={e => setFormData({ ...formData, deliverable_type: e.target.value })}>
                       {Object.entries(DELIV_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-                    </select></label>
-                    <label>Data de entrega<input type="date" value={formData.delivered_at || ''} onChange={e => setFormData({ ...formData, delivered_at: e.target.value })} /></label>
-                    <label>URL do documento<input value={formData.url || ''} onChange={e => setFormData({ ...formData, url: e.target.value })} placeholder="Link do arquivo ou repositório" /></label>
+                    </select></HelpLabel>
+                    <HelpLabel>Data de entrega<input type="date" value={formData.delivered_at || ''} onChange={e => setFormData({ ...formData, delivered_at: e.target.value })} /></HelpLabel>
+                    <HelpLabel>URL do documento<input value={formData.url || ''} onChange={e => setFormData({ ...formData, url: e.target.value })} placeholder="Link do arquivo ou repositório" /></HelpLabel>
                   </div>
-                  <label className="ext-form-full">Descrição<textarea value={formData.description || ''} onChange={e => setFormData({ ...formData, description: e.target.value })} rows={2} /></label>
+                  <HelpLabel className="ext-form-full">Descrição<textarea value={formData.description || ''} onChange={e => setFormData({ ...formData, description: e.target.value })} rows={2} /></HelpLabel>
                   <div className="ext-form-actions">
                     <button className="ext-btn-save" onClick={saveDeliverable}>Salvar</button>
                     <button className="ext-btn-cancel" onClick={() => setShowForm(false)}>Cancelar</button>
@@ -657,7 +659,7 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
           {view === 'cobertura' && (
             <div className="ext-section">
               <div className="ext-info">📊 Cobertura extensionista por curso. DCNs exigem pelo menos 10% da carga horária total em atividades de extensão.</div>
-              <table className="ext-table"><thead><tr><th>Curso</th><th>Projetos</th><th>Alunos</th><th>Horas discentes</th></tr></thead>
+              <table className="ext-table"><thead><tr><th>Curso<ContextHelp title="Curso" /></th><th>Projetos</th><th>Alunos</th><th>Horas discentes</th></tr></thead>
               <tbody>
                 {courses?.map(c => {
                   const cov = coverage.filter(cv => cv.course_id === c.id);

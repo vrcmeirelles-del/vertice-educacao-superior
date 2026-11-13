@@ -1,3 +1,4 @@
+import { HelpLabel } from '@/components/ContextHelp';
 import React,{useCallback,useEffect,useRef,useState} from 'react';
 import {Link} from 'wouter';
 import {ArrowRight,CheckCircle2,Clock,Eye,LockKeyhole,ShieldCheck} from 'lucide-react';
@@ -47,7 +48,7 @@ export default function ExperiencePortal(){
     <h2 style={{marginTop:0}}>Seu acesso demonstrativo está disponível</h2>
     <p>Antes de entrar, saiba que o cenário contém apenas dados fictícios. O Master terá acesso à quantidade de visitas, aos módulos explorados e às alterações fictícias salvas. Nenhum documento verdadeiro deve ser enviado.</p>
     <p>O link funciona como uma chave temporária: qualquer pessoa que o receba poderá utilizá-lo. Não há verificação de identidade por e-mail nesta versão.</p>
-    <label style={{display:'flex',alignItems:'flex-start',gap:10,margin:'18px 0'}}><input type="checkbox" checked={entryConsent} onChange={e=>setEntryConsent(e.target.checked)} style={{marginTop:5}}/><span>Li as informações acima e concordo em iniciar a experiência demonstrativa com registro de utilização.</span></label>
+    <HelpLabel style={{display:'flex',alignItems:'flex-start',gap:10,margin:'18px 0'}}><input type="checkbox" checked={entryConsent} onChange={e=>setEntryConsent(e.target.checked)} style={{marginTop:5}}/><span>Li as informações acima e concordo em iniciar a experiência demonstrativa com registro de utilização.</span></HelpLabel>
     <button className="corp-button" type="button" disabled={!entryConsent} onClick={()=>void enter()}>Entrar na Vértice Experience<ArrowRight size={16}/></button>
    </section>:<><p role={error?'alert':undefined}>{error||'Para entrar neste ambiente, abra o link temporário compartilhado pela equipe Vértice.'}</p>
    <p>O acesso demonstrativo comum continua disponível sem cadastro, com exemplos fictícios.</p>

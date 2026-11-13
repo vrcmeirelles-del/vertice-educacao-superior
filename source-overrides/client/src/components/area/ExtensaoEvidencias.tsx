@@ -1,3 +1,4 @@
+import { HelpLabel } from '@/components/ContextHelp';
 /**
  * ExtensaoEvidencias — Repositório de evidências com versionamento
  */
@@ -174,26 +175,26 @@ export default function ExtensaoEvidencias({
         <div className="ext-form">
           <h3>Enviar evidência</h3>
           <div className="ext-form-grid">
-            <label>Título *
+            <HelpLabel>Título *
               <input value={uploadForm.title} onChange={e => setUploadForm({ ...uploadForm, title: e.target.value })} />
-            </label>
-            <label>Tipo de documento
+            </HelpLabel>
+            <HelpLabel>Tipo de documento
               <select value={uploadForm.document_type} onChange={e => setUploadForm({ ...uploadForm, document_type: e.target.value })}>
                 {Object.entries(DOC_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
               </select>
-            </label>
-            <label>Período
+            </HelpLabel>
+            <HelpLabel>Período
               <input value={uploadForm.period} onChange={e => setUploadForm({ ...uploadForm, period: e.target.value })} placeholder="2026/02" />
-            </label>
+            </HelpLabel>
           </div>
-          <label className="ext-form-full">Observações
+          <HelpLabel className="ext-form-full">Observações
             <textarea value={uploadForm.notes} onChange={e => setUploadForm({ ...uploadForm, notes: e.target.value })} rows={2} />
-          </label>
-          <label className="ext-form-full">Arquivo (máx. 10MB)
+          </HelpLabel>
+          <HelpLabel className="ext-form-full">Arquivo (máx. 10MB)
             <input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,.docx,.xlsx,.pptx,.csv,.txt"
               disabled={uploading}
               onChange={e => { const f = e.target.files?.[0]; if (f) uploadFile(f); }} />
-          </label>
+          </HelpLabel>
           {uploading && <p style={{ color: '#3b82f6' }}>⏳ Enviando...</p>}
           <div className="ext-form-actions">
             <button className="ext-btn-cancel" onClick={() => setShowUpload(false)} disabled={uploading}>Cancelar</button>

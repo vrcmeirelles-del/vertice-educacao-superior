@@ -1,3 +1,5 @@
+import { IndicatorHelp } from "@/components/ContextHelp";
+import { HelpLabel } from '@/components/ContextHelp';
 /**
  * Enem360Escolar.tsx — ENEM 360° para Escolas
  * Histórico ENEM, simulados, competências, metas, evolução
@@ -123,7 +125,7 @@ export default function Enem360Escolar({ institutionId, isMaster, courses, role 
               { label: 'Simulados', value: String(Object.keys(simByDate).length), color: '#16a34a', sub: null },
             ].map(k => (
               <div key={k.label} style={kpiStyle(k.color)}>
-                <div style={{ fontSize: 11, color: '#666', textTransform: 'uppercase', letterSpacing: '.5px' }}>{k.label}</div>
+                <div style={{ fontSize: 11, color: '#666', textTransform: 'uppercase', letterSpacing: '.5px' }}>{k.label}<IndicatorHelp title={k.label}/></div>
                 <div style={{ fontSize: 22, fontWeight: 700, color: k.color }}>{k.value}</div>
                 {k.sub && <div style={{ fontSize: 11, color: Number(k.sub) >= 0 ? '#16a34a' : '#dc2626' }}>{k.sub} vs ano anterior</div>}
               </div>
@@ -264,15 +266,15 @@ export default function Enem360Escolar({ institutionId, isMaster, courses, role 
           <h3 style={{ margin: '0 0 16px' }}>Metas ENEM {currentYear}</h3>
           <div style={{ display: 'grid', gap: 12, maxWidth: 400 }}>
             <div>
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 4 }}>Média geral alvo</label>
+              <HelpLabel style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 4 }}>Média geral alvo</HelpLabel>
               <input type="number" step="0.1" value={metaAvg} onChange={e => setMetaAvg(e.target.value)} placeholder="Ex: 580" style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #ddd', fontSize: 13 }} />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 4 }}>Redação alvo</label>
+              <HelpLabel style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 4 }}>Redação alvo</HelpLabel>
               <input type="number" step="0.1" value={metaRed} onChange={e => setMetaRed(e.target.value)} placeholder="Ex: 650" style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #ddd', fontSize: 13 }} />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 4 }}>Taxa de aprovação em vestibular (%)</label>
+              <HelpLabel style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 4 }}>Taxa de aprovação em vestibular (%)</HelpLabel>
               <input type="number" step="0.1" value={metaAprov} onChange={e => setMetaAprov(e.target.value)} placeholder="Ex: 75" style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #ddd', fontSize: 13 }} />
             </div>
             <button onClick={saveMetas} style={{ padding: '8px 16px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600, fontSize: 13 }}>

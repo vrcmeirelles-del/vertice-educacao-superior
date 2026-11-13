@@ -1,0 +1,18 @@
+/* Scoped styles: keep form layout, controls and module palettes unchanged. */
+button.vx-help-dot { display:inline-flex!important; align-items:center; justify-content:center; flex:0 0 auto; width:24px!important; min-width:24px!important; height:24px!important; min-height:24px!important; padding:0!important; margin:0 0 0 6px; border:1px solid #91b6ae!important; border-radius:50%!important; background:#f1faf7!important; color:#166454!important; font:700 13px/1 system-ui!important; vertical-align:middle; cursor:pointer; box-shadow:none!important; }
+button.vx-help-dot:hover { background:#dcefe8!important; }
+button.vx-help-dot:focus-visible { outline:3px solid #16846e!important; outline-offset:3px; }
+.vx-help-label > .vx-help-dot { align-self:flex-start; }
+.vx-help-card { z-index:2147483000; box-sizing:border-box; width:min(340px,calc(100vw - 32px)); max-height:min(480px,var(--radix-popover-content-available-height)); overflow:auto; padding:17px; border:1px solid #cadbd4; border-radius:14px; background:#fff; color:#20392f; box-shadow:0 12px 40px #102e2929; font:14px/1.55 system-ui,sans-serif; text-align:left; }
+.vx-help-top { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+.vx-help-top strong { font-size:15px; }
+.vx-help-top button { flex:0 0 auto; width:28px; height:28px; padding:0; border:0; border-radius:5px; background:#eff5f2; color:#234b40; font:24px/1 system-ui; cursor:pointer; }
+.vx-help-card p { margin:10px 0 14px; }
+.vx-help-card a { color:#12604e; text-decoration:underline; }
+.vx-help-card small { display:block; margin-top:12px; color:#526b60; font-size:11px; }
+.vx-help-arrow { fill:#fff; }
+.vx-module-help { display:flex; align-items:center; gap:6px; margin:12px 0; color:#36594c; font-size:14px; }
+.guide-field-count { color:#526b60; }
+
+.vx-help-caption { display:inline; }
+.vx-help-caption > .vx-help-dot { display:inline-flex!important; }

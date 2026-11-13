@@ -1,3 +1,5 @@
+import { ContextHelp } from '@/components/ContextHelp';
+import { HelpLabel } from '@/components/ContextHelp';
 import { useEffect, useState } from "react";
 import {
   fetchEorbitSemestres, fetchEorbitQuantitativo, fetchEorbitCompliance,
@@ -64,7 +66,7 @@ export default function PainelEorbit({ institutionId }: { institutionId: string 
 
       {sub !== "enade" && sub !== "biblioteca" && (
         <div className="eorbit-filters">
-          <label>Semestre:</label>
+          <HelpLabel>Semestre:</HelpLabel>
           <select value={semestre} onChange={e => setSemestre(e.target.value)}>
             <option value="">Todos</option>
             {semOpts.map(s => <option key={s} value={s}>{s}</option>)}
@@ -145,7 +147,7 @@ function QuantitativoTab({ institutionId, semestre }: { institutionId: string; s
           <h3>Detalhamento por Turma</h3>
           <div className="eorbit-table-wrap">
             <table className="eorbit-table">
-              <thead><tr><th>Turma</th><th>Curso</th><th>Mat.</th><th>Cap.</th><th>Vagas</th><th>Ocup.</th></tr></thead>
+              <thead><tr><th>Turma</th><th>Curso<ContextHelp title="Curso" /></th><th>Mat.</th><th>Cap.</th><th>Vagas</th><th>Ocup.</th></tr></thead>
               <tbody>
                 {data.slice(0, 30).map(d => (
                   <tr key={d.id}>
@@ -196,7 +198,7 @@ function ComplianceTab({ institutionId, semestre }: { institutionId: string; sem
           <h3>Indicadores de Compliance</h3>
           <div className="eorbit-table-wrap">
             <table className="eorbit-table">
-              <thead><tr><th>Indicador</th>{data[0]?.dimensao && <th>Dimensão</th>}<th>Nota</th><th>Conceito</th><th style={{ minWidth: 120 }}>Barra</th></tr></thead>
+              <thead><tr><th>Indicador<ContextHelp title="Indicador" /></th>{data[0]?.dimensao && <th>Dimensão<ContextHelp title="Dimensão" /></th>}<th>Nota<ContextHelp title="Nota" /></th><th>Conceito</th><th style={{ minWidth: 120 }}>Barra</th></tr></thead>
               <tbody>
                 {data.sort((a, b) => b.nota - a.nota).map(d => (
                   <tr key={d.id}>
@@ -279,7 +281,7 @@ function DiarioTab({ institutionId, semestre }: { institutionId: string; semestr
           <h3>Preenchimento por Disciplina</h3>
           <div className="eorbit-table-wrap">
             <table className="eorbit-table">
-              <thead><tr><th>Disciplina</th><th>Professor</th><th>Curso</th><th>Previstas</th><th>Registradas</th><th>Preenchi.</th><th style={{ minWidth: 80 }}>Barra</th></tr></thead>
+              <thead><tr><th>Disciplina</th><th>Professor</th><th>Curso<ContextHelp title="Curso" /></th><th>Previstas</th><th>Registradas</th><th>Preenchi.</th><th style={{ minWidth: 80 }}>Barra</th></tr></thead>
               <tbody>
                 {data.sort((a, b) => a.percentual_preenchimento - b.percentual_preenchimento).map(d => (
                   <tr key={d.id}>
@@ -309,7 +311,7 @@ function DiarioTab({ institutionId, semestre }: { institutionId: string; semestr
             <h3>Conteúdo Programático — Execução</h3>
             <div className="eorbit-table-wrap">
               <table className="eorbit-table">
-                <thead><tr><th>Disciplina</th><th>Curso</th><th>Previsto</th><th>Ministrado</th><th>% Execução</th></tr></thead>
+                <thead><tr><th>Disciplina</th><th>Curso<ContextHelp title="Curso" /></th><th>Previsto</th><th>Ministrado</th><th>% Execução</th></tr></thead>
                 <tbody>
                   {freq.sort((a, b) => a.percentual - b.percentual).slice(0, 20).map(f => (
                     <tr key={f.id}>
@@ -405,7 +407,7 @@ function EnadeTab({ institutionId }: { institutionId: string }) {
           <h3>Dados por Curso — Último Ciclo ({ultimoAno})</h3>
           <div className="eorbit-table-wrap">
             <table className="eorbit-table">
-              <thead><tr><th>Curso</th><th>Conceito</th><th>Contínuo</th><th>Participantes</th></tr></thead>
+              <thead><tr><th>Curso<ContextHelp title="Curso" /></th><th>Conceito</th><th>Contínuo</th><th>Participantes</th></tr></thead>
               <tbody>
                 {ultimosDados.sort((a, b) => (b.conceito_enade ?? 0) - (a.conceito_enade ?? 0)).map(d => (
                   <tr key={d.id}>
@@ -466,7 +468,7 @@ function DocentesTab({ institutionId, semestre }: { institutionId: string; semes
           <h3>Lista de Docentes</h3>
           <div className="eorbit-table-wrap">
             <table className="eorbit-table">
-              <thead><tr><th>Nome</th><th>Titulação</th><th>Regime</th><th>Curso</th></tr></thead>
+              <thead><tr><th>Nome</th><th>Titulação</th><th>Regime</th><th>Curso<ContextHelp title="Curso" /></th></tr></thead>
               <tbody>
                 {data.sort((a, b) => a.nome.localeCompare(b.nome)).map(d => (
                   <tr key={d.id}>
@@ -538,7 +540,7 @@ function VestibularTab({ institutionId, semestre }: { institutionId: string; sem
           <h3>Detalhamento</h3>
           <div className="eorbit-table-wrap">
             <table className="eorbit-table">
-              <thead><tr><th>Curso</th><th>Semestre</th><th>Vagas</th><th>Inscritos</th><th>Conc.</th><th>Mat.</th></tr></thead>
+              <thead><tr><th>Curso<ContextHelp title="Curso" /></th><th>Semestre<ContextHelp title="Semestre" /></th><th>Vagas</th><th>Inscritos</th><th>Conc.</th><th>Mat.</th></tr></thead>
               <tbody>
                 {data.sort((a, b) => b.inscritos - a.inscritos).map(d => (
                   <tr key={d.id}>

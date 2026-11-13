@@ -1,3 +1,5 @@
+import { ContextHelp } from '@/components/ContextHelp';
+import { HelpLabel } from '@/components/ContextHelp';
 /**
  * ExtensaoParceiros — Gestão de parceiros externos
  */
@@ -102,29 +104,29 @@ export default function ExtensaoParceiros({
         <div className="ext-form">
           <h3>Novo parceiro</h3>
           <div className="ext-form-grid">
-            <label>Nome *
+            <HelpLabel>Nome *
               <input value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
-            </label>
-            <label>Tipo
+            </HelpLabel>
+            <HelpLabel>Tipo
               <select value={formData.partner_type} onChange={e => setFormData({ ...formData, partner_type: e.target.value })}>
                 {Object.entries(TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
               </select>
-            </label>
-            <label>Contato
+            </HelpLabel>
+            <HelpLabel>Contato
               <input value={formData.contact_name} onChange={e => setFormData({ ...formData, contact_name: e.target.value })} placeholder="Nome do responsável" />
-            </label>
-            <label>E-mail
+            </HelpLabel>
+            <HelpLabel>E-mail
               <input type="email" value={formData.contact_email} onChange={e => setFormData({ ...formData, contact_email: e.target.value })} />
-            </label>
-            <label>Telefone
+            </HelpLabel>
+            <HelpLabel>Telefone
               <input value={formData.contact_phone} onChange={e => setFormData({ ...formData, contact_phone: e.target.value })} />
-            </label>
-            <label>Território
+            </HelpLabel>
+            <HelpLabel>Território
               <input value={formData.territory} onChange={e => setFormData({ ...formData, territory: e.target.value })} placeholder="Bairro, cidade ou região" />
-            </label>
-            <label>Tipo de acordo
+            </HelpLabel>
+            <HelpLabel>Tipo de acordo
               <input value={formData.agreement_type} onChange={e => setFormData({ ...formData, agreement_type: e.target.value })} placeholder="Convênio, termo, carta..." />
-            </label>
+            </HelpLabel>
           </div>
           <div className="ext-form-actions">
             <button className="ext-btn-save" onClick={savePartner}>Salvar</button>
@@ -138,7 +140,7 @@ export default function ExtensaoParceiros({
       ) : (
         <table className="ext-table">
           <thead>
-            <tr><th>Nome</th><th>Tipo</th><th>Contato</th><th>Território</th><th>Projetos</th><th>Status</th>{canEdit && <th>Ação</th>}</tr>
+            <tr><th>Nome</th><th>Tipo</th><th>Contato</th><th>Território</th><th>Projetos</th><th>Status</th>{canEdit && <th>Ação<ContextHelp title="Ação" /></th>}</tr>
           </thead>
           <tbody>
             {partners.map(p => (

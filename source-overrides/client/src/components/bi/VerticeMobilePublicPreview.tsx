@@ -1,3 +1,4 @@
+import { HelpLabel } from '@/components/ContextHelp';
 import { useEffect, useMemo, useState } from "react";
 import "./vertice-mobile-public.css";
 
@@ -64,8 +65,8 @@ export default function VerticeMobilePublicPreview() {
     </section>
     <main className="vmp-main">
       <div className="vmp-filter">
-        <label>Instituição <select value="Faculdade Exemplo — Demonstração" disabled aria-label="Instituição demonstrativa"><option>Faculdade Exemplo — Demonstração</option></select></label>
-        <label>Semestre <select value={focus} onChange={event => setFocus(event.target.value as "2026/02" | "2026/01")} aria-label="Semestre demonstrativo"><option value="2026/02">2026/2</option><option value="2026/01">2026/1</option></select></label>
+        <HelpLabel>Instituição <select value="Faculdade Exemplo — Demonstração" disabled aria-label="Instituição demonstrativa"><option>Faculdade Exemplo — Demonstração</option></select></HelpLabel>
+        <HelpLabel>Semestre <select value={focus} onChange={event => setFocus(event.target.value as "2026/02" | "2026/01")} aria-label="Semestre demonstrativo"><option value="2026/02">2026/2</option><option value="2026/01">2026/1</option></select></HelpLabel>
       </div>
       {tab === "visao" && <>
         <div className="vmp-section-head"><div><span>VISÃO INSTITUCIONAL</span><h2>Seu resumo executivo</h2></div><Tag type="success">Indicadores ilustrativos</Tag></div>
@@ -94,7 +95,7 @@ export default function VerticeMobilePublicPreview() {
       {tab === "cursos" && <>
         <div className="vmp-section-head"><div><span>ANÁLISE POR CURSO</span><h2>Desempenho e tendência</h2></div><Tag type="neutral">Exemplo</Tag></div>
         <section className="vmp-panel">
-          <label className="vmp-search-label">Buscar curso<input placeholder="Digite um curso..." value={query} onChange={event => setQuery(event.target.value)}/></label>
+          <HelpLabel className="vmp-search-label">Buscar curso<input placeholder="Digite um curso..." value={query} onChange={event => setQuery(event.target.value)}/></HelpLabel>
           <div className="vmp-course-list">{sorted.length ? sorted.map(c=><button className={"vmp-course-item "+(c.name===selectedCourse?"selected":"")} key={c.name} onClick={()=>setSelectedCourse(c.name)}>
             <div><strong>{c.name}</strong><small>{fmt.format(c.students)} matrículas · demonstração</small></div><div><Tag type={c.students>=c.prior?"success":"warn"}>{percent(change(c.students,c.prior))}</Tag></div>
           </button>):<p>Nenhum curso encontrado neste exemplo.</p>}</div>

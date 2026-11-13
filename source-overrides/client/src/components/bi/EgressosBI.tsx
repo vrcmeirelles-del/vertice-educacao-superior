@@ -1,3 +1,4 @@
+import { ContextHelp } from '@/components/ContextHelp';
 // EgressosBI.tsx — Painel de indicadores de egressos para BI da Direção
 import { useState, useEffect, useMemo } from 'react';
 import {
@@ -123,7 +124,7 @@ export default function EgressosBI({ institutionId }: Props) {
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8125rem', marginTop: '18px' }}>
                   <thead>
                     <tr style={{ borderBottom: '2px solid #e2e8f0' }}>
-                      <th style={{ textAlign: 'left', padding: '6px 8px', color: '#64748b', fontSize: '0.75rem', textTransform: 'uppercase' }}>Curso</th>
+                      <th style={{ textAlign: 'left', padding: '6px 8px', color: '#64748b', fontSize: '0.75rem', textTransform: 'uppercase' }}>Curso<ContextHelp title="Curso" /></th>
                       <th style={{ textAlign: 'right', padding: '6px 8px' }}>Egressos</th>
                       <th style={{ textAlign: 'right', padding: '6px 8px' }}>Atividade</th>
                       <th style={{ textAlign: 'right', padding: '6px 8px' }}>Aderência</th>

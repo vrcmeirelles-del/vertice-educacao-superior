@@ -1,3 +1,6 @@
+import { IndicatorHelp } from "@/components/ContextHelp";
+import { ContextHelp } from '@/components/ContextHelp';
+import { HelpLabel } from '@/components/ContextHelp';
 /**
  * BI do Reitor — Painel expandido com visão 360° da IES
  *
@@ -61,7 +64,7 @@ function KPICard({ label, value, unit, delta, spark, direction, small }: {
   const good = delta !== null && delta !== undefined ? (direction === 'baixo' ? delta < 0 : delta > 0) : null;
   return (
     <div className={`rbi-kpi ${small ? 'rbi-kpi-sm' : ''}`}>
-      <span className="rbi-kpi-label">{label}</span>
+      <span className="rbi-kpi-label">{label}<IndicatorHelp title={label}/></span>
       <span className="rbi-kpi-value">{display}</span>
       {delta !== null && delta !== undefined && (
         <span className={`rbi-kpi-delta ${good ? 'rbi-up' : 'rbi-down'}`}>
@@ -75,7 +78,7 @@ function KPICard({ label, value, unit, delta, spark, direction, small }: {
 
 function Donut({ data, colors, size = 160 }: { data: { label: string; value: number }[]; colors: string[]; size?: number }) {
   const total = data.reduce((s, d) => s + d.value, 0);
-  if (!total) return <p className="rbi-empty">Sem dados</p>;
+  if (!total) return <p className="rbi-empty">Sem dados<ContextHelp title="Sem dados" /></p>;
   const r = size * 0.35;
   let offset = 0;
   return (
@@ -513,14 +516,14 @@ export default function ReitorBI({ institutions, courses, enrollments, session, 
       <SectionCard title="Top 10 Professores — Reprovação">
         {topProfs.length ? (
           <BarH data={topProfs.map(p => ({ label: p.nome, value: p.total }))} colors={PALETTE} />
-        ) : <p className="rbi-empty">Sem dados</p>}
+        ) : <p className="rbi-empty">Sem dados<ContextHelp title="Sem dados" /></p>}
       </SectionCard>
 
       {/* Top disciplinas com reprovação */}
       <SectionCard title="Top 10 Disciplinas — Reprovação">
         {topDiscs.length ? (
           <BarH data={topDiscs.map(d => ({ label: d.disciplina, value: d.total }))} colors={PALETTE} />
-        ) : <p className="rbi-empty">Sem dados</p>}
+        ) : <p className="rbi-empty">Sem dados<ContextHelp title="Sem dados" /></p>}
       </SectionCard>
 
       {/* Saúde do período */}
@@ -581,7 +584,7 @@ export default function ReitorBI({ institutions, courses, enrollments, session, 
       <SectionCard title="Vagas por Curso (Vestibular)">
         {vestCursos.length ? (
           <BarH data={vestCursos.slice(0, 10).map(v => ({ label: v.curso_nome || 'Curso não informado', value: Number(v.vagas ?? 0) }))} colors={PALETTE} />
-        ) : <p className="rbi-empty">Sem dados</p>}
+        ) : <p className="rbi-empty">Sem dados<ContextHelp title="Sem dados" /></p>}
       </SectionCard>
     </div>;
   }
@@ -763,11 +766,11 @@ export default function ReitorBI({ institutions, courses, enrollments, session, 
         <div className="rbi-title-row">
           <h2>BI do Reitor</h2>
           <div className="rbi-actions">
-            <label className="rbi-inst-select">
+            <HelpLabel className="rbi-inst-select">
               <select value={instId} onChange={e => { setInstId(e.target.value); setTick(t => t + 1); }}>
                 {institutions.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
               </select>
-            </label>
+            </HelpLabel>
             <button type="button" className="rbi-btn" onClick={() => setTick(t => t + 1)}>🔄 Atualizar</button>
           </div>
         </div>

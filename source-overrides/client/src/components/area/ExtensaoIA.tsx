@@ -1,3 +1,4 @@
+import { ContextHelp } from '@/components/ContextHelp';
 /**
  * ExtensaoIA — Painel de análises de IA
  * Restrito a alta gestão (master, reitor, pro_reitoria)
@@ -272,7 +273,7 @@ export default function ExtensaoIA({
       ) : !selectedAnalysis ? (
         <table className="ext-table">
           <thead>
-            <tr><th>Data</th><th>Tipo</th><th>Status</th><th>Achados</th><th>Modelo</th><th>Validação</th><th>Ação</th></tr>
+            <tr><th>Data</th><th>Tipo</th><th>Status</th><th>Achados</th><th>Modelo</th><th>Validação</th><th>Ação<ContextHelp title="Ação" /></th></tr>
           </thead>
           <tbody>
             {analyses.map(a => (

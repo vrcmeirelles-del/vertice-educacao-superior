@@ -1,24 +1,25 @@
+import { ContextHelp } from '@/components/ContextHelp';
+import { HelpLabel } from '@/components/ContextHelp';
 import React, { useMemo, useState } from "react";
 import { Link } from "wouter";
 import { ArrowUpRight } from "lucide-react";
 import { PublicHeading } from "@/components/PublicLayout";
-import { FAQ, GLOSSARY, TAB_FAQ } from "@/lib/help";
+import { FAQ, TAB_FAQ } from "@/lib/help";
 
-const slug = (s: string) =>
-  s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+import { HELP_GROUPS, helpSlug as slug, normalizeHelp } from "@/lib/contextual-help";
 
 export default function Guide() {
   const [q, setQ] = useState("");
-  const query = q.trim().toLowerCase();
+  const query = normalizeHelp(q);
   const groups = useMemo(
     () =>
-      GLOSSARY.map(g => ({
+      HELP_GROUPS.map(g => ({
         ...g,
-        entries: g.entries.filter(e => !query || `${e.term} ${e.text}`.toLowerCase().includes(query)),
+        entries: g.entries.filter(e => !query || normalizeHelp(`${e.term} ${e.text}`).includes(query)),
       })).filter(g => g.entries.length),
     [query]
   );
-  const match = (f: { q: string; a: string }) => !query || `${f.q} ${f.a}`.toLowerCase().includes(query);
+  const match = (f: { q: string; a: string }) => !query || normalizeHelp(`${f.q} ${f.a}`).includes(query);
   const faq = FAQ.filter(match);
   const tabFaq = Object.values(TAB_FAQ).map(t => ({ ...t, items: t.items.filter(match) })).filter(t => t.items.length);
 
@@ -27,16 +28,17 @@ export default function Guide() {
       <PublicHeading
         eyebrow="GUIA DO SISTEMA"
         title="Guia e glossário da área de gestão."
-        text="O que significa cada termo usado no painel da Vértice, como preencher metas, plano de ação e diagnóstico, e respostas para as dúvidas mais comuns."
+        text="Consulte os módulos da Vértice Superior e Escolas, os indicadores e os campos dos formulários. As explicações são prontas; use o campo de perguntar à IA para dúvidas adicionais."
       />
       <section className="corp-container corp-section guide">
         <div className="guide-search">
-          <label htmlFor="guide-q">Buscar um termo ou dúvida</label>
-          <input id="guide-q" type="search" value={q} onChange={e => setQ(e.target.value)} placeholder="Ex.: linha de base, 5W2H, convite" />
+          <HelpLabel htmlFor="guide-q">Buscar um termo ou dúvida</HelpLabel>
+          <input id="guide-q" type="search" value={q} onChange={e => setQ(e.target.value)} placeholder="Ex.: EBITDA, ENEM, PEI, evidência, 5W2H" />
         </div>
 
+        <p className="guide-field-count">{HELP_GROUPS.reduce((total,group)=>total+group.entries.length,0)} explicações para consulta. Clique no “?” ao lado dos campos e termos durante o uso do portal.</p>
         <nav className="guide-index" aria-label="Seções do guia">
-          {GLOSSARY.map(g => (
+          {HELP_GROUPS.map(g => (
             <a key={g.group} href={`#${slug(g.group)}`}>{g.group}</a>
           ))}
           <a href="#perguntas-frequentes">Perguntas frequentes</a>
@@ -45,7 +47,7 @@ export default function Guide() {
         <div className="guide-steps">
           <h2>O ciclo em quatro passos</h2>
           <ol>
-            <li><strong>Diagnóstico.</strong> Avalie os critérios com nota, achado e evidência.</li>
+            <li><strong>Diagnóstico.<ContextHelp title="Diagnóstico." /></strong> Avalie os critérios com nota, achado e evidência.</li>
             <li><strong>Metas.</strong> Escolha o que precisa mudar, com indicador, linha de base, alvo e prazo.</li>
             <li><strong>Plano 5W2H.</strong> Transforme achados e metas em ações com responsável e prazo.</li>
             <li><strong>Acompanhamento.</strong> Registre medições e evidências e revise o que não avançou.</li>

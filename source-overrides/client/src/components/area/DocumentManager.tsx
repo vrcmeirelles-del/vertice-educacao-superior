@@ -1,3 +1,4 @@
+import { HelpLabel } from '@/components/ContextHelp';
 /**
  * DocumentManager.tsx — Gestão Documental Inteligente
  * Tab: "documentos" (superior) / "escola-documentos" (escolas)
@@ -466,7 +467,7 @@ export default function DocumentManager({ institutionId, isMaster }: Props) {
       <h3 style={{ margin: '0 0 16px' }}>Enviar documento</h3>
       <div style={{ display: 'grid', gap: 12, maxWidth: 600 }}>
         <div>
-          <label style={labelStyle}>Categoria *</label>
+          <HelpLabel style={labelStyle}>Categoria *</HelpLabel>
           <select value={uploadCategory} onChange={(e) => {
             setUploadCategory(e.target.value);
             const cat = categories.find((c) => c.code === e.target.value);
@@ -481,21 +482,21 @@ export default function DocumentManager({ institutionId, isMaster }: Props) {
           </select>
         </div>
         <div>
-          <label style={labelStyle}>Título *</label>
+          <HelpLabel style={labelStyle}>Título *</HelpLabel>
           <input type="text" value={uploadTitle} onChange={(e) => setUploadTitle(e.target.value)} style={inputStyle} />
         </div>
         <div>
-          <label style={labelStyle}>Descrição</label>
+          <HelpLabel style={labelStyle}>Descrição</HelpLabel>
           <textarea value={uploadDescription} onChange={(e) => setUploadDescription(e.target.value)}
             style={{ ...inputStyle, minHeight: 60 }} />
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           <div>
-            <label style={labelStyle}>Data de vigência</label>
+            <HelpLabel style={labelStyle}>Data de vigência</HelpLabel>
             <input type="date" value={uploadEffective} onChange={(e) => setUploadEffective(e.target.value)} style={inputStyle} />
           </div>
           <div>
-            <label style={labelStyle}>Data de vencimento</label>
+            <HelpLabel style={labelStyle}>Data de vencimento</HelpLabel>
             <input type="date" value={uploadExpiry} onChange={(e) => setUploadExpiry(e.target.value)} style={inputStyle} />
             {!uploadExpiry && uploadCategory && (() => {
               const cat = categories.find((c) => c.code === uploadCategory);
@@ -508,7 +509,7 @@ export default function DocumentManager({ institutionId, isMaster }: Props) {
           </div>
         </div>
         <div>
-          <label style={labelStyle}>Arquivo *</label>
+          <HelpLabel style={labelStyle}>Arquivo *</HelpLabel>
           <input type="file" ref={fileRef}
             accept=".pdf,.docx,.doc,.odt,.txt,.png,.jpg,.jpeg"
             onChange={(e) => setUploadFile(e.target.files?.[0] || null)}

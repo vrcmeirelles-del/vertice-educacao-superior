@@ -1,3 +1,4 @@
+import { HelpLabel } from '@/components/ContextHelp';
 /**
  * ExtensaoCompetencias — Catálogo e avaliação de competências
  */
@@ -122,24 +123,24 @@ export default function ExtensaoCompetencias({
         <div className="ext-form">
           <h3>Nova competência</h3>
           <div className="ext-form-grid">
-            <label>Código
+            <HelpLabel>Código
               <input value={formData.code} onChange={e => setFormData({ ...formData, code: e.target.value })} placeholder="EXT-01" />
-            </label>
-            <label>Nome *
+            </HelpLabel>
+            <HelpLabel>Nome *
               <input value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
-            </label>
-            <label>Categoria
+            </HelpLabel>
+            <HelpLabel>Categoria
               <select value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })}>
                 {Object.entries(CATEGORY_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
               </select>
-            </label>
-            <label>Documento fonte
+            </HelpLabel>
+            <HelpLabel>Documento fonte
               <input value={formData.source_document} onChange={e => setFormData({ ...formData, source_document: e.target.value })} placeholder="PPC, DCN, resolução..." />
-            </label>
+            </HelpLabel>
           </div>
-          <label className="ext-form-full">Descrição
+          <HelpLabel className="ext-form-full">Descrição
             <textarea value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} rows={2} />
-          </label>
+          </HelpLabel>
           <div className="ext-form-actions">
             <button className="ext-btn-save" onClick={saveCompetency}>Salvar</button>
             <button className="ext-btn-cancel" onClick={() => setShowForm(false)}>Cancelar</button>

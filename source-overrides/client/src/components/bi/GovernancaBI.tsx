@@ -1,3 +1,4 @@
+import { ContextHelp } from '@/components/ContextHelp';
 /**
  * Painel da Reitoria — Governança Regulatória 360
  *
@@ -268,7 +269,7 @@ export default function GovernancaBI({ institutionId, institutionName, courses }
         <table className="gov-table">
           <thead>
             <tr>
-              <th>Curso</th>
+              <th>Curso<ContextHelp title="Curso" /></th>
               <th>Coordenação</th>
               <th>Conceito simulado (2017)</th>
               <th>Conceito viável estimado</th>

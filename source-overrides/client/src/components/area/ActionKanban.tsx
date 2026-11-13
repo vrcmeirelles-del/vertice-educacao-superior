@@ -1,3 +1,4 @@
+import { HelpLabel } from '@/components/ContextHelp';
 import {useMemo, useState} from "react";
 import {ACTION_STATUS, fmtDate, isLate, type Row} from "@/lib/area";
 import "./action-kanban.css";
@@ -57,8 +58,8 @@ export default function ActionKanban({actions,goals,canEdit,onEdit,onMove}:Props
     <div className="vx-task-stats"><span><b>{total}</b> no filtro</span><span><b>{completed}</b> concluídas</span></div>
   </div>
   <div className="vx-task-filters">
-   <label>Buscar tarefa ou responsável<input type="search" placeholder="Título, responsável, meta…" value={search} onChange={e=>setSearch(e.target.value)}/></label>
-   <label>Exibir<select value={scope} onChange={e=>setScope(e.target.value)}><option value="ativas">Em aberto</option><option value="todas">Todas</option><option value="atrasadas">Atrasadas</option></select></label>
+   <HelpLabel>Buscar tarefa ou responsável<input type="search" placeholder="Título, responsável, meta…" value={search} onChange={e=>setSearch(e.target.value)}/></HelpLabel>
+   <HelpLabel>Exibir<select value={scope} onChange={e=>setScope(e.target.value)}><option value="ativas">Em aberto</option><option value="todas">Todas</option><option value="atrasadas">Atrasadas</option></select></HelpLabel>
   </div>
   {message&&<p role="status" className="vx-task-message">{message}</p>}
   <div className="vx-task-filters" role="group" aria-label="Modo de visualização">
@@ -102,7 +103,7 @@ export default function ActionKanban({actions,goals,canEdit,onEdit,onMove}:Props
       <div className="vx-task-bottom"><span className={late?"vx-task-late":""}>{action.due_date?fmtDate(action.due_date):"Sem prazo"}{late?" · Atrasada":""}</span><b>{progress}%</b></div>
       <div className="vx-task-progress"><span style={{width:progress+"%"}}/></div>
       <div className="vx-task-controls">
-       {canEdit?<><label>Alterar situação<select aria-label={"Situação: "+String(action.what)} value={String(action.status)} disabled={busy!==null} onChange={e=>void move(action,e.target.value)}>{ACTION_STATUS.map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></label><button type="button" onClick={()=>onEdit(action)}>Editar</button></>:<small>Somente leitura</small>}
+       {canEdit?<><HelpLabel>Alterar situação<select aria-label={"Situação: "+String(action.what)} value={String(action.status)} disabled={busy!==null} onChange={e=>void move(action,e.target.value)}>{ACTION_STATUS.map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></HelpLabel><button type="button" onClick={()=>onEdit(action)}>Editar</button></>:<small>Somente leitura</small>}
       </div>
      </article>;
     })}

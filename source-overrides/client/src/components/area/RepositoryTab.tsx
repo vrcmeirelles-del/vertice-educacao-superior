@@ -1,3 +1,5 @@
+import { ContextHelp } from '@/components/ContextHelp';
+import { HelpLabel } from '@/components/ContextHelp';
 import { useCourseFilters } from "./CourseFilters";
 import indicatorNames from "@/lib/repository-indicators.json";
 import "./avaliacao-institucional.css";
@@ -415,8 +417,8 @@ export default function RepositoryTab(props: RepositoryProps) {
             <th>Código</th>
             <th>Documento</th>
             <th>Indicadores</th>
-            <th>Periodicidade</th>
-            {catalogView && <th>Responsável</th>}
+            <th>Periodicidade<ContextHelp title="Periodicidade" /></th>
+            {catalogView && <th>Responsável<ContextHelp title="Responsável" /></th>}
             <th>Situação</th>
             <th />
           </tr>
@@ -573,7 +575,7 @@ export default function RepositoryTab(props: RepositoryProps) {
           </div>
         </header>
         <div className="er-toolbar">
-          <label>
+          <HelpLabel>
             Semestre de referência
             <select
               aria-label="Semestre de referência"
@@ -589,7 +591,7 @@ export default function RepositoryTab(props: RepositoryProps) {
                   </option>
                 ))}
             </select>
-          </label>
+          </HelpLabel>
           {goalFilter && (
             <span className="er-notice">
               Meta:{" "}
@@ -683,15 +685,15 @@ export default function RepositoryTab(props: RepositoryProps) {
           <>
             <div className="er-toolbar">
               {classification.controls}
-              <label>
+              <HelpLabel>
                 Buscar curso
                 <input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Nome, código ou coordenação"
                 />
-              </label>
-              <label>
+              </HelpLabel>
+              <HelpLabel>
                 Situação documental
                 <select
                   value={filter}
@@ -701,7 +703,7 @@ export default function RepositoryTab(props: RepositoryProps) {
                   <option value="pendentes">Com pendências</option>
                   <option value="configurar">Sem checklist</option>
                 </select>
-              </label>
+              </HelpLabel>
             </div>
             <Card
               title="Situação por curso"
@@ -877,12 +879,12 @@ export default function RepositoryTab(props: RepositoryProps) {
                   <>
                     <p className="er-card-note">Abra uma dimensão e um indicador para consultar os documentos correspondentes. A presença de arquivo não equivale à validação. Os percentuais mostram apenas a cobertura documental validada, não o conceito do INEP.</p>
                     <div className="er-toolbar er-dimension-filter">
-                      <label>Dimensão
+                      <HelpLabel>Dimensão
                         <select aria-label="Filtrar dimensão do reconhecimento" value={dimensaoFiltro} onChange={e => setDimensaoFiltro(e.target.value)}>
                           <option value="todas">Todas as dimensões</option>
                           {DIMENSOES_INSTRUMENTO.map(d => <option value={d} key={d}>Dimensão {d} · {REPOSITORY_DIMENSIONS[d]}</option>)}
                         </select>
-                      </label>
+                      </HelpLabel>
                       <span className="er-muted">Instrumento de reconhecimento · avaliação por curso</span>
                     </div>
                     {DIMENSOES_INSTRUMENTO.filter(dim => dimensaoFiltro === "todas" || dimensaoFiltro === dim).map(dim => {
@@ -1137,14 +1139,14 @@ function CatalogPreview({
             curso e semestre.
           </p>
         </div>
-        <label>
+        <HelpLabel>
           Perfil do catálogo
           <select value={area} onChange={(e) => setArea(e.target.value)}>
             <option value="geral">Geral</option>
             <option value="juridica">Jurídico</option>
             <option value="saude">Saúde</option>
           </select>
-        </label>
+        </HelpLabel>
         {manager && (
           <button className="er-btn er-soft" onClick={onConfigure}>
             Configurar exigências
@@ -1166,7 +1168,7 @@ function CatalogPreview({
                     <th>Código</th>
                     <th>Documento</th>
                     <th>Indicadores</th>
-                    <th>Periodicidade</th>
+                    <th>Periodicidade<ContextHelp title="Periodicidade" /></th>
                     <th>Responsável sugerido</th>
                     <th />
                   </tr>
@@ -1416,7 +1418,7 @@ function UploadDialog(
             {String(props.course?.name ?? "Acervo institucional")} · semestre{" "}
             {semesterLabel(uploadSemester)}
           </p>
-          <label className="er-field">
+          <HelpLabel className="er-field">
             Semestre em que o documento foi criado
             <select
               value={uploadSemester}
@@ -1435,8 +1437,8 @@ function UploadDialog(
             <small>
               A evidência será registrada neste semestre do histórico.
             </small>
-          </label>
-          <label className="er-field">
+          </HelpLabel>
+          <HelpLabel className="er-field">
             Documento
             <select
               required
@@ -1481,7 +1483,7 @@ function UploadDialog(
                 </>
               )}
             </select>
-          </label>
+          </HelpLabel>
           {!manager && !scoped.length && (
             <p className="er-alert warning">
               Nenhuma entrega atribuída à sua conta neste curso e semestre.
@@ -1489,7 +1491,7 @@ function UploadDialog(
             </p>
           )}
           {manager && target === "novo" && (
-            <label className="er-field">
+            <HelpLabel className="er-field">
               Nome do documento
               <input
                 required
@@ -1499,9 +1501,9 @@ function UploadDialog(
                 onChange={(e) => setCustomTitle(e.target.value)}
                 placeholder="Ex.: Ata do NDE"
               />
-            </label>
+            </HelpLabel>
           )}
-          <label className="er-field">
+          <HelpLabel className="er-field">
             Tipo de registro
             <select
               value={isNsa ? "nsa" : "arquivo"}
@@ -1511,9 +1513,9 @@ function UploadDialog(
               <option value="arquivo">Enviar arquivo de evidência</option>
               <option value="nsa">NSA — Não se aplica</option>
             </select>
-          </label>
+          </HelpLabel>
           {isNsa ? (
-            <label className="er-field">
+            <HelpLabel className="er-field">
               Justificativa de não aplicabilidade
               <textarea
                 required
@@ -1526,10 +1528,10 @@ function UploadDialog(
                 O item fica registrado como NSA e sai das pendências e da base
                 de cobertura.
               </small>
-            </label>
+            </HelpLabel>
           ) : (
             <>
-              <label className="er-field">Arquivo</label>
+              <HelpLabel className="er-field">Arquivo</HelpLabel>
               <button
                 type="button"
                 className={`er-drop ${drag ? "active" : ""}`}
@@ -1580,7 +1582,7 @@ function UploadDialog(
                   </button>
                 </div>
               )}
-              <label className="er-field">
+              <HelpLabel className="er-field">
                 Referência
                 <input
                   maxLength={250}
@@ -1590,8 +1592,8 @@ function UploadDialog(
                   placeholder="Ex.: Ata NDE 05 — 2026-2"
                 />
                 <small>Identifica este arquivo dentro do semestre.</small>
-              </label>
-              <label className="er-field">
+              </HelpLabel>
+              <HelpLabel className="er-field">
                 Observação
                 <textarea
                   maxLength={4000}
@@ -1600,11 +1602,11 @@ function UploadDialog(
                   onChange={(e) => setNote(e.target.value)}
                   placeholder="Observações para a gestão (opcional)"
                 />
-              </label>
+              </HelpLabel>
             </>
           )}
           {manager && !selected && (
-            <label className="er-field">
+            <HelpLabel className="er-field">
               Vincular à meta (opcional)
               <select
                 value={goalId}
@@ -1618,7 +1620,7 @@ function UploadDialog(
                   </option>
                 ))}
               </select>
-            </label>
+            </HelpLabel>
           )}
           {Boolean(selected?.goal_id) && (
             <p className="er-alert info">
@@ -1736,14 +1738,14 @@ function ReviewDialog({
           <strong>{String(file.file_name)}</strong>
           {Boolean(file.reference) && <p>{String(file.reference)}</p>}
           {Boolean(file.upload_note) && <p>{String(file.upload_note)}</p>}
-          <label className="er-field">
+          <HelpLabel className="er-field">
             Decisão
             <select value={status} onChange={(e) => setStatus(e.target.value)}>
               <option value="validado">Validar documento</option>
               <option value="devolvido">Devolver para correção</option>
             </select>
-          </label>
-          <label className="er-field">
+          </HelpLabel>
+          <HelpLabel className="er-field">
             Parecer
             <textarea
               required={status === "devolvido"}
@@ -1752,7 +1754,7 @@ function ReviewDialog({
               onChange={(e) => setNote(e.target.value)}
               placeholder="Informe o motivo caso devolva o documento"
             />
-          </label>
+          </HelpLabel>
           {error && (
             <p role="alert" className="er-alert error">
               {error}
@@ -1828,7 +1830,7 @@ function NsaDialog({
               são preservadas.
             </p>
           ) : (
-            <label className="er-field">
+            <HelpLabel className="er-field">
               Justificativa
               <textarea
                 required
@@ -1841,7 +1843,7 @@ function NsaDialog({
                 O item sai das pendências e do cálculo da cobertura. A decisão
                 fica registrada para a gestão.
               </small>
-            </label>
+            </HelpLabel>
           )}
           {error && (
             <p role="alert" className="er-alert error">

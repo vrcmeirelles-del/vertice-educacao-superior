@@ -1,3 +1,5 @@
+import { ContextHelp } from '@/components/ContextHelp';
+import { HelpLabel } from '@/components/ContextHelp';
 // BillingPanel.tsx — Painel master de faturamento, contratos e MRR
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
@@ -198,7 +200,7 @@ export default function BillingPanel({ tierFilter }: { tierFilter?: string }) {
   return (
     <div className="bp-container">
       <div className="bp-header">
-        <h2>💰 Painel Financeiro</h2>
+        <h2>💰 Painel Financeiro<ContextHelp title="💰 Painel Financeiro" /></h2>
         <p>Contratos, faturamento e receita recorrente</p>
       </div>
 
@@ -233,7 +235,7 @@ export default function BillingPanel({ tierFilter }: { tierFilter?: string }) {
           <strong>{fmtBRL(totalPending)}</strong>
         </div>
         <div className="bp-mrr-card danger">
-          <span className="bp-mrr-label">Inadimplência</span>
+          <span className="bp-mrr-label">Inadimplência<ContextHelp title="Inadimplência" /></span>
           <strong>{fmtBRL(totalOverdue)}</strong>
         </div>
       </div>
@@ -259,13 +261,13 @@ export default function BillingPanel({ tierFilter }: { tierFilter?: string }) {
             <div className="bp-form">
               <h4>Novo Contrato</h4>
               <div className="bp-form-grid">
-                <label>IES
+                <HelpLabel>IES
                   <select value={newContract.institution_id||''} onChange={e=>setNewContract({...newContract,institution_id:e.target.value})}>
                     <option value="">Selecione...</option>
                     {institutions.map(i=><option key={i.id} value={i.id}>{i.name}</option>)}
                   </select>
-                </label>
-                <label>Pacote
+                </HelpLabel>
+                <HelpLabel>Pacote
                   <select value={newContract.package_code} onChange={e=>applyPackageDefaults(e.target.value)}>
                     <optgroup label="Educação Superior">
                       <option value="essencial">Essencial</option>
@@ -278,13 +280,13 @@ export default function BillingPanel({ tierFilter }: { tierFilter?: string }) {
                       <option value="governanca">Governança 360 (tudo do Essencial +)</option>
                     </optgroup>
                   </select>
-                </label>
-                <label>R$/aluno<input type="number" step="0.01" value={newContract.price_per_student} onChange={e=>setNewContract({...newContract,price_per_student:+e.target.value})} /></label>
-                <label>Piso mensal<input type="number" step="0.01" value={newContract.min_monthly} onChange={e=>setNewContract({...newContract,min_monthly:+e.target.value})} /></label>
-                <label>Teto mensal<input type="number" step="0.01" value={newContract.max_monthly||''} onChange={e=>setNewContract({...newContract,max_monthly:e.target.value?+e.target.value:null})} placeholder="Sem teto" /></label>
-                <label>Nº alunos<input type="number" value={newContract.student_count} onChange={e=>setNewContract({...newContract,student_count:+e.target.value})} /></label>
-                <label>Implementação<input type="number" step="0.01" value={newContract.implementation_fee} onChange={e=>setNewContract({...newContract,implementation_fee:+e.target.value})} /></label>
-                <label className="bp-checkbox"><input type="checkbox" checked={newContract.with_trial} onChange={e=>setNewContract({...newContract,with_trial:e.target.checked})} /> Trial 90 dias</label>
+                </HelpLabel>
+                <HelpLabel>R$/aluno<input type="number" step="0.01" value={newContract.price_per_student} onChange={e=>setNewContract({...newContract,price_per_student:+e.target.value})} /></HelpLabel>
+                <HelpLabel>Piso mensal<input type="number" step="0.01" value={newContract.min_monthly} onChange={e=>setNewContract({...newContract,min_monthly:+e.target.value})} /></HelpLabel>
+                <HelpLabel>Teto mensal<input type="number" step="0.01" value={newContract.max_monthly||''} onChange={e=>setNewContract({...newContract,max_monthly:e.target.value?+e.target.value:null})} placeholder="Sem teto" /></HelpLabel>
+                <HelpLabel>Nº alunos<input type="number" value={newContract.student_count} onChange={e=>setNewContract({...newContract,student_count:+e.target.value})} /></HelpLabel>
+                <HelpLabel>Implementação<input type="number" step="0.01" value={newContract.implementation_fee} onChange={e=>setNewContract({...newContract,implementation_fee:+e.target.value})} /></HelpLabel>
+                <HelpLabel className="bp-checkbox"><input type="checkbox" checked={newContract.with_trial} onChange={e=>setNewContract({...newContract,with_trial:e.target.checked})} /> Trial 90 dias</HelpLabel>
               </div>
               <div className="bp-form-preview">
                 <strong>Previsão mensal:</strong> {fmtBRL(Math.max(newContract.min_monthly, newContract.price_per_student * newContract.student_count))}
@@ -338,36 +340,36 @@ export default function BillingPanel({ tierFilter }: { tierFilter?: string }) {
             <div className="bp-nego-panel">
               <h4>⚙️ Negociação — {contracts.find(c=>c.contract_id===editingContract)?.ies_name}</h4>
               <div className="bp-form-grid">
-                <label className="bp-checkbox">
+                <HelpLabel className="bp-checkbox">
                   <input type="checkbox" checked={nego.is_courtesy} onChange={e=>setNego({...nego, is_courtesy:e.target.checked, discount_percent: e.target.checked ? 0 : nego.discount_percent})} />
                   <strong>🤝 Cortesia total (R$ 0)</strong>
-                </label>
+                </HelpLabel>
                 {nego.is_courtesy && (
                   <>
-                    <label>Motivo da cortesia *
+                    <HelpLabel>Motivo da cortesia *
                       <input value={nego.courtesy_reason} onChange={e=>setNego({...nego,courtesy_reason:e.target.value})} placeholder="Ex: Pró-reitoria de extensão, parceria institucional" />
-                    </label>
-                    <label>Cortesia válida até (opcional)
+                    </HelpLabel>
+                    <HelpLabel>Cortesia válida até (opcional)
                       <input type="date" value={nego.courtesy_expires_at} onChange={e=>setNego({...nego,courtesy_expires_at:e.target.value})} />
-                    </label>
+                    </HelpLabel>
                   </>
                 )}
                 {!nego.is_courtesy && (
                   <>
-                    <label>Desconto (%)
+                    <HelpLabel>Desconto (%)
                       <input type="number" step="0.5" min="0" max="100" value={nego.discount_percent} onChange={e=>setNego({...nego,discount_percent:+e.target.value})} />
-                    </label>
-                    <label>Motivo do desconto
+                    </HelpLabel>
+                    <HelpLabel>Motivo do desconto
                       <input value={nego.discount_reason||''} onChange={e=>setNego({...nego,discount_reason:e.target.value})} placeholder="Ex: Negociação direta, fidelização" />
-                    </label>
-                    <label>Valor mensal fixo negociado (opcional)
+                    </HelpLabel>
+                    <HelpLabel>Valor mensal fixo negociado (opcional)
                       <input type="number" step="0.01" value={nego.custom_monthly||''} onChange={e=>setNego({...nego,custom_monthly:e.target.value})} placeholder="Deixe vazio para usar o cálculo padrão" />
-                    </label>
+                    </HelpLabel>
                   </>
                 )}
-                <label className="bp-form-full-w">Anotações da negociação
+                <HelpLabel className="bp-form-full-w">Anotações da negociação
                   <textarea value={nego.negotiation_notes||''} onChange={e=>setNego({...nego,negotiation_notes:e.target.value})} rows={2} placeholder="Registro interno — não aparece no contrato" />
-                </label>
+                </HelpLabel>
               </div>
               <div className="bp-form-actions">
                 <button className="bp-btn-save" onClick={saveNegotiation}>Salvar negociação</button>

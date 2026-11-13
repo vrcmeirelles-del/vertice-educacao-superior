@@ -1,3 +1,5 @@
+import { ContextHelp } from '@/components/ContextHelp';
+import { HelpLabel } from '@/components/ContextHelp';
 import React, { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import "./direito-raio-x.css";
@@ -514,10 +516,10 @@ export default function DireitoRaioX({ institutionId }: Props) {
           <p className="drx-sub">Dados reais das ofertas do curso de Direito (027), até 2026/02. RF + RN + RA são ocorrências nas disciplinas, não estudantes únicos. O ranking não mede isoladamente desempenho ou qualidade docente.</p>
         </div>
         <div className="drx-compare-controls">
-          <label>Período de análise<select value={rankingSemestre} onChange={e=>{setRankingSemestre(e.target.value);setRankingSelecionado(null);}}>
+          <HelpLabel>Período de análise<select value={rankingSemestre} onChange={e=>{setRankingSemestre(e.target.value);setRankingSelecionado(null);}}>
             <option value="todos">Todos · 2023/01 a 2026/02</option>
             {["2023/01","2023/02","2024/01","2024/02","2025/01","2025/02","2026/01","2026/02"].map(t=><option key={t} value={t}>{t}</option>)}
-          </select></label>
+          </select></HelpLabel>
         </div>
         {docenciaStatus==="loading"?<p className="drx-alunos-loading" role="status">Consultando ocorrências por professor…</p>:
         docenciaStatus==="error"?<p className="drx-alunos-bloqueado" role="alert">A fonte de ofertas não está acessível no momento. Nenhum resultado foi estimado.</p>:
@@ -567,7 +569,7 @@ export default function DireitoRaioX({ institutionId }: Props) {
             const linhas=docenciaOfertas.filter(x=>key(x.nome)===key(professor.professor)&&(rankingSemestre==="todos"||x.semestre===rankingSemestre));
             return <div className="drx-detail" aria-live="polite">
               <div className="drx-compare-top"><h4>{professor.professor} · disciplinas e períodos</h4><button type="button" onClick={()=>{setRankingSelecionado(null);setOfertaSelecionada(null);}}>Fechar</button></div>
-              <div className="drx-table-wrap"><table className="drx-table"><thead><tr><th>Semestre</th><th>Disciplina / turma</th><th>Matrículas em disciplina</th><th>RF</th><th>RN</th><th>RA</th><th>Ocorrências</th><th>Alunos</th></tr></thead>
+              <div className="drx-table-wrap"><table className="drx-table"><thead><tr><th>Semestre<ContextHelp title="Semestre" /></th><th>Disciplina / turma</th><th>Matrículas em disciplina</th><th>RF</th><th>RN</th><th>RA</th><th>Ocorrências</th><th>Alunos</th></tr></thead>
                 <tbody>{linhas.sort((a,b)=>a.semestre.localeCompare(b.semestre)).map(d=><React.Fragment key={d.id}>
                 <tr className={ofertaSelecionada===d.id?"drx-row-selected":undefined}>
                   <td>{d.semestre}</td>
@@ -610,10 +612,10 @@ export default function DireitoRaioX({ institutionId }: Props) {
             <p><strong>Mais de uma turma no semestre:</strong> o mesmo registro de matrícula aparece em turmas distintas no período. Indica possível remanejamento ou lançamento múltiplo; só o histórico administrativo comprova realocação efetiva.</p>
           </div>
           <div className="drx-compare-controls">
-            <label>Semestre observado<select value={ingressoSem} onChange={e=>{setIngressoSem(e.target.value);setIngressoCategory("todos");setIngressoBusca("");}}>
+            <HelpLabel>Semestre observado<select value={ingressoSem} onChange={e=>{setIngressoSem(e.target.value);setIngressoCategory("todos");setIngressoBusca("");}}>
               {ingressoAuditoria.indicadores.map(d=><option key={d.sem} value={d.sem}>{d.sem}{!d.disponivel?" · dados nominais não disponibilizados":""}</option>)}
-            </select></label>
-            <label>Localizar matrícula ou turma<input type="search" value={ingressoBusca} onChange={e=>setIngressoBusca(e.target.value)} placeholder="Nome, matrícula ou turma" /></label>
+            </select></HelpLabel>
+            <HelpLabel>Localizar matrícula ou turma<input type="search" value={ingressoBusca} onChange={e=>setIngressoBusca(e.target.value)} placeholder="Nome, matrícula ou turma" /></HelpLabel>
           </div>
           <div className="drx-ingresso-kpis">
             {([
@@ -627,7 +629,7 @@ export default function DireitoRaioX({ institutionId }: Props) {
             )}
           </div>
           <div className="drx-table-wrap"><table className="drx-table">
-            <thead><tr><th>Semestre</th><th>Matrículas distintas</th><th>Primeiro registro no 1º período</th><th>Primeiro registro em período avançado</th><th>Vínculo localizado anteriormente</th><th>Em mais de uma turma</th><th>Período conflitante*</th></tr></thead>
+            <thead><tr><th>Semestre<ContextHelp title="Semestre" /></th><th>Matrículas distintas</th><th>Primeiro registro no 1º período</th><th>Primeiro registro em período avançado</th><th>Vínculo localizado anteriormente</th><th>Em mais de uma turma</th><th>Período conflitante*</th></tr></thead>
             <tbody>{ingressoAuditoria.indicadores.map(d=><tr key={d.sem} className={ingressoSem===d.sem?"drx-row-selected":undefined}>
               <td><button type="button" className="drx-period-link" onClick={()=>setIngressoSem(d.sem)}>{d.sem} ↗</button></td>
               <td>{d.disponivel?d.presentes:"Sem dados"}</td><td>{d.disponivel?d.primeiro:"—"}</td><td>{d.disponivel?d.avancado:"—"}</td><td>{d.disponivel?d.continuidade:"—"}</td><td>{d.disponivel?d.realocado:"—"}</td><td>{d.disponivel?d.conflitos:"—"}</td>
@@ -656,7 +658,7 @@ export default function DireitoRaioX({ institutionId }: Props) {
           <div className="drx-section-header"><h4>Crescimento Real do Curso</h4><p className="drx-sub">Total de alunos reais por semestre — evolução desde a fundação</p></div>
           <div className="drx-table-wrap">
             <table className="drx-table">
-              <thead><tr><th>Semestre</th><th>Total Real</th><th>Ingressantes 1º Per.</th><th>Fantasmas</th><th>% Fantasma</th><th>Crescimento</th></tr></thead>
+              <thead><tr><th>Semestre<ContextHelp title="Semestre" /></th><th>Total Real</th><th>Ingressantes 1º Per.</th><th>Fantasmas</th><th>% Fantasma</th><th>Crescimento</th></tr></thead>
               <tbody>
                 {Object.entries(serieReal.resumo_serie_historica).map(([sem, d]: [string, any], i: number, arr: any[]) => {
                   const prevVal = i > 0 ? (arr[i-1][1] as any).total_real : 0;
@@ -687,9 +689,9 @@ export default function DireitoRaioX({ institutionId }: Props) {
           <p><strong>Δ:</strong> diferença absoluta em matrículas ativas das duas turmas de ingresso. <strong>p.p.</strong> significa pontos percentuais, usados para comparar duas taxas. Turmas que ingressaram há mais tempo tiveram mais tempo para alterações de situação.</p>
         </div>
         <div className="drx-compare-controls">
-          <label>Turma de ingresso de referência<select value={displayedSem} onChange={e=>setSelectedSem(e.target.value)}>{periodLabels.map(sem=><option value={sem} key={sem}>{sem}</option>)}</select></label>
-          <label>Comparar com<select value={compareMode} onChange={e=>setCompareMode(e.target.value as CompareMode)}><option value="homologo">Mesmo semestre do ano anterior</option><option value="anterior">Turma que ingressou no semestre anterior</option><option value="livre">Selecionar período</option></select></label>
-          {compareMode==="livre"&&<label>Outro semestre<select value={selectedOther} onChange={e=>setComparisonSem(e.target.value)}>{periodLabels.filter(sem=>sem!==displayedSem).map(sem=><option value={sem} key={sem}>{sem}</option>)}</select></label>}
+          <HelpLabel>Turma de ingresso de referência<select value={displayedSem} onChange={e=>setSelectedSem(e.target.value)}>{periodLabels.map(sem=><option value={sem} key={sem}>{sem}</option>)}</select></HelpLabel>
+          <HelpLabel>Comparar com<select value={compareMode} onChange={e=>setCompareMode(e.target.value as CompareMode)}><option value="homologo">Mesmo semestre do ano anterior</option><option value="anterior">Turma que ingressou no semestre anterior</option><option value="livre">Selecionar período</option></select></HelpLabel>
+          {compareMode==="livre"&&<HelpLabel>Outro semestre<select value={selectedOther} onChange={e=>setComparisonSem(e.target.value)}>{periodLabels.filter(sem=>sem!==displayedSem).map(sem=><option value={sem} key={sem}>{sem}</option>)}</select></HelpLabel>}
         </div>
         <div className="drx-compare-cards">
           <div><small>Turma de ingresso selecionada · {displayedSem}</small><strong>{selectedPeriod?valueNum(selectedPeriod.matriculados):"Sem dados"}</strong><span>Matriculados classificados como ativos</span></div>
@@ -767,11 +769,11 @@ export default function DireitoRaioX({ institutionId }: Props) {
 
         <h5 className="drx-evasao-h5">Confronto por ano de entrada</h5>
         <div className="drx-compare-controls">
-          <label>Ano de referência<select value={firstYear} onChange={e=>setSelectedYear(e.target.value)}>{yearsAvailable.map(year=><option key={year} value={year}>{year}</option>)}</select></label>
-          <label>Ano de comparação<select value={otherYear} onChange={e=>setComparisonYear(e.target.value)}>{yearsAvailable.map(year=><option key={year} value={year}>{year}</option>)}</select></label>
+          <HelpLabel>Ano de referência<select value={firstYear} onChange={e=>setSelectedYear(e.target.value)}>{yearsAvailable.map(year=><option key={year} value={year}>{year}</option>)}</select></HelpLabel>
+          <HelpLabel>Ano de comparação<select value={otherYear} onChange={e=>setComparisonYear(e.target.value)}>{yearsAvailable.map(year=><option key={year} value={year}>{year}</option>)}</select></HelpLabel>
         </div>
         {firstYearRow&&otherYearRow?<div className="drx-compare-breakdown">
-          <div className="drx-table-wrap"><table className="drx-table"><thead><tr><th>Indicador</th><th>{firstYear}</th><th>{otherYear}</th><th>Diferença</th></tr></thead>
+          <div className="drx-table-wrap"><table className="drx-table"><thead><tr><th>Indicador<ContextHelp title="Indicador" /></th><th>{firstYear}</th><th>{otherYear}</th><th>Diferença</th></tr></thead>
             <tbody>{([
               ["Vínculos da base das turmas de ingresso",firstYearRow.vinculos,otherYearRow.vinculos],
               ["Ativos",firstYearRow.ativos,otherYearRow.ativos],
@@ -800,10 +802,10 @@ export default function DireitoRaioX({ institutionId }: Props) {
         ) : (
           <>
             <div className="drx-roster-topo">
-              <label className="drx-roster-busca">
+              <HelpLabel className="drx-roster-busca">
                 Buscar aluno
                 <input type="search" value={buscaAluno} onChange={e => setBuscaAluno(e.target.value)} placeholder="Nome ou matrícula" />
-              </label>
+              </HelpLabel>
               <span className="drx-roster-contagem">
                 {trajetoriasFiltradas.length} de {trajetorias.length} alunos · {trajetorias.filter(a => a.reprovacoes > 0).length} com ao menos uma reprovação · {trajetorias.filter(a => a.inativo).length} inativos na última passagem
               </span>
@@ -860,9 +862,9 @@ export default function DireitoRaioX({ institutionId }: Props) {
             })}
           </div>
           <div className="drx-compare-controls">
-            <label>Semestre para detalhar<select value={docenciaSem} onChange={e=>{setDocenciaSem(e.target.value);setDocenciaBusca("");}}>{historicoDocente.map(x=><option key={x.semestre} value={x.semestre}>{x.semestre}</option>)}</select></label>
-            <label>Comparar com<select value={docenciaCompare} onChange={e=>setDocenciaCompare(e.target.value)}>{historicoDocente.filter(x=>x.semestre!==docenciaSem).map(x=><option key={x.semestre} value={x.semestre}>{x.semestre}</option>)}</select></label>
-            <label>Buscar docente ou disciplina<input type="search" value={docenciaBusca} onChange={e=>setDocenciaBusca(e.target.value)} placeholder="Nome ou disciplina"/></label>
+            <HelpLabel>Semestre para detalhar<select value={docenciaSem} onChange={e=>{setDocenciaSem(e.target.value);setDocenciaBusca("");}}>{historicoDocente.map(x=><option key={x.semestre} value={x.semestre}>{x.semestre}</option>)}</select></HelpLabel>
+            <HelpLabel>Comparar com<select value={docenciaCompare} onChange={e=>setDocenciaCompare(e.target.value)}>{historicoDocente.filter(x=>x.semestre!==docenciaSem).map(x=><option key={x.semestre} value={x.semestre}>{x.semestre}</option>)}</select></HelpLabel>
+            <HelpLabel>Buscar docente ou disciplina<input type="search" value={docenciaBusca} onChange={e=>setDocenciaBusca(e.target.value)} placeholder="Nome ou disciplina"/></HelpLabel>
           </div>
           <div className="drx-compare-cards">
             <div><small>Nomes docentes · {docenciaSem}</small><strong>{docenciaAtual.disponivel?docenciaAtual.docentes.length:"Sem dados"}</strong><span>{docenciaAtual.ofertas} ofertas cadastradas</span></div>

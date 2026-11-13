@@ -1,3 +1,5 @@
+import { IndicatorHelp } from "@/components/ContextHelp";
+import { HelpLabel } from '@/components/ContextHelp';
 import {isEnrolledStatus} from '@/lib/enrollment-summary';
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
@@ -62,7 +64,7 @@ function percentChange(now: number | null, before: number | null): string {
 
 function Indicator({ title, value, note, tone }: { title: string; value: string; note: string; tone: "blue" | "teal" | "amber" | "violet" }) {
   return <article className={"vm-indicator vm-" + tone}>
-    <span>{title}</span><strong>{value}</strong><small>{note}</small>
+    <span>{title}<IndicatorHelp title={title} description={note}/></span><strong>{value}</strong><small>{note}</small>
   </article>;
 }
 
@@ -196,12 +198,12 @@ export default function VerticeMobileBI() {
         </section>
         {data.institutions.length === 0 ? <section className="vm-panel"><h2>Sem instituições autorizadas</h2><p>Esta conta não possui instituições visíveis pelas políticas do banco.</p></section> : <>
           <div className="vm-filters">
-            <label>Instituição<select value={id} onChange={event => { setInstitutionId(event.target.value); setSelectedSemester(""); setSelectedCourse(""); }}>
+            <HelpLabel>Instituição<select value={id} onChange={event => { setInstitutionId(event.target.value); setSelectedSemester(""); setSelectedCourse(""); }}>
               {data.institutions.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
-            </select></label>
-            <label>Semestre<select value={semester} onChange={event => { setSelectedSemester(event.target.value); setSelectedCourse(""); }} disabled={!semesters.length}>
+            </select></HelpLabel>
+            <HelpLabel>Semestre<select value={semester} onChange={event => { setSelectedSemester(event.target.value); setSelectedCourse(""); }} disabled={!semesters.length}>
               {semesters.length === 0 ? <option value="">Sem dados</option> : semesters.map(term => <option key={term} value={term}>{term}</option>)}
-            </select></label>
+            </select></HelpLabel>
           </div>
           {sourceQuarantined && <section className="vm-quarantine" role="alert"><strong>Tabela resumida sob conciliação</strong><p>A fonte antiga de 2026/02 soma apenas 1.987 matrículas e não será utilizada. O painel consulta, abaixo, o relatório 2 completo do e-ORBIT para apresentar os quantitativos por curso e grade sem reescrever a base histórica.</p></section>}
           {sourceQuarantined && <UnitopEorbitOfficial onVerified={setOfficialUnitop} showCourses={view === "cursos"} />}
@@ -229,7 +231,7 @@ export default function VerticeMobileBI() {
             <div className="vm-section-top"><div><small>GESTÃO POR CURSO</small><h2>Comparativo de matrículas</h2></div></div>
             {sourceQuarantined && <p className="vm-muted">Consulte acima os cursos do relatório 2 e-ORBIT. Não foram misturados ao cadastro anterior enquanto as chaves de curso não estiverem reconciliadas.</p>}
             {!sourceQuarantined && <>
-            <label className="vm-search">Buscar curso<input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Nome ou código do curso" /></label>
+            <HelpLabel className="vm-search">Buscar curso<input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Nome ou código do curso" /></HelpLabel>
             <p className="vm-muted">{semester || "Sem semestre"} versus {previousYearSemester || "período anterior indisponível"} · Mesma metade do ano</p>
             <div className="vm-course-list">
               {filtered.map(line => <button key={line.course.id} className={"vm-course " + (selectedCourse === line.course.id ? "vm-selected" : "")} onClick={() => setSelectedCourse(line.course.id === selectedCourse ? "" : line.course.id)} aria-expanded={selectedCourse === line.course.id}>

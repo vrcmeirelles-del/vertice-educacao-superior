@@ -1,3 +1,4 @@
+import { ContextHelp } from '@/components/ContextHelp';
 // Egressos360.tsx — Módulo Egressos 360° (Fases 1-6)
 // Visão geral, base, importação, pesquisas, indicadores, CPA
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -144,7 +145,7 @@ export default function Egressos360({ institutionId, courses, role }: Props) {
   return (
     <div className="alumni-360">
       <header className="alumni-header">
-        <h2>Egressos 360°</h2>
+        <h2>Egressos 360°<ContextHelp title="Egressos 360°" /></h2>
         <p className="alumni-subtitle">Acompanhamento integrado de egressos</p>
         <nav className="alumni-nav">
           <NavButton v="overview" label="Visão Geral" icon="📊" />
@@ -232,7 +233,7 @@ function OverviewSection({ totals, byCourse, loading, institutionId }: {
         <div className="alumni-table-wrapper">
           <table className="alumni-table">
             <thead>
-              <tr><th>Curso</th><th style={{ textAlign: 'right' }}>Egressos</th><th style={{ textAlign: 'right' }}>Com Contato</th><th style={{ textAlign: 'right' }}>Cobertura</th></tr>
+              <tr><th>Curso<ContextHelp title="Curso" /></th><th style={{ textAlign: 'right' }}>Egressos</th><th style={{ textAlign: 'right' }}>Com Contato</th><th style={{ textAlign: 'right' }}>Cobertura</th></tr>
             </thead>
             <tbody>
               {byCourse.map(([cid, d]) => (
@@ -281,7 +282,7 @@ function BaseSection({ education, eduCount, loading, courses, filterCourse, filt
       <div className="alumni-table-wrapper">
         <table className="alumni-table">
           <thead>
-            <tr><th>Nome</th><th>Curso</th><th>Matrícula</th><th>Status</th><th>Conclusão</th><th>Contato</th><th>Verificado</th></tr>
+            <tr><th>Nome</th><th>Curso<ContextHelp title="Curso" /></th><th>Matrícula</th><th>Status</th><th>Conclusão</th><th>Contato</th><th>Verificado</th></tr>
           </thead>
           <tbody>
             {education.map(ed => {
@@ -442,7 +443,7 @@ function SurveysSection({ institutionId, courses, role }: {
         <div className="alumni-table-wrapper">
           <table className="alumni-table">
             <thead>
-              <tr><th>Pesquisa</th><th>Onda</th><th>Versão</th><th>Curso</th><th>Status</th><th>Período</th></tr>
+              <tr><th>Pesquisa</th><th>Onda</th><th>Versão</th><th>Curso<ContextHelp title="Curso" /></th><th>Status</th><th>Período<ContextHelp title="Período" /></th></tr>
             </thead>
             <tbody>
               {surveys.map(s => (
@@ -618,7 +619,7 @@ function IndicadoresSection({ institutionId, courses }: {
               <table className="alumni-table alumni-table-compact">
                 <thead>
                   <tr>
-                    <th>Curso</th>
+                    <th>Curso<ContextHelp title="Curso" /></th>
                     <th style={{textAlign:'right'}}>Egressos</th>
                     <th style={{textAlign:'right'}}>Atividade</th>
                     <th style={{textAlign:'right'}}>Aderência</th>
@@ -913,7 +914,7 @@ function DerivedEgressos({ institutionId }: { institutionId: string }) {
       <p className="alumni-derived-period">Período: <strong>{resumo.primeiro_semestre}</strong> a <strong>{resumo.ultimo_semestre}</strong> · {resumo.semestres_com_dados} semestres</p>
       <div className="alumni-table-wrapper">
         <table className="alumni-table">
-          <thead><tr><th>Curso</th><th style={{textAlign:'right'}}>Concluintes</th><th style={{textAlign:'right'}}>Semestres</th></tr></thead>
+          <thead><tr><th>Curso<ContextHelp title="Curso" /></th><th style={{textAlign:'right'}}>Concluintes</th><th style={{textAlign:'right'}}>Semestres</th></tr></thead>
           <tbody>
             {sorted.map(([key, d]) => (
               <tr key={key}><td>{d.name}</td><td style={{textAlign:'right'}}>{d.total.toLocaleString('pt-BR')}</td><td style={{textAlign:'right'}}>{d.semestres}</td></tr>

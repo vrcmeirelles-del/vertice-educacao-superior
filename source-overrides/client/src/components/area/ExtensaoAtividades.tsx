@@ -1,3 +1,5 @@
+import { ContextHelp } from '@/components/ContextHelp';
+import { HelpLabel } from '@/components/ContextHelp';
 /**
  * ExtensaoAtividades — Gestão de atividades de extensão
  * CRUD de atividades vinculadas a projetos, com participação e presença
@@ -144,27 +146,27 @@ export default function ExtensaoAtividades({
         <div className="ext-form">
           <h3>Nova atividade</h3>
           <div className="ext-form-grid">
-            <label>Título
+            <HelpLabel>Título
               <input value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} />
-            </label>
-            <label>Tipo
+            </HelpLabel>
+            <HelpLabel>Tipo
               <select value={formData.activity_type} onChange={e => setFormData({ ...formData, activity_type: e.target.value })}>
                 {Object.entries(TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
               </select>
-            </label>
-            <label>Data
+            </HelpLabel>
+            <HelpLabel>Data
               <input type="date" value={formData.scheduled_date} onChange={e => setFormData({ ...formData, scheduled_date: e.target.value })} />
-            </label>
-            <label>Duração (min)
+            </HelpLabel>
+            <HelpLabel>Duração (min)
               <input type="number" min={15} step={15} value={formData.duration_minutes} onChange={e => setFormData({ ...formData, duration_minutes: +e.target.value })} />
-            </label>
-            <label>Local
+            </HelpLabel>
+            <HelpLabel>Local
               <input value={formData.location} onChange={e => setFormData({ ...formData, location: e.target.value })} placeholder="Sala, endereço ou online" />
-            </label>
+            </HelpLabel>
           </div>
-          <label className="ext-form-full">Descrição
+          <HelpLabel className="ext-form-full">Descrição
             <textarea value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} rows={2} />
-          </label>
+          </HelpLabel>
           <div className="ext-form-actions">
             <button className="ext-btn-save" onClick={saveActivity}>Salvar</button>
             <button className="ext-btn-cancel" onClick={() => setShowForm(false)}>Cancelar</button>
@@ -235,7 +237,7 @@ export default function ExtensaoAtividades({
             <p className="ext-empty">Nenhum participante registrado. Use o botão acima para vincular.</p>
           ) : (
             <table className="ext-table">
-              <thead><tr><th>Matrícula</th><th>Presente</th><th>Min creditados</th><th>Nota</th>{canEdit && <th>Ação</th>}</tr></thead>
+              <thead><tr><th>Matrícula</th><th>Presente</th><th>Min creditados</th><th>Nota<ContextHelp title="Nota" /></th>{canEdit && <th>Ação<ContextHelp title="Ação" /></th>}</tr></thead>
               <tbody>
                 {participation[selectedActivity].map(p => (
                   <tr key={p.id}>

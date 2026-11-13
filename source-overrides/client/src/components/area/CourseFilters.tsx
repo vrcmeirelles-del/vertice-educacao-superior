@@ -1,3 +1,4 @@
+import { HelpLabel } from '@/components/ContextHelp';
 import { useState } from "react";
 import { COURSE_STATUS, DEGREE, MODALITY, type Row } from "@/lib/area";
 
@@ -23,7 +24,7 @@ export function useCourseFilters(courses: Row[], onChange?: () => void) {
     {fields.map(({ key, title }) => {
       const options = Array.from(new Set(courses.map(course => courseClassification(course, key))))
         .sort((a, b) => a.localeCompare(b, "pt-BR"));
-      return <label key={key}>
+      return <HelpLabel key={key}>
         {title}
         <select value={values[key] ?? ""} onChange={event => {
           setValues({ ...values, [key]: event.target.value });
@@ -32,7 +33,7 @@ export function useCourseFilters(courses: Row[], onChange?: () => void) {
           <option value="">Todos</option>
           {options.map(option => <option key={option}>{option}</option>)}
         </select>
-      </label>;
+      </HelpLabel>;
     })}
     {Object.values(values).some(Boolean) && <button type="button" className="corp-login-text-button" onClick={() => {
       setValues({});

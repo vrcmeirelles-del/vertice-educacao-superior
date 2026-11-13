@@ -1,3 +1,4 @@
+import { HelpLabel } from '@/components/ContextHelp';
 // ContractView.tsx — Visualização e assinatura digital do contrato
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
@@ -158,24 +159,24 @@ export default function ContractView({ contractId, institutionId, institutionNam
       <div className="cv-summary">
         <h3>Resumo do Contrato</h3>
         <div className="cv-summary-grid">
-          <div><label>Contratante (IES)</label><strong>{institutionName}</strong></div>
-          <div><label>Contratada</label><strong>{terms.billing_entity_name}</strong></div>
-          <div><label>Pacote</label><strong>{PKG[contract.package_code]}</strong></div>
-          <div><label>Valor por aluno</label><strong>{fmtBRL(contract.price_per_student)}</strong></div>
-          <div><label>Nº de alunos</label><strong>{contract.student_count}</strong></div>
-          <div><label>Mensalidade</label><strong className="cv-highlight">
+          <div><HelpLabel>Contratante (IES)</HelpLabel><strong>{institutionName}</strong></div>
+          <div><HelpLabel>Contratada</HelpLabel><strong>{terms.billing_entity_name}</strong></div>
+          <div><HelpLabel>Pacote</HelpLabel><strong>{PKG[contract.package_code]}</strong></div>
+          <div><HelpLabel>Valor por aluno</HelpLabel><strong>{fmtBRL(contract.price_per_student)}</strong></div>
+          <div><HelpLabel>Nº de alunos</HelpLabel><strong>{contract.student_count}</strong></div>
+          <div><HelpLabel>Mensalidade</HelpLabel><strong className="cv-highlight">
             {contract.is_courtesy ? '🤝 Cortesia' : fmtBRL(contract.monthly_value)}
             {!contract.is_courtesy && contract.discount_percent > 0 && <small style={{color:'#16a34a',marginLeft:4}}>(-{contract.discount_percent}%)</small>}
           </strong></div>
-          {contract.is_courtesy && <div><label>Condição especial</label><strong style={{color:'#1d4ed8'}}>{contract.courtesy_reason || 'Parceria institucional'}</strong></div>}
-          {!contract.is_courtesy && contract.custom_monthly > 0 && <div><label>Valor negociado</label><strong style={{color:'#7c3aed'}}>{fmtBRL(contract.custom_monthly)}</strong></div>}
-          <div><label>Piso mensal</label><strong>{fmtBRL(contract.min_monthly)}</strong></div>
-          <div><label>Teto mensal</label><strong>{contract.max_monthly ? fmtBRL(contract.max_monthly) : 'Sem teto'}</strong></div>
-          <div><label>Implementação</label><strong>{fmtBRL(contract.implementation_fee)}</strong></div>
-          <div><label>Início</label><strong>{fmtDate(contract.starts_at)}</strong></div>
-          <div><label>Trial até</label><strong>{contract.trial_ends_at ? fmtDate(contract.trial_ends_at) : 'Sem trial'}</strong></div>
-          <div><label>Carência mínima até</label><strong>{fmtDate(contract.min_commitment_ends_at)}</strong></div>
-          <div><label>Arrependimento até</label><strong>{fmtDate(contract.cooling_off_expires_at)}</strong></div>
+          {contract.is_courtesy && <div><HelpLabel>Condição especial</HelpLabel><strong style={{color:'#1d4ed8'}}>{contract.courtesy_reason || 'Parceria institucional'}</strong></div>}
+          {!contract.is_courtesy && contract.custom_monthly > 0 && <div><HelpLabel>Valor negociado</HelpLabel><strong style={{color:'#7c3aed'}}>{fmtBRL(contract.custom_monthly)}</strong></div>}
+          <div><HelpLabel>Piso mensal</HelpLabel><strong>{fmtBRL(contract.min_monthly)}</strong></div>
+          <div><HelpLabel>Teto mensal</HelpLabel><strong>{contract.max_monthly ? fmtBRL(contract.max_monthly) : 'Sem teto'}</strong></div>
+          <div><HelpLabel>Implementação</HelpLabel><strong>{fmtBRL(contract.implementation_fee)}</strong></div>
+          <div><HelpLabel>Início</HelpLabel><strong>{fmtDate(contract.starts_at)}</strong></div>
+          <div><HelpLabel>Trial até</HelpLabel><strong>{contract.trial_ends_at ? fmtDate(contract.trial_ends_at) : 'Sem trial'}</strong></div>
+          <div><HelpLabel>Carência mínima até</HelpLabel><strong>{fmtDate(contract.min_commitment_ends_at)}</strong></div>
+          <div><HelpLabel>Arrependimento até</HelpLabel><strong>{fmtDate(contract.cooling_off_expires_at)}</strong></div>
         </div>
       </div>
 
@@ -251,28 +252,28 @@ export default function ContractView({ contractId, institutionId, institutionNam
                 Seu aceite será registrado com captura de IP, timestamp e hash SHA-256 do documento.
               </p>
               <div className="cv-sign-fields">
-                <label>Nome completo do signatário *
+                <HelpLabel>Nome completo do signatário *
                   <input value={signForm.name} onChange={e => setSignForm({...signForm, name: e.target.value})} placeholder="Nome como consta no documento" />
-                </label>
-                <label>E-mail institucional *
+                </HelpLabel>
+                <HelpLabel>E-mail institucional *
                   <input type="email" value={signForm.email} onChange={e => setSignForm({...signForm, email: e.target.value})} placeholder="email@ies.edu.br" />
-                </label>
-                <label>CPF (opcional)
+                </HelpLabel>
+                <HelpLabel>CPF (opcional)
                   <input value={signForm.cpf} onChange={e => setSignForm({...signForm, cpf: e.target.value})} placeholder="000.000.000-00" />
-                </label>
-                <label>Cargo/Função
+                </HelpLabel>
+                <HelpLabel>Cargo/Função
                   <select value={signForm.role} onChange={e => setSignForm({...signForm, role: e.target.value})}>
                     <option value="diretor">Diretor(a)</option>
                     <option value="reitor">Reitor(a)</option>
                     <option value="procurador">Procurador(a)</option>
                     <option value="representante_legal">Representante Legal</option>
                   </select>
-                </label>
+                </HelpLabel>
               </div>
-              <label className="cv-sign-check">
+              <HelpLabel className="cv-sign-check">
                 <input type="checkbox" checked={accepted} onChange={e => setAccepted(e.target.checked)} />
                 <span>Li e aceito integralmente os termos deste contrato, incluindo as cláusulas de proteção de dados (LGPD), direitos de imagem, SLA, propriedade intelectual e foro de Palmas/TO.</span>
-              </label>
+              </HelpLabel>
               {signResult?.error && <p className="cv-sign-error">⚠ {signResult.error}</p>}
               <div className="cv-sign-actions">
                 <button className="cv-sign-confirm" onClick={signContract} disabled={!accepted || !signForm.name || !signForm.email || signing}>

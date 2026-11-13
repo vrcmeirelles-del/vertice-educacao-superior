@@ -1,3 +1,4 @@
+import { HelpLabel } from '@/components/ContextHelp';
 import {isEnrolledStatus} from '@/lib/enrollment-summary';
 import {useCallback,useEffect,useMemo,useState} from "react";
 import {supabase} from "@/lib/supabase";
@@ -189,12 +190,12 @@ export default function EnadeCross({institutionId,courses,goals,actions,role,sel
     {!allowed?<p role="alert">O acesso aos dados de reprovação e docência é reservado aos perfis institucionais da alta gestão.</p>:<>
       {loading?<p role="status">Cruzando dados reais por curso e período…</p>:null}
       {data.sources.some(x=>x.error)&&<p role="alert" className="enadex-alert">Uma ou mais fontes não responderam. Os valores indisponíveis não são tratados como zero; consulte a auditoria de fontes.</p>}
-      <div className="enadex-filters"><label>Semestre<select value={active} onChange={e=>setPeriod(e.target.value)}>
+      <div className="enadex-filters"><HelpLabel>Semestre<select value={active} onChange={e=>setPeriod(e.target.value)}>
         {terms.map(x=><option key={x} value={x}>{x}</option>)}
-      </select></label><label>Comparação<select value={comparison} onChange={e=>setComparison(e.target.value as "year"|"term")}>
+      </select></HelpLabel><HelpLabel>Comparação<select value={comparison} onChange={e=>setComparison(e.target.value as "year"|"term")}>
         <option value="year">Mesmo semestre do ano anterior</option>
         <option value="term">Semestre imediatamente anterior</option>
-      </select></label><span>{active||"—"} × {priorTerm||"—"}</span></div>
+      </select></HelpLabel><span>{active||"—"} × {priorTerm||"—"}</span></div>
       <div className="enadex-metrics">{metrics.map(([label,a,b,description])=><article key={label}>
         <span>{label}</span><strong>{a===null?"—":fmt.format(a)}</strong>
         <small>{priorTerm}: {b===null?"sem dados":fmt.format(b)} · diferença {a===null||b===null?"indisponível":(a-b>0?"+":"")+fmt.format(a-b)}</small>

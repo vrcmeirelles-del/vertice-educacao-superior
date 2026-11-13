@@ -1,3 +1,6 @@
+import { IndicatorHelp } from "@/components/ContextHelp";
+import { ContextHelp } from '@/components/ContextHelp';
+import { HelpLabel } from '@/components/ContextHelp';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   fetchSemestres, fetchCursos, fetchQuantitativo, fetchReports, fetchCourseNames,
@@ -31,7 +34,7 @@ function KPITiles({ kpis }: { kpis: KPIsAcademico }) {
   ];
   return <div className="abi-kpis">{tiles.map(t => (
     <article className="abi-kpi" key={t.label}>
-      <span className="abi-kpi-label">{t.label}</span>
+      <span className="abi-kpi-label">{t.label}<IndicatorHelp title={t.label}/></span>
       <strong className="abi-kpi-value" style={{ color: t.color }}>{t.value}</strong>
     </article>
   ))}</div>;
@@ -167,7 +170,7 @@ function CursosTable({ data, modalidadeFilter }: { data: CursoResumo[]; modalida
     <table className="abi-table">
       <thead><tr>
         <th onClick={() => toggleSort('nome')}>Curso{arrow('nome')}</th>
-        <th>Modalidade</th>
+        <th>Modalidade<ContextHelp title="Modalidade" /></th>
         <th onClick={() => toggleSort('vinculos')}>Vínculos{arrow('vinculos')}</th>
         <th onClick={() => toggleSort('matriculados')}>Matriculados{arrow('matriculados')}</th>
         <th onClick={() => toggleSort('turmas')}>Turmas{arrow('turmas')}</th>
@@ -267,17 +270,17 @@ function Comparador({ quantitativo, cursos, semestres }: {
 
   return <div className="abi-sim">
     <div className="abi-sim-controls">
-      <label>Semestre base (A)
+      <HelpLabel>Semestre base (A)
         <select value={aId} onChange={e => setAId(Number(e.target.value))}>
           {withData.map(s => <option key={s.id} value={s.id}>{s.semestre}</option>)}
         </select>
-      </label>
+      </HelpLabel>
       <span className="abi-arrow">→</span>
-      <label>Semestre comparado (B)
+      <HelpLabel>Semestre comparado (B)
         <select value={bId} onChange={e => setBId(Number(e.target.value))}>
           {withData.map(s => <option key={s.id} value={s.id}>{s.semestre}</option>)}
         </select>
-      </label>
+      </HelpLabel>
     </div>
 
     <div className="abi-cmp-summary">
@@ -392,9 +395,9 @@ function RaioX({ profs, discs, dossieDireito, cursos, reprovaTipo }: {
         <button className={modo === 'disciplinas' ? 'active' : ''} onClick={() => { setModo('disciplinas'); setOpen(null); }}>📚 Disciplinas</button>
         {cursos.length > 0 && <button className={modo === 'cursos' ? 'active' : ''} onClick={() => { setModo('cursos'); setOpenCurso(null); }}>🎓 Cursos</button>}
       </div>
-      <label className="abi-search">🔍
+      <HelpLabel className="abi-search">🔍
         <input type="search" placeholder={ph} value={busca} onChange={e => setBusca(e.target.value)} />
-      </label>
+      </HelpLabel>
     </div>
 
     {modo === 'cursos' ? (
@@ -423,7 +426,7 @@ function RaioX({ profs, discs, dossieDireito, cursos, reprovaTipo }: {
                 </div>
                 {c.series.length > 0 && (
                   <table className="abi-table abi-curso-table">
-                    <thead><tr><th>Semestre</th><th>Falta</th><th>Nota</th><th>Após exame</th><th>Reprov.</th><th>Matríc. disc.</th><th>Média nota</th></tr></thead>
+                    <thead><tr><th>Semestre<ContextHelp title="Semestre" /></th><th>Falta</th><th>Nota<ContextHelp title="Nota" /></th><th>Após exame</th><th>Reprov.</th><th>Matríc. disc.</th><th>Média nota</th></tr></thead>
                     <tbody>{c.series.map(s => (
                       <tr key={s.semestre}>
                         <td>{s.semestre}</td>
@@ -531,17 +534,17 @@ function Simulador({ reprovaSemestre }: { reprovaSemestre: ReprovaSemestre[] }) 
     </div>
 
     <div className="abi-sim-controls abi-sim-sliders">
-      <label>Recorte de referência
+      <HelpLabel>Recorte de referência
         <select value={reportSelectionKey(semAtual)} onChange={e => setBaseSem(e.target.value)}>
           {semestresComDados.map(r => <option key={reportSelectionKey(r)} value={reportSelectionKey(r)}>{r.scopeLabel ?? 'Recorte não identificado'} · {r.semestre} · {fmt.format(r.reprovacoes)} reprov.</option>)}
         </select>
-      </label>
-      <label className="abi-slider-label">Redução de reprovações: <b>{reducao}%</b>
+      </HelpLabel>
+      <HelpLabel className="abi-slider-label">Redução de reprovações: <b>{reducao}%</b>
         <input type="range" min={0} max={50} step={1} value={reducao} onChange={e => setReducao(Number(e.target.value))} />
-      </label>
-      <label>Mensalidade média (R$)
+      </HelpLabel>
+      <HelpLabel>Mensalidade média (R$)
         <input type="number" min={0} step={50} value={mensalidade} onChange={e => setMensalidade(Number(e.target.value))} />
-      </label>
+      </HelpLabel>
     </div>
 
     <div className="abi-meter-wrap">
@@ -590,11 +593,11 @@ function Funil({ fluxo }: { fluxo: FluxoSemestre[] }) {
 
   return <div className="abi-sim">
     <div className="abi-sim-controls">
-      <label>Semestre
+      <HelpLabel>Semestre
         <select value={atual.semestre} onChange={e => setSem(e.target.value)}>
           {comDados.map(f => <option key={f.semestre} value={f.semestre}>{f.semestre}</option>)}
         </select>
-      </label>
+      </HelpLabel>
     </div>
 
     <div className="abi-cmp-summary">
@@ -677,7 +680,7 @@ function EvasaoRenovacao({ report, cursos }: { report: CohortsReport | null; cur
         <h3>Reprovação por curso — impacto na evasão</h3>
         <small className="abi-subtitle">Cursos com maior volume de reprovações tendem a apresentar maior evasão. Clique para expandir.</small>
         <table className="abi-table">
-          <thead><tr><th>Curso</th><th>Reprov. total</th><th>RF (falta)</th><th>RN (nota)</th><th>RA (exame)</th><th>Em risco</th></tr></thead>
+          <thead><tr><th>Curso<ContextHelp title="Curso" /></th><th>Reprov. total</th><th>RF (falta)</th><th>RN (nota)</th><th>RA (exame)</th><th>Em risco</th></tr></thead>
           <tbody>{cursos.slice(0, 15).map(c => (
             <tr key={c.courseId}>
               <td>{c.nome}</td>
