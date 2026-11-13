@@ -4,6 +4,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import './egressos360.css';
+import DireitoBIDashboard from '../bi/DireitoBIDashboard';
 
 interface Props {
   institutionId: string;
@@ -45,6 +46,9 @@ export default function CourseRaioX({ institutionId, courses, role, onNavigate }
   const [ensalamento, setEnsalamento] = useState<any[]>([]);
   const [topReprovadores, setTopReprovadores] = useState<any[]>([]);
   const [vagasAutorizadas, setVagasAutorizadas] = useState(0);
+  const [viewMode, setViewMode] = useState<'raio-x'|'bi'|'alunos'>('raio-x');
+  const [alunosRisco, setAlunosRisco] = useState<any[]>([]);
+  const [loadingAlunos, setLoadingAlunos] = useState(false);
 
   const course = courses.find(c => c.id === selectedCourse);
   const nav = (tab: string) => onNavigate?.(tab, selectedCourse);
@@ -134,6 +138,50 @@ export default function CourseRaioX({ institutionId, courses, role, onNavigate }
     }).finally(() => setLoading(false));
   }, [institutionId, selectedCourse]);
 
+  // Load alunos em risco when tab selected
+  useEffect(() => {
+    if (viewMode !== 'alunos' || !selectedCourse || alunosRisco.length > 0) return;
+    setLoadingAlunos(true);
+    // Get roster entries with student contact info + offering outcomes for failures
+    Promise.all([
+      supabase.from('vertice_roster_entries').select('student_name,cpf_hash,email,telefone,turma,periodo,status').eq('institution_id', institutionId).order('student_name'),
+      supabase.from('vertice_offering_outcomes').select('semester,teachers,discipline,class_label,rf,rn,ra,avg_final,other_status').eq('institution_id', institutionId).eq('course_code', course?.code || '027').gte('semester', '2023/01'),
+    ]).then(([rosterR, ofR]) => {
+      const roster = (rosterR.data || []) as any[];
+      const outcomes = (ofR.data || []) as any[];
+      // Find students mentioned in other_status as CA, TR, RF, AB or with rf/rn/ra > 0
+      // Build student risk from outcomes
+      const studentMap: Record<string, { nome: string; email: string; telefone: string; turma: string; periodo: string; status: string; reprovacoes: { sem: string; disc: string; tipo: string; media: string }[] }> = {};
+      // First, index roster by name for contact info
+      const rosterByName: Record<string, any> = {};
+      for (const r of roster) {
+        if (r.student_name) rosterByName[r.student_name.toUpperCase().trim()] = r;
+      }
+      // Parse other_status for student-level issues (we don't have per-student data from outcomes, but we can aggregate by turma)
+      // Since we don't have individual student names in outcomes, we'll show roster + turma-level risk
+      // Better approach: show all roster students with their status and turma risk
+      const turmaRisk: Record<string, { rf: number; rn: number; ra: number; total_enrolled: number; avg: number; n: number }> = {};
+      for (const o of outcomes) {
+        const k = `${o.semester}|${o.class_label}`;
+        if (!turmaRisk[k]) turmaRisk[k] = { rf: 0, rn: 0, ra: 0, total_enrolled: 0, avg: 0, n: 0 };
+        turmaRisk[k].rf += o.rf;
+        turmaRisk[k].rn += o.rn;
+        turmaRisk[k].ra += o.ra;
+        turmaRisk[k].total_enrolled += 1;
+        if (o.avg_final) { turmaRisk[k].avg += parseFloat(o.avg_final); turmaRisk[k].n++; }
+      }
+      // Build student list from roster with risk indicators
+      const students = roster.map((r: any) => {
+        const riskLevel = r.status === 'linked' ? 'baixo' : r.status === 'trancado' ? 'alto' : r.status === 'cancelado' ? 'critico' : 'medio';
+        return { ...r, riskLevel };
+      }).sort((a: any, b: any) => {
+        const order: Record<string, number> = { critico: 0, alto: 1, medio: 2, baixo: 3 };
+        return (order[a.riskLevel] ?? 4) - (order[b.riskLevel] ?? 4);
+      });
+      setAlunosRisco(students);
+    }).finally(() => setLoadingAlunos(false));
+  }, [viewMode, selectedCourse, institutionId]);
+
   if (!selectedCourse) return (
     <div className="alumni-360">
       <header className="alumni-header"><h2>Raio-X do Curso</h2><p className="alumni-subtitle">Selecione um curso para ver a visão 360°</p></header>
@@ -166,7 +214,57 @@ export default function CourseRaioX({ institutionId, courses, role, onNavigate }
         </div>
       </header>
 
-      {loading || !d ? <p className="alumni-loading">Carregando Raio-X…</p> : (<>
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', margin: '0 0 1rem' }}>
+        {(['raio-x', 'bi', 'alunos'] as const).map(m => {
+          const labels = { 'raio-x': '🔍 Raio-X', bi: '📊 BI Analítico', alunos: '👤 Alunos em Risco' };
+          return <button key={m} onClick={() => setViewMode(m)} style={{ padding: '6px 16px', borderRadius: 20, border: viewMode === m ? '2px solid var(--vx-accent, #2563eb)' : '1px solid var(--vx-border, #e2e8f0)', background: viewMode === m ? 'var(--vx-accent, #2563eb)' : 'var(--vx-surface, #fff)', color: viewMode === m ? '#fff' : 'inherit', fontSize: '.8125rem', fontWeight: 600, cursor: 'pointer' }}>{labels[m]}</button>;
+        })}
+      </div>
+
+      {viewMode === 'bi' && <DireitoBIDashboard institutionId={institutionId} courseId={selectedCourse} courseCode={course?.code || '027'} vacancies={vagasAutorizadas} />}
+
+      {viewMode === 'alunos' && (
+        loadingAlunos ? <p className="alumni-loading">Carregando alunos…</p> : (
+          <div style={{ background: 'var(--vx-surface, #fff)', border: '1px solid var(--vx-border, #e2e8f0)', borderRadius: 10, padding: '1rem' }}>
+            <strong>👤 Alunos — Risco de Evasão ({alunosRisco.length} registros)</strong>
+            <p style={{ fontSize: '.8rem', color: 'var(--vx-muted, #64748b)', margin: '4px 0 12px' }}>Dados do roster com status e contato. Crítico = cancelado; Alto = trancado; Médio = sem vínculo ativo.</p>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+              {['critico','alto','medio','baixo'].map(level => {
+                const count = alunosRisco.filter(a => a.riskLevel === level).length;
+                const colors: Record<string, string> = { critico: '#dc2626', alto: '#f59e0b', medio: '#64748b', baixo: '#16a34a' };
+                const labels: Record<string, string> = { critico: 'Crítico', alto: 'Alto', medio: 'Médio', baixo: 'Baixo' };
+                return <span key={level} style={{ padding: '4px 12px', borderRadius: 16, background: colors[level] + '18', color: colors[level], fontSize: '.75rem', fontWeight: 700 }}>{labels[level]}: {count}</span>;
+              })}
+            </div>
+            <div style={{ maxHeight: 500, overflowY: 'auto' }}>
+              <table style={{ width: '100%', fontSize: '.75rem', borderCollapse: 'collapse' }}>
+                <thead><tr style={{ borderBottom: '2px solid var(--vx-border, #e2e8f0)', position: 'sticky', top: 0, background: 'var(--vx-surface, #fff)' }}>
+                  <th style={{ textAlign: 'left', padding: '6px 4px' }}>Nome</th>
+                  <th style={{ textAlign: 'left', padding: '6px 4px' }}>Turma</th>
+                  <th style={{ textAlign: 'left', padding: '6px 4px' }}>Status</th>
+                  <th style={{ textAlign: 'left', padding: '6px 4px' }}>Email</th>
+                  <th style={{ textAlign: 'left', padding: '6px 4px' }}>Telefone</th>
+                  <th style={{ textAlign: 'center', padding: '6px 4px' }}>Risco</th>
+                </tr></thead>
+                <tbody>{alunosRisco.map((a, i) => {
+                  const rColors: Record<string, string> = { critico: '#dc2626', alto: '#f59e0b', medio: '#64748b', baixo: '#16a34a' };
+                  const rLabels: Record<string, string> = { critico: '🔴', alto: '🟡', medio: '⚪', baixo: '🟢' };
+                  return <tr key={i} style={{ borderBottom: '1px solid var(--vx-border, #f1f5f9)', background: a.riskLevel === 'critico' ? '#fef2f2' : a.riskLevel === 'alto' ? '#fffbeb' : undefined }}>
+                    <td style={{ padding: '4px', fontWeight: 600, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={a.student_name}>{a.student_name}</td>
+                    <td style={{ padding: '4px' }}>{a.turma || '—'}</td>
+                    <td style={{ padding: '4px' }}><span style={{ padding: '1px 6px', borderRadius: 8, background: rColors[a.riskLevel] + '18', color: rColors[a.riskLevel], fontSize: '.6875rem', fontWeight: 600 }}>{a.status}</span></td>
+                    <td style={{ padding: '4px', fontSize: '.6875rem' }}>{a.email || '—'}</td>
+                    <td style={{ padding: '4px', fontSize: '.6875rem' }}>{a.telefone || '—'}</td>
+                    <td style={{ textAlign: 'center', padding: '4px' }}>{rLabels[a.riskLevel]}</td>
+                  </tr>;
+                })}</tbody>
+              </table>
+            </div>
+          </div>
+        )
+      )}
+
+      {viewMode === 'raio-x' && (loading || !d ? <p className="alumni-loading">Carregando Raio-X…</p> : (<>
         <div className="alumni-kpis" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))' }}>
           <KPI label="Matriculados" value={matriculados} color="#2563eb" onClick={() => nav('visao')} />
           <KPI label="Vagas" value={vagas} sub={vagas > 0 ? `${Math.round(100 * matriculados / vagas)}% ocupação` : undefined} color="#7c3aed" />
@@ -413,7 +511,7 @@ export default function CourseRaioX({ institutionId, courses, role, onNavigate }
         <div className="alumni-info-box" style={{ marginTop: '1.5rem' }}>
           <strong>Raio-X do Curso:</strong> Cada bloco puxa os dados do curso naquele módulo. Clique em <em>"Abrir aba →"</em> para destrinchar. Ideal para reuniões de NDE, colegiado ou preparação para avaliação in loco.
         </div>
-      </>)}
+      </>))}
     </div>
   );
 }
