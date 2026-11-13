@@ -92,12 +92,16 @@ export default function Tcc360({ institutionId, courses, role, onNavigate }: Pro
     setInviteBusy(true); setInviteMsg(''); setInviteLink('');
     try {
       const mail = inviteEmail.trim().toLowerCase();
-      await supabase.auth.signUp({ email: mail, password: '123456', options: { data: { full_name: inviteName || mail.split('@')[0] } } });
-      await supabase.rpc('vertice_add_member', { target: institutionId, member_email: mail, member_role: 'equipe' });
-      const { data: inv } = await supabase.from('vertice_invites').select('id').eq('institution_id', institutionId).eq('email', mail).is('accepted_at', null).order('created_at', { ascending: false }).limit(1);
-      const link = `${window.location.origin}/entrar${inv?.[0]?.id ? '?convite=' + inv[0].id : ''}`;
+      const { data: result, error: fnErr } = await supabase.functions.invoke('vertice-convite-simples', {
+        body: { email: mail, institution_id: institutionId, role: 'equipe', name: inviteName || undefined }
+      });
+      if (fnErr) throw fnErr;
+      if (result && !result.ok) throw new Error(result.error || 'Erro ao criar convite');
+      const link = `${window.location.origin}/entrar`;
       setInviteLink(link);
-      setInviteMsg(`✅ Convite criado para ${mail}. Senha padrão: 123456. Copie o link e envie por WhatsApp.`);
+      setInviteMsg(result?.created
+        ? `✅ Conta criada para ${mail} com senha 123456. Copie o link e envie por WhatsApp.`
+        : `✅ ${mail} já tem conta. Acesso liberado. Envie o link abaixo.`);
       setInviteEmail(''); setInviteName('');
     } catch (err) { setInviteMsg(`Erro: ${(err as Error).message}`); }
     finally { setInviteBusy(false); }

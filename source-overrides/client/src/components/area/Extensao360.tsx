@@ -239,22 +239,17 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
     setInviteBusy(true); setInviteMsg(''); setInviteLink('');
     try {
       const mail = inviteEmail.trim().toLowerCase();
-      // 1. Tentar criar conta com senha padrão via signUp
-      const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({ email: mail, password: '123456', options: { data: { full_name: inviteName || mail.split('@')[0] } } });
-      // signUp pode retornar user mesmo se já existe (fake signup)
-      // 2. Adicionar como membro via RPC
-      const { error: memberErr } = await supabase.rpc('vertice_add_member', { target: institutionId, member_email: mail, member_role: 'equipe' });
-      // 3. Buscar convite para gerar link
-      const { data: inv } = await supabase.from('vertice_invites').select('id').eq('institution_id', institutionId).eq('email', mail).is('accepted_at', null).order('created_at', { ascending: false }).limit(1);
-      const invId = inv?.[0]?.id;
-      const link = `${window.location.origin}/extensao-convite${invId ? '?convite=' + invId : ''}`;
+      // Criar conta via edge function (admin API, email confirmado automaticamente)
+      const { data: result, error: fnErr } = await supabase.functions.invoke('vertice-convite-simples', {
+        body: { email: mail, institution_id: institutionId, role: 'equipe', name: inviteName || undefined }
+      });
+      if (fnErr) throw fnErr;
+      if (result && !result.ok) throw new Error(result.error || 'Erro ao criar convite');
+      const link = `${window.location.origin}/extensao-convite`;
       setInviteLink(link);
-      const created = signUpData?.user && !signUpErr;
-      setInviteMsg(created
-        ? `✅ Conta criada para ${mail} com senha padrão 123456. Copie o link e envie por WhatsApp.`
-        : memberErr
-        ? `⚠️ Não foi possível vincular: ${memberErr.message}. Tente pela aba Equipe.`
-        : `✅ Convite registrado para ${mail}. Copie o link abaixo.`
+      setInviteMsg(result?.created
+        ? `✅ Conta criada para ${mail} com senha 123456. Copie o link e envie por WhatsApp.`
+        : `✅ ${mail} já tem conta. Acesso à instituição liberado. Envie o link abaixo.`
       );
       setInviteEmail(''); setInviteName('');
     } catch (err) {
