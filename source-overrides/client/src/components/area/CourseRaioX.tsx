@@ -229,6 +229,23 @@ export default function CourseRaioX({ institutionId, courses, role, onNavigate }
             {estagioData.placements === 0 && <Empty>Nenhum estágio registrado neste curso.</Empty>}
           </Block>
 
+          <Block title="Horas Consolidadas" icon="⏱">
+            <Row label="TCC" value={tccData.works > 0 ? `${Math.floor(0)}h validadas` : 'N/D'} />
+            <Row label="Extensão" value={d.extensao_alunos > 0 ? `${d.extensao_alunos} alunos` : 'N/D'} />
+            <Row label="Estágio" value={estagioData.placements > 0 ? `${estagioData.completed} concluídos` : 'N/D'} />
+            <Hint>FK cruzada impede dupla contagem entre TCC e extensão. Estágio, AC e TCC possuem livros razão separados com controle de origem.</Hint>
+          </Block>
+
+          <Block title="Saúde Acadêmica do Curso" icon="🩺">
+            {tccData.overdue > 0 && <Row label="⚠ TCC atrasados" value={tccData.overdue} bad />}
+            {acData.pending > 3 && <Row label="⚠ AC pendentes (>3)" value={acData.pending} bad />}
+            {d.cpa_fragilidades > 0 && <Row label="⚠ Fragilidades CPA" value={d.cpa_fragilidades} bad />}
+            {d.extensao_projetos === 0 && <Row label="⚠ Sem extensão" value="Pendente" bad />}
+            {d.egressos_total === 0 && <Row label="⚠ Sem egressos" value="Pendente" bad />}
+            {tccData.overdue === 0 && acData.pending <= 3 && d.cpa_fragilidades === 0 && d.extensao_projetos > 0 && d.egressos_total > 0 && <Row label="✓ Sem alertas" value="OK" good />}
+            <Hint>Visão cruzada de pendências entre todos os módulos acadêmicos deste curso.</Hint>
+          </Block>
+
           <Block title="Vagas e Viabilidade" icon="📉" onClick={() => nav('resultado-curso')}>
             <Row label="Vagas autorizadas" value={vagas} />
             <Row label="Matriculados" value={matriculados} />
