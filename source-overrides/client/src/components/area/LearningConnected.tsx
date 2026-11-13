@@ -1,6 +1,6 @@
 import { ContextHelp } from '@/components/ContextHelp';
 import { HelpLabel } from '@/components/ContextHelp';
-import {useEffect,useMemo,useState,type FormEvent} from "react";
+import {useEffect,useMemo,useRef,useState,type FormEvent} from "react";
 import {supabase} from "@/lib/supabase";
 import type {Role,Row} from "@/lib/area";
 import RosterUpload from "./RosterUpload";
@@ -44,6 +44,10 @@ export default function LearningConnected({institutionId,courses,role,schoolMode
  const [filterPeriod,setFilterPeriod]=useState("");
  const [filterModule,setFilterModule]=useState("");
  const [mapping,setMapping]=useState<MapForm>(initialMapping);
+ const actionPending=useRef(false);
+ const scope=institutionId+":"+schoolMode+":"+role;
+ const currentScope=useRef(scope);currentScope.current=scope;
+ const reloadSequence=useRef(0);
  const canManage=Boolean(role&&MANAGEMENT.includes(role));
  const courseNames=useMemo(()=>new Map(courses.map(c=>[String(c.id),String(c.display_name??c.name)])),[courses]);
  const periods=[...new Set(data.map(x=>x.semester))].sort().reverse();
@@ -54,36 +58,43 @@ export default function LearningConnected({institutionId,courses,role,schoolMode
    coherent:filtered.filter(x=>x.paired_students>=5&&x.comparison_gap!==null).length};
  // Counts of attempts may repeat when one event maps to multiple validated competencies.
  const reload=async()=>{
+   const request=++reloadSequence.current;
+   const isCurrent=()=>currentScope.current===scope&&reloadSequence.current===request;
    setLoading(true);
    try{
      const {data:rows,error}=await supabase.from("vertice_learning_course_metrics")
        .select("institution_id,course_id,semester,subject_code,module,competency,participants,attempts,graded,correct,paired_students,curricular_average,external_accuracy,comparison_gap,updated_at")
        .eq("institution_id",institutionId).order("updated_at",{ascending:false}).limit(1000);
+     if(!isCurrent())return;
      if(error)throw error;
      setData(((rows??[]) as Metric[]).filter(row=>schoolMode?row.module==="enem":row.module!=="enem"));
      if(canManage){
        const {data:state,error:bridgeError}=await supabase.functions.invoke("vertice-learning-bridge",{
          body:{operation:"status",institutionId}
        });
+       if(!isCurrent())return;
        if(bridgeError)throw bridgeError;
        setStatus(state as BridgeStatus);
      }else setStatus(null);
      setMessage("");
-   }catch(error){setMessage("Consulta parcial: "+errorMessage(error));}
-   finally{setLoading(false);}
+   }catch(error){if(isCurrent())setMessage("Consulta parcial: "+errorMessage(error));}
+   finally{if(isCurrent())setLoading(false);}
  };
- useEffect(()=>{setData([]);setStatus(null);void reload();},[institutionId]);
+ useEffect(()=>{setData([]);setStatus(null);setMapping(initialMapping);setFilterModule("");void reload();return()=>{reloadSequence.current++;};},[institutionId,schoolMode,role]);
  const bridgeAction=async(body:Record<string,unknown>)=>{
+   if(actionPending.current)return false;
+   actionPending.current=true;
    setBusy(true);setMessage("");
    try{
      const {data:answer,error}=await supabase.functions.invoke("vertice-learning-bridge",{
        body:{...body,institutionId}
      });
+     if(currentScope.current!==scope)return false;
      if(error)throw error;
      setMessage((body.operation==="sync"||body.operation==="sync_enem")
        ?"Vinculações confirmadas: "+number(answer?.confirmedLinks??0)+". Novos eventos: "+number(answer?.newEvents??0)+
         ". Grupos gerenciais: "+number(answer?.publishedGroups??0)+
-        (answer?.remainingPages?". Há mais páginas para sincronizar.":"")
+        (answer?.remainingPages?". Há mais páginas. Continue em Sincronizar desempenho, sem reprocessar novamente.":"")
        :body.operation==="map_subject"?"Mapeamento validado. Indicadores serão calculados quando houver eventos e notas comparáveis."
        :body.operation==="provision_tenant"
           ?answer?.enabled?"Esta instituição foi habilitada para integração, mediante consentimento e matrícula confirmada."
@@ -95,16 +106,17 @@ export default function LearningConnected({institutionId,courses,role,schoolMode
      }:previous);
      const {data:rows,error:refreshError}=await supabase.from("vertice_learning_course_metrics")
        .select("*").eq("institution_id",institutionId).limit(1000);
+     if(currentScope.current!==scope)return false;
      if(!refreshError)setData(((rows??[]) as Metric[]).filter(row=>schoolMode?row.module==="enem":row.module!=="enem"));
      return true;
-   }catch(error){setMessage("Não foi possível concluir: "+errorMessage(error));return false;}
-   finally{setBusy(false);}
+   }catch(error){if(currentScope.current===scope)setMessage("Não foi possível concluir: "+errorMessage(error));return false;}
+   finally{actionPending.current=false;setBusy(false);}
  };
  const link="https://www.fatoeordem.com.br/vincular-vertice?institutionId="+encodeURIComponent(institutionId);
  const onMap=(event:FormEvent<HTMLFormElement>)=>{
    event.preventDefault();
-   if(!canManage||!mapping.reviewed)return;
-   if(!window.confirm("Confirmar que o vínculo disciplina–competência foi revisado com evidência?"))return;
+   if(!canManage||!mapping.reviewed||busy)return;
+   if(!window.confirm(mapping.competency.trim()==="*"?"Confirmar mapeamento de TODO o módulo, incluindo TODOS os cadernos e provas, para esta disciplina? A evidência deve justificar esse escopo completo.":"Confirmar que o vínculo disciplina–competência foi revisado com evidência?"))return;
    void bridgeAction({operation:"map_subject",...mapping}).then(ok=>{if(ok)setMapping(initialMapping);});
  };
  return <section className="learning-connected">
@@ -174,6 +186,10 @@ export default function LearningConnected({institutionId,courses,role,schoolMode
          </button>
        </div>}
        {canManage&&<button type="button" className="corp-button" disabled={busy||!status?.configured||status?.tenantEnabled!==true} onClick={()=>void bridgeAction({operation:schoolMode?"sync_enem":"sync"})}>Sincronizar desempenho</button>}
+       {canManage&&<button type="button" className="corp-button" disabled={busy||!status?.configured||status?.tenantEnabled!==true}
+         onClick={()=>{if(window.confirm("Reprocessar o histórico autorizado desta instituição desde o início? Eventos já registrados não serão duplicados. Confirme a revisão das matrículas e do escopo de compartilhamento."))void bridgeAction({operation:schoolMode?"sync_enem":"sync",replay:true,reviewed:true});}}>
+         Reprocessar histórico revisado
+       </button>}
        <p className="learning-footnote">Cada nova IES cadastrada pode ser habilitada aqui, sem alteração de código ou lista manual de clientes. A ativação não vincula alunos automaticamente. O botão de sincronização permanece bloqueado sem credenciais, credenciamento e matrícula verificada.</p>
      </section>
    </div>
@@ -181,12 +197,13 @@ export default function LearningConnected({institutionId,courses,role,schoolMode
      <h4>Mapa validado: disciplina × competência × exame</h4>
      <p>Utilize o código real da disciplina e a competência documentada. O sistema não associa conteúdos por nome parecido, nem presume que as provas avaliam automaticamente toda a matriz curricular.</p>
      <form className="learning-map" onSubmit={onMap}>
-       <HelpLabel>Curso <select value={mapping.courseId} required onChange={e=>setMapping(v=>({...v,courseId:e.target.value}))}><option value="">Selecione o curso</option>{courses.map(c=><option key={String(c.id)} value={String(c.id)}>{String(c.display_name??c.name)} · {String(c.code??"")}</option>)}</select></HelpLabel>
-       <HelpLabel>Código da disciplina<input required value={mapping.subjectCode} maxLength={120} onChange={e=>setMapping(v=>({...v,subjectCode:e.target.value}))} placeholder="Código cadastrado no sistema acadêmico"/></HelpLabel>
-       <HelpLabel>Exame <select value={mapping.module} onChange={e=>setMapping(v=>({...v,module:e.target.value}))}>{modules.map(([k,v])=><option key={k} value={k}>{v}</option>)}</select></HelpLabel>
-       <HelpLabel>Competência avaliada<input required minLength={3} value={mapping.competency} maxLength={500} onChange={e=>setMapping(v=>({...v,competency:e.target.value}))} placeholder="Competência documentada na matriz e no plano de ensino"/></HelpLabel>
-       <HelpLabel className="wide">Evidência de vínculo curricular<input required minLength={3} value={mapping.evidenceRef} maxLength={1000} onChange={e=>setMapping(v=>({...v,evidenceRef:e.target.value}))} placeholder="Matriz de referência, plano de ensino ou documentação institucional"/></HelpLabel>
-       <HelpLabel className="wide learning-check"><input type="checkbox" checked={mapping.reviewed} onChange={e=>setMapping(v=>({...v,reviewed:e.target.checked}))} required/><span>Confirmei pessoalmente a correspondência entre disciplina, competência e instrumento de avaliação.</span></HelpLabel>
+       <HelpLabel>Curso <select disabled={busy} value={mapping.courseId} required onChange={e=>setMapping(v=>({...v,courseId:e.target.value,reviewed:false}))}><option value="">Selecione o curso</option>{courses.map(c=><option key={String(c.id)} value={String(c.id)}>{String(c.display_name??c.name)} · {String(c.code??"")}</option>)}</select></HelpLabel>
+       <HelpLabel>Código da disciplina<input disabled={busy} required value={mapping.subjectCode} maxLength={120} onChange={e=>setMapping(v=>({...v,subjectCode:e.target.value,reviewed:false}))} placeholder="Código cadastrado no sistema acadêmico"/></HelpLabel>
+       <HelpLabel>Exame <select disabled={busy} value={mapping.module} onChange={e=>setMapping(v=>({...v,module:e.target.value,reviewed:false}))}>{modules.map(([k,v])=><option key={k} value={k}>{v}</option>)}</select></HelpLabel>
+       <HelpLabel>Competência avaliada<input disabled={busy} required minLength={mapping.competency.trim()==="*"?1:3} value={mapping.competency} maxLength={500} onChange={e=>setMapping(v=>({...v,competency:e.target.value,reviewed:false}))} placeholder="Competência documentada na matriz e no plano de ensino"/></HelpLabel>
+       <HelpLabel className="wide">Evidência de vínculo curricular<input disabled={busy} required minLength={3} value={mapping.evidenceRef} maxLength={1000} onChange={e=>setMapping(v=>({...v,evidenceRef:e.target.value,reviewed:false}))} placeholder="Matriz de referência, plano de ensino ou documentação institucional"/></HelpLabel>
+       <p className="wide learning-footnote">Use a competência exata da fonte. O valor * inclui TODO o módulo, com TODOS os cadernos e provas, inclusive itens sem competência. Só use esse escopo amplo com evidência curricular específica e revisão humana.</p>
+       <HelpLabel className="wide learning-check"><input type="checkbox" disabled={busy} checked={mapping.reviewed} onChange={e=>setMapping(v=>({...v,reviewed:e.target.checked}))} required/><span>Confirmei pessoalmente a correspondência entre disciplina, competência e instrumento de avaliação.</span></HelpLabel>
        <button className="corp-button small" type="submit" disabled={busy||!status?.configured}>Validar mapeamento</button>
      </form>
    </section>}

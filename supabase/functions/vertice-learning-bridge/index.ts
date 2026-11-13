@@ -230,6 +230,7 @@ Deno.serve(async req=>{
   if(operation==="sync"||operation==="sync_enem"){
    if(env("VERTICE_BRIDGE_API_KEY").length<32||env("VERTICE_BRIDGE_IDENTITY_KEY").length<32)
     throw fail("Integração ainda sem chaves de servidor.",503);
+   if(body.replay===true&&body.reviewed!==true)throw fail("Reprocessamento histórico exige revisão explícita.");
    const candidates=await remote("/api/internal/vertice/candidates?institutionId="+encodeURIComponent(inst));
    if(!candidates.complete)throw fail("Fila de alunos excede o lote seguro, ampliação necessária.",409);
    let confirmed=0;
@@ -246,12 +247,23 @@ Deno.serve(async req=>{
     }
     if(confirmed)await rpc(admin,"vertice_bridge_reset_cursor",{p_institution:inst});
    }
+   if(body.replay===true)await rpc(admin,"vertice_bridge_reset_cursor",{p_institution:inst});
    let cursor=await rpc(admin,"vertice_bridge_read_cursor",{p_institution:inst});
    let ingested=0,ignored=0,more=false,pages=0;
    for(let i=0;i<4;i++){
     const query=new URLSearchParams({institutionId:inst,after:cursor.after,afterId:cursor.afterId||"",limit:"400"});
     const page=await remote((school?"/api/internal/vertice/school-events?":"/api/internal/vertice/events?")+query.toString());
-    const events=page.events||[];pages++;
+    // Fail closed before persisting a cursor if the source page crosses segments
+    // or omits pagination metadata. Keep the timestamp string (microseconds).
+    if(!Array.isArray(page.events)||typeof page.hasMore!=="boolean")throw fail("Página de eventos inválida.",502);
+    const events=page.events;pages++;
+    if(events.some((event:Record<string,unknown>)=>!event||!MODS.has(String(event.module))||((event.module==="enem")!==school)))
+     throw fail("Página de eventos incompatível com o segmento institucional.",502);
+    if(events.length&&(!page.nextCursor||typeof page.nextCursor.after!=="string"||
+      !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$/.test(page.nextCursor.after)||
+      !Number.isFinite(Date.parse(page.nextCursor.after))||typeof page.nextCursor.afterId!=="string"||!page.nextCursor.afterId||page.nextCursor.afterId.length>200))
+     throw fail("Cursor de evento inválido.",502);
+    if(!events.length&&page.hasMore)throw fail("Página vazia com continuação inválida.",502);
     if(events.length){
      const result=await rpc(admin,"vertice_bridge_ingest_events",{p_institution:inst,p_events:events});
      ingested+=Number(result.inserted||0);ignored+=Number(result.ignored||0);

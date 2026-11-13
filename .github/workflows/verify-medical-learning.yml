@@ -1,0 +1,43 @@
+name: Validate medical and school learning bridge
+on:
+  pull_request:
+    paths:
+      - 'source-overrides/client/src/components/area/LearningConnected.tsx'
+      - 'source-overrides/server/*.medical.spec.ts'
+      - 'supabase/functions/vertice-learning-bridge/**'
+      - 'supabase/migrations/*learning*'
+      - 'scripts/medical.vitest.config.ts'
+      - 'scripts/tests/learning-medical-replay.test.mjs'
+      - 'scripts/tests/runtime/**'
+      - '.github/workflows/verify-medical-learning.yml'
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Compose production source and locked test runtime
+        run: |
+          mkdir -p .medical-build
+          unzip -qo vertice-servidor-source.zip -d .medical-build
+          cp -a source-overrides/. .medical-build/
+          cp -a supabase .medical-build/
+          cp scripts/medical.vitest.config.ts .medical-build/scripts/
+          npm ci --prefix .medical-build --legacy-peer-deps --no-audit --no-fund
+          npm ci --prefix scripts/tests/runtime --ignore-scripts --no-audit --no-fund
+          ln -s "$GITHUB_WORKSPACE/scripts/tests/runtime/node_modules/jsdom" .medical-build/node_modules/jsdom
+          mkdir -p .medical-build/node_modules/@electric-sql
+          ln -s "$GITHUB_WORKSPACE/scripts/tests/runtime/node_modules/@electric-sql/pglite" .medical-build/node_modules/@electric-sql/pglite
+      - name: Typecheck, contracts, UI and isolated SQL
+        working-directory: .medical-build
+        run: |
+          npm run check
+          npm test
+          ./node_modules/.bin/vitest run --config scripts/medical.vitest.config.ts
+          node --test ../scripts/tests/learning-medical-replay.test.mjs
+          npm run build:static

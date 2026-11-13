@@ -42,6 +42,16 @@ async function tab(name:string) {
   const button=[...container.querySelectorAll<HTMLButtonElement>('.rbi-tabs button')].find(element=>element.textContent?.includes(name));
   expect(button).toBeDefined(); await act(async()=>button!.click());
 }
+function kpiValue(label:string) {
+  // Read the KPI label and value separately; its accessible help button is not data.
+  const cards=[...container.querySelectorAll('.rbi-kpi')].filter(card=>{
+    const element=card.querySelector('.rbi-kpi-label');
+    return [...(element?.childNodes??[])].filter(node=>node.nodeType===Node.TEXT_NODE)
+      .map(node=>node.textContent).join('').trim()===label;
+  });
+  expect(cards.length).toBeLessThanOrEqual(1);
+  return cards[0]?.querySelector('.rbi-kpi-value')?.textContent;
+}
 beforeEach(() => {
   vi.clearAllMocks(); Object.assign(globalThis,{IS_REACT_ACT_ENVIRONMENT:true});
   container=document.createElement('div');document.body.append(container);root=createRoot(container);
@@ -58,10 +68,10 @@ describe('Reitoria: renderização dos contratos efetivos',()=>{
   it('carrega o catálogo de semestres e exibe contagens, nome docente e saúde fornecidos pelas consultas',async()=>{
     await show();await tab('Acadêmico');
     expect(fixtures.quant.mock.calls[0][1]).toEqual([{id:1,codigo:'2026/2',descricao:'Atual',instituicao_id:'ies-a'}]);
-    expect(container.textContent).toContain('Vínculos130');expect(container.textContent).toContain('Matriculados120');
+    expect(kpiValue('Vínculos')).toBe('130');expect(kpiValue('Matriculados')).toBe('120');
     expect(container.textContent).toContain('Professora sintética');expect(container.textContent).toContain('Saúde da fonte');
     expect(container.querySelector('.rbi-health-atencao')?.textContent).toContain('Cobertura parcial');
-    expect(container.textContent).toContain('Turmas de ingresso apuradas1');expect(container.textContent).not.toContain('NaN');
+    expect(kpiValue('Turmas de ingresso apuradas')).toBe('1');expect(container.textContent).not.toContain('NaN');
   });
   it('mantém plano e notas no mesmo semestre e identifica curso/período ENADE',async()=>{
     await show();await tab('Compliance');
@@ -87,12 +97,12 @@ describe('Reitoria: renderização dos contratos efetivos',()=>{
   });
   it('não trata ID de período desconhecido como resumo corrente',async()=>{
     fixtures.quant.mockResolvedValue([{semestre:'sem_999',totalMatriculados:999,totalVinculos:1000}]);
-    await show();await tab('Acadêmico');expect(container.textContent).toContain('Sem dados do e-Orbit');expect(container.textContent).not.toContain('Matriculados999');
+    await show();await tab('Acadêmico');expect(container.textContent).toContain('Sem dados do e-Orbit');expect(kpiValue('Matriculados')).toBeUndefined();
   });
   it('limpa o resumo de evasão quando a próxima instituição não possui coortes',async()=>{
-    await show();await tab('Acadêmico');expect(container.textContent).toContain('Turmas de ingresso apuradas1');
+    await show();await tab('Acadêmico');expect(kpiValue('Turmas de ingresso apuradas')).toBe('1');
     fixtures.cohorts.mockReturnValue(null);
     await act(async()=>{const select=container.querySelector('select')!;select.value='ies-b';select.dispatchEvent(new Event('change',{bubbles:true}));});
-    expect(container.textContent).toContain('Sem dados das turmas de ingresso');expect(container.textContent).not.toContain('Turmas de ingresso apuradas1');
+    expect(container.textContent).toContain('Sem dados das turmas de ingresso');expect(kpiValue('Turmas de ingresso apuradas')).toBeUndefined();
   });
 });
