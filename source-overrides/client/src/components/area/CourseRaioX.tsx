@@ -56,9 +56,9 @@ export default function CourseRaioX({ institutionId, courses, role, onNavigate }
       // TCC
       supabase.from('vertice_tcc_works').select('id,stage,stage_deadline').eq('institution_id', institutionId).eq('course_id', selectedCourse).not('stage', 'in', '(cancelled,archived)').then(r => r).catch(() => ({ data: [] })),
       // AC
-      supabase.from('v_ac_course_summary').select('*').eq('institution_id', institutionId).eq('course_id', selectedCourse).maybeSingle().catch(() => ({ data: null })),
+      supabase.from('v_ac_course_summary').select('*').eq('institution_id', institutionId).eq('course_id', selectedCourse).maybeSingle().then(r => r).catch(() => ({ data: null })),
       // Estágio
-      supabase.from('v_internship_course_summary').select('*').eq('institution_id', institutionId).eq('course_id', selectedCourse).maybeSingle().catch(() => ({ data: null })),
+      supabase.from('v_internship_course_summary').select('*').eq('institution_id', institutionId).eq('course_id', selectedCourse).maybeSingle().then(r => r).catch(() => ({ data: null })),
       // Governança
       supabase.from('vertice_governance_bodies').select('id').eq('institution_id', institutionId).or(`course_id.eq.${selectedCourse},course_id.is.null`).eq('active', true).then(r => r).catch(() => ({ data: [] })),
       supabase.from('vertice_governance_meetings').select('id,body_id').eq('institution_id', institutionId).then(r => r).catch(() => ({ data: [] })),

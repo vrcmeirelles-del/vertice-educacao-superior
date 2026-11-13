@@ -191,7 +191,7 @@ export default function StudentAccessPortal({ institutionId, institutionName, pu
 async function loadStudentDashboardData(studentId: string, institutionId: string) {
   const [reg, balance, subs, placements] = await Promise.all([
     supabase.from('vertice_student_registry').select('full_name,enrollment_code,course_id').eq('id', studentId).single(),
-    supabase.from('v_ac_student_balance').select('*').eq('student_id', studentId).maybeSingle().catch(() => ({ data: null })),
+    supabase.from('v_ac_student_balance').select('*').eq('student_id', studentId).maybeSingle().then(r => r).catch(() => ({ data: null })),
     supabase.from('vertice_ac_submissions').select('id,title,issuer,documentary_minutes,status,created_at').eq('student_id', studentId).order('created_at', { ascending: false }).limit(20).catch(() => ({ data: [] })),
     supabase.from('vertice_internship_placements').select('id,lifecycle,starts_at,ends_at,advisor_name,organization_id,field_id').eq('student_id', studentId).order('created_at', { ascending: false }).limit(10).catch(() => ({ data: [] })),
   ]);
