@@ -24,7 +24,7 @@ interface Props {
   role: 'master' | 'gestor' | 'equipe';
 }
 
-type View = 'overview' | 'governanca' | 'referenciais' | 'ciclos' | 'instrumentos' | 'campanhas' | 'resultados' | 'achados' | 'planos' | 'devolutivas' | 'meta';
+type View = 'overview' | 'governanca' | 'referenciais' | 'ciclos' | 'instrumentos' | 'campanhas' | 'resultados' | 'relatorios' | 'achados' | 'planos' | 'devolutivas' | 'meta';
 
 const NAV: { v: View; label: string; icon: string }[] = [
   { v: 'overview', label: 'Visão Geral', icon: '📊' },
@@ -34,6 +34,7 @@ const NAV: { v: View; label: string; icon: string }[] = [
   { v: 'instrumentos', label: 'Instrumentos', icon: '📋' },
   { v: 'campanhas', label: 'Campanhas', icon: '📨' },
   { v: 'resultados', label: 'Resultados', icon: '📈' },
+  { v: 'relatorios', label: 'Relatórios', icon: '📄' },
   { v: 'achados', label: 'Achados', icon: '🔍' },
   { v: 'planos', label: 'Planos', icon: '🎯' },
   { v: 'devolutivas', label: 'Devolutivas', icon: '📢' },
@@ -82,6 +83,7 @@ export default function CpaAutoavaliacao({ institutionId, role }: Props) {
       {view === 'instrumentos' && <InstrumentosCPA institutionId={institutionId} role={role} />}
       {view === 'campanhas' && <CampanhasCPA institutionId={institutionId} role={role} />}
       {view === 'resultados' && <ResultadosCPA institutionId={institutionId} campIndicators={campIndicators} />}
+      {view === 'relatorios' && <RelatoriosCPA institutionId={institutionId} role={role} />}
       {view === 'achados' && <AchadosCPA institutionId={institutionId} role={role} />}
       {view === 'planos' && <PlanosCPA institutionId={institutionId} role={role} />}
       {view === 'devolutivas' && <DevolutivasCPA institutionId={institutionId} role={role} />}
@@ -879,6 +881,164 @@ function ResultadosCPA({ institutionId, campIndicators }: { institutionId: strin
               <td style={{textAlign:'right'}}><strong>{c.total_completed}</strong></td>
               <td style={{textAlign:'right'}}>{c.total_in_progress}</td>
               <td style={{textAlign:'right',fontWeight:700,color:(c.pct_completion||0)>=50?'#16a34a':'#dc2626'}}>{c.pct_completion!=null?c.pct_completion+'%':'N/D'}</td></tr>)}</tbody></table>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
+/* ============ RELATÓRIOS CPA ============ */
+function RelatoriosCPA({ institutionId, role }: { institutionId: string; role: string }) {
+  const [reports, setReports] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
+  const [viewReport, setViewReport] = useState<any>(null);
+  const [editSection, setEditSection] = useState<string | null>(null);
+  const [editText, setEditText] = useState('');
+
+  const STATUS_L: Record<string,{l:string;bg:string}> = {
+    em_elaboracao:{l:'Em elaboração',bg:'#94a3b8'}, minuta_gerada:{l:'Minuta gerada',bg:'#2563eb'},
+    em_revisao:{l:'Em revisão CPA',bg:'#f59e0b'}, aprovado:{l:'Aprovado',bg:'#16a34a'},
+    finalizado:{l:'Finalizado',bg:'#059669'}, postagem_registrada:{l:'Postagem registrada',bg:'#7c3aed'},
+  };
+
+  useEffect(() => {
+    supabase.from('vertice_cpa_reports').select('*').eq('institution_id', institutionId).order('created_at', { ascending: false })
+      .then(({ data }) => setReports(data || [])).finally(() => setLoading(false));
+  }, [institutionId]);
+
+  const generate = async (reportType: string, yearBase: string) => {
+    setGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('vertice-cpa-report', { body: { institution_id: institutionId, report_type: reportType, year_base: yearBase } });
+      if (error) throw error;
+      if (data?.report_id) {
+        const { data: rep } = await supabase.from('vertice_cpa_reports').select('*').eq('id', data.report_id).single();
+        if (rep) { setReports(prev => [rep, ...prev.filter(r => r.id !== rep.id)]); setViewReport(rep); }
+      }
+      alert(`Relatório gerado com ${data?.sections?.length || 0} seções!`);
+    } catch (err) { alert('Erro: ' + (err as Error).message); }
+    finally { setGenerating(false); }
+  };
+
+  const updateStatus = async (id: string, status: string) => {
+    const updates: any = { status, updated_at: new Date().toISOString() };
+    if (status === 'em_revisao') updates.reviewed_at = new Date().toISOString();
+    if (status === 'aprovado') { updates.approved_at = new Date().toISOString(); }
+    await supabase.from('vertice_cpa_reports').update(updates).eq('id', id);
+    setReports(prev => prev.map(r => r.id === id ? { ...r, ...updates } : r));
+    if (viewReport?.id === id) setViewReport((p: any) => ({ ...p, ...updates }));
+  };
+
+  const saveSection = async (reportId: string, sectionKey: string, newContent: string) => {
+    const report = reports.find(r => r.id === reportId);
+    if (!report) return;
+    const updated = { ...report.content_json, [sectionKey]: { ...report.content_json[sectionKey], content: newContent, ai_notes: 'Editado pela CPA' } };
+    await supabase.from('vertice_cpa_reports').update({ content_json: updated, updated_at: new Date().toISOString() }).eq('id', reportId);
+    setReports(prev => prev.map(r => r.id === reportId ? { ...r, content_json: updated } : r));
+    setViewReport((p: any) => p?.id === reportId ? { ...p, content_json: updated } : p);
+    setEditSection(null);
+  };
+
+  if (loading) return <p className="alumni-loading">Carregando relatórios…</p>;
+
+  return (
+    <section>
+      <div className="alumni-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h3>📄 Relatórios de Autoavaliação</h3>
+        {(role === 'master' || role === 'gestor') && !generating && (
+          <div style={{ display: 'flex', gap: 6 }}>
+            <button className="alumni-btn-primary" onClick={() => generate('parcial', String(new Date().getFullYear()))}>🤖 Gerar relatório parcial</button>
+            <button className="alumni-btn-primary" style={{ background: '#7c3aed' }} onClick={() => generate('integral', String(new Date().getFullYear()))}>🤖 Gerar relatório integral</button>
+          </div>
+        )}
+        {generating && <span style={{ color: '#2563eb', fontWeight: 600 }}>⏳ Gerando com IA (pode levar 1-2 minutos)…</span>}
+      </div>
+
+      {/* Lista de relatórios */}
+      {reports.length === 0 && !generating ? <EmptyState msg="Nenhum relatório gerado. Clique em 'Gerar relatório' para criar a minuta com IA." /> : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
+          {reports.map(r => {
+            const st = STATUS_L[r.status] || { l: r.status, bg: '#94a3b8' };
+            const sections = r.content_json ? Object.keys(r.content_json) : [];
+            return (
+              <div key={r.id} style={{ padding: 12, borderRadius: 10, background: viewReport?.id === r.id ? '#eff6ff' : '#f8fafc', border: `1px solid ${viewReport?.id === r.id ? '#2563eb' : '#e2e8f0'}`, cursor: 'pointer' }}
+                onClick={() => setViewReport(viewReport?.id === r.id ? null : r)}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                  <div>
+                    <strong>{r.title}</strong>
+                    <div style={{ fontSize: '.75rem', color: '#64748b' }}>{r.report_type === 'integral' ? 'Integral' : 'Parcial'} · Ano-base {r.year_base} · v{r.version} · {sections.length} seções</div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                    <span className="alumni-status-pill" style={{ background: st.bg }}>{st.l}</span>
+                    {r.generated_at && <span style={{ fontSize: '.65rem', color: '#94a3b8' }}>{new Date(r.generated_at).toLocaleDateString('pt-BR')}</span>}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Visualizador do relatório */}
+      {viewReport && viewReport.content_json && (
+        <div style={{ border: '2px solid #2563eb', borderRadius: 12, padding: 16, background: '#fff' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
+            <div>
+              <strong style={{ fontSize: '1.1rem' }}>{viewReport.title}</strong>
+              <div style={{ fontSize: '.8rem', color: '#64748b' }}>{(STATUS_L[viewReport.status] || {}).l} · {viewReport.report_type} · Ano-base {viewReport.year_base}</div>
+            </div>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {viewReport.status === 'minuta_gerada' && (role === 'master' || role === 'gestor') && (
+                <button style={{ fontSize: '.75rem', padding: '4px 12px', borderRadius: 6, border: '1px solid #f59e0b', background: '#fffbeb', color: '#b45309', fontWeight: 600, cursor: 'pointer' }}
+                  onClick={() => updateStatus(viewReport.id, 'em_revisao')}>📝 Enviar para revisão CPA</button>
+              )}
+              {viewReport.status === 'em_revisao' && (role === 'master' || role === 'gestor') && (
+                <button style={{ fontSize: '.75rem', padding: '4px 12px', borderRadius: 6, border: '1px solid #16a34a', background: '#f0fdf4', color: '#16a34a', fontWeight: 600, cursor: 'pointer' }}
+                  onClick={() => updateStatus(viewReport.id, 'aprovado')}>✅ Aprovar relatório</button>
+              )}
+              {viewReport.status === 'aprovado' && (
+                <button style={{ fontSize: '.75rem', padding: '4px 12px', borderRadius: 6, border: '1px solid #059669', background: '#ecfdf5', color: '#059669', fontWeight: 600, cursor: 'pointer' }}
+                  onClick={() => updateStatus(viewReport.id, 'finalizado')}>📦 Finalizar para postagem</button>
+              )}
+              <button style={{ fontSize: '.75rem', padding: '4px 12px', borderRadius: 6, border: '1px solid #2563eb', background: '#eff6ff', color: '#2563eb', cursor: 'pointer' }}
+                onClick={() => { setViewReport(null); }}>✕ Fechar</button>
+            </div>
+          </div>
+
+          {/* Seções do relatório */}
+          {Object.entries(viewReport.content_json).map(([key, sec]: [string, any]) => (
+            <div key={key} style={{ marginBottom: 16, padding: 14, borderRadius: 10, background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <strong style={{ fontSize: '.95rem', color: '#0f172a' }}>{sec.title}</strong>
+                <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                  <span style={{ fontSize: '.6rem', padding: '2px 6px', borderRadius: 4, background: sec.ai_notes?.includes('Editado') ? '#dcfce7' : '#dbeafe', color: sec.ai_notes?.includes('Editado') ? '#16a34a' : '#2563eb' }}>{sec.ai_notes?.includes('Editado') ? '✏️ Editado' : '🤖 IA'}</span>
+                  {(role === 'master' || role === 'gestor') && viewReport.status !== 'aprovado' && viewReport.status !== 'finalizado' && (
+                    <button style={{ fontSize: '.65rem', padding: '2px 8px', borderRadius: 4, border: '1px solid #2563eb', background: '#fff', color: '#2563eb', cursor: 'pointer' }}
+                      onClick={() => { setEditSection(key); setEditText(sec.content); }}>✏️ Editar</button>
+                  )}
+                </div>
+              </div>
+              {editSection === key ? (
+                <div>
+                  <textarea value={editText} onChange={e => setEditText(e.target.value)} rows={12}
+                    style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid #2563eb', fontSize: '.85rem', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.6 }} />
+                  <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end', marginTop: 6 }}>
+                    <button style={{ fontSize: '.75rem', padding: '4px 12px', borderRadius: 6, border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer' }} onClick={() => setEditSection(null)}>Cancelar</button>
+                    <button style={{ fontSize: '.75rem', padding: '4px 12px', borderRadius: 6, border: 'none', background: '#2563eb', color: '#fff', fontWeight: 700, cursor: 'pointer' }}
+                      onClick={() => saveSection(viewReport.id, key, editText)}>Salvar alteração</button>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ fontSize: '.85rem', lineHeight: 1.7, color: '#334155', whiteSpace: 'pre-wrap' }}>{sec.content}</div>
+              )}
+            </div>
+          ))}
+
+          <div style={{ padding: 12, background: '#f5f3ff', borderRadius: 10, fontSize: '.8rem', color: '#475569' }}>
+            🤖 <strong>Minuta gerada por IA</strong> — requer revisão e aprovação da CPA. A CPA pode editar cada seção antes de aprovar.
+            Fluxo: Minuta → Revisão CPA → Aprovado → Finalizado para postagem.
           </div>
         </div>
       )}
