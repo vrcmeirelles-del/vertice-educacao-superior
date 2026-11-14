@@ -348,10 +348,12 @@ function EnsalamentoTab({ data, real, vacancies, evolucao, onDrill }: { data: an
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 8 }}>
           {turmas.filter((t: any) => t.total > 0).map((t: any, i: number) => {
             const ocupacao = Math.round(100 * t.total / IDEAL);
-            const overCap = t.total > IDEAL;
-            const barColor = overCap ? '#dc2626' : t.total > IDEAL * 0.75 ? '#f59e0b' : t.total > IDEAL * 0.5 ? '#2563eb' : '#94a3b8';
+            const critical = t.total < 25;
+            const warning = t.total >= 25 && t.total < 35;
+            const good = t.total >= 35;
+            const barColor = critical ? '#dc2626' : warning ? '#f59e0b' : good ? '#16a34a' : '#2563eb';
             const retenção = t.total > 0 ? Math.round(100 * t.mat / t.total) : 0;
-            return <div key={i} style={{ padding: '10px 12px', borderRadius: 10, background: overCap ? '#fef2f2' : '#f8fafc', border: `1px solid ${overCap ? '#fecaca' : '#e2e8f0'}` }}>
+            return <div key={i} style={{ padding: '10px 12px', borderRadius: 10, background: critical ? '#fef2f2' : good ? '#f0fdf4' : '#f8fafc', border: `1px solid ${critical ? '#fecaca' : good ? '#bbf7d0' : '#e2e8f0'}` }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                 <strong style={{ fontSize: '.9rem' }}>{t.turma}</strong>
                 <span style={{ fontSize: '.65rem', color: '#94a3b8' }}>{t.periodo}º período</span>
@@ -373,15 +375,17 @@ function EnsalamentoTab({ data, real, vacancies, evolucao, onDrill }: { data: an
                 {(t.cancel || 0) > 0 && <span style={{ fontSize: '.6rem', padding: '1px 6px', borderRadius: 6, background: '#fee2e2', color: '#dc2626' }}>✕ {t.cancel} cancel.</span>}
                 {(t.transf || 0) > 0 && <span style={{ fontSize: '.6rem', padding: '1px 6px', borderRadius: 6, background: '#e2e8f0', color: '#64748b' }}>↗ {t.transf} transf.</span>}
               </div>
-              {retenção < 50 && <div style={{ marginTop: 4, fontSize: '.65rem', color: '#dc2626', fontWeight: 600 }}>⚠ Retenção: {retenção}% — mais da metade saiu</div>}
+              {critical && <div style={{ marginTop: 4, fontSize: '.65rem', color: '#dc2626', fontWeight: 600 }}>🚨 Turma crítica: {t.total} alunos — abaixo de 25</div>}
+              {warning && <div style={{ marginTop: 4, fontSize: '.65rem', color: '#f59e0b', fontWeight: 600 }}>⚠ Atenção: {t.total} alunos — abaixo do ideal</div>}
+              {retenção < 50 && <div style={{ marginTop: 4, fontSize: '.65rem', color: '#7c3aed', fontWeight: 600 }}>📉 Retenção: {retenção}% — mais da metade saiu</div>}
             </div>;
           })}
         </div>
 
         {/* Resumo do semestre */}
         <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap', fontSize: '.7rem', color: '#64748b' }}>
-          <span>Salas com &gt;40 alunos: <strong style={{ color: salasNecessarias > 0 && turmas.some((t: any) => t.total > IDEAL) ? '#dc2626' : '#16a34a' }}>{turmas.filter((t: any) => t.total > IDEAL).length}</strong></span>
-          <span>Salas com &lt;20 alunos: <strong>{turmas.filter((t: any) => t.total > 0 && t.total < 20).length}</strong></span>
+          <span>Salas com &gt;35 alunos: <strong style={{ color: '#16a34a' }}>{turmas.filter((t: any) => t.total >= 35).length}</strong> ✓</span>
+          <span>Salas com &lt;25 alunos: <strong style={{ color: turmas.some((t: any) => t.total > 0 && t.total < 25) ? '#dc2626' : '#16a34a' }}>{turmas.filter((t: any) => t.total > 0 && t.total < 25).length}</strong>{turmas.some((t: any) => t.total > 0 && t.total < 25) ? ' 🚨' : ''}</span>
           <span>Retenção média: <strong style={{ color: totalGeral > 0 && totalMat / totalGeral < 0.5 ? '#dc2626' : '#16a34a' }}>{totalGeral > 0 ? Math.round(100 * totalMat / totalGeral) : 0}%</strong></span>
         </div>
       </div>;
