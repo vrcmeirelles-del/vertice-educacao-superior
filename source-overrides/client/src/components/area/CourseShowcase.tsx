@@ -165,17 +165,17 @@ async function loadShowcaseData(instId: string, courseId: string, courseName: st
     supabase.from('vertice_academic_reports').select('data').eq('institution_id', instId).eq('course_id', courseId).eq('kind', 'quantitativo_alunos').order('report_date', { ascending: false }).limit(1),
     supabase.from('vertice_alumni_education').select('id,profile:vertice_alumni_profiles!profile_id(email,phone)').eq('institution_id', instId).eq('course_id', courseId).in('academic_status', ['formado','diplomado','egresso_acompanhado','integralizado','concluinte']),
     // Reuniões realizadas do NDE/colegiado deste curso
-    supabase.rpc('count_meetings_by_course', { p_institution_id: instId, p_course_id: courseId }).catch(() => ({ data: null })),
+    Promise.resolve(supabase.rpc('count_meetings_by_course', { p_institution_id: instId, p_course_id: courseId })).catch(() => ({ data: null })),
     // Deliberações concluídas
-    supabase.rpc('count_deliberations_by_course', { p_institution_id: instId, p_course_id: courseId }).catch(() => ({ data: null })),
+    Promise.resolve(supabase.rpc('count_deliberations_by_course', { p_institution_id: instId, p_course_id: courseId })).catch(() => ({ data: null })),
     // Ações com evidência
     supabase.from('vertice_actions').select('id,status,evidence').eq('institution_id', instId).eq('course_id', courseId).in('status', ['concluida','executada','avaliada']),
     // TCC
-    supabase.from('vertice_tcc_works').select('id,stage').eq('institution_id', instId).eq('course_id', courseId).not('stage', 'in', '(cancelled,archived)').then(r => r).catch(() => ({ data: [] })),
+    Promise.resolve(supabase.from('vertice_tcc_works').select('id,stage').eq('institution_id', instId).eq('course_id', courseId).not('stage', 'in', '(cancelled,archived)')).then(r => r).catch(() => ({ data: [] })),
     // Estágio
-    supabase.from('v_internship_course_summary').select('*').eq('institution_id', instId).eq('course_id', courseId).maybeSingle().then(r => r).catch(() => ({ data: null })),
+    Promise.resolve(supabase.from('v_internship_course_summary').select('*').eq('institution_id', instId).eq('course_id', courseId).maybeSingle()).then(r => r).catch(() => ({ data: null })),
     // AC
-    supabase.from('v_ac_course_summary').select('*').eq('institution_id', instId).eq('course_id', courseId).maybeSingle().then(r => r).catch(() => ({ data: null })),
+    Promise.resolve(supabase.from('v_ac_course_summary').select('*').eq('institution_id', instId).eq('course_id', courseId).maybeSingle()).then(r => r).catch(() => ({ data: null })),
   ]);
 
   const rx = results[0].status === 'fulfilled' ? results[0].value.data : null;

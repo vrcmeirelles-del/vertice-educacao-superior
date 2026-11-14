@@ -5,6 +5,17 @@ import {
 } from "@/lib/area";
 
 const TAB_LABELS: Record<Tab, string> = {
+  tcc: "TCC e Pesquisa",
+  "atividades-complementares": "Atividades Complementares",
+  estagio: "Estágio Obrigatório",
+  "egressos-pesquisa": "Pesquisa de Egressos",
+  "egressos-cpa": "CPA e Egressos",
+  "egressos-indicadores": "Indicadores de Egressos",
+  "gerenciar-modulos": "Gerenciar Módulos",
+  "catalogo-modulos": "Catálogo de Módulos",
+  "minha-conta": "Minha Conta",
+  "painel-financeiro": "Painel Financeiro",
+  "vitrine-curso": "Vitrine do Curso",
   "cpa-autoavaliacao": "CPA e Autoavaliação",
   validacao: "Validação documental",
   backups: "Backups Acadêmicos",

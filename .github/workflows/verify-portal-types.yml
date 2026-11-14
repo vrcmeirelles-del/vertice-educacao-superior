@@ -8,6 +8,9 @@ on:
       - 'source-overrides/tsconfig.json'
       - 'vertice-servidor-source.zip'
       - 'scripts/portal-types.vitest.config.ts'
+      - 'scripts/compare-typescript.mjs'
+      - 'scripts/tests/compare-typescript.test.mjs'
+      - 'scripts/typescript-regression.vitest.config.ts'
       - 'scripts/tests/types-runtime/**'
       - '.github/workflows/verify-portal-types.yml'
 permissions:
@@ -30,20 +33,23 @@ jobs:
           mkdir -p .typecheck-build
           unzip -qo vertice-servidor-source.zip -d .typecheck-build
           cp -a source-overrides/. .typecheck-build/
-          cp scripts/portal-types.vitest.config.ts .typecheck-build/scripts/
+          cp scripts/portal-types.vitest.config.ts scripts/typescript-regression.vitest.config.ts .typecheck-build/scripts/
       - name: Instalar dependências com lockfile
         run: |
           npm ci --prefix .typecheck-build --legacy-peer-deps --no-audit --no-fund
           npm ci --prefix scripts/tests/types-runtime --no-audit --no-fund
           ln -s "$GITHUB_WORKSPACE/scripts/tests/types-runtime/node_modules/jsdom" .typecheck-build/node_modules/jsdom
+      - name: Regressões do comparador de diagnósticos
+        run: node --test scripts/tests/compare-typescript.test.mjs
       - name: TypeScript completo, sem tolerar erros da base
         working-directory: .typecheck-build
-        run: npm run check
+        run: npm run check -- --pretty false --incremental false
       - name: Suíte existente e regressões dos contratos
         working-directory: .typecheck-build
         run: |
           npm test
           ./node_modules/.bin/vitest run --config scripts/portal-types.vitest.config.ts
+          ./node_modules/.bin/vitest run --config scripts/typescript-regression.vitest.config.ts
       - name: Build estático completo
         working-directory: .typecheck-build
         run: npm run build:static

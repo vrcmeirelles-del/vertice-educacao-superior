@@ -1,0 +1,11 @@
+
+ RUN  v2.1.9 /workspace/scratch/a6fa738a22a6/vertice-educacao-superior/.validation-build
+
+ ✓ client/src/lib/captacao-integrada.ui.test.ts (8 tests) 267ms
+ ✓ client/src/lib/captacao-integrada.test.ts (27 tests) 14ms
+
+ Test Files  2 passed (2)
+      Tests  35 passed (35)
+   Start at  07:12:33
+   Duration  1.38s (transform 201ms, setup 0ms, collect 313ms, tests 281ms, environment 438ms, prepare 89ms)
+

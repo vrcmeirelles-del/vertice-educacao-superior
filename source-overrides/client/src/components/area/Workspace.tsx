@@ -553,7 +553,7 @@ export default function Workspace({
       ) : tab === "cadastro" ? (
         <><RegistryTab institution={institution} role={role} courses={data.courses} reload={reload} onChanged={onChanged} />{(role==='master'||role==='gestor')&&<CostEvidence institutionId={id} onUpload={openInstrumentUpload}/>}</>
       ) : tab === "metas" ? (
-        error ? <p role="alert">Painel de metas indisponível enquanto houver falha no carregamento. Atualize os dados.</p> : <GoalsTab key={id} institutionId={id} role={role} data={data} reload={reload} onRepository={goal=>{setRepositoryGoal(goal);choose("repositorio");}} />
+        error ? <p role="alert">Painel de metas indisponível enquanto houver falha no carregamento. Atualize os dados.</p> : <GoalsTab key={id} institutionId={id} role={role} data={data} reload={reload} autoMeasures={autoMeasures} onRepository={goal=>{setRepositoryGoal(goal);choose("repositorio");}} />
       ) : tab === "repositorio" ? (
         <RepositoryTab institutionId={id} role={role} courses={data.courses} goals={data.goals} requests={data.requests.filter(r=>!["recredenciamento_2017","novo_instrumento_2026_institucional","novo_instrumento_2026_curso"].includes(String(r.repository_section??"")))} files={data.files.filter(f=>data.requests.some(r=>r.id===f.request_id&&!["recredenciamento_2017","novo_instrumento_2026_institucional","novo_instrumento_2026_curso"].includes(String(r.repository_section??""))))} reload={reload} goalFilter={repositoryGoal} setGoalFilter={setRepositoryGoal} initialCourseId={instrumentUpload?.courseId} initialUpload={!!instrumentUpload} initialDocumentTitle={instrumentUpload?.title} initialDocumentInstructions={instrumentUpload?.reference}/>
       ) : tab === "reitor" ? (
@@ -972,7 +972,7 @@ const MEASUREMENT_FIELDS: Field[] = withHelp([
   { name: "note", label: "Observação", type: "textarea" },
 ], FIELD_HELP.measurement);
 
-function GoalsTab({ institutionId, role, data, reload, onRepository }: { institutionId: string; role: Role | null; data: Data; reload: () => Promise<void>; onRepository:(goalId:string)=>void }) {
+function GoalsTab({ institutionId, role, data, reload, onRepository, autoMeasures }: { institutionId: string; role: Role | null; data: Data; reload: () => Promise<void>; onRepository:(goalId:string)=>void; autoMeasures: Map<string,{auto_current_value:number|null;progress_pct:number|null}> }) {
   const [goalMembers,setGoalMembers]=useState<{user_id:string;email:string}[]>([]);
   useEffect(()=>{let active=true;if(can.manageGoals(role))Promise.all([supabase.rpc("vertice_team",{target:institutionId}),supabase.auth.getUser()]).then(([team,user])=>{if(!active)return;const rows=(team.data??[]) as {user_id:string;email:string;role:string}[];const allowed=rows.filter(m=>["gestor","equipe"].includes(m.role));if(user.data.user&&!allowed.some(m=>m.user_id===user.data.user!.id))allowed.unshift({user_id:user.data.user.id,email:user.data.user.email??"Minha conta",role:"master"});setGoalMembers(allowed);});return()=>{active=false;};},[institutionId,role]);
   const ed = useEditor();

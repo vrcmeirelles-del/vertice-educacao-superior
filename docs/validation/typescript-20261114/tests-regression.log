@@ -1,0 +1,10 @@
+
+ RUN  v2.1.9 /workspace/scratch/a6fa738a22a6/vertice-educacao-superior/.validation-build
+
+ ✓ client/src/components/bi/TypeScriptRegression.ui.test.tsx (10 tests) 383ms
+
+ Test Files  1 passed (1)
+      Tests  10 passed (10)
+   Start at  07:14:19
+   Duration  1.38s (transform 367ms, setup 0ms, collect 452ms, tests 383ms, environment 348ms, prepare 52ms)
+

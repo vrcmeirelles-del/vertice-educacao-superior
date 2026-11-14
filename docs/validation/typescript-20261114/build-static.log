@@ -1,0 +1,64 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> vertice@1.0.0 build:static
+> vite build && node scripts/run-prerender.mjs && node -e "require('fs').writeFileSync('dist/public/version.json',JSON.stringify({sha:process.env.RENDER_GIT_COMMIT||'unknown',built:new Date().toISOString()}))"
+
+vite v7.3.7 building client environment for production...
+transforming...
+node_modules/zod/v4/core/regexes.js (74:0): A comment
+
+"/** Anchors a pattern source. The interpolation lives here rather than at the call site because
+ * esbuild will not drop a `@__PURE__` call whose own argument interpolates a variable, but it
+ * will drop `anchor(dateSource)`. Keeping it inline pinned `date` into every bundle. */"
+
+in "node_modules/zod/v4/core/regexes.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+node_modules/zod/v4/core/util.js (400:0): A comment
+
+"// Wrapped in a `@__PURE__` IIFE: esbuild never tree-shakes a top-level initializer that contains a member access on `Number`, so the bare object literal survived into every bundle."
+
+in "node_modules/zod/v4/core/util.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+✓ 2844 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/public/api/platform/config.js                              0.09 kB
+../dist/public/index.html                                          1.85 kB │ gzip:   0.84 kB
+../dist/public/assets/InstitutionArea-CFuVXr2p.css                 6.02 kB │ gzip:   1.75 kB
+../dist/public/assets/ExperienceAdmin-wdAeLF75.css                 6.15 kB │ gzip:   1.88 kB
+../dist/public/assets/Extensao360-6q2MGuC7.css                     9.32 kB │ gzip:   1.97 kB
+../dist/public/assets/VerticeMobileBI-DBT-Jf9M.css                 9.75 kB │ gzip:   2.67 kB
+../dist/public/assets/egressos360-BnWnKFb_.css                     9.95 kB │ gzip:   1.98 kB
+../dist/public/assets/VerticeMobilePublicPreview-DrJFnB5R.css      9.99 kB │ gzip:   2.93 kB
+../dist/public/assets/index-BqJpktkp.css                         272.52 kB │ gzip:  51.60 kB
+../dist/public/assets/OwnerDashboard-CJCIiI1k.css                334.97 kB │ gzip:  61.34 kB
+../dist/public/assets/circle-check-pj6KGIKp.js                     0.17 kB │ gzip:   0.17 kB
+../dist/public/assets/link-2-DdikqbVb.js                           0.52 kB │ gzip:   0.33 kB
+../dist/public/assets/experience-access-C_zqouZ8.js                2.02 kB │ gzip:   1.09 kB
+../dist/public/assets/atividades-complementares-DuthdDzh.js        4.07 kB │ gzip:   1.56 kB
+../dist/public/assets/ExtensaoDashboard-R0YUSNYc.js                6.71 kB │ gzip:   2.10 kB
+../dist/public/assets/ExtensaoConvite-5BxJDCzN.js                  9.32 kB │ gzip:   3.09 kB
+../dist/public/assets/ExperiencePortal-Bs7tuCRD.js                10.31 kB │ gzip:   3.16 kB
+../dist/public/assets/CourseShowcase-8sc4Wr6N.js                  16.52 kB │ gzip:   4.64 kB
+../dist/public/assets/PreValidationPanel-DPJBJq9v.js              17.34 kB │ gzip:   4.22 kB
+../dist/public/assets/AcPortalAluno-CKmGJ_3R.js                   18.18 kB │ gzip:   4.05 kB
+../dist/public/assets/StudentAccess-1OvSwLFH.js                   27.50 kB │ gzip:   7.39 kB
+../dist/public/assets/VerticeMobilePublicPreview-DpWD2bEs.js      27.71 kB │ gzip:   5.16 kB
+../dist/public/assets/InstitutionArea-4BHwlfQD.js                 34.22 kB │ gzip:   7.09 kB
+../dist/public/assets/ExperienceAdmin-CmF3rT93.js                 37.15 kB │ gzip:   9.77 kB
+../dist/public/assets/CpaAutoavaliacao-U_Xr59Jn.js                45.32 kB │ gzip:   6.92 kB
+../dist/public/assets/Estagio360-Di4mqTbF.js                      55.44 kB │ gzip:   9.40 kB
+../dist/public/assets/Tcc360-8EEvtsIk.js                          65.33 kB │ gzip:  12.38 kB
+../dist/public/assets/VerticeMobileBI-BuyCnq6R.js                 66.51 kB │ gzip:  14.72 kB
+../dist/public/assets/AtividadesComplementares360-BjYzz8Aj.js     72.08 kB │ gzip:  13.14 kB
+../dist/public/assets/demo-acquisition-catalog-MYHJyusI.js        84.47 kB │ gzip:  19.61 kB
+../dist/public/assets/CourseRaioX-B2vRsl__.js                    148.37 kB │ gzip:  27.23 kB
+../dist/public/assets/Extensao360-B8sbKuA_.js                    222.82 kB │ gzip:  40.28 kB
+../dist/public/assets/DemoApp-Du_ZFzWC.js                        572.13 kB │ gzip: 151.84 kB
+../dist/public/assets/index-qU7HaBDI.js                        1,375.76 kB │ gzip: 374.86 kB
+../dist/public/assets/OwnerDashboard-Da0yrQW8.js               2,095.01 kB │ gzip: 473.10 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 11.40s
+HTML inicial criado para 15 páginas públicas; 19 áreas demonstrativas com noindex.

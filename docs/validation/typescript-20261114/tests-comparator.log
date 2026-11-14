@@ -1,0 +1,16 @@
+✔ ignores union order, message formatting, colors and CRLF (1.501866ms)
+✔ does not treat fixes as new errors (0.200507ms)
+✔ detects another position even with the same file and code (6.193266ms)
+✔ detects changed TS codes and files (0.203131ms)
+✔ preserves multiplicity rather than deduplicating errors (0.15537ms)
+✔ normalizes relative path spelling and handles global config diagnostics (0.299633ms)
+✔ fails closed for compiler startup failures, signals and inconsistent status (0.353925ms)
+✔ accepts clean builds and genuine compiler diagnostics (0.115812ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 90.350892
