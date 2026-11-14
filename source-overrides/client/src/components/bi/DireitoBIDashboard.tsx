@@ -667,33 +667,27 @@ function EstrategiaTab({ profs, profsPerSem, evolucao }: { profs: any[]; profsPe
 function VagasExtensaoTab({ outcomes, evolucao, vacancies }: { outcomes: any[]; evolucao: any[]; vacancies: number }) {
   const VAGAS_ANUAIS = vacancies; // 75
 
-  // Ingressantes por forma de ingresso e semestre
-  // vestibular = 1º período | portador/transferência = reposição de estoque (qualquer período)
-  const ingressosPorSem: Record<string, { vestibular: number; portador: number; transferencia: number }> = {
-    '2023/01': { vestibular: 40, portador: 0, transferencia: 0 },
-    '2023/02': { vestibular: 0, portador: 0, transferencia: 0 },
-    '2024/01': { vestibular: 50, portador: 5, transferencia: 4 },
-    '2024/02': { vestibular: 22, portador: 4, transferencia: 3 },
-    '2025/01': { vestibular: 80, portador: 10, transferencia: 7 },
-    '2025/02': { vestibular: 30, portador: 6, transferencia: 4 },
-    '2026/01': { vestibular: 95, portador: 12, transferencia: 7 },
-    '2026/02': { vestibular: 28, portador: 6, transferencia: 4 },
-  };
-  const anos = ['2023', '2024', '2025', '2026'];
-  // Perdas por ano (evasão = trancamento + cancelamento + transferência saída)
-  const perdasPorAno: Record<string, number> = { '2023': 38, '2024': 38, '2025': 40, '2026': 15 };
+  // Dados reais por forma de ingresso e semestre
+  // vestibular = processo seletivo 1º período
+  // portador = portador de diploma (ingresso direto em período avançado)
+  // transferencia = transferência externa (reposição)
+  // perdas = trancamento + cancelamento + transferência de saída
+  const dadosPorAno: { ano: string; vestibular: number; portador: number; transferencia: number; perdas: number }[] = [
+    { ano: '2023', vestibular: 40, portador: 0, transferencia: 0, perdas: 38 },
+    { ano: '2024', vestibular: 59, portador: 9, transferencia: 7, perdas: 38 },
+    { ano: '2025', vestibular: 97, portador: 16, transferencia: 11, perdas: 40 },
+    { ano: '2026', vestibular: 114, portador: 18, transferencia: 11, perdas: 15 },
+  ];
 
-  const vagasData = anos.map(ano => {
-    const s1 = ingressosPorSem[`${ano}/01`] || { vestibular: 0, portador: 0, transferencia: 0 };
-    const s2 = ingressosPorSem[`${ano}/02`] || { vestibular: 0, portador: 0, transferencia: 0 };
-    const vestibular = s1.vestibular + s2.vestibular;
-    const reposicao = s1.portador + s2.portador + s1.transferencia + s2.transferencia;
-    const totalIngresso = vestibular + reposicao;
-    const perdas = perdasPorAno[ano] || 0;
-    const saldoLiquido = totalIngresso - perdas;
-    const ociosas = Math.max(0, VAGAS_ANUAIS - vestibular); // ociosas = vagas - vestibular (forma principal)
-    const excedente = Math.max(0, vestibular - VAGAS_ANUAIS);
-    return { ano, vestibular, reposicao, totalIngresso, perdas, saldoLiquido, ociosas, excedente, pctOcupacao: Math.round(100 * totalIngresso / VAGAS_ANUAIS) };
+  const vagasData = dadosPorAno.map(d => {
+    const reposicao = d.portador + d.transferencia;
+    const totalIngresso = d.vestibular + reposicao;
+    const saldoLiquido = totalIngresso - d.perdas;
+    const pctPortador = totalIngresso > 0 ? Math.round(100 * d.portador / totalIngresso) : 0;
+    const pctTransf = totalIngresso > 0 ? Math.round(100 * d.transferencia / totalIngresso) : 0;
+    const pctVestibular = totalIngresso > 0 ? Math.round(100 * d.vestibular / totalIngresso) : 0;
+    const cobertura = d.perdas > 0 ? Math.round(100 * reposicao / d.perdas) : (reposicao > 0 ? 100 : 0);
+    return { ...d, reposicao, totalIngresso, saldoLiquido, pctPortador, pctTransf, pctVestibular, cobertura };
   });
 
   // Extensão (CE) em 2026/02
@@ -723,88 +717,86 @@ function VagasExtensaoTab({ outcomes, evolucao, vacancies }: { outcomes: any[]; 
   const totalMatric262 = evolucao.find(e => e.semestre === '2026/02')?.matriculados || 353;
 
   return <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-    {/* TABELA 1: INGRESSO POR VESTIBULAR */}
+    {/* COMPOSIÇÃO DO INGRESSO + EQUILÍBRIO */}
     <div style={card}>
-      <strong style={{ fontSize: '1.1rem' }}>🎓 Ingresso por Vestibular — Ocupação de Vagas</strong>
+      <strong style={{ fontSize: '1.1rem' }}>🎓 Composição do Ingresso e Equilíbrio de Estoque</strong>
       <p style={{ fontSize: '.8rem', color: 'var(--vx-muted, #64748b)', margin: '4px 0 12px' }}>
-        Vagas autorizadas: <strong>{VAGAS_ANUAIS}/ano</strong>. Apenas vestibular (ingresso no 1º período).
+        Vagas autorizadas: <strong>{VAGAS_ANUAIS}/ano</strong>. De onde vêm os alunos e como a reposição compensa as perdas por evasão.
       </p>
 
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-        <thead><tr>{['Ano', '1º sem', '2º sem', 'Total vestibular', 'Vagas', 'Ociosas', 'Excedente', 'Ocupação'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
-        <tbody>{vagasData.map((v, i) => (
-          <tr key={i} style={{ background: v.ociosas > 0 ? '#fef2f2' : v.excedente > 0 ? '#f0fdf4' : undefined }}>
-            <td style={{ ...td, fontWeight: 800, fontSize: '.95rem' }}>{v.ano}</td>
-            <td style={tdR}>{(ingressosPorSem[`${v.ano}/01`]?.vestibular) || '—'}</td>
-            <td style={tdR}>{(ingressosPorSem[`${v.ano}/02`]?.vestibular) || '—'}</td>
-            <td style={{ ...tdR, fontWeight: 700, color: '#2563eb' }}>{v.vestibular}</td>
-            <td style={tdR}>{VAGAS_ANUAIS}</td>
-            <td style={{ ...tdR, fontWeight: 800, color: v.ociosas > 0 ? '#dc2626' : '#16a34a' }}>{v.ociosas > 0 ? v.ociosas : '—'}</td>
-            <td style={{ ...tdR, fontWeight: 700, color: v.excedente > 0 ? '#16a34a' : '#64748b' }}>{v.excedente > 0 ? `+${v.excedente}` : '—'}</td>
-            <td style={tdR}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'flex-end' }}>
-                <div style={{ width: 60, height: 8, borderRadius: 4, background: '#e2e8f0', overflow: 'hidden' }}>
-                  <div style={{ height: 8, borderRadius: 4, background: Math.round(100 * v.vestibular / VAGAS_ANUAIS) >= 100 ? '#16a34a' : Math.round(100 * v.vestibular / VAGAS_ANUAIS) >= 70 ? '#f59e0b' : '#dc2626', width: `${Math.min(100, Math.round(100 * v.vestibular / VAGAS_ANUAIS))}%` }} />
-                </div>
-                <strong style={{ color: Math.round(100 * v.vestibular / VAGAS_ANUAIS) >= 100 ? '#16a34a' : '#dc2626' }}>{Math.round(100 * v.vestibular / VAGAS_ANUAIS)}%</strong>
-              </div>
-            </td>
-          </tr>
-        ))}</tbody>
-      </table>
-    </div>
+      {vagasData.map((v, i) => {
+        const saldoRepo = v.reposicao - v.perdas;
+        const pctVest = Math.round(100 * v.vestibular / VAGAS_ANUAIS);
+        return <div key={i} style={{ marginBottom: 16, padding: 16, borderRadius: 12, background: saldoRepo < 0 ? '#fef2f2' : '#f8fafc', border: `1px solid ${saldoRepo < 0 ? '#fecaca' : '#e2e8f0'}` }}>
+          {/* Header do ano */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <strong style={{ fontSize: '1.15rem' }}>{v.ano}</strong>
+            <span style={{ fontSize: '.8rem', padding: '4px 12px', borderRadius: 20, fontWeight: 700, background: pctVest >= 100 ? '#dcfce7' : pctVest >= 70 ? '#fef3c7' : '#fee2e2', color: pctVest >= 100 ? '#16a34a' : pctVest >= 70 ? '#b45309' : '#dc2626' }}>{v.totalIngresso} ingressantes · {pctVest}% das vagas</span>
+          </div>
 
-    {/* TABELA 2: EQUILÍBRIO DE ESTOQUE */}
-    <div style={card}>
-      <strong style={{ fontSize: '1.1rem' }}>⚖️ Equilíbrio de Estoque — Reposição vs Perdas</strong>
-      <p style={{ fontSize: '.8rem', color: 'var(--vx-muted, #64748b)', margin: '4px 0 12px' }}>
-        Portador de diploma e transferência externa repõem as vagas perdidas por evasão (trancamento, cancelamento, transferência de saída).
-      </p>
+          {/* Barra de composição empilhada */}
+          <div style={{ display: 'flex', height: 28, borderRadius: 6, overflow: 'hidden', marginBottom: 8 }}>
+            <div style={{ width: `${v.pctVestibular}%`, background: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '.65rem', fontWeight: 700, minWidth: v.pctVestibular > 15 ? undefined : 0 }}>{v.pctVestibular > 15 ? `Vestibular ${v.pctVestibular}%` : ''}</div>
+            {v.portador > 0 && <div style={{ width: `${v.pctPortador}%`, background: '#7c3aed', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '.65rem', fontWeight: 700, minWidth: v.pctPortador > 8 ? undefined : 0 }}>{v.pctPortador > 8 ? `Port. ${v.pctPortador}%` : ''}</div>}
+            {v.transferencia > 0 && <div style={{ width: `${v.pctTransf}%`, background: '#0891b2', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '.65rem', fontWeight: 700, minWidth: v.pctTransf > 8 ? undefined : 0 }}>{v.pctTransf > 8 ? `Transf. ${v.pctTransf}%` : ''}</div>}
+          </div>
 
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-        <thead><tr>{['Ano', 'Portador dipl.', 'Transf. ext.', 'Total reposição', 'Perdas (evasão)', 'Saldo', 'Cobertura'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
-        <tbody>{vagasData.map((v, i) => {
-          const s1 = ingressosPorSem[`${v.ano}/01`] || { portador: 0, transferencia: 0 };
-          const s2 = ingressosPorSem[`${v.ano}/02`] || { portador: 0, transferencia: 0 };
-          const portador = s1.portador + s2.portador;
-          const transf = s1.transferencia + s2.transferencia;
-          const saldoRepo = v.reposicao - v.perdas;
-          const cobertura = v.perdas > 0 ? Math.round(100 * v.reposicao / v.perdas) : (v.reposicao > 0 ? 100 : 0);
-          return (
-            <tr key={i} style={{ background: saldoRepo < 0 ? '#fef2f2' : saldoRepo >= 0 && v.reposicao > 0 ? '#f0fdf4' : undefined }}>
-              <td style={{ ...td, fontWeight: 800, fontSize: '.95rem' }}>{v.ano}</td>
-              <td style={{ ...tdR, color: '#7c3aed', fontWeight: 600 }}>{portador > 0 ? `+${portador}` : '—'}</td>
-              <td style={{ ...tdR, color: '#0891b2', fontWeight: 600 }}>{transf > 0 ? `+${transf}` : '—'}</td>
-              <td style={{ ...tdR, fontWeight: 700, color: '#16a34a' }}>{v.reposicao > 0 ? `+${v.reposicao}` : '—'}</td>
-              <td style={{ ...tdR, fontWeight: 700, color: '#dc2626' }}>{v.perdas > 0 ? `-${v.perdas}` : '—'}</td>
-              <td style={{ ...tdR, fontWeight: 800, color: saldoRepo >= 0 ? '#16a34a' : '#dc2626' }}>{saldoRepo >= 0 ? (saldoRepo > 0 ? `+${saldoRepo}` : '0') : saldoRepo}</td>
-              <td style={tdR}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'flex-end' }}>
-                  <div style={{ width: 50, height: 8, borderRadius: 4, background: '#e2e8f0', overflow: 'hidden' }}>
-                    <div style={{ height: 8, borderRadius: 4, background: cobertura >= 80 ? '#16a34a' : cobertura >= 50 ? '#f59e0b' : '#dc2626', width: `${Math.min(100, cobertura)}%` }} />
-                  </div>
-                  <span style={{ fontSize: '.7rem', fontWeight: 700, color: cobertura >= 80 ? '#16a34a' : cobertura >= 50 ? '#f59e0b' : '#dc2626' }}>{cobertura}%</span>
-                </div>
-              </td>
-            </tr>
-          );
-        })}</tbody>
-      </table>
+          {/* Detalhamento em grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 8, marginBottom: 8 }}>
+            <div style={{ padding: '8px 10px', borderRadius: 8, background: '#eff6ff', borderLeft: '4px solid #2563eb' }}>
+              <div style={{ fontSize: '.65rem', color: '#64748b', textTransform: 'uppercase' }}>Vestibular</div>
+              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#2563eb' }}>{v.vestibular}</div>
+            </div>
+            <div style={{ padding: '8px 10px', borderRadius: 8, background: '#f5f3ff', borderLeft: '4px solid #7c3aed' }}>
+              <div style={{ fontSize: '.65rem', color: '#64748b', textTransform: 'uppercase' }}>Portador de diploma</div>
+              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#7c3aed' }}>{v.portador > 0 ? `+${v.portador}` : '—'}</div>
+              {v.portador > 0 && <div style={{ fontSize: '.6rem', color: '#7c3aed' }}>{v.pctPortador}% do ingresso</div>}
+            </div>
+            <div style={{ padding: '8px 10px', borderRadius: 8, background: '#ecfeff', borderLeft: '4px solid #0891b2' }}>
+              <div style={{ fontSize: '.65rem', color: '#64748b', textTransform: 'uppercase' }}>Transferência ext.</div>
+              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0891b2' }}>{v.transferencia > 0 ? `+${v.transferencia}` : '—'}</div>
+              {v.transferencia > 0 && <div style={{ fontSize: '.6rem', color: '#0891b2' }}>{v.pctTransf}% do ingresso</div>}
+            </div>
+            <div style={{ padding: '8px 10px', borderRadius: 8, background: '#fef2f2', borderLeft: '4px solid #dc2626' }}>
+              <div style={{ fontSize: '.65rem', color: '#64748b', textTransform: 'uppercase' }}>Perdas (evasão)</div>
+              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#dc2626' }}>{v.perdas > 0 ? `-${v.perdas}` : '—'}</div>
+            </div>
+            <div style={{ padding: '8px 10px', borderRadius: 8, background: saldoRepo >= 0 ? '#f0fdf4' : '#fef2f2', borderLeft: `4px solid ${saldoRepo >= 0 ? '#16a34a' : '#dc2626'}` }}>
+              <div style={{ fontSize: '.65rem', color: '#64748b', textTransform: 'uppercase' }}>Saldo líquido</div>
+              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: saldoRepo >= 0 ? '#16a34a' : '#dc2626' }}>{saldoRepo >= 0 ? `+${saldoRepo}` : saldoRepo}</div>
+            </div>
+            <div style={{ padding: '8px 10px', borderRadius: 8, background: '#f8fafc', borderLeft: `4px solid ${v.cobertura >= 80 ? '#16a34a' : v.cobertura >= 50 ? '#f59e0b' : '#dc2626'}` }}>
+              <div style={{ fontSize: '.65rem', color: '#64748b', textTransform: 'uppercase' }}>Cobertura da evasão</div>
+              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: v.cobertura >= 80 ? '#16a34a' : v.cobertura >= 50 ? '#f59e0b' : '#dc2626' }}>{v.perdas > 0 ? `${v.cobertura}%` : '—'}</div>
+            </div>
+          </div>
+        </div>;
+      })}
 
-      {/* Análise */}
-      <div style={{ marginTop: 16, padding: 12, borderRadius: 10, background: 'linear-gradient(135deg, #f5f3ff, #eff6ff)' }}>
+      {/* Diagnóstico consolidado */}
+      <div style={{ padding: 14, borderRadius: 10, background: 'linear-gradient(135deg, #f0f9ff, #f5f3ff)' }}>
         {(() => {
-          const totalReposicao = vagasData.reduce((s, v) => s + v.reposicao, 0);
-          const totalPerdas = vagasData.reduce((s, v) => s + v.perdas, 0);
-          const totalPortador = vagasData.reduce((s, v) => { const s1 = ingressosPorSem[`${v.ano}/01`]; const s2 = ingressosPorSem[`${v.ano}/02`]; return s + (s1?.portador||0) + (s2?.portador||0); }, 0);
-          const totalTransf = vagasData.reduce((s, v) => { const s1 = ingressosPorSem[`${v.ano}/01`]; const s2 = ingressosPorSem[`${v.ano}/02`]; return s + (s1?.transferencia||0) + (s2?.transferencia||0); }, 0);
-          const taxaCobertura = totalPerdas > 0 ? Math.round(100 * totalReposicao / totalPerdas) : 0;
-          const deficit = totalPerdas - totalReposicao;
+          const tVest = vagasData.reduce((s, v) => s + v.vestibular, 0);
+          const tPort = vagasData.reduce((s, v) => s + v.portador, 0);
+          const tTransf = vagasData.reduce((s, v) => s + v.transferencia, 0);
+          const tRepo = tPort + tTransf;
+          const tPerdas = vagasData.reduce((s, v) => s + v.perdas, 0);
+          const tTotal = tVest + tRepo;
+          const taxaCob = tPerdas > 0 ? Math.round(100 * tRepo / tPerdas) : 0;
+          const deficit = tPerdas - tRepo;
           return <>
-            <strong>Diagnóstico:</strong> Em {anos.length} anos o curso perdeu <strong style={{ color: '#dc2626' }}>{totalPerdas} alunos</strong> por evasão.
-            A reposição trouxe <strong style={{ color: '#7c3aed' }}>{totalPortador} portadores de diploma</strong> e <strong style={{ color: '#0891b2' }}>{totalTransf} transferências</strong>, totalizando <strong style={{ color: '#16a34a' }}>{totalReposicao} reposições</strong> — cobertura de <strong style={{ color: taxaCobertura >= 80 ? '#16a34a' : taxaCobertura >= 50 ? '#f59e0b' : '#dc2626' }}>{taxaCobertura}%</strong> das perdas.
-            {deficit > 0 && <><br/><span style={{ color: '#dc2626' }}>⚠ Déficit de {deficit} vagas não repostas. Ampliar captação ativa de portadores e transferências.</span></>}
-            {deficit <= 0 && <><br/><span style={{ color: '#16a34a' }}>✓ Reposição cobre ou supera as perdas — estoque equilibrado.</span></>}
+            <strong style={{ fontSize: '.95rem' }}>📋 Diagnóstico consolidado ({dadosPorAno[0].ano}–{dadosPorAno[dadosPorAno.length-1].ano})</strong>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 8, margin: '10px 0' }}>
+              <div style={{ textAlign: 'center', padding: 8, borderRadius: 8, background: '#fff' }}><div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#2563eb' }}>{tVest}</div><div style={{ fontSize: '.65rem', color: '#64748b' }}>vestibular ({Math.round(100*tVest/tTotal)}%)</div></div>
+              <div style={{ textAlign: 'center', padding: 8, borderRadius: 8, background: '#fff' }}><div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#7c3aed' }}>{tPort}</div><div style={{ fontSize: '.65rem', color: '#64748b' }}>portador dipl. ({Math.round(100*tPort/tTotal)}%)</div></div>
+              <div style={{ textAlign: 'center', padding: 8, borderRadius: 8, background: '#fff' }}><div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#0891b2' }}>{tTransf}</div><div style={{ fontSize: '.65rem', color: '#64748b' }}>transferência ({Math.round(100*tTransf/tTotal)}%)</div></div>
+              <div style={{ textAlign: 'center', padding: 8, borderRadius: 8, background: '#fff' }}><div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#dc2626' }}>{tPerdas}</div><div style={{ fontSize: '.65rem', color: '#64748b' }}>perdas por evasão</div></div>
+            </div>
+            <p style={{ fontSize: '.8rem', margin: '8px 0 0', lineHeight: 1.5 }}>
+              A reposição (portador + transferência) cobriu <strong style={{ color: taxaCob >= 80 ? '#16a34a' : taxaCob >= 50 ? '#f59e0b' : '#dc2626' }}>{taxaCob}%</strong> das perdas.
+              {deficit > 0 && <> Déficit acumulado: <strong style={{ color: '#dc2626' }}>{deficit} vagas não repostas</strong>. Ampliar captação ativa de portadores e transferências.</>}
+              {deficit <= 0 && <> <strong style={{ color: '#16a34a' }}>Estoque equilibrado</strong> — reposição cobre as perdas.</>}
+            </p>
           </>;
         })()}
       </div>
