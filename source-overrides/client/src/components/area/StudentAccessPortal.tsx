@@ -21,7 +21,7 @@ interface Category { id: string; code: string; label: string; description?: stri
 interface Submission { id: string; title: string; issuer: string | null; documentary_minutes: number | null; status: string; created_at: string; category_id: string | null }
 interface Placement { id: string; lifecycle: string; starts_at: string | null; ends_at: string | null; advisor_name: string | null }
 interface Dashboard {
-  student: { full_name: string; enrollment_code: string; course_name: string | null };
+  student: { full_name: string; enrollment_code: string; course_name: string | null; current_semester?: number };
   rule: { id: string; rule_version: string; total_required_minutes: number } | null;
   credited_minutes: number;
   categories: Category[];
@@ -208,7 +208,7 @@ function RequestForm({ institutionId, module, notice, onLogin }: { institutionId
       } catch {
         // Se edge function falhar, montar dashboard mínimo dos dados da RPC
         onLogin(sessionKey, {
-          student: { full_name: loginResult.name, enrollment_code: loginResult.enrollment_code, course_name: loginResult.course_name },
+          student: { full_name: loginResult.name, enrollment_code: loginResult.enrollment_code, course_name: loginResult.course_name, current_semester: loginResult.current_semester || 1 },
           rule: null, credited_minutes: 0, categories: [], submissions: [], placements: [],
         });
       }
@@ -240,6 +240,17 @@ function StudentDashboard({ data, session, purpose, onLogout, onChanged }: { dat
   const remaining = Math.max(0, required - data.credited_minutes);
   const pending = data.submissions.filter(s => ['submitted', 'extracting', 'suggestion_ready', 'under_review'].includes(s.status)).length;
   const catLabel = (id: string | null) => data.categories.find(c => c.id === id)?.label ?? '—';
+
+  // Teto progressivo por semestre: 10% por semestre acumulado
+  const semester = data.student.current_semester || 1;
+  const semesterPct = Math.min(semester * 10, 100);
+  const semesterCeiling = Math.round(required * semesterPct / 100);
+  const allSubmittedMinutes = data.submissions
+    .filter(s => !['denied', 'rejected', 'cancelled'].includes(s.status))
+    .reduce((acc, s) => acc + (s.documentary_minutes || 0), 0);
+  const semesterAvailable = Math.max(0, semesterCeiling - allSubmittedMinutes);
+  const semesterReached = semesterCeiling > 0 && allSubmittedMinutes >= semesterCeiling;
+
   const stat: React.CSSProperties = { ...box, marginBottom: 0 };
   const statLabel: React.CSSProperties = { fontSize: '.6875rem', color: 'var(--vx-muted,#64748b)', textTransform: 'uppercase', letterSpacing: '.04em' };
   const statValue: React.CSSProperties = { fontSize: '1.25rem', fontWeight: 700 };
@@ -256,13 +267,38 @@ function StudentDashboard({ data, session, purpose, onLogout, onChanged }: { dat
 
       {purpose === 'complementary_activities' && (
         <>
-          {data.rule ? (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(130px,1fr))', gap: 8, marginBottom: 20 }}>
+          {data.rule ? (<>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(110px,1fr))', gap: 8, marginBottom: 12 }}>
               <div style={stat}><div style={statLabel}>Exigido</div><div style={statValue}>{minutesToH(required)}</div></div>
               <div style={stat}><div style={statLabel}>Creditado</div><div style={{ ...statValue, color: '#059669' }}>{minutesToH(data.credited_minutes)}</div></div>
               <div style={stat}><div style={statLabel}>Restante</div><div style={{ ...statValue, color: remaining <= 0 ? '#059669' : '#b45309' }}>{remaining <= 0 ? 'Concluído' : minutesToH(remaining)}</div></div>
-              <div style={stat}><div style={statLabel}>Em análise</div><div style={statValue}>{pending}</div></div>
+              <div style={stat}><div style={statLabel}>Semestre</div><div style={statValue}>{semester}º</div></div>
+              <div style={stat}><div style={statLabel}>Teto semestral</div><div style={{ ...statValue, color: semesterReached ? '#dc2626' : '#2563eb' }}>{minutesToH(semesterCeiling)}</div></div>
             </div>
+            {/* Barra de progresso semestral */}
+            <div style={{ ...box, marginBottom: 16, padding: '8px 12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '.75rem', marginBottom: 4 }}>
+                <span>Uso no {semester}º semestre: {minutesToH(allSubmittedMinutes)} de {minutesToH(semesterCeiling)} ({semesterPct}%)</span>
+                <span style={{ color: semesterReached ? '#dc2626' : '#059669' }}>{semesterReached ? 'Teto atingido' : `Disponível: ${minutesToH(semesterAvailable)}`}</span>
+              </div>
+              <div style={{ height: 8, background: '#e2e8f0', borderRadius: 4, overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: `${Math.min(100, (allSubmittedMinutes / Math.max(semesterCeiling, 1)) * 100)}%`, background: semesterReached ? '#dc2626' : '#3b82f6', borderRadius: 4, transition: 'width .3s' }} />
+              </div>
+              <p style={{ fontSize: '.6875rem', color: '#64748b', margin: '4px 0 0' }}>
+                As atividades complementares devem ser distribuídas ao longo dos 10 semestres. A cada semestre, o teto aumenta em {minutesToH(Math.round(required * 0.1))}.
+              </p>
+            </div>
+            {semesterReached && (
+              <div style={{ ...box, background: '#fef2f2', borderLeft: '4px solid #dc2626', marginBottom: 12 }}>
+                <strong style={{ fontSize: '.8125rem', color: '#dc2626' }}>🚫 Teto semestral atingido</strong>
+                <p style={{ ...small, color: '#991b1b', margin: '4px 0 0' }}>
+                  Você já apresentou {minutesToH(allSubmittedMinutes)} de {minutesToH(semesterCeiling)} permitidas até o {semester}º semestre.
+                  No próximo semestre o teto sobe para {minutesToH(Math.min(required, Math.round(required * (semesterPct + 10) / 100)))}.
+                  Continue participando de eventos e atividades — os certificados poderão ser enviados no semestre seguinte.
+                </p>
+              </div>
+            )}
+          </>
           ) : (
             <p role="status" style={{ ...box, background: '#eff6ff' }}>O regulamento do curso ainda não foi publicado. Você já pode enviar seus certificados — a validação será feita após a publicação do regulamento.</p>
           )}
@@ -285,7 +321,11 @@ function StudentDashboard({ data, session, purpose, onLogout, onChanged }: { dat
             );
           })()}
 
-          <SubmitActivity session={session} categories={data.categories} onDone={onChanged} />
+          {!semesterReached ? (
+            <SubmitActivity session={session} categories={data.categories} onDone={onChanged} />
+          ) : (
+            <p style={{ ...box, background: '#f1f5f9', textAlign: 'center', color: '#64748b', fontSize: '.8125rem' }}>Envio de atividades disponível no próximo semestre.</p>
+          )}
 
           <h3 style={{ fontSize: '.9375rem', margin: '20px 0 8px' }}>Suas solicitações</h3>
           {data.submissions.length === 0 ? <p style={small}>Nenhuma atividade enviada ainda.</p> : data.submissions.map(s => (
