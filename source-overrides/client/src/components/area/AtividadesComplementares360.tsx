@@ -568,7 +568,6 @@ function CsvImportButton({ institutionId, courses, onImported }: { institutionId
           enrollment_code: enrollment,
           email: emailIdx >= 0 ? cols[emailIdx]?.trim() || null : null,
           cpf_hash: cpfHash || null,
-          phone: phoneIdx >= 0 ? cols[phoneIdx]?.trim() || null : null,
           academic_status: status || defaultStatus,
           verified: false,
         });
