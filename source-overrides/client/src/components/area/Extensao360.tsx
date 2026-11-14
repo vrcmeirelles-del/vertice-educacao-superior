@@ -244,7 +244,7 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
         body: { email: mail, institution_id: institutionId, role: 'equipe', name: inviteName || undefined }
       }).catch(() => {});
       // 2. Registrar convite via RPC (para gerar o invite record)
-      await supabase.rpc('vertice_add_member', { target: institutionId, member_email: mail, member_role: 'equipe' }).then(r => r).catch(() => {});
+      await Promise.resolve(supabase.rpc('vertice_add_member', { target: institutionId, member_email: mail, member_role: 'equipe' })).then(r => r).catch(() => {});
       // 3. Buscar o convite gerado para montar o link
       const { data: inv } = await supabase.from('vertice_invites').select('id').eq('institution_id', institutionId).eq('email', mail).is('accepted_at', null).order('created_at', { ascending: false }).limit(1);
       const invId = inv?.[0]?.id;

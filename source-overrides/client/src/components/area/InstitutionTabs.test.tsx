@@ -1,4 +1,5 @@
 import React from 'react';
+import { visibleTabs } from '@/lib/area';
 import InstitutionSubTabs from './InstitutionSubTabs';
 import { describe, it, expect } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -6,6 +7,16 @@ import { readFileSync } from 'node:fs';
 import InstitutionTabs, { MACRO_TABS, macroTabFor, macroDestination } from './InstitutionTabs';
 
 describe('institution navigation', () => {
+  it('retains new modules in authorized navigation without granting them to other profiles', () => {
+    for (const tab of ['tcc', 'atividades-complementares', 'estagio', 'vitrine-curso'] as const) {
+      expect(visibleTabs('master')).toContain(tab);
+      expect(visibleTabs('gestor')).toContain(tab);
+      expect(visibleTabs('leitor')).not.toContain(tab);
+      expect(visibleTabs('cpa')).not.toContain(tab);
+      expect(visibleTabs('coordenador')).not.toContain(tab);
+      expect(MACRO_TABS.filter(macro => macro.tabs.includes(tab))).toHaveLength(1);
+    }
+  });
   it('does not enter blocked or unauthorized destinations', () => {
     expect(macroDestination('dados', ['cadastro', 'emec'], () => true)).toBeUndefined();
     expect(macroDestination('dados', ['emec'], () => false)).toBe('emec');

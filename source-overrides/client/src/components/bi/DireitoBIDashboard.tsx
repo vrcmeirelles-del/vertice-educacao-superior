@@ -33,8 +33,8 @@ export default function DireitoBIDashboard({ institutionId, courseId, courseCode
       supabase.from('vertice_academic_reports').select('payload,source_report_at').eq('institution_id', institutionId).eq('course_id', courseId).eq('kind', 'quantitativo_alunos').order('source_report_at', { ascending: true }),
       supabase.from('vertice_turma_stats').select('semestre,serie,turma,matriculados').eq('institution_id', institutionId).eq('codigo', courseCode).order('semestre', { ascending: true }),
       supabase.from('vertice_offering_outcomes').select('semester,teachers,discipline,class_label,academic_period,discipline_enrollments,passed_direct,passed_final,rf,rn,ra,avg_final,other_status').eq('institution_id', institutionId).eq('course_code', courseCode).gte('semester', '2023/01').order('semester', { ascending: true }),
-      supabase.from('v_ghost_students_analysis').select('*').then(r => r).catch(() => ({ data: [] })),
-      supabase.from('vertice_eorbit_direito_raio_x').select('semestre,dados').eq('institution_id', institutionId).eq('tipo', 'quantitativo_turma').order('semestre').then(r => r).catch(() => ({ data: [] })),
+      Promise.resolve(supabase.from('v_ghost_students_analysis').select('*')).then(r => r).catch(() => ({ data: [] })),
+      Promise.resolve(supabase.from('vertice_eorbit_direito_raio_x').select('semestre,dados').eq('institution_id', institutionId).eq('tipo', 'quantitativo_turma').order('semestre')).then(r => r).catch(() => ({ data: [] })),
     ]).then(([evR, enR, ofR, ghR, enRealR]) => {
       if (ghR.data) setFantasmas((ghR.data as any[]).filter(g => g.semester < '2026/02'));
       if (evR.data) setEvolucao(evR.data.map((d: any) => ({ ...d.payload, date: d.source_report_at })));
@@ -118,7 +118,7 @@ export default function DireitoBIDashboard({ institutionId, courseId, courseCode
       </div>
 
       {/* Drill-down overlay */}
-      {drill && <DrillDown drill={drill} outcomes={outcomes} profs={profs} profsPerSem={profsPerSem} onClose={() => setDrill(null)} />}
+      {drill && <DrillDown drill={drill} outcomes={outcomes} profs={profs} profsPerSem={profsPerSem} evolucao={evolucao} onClose={() => setDrill(null)} />}
 
       {/* Tab content */}
       {!drill && tab === 'evolucao' && <EvolucaoTab data={evolucao} vacancies={vacancies} onDrill={setDrill} />}
@@ -134,7 +134,7 @@ export default function DireitoBIDashboard({ institutionId, courseId, courseCode
 }
 
 /* ============ DRILL DOWN ============ */
-function DrillDown({ drill, outcomes, profs, profsPerSem, onClose }: { drill: { type: string; data: any }; outcomes: any[]; profs: any[]; profsPerSem: any[]; onClose: () => void }) {
+function DrillDown({ drill, outcomes, profs, profsPerSem, evolucao, onClose }: { drill: { type: string; data: any }; outcomes: any[]; profs: any[]; profsPerSem: any[]; evolucao: any[]; onClose: () => void }) {
   if (drill.type === 'professor') {
     const nome = drill.data.nome;
     const discs = outcomes.filter(o => o.teachers === nome && o.discipline_enrollments > 0);

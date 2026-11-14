@@ -11,7 +11,7 @@ export default function AcademicModulesBI({ institutionId, module }: Props) {
   useEffect(() => {
     setLoading(true);
     const view = module === 'tcc' ? 'v_tcc_course_summary' : module === 'ac' ? 'v_ac_course_summary' : 'v_internship_course_summary';
-    supabase.from(view).select('*').eq('institution_id', institutionId)
+    Promise.resolve(supabase.from(view).select('*').eq('institution_id', institutionId))
       .then(r => setData(r.data ?? []))
       .catch(() => setData([]))
       .finally(() => setLoading(false));

@@ -6,6 +6,7 @@ import {
   type FunnelStage, type OrigemData, type EvolucaoMensal,
   type CustoCanal, type CursoMatricula, type ConversaoOrigem,
 } from '@/lib/captacao';
+import { supabase } from '@/lib/supabase';
 import './captacao-bi.css';
 import CaptacaoIntegrada from './CaptacaoIntegrada';
 

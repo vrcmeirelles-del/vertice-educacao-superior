@@ -60,17 +60,17 @@ export default function CourseRaioX({ institutionId, courses, role, onNavigate }
       supabase.from('v_course_raio_x').select('*').eq('institution_id', institutionId).eq('course_id', selectedCourse).maybeSingle(),
       supabase.from('vertice_academic_reports').select('payload').eq('institution_id', institutionId).eq('course_id', selectedCourse).eq('kind', 'quantitativo_alunos').order('source_report_at', { ascending: false }).limit(1),
       supabase.from('vertice_alumni_education').select('id,profile:vertice_alumni_profiles!profile_id(email,phone)').eq('institution_id', institutionId).eq('course_id', selectedCourse).in('academic_status', ['formado','diplomado','egresso_acompanhado','integralizado','concluinte']),
-      supabase.from('student_individual_plans').select('id').eq('institution_id', institutionId).eq('course_id', selectedCourse).eq('status', 'ativo').then(r => r).catch(() => ({ data: [] })),
+      Promise.resolve(supabase.from('student_individual_plans').select('id').eq('institution_id', institutionId).eq('course_id', selectedCourse).eq('status', 'ativo')).then(r => r).catch(() => ({ data: [] })),
       // TCC
-      supabase.from('vertice_tcc_works').select('id,stage,stage_deadline').eq('institution_id', institutionId).eq('course_id', selectedCourse).not('stage', 'in', '(cancelled,archived)').then(r => r).catch(() => ({ data: [] })),
+      Promise.resolve(supabase.from('vertice_tcc_works').select('id,stage,stage_deadline').eq('institution_id', institutionId).eq('course_id', selectedCourse).not('stage', 'in', '(cancelled,archived)')).then(r => r).catch(() => ({ data: [] })),
       // AC
-      supabase.from('v_ac_course_summary').select('*').eq('institution_id', institutionId).eq('course_id', selectedCourse).maybeSingle().then(r => r).catch(() => ({ data: null })),
+      Promise.resolve(supabase.from('v_ac_course_summary').select('*').eq('institution_id', institutionId).eq('course_id', selectedCourse).maybeSingle()).then(r => r).catch(() => ({ data: null })),
       // Estágio
-      supabase.from('v_internship_course_summary').select('*').eq('institution_id', institutionId).eq('course_id', selectedCourse).maybeSingle().then(r => r).catch(() => ({ data: null })),
+      Promise.resolve(supabase.from('v_internship_course_summary').select('*').eq('institution_id', institutionId).eq('course_id', selectedCourse).maybeSingle()).then(r => r).catch(() => ({ data: null })),
       // Governança
-      supabase.from('vertice_governance_bodies').select('id').eq('institution_id', institutionId).or(`course_id.eq.${selectedCourse},course_id.is.null`).eq('active', true).then(r => r).catch(() => ({ data: [] })),
-      supabase.from('vertice_governance_meetings').select('id,body_id').eq('institution_id', institutionId).then(r => r).catch(() => ({ data: [] })),
-      supabase.from('vertice_governance_deliberations').select('id,meeting_id,status').eq('institution_id', institutionId).then(r => r).catch(() => ({ data: [] })),
+      Promise.resolve(supabase.from('vertice_governance_bodies').select('id').eq('institution_id', institutionId).or(`course_id.eq.${selectedCourse},course_id.is.null`).eq('active', true)).then(r => r).catch(() => ({ data: [] })),
+      Promise.resolve(supabase.from('vertice_governance_meetings').select('id,body_id').eq('institution_id', institutionId)).then(r => r).catch(() => ({ data: [] })),
+      Promise.resolve(supabase.from('vertice_governance_deliberations').select('id,meeting_id,status').eq('institution_id', institutionId)).then(r => r).catch(() => ({ data: [] })),
     ]).then(([rx, mat, egr, pei, tcc, ac, est, govBodies, govMeetings, govDelibs]) => {
       if (rx.data) setData(rx.data as RaioX);
       if (mat.data?.[0]?.payload) { const md = mat.data[0].payload as any; setMatriculados(Number(md.matriculados || md.total_matriculados || 0)); setVagas(Number(md.vagas || md.vagas_autorizadas || 0)); } else { setMatriculados(0); setVagas(0); }
@@ -99,17 +99,17 @@ export default function CourseRaioX({ institutionId, courses, role, onNavigate }
       const delibs = ((govDelibs as any).data as any[] ?? []).filter((d: any) => meetingIds.has(d.meeting_id));
       setGovData({ bodies: bodies.length, meetings: meetings.length, deliberations: delibs.filter((d: any) => d.status === 'executed').length });
       // F&O linked students
-      supabase.from('vertice_roster_entries').select('id', { count: 'exact', head: true }).eq('institution_id', institutionId).eq('status', 'linked').then(r => setFaoLinked(r.count ?? 0)).catch(() => {});
+      Promise.resolve(supabase.from('vertice_roster_entries').select('id', { count: 'exact', head: true }).eq('institution_id', institutionId).eq('status', 'linked')).then(r => setFaoLinked(r.count ?? 0)).catch(() => {});
       // Evolução quantitativa
-      supabase.from('vertice_academic_reports').select('payload,source_report_at').eq('institution_id', institutionId).eq('course_id', selectedCourse).eq('kind', 'quantitativo_alunos').order('source_report_at', { ascending: true }).then(r => {
+      Promise.resolve(supabase.from('vertice_academic_reports').select('payload,source_report_at').eq('institution_id', institutionId).eq('course_id', selectedCourse).eq('kind', 'quantitativo_alunos').order('source_report_at', { ascending: true })).then(r => {
         if (r.data) setEvolucao(r.data.map((d: any) => ({ ...d.payload, date: d.source_report_at })));
       }).catch(() => {});
       // Ensalamento
-      supabase.from('vertice_turma_stats').select('semestre,serie,turma,matriculados').eq('institution_id', institutionId).eq('codigo', course?.code || '027').order('semestre', { ascending: true }).then(r => {
+      Promise.resolve(supabase.from('vertice_turma_stats').select('semestre,serie,turma,matriculados').eq('institution_id', institutionId).eq('codigo', course?.code || '027').order('semestre', { ascending: true })).then(r => {
         if (r.data) setEnsalamento(r.data);
       }).catch(() => {});
       // Top reprovadores
-      supabase.from('vertice_offering_outcomes').select('semester,teachers,discipline_enrollments,rf,rn,ra,avg_final').eq('institution_id', institutionId).eq('course_code', course?.code || '027').gte('semester', '2023/01').then(r => {
+      Promise.resolve(supabase.from('vertice_offering_outcomes').select('semester,teachers,discipline_enrollments,rf,rn,ra,avg_final').eq('institution_id', institutionId).eq('course_code', course?.code || '027').gte('semester', '2023/01')).then(r => {
         if (!r.data) return;
         const byProf: Record<string, { turmas: number; alunos: number; rf: number; rn: number; ra: number; total: number; somas_media: number; n_medias: number }> = {};
         for (const row of r.data as any[]) {
@@ -132,7 +132,7 @@ export default function CourseRaioX({ institutionId, courses, role, onNavigate }
         setTopReprovadores(arr);
       }).catch(() => {});
       // Vagas autorizadas
-      supabase.from('vertice_courses').select('vacancies').eq('id', selectedCourse).maybeSingle().then(r => r).catch(() => ({ data: null })).then((r: any) => {
+      Promise.resolve(supabase.from('vertice_courses').select('vacancies').eq('id', selectedCourse).maybeSingle()).then(r => r).catch(() => ({ data: null })).then((r: any) => {
         if (r.data?.vacancies) setVagasAutorizadas(r.data.vacancies);
       });
     }).finally(() => setLoading(false));
