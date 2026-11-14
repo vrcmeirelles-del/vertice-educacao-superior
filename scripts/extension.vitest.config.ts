@@ -1,3 +1,3 @@
 import {defineConfig} from 'vitest/config';
 import path from 'node:path';
-export default defineConfig({resolve:{alias:{'@':path.resolve(import.meta.dirname,'../client/src')}},esbuild:{jsx:'automatic'},test:{environment:'node',include:['client/src/lib/extension-forms/*.test.ts','client/src/components/area/ExtensaoFormularios.ui.test.tsx'],environmentMatchGlobs:[['**/*.ui.test.tsx','jsdom']],maxWorkers:1,minWorkers:1}});
+export default defineConfig({resolve:{alias:{'@':path.resolve(import.meta.dirname,'../client/src')}},esbuild:{jsx:'automatic'},test:{environment:'node',include:['client/src/lib/extension-forms/*.test.ts','client/src/lib/tcc-forms/*.test.ts','client/src/components/area/TccFormularios.ui.test.tsx','client/src/components/area/ExtensaoFormularios.ui.test.tsx'],environmentMatchGlobs:[['**/*.ui.test.tsx','jsdom']],maxWorkers:1,minWorkers:1}});

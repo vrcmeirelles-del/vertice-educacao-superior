@@ -1,12 +1,13 @@
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import { SECTIONS, TEMPLATES, fieldsForTemplate, type Answers, type Template } from './schema';
 export interface Attachment { id: string; name: string; kind: string; path: string; size: number; mime: string; sha256: string; }
-export interface Dossier { id: string; template: Template; answers: Answers; courseName: string; institutionName: string; revision: number; author: string; generatedAt: string; attachments: Attachment[]; }
+export interface Dossier { id: string; template: string; answers: Answers; courseName: string; institutionName: string; revision: number; author: string; generatedAt: string; attachments: Attachment[]; }
 export async function sha256(bytes: Uint8Array): Promise<string> {
   const digest = await crypto.subtle.digest('SHA-256', new Uint8Array(bytes).buffer);
   return Array.from(new Uint8Array(digest),v=>v.toString(16).padStart(2,'0')).join('');
 }
-export async function buildDossier(d: Dossier, read: (a: Attachment)=>Promise<Uint8Array>): Promise<Uint8Array> {
+export interface PdfOptions {brand:string;heading:string;templateLabel:string;notice:string;sections:{title:string;fields:{key:string;label:string}[]}[];subject:string;}
+export async function buildDossier(d: Dossier, read: (a: Attachment)=>Promise<Uint8Array>, custom?:PdfOptions): Promise<Uint8Array> {
   const pdf = await PDFDocument.create();
   const font = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
@@ -31,18 +32,18 @@ export async function buildDossier(d: Dossier, read: (a: Attachment)=>Promise<Ui
     }
     y-=5;
   };
-  line('VÉRTICE | EXTENSÃO 360°',true);
-  line('PROJETO E RELATÓRIO FINAL',true);
+  line(custom?.brand || 'VÉRTICE | EXTENSÃO 360°',true);
+  line(custom?.heading || 'PROJETO E RELATÓRIO FINAL',true);
   line(d.answers.title,true);
   line(`${d.institutionName} | ${d.courseName}`);
-  line(`Modelo: ${TEMPLATES[d.template].label} | versão do formulário: 1`);
+  line(`Modelo: ${custom?.templateLabel || TEMPLATES[d.template as Template].label} | versão do formulário: 1`);
   line(`Protocolo: ${d.id} | revisão: ${d.revision}`);
   line(`Responsável pelo envio: ${d.author}`);
   line(`Emissão: ${new Date(d.generatedAt).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'})}`);
-  line('Registro de execução declarado pelo responsável. Validação institucional pendente.');
-  for(const section of SECTIONS){
+  line(custom?.notice || 'Registro de execução declarado pelo responsável. Validação institucional pendente.');
+  for(const section of custom?.sections || SECTIONS){
     if(y<130)newPage(); line(section.title.toUpperCase(),true);
-    for(const f of fieldsForTemplate(section.fields,d.template)){if(y<105)newPage();line(f.label,true);line(d.answers[f.key]?.trim()||'Não informado / não se aplica.');}
+    for(const f of (custom ? section.fields : fieldsForTemplate(section.fields,d.template as Template))){if(y<105)newPage();line(f.label,true);line(d.answers[f.key]?.trim()||'Não informado / não se aplica.');}
   }
   line('ANEXOS E RASTREABILIDADE',true);
   line('Os arquivos originais permanecem na Mesa Digital. As páginas abaixo são cópias para consulta; assinaturas digitais devem ser verificadas nos originais.');
@@ -66,6 +67,6 @@ export async function buildDossier(d: Dossier, read: (a: Attachment)=>Promise<Ui
   }
   const pages=pdf.getPages();
   pages.forEach((p,i)=>{const {width}=p.getSize();p.drawText(`Vértice | ${i+1}/${pages.length}`,{x:Math.max(10,width-115),y:18,size:8,font,color:rgb(.35,.4,.45)});});
-  pdf.setTitle(d.answers.title);pdf.setAuthor(d.author);pdf.setSubject('Projeto, relatório de execução e evidências - Extensão 360');pdf.setLanguage('pt-BR');
+  pdf.setTitle(d.answers.title);pdf.setAuthor(d.author);pdf.setSubject(custom?.subject || 'Projeto, relatório de execução e evidências - Extensão 360');pdf.setLanguage('pt-BR');
   return pdf.save();
 }

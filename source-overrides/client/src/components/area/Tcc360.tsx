@@ -16,8 +16,9 @@ import {
   type TccHourDeclaration, type TccReferenceSet, type TccReferenceElement,
 } from '@/lib/tcc';
 import './egressos360.css';
+import TccFormularios from './TccFormularios';
 
-type Section = 'overview'|'portfolio'|'project'|'supervisions'|'tasks'|'hours'|'defense'|'repository'|'evidence'|'bi'|'config';
+type Section = 'forms'|'overview'|'portfolio'|'project'|'supervisions'|'tasks'|'hours'|'defense'|'repository'|'evidence'|'bi'|'config';
 
 const TCC_NEXT_STAGE: Record<string, string> = {
   draft: 'submitted', submitted: 'under_review', under_review: 'project_approved',
@@ -37,6 +38,7 @@ interface Props {
 const NAV: { key: Section; label: string; icon: string }[] = [
   { key: 'overview', label: 'Visão Geral', icon: '◎' },
   { key: 'portfolio', label: 'Carteira', icon: '📋' },
+  { key: 'forms', label: 'Modelos e PDF', icon: '📄' },
   { key: 'project', label: 'Projetos', icon: '📝' },
   { key: 'supervisions', label: 'Orientações', icon: '🗣' },
   { key: 'tasks', label: 'Atividades', icon: '✅' },
@@ -50,6 +52,8 @@ const NAV: { key: Section; label: string; icon: string }[] = [
 
 export default function Tcc360({ institutionId, courses, role, onNavigate }: Props) {
   const [section, setSection] = useState<Section>('overview');
+  const [formsVisited,setFormsVisited]=useState(false);
+  useEffect(()=>{if(section==='forms')setFormsVisited(true);},[section]);
   const [works, setWorks] = useState<TccWork[]>([]);
   const [workTypes, setWorkTypes] = useState<TccWorkType[]>([]);
   const [summary, setSummary] = useState<TccCourseSummary[]>([]);
@@ -135,6 +139,8 @@ export default function Tcc360({ institutionId, courses, role, onNavigate }: Pro
           </button>
         ))}
       </nav>
+
+      {(formsVisited||section==='forms')&&<div hidden={section!=='forms'}><TccFormularios key={institutionId} institutionId={institutionId} role={role} courses={courses} works={works} onChanged={()=>{}} /></div>}
 
       {loading ? <p className="alumni-loading">Carregando TCC 360…</p> : (<>
 
