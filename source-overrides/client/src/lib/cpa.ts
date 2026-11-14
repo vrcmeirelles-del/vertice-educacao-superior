@@ -105,3 +105,36 @@ export const createFeedback = async (f: Partial<CpaFeedback> & { institution_id:
   const { data, error } = await supabase.from('vertice_cpa_feedbacks').insert(f).select().single();
   if (error) throw error; return data as CpaFeedback;
 };
+
+/* ── Questões ── */
+
+export interface CpaQuestion {
+  id: string; instrument_id: string; stable_code: string; sort_order: number;
+  section?: string; dimension?: string; question_text: string; objective?: string;
+  question_type: string; scale_config?: any; options?: any; required: boolean;
+  sinaes_axis?: string; sinaes_dimension?: string; segment?: string; category?: string;
+  reference_object_id?: string; descriptor_code?: string;
+  depends_on?: string; show_when_value?: string;
+  created_at: string;
+}
+
+export const fetchQuestions = async (instrumentId: string) => {
+  const { data, error } = await supabase.from('vertice_cpa_questions').select('*').eq('instrument_id', instrumentId).order('sort_order');
+  if (error) throw error; return (data ?? []) as CpaQuestion[];
+};
+export const createQuestion = async (q: Partial<CpaQuestion> & { instrument_id: string; stable_code: string; question_text: string; question_type: string }) => {
+  const { data, error } = await supabase.from('vertice_cpa_questions').insert(q).select().single();
+  if (error) throw error; return data as CpaQuestion;
+};
+export const updateQuestion = async (id: string, updates: Partial<CpaQuestion>) => {
+  const { data, error } = await supabase.from('vertice_cpa_questions').update(updates).eq('id', id).select().single();
+  if (error) throw error; return data as CpaQuestion;
+};
+export const deleteQuestion = async (id: string) => {
+  const { error } = await supabase.from('vertice_cpa_questions').delete().eq('id', id);
+  if (error) throw error;
+};
+export const updateInstrument = async (id: string, updates: Partial<CpaInstrument>) => {
+  const { data, error } = await supabase.from('vertice_cpa_instruments').update(updates).eq('id', id).select().single();
+  if (error) throw error; return data as CpaInstrument;
+};

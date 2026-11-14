@@ -10,10 +10,12 @@ import {
   fetchCampaignIndicators, fetchCycleSummary,
   createCycle, createInstrument, createCpaFinding, createCpaAction,
   updateCpaActionStatus, createMember, createFeedback,
+  fetchQuestions, createQuestion, updateQuestion, deleteQuestion, updateInstrument,
   CpaReference, CpaReferenceObject, CpaMember, CpaMeeting,
   CpaCycle, CpaInstrument, CpaCampaign,
   CpaFinding, CpaAction, CpaFeedback,
   CpaCampaignIndicator, CpaCycleSummary,
+  type CpaQuestion,
 } from '../../lib/cpa';
 import './egressos360.css'; // reutiliza estilos alumni-*
 
@@ -242,6 +244,7 @@ function InstrumentosCPA({ institutionId, role }: { institutionId: string; role:
   const [expandedTemplate, setExpandedTemplate] = useState('');
   const [loading, setLoading] = useState(true);
   const [copying, setCopying] = useState('');
+  const [editingInst, setEditingInst] = useState<CpaInstrument | null>(null);
   const AUDIENCES: Record<string,string> = {estudante:'Estudantes',docente:'Docentes',tecnico:'Técnicos',egresso:'Egressos',sociedade:'Sociedade Civil',gestao:'Gestão',todos:'Todos'};
   const SINAES_AXIS: Record<string,string> = {I:'Planejamento e Avaliação',II:'Desenvolvimento Institucional',III:'Políticas Acadêmicas',IV:'Políticas de Gestão',V:'Infraestrutura Física'};
   const SINAES_DIM: Record<string,string> = {I:'Missão e PDI',II:'Ensino, Pesquisa e Extensão',III:'Responsabilidade Social',IV:'Comunicação',V:'Pessoal Docente',VI:'Gestão Institucional',VII:'Infraestrutura',VIII:'Avaliação Institucional',IX:'Atendimento ao Estudante',X:'Sustentabilidade Financeira'};
@@ -329,13 +332,190 @@ function InstrumentosCPA({ institutionId, role }: { institutionId: string; role:
       <p className="alumni-hint">Questionários da sua instituição. Versione antes de aplicar. Uma versão publicada não muda durante uma campanha.</p>
       {instruments.length===0?<EmptyState msg="Nenhum instrumento criado. Use um modelo da Biblioteca Vértice acima ou crie do zero." />:(
         <div className="alumni-table-wrapper">
-          <table className="alumni-table"><thead><tr><th>Instrumento</th><th>Público</th><th>Versão</th><th>Status</th><th>Origem</th></tr></thead>
-          <tbody>{instruments.map(i=><tr key={i.id}><td><strong>{i.title}</strong></td><td>{AUDIENCES[i.target_audience]||i.target_audience}</td><td>v{i.version}</td>
+          <table className="alumni-table"><thead><tr><th>Instrumento</th><th>Público</th><th>Versão</th><th>Status</th><th>Origem</th><th></th></tr></thead>
+          <tbody>{instruments.map(i=><tr key={i.id} style={{ cursor: 'pointer' }} onClick={() => setEditingInst(i)}>
+            <td><strong>{i.title}</strong></td><td>{AUDIENCES[i.target_audience]||i.target_audience}</td><td>v{i.version}</td>
             <td><span className="alumni-status-pill" style={{background:i.status==='publicado'?'#16a34a':i.status==='piloto'?'#d97706':'#94a3b8'}}>{i.status}</span></td>
-            <td style={{ fontSize: '.7rem' }}>{(i as any).template_source_id ? '📚 Biblioteca' : '✏️ Próprio'}</td></tr>)}</tbody></table>
+            <td style={{ fontSize: '.7rem' }}>{(i as any).template_source_id ? '📚 Biblioteca' : '✏️ Próprio'}</td>
+            <td><button className="alumni-btn-small" onClick={e => { e.stopPropagation(); setEditingInst(i); }}>Editar</button></td></tr>)}</tbody></table>
         </div>
       )}
+
+      {/* EDITOR DE QUESTIONÁRIO */}
+      {editingInst && <QuestionnaireEditor instrument={editingInst} role={role} onClose={() => setEditingInst(null)}
+        onStatusChange={(id, status) => { setInstruments(prev => prev.map(x => x.id === id ? { ...x, status } : x)); setEditingInst(prev => prev ? { ...prev, status } : null); }}
+        AUDIENCES={AUDIENCES} SINAES_AXIS={SINAES_AXIS} SINAES_DIM={SINAES_DIM} />}
     </section>
+  );
+}
+
+/* ============ EDITOR DE QUESTIONÁRIO ============ */
+function QuestionnaireEditor({ instrument, role, onClose, onStatusChange, AUDIENCES, SINAES_AXIS, SINAES_DIM }: {
+  instrument: CpaInstrument; role: string; onClose: () => void;
+  onStatusChange: (id: string, status: string) => void;
+  AUDIENCES: Record<string,string>; SINAES_AXIS: Record<string,string>; SINAES_DIM: Record<string,string>;
+}) {
+  const [questions, setQuestions] = useState<CpaQuestion[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [addingQ, setAddingQ] = useState(false);
+  const [editingQ, setEditingQ] = useState<string | null>(null);
+  const isEditable = instrument.status === 'rascunho' || instrument.status === 'piloto';
+  const canEdit = (role === 'master' || role === 'gestor') && isEditable;
+
+  useEffect(() => { fetchQuestions(instrument.id).then(setQuestions).finally(() => setLoading(false)); }, [instrument.id]);
+
+  const handleAdd = async (q: Partial<CpaQuestion>) => {
+    const newQ = await createQuestion({ instrument_id: instrument.id, stable_code: q.stable_code || `Q-${(questions.length + 1).toString().padStart(3, '0')}`, sort_order: questions.length + 1, question_text: q.question_text!, question_type: q.question_type || 'likert', required: q.required ?? true, sinaes_axis: q.sinaes_axis, sinaes_dimension: q.sinaes_dimension, segment: q.segment, scale_config: q.question_type === 'text' ? null : { min: 1, max: 5, labels: ['Péssimo', 'Ruim', 'Regular', 'Bom', 'Ótimo'], allow_na: true, allow_dk: true } });
+    setQuestions(prev => [...prev, newQ]);
+    setAddingQ(false);
+  };
+
+  const handleUpdate = async (id: string, updates: Partial<CpaQuestion>) => {
+    const updated = await updateQuestion(id, updates);
+    setQuestions(prev => prev.map(q => q.id === id ? updated : q));
+    setEditingQ(null);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Remover esta pergunta?')) return;
+    await deleteQuestion(id);
+    setQuestions(prev => prev.filter(q => q.id !== id));
+  };
+
+  const handleStatusChange = async (newStatus: string) => {
+    await updateInstrument(instrument.id, { status: newStatus } as any);
+    onStatusChange(instrument.id, newStatus);
+  };
+
+  const sel: React.CSSProperties = { fontSize: '.75rem', padding: '4px 8px', border: '1px solid #e2e8f0', borderRadius: 6, background: '#fff' };
+  const inp: React.CSSProperties = { ...sel, width: '100%' };
+
+  return (
+    <div style={{ marginTop: 20, padding: 16, borderRadius: 12, background: '#fff', border: '2px solid #2563eb', boxShadow: '0 4px 20px rgba(37,99,235,0.1)' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
+        <div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <strong style={{ fontSize: '1.1rem' }}>{instrument.title}</strong>
+            <span className="alumni-status-pill" style={{ background: instrument.status === 'publicado' ? '#16a34a' : '#94a3b8' }}>{instrument.status}</span>
+          </div>
+          <div style={{ fontSize: '.8rem', color: '#64748b', marginTop: 2 }}>{AUDIENCES[instrument.target_audience] || instrument.target_audience} · {questions.length} perguntas · v{instrument.version}</div>
+        </div>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          {canEdit && instrument.status === 'rascunho' && <button style={{ ...sel, border: '1px solid #f59e0b', color: '#b45309', fontWeight: 600, cursor: 'pointer' }} onClick={() => handleStatusChange('piloto')}>🧪 Piloto</button>}
+          {canEdit && (instrument.status === 'rascunho' || instrument.status === 'piloto') && <button style={{ ...sel, border: '1px solid #16a34a', color: '#16a34a', fontWeight: 600, cursor: 'pointer' }} onClick={() => { if (questions.length === 0) { alert('Adicione pelo menos uma pergunta.'); return; } handleStatusChange('publicado'); }}>✅ Publicar</button>}
+          {!isEditable && (role === 'master' || role === 'gestor') && <button style={{ ...sel, border: '1px solid #64748b', color: '#64748b', cursor: 'pointer' }} onClick={() => handleStatusChange('arquivado')}>📦 Arquivar</button>}
+          <button style={{ ...sel, cursor: 'pointer' }} onClick={onClose}>✕ Fechar</button>
+        </div>
+      </div>
+
+      {!isEditable && <div style={{ padding: 8, background: '#fef3c7', borderRadius: 8, fontSize: '.8rem', color: '#92400e', marginBottom: 12 }}>⚠️ Instrumento publicado — edição bloqueada. Para alterar, crie uma nova versão.</div>}
+
+      {loading ? <p>Carregando perguntas…</p> : (
+        <>
+          {/* Lista de perguntas */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {questions.map((q, idx) => (
+              <div key={q.id} style={{ padding: '10px 12px', borderRadius: 8, background: idx % 2 === 0 ? '#f8fafc' : '#fff', border: '1px solid #e2e8f0', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '.7rem', fontWeight: 700, color: '#2563eb', flexShrink: 0 }}>{idx + 1}</div>
+                {editingQ === q.id ? (
+                  <QuestionEditForm q={q} onSave={(u) => handleUpdate(q.id, u)} onCancel={() => setEditingQ(null)} SINAES_AXIS={SINAES_AXIS} SINAES_DIM={SINAES_DIM} inp={inp} sel={sel} />
+                ) : (
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+                      <div style={{ fontSize: '.85rem' }}><strong>{q.question_text}</strong></div>
+                      {canEdit && <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+                        <button style={{ fontSize: '.65rem', padding: '2px 8px', borderRadius: 4, border: '1px solid #2563eb', background: '#eff6ff', color: '#2563eb', cursor: 'pointer' }} onClick={() => setEditingQ(q.id)}>✏️</button>
+                        <button style={{ fontSize: '.65rem', padding: '2px 8px', borderRadius: 4, border: '1px solid #dc2626', background: '#fef2f2', color: '#dc2626', cursor: 'pointer' }} onClick={() => handleDelete(q.id)}>🗑</button>
+                      </div>}
+                    </div>
+                    <div style={{ display: 'flex', gap: 6, marginTop: 4, flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: '.6rem', padding: '1px 6px', borderRadius: 4, background: '#dbeafe', color: '#2563eb' }}>{q.stable_code}</span>
+                      {q.sinaes_axis && <span style={{ fontSize: '.6rem', padding: '1px 6px', borderRadius: 4, background: '#f3e8ff', color: '#7c3aed' }} title={SINAES_AXIS[q.sinaes_axis]}>Eixo {q.sinaes_axis}</span>}
+                      {q.sinaes_dimension && <span style={{ fontSize: '.6rem', padding: '1px 6px', borderRadius: 4, background: '#ecfdf5', color: '#059669' }} title={SINAES_DIM[q.sinaes_dimension]}>Dim. {q.sinaes_dimension}</span>}
+                      <span style={{ fontSize: '.6rem', padding: '1px 6px', borderRadius: 4, background: q.question_type === 'likert' ? '#f0f9ff' : '#fefce8', color: q.question_type === 'likert' ? '#0369a1' : '#a16207' }}>{q.question_type === 'likert' ? 'Likert 1–5' : q.question_type === 'text' ? 'Aberta' : q.question_type}</span>
+                      {q.required && <span style={{ fontSize: '.6rem', padding: '1px 6px', borderRadius: 4, background: '#fef2f2', color: '#dc2626' }}>Obrigatória</span>}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Adicionar pergunta */}
+          {canEdit && !addingQ && <button style={{ marginTop: 10, width: '100%', padding: '10px', borderRadius: 8, border: '2px dashed #2563eb', background: '#f0f9ff', color: '#2563eb', fontWeight: 700, cursor: 'pointer', fontSize: '.85rem' }} onClick={() => setAddingQ(true)}>+ Adicionar pergunta</button>}
+          {addingQ && <QuestionEditForm q={null} onSave={handleAdd} onCancel={() => setAddingQ(false)} SINAES_AXIS={SINAES_AXIS} SINAES_DIM={SINAES_DIM} inp={inp} sel={sel} />}
+        </>
+      )}
+
+      {/* Resumo SINAES */}
+      {questions.length > 0 && (() => {
+        const byAxis: Record<string, number> = {};
+        questions.forEach(q => { if (q.sinaes_axis) byAxis[q.sinaes_axis] = (byAxis[q.sinaes_axis] || 0) + 1; });
+        return (
+          <div style={{ marginTop: 16, padding: 12, background: '#f5f3ff', borderRadius: 10 }}>
+            <strong style={{ fontSize: '.8rem' }}>Cobertura SINAES:</strong>
+            <div style={{ display: 'flex', gap: 8, marginTop: 6, flexWrap: 'wrap' }}>
+              {Object.entries(SINAES_AXIS).map(([k, v]) => (
+                <span key={k} style={{ fontSize: '.7rem', padding: '3px 10px', borderRadius: 12, background: byAxis[k] ? '#dbeafe' : '#fee2e2', color: byAxis[k] ? '#2563eb' : '#dc2626', fontWeight: 600 }}>
+                  {k}. {v}: {byAxis[k] || 0}q {!byAxis[k] && '⚠'}
+                </span>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
+    </div>
+  );
+}
+
+/* ============ FORMULÁRIO DE PERGUNTA ============ */
+function QuestionEditForm({ q, onSave, onCancel, SINAES_AXIS, SINAES_DIM, inp, sel }: {
+  q: CpaQuestion | null; onSave: (data: Partial<CpaQuestion>) => void; onCancel: () => void;
+  SINAES_AXIS: Record<string,string>; SINAES_DIM: Record<string,string>;
+  inp: React.CSSProperties; sel: React.CSSProperties;
+}) {
+  const [text, setText] = useState(q?.question_text || '');
+  const [code, setCode] = useState(q?.stable_code || '');
+  const [type, setType] = useState(q?.question_type || 'likert');
+  const [axis, setAxis] = useState(q?.sinaes_axis || '');
+  const [dim, setDim] = useState(q?.sinaes_dimension || '');
+  const [req, setReq] = useState(q?.required ?? true);
+
+  return (
+    <div style={{ flex: 1, padding: 12, background: '#eff6ff', borderRadius: 8, border: '1px solid #bfdbfe' }}>
+      <div style={{ display: 'grid', gap: 8 }}>
+        <label style={{ fontSize: '.7rem', fontWeight: 600 }}>Texto da pergunta
+          <textarea value={text} onChange={e => setText(e.target.value)} rows={2} style={{ ...inp, resize: 'vertical' }} placeholder="Como você avalia..." />
+        </label>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 8 }}>
+          <label style={{ fontSize: '.7rem', fontWeight: 600 }}>Código<input value={code} onChange={e => setCode(e.target.value)} style={inp} placeholder="DIS-026" /></label>
+          <label style={{ fontSize: '.7rem', fontWeight: 600 }}>Tipo
+            <select value={type} onChange={e => setType(e.target.value)} style={sel}>
+              <option value="likert">Likert 1–5</option><option value="text">Aberta</option><option value="single_choice">Escolha única</option><option value="multiple_choice">Múltipla escolha</option><option value="boolean">Sim/Não</option>
+            </select>
+          </label>
+          <label style={{ fontSize: '.7rem', fontWeight: 600 }}>Eixo SINAES
+            <select value={axis} onChange={e => setAxis(e.target.value)} style={sel}>
+              <option value="">—</option>{Object.entries(SINAES_AXIS).map(([k, v]) => <option key={k} value={k}>{k}. {v}</option>)}
+            </select>
+          </label>
+          <label style={{ fontSize: '.7rem', fontWeight: 600 }}>Dimensão SINAES
+            <select value={dim} onChange={e => setDim(e.target.value)} style={sel}>
+              <option value="">—</option>{Object.entries(SINAES_DIM).map(([k, v]) => <option key={k} value={k}>{k}. {v}</option>)}
+            </select>
+          </label>
+          <label style={{ fontSize: '.7rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <input type="checkbox" checked={req} onChange={e => setReq(e.target.checked)} /> Obrigatória
+          </label>
+        </div>
+      </div>
+      <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end', marginTop: 8 }}>
+        <button style={{ ...sel, cursor: 'pointer' }} onClick={onCancel}>Cancelar</button>
+        <button disabled={!text.trim()} style={{ ...sel, border: '1px solid #2563eb', background: '#2563eb', color: '#fff', fontWeight: 700, cursor: 'pointer', opacity: text.trim() ? 1 : .5 }}
+          onClick={() => onSave({ question_text: text.trim(), stable_code: code.trim() || undefined, question_type: type, sinaes_axis: axis || undefined, sinaes_dimension: dim || undefined, required: req })}>{q ? 'Salvar' : 'Adicionar'}</button>
+      </div>
+    </div>
   );
 }
 
