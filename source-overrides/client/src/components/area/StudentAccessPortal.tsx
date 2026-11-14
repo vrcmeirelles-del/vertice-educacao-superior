@@ -17,7 +17,7 @@ interface Props {
   token?: string | null;
 }
 
-interface Category { id: string; code: string; label: string; description?: string | null; max_per_item_minutes?: number | null; accepted_documents?: string[] | null }
+interface Category { id: string; code: string; label: string; description?: string | null; max_per_item_minutes?: number | null; max_category_minutes?: number | null; accepted_documents?: string[] | null }
 interface Submission { id: string; title: string; issuer: string | null; documentary_minutes: number | null; status: string; created_at: string; category_id: string | null }
 interface Placement { id: string; lifecycle: string; starts_at: string | null; ends_at: string | null; advisor_name: string | null }
 interface Dashboard {
@@ -266,6 +266,24 @@ function StudentDashboard({ data, session, purpose, onLogout, onChanged }: { dat
           ) : (
             <p role="status" style={{ ...box, background: '#eff6ff' }}>O regulamento do curso ainda não foi publicado. Você já pode enviar seus certificados — a validação será feita após a publicação do regulamento.</p>
           )}
+
+          {/* Aviso de teto por categoria */}
+          {data.categories.length > 0 && (() => {
+            const catUsed: Record<string, number> = {};
+            data.submissions.filter(s => s.category_id && ['credited', 'approved', 'posting_confirmed', 'report_sent'].includes(s.status))
+              .forEach(s => { catUsed[s.category_id!] = (catUsed[s.category_id!] || 0) + (s.documentary_minutes || 0); });
+            const full = data.categories.filter(c => c.max_category_minutes && (catUsed[c.id] || 0) >= c.max_category_minutes);
+            if (full.length === 0) return null;
+            return (
+              <div style={{ ...box, background: '#fffbeb', borderLeft: '4px solid #f59e0b', marginBottom: 12 }}>
+                <strong style={{ fontSize: '.8125rem' }}>⚠️ Teto atingido em {full.length} categoria{full.length > 1 ? 's' : ''}:</strong>
+                {full.map(c => (
+                  <div key={c.id} style={{ ...small, margin: '2px 0' }}>• <strong>{c.label}</strong> — máx {minutesToH(c.max_category_minutes!)} já utilizado. Envie atividades de outras categorias.</div>
+                ))}
+                <p style={{ ...small, color: '#92400e', marginTop: 6, marginBottom: 0 }}>Diversifique suas atividades ao longo dos 10 semestres para completar as {minutesToH(required)} exigidas.</p>
+              </div>
+            );
+          })()}
 
           <SubmitActivity session={session} categories={data.categories} onDone={onChanged} />
 
