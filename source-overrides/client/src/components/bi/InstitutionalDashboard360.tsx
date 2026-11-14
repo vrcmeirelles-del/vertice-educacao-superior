@@ -66,10 +66,11 @@ export default function InstitutionalDashboard360({ institutionId }: Props) {
     cpa_avg_score: Math.max(acc.cpa_avg_score, c.cpa_avg_score),
     cpa_reports: Math.max(acc.cpa_reports, c.cpa_reports),
     cpa_reports_finalized: Math.max(acc.cpa_reports_finalized, c.cpa_reports_finalized),
+    cpa_reports_approved: Math.max(acc.cpa_reports_approved, c.cpa_reports_approved),
     mesa_postings: Math.max(acc.mesa_postings, c.mesa_postings),
     mesa_confirmed: Math.max(acc.mesa_confirmed, c.mesa_confirmed),
     mesa_pending: Math.max(acc.mesa_pending, c.mesa_pending),
-  }), { tcc_active:0, tcc_deposited:0, tcc_overdue:0, tcc_hours:0, tcc_evidence:0, ac_submissions:0, ac_pending:0, ac_credited:0, ac_fraud_alerts:0, ac_fraud_high:0, ac_fraud_pending:0, ac_fraud_escalated:0, estagio_active:0, estagio_completed:0, estagio_hours:0, extensao_projetos:0, extensao_alunos:0, egressos:0, cpa_achados:0, cpa_fragilidades:0, cpa_campaigns:0, cpa_campaigns_active:0, cpa_responses:0, cpa_avg_score:0, cpa_reports:0, cpa_reports_finalized:0, mesa_postings:0, mesa_confirmed:0, mesa_pending:0 });
+  }), { tcc_active:0, tcc_deposited:0, tcc_overdue:0, tcc_hours:0, tcc_evidence:0, ac_submissions:0, ac_pending:0, ac_credited:0, ac_fraud_alerts:0, ac_fraud_high:0, ac_fraud_pending:0, ac_fraud_escalated:0, estagio_active:0, estagio_completed:0, estagio_hours:0, extensao_projetos:0, extensao_alunos:0, egressos:0, cpa_achados:0, cpa_fragilidades:0, cpa_campaigns:0, cpa_campaigns_active:0, cpa_responses:0, cpa_avg_score:0, cpa_reports:0, cpa_reports_finalized:0, cpa_reports_approved:0, mesa_postings:0, mesa_confirmed:0, mesa_pending:0 });
 
   const h = (m: number) => { const hr = Math.floor(m / 60); return hr > 0 ? `${hr.toLocaleString('pt-BR')}h` : '0h'; };
   const moduleColors: Record<string, string> = { tcc: '#8b5cf6', ac: '#0891b2', estagio: '#d97706', complementary_activities: '#0891b2', mandatory_internship: '#d97706' };
