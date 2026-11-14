@@ -231,9 +231,108 @@ Responda APENAS com JSON válido, sem markdown, sem código, sem explicações f
 
     const saved = await insertRes.json();
 
+    // === DETECÇÃO DE FRAUDE ===
+    // Buscar certificados similares de OUTROS alunos (mesmo evento, mesmo emissor, mesmas datas)
+    let fraudAlert = null;
+    try {
+      // 1. Buscar extrações similares (mesmo event_title ou issuer+dates)
+      const eventTitle = (extracted.event_title || '').trim();
+      const issuerName = (extracted.issuer || '').trim();
+      if (eventTitle.length > 5 || issuerName.length > 5) {
+        const searchParams = new URLSearchParams();
+        searchParams.set('institution_id', `eq.${institution_id}`);
+        searchParams.set('submission_id', `neq.${submission_id}`);
+        if (eventTitle.length > 5) searchParams.set('event_title', `ilike.*${eventTitle.substring(0, 30)}*`);
+        searchParams.set('select', 'id,submission_id,participant_name,event_title,issuer,documentary_minutes,starts_at,ends_at');
+        searchParams.set('limit', '20');
+
+        const simRes = await fetch(
+          `${url}/rest/v1/vertice_ac_extractions?${searchParams}`,
+          { headers: serviceHeaders, signal: AbortSignal.timeout(10000) }
+        );
+        const similars = await simRes.json();
+
+        if (Array.isArray(similars) && similars.length > 0) {
+          // Buscar student_id de cada submissão similar
+          const simSubIds = similars.map((s: { submission_id: string }) => s.submission_id);
+          const subIdsParam = simSubIds.map((id: string) => `"${id}"`).join(',');
+          const subLookup = await fetch(
+            `${url}/rest/v1/vertice_ac_submissions?id=in.(${subIdsParam})&select=id,student_id`,
+            { headers: serviceHeaders, signal: AbortSignal.timeout(10000) }
+          );
+          const subStudents = await subLookup.json();
+          const studentMap: Record<string, string> = {};
+          if (Array.isArray(subStudents)) subStudents.forEach((s: { id: string; student_id: string }) => { studentMap[s.id] = s.student_id; });
+
+          // Filtrar: mesmo evento mas DIFERENTE aluno
+          const otherStudents = similars.filter((s: { submission_id: string; participant_name?: string }) => {
+            const otherId = studentMap[s.submission_id];
+            return otherId && otherId !== sub.student_id;
+          });
+
+          if (otherStudents.length > 0) {
+            // Verificar se nomes no certificado são diferentes (edição de nome = fraude forte)
+            const namesInvolved = [extracted.participant_name, ...otherStudents.map((s: { participant_name?: string }) => s.participant_name)].filter(Boolean);
+            const uniqueNames = new Set(namesInvolved.map((n: string) => n.toLowerCase().trim()));
+            const likelyEdited = uniqueNames.size > 1; // diferentes nomes no mesmo certificado = edição
+
+            const allSubmissions = [submission_id, ...otherStudents.map((s: { submission_id: string }) => s.submission_id)];
+            const allStudents = [...new Set([sub.student_id, ...otherStudents.map((s: { submission_id: string }) => studentMap[s.submission_id]).filter(Boolean)])];
+
+            const alertBody = {
+              institution_id,
+              alert_type: likelyEdited ? 'edited_document' : 'duplicate_certificate',
+              severity: likelyEdited ? 'critical' : 'high',
+              title: likelyEdited
+                ? `Possível edição de certificado: "${eventTitle.substring(0, 60)}"`
+                : `Certificado duplicado: "${eventTitle.substring(0, 60)}"`,
+              description: likelyEdited
+                ? `O mesmo certificado de "${issuerName}" aparece com nomes diferentes em ${allStudents.length} alunos. Possível adulteração de documento com troca de nome.`
+                : `${allStudents.length} alunos enviaram certificado idêntico do evento "${eventTitle}" emitido por "${issuerName}". Verificar autenticidade.`,
+              evidence_json: {
+                event_title: eventTitle,
+                issuer: issuerName,
+                names_found: [...uniqueNames],
+                dates: { starts_at: extracted.starts_at, ends_at: extracted.ends_at },
+                hours: extracted.documentary_minutes,
+                detection_method: likelyEdited ? 'name_mismatch_same_certificate' : 'duplicate_event_match',
+              },
+              submissions_involved: allSubmissions,
+              students_involved: allStudents,
+              detected_by: 'ai',
+              visible_to_superior: true,
+            };
+
+            // Verificar se já existe alerta para esse evento
+            const existCheck = await fetch(
+              `${url}/rest/v1/vertice_ac_fraud_alerts?institution_id=eq.${institution_id}&status=in.(open,under_review)&select=id,submissions_involved`,
+              { headers: serviceHeaders, signal: AbortSignal.timeout(10000) }
+            );
+            const existing = await existCheck.json();
+            const alreadyReported = Array.isArray(existing) && existing.some((a: { submissions_involved?: string[] }) =>
+              a.submissions_involved?.some(sid => allSubmissions.includes(sid))
+            );
+
+            if (!alreadyReported) {
+              const alertRes = await fetch(`${url}/rest/v1/vertice_ac_fraud_alerts`, {
+                method: 'POST', headers: { ...serviceHeaders, Prefer: 'return=representation' },
+                body: JSON.stringify(alertBody),
+                signal: AbortSignal.timeout(10000),
+              });
+              if (alertRes.ok) {
+                const alertData = await alertRes.json();
+                fraudAlert = alertData[0] || alertData;
+              }
+            }
+          }
+        }
+      }
+    } catch { /* fraud detection is best-effort */ }
+
     return send({
       ok: true,
       extraction: saved[0] || saved,
+      fraud_alert: fraudAlert,
       summary: {
         participant: extracted.participant_name,
         event: extracted.event_title,
@@ -242,6 +341,7 @@ Responda APENAS com JSON válido, sem markdown, sem código, sem explicações f
         hours_declared: sub.documentary_minutes ? (sub.documentary_minutes / 60) : null,
         quality: extracted.extraction_quality,
         warnings: extracted.warnings,
+        fraud_detected: !!fraudAlert,
       },
     });
   } catch (err) {

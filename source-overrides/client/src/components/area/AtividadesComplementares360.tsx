@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { fetchAcRules, fetchAcCategories, fetchAcSubmissions, fetchAcStudentBalance, fetchAcCourseSummary, fetchStudentRegistry, fetchProtocols, approveAcSubmission, AC_STATUS_LABELS, PROTOCOL_STATUS_LABELS, minutesToHours, type AcRule, type AcCategory, type AcSubmission, type AcStudentBalance, type AcCourseSummary, type StudentRegistryEntry } from '@/lib/atividades-complementares';
 import './egressos360.css';
 
-type Section = 'overview'|'rules'|'students'|'submissions'|'balance'|'protocols'|'bi'|'config';
+type Section = 'overview'|'rules'|'students'|'submissions'|'balance'|'protocols'|'fraud'|'bi'|'config';
 interface Props { institutionId: string; courses: { id: string; name: string }[]; role: string; onNavigate?: (tab: string) => void; }
 
 const NAV: { key: Section; label: string; icon: string }[] = [
@@ -14,6 +14,7 @@ const NAV: { key: Section; label: string; icon: string }[] = [
   { key: 'submissions', label: 'Solicitações', icon: '📋' },
   { key: 'balance', label: 'Extrato / Saldo', icon: '⏱' },
   { key: 'protocols', label: 'Secretaria', icon: '📨' },
+  { key: 'fraud', label: 'Integridade', icon: '🛡' },
   { key: 'bi', label: 'BI 360', icon: '📊' },
   { key: 'config', label: 'Configurações', icon: '⚙' },
 ];
@@ -24,6 +25,7 @@ export default function AtividadesComplementares360({ institutionId, courses, ro
   const [summary, setSummary] = useState<AcCourseSummary[]>([]);
   const [submissions, setSubmissions] = useState<AcSubmission[]>([]);
   const [balances, setBalances] = useState<AcStudentBalance[]>([]);
+  const [fraudAlerts, setFraudAlerts] = useState<any[]>([]);
   const [students, setStudents] = useState<StudentRegistryEntry[]>([]);
   const [protocols, setProtocols] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,8 +42,9 @@ export default function AtividadesComplementares360({ institutionId, courses, ro
       fetchAcStudentBalance(institutionId),
       fetchStudentRegistry(institutionId),
       fetchProtocols(institutionId, 'complementary_activities'),
-    ]).then(([r, s, sub, b, st, p]) => {
-      setRules(r); setSummary(s); setSubmissions(sub); setBalances(b); setStudents(st); setProtocols(p);
+      supabase.from('vertice_ac_fraud_alerts').select('*').eq('institution_id', institutionId).order('created_at', { ascending: false }).then(r => r.data || []),
+    ]).then(([r, s, sub, b, st, p, fa]) => {
+      setRules(r); setSummary(s); setSubmissions(sub); setBalances(b); setStudents(st); setProtocols(p); setFraudAlerts(fa as any[]);
     }).finally(() => setLoading(false));
   }, [institutionId]);
 
@@ -225,6 +228,75 @@ export default function AtividadesComplementares360({ institutionId, courses, ro
               ))}</tbody>
             </table>
           )}
+        </div>)}
+
+        {section === 'fraud' && (<div>
+          <header className="alumni-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div><h2>🛡 Integridade Acadêmica</h2><p className="alumni-subtitle">Alertas de fraude detectados pela IA — visíveis à coordenação e instância superior</p></div>
+          </header>
+
+          {/* KPIs */}
+          <div className="alumni-kpis">
+            <KPI label="Alertas abertos" value={fraudAlerts.filter(a => a.status === 'open').length} color="#dc2626" />
+            <KPI label="Em análise" value={fraudAlerts.filter(a => a.status === 'under_review').length} color="#f59e0b" />
+            <KPI label="Fraude confirmada" value={fraudAlerts.filter(a => a.status === 'confirmed_fraud').length} color="#7c3aed" />
+            <KPI label="Arquivados" value={fraudAlerts.filter(a => a.status === 'dismissed').length} />
+          </div>
+
+          {fraudAlerts.length === 0 ? <div className="alumni-info-box">Nenhum alerta de fraude detectado. A IA monitora automaticamente certificados duplicados e editados.</div> : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 12 }}>
+              {fraudAlerts.map(a => {
+                const sevColor: Record<string, string> = { critical: '#dc2626', high: '#f59e0b', medium: '#2563eb', low: '#64748b' };
+                const statusLabel: Record<string, string> = { open: '🔴 Aberto', under_review: '🟡 Em análise', confirmed_fraud: '🟣 Fraude confirmada', dismissed: '⚪ Arquivado' };
+                const typeLabel: Record<string, string> = { duplicate_certificate: '📋 Certificado duplicado', edited_document: '✏️ Documento editado', suspicious_pattern: '🔍 Padrão suspeito' };
+                return (
+                  <div key={a.id} style={{ padding: 14, borderRadius: 10, background: a.status === 'open' ? '#fef2f2' : a.status === 'confirmed_fraud' ? '#f5f3ff' : '#f8fafc', border: `1px solid ${a.status === 'open' ? '#fecaca' : '#e2e8f0'}`, borderLeft: `4px solid ${sevColor[a.severity] || '#64748b'}` }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, flexWrap: 'wrap' }}>
+                      <div>
+                        <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 4 }}>
+                          <span style={{ fontSize: '.7rem', padding: '2px 8px', borderRadius: 12, background: sevColor[a.severity] || '#64748b', color: '#fff', fontWeight: 700, textTransform: 'uppercase' }}>{a.severity}</span>
+                          <span style={{ fontSize: '.75rem', color: '#64748b' }}>{typeLabel[a.alert_type] || a.alert_type}</span>
+                          <span style={{ fontSize: '.75rem' }}>{statusLabel[a.status] || a.status}</span>
+                        </div>
+                        <strong style={{ fontSize: '.9rem' }}>{a.title}</strong>
+                        <p style={{ fontSize: '.8rem', color: '#475569', margin: '4px 0' }}>{a.description}</p>
+                        {a.evidence_json?.names_found && (
+                          <p style={{ fontSize: '.75rem', color: '#7c3aed', margin: '2px 0' }}>👤 Nomes encontrados: {a.evidence_json.names_found.join(', ')}</p>
+                        )}
+                        <div style={{ fontSize: '.7rem', color: '#94a3b8', marginTop: 4 }}>
+                          {a.students_involved?.length || 0} aluno(s) envolvido(s) · {a.submissions_involved?.length || 0} submissão(ões) · Detectado em {new Date(a.created_at).toLocaleDateString('pt-BR')}
+                          {a.escalated_to && <strong style={{ color: '#7c3aed' }}> · Escalado para {a.escalated_to}</strong>}
+                        </div>
+                      </div>
+                      {a.status === 'open' && (
+                        <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+                          <button style={{ fontSize: '.7rem', padding: '4px 10px', borderRadius: 6, border: '1px solid #f59e0b', background: '#fffbeb', color: '#b45309', cursor: 'pointer', fontWeight: 600 }}
+                            onClick={async () => { await supabase.from('vertice_ac_fraud_alerts').update({ status: 'under_review' }).eq('id', a.id); setFraudAlerts(prev => prev.map(x => x.id === a.id ? { ...x, status: 'under_review' } : x)); }}>Analisar</button>
+                          <button style={{ fontSize: '.7rem', padding: '4px 10px', borderRadius: 6, border: '1px solid #7c3aed', background: '#f5f3ff', color: '#7c3aed', cursor: 'pointer', fontWeight: 600 }}
+                            onClick={async () => { await supabase.from('vertice_ac_fraud_alerts').update({ status: 'confirmed_fraud', escalated_to: 'direcao', escalated_at: new Date().toISOString() }).eq('id', a.id); setFraudAlerts(prev => prev.map(x => x.id === a.id ? { ...x, status: 'confirmed_fraud', escalated_to: 'direcao' } : x)); alert('Fraude confirmada e escalada para a Direção.'); }}>Confirmar fraude</button>
+                          <button style={{ fontSize: '.7rem', padding: '4px 10px', borderRadius: 6, border: '1px solid #94a3b8', background: '#f8fafc', color: '#64748b', cursor: 'pointer' }}
+                            onClick={async () => { await supabase.from('vertice_ac_fraud_alerts').update({ status: 'dismissed', resolution: 'Verificado e descartado pelo coordenador', resolved_at: new Date().toISOString() }).eq('id', a.id); setFraudAlerts(prev => prev.map(x => x.id === a.id ? { ...x, status: 'dismissed' } : x)); }}>Arquivar</button>
+                        </div>
+                      )}
+                      {a.status === 'under_review' && (
+                        <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+                          <button style={{ fontSize: '.7rem', padding: '4px 10px', borderRadius: 6, border: '1px solid #7c3aed', background: '#f5f3ff', color: '#7c3aed', cursor: 'pointer', fontWeight: 600 }}
+                            onClick={async () => { await supabase.from('vertice_ac_fraud_alerts').update({ status: 'confirmed_fraud', escalated_to: 'direcao', escalated_at: new Date().toISOString() }).eq('id', a.id); setFraudAlerts(prev => prev.map(x => x.id === a.id ? { ...x, status: 'confirmed_fraud', escalated_to: 'direcao' } : x)); alert('Fraude confirmada e escalada para a Direção.'); }}>Confirmar fraude → Direção</button>
+                          <button style={{ fontSize: '.7rem', padding: '4px 10px', borderRadius: 6, border: '1px solid #94a3b8', background: '#f8fafc', color: '#64748b', cursor: 'pointer' }}
+                            onClick={async () => { await supabase.from('vertice_ac_fraud_alerts').update({ status: 'dismissed', resolution: 'Descartado após análise', resolved_at: new Date().toISOString() }).eq('id', a.id); setFraudAlerts(prev => prev.map(x => x.id === a.id ? { ...x, status: 'dismissed' } : x)); }}>Arquivar</button>
+                        </div>
+                      )}
+                    </div>
+                    {a.resolution && <div style={{ marginTop: 8, padding: 8, background: '#f1f5f9', borderRadius: 6, fontSize: '.75rem', color: '#475569' }}><strong>Resolução:</strong> {a.resolution}</div>}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <div style={{ marginTop: 16, padding: 12, background: '#f0f9ff', borderRadius: 10, fontSize: '.8rem', color: '#1e40af' }}>
+            🤖 <strong>Como funciona:</strong> A IA analisa cada certificado e compara com todos os outros da instituição. Se encontrar o mesmo evento com nomes diferentes (edição de documento) ou certificados idênticos entre alunos distintos, gera um alerta automático. Alertas confirmados são escalados para a Direção e ficam visíveis à instância superior.
+          </div>
         </div>)}
 
         {section === 'bi' && (<div>
