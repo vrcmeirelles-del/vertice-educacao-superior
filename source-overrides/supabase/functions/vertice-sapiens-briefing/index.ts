@@ -81,52 +81,86 @@ TOM: analítico, estratégico, completo. O coordenador abre a segunda-feira com 
 FORMATO JSON: {summary: string (500-2000 chars), sections: [{title, severity, items: [{text, action_required: boolean}]}]}`,
 };
 
-async function callLLM(system: string, user: string): Promise<{ content: string; model: string }> {
-  const oaiKey = env("OPENAI_API_KEY");
-  const anthropicKey = env("ANTHROPIC_API_KEY");
+// ================================================================
+// DUAL-LLM BRIEFING: OpenAI gera, Anthropic revisa (e vice-versa)
+// ================================================================
 
-  if (oaiKey) {
-    const r = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${oaiKey}` },
-      body: JSON.stringify({
-        model: "gpt-4o",
-        messages: [{ role: "system", content: system }, { role: "user", content: user }],
-        max_tokens: 4000,
-        temperature: 0.3,
-        response_format: { type: "json_object" },
-      }),
-      signal: AbortSignal.timeout(120000),
-    });
-    if (r.ok) {
-      const d = await r.json();
-      return { content: d.choices?.[0]?.message?.content || "{}", model: "gpt-4o" };
-    }
-  }
+async function callOpenAI(system: string, user: string): Promise<{ content: string; model: string } | null> {
+  const key = env("OPENAI_API_KEY");
+  if (!key) return null;
+  const r = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+    body: JSON.stringify({
+      model: "gpt-4o",
+      messages: [{ role: "system", content: system }, { role: "user", content: user }],
+      max_tokens: 4000, temperature: 0.3,
+      response_format: { type: "json_object" },
+    }),
+    signal: AbortSignal.timeout(120000),
+  });
+  if (!r.ok) return null;
+  const d = await r.json();
+  return { content: d.choices?.[0]?.message?.content || "{}", model: "gpt-4o" };
+}
 
-  if (anthropicKey) {
-    const r = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": anthropicKey,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 4000,
-        system,
-        messages: [{ role: "user", content: user + "\n\nResponda APENAS com JSON válido." }],
-      }),
-      signal: AbortSignal.timeout(120000),
-    });
-    if (r.ok) {
-      const d = await r.json();
-      return { content: d.content?.[0]?.text || "{}", model: "claude-sonnet-4" };
-    }
-  }
+async function callAnthropic(system: string, user: string): Promise<{ content: string; model: string } | null> {
+  const key = env("ANTHROPIC_API_KEY");
+  if (!key) return null;
+  const r = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-20250514", max_tokens: 4000, system,
+      messages: [{ role: "user", content: user + "\n\nResponda APENAS com JSON válido." }],
+    }),
+    signal: AbortSignal.timeout(120000),
+  });
+  if (!r.ok) return null;
+  const d = await r.json();
+  return { content: d.content?.[0]?.text || "{}", model: "claude-sonnet-4" };
+}
 
+async function generateBriefing(system: string, user: string): Promise<{ content: string; model: string }> {
+  const oai = await callOpenAI(system, user);
+  if (oai) return oai;
+  const anth = await callAnthropic(system, user);
+  if (anth) return anth;
   throw new Error("No LLM configured");
+}
+
+async function reviewBriefing(
+  briefing: Record<string, unknown>,
+  context: string,
+  generatorModel: string
+): Promise<{ adjustments: string; reviewer: string }> {
+  const reviewSystem = `Você é um revisor executivo independente. Outra IA (${generatorModel}) gerou um briefing institucional. Revise-o:
+
+1. Algum risco foi subestimado ou omitido?
+2. Alguma conclusão foi inflada sem base nos dados?
+3. Alguma ação pendente ficou de fora?
+4. O tom é adequado para o coordenador?
+
+Responda APENAS em JSON: {"adjustments": "string com correções ou 'Briefing aprovado sem ressalvas.'", "issues": ["lista se houver"]}`;
+
+  const reviewUser = `BRIEFING GERADO:\n${JSON.stringify(briefing, null, 2)}\n\nDADOS ORIGINAIS:\n${context}`;
+
+  let result: { content: string; model: string } | null = null;
+  if (generatorModel.startsWith("gpt")) {
+    result = await callAnthropic(reviewSystem, reviewUser);
+    if (!result) result = await callOpenAI(reviewSystem, reviewUser);
+  } else {
+    result = await callOpenAI(reviewSystem, reviewUser);
+    if (!result) result = await callAnthropic(reviewSystem, reviewUser);
+  }
+
+  if (!result) return { adjustments: "", reviewer: "none" };
+  try {
+    const parsed = JSON.parse(result.content);
+    return { adjustments: String(parsed.adjustments || ""), reviewer: result.model };
+  } catch {
+    return { adjustments: result.content.slice(0, 500), reviewer: result.model };
+  }
 }
 
 Deno.serve(async (req: Request) => {
@@ -248,17 +282,35 @@ Deno.serve(async (req: Request) => {
     });
 
     const systemPrompt = BRIEFING_PROMPTS[briefingType] || BRIEFING_PROMPTS.morning;
-    const { content, model } = await callLLM(systemPrompt, `DADOS ATUAIS DA INSTITUIÇÃO:\n${context}`);
+    const contextStr = `DADOS ATUAIS DA INSTITUIÇÃO:\n${context}`;
+
+    // Step 1: GENERATE briefing
+    const generated = await generateBriefing(systemPrompt, contextStr);
 
     let parsed: Record<string, unknown>;
     try {
-      parsed = JSON.parse(content);
+      parsed = JSON.parse(generated.content);
     } catch {
-      parsed = { summary: content.slice(0, 5000), sections: [] };
+      parsed = { summary: generated.content.slice(0, 5000), sections: [] };
     }
 
-    const summary = String(parsed.summary || "Briefing gerado sem resumo.").slice(0, 5000);
+    // Step 2: REVIEW — the other LLM checks the briefing
+    const review = await reviewBriefing(parsed, contextStr, generated.model);
+    const llmModel = review.reviewer !== "none"
+      ? `${generated.model}+${review.reviewer}`
+      : generated.model;
+
+    let summary = String(parsed.summary || "Briefing gerado sem resumo.").slice(0, 5000);
     const sections = Array.isArray(parsed.sections) ? parsed.sections : [];
+
+    // If reviewer had adjustments, append as a review section
+    if (review.adjustments && review.adjustments !== "Briefing aprovado sem ressalvas.") {
+      sections.push({
+        title: "📋 Revisão independente",
+        severity: "info",
+        items: [{ text: review.adjustments, action_required: false }],
+      });
+    }
 
     // Save briefing
     const { data: briefing, error: saveError } = await admin
@@ -274,7 +326,7 @@ Deno.serve(async (req: Request) => {
         pending_actions: pendingActions,
         pending_approvals: pendingApprovals,
         interventions_in_progress: inProgress,
-        llm_model: model,
+        llm_model: llmModel,
         data_sources: ["sapiens_diagnoses", "sapiens_interventions", "sapiens_findings", "sapiens_goals", "sapiens_action_plans"],
       })
       .select("id")
