@@ -1,7 +1,7 @@
 // atividades-complementares.ts — Query layer para AC 360
 import { supabase } from './supabase';
 
-export interface AcRule { id: string; institution_id: string; course_id: string; curriculum_version: string; rule_version: string; total_required_minutes: number; is_active: boolean; effective_from: string; }
+export interface AcRule { id: string; institution_id: string; course_id: string; curriculum_version: string; rule_version: string; total_required_minutes: number; is_active: boolean; effective_from: string; regulation_file_path?: string | null; }
 export interface AcCategory { id: string; rule_id: string; code: string; label: string; description: string|null; max_per_item_minutes: number|null; max_category_minutes: number|null; conversion_numerator: number; conversion_denominator: number; sort_order: number; }
 export interface AcSubmission { id: string; institution_id: string; student_id: string; rule_id: string; category_id: string|null; title: string; issuer: string|null; documentary_minutes: number|null; status: string; created_at: string; updated_at: string; }
 export interface AcExtraction { id: string; submission_id: string; participant_name: string|null; issuer: string|null; event_title: string|null; documentary_minutes: number|null; extraction_quality: string|null; suggested_category_id: string|null; warnings: string[]|null; }

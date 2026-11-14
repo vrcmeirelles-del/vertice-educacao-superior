@@ -128,7 +128,7 @@ export default function AtividadesComplementares360({ institutionId, courses, ro
           {rules.length === 0 && !showRuleForm ? <div className="alumni-info-box">Nenhum regulamento cadastrado. Configure as regras de AC por curso e matriz.</div> : (
             <div style={{ display: 'grid', gap: '.75rem' }}>
               {rules.map(r => (
-                <RuleCard key={r.id} rule={r} courseName={courseName(r.course_id)} />
+                <RuleCard key={r.id} rule={r} courseName={courseName(r.course_id)} onRuleUpdated={(updated) => setRules(prev => prev.map(x => x.id === updated.id ? updated : x))} />
               ))}
             </div>
           )}
@@ -350,10 +350,11 @@ export function calculateComplementaryAward(input: {
     appliedLimits: limits.filter(([, n]) => n < convertedMinutes).map(([name]) => name) };
 }
 
-function RuleCard({ rule, courseName }: { rule: AcRule; courseName: string }) {
+function RuleCard({ rule, courseName, onRuleUpdated }: { rule: AcRule; courseName: string; onRuleUpdated?: (r: AcRule) => void }) {
   const [categories, setCategories] = useState<AcCategory[]>([]);
   const [open, setOpen] = useState(false);
   const [showCatForm, setShowCatForm] = useState(false);
+  const [uploadingReg, setUploadingReg] = useState(false);
   const [catLabel, setCatLabel] = useState('');
   const [catMaxItem, setCatMaxItem] = useState('');
   const [catMaxCat, setCatMaxCat] = useState('');
@@ -387,6 +388,45 @@ function RuleCard({ rule, courseName }: { rule: AcRule; courseName: string }) {
         <div><span className="alumni-tag" style={{ background: '#dbeafe', color: '#1d4ed8' }}>{minutesToHours(rule.total_required_minutes)} exigidas</span> {open ? '▾' : '▸'}</div>
       </div>
       {open && (<>
+        {/* Regulamento PDF */}
+        <div style={{ marginTop: 10, padding: 10, background: rule.regulation_file_path ? '#ecfdf5' : '#fffbeb', border: `1px solid ${rule.regulation_file_path ? '#10b981' : '#f59e0b'}`, borderRadius: 8 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <div>
+              <strong style={{ fontSize: '.8125rem' }}>{rule.regulation_file_path ? '✅ Regulamento anexado' : '⚠️ Regulamento não anexado'}</strong>
+              <p style={{ fontSize: '.75rem', color: '#6b7280', margin: '2px 0 0' }}>
+                {rule.regulation_file_path ? 'O regulamento do PPC está disponível para consulta.' : 'Anexe o regulamento de atividades complementares extraído do PPC.'}
+              </p>
+            </div>
+            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+              {rule.regulation_file_path && (
+                <button type="button" onClick={async () => {
+                  const { data } = await supabase.storage.from('vertice-documents').createSignedUrl(rule.regulation_file_path!, 3600);
+                  if (data?.signedUrl) window.open(data.signedUrl, '_blank');
+                }} style={{ fontSize: '.75rem', padding: '4px 10px', border: '1px solid #10b981', borderRadius: 6, background: '#fff', color: '#047857', cursor: 'pointer', fontWeight: 600 }}>📄 Ver PDF</button>
+              )}
+              <label style={{ fontSize: '.75rem', padding: '4px 10px', border: `1px dashed ${rule.regulation_file_path ? '#6b7280' : '#3b82f6'}`, borderRadius: 6, background: '#fff', color: rule.regulation_file_path ? '#374151' : '#2563eb', cursor: 'pointer', fontWeight: 600, opacity: uploadingReg ? .5 : 1 }}>
+                {uploadingReg ? 'Enviando…' : (rule.regulation_file_path ? '🔄 Substituir' : '📎 Anexar regulamento')}
+                <input type="file" accept="application/pdf" style={{ display: 'none' }} disabled={uploadingReg} onChange={async (e) => {
+                  const f = e.target.files?.[0];
+                  if (!f) return;
+                  setUploadingReg(true);
+                  try {
+                    const path = `ac-regulations/${rule.institution_id}/${rule.course_id}/${rule.id}_regulamento.pdf`;
+                    const { error: upErr } = await supabase.storage.from('vertice-documents').upload(path, f, { upsert: true, contentType: 'application/pdf' });
+                    if (upErr) throw upErr;
+                    const { error: dbErr } = await supabase.from('vertice_ac_rules').update({ regulation_file_path: path }).eq('id', rule.id);
+                    if (dbErr) throw dbErr;
+                    rule.regulation_file_path = path;
+                    onRuleUpdated?.({ ...rule, regulation_file_path: path });
+                    alert('Regulamento anexado com sucesso!');
+                  } catch (err) { alert('Erro ao enviar: ' + (err as Error).message); }
+                  finally { setUploadingReg(false); e.target.value = ''; }
+                }} />
+              </label>
+            </div>
+          </div>
+        </div>
+
         {categories.length > 0 && (
           <table className="alumni-table" style={{ marginTop: 8 }}>
             <thead><tr><th>Categoria</th><th>Máx/Item</th><th>Máx/Cat.</th><th>Conversão</th></tr></thead>
