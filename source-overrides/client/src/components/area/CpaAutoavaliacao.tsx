@@ -81,7 +81,7 @@ export default function CpaAutoavaliacao({ institutionId, role }: Props) {
       {view === 'ciclos' && <CiclosCPA institutionId={institutionId} role={role} />}
       {view === 'instrumentos' && <InstrumentosCPA institutionId={institutionId} role={role} />}
       {view === 'campanhas' && <CampanhasCPA institutionId={institutionId} role={role} />}
-      {view === 'resultados' && <ResultadosCPA campIndicators={campIndicators} />}
+      {view === 'resultados' && <ResultadosCPA institutionId={institutionId} campIndicators={campIndicators} />}
       {view === 'achados' && <AchadosCPA institutionId={institutionId} role={role} />}
       {view === 'planos' && <PlanosCPA institutionId={institutionId} role={role} />}
       {view === 'devolutivas' && <DevolutivasCPA institutionId={institutionId} role={role} />}
@@ -718,23 +718,170 @@ function CampaignForm({ instruments, cycles, audiences, onCreate, onCancel }: {
   );
 }
 
-function ResultadosCPA({ campIndicators }: { campIndicators: CpaCampaignIndicator[] }) {
+function ResultadosCPA({ institutionId, campIndicators }: { institutionId: string; campIndicators: CpaCampaignIndicator[] }) {
+  const [campaigns, setCampaigns] = useState<CpaCampaign[]>([]);
+  const [selectedCamp, setSelectedCamp] = useState('');
+  const [results, setResults] = useState<any>(null);
+  const [loadingResults, setLoadingResults] = useState(false);
+  const [viewMode, setViewMode] = useState<'questions'|'axes'|'dimensions'|'open'>('axes');
+  const AUDIENCES: Record<string,string> = {estudante:'Estudantes',docente:'Docentes',tecnico:'Técnicos',sociedade:'Sociedade Civil',egresso:'Egressos',gestao:'Gestão'};
+  const AXIS_NAMES: Record<string,string> = {I:'Planejamento e Avaliação',II:'Desenvolvimento Institucional',III:'Políticas Acadêmicas',IV:'Políticas de Gestão',V:'Infraestrutura'};
+  const DIM_NAMES: Record<string,string> = {I:'Missão e PDI',II:'Ensino, Pesquisa e Extensão',III:'Responsabilidade Social',IV:'Comunicação',V:'Pessoal Docente',VI:'Gestão Institucional',VII:'Infraestrutura',VIII:'Avaliação Institucional',IX:'Atendimento ao Estudante',X:'Sustentabilidade Financeira'};
+
+  useEffect(() => { fetchCampaigns(institutionId).then(c => { setCampaigns(c.filter(x => x.status === 'ativa' || x.status === 'encerrada')); }); }, [institutionId]);
+
+  const loadResults = async (campId: string) => {
+    setSelectedCamp(campId); setLoadingResults(true); setResults(null);
+    const { data } = await supabase.rpc('vertice_cpa_campaign_results', { p_campaign_id: campId });
+    setResults(data); setLoadingResults(false);
+  };
+
+  const scoreColor = (v: number) => v >= 4 ? '#16a34a' : v >= 3 ? '#f59e0b' : '#dc2626';
+  const scoreBar = (v: number, max = 5) => ({ width: `${(v / max) * 100}%`, height: 10, borderRadius: 5, background: scoreColor(v), transition: 'width .3s' });
+
   return (
     <section>
-      <h3>Participação e Resultados</h3>
-      {campIndicators.length===0?<EmptyState msg="Sem dados de participação. Ative campanhas para gerar indicadores." />:(
-        <div className="alumni-table-wrapper">
-          <table className="alumni-table"><thead><tr><th>Campanha</th><th>Público</th><th style={{textAlign:'right'}}>Elegíveis</th><th style={{textAlign:'right'}}>Convidados</th><th style={{textAlign:'right'}}>Entregues</th><th style={{textAlign:'right'}}>Concluídos</th><th style={{textAlign:'right'}}>Em andamento</th><th style={{textAlign:'right'}}>% Conclusão</th></tr></thead>
-          <tbody>{campIndicators.map(c=><tr key={c.campaign_id}><td>{c.campaign_title}</td><td>{c.target_audience}</td>
-            <td style={{textAlign:'right'}}>{c.total_eligible}</td><td style={{textAlign:'right'}}>{c.total_invited}</td>
-            <td style={{textAlign:'right'}}>{c.total_delivered}</td><td style={{textAlign:'right'}}><strong>{c.total_completed}</strong></td>
-            <td style={{textAlign:'right'}}>{c.total_in_progress}</td>
-            <td style={{textAlign:'right'}}>{c.pct_completion!=null?c.pct_completion+'%':'N/D'}</td></tr>)}</tbody></table>
+      <h3>📈 Resultados e Indicadores</h3>
+
+      {/* Seletor de campanha */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+        {campaigns.map(c => (
+          <button key={c.id} onClick={() => loadResults(c.id)}
+            style={{ padding: '6px 14px', borderRadius: 20, border: selectedCamp === c.id ? '2px solid #2563eb' : '1px solid #e2e8f0', background: selectedCamp === c.id ? '#eff6ff' : '#fff', fontSize: '.8rem', fontWeight: selectedCamp === c.id ? 700 : 400, cursor: 'pointer', color: selectedCamp === c.id ? '#2563eb' : '#475569' }}>
+            {c.title}
+          </button>
+        ))}
+        {campaigns.length === 0 && <EmptyState msg="Nenhuma campanha com respostas. Ative e colete dados primeiro." />}
+      </div>
+
+      {loadingResults && <p className="alumni-loading">Calculando resultados…</p>}
+
+      {results && !results.error && (<>
+        {/* KPIs principais */}
+        <div className="alumni-kpis" style={{ marginBottom: 16 }}>
+          <div className="alumni-kpi"><div className="alumni-kpi-value">{results.total_responses}</div><div className="alumni-kpi-label">Respostas</div></div>
+          <div className="alumni-kpi"><div className="alumni-kpi-value" style={{ color: scoreColor(results.institutional_avg || 0), fontSize: '1.5rem' }}>{results.institutional_avg || '—'}</div><div className="alumni-kpi-label">Média institucional</div></div>
+          <div className="alumni-kpi"><div className="alumni-kpi-value" style={{ color: '#2563eb' }}>{results.top2_pct || 0}%</div><div className="alumni-kpi-label">Notas 4 e 5</div></div>
+          <div className="alumni-kpi"><div className="alumni-kpi-value">{AUDIENCES[results.target_audience] || results.target_audience}</div><div className="alumni-kpi-label">Segmento</div></div>
+        </div>
+
+        {/* Abas de visualização */}
+        <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
+          {[{k:'axes',l:'Por Eixo'},{k:'dimensions',l:'Por Dimensão'},{k:'questions',l:'Por Pergunta'},{k:'open',l:'Respostas Abertas'}].map(t => (
+            <button key={t.k} onClick={() => setViewMode(t.k as any)}
+              style={{ padding: '6px 12px', borderRadius: 8, border: viewMode === t.k ? '2px solid #2563eb' : '1px solid #e2e8f0', background: viewMode === t.k ? '#eff6ff' : '#fff', fontSize: '.75rem', fontWeight: viewMode === t.k ? 700 : 400, cursor: 'pointer' }}>{t.l}</button>
+          ))}
+        </div>
+
+        {/* POR EIXO */}
+        {viewMode === 'axes' && results.by_axis && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {results.by_axis.map((a: any) => {
+              const top2Pct = a.total_valid > 0 ? Math.round(100 * a.top2_total / a.total_valid) : 0;
+              return (
+                <div key={a.axis} style={{ padding: 14, borderRadius: 10, background: '#f8fafc', border: '1px solid #e2e8f0', borderLeft: `4px solid ${scoreColor(a.avg_score)}` }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <div><strong>Eixo {a.axis}</strong> <span style={{ fontSize: '.8rem', color: '#64748b' }}>— {AXIS_NAMES[a.axis] || a.axis}</span></div>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                      <span style={{ fontSize: '.75rem', color: '#64748b' }}>{top2Pct}% notas 4–5</span>
+                      <strong style={{ fontSize: '1.2rem', color: scoreColor(a.avg_score) }}>{a.avg_score}</strong>
+                    </div>
+                  </div>
+                  <div style={{ height: 10, background: '#e2e8f0', borderRadius: 5, overflow: 'hidden' }}>
+                    <div style={scoreBar(a.avg_score)} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* POR DIMENSÃO */}
+        {viewMode === 'dimensions' && results.by_dimension && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {results.by_dimension.map((d: any) => {
+              const top2Pct = d.total_valid > 0 ? Math.round(100 * d.top2_total / d.total_valid) : 0;
+              return (
+                <div key={`${d.axis}-${d.dimension}`} style={{ display: 'grid', gridTemplateColumns: '180px 1fr 60px', gap: 10, alignItems: 'center', padding: '8px 12px', borderRadius: 8, background: '#f8fafc' }}>
+                  <div><span style={{ fontSize: '.7rem', color: '#7c3aed' }}>Eixo {d.axis}</span><br/><strong style={{ fontSize: '.8rem' }}>Dim. {d.dimension}</strong> <span style={{ fontSize: '.7rem', color: '#64748b' }}>{DIM_NAMES[d.dimension] || ''}</span></div>
+                  <div>
+                    <div style={{ height: 10, background: '#e2e8f0', borderRadius: 5, overflow: 'hidden', position: 'relative' }}>
+                      <div style={scoreBar(d.avg_score)} />
+                    </div>
+                    <div style={{ fontSize: '.65rem', color: '#94a3b8', marginTop: 2 }}>{top2Pct}% notas 4–5 · {d.total_valid} respostas válidas</div>
+                  </div>
+                  <strong style={{ textAlign: 'right', fontSize: '1rem', color: scoreColor(d.avg_score) }}>{d.avg_score}</strong>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* POR PERGUNTA */}
+        {viewMode === 'questions' && results.questions && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {results.questions.filter((q: any) => q.question_type === 'likert').map((q: any) => {
+              const top2Pct = q.valid_count > 0 ? Math.round(100 * q.top2_count / q.valid_count) : 0;
+              return (
+                <div key={q.question_id} style={{ padding: '8px 12px', borderRadius: 8, background: q.avg_score && q.avg_score < 3 ? '#fef2f2' : '#f8fafc', border: '1px solid #e2e8f0' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginBottom: 4 }}>
+                    <div style={{ flex: 1 }}>
+                      <span style={{ fontSize: '.65rem', color: '#2563eb', marginRight: 6 }}>{q.stable_code}</span>
+                      <span style={{ fontSize: '.8rem' }}>{q.question_text}</span>
+                    </div>
+                    <strong style={{ fontSize: '1rem', color: scoreColor(q.avg_score || 0), flexShrink: 0 }}>{q.avg_score || '—'}</strong>
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <div style={{ flex: 1, height: 8, background: '#e2e8f0', borderRadius: 4, overflow: 'hidden' }}>
+                      <div style={{ ...scoreBar(q.avg_score || 0), height: 8 }} />
+                    </div>
+                    <div style={{ fontSize: '.6rem', color: '#94a3b8', whiteSpace: 'nowrap' }}>{q.valid_count}r · {top2Pct}% top · {q.na_count}NA · {q.dk_count}NS</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* RESPOSTAS ABERTAS */}
+        {viewMode === 'open' && results.questions && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {results.questions.filter((q: any) => q.question_type === 'text' && q.open_answers && q.open_answers.length > 0).map((q: any) => (
+              <div key={q.question_id} style={{ padding: 14, borderRadius: 10, background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                <strong style={{ fontSize: '.85rem' }}>{q.question_text}</strong>
+                <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  {q.open_answers.filter((a: string | null) => a).map((a: string, i: number) => (
+                    <div key={i} style={{ padding: '6px 10px', borderRadius: 6, background: '#fff', border: '1px solid #e2e8f0', fontSize: '.8rem', color: '#475569' }}>"{a}"</div>
+                  ))}
+                </div>
+                <div style={{ fontSize: '.7rem', color: '#94a3b8', marginTop: 4 }}>{q.open_answers.filter((a: string | null) => a).length} resposta(s)</div>
+              </div>
+            ))}
+            {results.questions.filter((q: any) => q.question_type === 'text' && q.open_answers && q.open_answers.length > 0).length === 0 && <EmptyState msg="Nenhuma resposta aberta recebida." />}
+          </div>
+        )}
+
+        {/* Legenda */}
+        <div style={{ marginTop: 16, padding: 12, background: '#f5f3ff', borderRadius: 10, fontSize: '.75rem', color: '#475569' }}>
+          <strong>Escala:</strong> 🟢 ≥ 4,0 (bom/ótimo) · 🟡 3,0–3,9 (regular) · 🔴 &lt; 3,0 (atenção). "Não sei" e "Não se aplica" não integram a média. Denominadores e exclusões registrados por pergunta.
+        </div>
+      </>)}
+
+      {results?.error && <div className="alumni-info-box" style={{ background: '#fef2f2' }}>Erro: {results.error}</div>}
+
+      {/* Participação (tabela original) */}
+      {campIndicators.length > 0 && (
+        <div style={{ marginTop: 20 }}>
+          <h4 style={{ fontSize: '.85rem', color: '#64748b' }}>Participação por campanha</h4>
+          <div className="alumni-table-wrapper">
+            <table className="alumni-table"><thead><tr><th>Campanha</th><th>Público</th><th style={{textAlign:'right'}}>Concluídos</th><th style={{textAlign:'right'}}>Em andamento</th><th style={{textAlign:'right'}}>% Conclusão</th></tr></thead>
+            <tbody>{campIndicators.map(c=><tr key={c.campaign_id}><td>{c.campaign_title}</td><td>{c.target_audience}</td>
+              <td style={{textAlign:'right'}}><strong>{c.total_completed}</strong></td>
+              <td style={{textAlign:'right'}}>{c.total_in_progress}</td>
+              <td style={{textAlign:'right',fontWeight:700,color:(c.pct_completion||0)>=50?'#16a34a':'#dc2626'}}>{c.pct_completion!=null?c.pct_completion+'%':'N/D'}</td></tr>)}</tbody></table>
+          </div>
         </div>
       )}
-      <div className="alumni-info-box alumni-info-box-warn">
-        Envio ≠ entrega ≠ leitura ≠ resposta. Denominador zero = "não disponível". Não calcular margem de erro para participação voluntária sem base metodológica.
-      </div>
     </section>
   );
 }
