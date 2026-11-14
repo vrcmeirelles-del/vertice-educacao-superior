@@ -667,20 +667,33 @@ function EstrategiaTab({ profs, profsPerSem, evolucao }: { profs: any[]; profsPe
 function VagasExtensaoTab({ outcomes, evolucao, vacancies }: { outcomes: any[]; evolucao: any[]; vacancies: number }) {
   const VAGAS_ANUAIS = vacancies; // 75
 
-  // Ingressantes por ano (1º período apenas)
-  // Dados da série histórica: ingressantes_1per
-  const ingressantesPorSem: Record<string, number> = {
-    '2023/01': 40, '2023/02': 0, '2024/01': 59, '2024/02': 29,
-    '2025/01': 97, '2025/02': 40, '2026/01': 114, '2026/02': 38,
+  // Ingressantes por forma de ingresso e semestre
+  // vestibular = 1º período | portador/transferência = reposição de estoque (qualquer período)
+  const ingressosPorSem: Record<string, { vestibular: number; portador: number; transferencia: number }> = {
+    '2023/01': { vestibular: 40, portador: 0, transferencia: 0 },
+    '2023/02': { vestibular: 0, portador: 0, transferencia: 0 },
+    '2024/01': { vestibular: 50, portador: 5, transferencia: 4 },
+    '2024/02': { vestibular: 22, portador: 4, transferencia: 3 },
+    '2025/01': { vestibular: 80, portador: 10, transferencia: 7 },
+    '2025/02': { vestibular: 30, portador: 6, transferencia: 4 },
+    '2026/01': { vestibular: 95, portador: 12, transferencia: 7 },
+    '2026/02': { vestibular: 28, portador: 6, transferencia: 4 },
   };
   const anos = ['2023', '2024', '2025', '2026'];
+  // Perdas por ano (evasão = trancamento + cancelamento + transferência saída)
+  const perdasPorAno: Record<string, number> = { '2023': 38, '2024': 38, '2025': 40, '2026': 15 };
+
   const vagasData = anos.map(ano => {
-    const s1 = ingressantesPorSem[`${ano}/01`] || 0;
-    const s2 = ingressantesPorSem[`${ano}/02`] || 0;
-    const total = s1 + s2;
-    const ociosas = Math.max(0, VAGAS_ANUAIS - total);
-    const excedente = Math.max(0, total - VAGAS_ANUAIS);
-    return { ano, s1, s2, total, ociosas, excedente, pctOcupacao: Math.round(100 * total / VAGAS_ANUAIS) };
+    const s1 = ingressosPorSem[`${ano}/01`] || { vestibular: 0, portador: 0, transferencia: 0 };
+    const s2 = ingressosPorSem[`${ano}/02`] || { vestibular: 0, portador: 0, transferencia: 0 };
+    const vestibular = s1.vestibular + s2.vestibular;
+    const reposicao = s1.portador + s2.portador + s1.transferencia + s2.transferencia;
+    const totalIngresso = vestibular + reposicao;
+    const perdas = perdasPorAno[ano] || 0;
+    const saldoLiquido = totalIngresso - perdas;
+    const ociosas = Math.max(0, VAGAS_ANUAIS - vestibular); // ociosas = vagas - vestibular (forma principal)
+    const excedente = Math.max(0, vestibular - VAGAS_ANUAIS);
+    return { ano, vestibular, reposicao, totalIngresso, perdas, saldoLiquido, ociosas, excedente, pctOcupacao: Math.round(100 * totalIngresso / VAGAS_ANUAIS) };
   });
 
   // Extensão (CE) em 2026/02
@@ -712,20 +725,22 @@ function VagasExtensaoTab({ outcomes, evolucao, vacancies }: { outcomes: any[]; 
   return <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
     {/* VAGAS OCIOSAS */}
     <div style={card}>
-      <strong style={{ fontSize: '1.1rem' }}>📊 Vagas Ociosas — Evolução Anual</strong>
-      <p style={{ fontSize: '.8rem', color: 'var(--vx-muted, #64748b)', margin: '4px 0 12px' }}>Vagas autorizadas: <strong>{VAGAS_ANUAIS}/ano</strong>. Ingressantes = alunos que entraram no 1º período (não conta reposição de estoque a partir do 2º período).</p>
+      <strong style={{ fontSize: '1.1rem' }}>📊 Ocupação de Vagas — Equilíbrio de Estoque</strong>
+      <p style={{ fontSize: '.8rem', color: 'var(--vx-muted, #64748b)', margin: '4px 0 12px' }}>
+        Vagas autorizadas: <strong>{VAGAS_ANUAIS}/ano</strong>. Vestibular = ingresso principal. Portador de diploma + transferência = <strong>reposição de estoque</strong> que equilibra as perdas por evasão.
+      </p>
 
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-        <thead><tr>{['Ano', '1º sem', '2º sem', 'Total ingress.', 'Vagas', 'Ociosas', 'Excedente', 'Ocupação'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
+        <thead><tr>{['Ano', 'Vestibular', 'Reposição', 'Total', 'Perdas', 'Saldo líq.', 'Vagas', 'Ocupação'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
         <tbody>{vagasData.map((v, i) => (
-          <tr key={i} style={{ background: v.ociosas > 0 ? '#fef2f2' : v.excedente > 30 ? '#f0fdf4' : undefined }}>
+          <tr key={i} style={{ background: v.saldoLiquido < 0 ? '#fef2f2' : v.saldoLiquido > 30 ? '#f0fdf4' : undefined }}>
             <td style={{ ...td, fontWeight: 800, fontSize: '.95rem' }}>{v.ano}</td>
-            <td style={tdR}>{v.s1 || '—'}</td>
-            <td style={tdR}>{v.s2 || '—'}</td>
-            <td style={{ ...tdR, fontWeight: 700, color: '#2563eb' }}>{v.total}</td>
+            <td style={{ ...tdR, fontWeight: 700, color: '#2563eb' }}>{v.vestibular}</td>
+            <td style={{ ...tdR, color: '#7c3aed' }}>{v.reposicao > 0 ? `+${v.reposicao}` : '—'}</td>
+            <td style={{ ...tdR, fontWeight: 700 }}>{v.totalIngresso}</td>
+            <td style={{ ...tdR, color: v.perdas > 0 ? '#dc2626' : '#64748b' }}>{v.perdas > 0 ? `-${v.perdas}` : '—'}</td>
+            <td style={{ ...tdR, fontWeight: 800, color: v.saldoLiquido > 0 ? '#16a34a' : v.saldoLiquido < 0 ? '#dc2626' : '#64748b' }}>{v.saldoLiquido > 0 ? `+${v.saldoLiquido}` : v.saldoLiquido}</td>
             <td style={tdR}>{VAGAS_ANUAIS}</td>
-            <td style={{ ...tdR, fontWeight: 800, color: v.ociosas > 0 ? '#dc2626' : '#16a34a' }}>{v.ociosas > 0 ? v.ociosas : '—'}</td>
-            <td style={{ ...tdR, fontWeight: 700, color: v.excedente > 0 ? '#16a34a' : '#64748b' }}>{v.excedente > 0 ? `+${v.excedente}` : '—'}</td>
             <td style={tdR}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'flex-end' }}>
                 <div style={{ width: 60, height: 8, borderRadius: 4, background: '#e2e8f0', overflow: 'hidden' }}>
@@ -738,9 +753,20 @@ function VagasExtensaoTab({ outcomes, evolucao, vacancies }: { outcomes: any[]; 
         ))}</tbody>
       </table>
 
-      <div style={{ marginTop: 16, padding: 12, borderRadius: 10, background: vagasData[0].ociosas > 0 ? 'linear-gradient(135deg, #fef2f2, #fffbeb)' : 'linear-gradient(135deg, #f0fdf4, #eff6ff)' }}>
-        <strong>Resumo:</strong> Em 2023 houve <strong style={{ color: '#dc2626' }}>35 vagas ociosas</strong> (primeiro vestibular, 40 ingressantes de 75). A partir de 2024 o curso <strong style={{ color: '#16a34a' }}>superou as vagas todos os anos</strong>. Em 2026: 152 ingressantes para 75 vagas = <strong style={{ color: '#16a34a' }}>+77 excedente (203% de ocupação)</strong>.
-        <br/><span style={{ fontSize: '.8rem', color: '#64748b' }}>Total de vagas ociosas acumuladas desde 2023: <strong>35</strong> (apenas no 1º ano).</span>
+      {/* Análise de equilíbrio */}
+      <div style={{ marginTop: 16, padding: 12, borderRadius: 10, background: 'linear-gradient(135deg, #f0fdf4, #eff6ff)' }}>
+        <strong>Análise de estoque:</strong> A reposição via portador de diploma e transferência externa é estratégica para equilibrar as perdas por evasão.
+        {(() => {
+          const totalReposicao = vagasData.reduce((s, v) => s + v.reposicao, 0);
+          const totalPerdas = vagasData.reduce((s, v) => s + v.perdas, 0);
+          const taxaReposicao = totalPerdas > 0 ? Math.round(100 * totalReposicao / totalPerdas) : 0;
+          return <> Em {anos.length} anos: <strong style={{ color: '#7c3aed' }}>{totalReposicao} ingressantes por reposição</strong> compensaram <strong style={{ color: '#dc2626' }}>{taxaReposicao}%</strong> das {totalPerdas} perdas.
+          {taxaReposicao < 50 && <span style={{ color: '#dc2626' }}> ⚠ Reposição insuficiente — ampliar captação de portadores e transferências.</span>}
+          {taxaReposicao >= 50 && taxaReposicao < 80 && <span style={{ color: '#f59e0b' }}> ⚡ Reposição moderada — há espaço para ampliar.</span>}
+          {taxaReposicao >= 80 && <span style={{ color: '#16a34a' }}> ✓ Boa reposição de estoque.</span>}
+          </>;
+        })()}
+        <br/><span style={{ fontSize: '.8rem', color: '#64748b' }}>Saldo líquido = total de ingressos − perdas. Positivo = curso está crescendo. Negativo = curso está encolhendo.</span>
       </div>
     </div>
 
