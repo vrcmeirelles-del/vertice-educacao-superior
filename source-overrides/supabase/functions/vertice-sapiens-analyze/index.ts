@@ -14,6 +14,7 @@ declare const Deno: {
 };
 
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
+import { createSapiensEngine, executionMetadata } from "../_shared/sapiens-llm.ts";
 
 const env = (k: string) => String(Deno.env.get(k) || "");
 const UUID = /^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
@@ -72,139 +73,6 @@ interface CompetencyAgg {
   avgPKnow: number;
   avgElo: number;
   studentCount: number;
-}
-
-// ================================================================
-// DUAL-LLM ENGINE: OpenAI gera, Anthropic revisa (e vice-versa)
-// Se apenas uma key estiver configurada, ela faz ambos os papéis.
-// ================================================================
-
-async function callOpenAI(
-  systemPrompt: string,
-  userPrompt: string,
-  model = "gpt-4o",
-  maxTokens = 3000
-): Promise<{ content: string; model: string } | null> {
-  const key = env("OPENAI_API_KEY");
-  if (!key) return null;
-  const r = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
-    body: JSON.stringify({
-      model,
-      messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }],
-      max_tokens: maxTokens,
-      temperature: 0.3,
-      response_format: { type: "json_object" },
-    }),
-    signal: AbortSignal.timeout(90000),
-  });
-  if (!r.ok) return null;
-  const data = await r.json();
-  return { content: data.choices?.[0]?.message?.content || "{}", model };
-}
-
-async function callAnthropic(
-  systemPrompt: string,
-  userPrompt: string,
-  model = "claude-sonnet-4-20250514",
-  maxTokens = 3000
-): Promise<{ content: string; model: string } | null> {
-  const key = env("ANTHROPIC_API_KEY");
-  if (!key) return null;
-  const r = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": key,
-      "anthropic-version": "2023-06-01",
-    },
-    body: JSON.stringify({
-      model,
-      max_tokens: maxTokens,
-      system: systemPrompt,
-      messages: [{ role: "user", content: userPrompt + "\n\nResponda APENAS com JSON válido." }],
-    }),
-    signal: AbortSignal.timeout(90000),
-  });
-  if (!r.ok) return null;
-  const data = await r.json();
-  return { content: data.content?.[0]?.text || "{}", model };
-}
-
-// Generate: OpenAI primary, Anthropic fallback
-async function generateDiagnosis(
-  systemPrompt: string,
-  userPrompt: string
-): Promise<{ content: string; model: string }> {
-  const oai = await callOpenAI(systemPrompt, userPrompt);
-  if (oai) return oai;
-  const anth = await callAnthropic(systemPrompt, userPrompt);
-  if (anth) return anth;
-  throw new Error("No LLM API key configured (OPENAI_API_KEY or ANTHROPIC_API_KEY)");
-}
-
-// Contradictory review: Anthropic primary (different LLM reviews), OpenAI fallback
-async function reviewContradictory(
-  diagnosis: Record<string, unknown>,
-  context: string,
-  generatorModel: string
-): Promise<{ notes: string; reviewer: string; divergence: "none" | "minor" | "major" }> {
-  const reviewSystem = `Você é um auditor crítico independente. Sua função é REVISAR um diagnóstico pedagógico produzido por outra IA (${generatorModel}).
-
-VOCÊ NÃO GEROU ESTE DIAGNÓSTICO. Sua tarefa é encontrar furos nele.
-
-Seja rigoroso. Procure:
-1. Conclusões que os dados NÃO sustentam
-2. Vieses de seleção ignorados (apenas alunos do Fato & Ordem, não a turma inteira)
-3. Amostra insuficiente tratada como conclusiva
-4. Intervenção desproporcional ao problema
-5. Confusão entre dificuldade do instrumento e deficiência de aprendizagem
-6. Hipóteses apresentadas como fatos
-
-Responda APENAS em JSON:
-{
-  "contradictory_notes": "string — sua análise crítica do diagnóstico (200-800 chars)",
-  "issues_found": ["lista de problemas identificados"],
-  "divergence": "none | minor | major",
-  "recommendation": "proceed | revise | reject_for_human_review"
-}`;
-
-  const reviewUser = `DIAGNÓSTICO SENDO REVISADO:
-${JSON.stringify(diagnosis, null, 2)}
-
-DADOS ORIGINAIS:
-${context}
-
-Revise criticamente. Se o diagnóstico for sólido, diga — mas não concorde por cortesia.`;
-
-  // Use the OTHER LLM for review — if generator was OpenAI, reviewer is Anthropic
-  let result: { content: string; model: string } | null = null;
-
-  if (generatorModel.startsWith("gpt")) {
-    // Generator was OpenAI → reviewer is Anthropic
-    result = await callAnthropic(reviewSystem, reviewUser);
-    if (!result) result = await callOpenAI(reviewSystem, reviewUser); // same-LLM fallback
-  } else {
-    // Generator was Anthropic → reviewer is OpenAI
-    result = await callOpenAI(reviewSystem, reviewUser);
-    if (!result) result = await callAnthropic(reviewSystem, reviewUser); // same-LLM fallback
-  }
-
-  if (!result) {
-    return { notes: "Contraditório não executado: nenhuma LLM disponível para revisão.", reviewer: "none", divergence: "none" };
-  }
-
-  try {
-    const parsed = JSON.parse(result.content);
-    return {
-      notes: String(parsed.contradictory_notes || "Revisão sem observações."),
-      reviewer: result.model,
-      divergence: (["none", "minor", "major"].includes(parsed.divergence) ? parsed.divergence : "none") as "none" | "minor" | "major",
-    };
-  } catch {
-    return { notes: result.content.slice(0, 800), reviewer: result.model, divergence: "minor" };
-  }
 }
 
 Deno.serve(async (req: Request) => {
@@ -302,6 +170,7 @@ Deno.serve(async (req: Request) => {
     );
 
     const semester = currentSemester();
+    const engine = createSapiensEngine(env);
     const diagnosisIds: string[] = [];
     const interventionIds: string[] = [];
 
@@ -312,9 +181,10 @@ Deno.serve(async (req: Request) => {
 
       // For critical/warning: generate LLM diagnosis
       let summary = "";
-      let detailedAnalysis = {};
+      let detailedAnalysis: Record<string, unknown> = {};
       let recommendedActions: unknown[] = [];
       let contradictoryNotes = "";
+      let contradictoryChecked = false;
       let llmModel = "rule-based";
 
       if (severity === "critical" || severity === "warning") {
@@ -322,7 +192,7 @@ Deno.serve(async (req: Request) => {
         const prev = prevMap.get(`${agg.courseId}:${agg.module}`);
 
         // STEP 1: GENERATE — OpenAI produces the diagnosis
-        const generatePrompt = `Você é um auditor pedagógico institucional sênior. Analise dados de desempenho acadêmico e produza diagnóstico fundamentado. Responda APENAS em JSON válido com os campos: summary (string, 50-500 chars), detailed_analysis (object com campos: main_findings, possible_causes, methodology_notes), recommended_actions (array de {type, title, description, priority}).
+        const generatePrompt = `Você é um auditor pedagógico institucional sênior. Analise dados de desempenho acadêmico e produza diagnóstico fundamentado. Responda APENAS em JSON válido com os campos: summary (string, 50-500 chars), detailed_analysis (object com campos: main_findings, possible_causes, methodology_notes), recommended_actions (array de {type: "diagnostic_activity"|"remedial_practice"|"content_review"|"custom", title: string com ao menos 5 caracteres, description: string com ao menos 10 caracteres, priority}).
 
 NÃO inclua contraditório — outra IA fará a revisão crítica do seu diagnóstico.`;
 
@@ -337,40 +207,32 @@ Taxa de acerto: ${(agg.accuracy * 100).toFixed(1)}%
 Severidade classificada: ${severity}
 ${prev ? `Ciclo anterior: #${(prev as Record<string, unknown>).sapiens_cycle} — havia diagnóstico prévio publicado.` : "Primeiro diagnóstico para este módulo."}`;
 
-        try {
-          // Step 1: Generate diagnosis
-          const generated = await generateDiagnosis(generatePrompt, dataContext);
-          llmModel = generated.model;
-          const parsed = JSON.parse(generated.content);
-          summary = String(parsed.summary || "").slice(0, 2000);
-          detailedAnalysis = parsed.detailed_analysis || {};
-          recommendedActions = Array.isArray(parsed.recommended_actions) ? parsed.recommended_actions : [];
-
-          // Step 2: REVIEW — the OTHER LLM reviews the diagnosis
-          const review = await reviewContradictory(parsed, dataContext, generated.model);
-          contradictoryNotes = review.notes;
-          llmModel = `${generated.model}+${review.reviewer}`;
-
-          // Enrich the detailed analysis with review metadata
-          (detailedAnalysis as Record<string, unknown>).contradictory_review = {
-            reviewer_model: review.reviewer,
-            generator_model: generated.model,
-            divergence: review.divergence,
-            notes: review.notes,
-          };
-
-          // If major divergence, flag for human review
-          if (review.divergence === "major") {
-            summary = `⚠️ DIVERGÊNCIA ENTRE IAs — ${summary}`;
-            (detailedAnalysis as Record<string, unknown>).requires_human_review = true;
-            (detailedAnalysis as Record<string, unknown>).divergence_reason =
-              "O diagnóstico gerado e a revisão crítica chegaram a conclusões significativamente diferentes. Revisão humana obrigatória.";
+        const execution = await engine.run(generatePrompt, dataContext, "diagnosis");
+        llmModel = execution.llm_model;
+        const metadata = executionMetadata(execution);
+        if (execution.generated) {
+          const parsed = execution.generated.parsed;
+          summary = String(parsed.summary);
+          detailedAnalysis = { ...(parsed.detailed_analysis as Record<string, unknown>) };
+          recommendedActions = parsed.recommended_actions as unknown[];
+          contradictoryNotes = execution.review.notes;
+          contradictoryChecked = execution.review.completed;
+          if (execution.review.divergence === "major" || execution.review.recommendation === "reject_for_human_review") {
+            summary = `⚠️ REVISÃO HUMANA OBRIGATÓRIA — ${summary}`;
+            detailedAnalysis.divergence_reason = execution.review.notes;
+          } else if (!execution.review.independent) {
+            summary = `⚠️ SEM REVISÃO INDEPENDENTE — ${summary}`;
           }
-        } catch (llmError) {
-          console.error("[sapiens-analyze] LLM error:", llmError);
-          summary = `Competência ${agg.module} com taxa de acerto de ${(agg.accuracy * 100).toFixed(1)}% (${severity}). Diagnóstico automatizado requer revisão.`;
-          llmModel = "fallback-rule";
+        } else {
+          summary = `Competência ${agg.module} com taxa de acerto de ${(agg.accuracy * 100).toFixed(1)}% (${severity}). IA indisponível: diagnóstico por regras requer revisão humana.`;
+          // No generated intervention is inferred from a failed or malformed response.
+          recommendedActions = [];
+          contradictoryNotes = execution.review.notes;
         }
+        detailedAnalysis.contradictory_review = metadata;
+        detailedAnalysis.requires_human_review = true;
+        detailedAnalysis.human_review_status = "pending";
+
       } else {
         summary = `Competência ${agg.module}: taxa de acerto ${(agg.accuracy * 100).toFixed(1)}% — classificação: ${severity}. ${agg.studentCount} estudantes avaliados.`;
       }
@@ -395,10 +257,10 @@ ${prev ? `Ciclo anterior: #${(prev as Record<string, unknown>).sapiens_cycle} �
           accuracy_rate: agg.accuracy,
           attempt_count: agg.attempts,
           severity,
-          summary,
+          summary: summary.slice(0, 2000),
           detailed_analysis: detailedAnalysis,
           recommended_actions: recommendedActions,
-          contradictory_checked: contradictoryNotes.length > 0,
+          contradictory_checked: contradictoryChecked,
           contradictory_notes: contradictoryNotes || null,
           llm_model: llmModel,
           data_snapshot_at: new Date().toISOString(),
@@ -456,7 +318,7 @@ ${prev ? `Ciclo anterior: #${(prev as Record<string, unknown>).sapiens_cycle} �
         action: "created",
         actor_id: actorId,
         actor_type: isService ? "system" : "user",
-        details: { severity, module: agg.module, accuracy: agg.accuracy, sample: agg.studentCount },
+        details: { severity, module: agg.module, accuracy: agg.accuracy, sample: agg.studentCount, llm_model: llmModel, llm_execution: detailedAnalysis.contradictory_review ?? null, requires_human_review: detailedAnalysis.requires_human_review === true },
       });
     }
 

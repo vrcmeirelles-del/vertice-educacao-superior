@@ -1,0 +1,25 @@
+name: Sapiens - provedores e revisão humana
+on:
+  pull_request:
+    paths:
+      - 'source-overrides/supabase/functions/_shared/sapiens-llm.ts'
+      - 'source-overrides/supabase/functions/vertice-sapiens-analyze/**'
+      - 'source-overrides/supabase/functions/vertice-sapiens-briefing/**'
+      - 'scripts/tests/sapiens-providers.test.mjs'
+      - '.github/workflows/verify-sapiens-providers.yml'
+permissions:
+  contents: read
+jobs:
+  providers:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    strategy:
+      matrix:
+        node: ['22.18.0', '24']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Contratos e handlers com serviços simulados, sem chaves
+        run: node --experimental-vm-modules --test scripts/tests/sapiens-providers.test.mjs
