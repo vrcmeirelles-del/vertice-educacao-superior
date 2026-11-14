@@ -371,9 +371,14 @@ function SubmitActivity({ session, categories, onDone }: { session: string; cate
         <label style={label}>Início<input type="date" value={start} onChange={e => setStart(e.target.value)} style={input} /></label>
         <label style={label}>Término<input type="date" value={end} onChange={e => setEnd(e.target.value)} style={input} /></label>
       </div>
-      <label style={label}>Comprovante (PDF ou imagem, até 10 MB)
-        <input type="file" accept="application/pdf,image/jpeg,image/png,image/webp" onChange={e => setFile(e.target.files?.[0] ?? null)} required style={input} />
-      </label>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <span style={{ ...label, marginBottom: 0 }}>Comprovante (PDF ou imagem, até 10 MB)</span>
+        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 16px', background: file ? '#ecfdf5' : '#eff6ff', border: file ? '2px solid #10b981' : '2px dashed #3b82f6', borderRadius: 8, cursor: 'pointer', fontWeight: 600, color: file ? '#047857' : '#2563eb', fontSize: '.875rem', transition: 'all .2s' }}>
+          <span style={{ fontSize: '1.25rem' }}>{file ? '✅' : '📎'}</span>
+          {file ? file.name : 'Clique aqui para anexar o certificado'}
+          <input type="file" accept="application/pdf,image/jpeg,image/png,image/webp" onChange={e => setFile(e.target.files?.[0] ?? null)} required style={{ display: 'none' }} />
+        </label>
+      </div>
       {msg && !msg.ok && <p role="alert" style={{ color: '#dc2626', fontSize: '.8125rem', margin: 0 }}>{msg.text}</p>}
       <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
         <button type="button" onClick={() => { reset(); setOpen(false); }} style={ghost}>Cancelar</button>
