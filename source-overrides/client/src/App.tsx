@@ -8,6 +8,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import DemoTelemetry from "./components/DemoTelemetry";
 import PublicApp, { normalizePublicPath, publicComponents } from "./PublicApp";
 import PublicLayout from "./components/PublicLayout";
+import MasterLayout from "./components/MasterLayout";
 import { publicPages } from "./lib/consultancy";
 import { passwordCallback } from "./lib/supabase";
 import ResetPassword from "./pages/public/ResetPassword";
@@ -70,14 +71,15 @@ export default function App() {
   if (normalized === "/mobile/apresentacao") return <ErrorBoundary><Suspense fallback={<main role="status">Carregando apresentação Vértice Mobile…</main>}><VerticeMobilePublicPreview /></Suspense></ErrorBoundary>;
   if (normalized === "/mobile") return <ErrorBoundary><Suspense fallback={<main role="status">Carregando Vértice Mobile…</main>}><VerticeMobileBI /></Suspense></ErrorBoundary>;
   if (normalized === "/experience") return <ErrorBoundary><PublicLayout><Suspense fallback={<main className="corp-container corp-section" role="status">Abrindo Vértice Experience…</main>}><ExperiencePortal /></Suspense></PublicLayout></ErrorBoundary>;
-  if (normalized === "/master/experience") return <ErrorBoundary><PublicLayout><Suspense fallback={<main className="corp-container corp-section" role="status">Verificando administração Experience…</main>}><ExperienceAdmin /></Suspense></PublicLayout></ErrorBoundary>;
+  if (normalized === "/master/experience") return <ErrorBoundary><MasterLayout><Suspense fallback={<main className="corp-container corp-section" role="status">Verificando administração Experience…</main>}><ExperienceAdmin /></Suspense></MasterLayout></ErrorBoundary>;
   if (iesActive) return <ErrorBoundary>{iesSuspended ? <main className="ies-shell"><p role="status">Área institucional suspensa. Os links de convite foram removidos.</p></main> : <IesPortal key={iesRouteRevision} />}</ErrorBoundary>;
   if (!isPublic && !demoPaths.has(normalized) && normalized !== '/painel-real' && !passwordCallback && /^\/[a-z0-9]+(?:-[a-z0-9]+)*$/.test(normalized)) return <ErrorBoundary><PublicLayout><InstitutionEntry slug={normalized.slice(1)} /></PublicLayout></ErrorBoundary>;
   return (
     <ErrorBoundary>
       <DemoTelemetry /><InstitutionDirectoryNotice />
-      {["/master", "/gestor", "/admin-ies", "/painel-real"].includes(normalized) && <nav style={{background:'#0f172a',padding:'12px 20px',display:'flex',gap:8,flexWrap:'wrap'}} aria-label="Cadastro institucional"><a className="corp-button" href="/master#ies=1" style={{color:'#e2e8f0',borderColor:'#334155',fontSize:13}}>Cadastro e convites</a><a className="corp-button" href="/master/experience" style={{color:'#e2e8f0',borderColor:'#334155',fontSize:13}}>Convites Experience</a><a className="corp-button" href="/mobile" style={{color:'#e2e8f0',borderColor:'#334155',fontSize:13}}>Vértice Mobile</a><a className="corp-button" href="/master#sapiens=1" style={{color:'#a78bfa',borderColor:'#a78bfa',fontSize:13}}>🧠 Sapiens</a><a className="corp-button" href="/demonstracao?perfil=faculdade&bi=1" style={{color:'#fbbf24',borderColor:'#fbbf24',fontSize:13}}>BI Premium • demo</a></nav>}
-      {passwordCallback ? <PublicLayout><ResetPassword /></PublicLayout> : normalized === "/master/aquisicoes" ? <Suspense fallback={<p>Verificando acesso…</p>}><OwnerDashboard /></Suspense> : ["/master", "/gestor", "/admin-ies", "/painel-real", "/reitor/reservado"].includes(normalized) ? <PublicLayout><Suspense fallback={<p>Verificando acesso…</p>}><OwnerDashboard /></Suspense></PublicLayout> : isPublic ? (
+      {["/gestor", "/admin-ies", "/painel-real"].includes(normalized) && <nav style={{background:'#0f172a',padding:'12px 20px',display:'flex',gap:8,flexWrap:'wrap'}} aria-label="Cadastro institucional"><a className="corp-button" href="/master#ies=1" style={{color:'#e2e8f0',borderColor:'#334155',fontSize:13}}>Cadastro e convites</a><a className="corp-button" href="/master/experience" style={{color:'#e2e8f0',borderColor:'#334155',fontSize:13}}>Convites Experience</a><a className="corp-button" href="/mobile" style={{color:'#e2e8f0',borderColor:'#334155',fontSize:13}}>Vértice Mobile</a><a className="corp-button" href="/master#sapiens=1" style={{color:'#a78bfa',borderColor:'#a78bfa',fontSize:13}}>🧠 Sapiens</a><a className="corp-button" href="/demonstracao?perfil=faculdade&bi=1" style={{color:'#fbbf24',borderColor:'#fbbf24',fontSize:13}}>BI Premium • demo</a></nav>}
+
+      {passwordCallback ? <PublicLayout><ResetPassword /></PublicLayout> : normalized === "/master" ? <MasterLayout><Suspense fallback={<p role="status">Verificando acesso…</p>}><OwnerDashboard /></Suspense></MasterLayout> : normalized === "/master/aquisicoes" ? <Suspense fallback={<p>Verificando acesso…</p>}><OwnerDashboard /></Suspense> : ["/master", "/gestor", "/admin-ies", "/painel-real", "/reitor/reservado"].includes(normalized) ? <PublicLayout><Suspense fallback={<p>Verificando acesso…</p>}><OwnerDashboard /></Suspense></PublicLayout> : isPublic ? (
         <PublicApp />
       ) : demoPaths.has(normalized) ? (
         <Suspense
