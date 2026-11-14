@@ -521,26 +521,200 @@ function QuestionEditForm({ q, onSave, onCancel, SINAES_AXIS, SINAES_DIM, inp, s
 
 function CampanhasCPA({ institutionId, role }: { institutionId: string; role: string }) {
   const [campaigns, setCampaigns] = useState<CpaCampaign[]>([]);
+  const [instruments, setInstruments] = useState<CpaInstrument[]>([]);
+  const [cycles, setCycles] = useState<CpaCycle[]>([]);
   const [loading, setLoading] = useState(true);
-  useEffect(() => { fetchCampaigns(institutionId).then(setCampaigns).finally(() => setLoading(false)); }, [institutionId]);
+  const [showForm, setShowForm] = useState(false);
+  const [responses, setResponses] = useState<Record<string, { total: number; completed: number; in_progress: number }>>({});
+
+  const AUDIENCES: Record<string,string> = {estudante:'Estudantes',docente:'Docentes',tecnico:'Técnicos',egresso:'Egressos',sociedade:'Sociedade Civil',gestao:'Gestão',todos:'Todos'};
+  const STATUS_LABEL: Record<string,{l:string;bg:string}> = {
+    rascunho:{l:'Rascunho',bg:'#94a3b8'}, agendada:{l:'Agendada',bg:'#2563eb'}, ativa:{l:'🟢 Ativa',bg:'#16a34a'},
+    pausada:{l:'⏸ Pausada',bg:'#f59e0b'}, encerrada:{l:'Encerrada',bg:'#64748b'}, cancelada:{l:'Cancelada',bg:'#dc2626'},
+  };
+
+  useEffect(() => {
+    Promise.all([
+      fetchCampaigns(institutionId),
+      fetchInstruments(institutionId),
+      fetchCycles(institutionId),
+    ]).then(([c, i, cy]) => {
+      setCampaigns(c); setInstruments(i); setCycles(cy);
+      // Load response counts per campaign
+      c.forEach(async (camp: CpaCampaign) => {
+        const { data } = await supabase.from('vertice_cpa_responses').select('id,status').eq('campaign_id', camp.id);
+        if (data) setResponses(prev => ({ ...prev, [camp.id]: { total: data.length, completed: data.filter((r: any) => r.status === 'concluida').length, in_progress: data.filter((r: any) => r.status === 'em_andamento').length } }));
+      });
+    }).finally(() => setLoading(false));
+  }, [institutionId]);
+
+  const pubInstruments = instruments.filter(i => i.status === 'publicado');
+
+  const handleCreate = async (data: { title: string; instrument_id: string; cycle_id?: string; target_audience: string; opens_at: string; closes_at: string; channels: string[] }) => {
+    const c = await createCampaign({ institution_id: institutionId, ...data, status: 'rascunho' } as any);
+    setCampaigns(prev => [c, ...prev]);
+    setShowForm(false);
+  };
+
+  const handleStatus = async (id: string, status: string) => {
+    await supabase.from('vertice_cpa_campaigns').update({ status, updated_at: new Date().toISOString() }).eq('id', id);
+    setCampaigns(prev => prev.map(c => c.id === id ? { ...c, status } : c));
+  };
+
+  const copyLink = (campId: string) => {
+    const url = `${window.location.origin}/cpa-avaliacao?campanha=${campId}`;
+    navigator.clipboard.writeText(url).then(() => alert('Link copiado!')).catch(() => prompt('Copie o link:', url));
+  };
+
   if (loading) return <p className="alumni-loading">Carregando campanhas…</p>;
+
   return (
     <section>
-      <div className="alumni-section-header"><h3>Campanhas de Coleta</h3></div>
-      <p className="alumni-hint">Cada campanha vincula ciclo, instrumento, público e período. Não envia campanhas reais sem autorização.</p>
-      {campaigns.length===0?<EmptyState msg="Nenhuma campanha criada. Vincule um instrumento a um ciclo para começar." />:(
-        <div className="alumni-table-wrapper">
-          <table className="alumni-table"><thead><tr><th>Campanha</th><th>Público</th><th>Canais</th><th>Período<ContextHelp title="Período" /></th><th>Status</th><th>Horas</th></tr></thead>
-          <tbody>{campaigns.map(c=><tr key={c.id}><td><strong>{c.title}</strong></td><td>{c.target_audience}</td><td>{c.channels.join(', ')}</td>
-            <td>{new Date(c.opens_at).toLocaleDateString('pt-BR')} → {new Date(c.closes_at).toLocaleDateString('pt-BR')}</td>
-            <td><span className="alumni-status-pill" style={{background:c.status==='ativa'?'#16a34a':c.status==='encerrada'?'#6b7280':'#d97706'}}>{c.status}</span></td>
-            <td>{c.complementary_hours_enabled?'✓':'—'}</td></tr>)}</tbody></table>
+      <div className="alumni-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h3>📨 Campanhas de Avaliação</h3>
+        {(role==='master'||role==='gestor') && <button className="alumni-btn-primary" onClick={() => setShowForm(v => !v)}>{showForm ? 'Cancelar' : '+ Nova Campanha'}</button>}
+      </div>
+
+      {/* KPIs */}
+      <div className="alumni-kpis" style={{ marginBottom: 16 }}>
+        <div className="alumni-kpi"><div className="alumni-kpi-value">{campaigns.length}</div><div className="alumni-kpi-label">Campanhas</div></div>
+        <div className="alumni-kpi"><div className="alumni-kpi-value" style={{ color: '#16a34a' }}>{campaigns.filter(c => c.status === 'ativa').length}</div><div className="alumni-kpi-label">Ativas</div></div>
+        <div className="alumni-kpi"><div className="alumni-kpi-value" style={{ color: '#2563eb' }}>{Object.values(responses).reduce((s, r) => s + r.completed, 0)}</div><div className="alumni-kpi-label">Respostas</div></div>
+        <div className="alumni-kpi"><div className="alumni-kpi-value" style={{ color: '#f59e0b' }}>{Object.values(responses).reduce((s, r) => s + r.in_progress, 0)}</div><div className="alumni-kpi-label">Em andamento</div></div>
+      </div>
+
+      {/* Formulário de criação */}
+      {showForm && <CampaignForm instruments={pubInstruments} cycles={cycles} audiences={AUDIENCES} onCreate={handleCreate} onCancel={() => setShowForm(false)} />}
+
+      {/* Lista de campanhas */}
+      {campaigns.length === 0 && !showForm ? <EmptyState msg="Nenhuma campanha criada. Publique um instrumento e crie uma campanha." /> : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {campaigns.map(c => {
+            const st = STATUS_LABEL[c.status] || { l: c.status, bg: '#94a3b8' };
+            const resp = responses[c.id] || { total: 0, completed: 0, in_progress: 0 };
+            const instName = instruments.find(i => i.id === c.instrument_id)?.title || '—';
+            const cycleName = cycles.find(cy => cy.id === c.cycle_id)?.title;
+            const isActive = c.status === 'ativa';
+            const now = new Date();
+            const opens = new Date(c.opens_at);
+            const closes = new Date(c.closes_at);
+            const daysLeft = isActive ? Math.ceil((closes.getTime() - now.getTime()) / 86400000) : 0;
+
+            return (
+              <div key={c.id} style={{ padding: 14, borderRadius: 10, background: isActive ? '#f0fdf4' : '#f8fafc', border: `1px solid ${isActive ? '#bbf7d0' : '#e2e8f0'}`, borderLeft: `4px solid ${st.bg}` }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, flexWrap: 'wrap' }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 4 }}>
+                      <strong style={{ fontSize: '.95rem' }}>{c.title}</strong>
+                      <span className="alumni-status-pill" style={{ background: st.bg }}>{st.l}</span>
+                    </div>
+                    <div style={{ fontSize: '.75rem', color: '#64748b' }}>
+                      {AUDIENCES[c.target_audience] || c.target_audience} · {instName}{cycleName ? ` · ${cycleName}` : ''} · {c.channels?.join(', ') || 'portal'}
+                    </div>
+                    <div style={{ fontSize: '.75rem', color: '#64748b', marginTop: 2 }}>
+                      📅 {opens.toLocaleDateString('pt-BR')} → {closes.toLocaleDateString('pt-BR')}
+                      {isActive && daysLeft > 0 && <strong style={{ color: daysLeft <= 3 ? '#dc2626' : '#f59e0b', marginLeft: 8 }}>{daysLeft} dia{daysLeft > 1 ? 's' : ''} restante{daysLeft > 1 ? 's' : ''}</strong>}
+                      {isActive && daysLeft <= 0 && <strong style={{ color: '#dc2626', marginLeft: 8 }}>Vencida</strong>}
+                    </div>
+                    {/* Barra de respostas */}
+                    {resp.total > 0 && (
+                      <div style={{ marginTop: 8 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '.7rem', marginBottom: 3 }}>
+                          <span>{resp.completed} concluída{resp.completed !== 1 ? 's' : ''} · {resp.in_progress} em andamento</span>
+                          <span style={{ fontWeight: 700 }}>{resp.total} resposta{resp.total !== 1 ? 's' : ''}</span>
+                        </div>
+                        <div style={{ height: 6, background: '#e2e8f0', borderRadius: 3, overflow: 'hidden' }}>
+                          <div style={{ height: '100%', width: `${resp.total > 0 ? Math.round(100 * resp.completed / Math.max(resp.total, 1)) : 0}%`, background: '#16a34a', borderRadius: 3 }} />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Ações */}
+                  <div style={{ display: 'flex', gap: 4, flexShrink: 0, flexWrap: 'wrap' }}>
+                    {isActive && <button style={{ fontSize: '.7rem', padding: '4px 10px', borderRadius: 6, border: '1px solid #2563eb', background: '#eff6ff', color: '#2563eb', cursor: 'pointer', fontWeight: 600 }} onClick={() => copyLink(c.id)}>🔗 Link</button>}
+                    {c.status === 'rascunho' && (role === 'master' || role === 'gestor') && <>
+                      <button style={{ fontSize: '.7rem', padding: '4px 10px', borderRadius: 6, border: '1px solid #2563eb', background: '#eff6ff', color: '#2563eb', cursor: 'pointer', fontWeight: 600 }} onClick={() => handleStatus(c.id, 'agendada')}>📅 Agendar</button>
+                      <button style={{ fontSize: '.7rem', padding: '4px 10px', borderRadius: 6, border: '1px solid #16a34a', background: '#f0fdf4', color: '#16a34a', cursor: 'pointer', fontWeight: 600 }} onClick={() => handleStatus(c.id, 'ativa')}>▶ Ativar</button>
+                    </>}
+                    {c.status === 'agendada' && <button style={{ fontSize: '.7rem', padding: '4px 10px', borderRadius: 6, border: '1px solid #16a34a', background: '#f0fdf4', color: '#16a34a', cursor: 'pointer', fontWeight: 600 }} onClick={() => handleStatus(c.id, 'ativa')}>▶ Ativar</button>}
+                    {isActive && <>
+                      <button style={{ fontSize: '.7rem', padding: '4px 10px', borderRadius: 6, border: '1px solid #f59e0b', background: '#fffbeb', color: '#b45309', cursor: 'pointer' }} onClick={() => handleStatus(c.id, 'pausada')}>⏸ Pausar</button>
+                      <button style={{ fontSize: '.7rem', padding: '4px 10px', borderRadius: 6, border: '1px solid #64748b', background: '#f8fafc', color: '#64748b', cursor: 'pointer' }} onClick={() => handleStatus(c.id, 'encerrada')}>⏹ Encerrar</button>
+                    </>}
+                    {c.status === 'pausada' && <button style={{ fontSize: '.7rem', padding: '4px 10px', borderRadius: 6, border: '1px solid #16a34a', background: '#f0fdf4', color: '#16a34a', cursor: 'pointer', fontWeight: 600 }} onClick={() => handleStatus(c.id, 'ativa')}>▶ Retomar</button>}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
-      <div className="alumni-info-box alumni-info-box-warn">
-        <strong>Horas complementares:</strong> desativadas por padrão. Cada IES configura após aprovar suas regras. A recompensa não pode depender do conteúdo da resposta.
+
+      <div className="alumni-info-box" style={{ marginTop: 16 }}>
+        <strong>📋 Fluxo:</strong> Rascunho → Agendada → Ativa (link público liberado) → Encerrada. Respostas são anônimas. O link de coleta funciona para qualquer pessoa do segmento elegível.
       </div>
     </section>
+  );
+}
+
+/* ============ FORMULÁRIO DE CAMPANHA ============ */
+function CampaignForm({ instruments, cycles, audiences, onCreate, onCancel }: {
+  instruments: CpaInstrument[]; cycles: CpaCycle[]; audiences: Record<string,string>;
+  onCreate: (data: any) => void; onCancel: () => void;
+}) {
+  const [title, setTitle] = useState('');
+  const [instId, setInstId] = useState(instruments[0]?.id || '');
+  const [cycleId, setCycleId] = useState(cycles[0]?.id || '');
+  const [audience, setAudience] = useState('estudante');
+  const [opens, setOpens] = useState(new Date().toISOString().slice(0, 10));
+  const [closes, setCloses] = useState('');
+  const [channels, setChannels] = useState<string[]>(['portal']);
+
+  const sel: React.CSSProperties = { fontSize: '.8rem', padding: '6px 10px', border: '1px solid #e2e8f0', borderRadius: 6, background: '#fff', width: '100%' };
+
+  return (
+    <div style={{ padding: 16, borderRadius: 10, background: '#eff6ff', border: '1px solid #bfdbfe', marginBottom: 16 }}>
+      <strong style={{ fontSize: '.9rem' }}>Nova campanha de avaliação</strong>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10, marginTop: 10 }}>
+        <label style={{ fontSize: '.75rem', fontWeight: 600 }}>Nome da campanha
+          <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Avaliação CPA 2026.2 — Discentes" style={sel} />
+        </label>
+        <label style={{ fontSize: '.75rem', fontWeight: 600 }}>Questionário
+          <select value={instId} onChange={e => setInstId(e.target.value)} style={sel}>
+            {instruments.length === 0 && <option value="">Publique um instrumento primeiro</option>}
+            {instruments.map(i => <option key={i.id} value={i.id}>{i.title}</option>)}
+          </select>
+        </label>
+        <label style={{ fontSize: '.75rem', fontWeight: 600 }}>Ciclo
+          <select value={cycleId} onChange={e => setCycleId(e.target.value)} style={sel}>
+            <option value="">Sem ciclo</option>
+            {cycles.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
+          </select>
+        </label>
+        <label style={{ fontSize: '.75rem', fontWeight: 600 }}>Segmento
+          <select value={audience} onChange={e => setAudience(e.target.value)} style={sel}>
+            {Object.entries(audiences).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+          </select>
+        </label>
+        <label style={{ fontSize: '.75rem', fontWeight: 600 }}>Abertura<input type="date" value={opens} onChange={e => setOpens(e.target.value)} style={sel} /></label>
+        <label style={{ fontSize: '.75rem', fontWeight: 600 }}>Encerramento<input type="date" value={closes} onChange={e => setCloses(e.target.value)} style={sel} /></label>
+        <label style={{ fontSize: '.75rem', fontWeight: 600 }}>Canais
+          <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+            {['portal', 'email', 'whatsapp', 'link'].map(ch => (
+              <label key={ch} style={{ fontSize: '.7rem', display: 'flex', alignItems: 'center', gap: 3 }}>
+                <input type="checkbox" checked={channels.includes(ch)} onChange={e => setChannels(prev => e.target.checked ? [...prev, ch] : prev.filter(c => c !== ch))} /> {ch}
+              </label>
+            ))}
+          </div>
+        </label>
+      </div>
+      <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 12 }}>
+        <button style={{ fontSize: '.8rem', padding: '6px 14px', borderRadius: 6, border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer' }} onClick={onCancel}>Cancelar</button>
+        <button disabled={!title.trim() || !instId || !closes} style={{ fontSize: '.8rem', padding: '6px 14px', borderRadius: 6, border: 'none', background: '#2563eb', color: '#fff', fontWeight: 700, cursor: 'pointer', opacity: title.trim() && instId && closes ? 1 : .5 }}
+          onClick={() => onCreate({ title: title.trim(), instrument_id: instId, cycle_id: cycleId || undefined, target_audience: audience, opens_at: opens + 'T00:00:00Z', closes_at: closes + 'T23:59:59Z', channels })}>Criar campanha</button>
+      </div>
+    </div>
   );
 }
 

@@ -20,6 +20,7 @@ const ExperienceAdmin = lazy(() => import("./pages/ExperienceAdmin"));
 const ExtensaoConvite = lazy(() => import("./pages/public/ExtensaoConvite"));
 const StudentAccess = lazy(() => import("./pages/public/StudentAccess"));
 const AcPortalAluno = lazy(() => import("./pages/public/AcPortalAluno"));
+const CpaAvaliacao = lazy(() => import("./pages/public/CpaAvaliacao"));
 const demoPaths = new Set([
   "/demonstracao",
   "/painel",
@@ -65,6 +66,7 @@ export default function App() {
   if (normalized === "/acesso-estudante") return <ErrorBoundary><PublicLayout><Suspense fallback={<main style={{padding:40}} role="status">Carregando acesso do estudante…</main>}><StudentAccess /></Suspense></PublicLayout></ErrorBoundary>;
   if (normalized === "/ac-aluno") return <ErrorBoundary><Suspense fallback={<main style={{padding:40}} role="status">Carregando portal do aluno…</main>}><AcPortalAluno /></Suspense></ErrorBoundary>;
   if (normalized === "/extensao-convite") return <ErrorBoundary><Suspense fallback={<main style={{padding:40}} role="status">Carregando convite…</main>}><ExtensaoConvite /></Suspense></ErrorBoundary>;
+  if (normalized === "/cpa-avaliacao") return <ErrorBoundary><Suspense fallback={<main style={{padding:40}} role="status">Carregando avaliação CPA…</main>}><CpaAvaliacao /></Suspense></ErrorBoundary>;
   if (normalized === "/mobile/apresentacao") return <ErrorBoundary><Suspense fallback={<main role="status">Carregando apresentação Vértice Mobile…</main>}><VerticeMobilePublicPreview /></Suspense></ErrorBoundary>;
   if (normalized === "/mobile") return <ErrorBoundary><Suspense fallback={<main role="status">Carregando Vértice Mobile…</main>}><VerticeMobileBI /></Suspense></ErrorBoundary>;
   if (normalized === "/experience") return <ErrorBoundary><PublicLayout><Suspense fallback={<main className="corp-container corp-section" role="status">Abrindo Vértice Experience…</main>}><ExperiencePortal /></Suspense></PublicLayout></ErrorBoundary>;
