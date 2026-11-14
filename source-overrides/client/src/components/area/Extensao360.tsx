@@ -257,6 +257,96 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
     } finally { setInviteBusy(false); }
   }
 
+  function generateEvidencePDF(project: ExtProject) {
+    const pTeam = team.filter(t => t.project_id === project.id);
+    const pStudents = students.filter(s => s.project_id === project.id);
+    const pDeliverables = deliverables.filter(d => d.project_id === project.id);
+    const pAxis = axes.find(a => a.id === project.axis_id);
+    const pCourses = courses.filter(c => (project.course_ids || []).includes(c.id));
+    const p = project as any;
+
+    const win = window.open('', '_blank');
+    if (!win) { alert('Permita pop-ups para gerar o PDF'); return; }
+    win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Evidências — ${project.title}</title>
+<style>
+@media print{@page{margin:18mm;size:A4}body{-webkit-print-color-adjust:exact}}
+body{font-family:Calibri,Arial,sans-serif;font-size:11pt;line-height:1.5;color:#1e293b;margin:0;padding:30px}
+h1{font-size:16pt;color:#0b4f6c;text-align:center;margin:0 0 4px}
+h2{font-size:12pt;color:#0b4f6c;border-bottom:2px solid #0b9185;padding-bottom:3px;margin:18px 0 8px}
+h3{font-size:11pt;color:#334155;margin:12px 0 4px}
+.meta{text-align:center;font-size:9pt;color:#64748b;margin-bottom:18px}
+table{width:100%;border-collapse:collapse;margin:6px 0 12px;font-size:10pt}
+th,td{border:1px solid #cbd5e1;padding:5px 8px;text-align:left}
+th{background:#f1f5f9;font-weight:600;color:#0f172a}
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:9pt;font-weight:600}
+.footer{text-align:center;font-size:8pt;color:#94a3b8;margin-top:24px;border-top:1px solid #e2e8f0;padding-top:8px}
+.section{margin-bottom:6px}
+.label{font-weight:600;color:#475569;min-width:160px;display:inline-block}
+</style></head><body>
+<h1>📋 Relatório de Evidências — Projeto de Extensão</h1>
+<p class="meta">Plataforma Vértice Educação Superior · Gerado em ${new Date().toLocaleDateString('pt-BR')}</p>
+
+<h2>1. Dados do Projeto</h2>
+<table>
+<tr><th>Título</th><td>${project.title}</td></tr>
+<tr><th>Código</th><td>${project.code}</td></tr>
+<tr><th>Tipo</th><td>${project.project_type}</td></tr>
+${p.category ? `<tr><th>Categoria</th><td>${p.category}${p.category_detail ? ' — ' + p.category_detail : ''}</td></tr>` : ''}
+${p.thematic_area ? `<tr><th>Área temática</th><td>${p.thematic_area}</td></tr>` : ''}
+${p.modality ? `<tr><th>Modalidade</th><td>${p.modality}</td></tr>` : ''}
+<tr><th>Coordenador</th><td>${project.coordinator_name} (${project.coordinator_email})</td></tr>
+${p.unit_name ? `<tr><th>Unidade</th><td>${p.unit_name}</td></tr>` : ''}
+<tr><th>Cursos</th><td>${pCourses.map(c => c.name).join(', ') || '—'}</td></tr>
+<tr><th>Eixo temático</th><td>${pAxis?.name || '—'}</td></tr>
+<tr><th>Período</th><td>${project.start_date || '—'} a ${project.end_date || '—'}</td></tr>
+<tr><th>Semestre</th><td>${project.semester || '—'}</td></tr>
+<tr><th>Carga horária</th><td>${project.total_hours || '—'}h</td></tr>
+<tr><th>Comunidade atendida</th><td>${project.target_community || '—'}</td></tr>
+<tr><th>Público estimado</th><td>${project.target_audience_count || '—'}</td></tr>
+${p.activity_location ? `<tr><th>Local</th><td>${p.activity_location}</td></tr>` : ''}
+<tr><th>ODS</th><td>${(project.ods_goals || []).join(', ') || '—'}</td></tr>
+<tr><th>Parceiros</th><td>${(project.partner_institutions || []).join(', ') || '—'}</td></tr>
+<tr><th>Status</th><td>${project.status}</td></tr>
+</table>
+
+${p.general_objective ? `<h2>2. Objetivo Geral</h2><p>${p.general_objective}</p>` : ''}
+${(p.specific_objectives || []).length > 0 ? `<h2>3. Objetivos Específicos</h2><ul>${p.specific_objectives.map((o: string) => `<li>${o}</li>`).join('')}</ul>` : ''}
+${p.methodology ? `<h2>4. Metodologia</h2><p>${p.methodology}</p>` : ''}
+${p.detailed_program ? `<h2>5. Programação Detalhada</h2><p>${p.detailed_program.replace(/\n/g, '<br/>')}</p>` : ''}
+${p.description ? `<h2>6. Descrição</h2><p>${p.description}</p>` : ''}
+
+<h2>7. Equipe Docente</h2>
+${pTeam.length > 0 ? `<table><tr><th>Nome</th><th>Função</th><th>E-mail</th><th>Horas</th></tr>
+${pTeam.map(t => `<tr><td>${t.full_name}</td><td>${t.role_type}</td><td>${t.email}</td><td>${t.hours_assigned}h</td></tr>`).join('')}
+</table>` : '<p>Nenhum docente vinculado.</p>'}
+
+<h2>8. Alunos Participantes</h2>
+${pStudents.length > 0 ? `<table><tr><th>Nome</th><th>Matrícula</th><th>Horas atribuídas</th><th>Horas cumpridas</th><th>Bolsista</th></tr>
+${pStudents.map(s => `<tr><td>${s.full_name}</td><td>${s.registration_number}</td><td>${s.hours_assigned}h</td><td>${s.hours_completed}h</td><td>${s.is_scholarship ? 'Sim' : 'Não'}</td></tr>`).join('')}
+</table>` : '<p>Nenhum aluno vinculado.</p>'}
+
+<h2>9. Entregas e Evidências</h2>
+${pDeliverables.length > 0 ? `<table><tr><th>Título</th><th>Tipo</th><th>Data</th><th>Descrição</th></tr>
+${pDeliverables.map(d => `<tr><td>${d.title}</td><td>${d.deliverable_type}</td><td>${d.delivered_at ? new Date(d.delivered_at).toLocaleDateString('pt-BR') : '—'}</td><td>${d.description || '—'}</td></tr>`).join('')}
+</table>` : '<p>Nenhuma entrega registrada.</p>'}
+
+${p.evaluation_method ? `<h2>10. Formas de Avaliação</h2><p>${p.evaluation_method}</p>` : ''}
+${(p.expected_results || []).length > 0 ? `<h2>11. Resultados Esperados</h2><ul>${p.expected_results.map((r: string) => `<li>${r}</li>`).join('')}</ul>` : ''}
+${p.infrastructure_needs ? `<h2>12. Infraestrutura Utilizada</h2><p>${p.infrastructure_needs}</p>` : ''}
+
+<h2>13. Aprovação</h2>
+<table>
+<tr><td style="height:60px"><strong>Coordenador do Projeto:</strong><br/>${project.coordinator_name}</td><td style="height:60px"><strong>Data:</strong> ____/____/________</td></tr>
+<tr><td style="height:60px"><strong>Pró-Reitor / Coordenador de Extensão:</strong></td><td style="height:60px"><strong>Data:</strong> ____/____/________</td></tr>
+</table>
+
+<p class="footer">Documento gerado automaticamente pela Plataforma Vértice Educação Superior © ${new Date().getFullYear()}<br/>
+Este documento constitui evidência para fins de avaliação institucional (INEP/MEC) — Dimensão 5: Políticas Acadêmicas (Extensão)</p>
+</body></html>`);
+    win.document.close();
+    setTimeout(() => win.print(), 600);
+  }
+
   const projTeam = selectedProject ? team.filter(t => t.project_id === selectedProject) : [];
   const projStudents = selectedProject ? students.filter(s => s.project_id === selectedProject) : [];
   const projDeliverables = selectedProject ? deliverables.filter(d => d.project_id === selectedProject) : [];
@@ -458,6 +548,96 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
                     <HelpLabel className="ext-form-full">Resultados esperados (um por linha)
                       <textarea value={(formData.expected_results || []).join('\n')} onChange={e => setFormData({ ...formData, expected_results: e.target.value.split('\n').filter((s: string) => s.trim()) })} rows={2} placeholder="Um resultado por linha" />
                     </HelpLabel>
+
+                  {/* Campos do formulário institucional */}
+                  <div style={{ borderTop: '1px solid var(--border,#e5e7eb)', paddingTop: '1rem', marginTop: '.5rem' }}>
+                    <h4 style={{ margin: '0 0 .75rem', fontSize: '.9rem', color: 'var(--accent,#0b9185)' }}>📑 Dados Institucionais (Formulário de Extensão)</h4>
+                    <div className="ext-form-grid">
+                      <HelpLabel>Categoria
+                        <select value={formData.category || 'evento'} onChange={e => setFormData({ ...formData, category: e.target.value })}>
+                          <option value="curso">Curso</option>
+                          <option value="evento">Evento</option>
+                          <option value="prestacao_servico">Prestação de Serviço</option>
+                        </select>
+                      </HelpLabel>
+                      <HelpLabel>Detalhe da categoria
+                        <select value={formData.category_detail || ''} onChange={e => setFormData({ ...formData, category_detail: e.target.value })}>
+                          <option value="">— Selecionar —</option>
+                          <option value="congresso">Congresso</option>
+                          <option value="seminario">Seminário</option>
+                          <option value="ciclo_debates">Ciclo de Debates</option>
+                          <option value="exposicao">Exposição</option>
+                          <option value="espetaculo">Espetáculo</option>
+                          <option value="evento_esportivo">Evento Esportivo</option>
+                          <option value="festival">Festival</option>
+                          <option value="atendimento_juridico">Atendimento Jurídico</option>
+                          <option value="atendimento_psicopedagogico">Atendimento Psicopedagógico</option>
+                          <option value="outro">Outro</option>
+                        </select>
+                      </HelpLabel>
+                      <HelpLabel>Área temática
+                        <select value={formData.thematic_area || ''} onChange={e => setFormData({ ...formData, thematic_area: e.target.value })}>
+                          <option value="">— Selecionar —</option>
+                          <option value="desenvolvimento_economico">Desenvolvimento econômico</option>
+                          <option value="educacao_inclusiva">Educação inclusiva</option>
+                          <option value="saude">Saúde</option>
+                          <option value="direitos_humanos">Direitos humanos</option>
+                          <option value="educacao_ambiental">Educação ambiental</option>
+                          <option value="memoria_cultural">Valorização da memória cultural</option>
+                          <option value="atendimento_juridico">Atendimento jurídico</option>
+                          <option value="solidariedade">Solidariedade</option>
+                          <option value="diversidade">Valorização da diversidade</option>
+                          <option value="relacoes_etnico_raciais">Relações étnico-raciais</option>
+                          <option value="outro">Outro</option>
+                        </select>
+                      </HelpLabel>
+                      <HelpLabel>Modalidade
+                        <select value={formData.modality || 'presencial'} onChange={e => setFormData({ ...formData, modality: e.target.value })}>
+                          <option value="presencial">Presencial</option>
+                          <option value="a_distancia">A distância</option>
+                          <option value="hibrido">Híbrido</option>
+                        </select>
+                      </HelpLabel>
+                      <HelpLabel>Unidade<input value={formData.unit_name || ''} onChange={e => setFormData({ ...formData, unit_name: e.target.value })} placeholder="Ex: UNITOP Palmas" /></HelpLabel>
+                      <HelpLabel>Tipo de atividade<input value={formData.activity_type || ''} onChange={e => setFormData({ ...formData, activity_type: e.target.value })} placeholder="Ex: Ciclo de Debates Digitais" /></HelpLabel>
+                      <HelpLabel>Horário da atividade<input value={formData.activity_schedule || ''} onChange={e => setFormData({ ...formData, activity_schedule: e.target.value })} placeholder="Ex: semanal, às sextas" /></HelpLabel>
+                      <HelpLabel>Local<input value={formData.activity_location || ''} onChange={e => setFormData({ ...formData, activity_location: e.target.value })} placeholder="Ex: Auditório, Ambiente digital" /></HelpLabel>
+                    </div>
+                    <HelpLabel className="ext-form-full">Programação detalhada
+                      <textarea value={formData.detailed_program || ''} onChange={e => setFormData({ ...formData, detailed_program: e.target.value })} rows={4} placeholder="Etapas, cronograma, atividades previstas..." />
+                    </HelpLabel>
+                    <div className="ext-form-grid">
+                      <HelpLabel>Público-alvo
+                        <select value={formData.target_audience_type || 'externo_interno'} onChange={e => setFormData({ ...formData, target_audience_type: e.target.value })}>
+                          <option value="externo">Externo</option>
+                          <option value="externo_interno">Externo e Interno</option>
+                          <option value="interno">Interno</option>
+                        </select>
+                      </HelpLabel>
+                      <HelpLabel>Confirmação de presença
+                        <select value={formData.attendance_confirmation || 'lista_presenca'} onChange={e => setFormData({ ...formData, attendance_confirmation: e.target.value })}>
+                          <option value="lista_presenca">Lista de presença</option>
+                          <option value="chamada_digital">Chamada digital</option>
+                          <option value="qr_code">QR Code</option>
+                          <option value="certificado">Certificado</option>
+                          <option value="outro">Outro</option>
+                        </select>
+                      </HelpLabel>
+                    </div>
+                    <HelpLabel className="ext-form-full">Detalhamento do público-alvo
+                      <textarea value={formData.target_audience_detail || ''} onChange={e => setFormData({ ...formData, target_audience_detail: e.target.value })} rows={2} placeholder="Alunos de graduação, comunidade externa..." />
+                    </HelpLabel>
+                    <HelpLabel className="ext-form-full">Infraestrutura necessária
+                      <textarea value={formData.infrastructure_needs || ''} onChange={e => setFormData({ ...formData, infrastructure_needs: e.target.value })} rows={2} placeholder="Auditório, projetor, transporte, equipamentos..." />
+                    </HelpLabel>
+                    <HelpLabel className="ext-form-full">Formas de avaliação
+                      <textarea value={formData.evaluation_method || ''} onChange={e => setFormData({ ...formData, evaluation_method: e.target.value })} rows={2} placeholder="Relatórios, questionários, métricas de engajamento..." />
+                    </HelpLabel>
+                    <HelpLabel className="ext-form-full">Parcerias e formas de apoio
+                      <textarea value={formData.partnerships_detail || ''} onChange={e => setFormData({ ...formData, partnerships_detail: e.target.value })} rows={2} placeholder="Instituições parceiras, apoio logístico..." />
+                    </HelpLabel>
+                  </div>
+
                     <div className="ext-form-grid">
                       <HelpLabel>Status de revisão
                         <select value={formData.review_status || 'rascunho'} onChange={e => setFormData({ ...formData, review_status: e.target.value })}>
@@ -578,6 +758,9 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
                             <button onClick={() => { setActivityPanel({ projectId: p.id, projectTitle: p.title }); setView('atividades'); }}>Atividades</button>
                             <button onClick={() => { setEvidencePanel({ projectId: p.id, projectTitle: p.title }); setView('evidencias'); }}>Evidências</button>
                             <button onClick={() => { setWorkflowPanel({ projectId: p.id, projectTitle: p.title, reviewStatus: p.review_status }); }}>📋 Workflow</button>
+                            {(p.status === 'concluido' || p.review_status === 'concluido') && (
+                              <button style={{background:'#7c3aed',color:'#fff',fontWeight:600}} onClick={() => generateEvidencePDF(p)}>📄 PDF Evidências</button>
+                            )}
                           </div>
                         )}
                       </div>
