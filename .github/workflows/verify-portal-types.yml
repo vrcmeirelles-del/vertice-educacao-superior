@@ -6,6 +6,10 @@ on:
       - 'source-overrides/client/**'
       - 'source-overrides/server/**'
       - 'source-overrides/tsconfig.json'
+      - 'source-overrides/package*.json'
+      - 'supabase/migrations/*extension_electronic_forms.sql'
+      - 'scripts/extension.vitest.config.ts'
+      - 'scripts/tests/extension-runtime/**'
       - 'vertice-servidor-source.zip'
       - 'scripts/portal-types.vitest.config.ts'
       - 'scripts/tests/types-runtime/**'
@@ -31,13 +35,19 @@ jobs:
         run: |
           mkdir -p .typecheck-build
           unzip -qo vertice-servidor-source.zip -d .typecheck-build
+          mkdir -p .typecheck-build/supabase/functions
+          cp -a supabase/functions/. .typecheck-build/supabase/functions/
           cp -a source-overrides/. .typecheck-build/
-          cp scripts/portal-types.vitest.config.ts .typecheck-build/scripts/
+          cp scripts/portal-types.vitest.config.ts scripts/extension.vitest.config.ts .typecheck-build/scripts/
       - name: Instalar dependências com lockfile
         run: |
           npm ci --prefix .typecheck-build --legacy-peer-deps --no-audit --no-fund
           npm ci --prefix scripts/tests/types-runtime --no-audit --no-fund
           ln -s "$GITHUB_WORKSPACE/scripts/tests/types-runtime/node_modules/jsdom" .typecheck-build/node_modules/jsdom
+      - name: Testar permissões e conclusão dos formulários de extensão
+        run: |
+          npm ci --prefix scripts/tests/extension-runtime --no-audit --no-fund
+          node --test scripts/tests/extension-runtime/forms.test.mjs
       - name: Testar o bloqueio de regressões do compilador
         run: node --test scripts/tests/typescript-diagnostics.test.mjs
       - name: TypeScript completo, sem tolerar erros da base
@@ -48,6 +58,7 @@ jobs:
         run: |
           npm test
           ./node_modules/.bin/vitest run --config scripts/portal-types.vitest.config.ts
+          ./node_modules/.bin/vitest run --config scripts/extension.vitest.config.ts
       - name: Build estático completo
         working-directory: .typecheck-build
         run: npm run build:static

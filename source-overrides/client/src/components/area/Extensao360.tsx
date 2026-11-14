@@ -4,6 +4,7 @@ import { HelpLabel } from '@/components/ContextHelp';
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import "./extensao360.css";
+import ExtensaoFormularios from "./ExtensaoFormularios";
 import ExtensaoHourLedger from "./ExtensaoHourLedger";
 import ExtensaoODS from "./ExtensaoODS";
 import ExtensaoGovernanca from "./ExtensaoGovernanca";
@@ -20,7 +21,7 @@ import ExtensaoProjectWorkflow from "./ExtensaoProjectWorkflow";
 import ExtensaoConformidade from "./ExtensaoConformidade";
 import ExtensaoNotificacoes from "./ExtensaoNotificacoes";
 
-type View = 'projetos' | 'equipe' | 'alunos' | 'entregas' | 'cobertura' | 'revisoes' | 'ods' | 'governanca' | 'atividades' | 'evidencias' | 'parceiros' | 'competencias' | 'achados' | 'ia' | 'perfis' | 'importacao' | 'relatorios' | 'conformidade';
+type View = 'formularios' | 'projetos' | 'equipe' | 'alunos' | 'entregas' | 'cobertura' | 'revisoes' | 'ods' | 'governanca' | 'atividades' | 'evidencias' | 'parceiros' | 'competencias' | 'achados' | 'ia' | 'perfis' | 'importacao' | 'relatorios' | 'conformidade';
 
 interface ExtProject {
   id: string; title: string; code: string; project_type: string; description: string;
@@ -81,12 +82,14 @@ function Badge({ status }: { status: string }) {
 }
 function fmtDate(d: string | null) { return d ? new Date(d).toLocaleDateString('pt-BR') : '—'; }
 
-export default function Extensao360({ institutionId, role, courses, onBack }: {
+export default function Extensao360({ institutionId, role, courses = [], onBack }: {
   institutionId: string; role: string;
   courses?: { id: string; name: string }[];
   onBack?: () => void;
 }) {
   const [view, setView] = useState<View>('projetos');
+  const [formsVisited, setFormsVisited] = useState(false);
+  useEffect(() => { if (view === 'formularios') setFormsVisited(true); }, [view]);
   const [projects, setProjects] = useState<ExtProject[]>([]);
   const [team, setTeam] = useState<TeamMember[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
@@ -400,9 +403,10 @@ Este documento constitui evidência para fins de avaliação institucional (INEP
 
       {/* Tabs de navegação */}
       <div className="ext-tabs">
-        {(['projetos','equipe','alunos','entregas','atividades','evidencias','competencias','parceiros','achados','conformidade','cobertura','revisoes','ods','governanca','ia','perfis','importacao','relatorios'] as View[]).map(v => (
+        {(['projetos','formularios','equipe','alunos','entregas','atividades','evidencias','competencias','parceiros','achados','conformidade','cobertura','revisoes','ods','governanca','ia','perfis','importacao','relatorios'] as View[]).map(v => (
           <button key={v} className={view === v ? 'active' : ''} onClick={() => setView(v)}>
             {v === 'projetos' ? `Projetos (${projects.length})` :
+             v === 'formularios' ? 'Formulários e PDF' :
              v === 'equipe' ? `Equipe (${team.length})` :
              v === 'alunos' ? `Alunos (${students.length})` :
              v === 'entregas' ? `Entregas (${deliverables.length})` :
@@ -423,6 +427,8 @@ Este documento constitui evidência para fins de avaliação institucional (INEP
           </button>
         ))}
       </div>
+
+      {(formsVisited || view === 'formularios') && <div hidden={view !== 'formularios'}><ExtensaoFormularios key={institutionId} institutionId={institutionId} role={role} courses={courses || []} onChanged={() => { void load(); }} /></div>}
 
       {loading ? <p className="ext-loading">Carregando dados de extensão...</p> : (
         <>
