@@ -1,4 +1,5 @@
 import { ContextHelp } from '@/components/ContextHelp';
+import { supabase } from '@/lib/supabase';
 // CpaAutoavaliacao.tsx — Módulo CPA e Autoavaliação Institucional
 // Módulo independente. CPA não é subordinada a Egressos.
 import { useState, useEffect, useMemo } from 'react';
@@ -236,26 +237,102 @@ function CiclosCPA({ institutionId, role }: { institutionId: string; role: strin
 
 function InstrumentosCPA({ institutionId, role }: { institutionId: string; role: string }) {
   const [instruments, setInstruments] = useState<CpaInstrument[]>([]);
+  const [templates, setTemplates] = useState<CpaInstrument[]>([]);
+  const [templateQuestions, setTemplateQuestions] = useState<Record<string, any[]>>({});
+  const [expandedTemplate, setExpandedTemplate] = useState('');
   const [loading, setLoading] = useState(true);
-  const AUDIENCES: Record<string,string> = {estudante:'Estudantes',docente:'Docentes',tecnico:'Técnicos',egresso:'Egressos',sociedade:'Sociedade',gestao:'Gestão',todos:'Todos'};
-  useEffect(() => { fetchInstruments(institutionId).then(setInstruments).finally(() => setLoading(false)); }, [institutionId]);
+  const [copying, setCopying] = useState('');
+  const AUDIENCES: Record<string,string> = {estudante:'Estudantes',docente:'Docentes',tecnico:'Técnicos',egresso:'Egressos',sociedade:'Sociedade Civil',gestao:'Gestão',todos:'Todos'};
+  const SINAES_AXIS: Record<string,string> = {I:'Planejamento e Avaliação',II:'Desenvolvimento Institucional',III:'Políticas Acadêmicas',IV:'Políticas de Gestão',V:'Infraestrutura Física'};
+  const SINAES_DIM: Record<string,string> = {I:'Missão e PDI',II:'Ensino, Pesquisa e Extensão',III:'Responsabilidade Social',IV:'Comunicação',V:'Pessoal Docente',VI:'Gestão Institucional',VII:'Infraestrutura',VIII:'Avaliação Institucional',IX:'Atendimento ao Estudante',X:'Sustentabilidade Financeira'};
+
+  useEffect(() => {
+    Promise.all([
+      fetchInstruments(institutionId),
+      supabase.from('vertice_cpa_instruments').select('*').is('institution_id', null).eq('is_template', true).order('target_audience').then(r => r.data || []),
+    ]).then(([inst, tmpl]) => { setInstruments(inst); setTemplates(tmpl as CpaInstrument[]); }).finally(() => setLoading(false));
+  }, [institutionId]);
+
+  const loadTemplateQuestions = async (templateId: string) => {
+    if (templateQuestions[templateId]) return;
+    const { data } = await supabase.from('vertice_cpa_questions').select('*').eq('instrument_id', templateId).order('sort_order');
+    setTemplateQuestions(prev => ({ ...prev, [templateId]: data || [] }));
+  };
+
+  const duplicateTemplate = async (tmpl: CpaInstrument) => {
+    setCopying(tmpl.id);
+    try {
+      const newInst = await createInstrument({ institution_id: institutionId, title: tmpl.title.replace('(Biblioteca Vértice)', '').trim(), target_audience: tmpl.target_audience, status: 'rascunho' });
+      // Copiar perguntas
+      const { data: questions } = await supabase.from('vertice_cpa_questions').select('*').eq('instrument_id', tmpl.id).order('sort_order');
+      if (questions && questions.length > 0) {
+        const copies = questions.map((q: any) => ({ instrument_id: newInst.id, stable_code: q.stable_code, sort_order: q.sort_order, section: q.section, dimension: q.dimension, question_text: q.question_text, objective: q.objective, question_type: q.question_type, scale_config: q.scale_config, options: q.options, required: q.required, sinaes_axis: q.sinaes_axis, sinaes_dimension: q.sinaes_dimension, segment: q.segment, category: q.category }));
+        await supabase.from('vertice_cpa_questions').insert(copies);
+      }
+      // Marcar source
+      await supabase.from('vertice_cpa_instruments').update({ template_source_id: tmpl.id }).eq('id', newInst.id);
+      setInstruments(prev => [{ ...newInst, template_source_id: tmpl.id }, ...prev]);
+      alert(`Questionário "${newInst.title}" criado com ${questions?.length || 0} perguntas. Edite conforme a realidade da sua IES.`);
+    } catch (err) { alert('Erro: ' + (err as Error).message); }
+    finally { setCopying(''); }
+  };
+
   if (loading) return <p className="alumni-loading">Carregando instrumentos…</p>;
   return (
     <section>
-      <div className="alumni-section-header"><h3>Instrumentos de Pesquisa</h3>
+      {/* BIBLIOTECA VÉRTICE */}
+      <div style={{ marginBottom: 20 }}>
+        <h3 style={{ display: 'flex', alignItems: 'center', gap: 8 }}>📚 Biblioteca Vértice <span style={{ fontSize: '.7rem', padding: '2px 10px', borderRadius: 12, background: '#2563eb', color: '#fff', fontWeight: 700 }}>MODELOS</span></h3>
+        <p className="alumni-hint">Questionários-base da plataforma. Use como ponto de partida — cada IES adapta, adiciona ou remove perguntas conforme sua realidade. Clique para ver as perguntas.</p>
+        <div style={{ display: 'grid', gap: 10 }}>
+          {templates.map(t => (
+            <div key={t.id} style={{ padding: 14, borderRadius: 10, background: '#f0f9ff', border: '1px solid #bfdbfe' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <div style={{ cursor: 'pointer', flex: 1 }} onClick={() => { if (expandedTemplate === t.id) { setExpandedTemplate(''); } else { setExpandedTemplate(t.id); loadTemplateQuestions(t.id); } }}>
+                  <strong style={{ fontSize: '.9rem' }}>{t.title}</strong>
+                  <div style={{ fontSize: '.75rem', color: '#64748b', marginTop: 2 }}>{AUDIENCES[t.target_audience] || t.target_audience} · {t.notes} · {expandedTemplate === t.id ? '▾ Fechar' : '▸ Ver perguntas'}</div>
+                </div>
+                <button disabled={!!copying} style={{ fontSize: '.75rem', padding: '6px 14px', borderRadius: 8, border: '1px solid #2563eb', background: copying === t.id ? '#93c5fd' : '#fff', color: '#2563eb', cursor: 'pointer', fontWeight: 700 }}
+                  onClick={() => duplicateTemplate(t)}>{copying === t.id ? 'Copiando…' : '📋 Usar este modelo'}</button>
+              </div>
+              {expandedTemplate === t.id && templateQuestions[t.id] && (
+                <div style={{ marginTop: 12 }}>
+                  <table className="alumni-table" style={{ fontSize: '.75rem' }}>
+                    <thead><tr><th style={{ width: 70 }}>Código</th><th>Pergunta</th><th style={{ width: 60 }}>Eixo</th><th style={{ width: 60 }}>Dim.</th><th style={{ width: 60 }}>Tipo</th></tr></thead>
+                    <tbody>{templateQuestions[t.id].map((q: any) => (
+                      <tr key={q.id}>
+                        <td><code style={{ fontSize: '.65rem' }}>{q.stable_code}</code></td>
+                        <td>{q.question_text}</td>
+                        <td title={SINAES_AXIS[q.sinaes_axis] || ''}>{q.sinaes_axis || '—'}</td>
+                        <td title={SINAES_DIM[q.sinaes_dimension] || ''}>{q.sinaes_dimension || '—'}</td>
+                        <td><span style={{ fontSize: '.6rem', padding: '1px 6px', borderRadius: 4, background: q.question_type === 'likert' ? '#dbeafe' : '#f3e8ff', color: q.question_type === 'likert' ? '#2563eb' : '#7c3aed' }}>{q.question_type === 'likert' ? '1–5' : 'Aberta'}</span></td>
+                      </tr>
+                    ))}</tbody>
+                  </table>
+                  <p style={{ fontSize: '.7rem', color: '#64748b', margin: '6px 0 0' }}>Escala Likert 1–5 com "Não sei responder" e "Não se aplica" (não integram a média). Perguntas condicionais devem ser configuradas pela IES.</p>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* INSTRUMENTOS DA IES */}
+      <div className="alumni-section-header"><h3>📋 Meus Questionários</h3>
         {(role==='master'||role==='gestor')&&<button className="alumni-btn-primary" onClick={async()=>{
           const title=prompt('Título do instrumento:'); if(!title)return;
           const audience=prompt('Público (estudante/docente/tecnico/egresso/sociedade/gestao/todos):')||'estudante';
           const i=await createInstrument({institution_id:institutionId,title,target_audience:audience,status:'rascunho'});
           setInstruments(p=>[i,...p]);
-        }}>+ Novo Instrumento</button>}
+        }}>+ Criar do zero</button>}
       </div>
-      <p className="alumni-hint">Versione instrumentos. Uma versão publicada não muda durante uma campanha. Inclua opções "Não se aplica", "Não sei avaliar" e "Prefiro não responder".</p>
-      {instruments.length===0?<EmptyState msg="Nenhum instrumento criado. Crie um modelo para cada público-alvo." />:(
+      <p className="alumni-hint">Questionários da sua instituição. Versione antes de aplicar. Uma versão publicada não muda durante uma campanha.</p>
+      {instruments.length===0?<EmptyState msg="Nenhum instrumento criado. Use um modelo da Biblioteca Vértice acima ou crie do zero." />:(
         <div className="alumni-table-wrapper">
-          <table className="alumni-table"><thead><tr><th>Instrumento</th><th>Público</th><th>Versão</th><th>Status</th></tr></thead>
+          <table className="alumni-table"><thead><tr><th>Instrumento</th><th>Público</th><th>Versão</th><th>Status</th><th>Origem</th></tr></thead>
           <tbody>{instruments.map(i=><tr key={i.id}><td><strong>{i.title}</strong></td><td>{AUDIENCES[i.target_audience]||i.target_audience}</td><td>v{i.version}</td>
-            <td><span className="alumni-status-pill" style={{background:i.status==='publicado'?'#16a34a':i.status==='piloto'?'#d97706':'#94a3b8'}}>{i.status}</span></td></tr>)}</tbody></table>
+            <td><span className="alumni-status-pill" style={{background:i.status==='publicado'?'#16a34a':i.status==='piloto'?'#d97706':'#94a3b8'}}>{i.status}</span></td>
+            <td style={{ fontSize: '.7rem' }}>{(i as any).template_source_id ? '📚 Biblioteca' : '✏️ Próprio'}</td></tr>)}</tbody></table>
         </div>
       )}
     </section>
