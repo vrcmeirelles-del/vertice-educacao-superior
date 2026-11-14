@@ -155,16 +155,12 @@ export default function StudentAccessPortal({ institutionId, institutionName, pu
         </div>
 
         {step === 'loading' && <p role="status" style={{ textAlign: 'center', ...small }}>Abrindo seu acesso…</p>}
-        {step === 'form' && <RequestForm institutionId={institutionId} module={mod} notice={notice} onSent={() => { setNotice(''); setStep('sent'); }} />}
+        {step === 'form' && <RequestForm institutionId={institutionId} module={mod} notice={notice} onLogin={(s, d) => { setSession(s); setData(d); setStep('dashboard'); }} />}
         {step === 'sent' && (
           <div style={{ textAlign: 'center', padding: '1rem 0' }}>
-            <div style={{ fontSize: '2.5rem', marginBottom: 12 }} aria-hidden="true">📧</div>
-            <h3 style={{ margin: '0 0 8px' }}>Verifique seu e-mail</h3>
-            <p style={{ fontSize: '.875rem', color: 'var(--vx-muted)', lineHeight: 1.5 }}>
-              Se os dados informados correspondem a um vínculo ativo, enviamos um link de acesso para o e-mail cadastrado pela instituição.
-            </p>
-            <p style={{ ...small, marginTop: 12 }}>O link é pessoal, de uso único e expira em 30 minutos. Confira também a caixa de spam.</p>
-            <button type="button" onClick={() => setStep('form')} style={{ ...ghost, marginTop: 16 }}>Solicitar novamente</button>
+            <div style={{ fontSize: '2.5rem', marginBottom: 12 }} aria-hidden="true">✅</div>
+            <h3 style={{ margin: '0 0 8px' }}>Acesso verificado</h3>
+            <p style={{ fontSize: '.875rem', color: 'var(--vx-muted)', lineHeight: 1.5 }}>Carregando seus dados…</p>
           </div>
         )}
         {step === 'dashboard' && data && session && (
@@ -178,10 +174,9 @@ export default function StudentAccessPortal({ institutionId, institutionName, pu
   );
 }
 
-function RequestForm({ institutionId, module, notice, onSent }: { institutionId: string; module: string; notice: string; onSent: () => void }) {
+function RequestForm({ institutionId, module, notice, onLogin }: { institutionId: string; module: string; notice: string; onLogin: (session: string, data: Dashboard) => void }) {
   const [enrollment, setEnrollment] = useState('');
   const [cpf, setCpf] = useState('');
-  const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -196,16 +191,30 @@ function RequestForm({ institutionId, module, notice, onSent }: { institutionId:
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    if (cpf.replace(/\D/g, '').length !== 11) { setError('CPF deve conter 11 dígitos.'); return; }
+    const cleanCpf = cpf.replace(/\D/g, '');
+    if (cleanCpf.length !== 11) { setError('CPF deve conter 11 dígitos.'); return; }
     setLoading(true);
     try {
-      await call({ action: 'request', institution_id: institutionId, enrollment_code: enrollment.trim(), cpf, email: email.trim(), module });
-      onSent();
+      // Validar CPF + matrícula via RPC (sem email, sem magic link)
+      const { data: loginResult } = await supabase.rpc('vertice_ac_student_login', { p_matricula: enrollment.trim(), p_cpf: cleanCpf, p_institution_id: institutionId });
+      if (!loginResult?.ok) { setError(loginResult?.error || 'Matrícula ou CPF não encontrado na base de alunos.'); setLoading(false); return; }
+      // Criar sessão local com student_id
+      const sessionKey = `student:${loginResult.student_id}`;
+      saveSession(sessionKey, institutionId, new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString());
+      // Carregar dashboard via edge function
+      try {
+        const dashboard = await call<Dashboard>({ action: 'dashboard', session: sessionKey, module });
+        onLogin(sessionKey, dashboard);
+      } catch {
+        // Se edge function falhar, montar dashboard mínimo dos dados da RPC
+        onLogin(sessionKey, {
+          student: { full_name: loginResult.name, enrollment_code: loginResult.enrollment_code, course_name: loginResult.course_name },
+          rule: null, credited_minutes: 0, categories: [], submissions: [], placements: [],
+        });
+      }
     } catch {
-      setError('Não foi possível processar agora. Tente novamente em alguns minutos.');
-    } finally {
-      setLoading(false);
-    }
+      setError('Não foi possível verificar. Tente novamente.');
+    } finally { setLoading(false); }
   };
 
   return (
@@ -217,14 +226,11 @@ function RequestForm({ institutionId, module, notice, onSent }: { institutionId:
       <label style={label}>CPF
         <input type="text" value={cpf} onChange={e => setCpf(formatCpf(e.target.value))} placeholder="000.000.000-00" required autoComplete="off" inputMode="numeric" style={input} />
       </label>
-      <label style={label}>E-mail cadastrado na instituição
-        <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="seu.email@instituicao.edu.br" required autoComplete="email" style={input} />
-      </label>
       {error && <p role="alert" style={{ color: '#dc2626', fontSize: '.8125rem', margin: 0 }}>{error}</p>}
       <button type="submit" disabled={loading} style={{ ...primary, marginTop: 4, opacity: loading ? .7 : 1, cursor: loading ? 'wait' : 'pointer' }}>
-        {loading ? 'Verificando…' : 'Receber link de acesso'}
+        {loading ? 'Verificando…' : 'Acessar'}
       </button>
-      <p style={{ ...small, textAlign: 'center', margin: '8px 0 0' }}>Você receberá um link pessoal no e-mail vinculado à sua matrícula. Não é preciso criar senha.</p>
+      <p style={{ ...small, textAlign: 'center', margin: '8px 0 0' }}>Informe sua matrícula e CPF. Não é preciso criar senha.</p>
     </form>
   );
 }
