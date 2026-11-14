@@ -39,6 +39,7 @@ import MasterHub from '@/components/area/MasterHub';
 import VerticeBI from '@/components/area/VerticeBI';
 import BillingPanel from '@/components/area/BillingPanel';
 const Extensao360 = lazy(() => import('@/components/area/Extensao360'));
+const SapiensPanel = lazy(() => import('@/components/area/SapiensPanel'));
 
 type Membership={user_id:string;institution_id:string;role:string};
 const SNAPSHOT_COLUMNS='id,course_id,semester,class_label,enrolled,capacity,available,source_report_at,reported_total,student_status';
@@ -55,7 +56,7 @@ async function fetchDashboardRows(table:string,order:string,ascending=true,colum
  for(let from=0;;from+=1000){const {data,error}=await supabase.from(table).select(columns).order(order,{ascending}).order('id').range(from,from+999);if(error)throw error;rows.push(...((data??[]) as unknown as Row[]));if(!data||data.length<1000)break;}
  return {data:rows,error:null};
 }
-function readHash(){const p=new URLSearchParams(typeof window==='undefined'?'':window.location.hash.slice(1));return {inst:p.get('instituicao')??'',course:p.get('curso')??'',repositories:p.get('repositorios')==='1',bi:p.get('bi')==='1',captacao:p.get('captacao')==='1',academico:p.get('academico')==='1',painelBi:p.get('painel-bi')==='1',perfis:p.get('perfis')==='1',masters:p.get('masters')==='1',demonstrativos:p.get('demonstrativos')==='1',clientes:p.get('clientes')==='1',governanca:p.get('governanca')==='1',hub:!p.toString(),biVertice:p.get('bi-vertice')==='1',tierFilter:p.get('tier')??'',financeiro:p.get('financeiro')==='1'};}
+function readHash(){const p=new URLSearchParams(typeof window==='undefined'?'':window.location.hash.slice(1));return {inst:p.get('instituicao')??'',course:p.get('curso')??'',repositories:p.get('repositorios')==='1',bi:p.get('bi')==='1',captacao:p.get('captacao')==='1',academico:p.get('academico')==='1',painelBi:p.get('painel-bi')==='1',perfis:p.get('perfis')==='1',masters:p.get('masters')==='1',demonstrativos:p.get('demonstrativos')==='1',clientes:p.get('clientes')==='1',governanca:p.get('governanca')==='1',hub:!p.toString(),biVertice:p.get('bi-vertice')==='1',tierFilter:p.get('tier')??'',financeiro:p.get('financeiro')==='1',sapiens:p.get('sapiens')==='1'};}
 function writeHash(inst:string,course:string,repositories=false,library=false,reitor=false,masters=false){const p=new URLSearchParams();if(masters)p.set('masters','1');if(inst)p.set('instituicao',inst);if(course)p.set('curso',course);if(repositories){if(inst)p.set('aba','repositorio');else p.set('repositorios','1');}if(library)p.set('aba','biblioteca');if(reitor)p.set('aba','reitor');const h=p.toString();window.history.pushState(null,'',h?`#${h}`:window.location.pathname);window.dispatchEvent(new HashChangeEvent('hashchange'));window.scrollTo({top:0});}
 
 type BiItem = {label:string; group:string; value:number; href?:string};
@@ -370,7 +371,7 @@ export default function OwnerDashboard(){
   else if(dest==='configuracoes'){window.location.hash='masters=1';}
   else if(dest==='institution'&&instId){window.location.hash=`instituicao=${instId}`;}
   window.dispatchEvent(new HashChangeEvent('hashchange'));
-}}/>:route.clientes&&master?<ShowcaseClientsAdmin/>:route.perfis&&master?<ProfileSimulator/>:master&&route.demonstrativos?<ExperienceAdmin embedded/>:master&&commercial?<DemoLeads/>:<>
+}}/>:route.clientes&&master?<ShowcaseClientsAdmin/>:route.sapiens&&master?<Suspense fallback={<p>Carregando Sapiens…</p>}><section aria-label="Vértice Sapiens"><button onClick={()=>{window.location.hash='';window.dispatchEvent(new HashChangeEvent('hashchange'));}} style={{background:'none',border:'none',color:'#2563eb',cursor:'pointer',fontSize:13,padding:0,marginBottom:12}}>← Voltar ao hub</button>{institutions.length?<SapiensPanel institutionId={institutions[0].id} role={master?'master':null}/>:<p>Nenhuma instituição ativa.</p>}</section></Suspense>:route.perfis&&master?<ProfileSimulator/>:master&&route.demonstrativos?<ExperienceAdmin embedded/>:master&&commercial?<DemoLeads/>:<>
  {!route.bi&&!route.captacao&&!route.academico&&!route.painelBi&&!currentInst&&!route.repositories&&!route.masters&&!route.demonstrativos&&<div className="vx-module-grid vx-kpi-row">
   <div className="vx-module-card" style={{borderLeft:'3px solid #0073ea'}}><small style={{color:'#676e7a'}}>Instituições</small><strong style={{fontSize:28}}>{institutions.length}</strong></div>
   <div className="vx-module-card" style={{borderLeft:'3px solid #7c3aed'}}><small style={{color:'#676e7a'}}>Cursos</small><strong style={{fontSize:28}}>{courses.length}</strong></div>
