@@ -136,8 +136,9 @@ export const ROLE_LABELS: Record<string, string> = {
 // ── Queries ──
 
 export async function fetchWorkTypes(institutionId: string) {
-  const { data } = await supabase.from('vertice_tcc_work_types')
+  const { data, error } = await supabase.from('vertice_tcc_work_types')
     .select('*').eq('institution_id', institutionId).eq('active', true).order('label');
+  if (error) throw error;
   return (data ?? []) as TccWorkType[];
 }
 
@@ -145,7 +146,8 @@ export async function fetchWorks(institutionId: string, courseId?: string) {
   let q = supabase.from('vertice_tcc_works').select('*, work_type:vertice_tcc_work_types(*)')
     .eq('institution_id', institutionId).order('updated_at', { ascending: false });
   if (courseId) q = q.eq('course_id', courseId);
-  const { data } = await q;
+  const { data, error } = await q;
+  if (error) throw error;
   return (data ?? []) as TccWork[];
 }
 
@@ -210,8 +212,9 @@ export async function fetchHourDeclarations(workId: string) {
 }
 
 export async function fetchCourseSummary(institutionId: string) {
-  const { data } = await supabase.from('v_tcc_course_summary')
+  const { data, error } = await supabase.from('v_tcc_course_summary')
     .select('*').eq('institution_id', institutionId);
+  if (error) throw error;
   return (data ?? []) as TccCourseSummary[];
 }
 

@@ -8,7 +8,7 @@ import {
   fetchCycles, fetchInstruments, fetchCampaigns,
   fetchCpaFindings, fetchCpaActions, fetchCpaFeedbacks,
   fetchCampaignIndicators, fetchCycleSummary,
-  createCycle, createInstrument, createCpaFinding, createCpaAction,
+  createCycle, createInstrument, createCampaign, createCpaFinding, createCpaAction,
   updateCpaActionStatus, createMember, createFeedback,
   fetchQuestions, createQuestion, updateQuestion, deleteQuestion, updateInstrument,
   CpaReference, CpaReferenceObject, CpaMember, CpaMeeting,
@@ -906,7 +906,7 @@ function RelatoriosCPA({ institutionId, role }: { institutionId: string; role: s
   };
 
   useEffect(() => {
-    supabase.from('vertice_cpa_reports').select('*').eq('institution_id', institutionId).order('created_at', { ascending: false })
+    Promise.resolve(supabase.from('vertice_cpa_reports').select('*').eq('institution_id', institutionId).order('created_at', { ascending: false }))
       .then(({ data }) => setReports(data || [])).finally(() => setLoading(false));
   }, [institutionId]);
 

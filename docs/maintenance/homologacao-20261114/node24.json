@@ -1,0 +1,21 @@
+{
+  "node": "v24.22.1",
+  "results": {
+    "typecheck": {
+      "exit": 0,
+      "log": "node24/typecheck.log.gz"
+    },
+    "tests": {
+      "exit": 0,
+      "log": "node24/tests.log.gz"
+    },
+    "dom": {
+      "exit": 0,
+      "log": "node24/dom.log.gz"
+    },
+    "build": {
+      "exit": 0,
+      "log": "node24/build.log.gz"
+    }
+  }
+}

@@ -262,7 +262,7 @@ export default function Extensao360({ institutionId, role, courses, onBack }: {
     const pStudents = students.filter(s => s.project_id === project.id);
     const pDeliverables = deliverables.filter(d => d.project_id === project.id);
     const pAxis = axes.find(a => a.id === project.axis_id);
-    const pCourses = courses.filter(c => (project.course_ids || []).includes(c.id));
+    const pCourses = (courses ?? []).filter(c => (project.course_ids || []).includes(c.id));
     const p = project as any;
 
     const win = window.open('', '_blank');

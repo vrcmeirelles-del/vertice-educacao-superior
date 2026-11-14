@@ -1,6 +1,7 @@
 // AtividadesComplementares360.tsx — AC 360
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
+import { submitAcWithAttachment, AcSubmissionPendingError } from '@/lib/ac-submission';
 import { fetchAcRules, fetchAcCategories, fetchAcSubmissions, fetchAcStudentBalance, fetchAcCourseSummary, fetchStudentRegistry, fetchProtocols, approveAcSubmission, AC_STATUS_LABELS, PROTOCOL_STATUS_LABELS, minutesToHours, type AcRule, type AcCategory, type AcSubmission, type AcStudentBalance, type AcCourseSummary, type StudentRegistryEntry } from '@/lib/atividades-complementares';
 import './egressos360.css';
 
@@ -546,31 +547,23 @@ function CreateAcSubmissionForm({ institutionId, courses, rules, students, onCre
 
   const courseStudents = students.filter(s => s.course_id === courseId);
 
+  const [pendingConfirmation, setPendingConfirmation] = useState(false);
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!rule || !studentId || !categoryId || !title) return;
+    if (!rule || !studentId || !categoryId || !title || saving || pendingConfirmation) return;
     setSaving(true);
-
-    // Upload file if present
-    let fileUrl: string | null = null;
-    if (file) {
-      const ext = file.name.split('.').pop() || 'pdf';
-      const path = `ac/${institutionId}/${studentId}/${Date.now()}.${ext}`;
-      const { error: uploadErr } = await supabase.storage.from('vertice-documents').upload(path, file, { contentType: file.type });
-      if (uploadErr) { alert('Erro no upload: ' + uploadErr.message); setSaving(false); return; }
-      fileUrl = path;
-    }
-
-    const { data, error } = await supabase.from('vertice_ac_submissions').insert({
-      institution_id: institutionId, rule_id: rule.id, category_id: categoryId,
-      student_id: studentId, title, issuer: issuer || null,
-      documentary_minutes: docMinutes ? parseInt(docMinutes) * 60 : null,
-      status: 'submitted',
-      ...(fileUrl ? { external_url: fileUrl } : {}),
-    }).select().single();
-    setSaving(false);
-    if (error) { alert('Erro: ' + error.message); return; }
-    onCreated(data as AcSubmission);
+    try {
+      const data = await submitAcWithAttachment({
+        institution_id: institutionId, rule_id: rule.id, category_id: categoryId,
+        student_id: studentId, title, issuer: issuer || null,
+        documentary_minutes: docMinutes ? parseInt(docMinutes) * 60 : null,
+        status: 'submitted',
+      }, file);
+      onCreated(data);
+    } catch (error) {
+      if (error instanceof AcSubmissionPendingError) setPendingConfirmation(true);
+      alert((error as Error).message);
+    } finally { setSaving(false); }
   }
 
   return (
@@ -587,7 +580,7 @@ function CreateAcSubmissionForm({ institutionId, courses, rules, students, onCre
       </div>
       <div style={{ display: 'flex', gap: 8, marginTop: 12, justifyContent: 'flex-end' }}>
         <button type="button" onClick={onCancel} className="alumni-btn-back">Cancelar</button>
-        <button type="submit" disabled={saving || !studentId || !categoryId || !title} className="alumni-btn-export">{saving ? 'Salvando…' : 'Submeter'}</button>
+        <button type="submit" disabled={saving || pendingConfirmation || !studentId || !categoryId || !title} className="alumni-btn-export">{pendingConfirmation ? 'Envio pendente de conferência' : saving ? 'Salvando…' : 'Submeter'}</button>
       </div>
     </form>
   );

@@ -4,6 +4,7 @@
 // Link compartilhável — não expõe fragilidades, risco, atrasados nem dados negativos.
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { requireSuccessfulQueries, withAcademicTimeout } from '@/lib/academic-requests';
 import './egressos360.css';
 
 interface Props {
@@ -49,6 +50,8 @@ export default function CourseShowcase({ institutionId, courses, role, onNavigat
   const [selectedCourse, setSelectedCourse] = useState('');
   const [data, setData] = useState<ShowcaseData | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [retry, setRetry] = useState(0);
   const [institutionName, setInstitutionName] = useState('');
 
   const course = courses.find(c => c.id === selectedCourse);
@@ -59,10 +62,16 @@ export default function CourseShowcase({ institutionId, courses, role, onNavigat
   }, [institutionId]);
 
   useEffect(() => {
+    let current = true;
+    setData(null); setError('');
     if (!selectedCourse) return;
     setLoading(true);
-    loadShowcaseData(institutionId, selectedCourse, courses.find(c => c.id === selectedCourse)?.name || '').then(setData).finally(() => setLoading(false));
-  }, [institutionId, selectedCourse]);
+    withAcademicTimeout(loadShowcaseData(institutionId, selectedCourse, courses.find(c => c.id === selectedCourse)?.name || ''))
+      .then(result => { if (current) setData(result); })
+      .catch(() => { if (current) setError('Não foi possível carregar a Vitrine. Os indicadores não estão disponíveis nesta consulta.'); })
+      .finally(() => { if (current) setLoading(false); });
+    return () => { current = false; };
+  }, [institutionId, selectedCourse, retry]);
 
   if (!selectedCourse) return (
     <div className="alumni-360">
@@ -102,7 +111,7 @@ export default function CourseShowcase({ institutionId, courses, role, onNavigat
         </div>
       </header>
 
-      {loading || !d ? <p className="alumni-loading">Preparando vitrine…</p> : (<>
+      {error ? <div role="alert" className="alumni-info-box alumni-info-box-warn">{error} <button onClick={() => setRetry(value => value + 1)}>Tentar novamente</button></div> : loading ? <p className="alumni-loading">Preparando vitrine…</p> : !d ? <p>Nenhum resumo disponível para este curso.</p> : (<>
 
         {/* ── Destaques do curso ── */}
         <div className="alumni-kpis" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))' }}>
@@ -160,33 +169,36 @@ export default function CourseShowcase({ institutionId, courses, role, onNavigat
 /* ── Loader ── */
 
 async function loadShowcaseData(instId: string, courseId: string, courseName: string): Promise<ShowcaseData> {
-  const results = await Promise.allSettled([
+  const results = await Promise.all([
     supabase.from('v_course_raio_x').select('*').eq('institution_id', instId).eq('course_id', courseId).maybeSingle(),
-    supabase.from('vertice_academic_reports').select('data').eq('institution_id', instId).eq('course_id', courseId).eq('kind', 'quantitativo_alunos').order('report_date', { ascending: false }).limit(1),
+    supabase.from('vertice_academic_reports').select('payload').eq('institution_id', instId).eq('course_id', courseId).eq('kind', 'quantitativo_alunos').order('source_report_at', { ascending: false }).limit(1),
     supabase.from('vertice_alumni_education').select('id,profile:vertice_alumni_profiles!profile_id(email,phone)').eq('institution_id', instId).eq('course_id', courseId).in('academic_status', ['formado','diplomado','egresso_acompanhado','integralizado','concluinte']),
-    // Reuniões realizadas do NDE/colegiado deste curso
-    Promise.resolve(supabase.rpc('count_meetings_by_course', { p_institution_id: instId, p_course_id: courseId })).catch(() => ({ data: null })),
-    // Deliberações concluídas
-    Promise.resolve(supabase.rpc('count_deliberations_by_course', { p_institution_id: instId, p_course_id: courseId })).catch(() => ({ data: null })),
+    supabase.from('governance_meetings').select('id,body_id').eq('institution_id', instId).eq('status', 'realizada'),
+    supabase.from('governance_deliberations').select('id,body_id,status').eq('institution_id', instId).eq('status', 'concluida'),
     // Ações com evidência
     supabase.from('vertice_actions').select('id,status,evidence').eq('institution_id', instId).eq('course_id', courseId).in('status', ['concluida','executada','avaliada']),
     // TCC
-    Promise.resolve(supabase.from('vertice_tcc_works').select('id,stage').eq('institution_id', instId).eq('course_id', courseId).not('stage', 'in', '(cancelled,archived)')).then(r => r).catch(() => ({ data: [] })),
+    supabase.from('vertice_tcc_works').select('id,stage').eq('institution_id', instId).eq('course_id', courseId).not('stage', 'in', '(cancelled,archived)'),
     // Estágio
-    Promise.resolve(supabase.from('v_internship_course_summary').select('*').eq('institution_id', instId).eq('course_id', courseId).maybeSingle()).then(r => r).catch(() => ({ data: null })),
+    supabase.from('v_internship_course_summary').select('*').eq('institution_id', instId).eq('course_id', courseId).maybeSingle(),
     // AC
-    Promise.resolve(supabase.from('v_ac_course_summary').select('*').eq('institution_id', instId).eq('course_id', courseId).maybeSingle()).then(r => r).catch(() => ({ data: null })),
+    supabase.from('v_ac_course_summary').select('*').eq('institution_id', instId).eq('course_id', courseId).maybeSingle(),
+    supabase.from('governance_bodies').select('id').eq('institution_id', instId).eq('course_id', courseId).eq('status', 'ativo'),
+    supabase.from('vertice_diagnosis_items').select('id', { count: 'exact', head: true }).eq('institution_id', instId).eq('course_id', courseId).gte('score', 3),
+    supabase.from('vertice_ac_submissions').select('id,rule:vertice_ac_rules!inner(course_id)', { count: 'exact', head: true }).eq('institution_id', instId).eq('rule.course_id', courseId).eq('status', 'credited'),
   ]);
+  requireSuccessfulQueries(results);
 
-  const rx = results[0].status === 'fulfilled' ? results[0].value.data : null;
-  const mat = results[1].status === 'fulfilled' ? results[1].value.data?.[0]?.data : null;
-  const egr = results[2].status === 'fulfilled' ? (results[2].value.data as any[] ?? []) : [];
-  const meetCount = results[3].status === 'fulfilled' ? Number((results[3].value as any).data || 0) : 0;
-  const delibCount = results[4].status === 'fulfilled' ? Number((results[4].value as any).data || 0) : 0;
-  const acoes = results[5].status === 'fulfilled' ? (results[5].value.data as any[] ?? []) : [];
-  const tccWorks = results[6].status === 'fulfilled' ? ((results[6].value as any).data as any[] ?? []) : [];
-  const estData = results[7].status === 'fulfilled' ? (results[7].value as any).data : null;
-  const acData = results[8].status === 'fulfilled' ? (results[8].value as any).data : null;
+  const rx = results[0].data;
+  const mat = results[1].data?.[0]?.payload;
+  const egr = results[2].data as any[] ?? [];
+  const bodies = new Set((results[9].data as {id: string}[] ?? []).map(body => body.id));
+  const meetCount = (results[3].data as {body_id: string}[] ?? []).filter(meeting => bodies.has(meeting.body_id)).length;
+  const delibCount = (results[4].data as {body_id: string}[] ?? []).filter(deliberation => bodies.has(deliberation.body_id)).length;
+  const acoes = results[5].data as any[] ?? [];
+  const tccWorks = results[6].data as any[] ?? [];
+  const estData = results[7].data;
+  const acData = results[8].data;
 
   const matriculados = mat ? Number(mat.matriculados || mat.total_matriculados || 0) : 0;
   const docTotal = Number(rx?.docentes_total || 0);
@@ -209,14 +221,14 @@ async function loadShowcaseData(instId: string, courseId: string, courseName: st
     extensao_alunos: extAlunos,
     diagnostico_total: diagTotal,
     diagnostico_media: diagMedia,
-    diagnostico_acima3: diagTotal > 0 && diagMedia !== null ? Math.round(diagTotal * (diagMedia >= 3 ? 0.8 : 0.5)) : 0, // estimativa conservadora
+    diagnostico_acima3: results[10].count ?? 0,
     docentes_total: docTotal,
     docentes_doutores: docDr,
     docentes_mestres: docMs,
     docentes_integral: docInt,
     pct_stricto: docTotal > 0 ? Math.round(100 * (docDr + docMs) / docTotal) : 0,
     pct_integral: docTotal > 0 ? Math.round(100 * docInt / docTotal) : 0,
-    orgaos_colegiados: Number(rx?.orgaos_colegiados || 0),
+    orgaos_colegiados: bodies.size,
     reunioes_realizadas: meetCount,
     deliberacoes_concluidas: delibCount,
     egressos_total: Number(rx?.egressos_total || 0),
@@ -230,7 +242,7 @@ async function loadShowcaseData(instId: string, courseId: string, courseName: st
     estagio_placements: Number(estData?.placements_total || 0),
     estagio_completed: Number(estData?.completed || 0),
     ac_submissions: Number(acData?.submissions_total || 0),
-    ac_credited: Number(acData?.credited || 0),
+    ac_credited: results[11].count ?? 0,
   };
 }
 
