@@ -1,0 +1,7 @@
+{
+  "at": "2026-11-14T12:25:53.200677+00:00",
+  "method": "GET",
+  "endpoint": "vertice_courses?select=id&limit=0",
+  "status": 503,
+  "body": "{\"code\":\"PGRST002\",\"details\":null,\"hint\":null,\"message\":\"Could not query the database for the schema cache. Retrying.\"}"
+}

@@ -1,8 +1,9 @@
 // Tcc360.tsx — TCC e Produção Acadêmica 360
 // Navegação interna: Visão Geral, Carteira, Projeto, Orientações, Atividades,
 // Horas, Banca, Acervo, Evidências PPC/ODS, BI, Configurações
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
+import { withAcademicTimeout } from '@/lib/academic-requests';
 import {
   fetchWorks, fetchWorkTypes, fetchCourseSummary, fetchParticipants,
   fetchTasks, fetchSupervisions, fetchDefenses, fetchVersions,
@@ -58,22 +59,37 @@ export default function Tcc360({ institutionId, courses, role, onNavigate }: Pro
   const [selectedWork, setSelectedWork] = useState<string | null>(null);
   const [courseFilter, setCourseFilter] = useState('');
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+  const [retry, setRetry] = useState(0);
+  const institutionRef = useRef(institutionId);
+  institutionRef.current = institutionId;
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteName, setInviteName] = useState('');
   const [inviteBusy, setInviteBusy] = useState(false);
   const [inviteMsg, setInviteMsg] = useState('');
   const [inviteLink, setInviteLink] = useState('');
 
-  useEffect(() => {
-    setLoading(true);
-    Promise.all([
-      fetchWorks(institutionId),
-      fetchWorkTypes(institutionId),
-      fetchCourseSummary(institutionId),
-    ]).then(([w, wt, s]) => {
-      setWorks(w); setWorkTypes(wt); setSummary(s);
-    }).finally(() => setLoading(false));
+  const refreshDashboard = useCallback(async () => {
+    const [w, s] = await withAcademicTimeout(Promise.all([fetchWorks(institutionId), fetchCourseSummary(institutionId)]));
+    if (institutionRef.current === institutionId) { setWorks(w); setSummary(s); setLoadError(''); }
   }, [institutionId]);
+
+  async function refreshAfterSave() {
+    try { await refreshDashboard(); }
+    catch { setLoadError('O trabalho foi salvo, mas não foi possível atualizar o BI. Tente recarregar os dados.'); }
+  }
+
+  useEffect(() => {
+    let current = true;
+    setLoading(true); setLoadError(''); setWorks([]); setSummary([]); setSelectedWork(null);
+    withAcademicTimeout(Promise.all([
+      fetchWorks(institutionId), fetchWorkTypes(institutionId), fetchCourseSummary(institutionId),
+    ])).then(([w, wt, s]) => {
+      if (current) { setWorks(w); setWorkTypes(wt); setSummary(s); }
+    }).catch(() => { if (current) setLoadError('Não foi possível carregar os dados de TCC. Tente novamente.'); })
+      .finally(() => { if (current) setLoading(false); });
+    return () => { current = false; };
+  }, [institutionId, retry]);
 
   const filtered = useMemo(() =>
     courseFilter ? works.filter(w => w.course_id === courseFilter) : works
@@ -136,6 +152,7 @@ export default function Tcc360({ institutionId, courses, role, onNavigate }: Pro
         ))}
       </nav>
 
+      {loadError && <div role="alert" className="alumni-info-box alumni-info-box-warn">{loadError} <button onClick={() => setRetry(value => value + 1)}>Recarregar dados</button></div>}
       {loading ? <p className="alumni-loading">Carregando TCC 360…</p> : (<>
 
         {/* ── VISÃO GERAL ── */}
@@ -252,9 +269,8 @@ export default function Tcc360({ institutionId, courses, role, onNavigate }: Pro
                 setCreating(true);
                 try {
                   await createWork(data);
-                  const w = await fetchWorks(institutionId);
-                  setWorks(w);
                   setShowCreateForm(false);
+                  await refreshAfterSave();
                 } catch (e) { alert('Erro ao criar trabalho: ' + (e as Error).message); }
                 finally { setCreating(false); }
               }}
@@ -286,7 +302,7 @@ export default function Tcc360({ institutionId, courses, role, onNavigate }: Pro
                     ) : <span />}
                     {TCC_NEXT_STAGE[w.stage] && (
                       <button style={{ fontSize: '.6875rem', padding: '2px 10px', borderRadius: 4, border: '1px solid #2563eb', background: '#eff6ff', color: '#2563eb', cursor: 'pointer' }}
-                        onClick={async (e) => { e.stopPropagation(); const next = TCC_NEXT_STAGE[w.stage]; await transitionWork(w.id, institutionId, next, 'Avanço pela coordenação', 'Coordenação', 'coordinator', w.version || 0); const refreshed = await fetchWorks(institutionId); setWorks(refreshed); }}>
+                        onClick={async (e) => { e.stopPropagation(); const next = TCC_NEXT_STAGE[w.stage]; try { await transitionWork(w.id, institutionId, next, 'Avanço pela coordenação', 'Coordenação', 'coordinator', w.version || 0); await refreshAfterSave(); } catch (error) { alert('Não foi possível avançar a etapa: ' + (error as Error).message); } }}>
                         → {STAGE_LABELS[TCC_NEXT_STAGE[w.stage]] || TCC_NEXT_STAGE[w.stage]}
                       </button>
                     )}
@@ -358,7 +374,7 @@ function WorkDetail({ workId, institutionId, courseName, onBack }: { workId: str
       fetchParticipants(workId),
       fetchVersions(workId),
       fetchTransitions(workId),
-    ]).then(([w, p, v, t]) => { setWork(w); setParticipants(p); setVersions(v); setTransitions(t); }).finally(() => setLoading(false));
+    ]).then(([w, p, v, t]) => { setWork(w); setParticipants(p); setVersions(v); setTransitions(t); }).catch(() => { setWork(null); }).finally(() => setLoading(false));
   }, [workId, institutionId]);
 
   if (!workId) return <div className="alumni-info-box">Selecione um trabalho na Carteira para ver os detalhes.</div>;

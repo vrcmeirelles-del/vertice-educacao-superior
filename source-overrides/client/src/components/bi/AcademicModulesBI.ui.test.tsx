@@ -2,7 +2,7 @@ import { beforeEach, afterEach, describe, it, expect, vi } from 'vitest';
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 
-const fixtures = vi.hoisted(() => ({ results: new Map<string, {data: unknown; count?: number} | Error>(), calls: [] as {table: string; method: string; args: unknown[]}[] }));
+const fixtures = vi.hoisted(() => ({ results: new Map<string, {data: unknown; count?: number; error?: {message:string}} | Error>(), calls: [] as {table: string; method: string; args: unknown[]}[] }));
 vi.mock('@/lib/supabase', () => {
   // Supabase builders are PromiseLike: deliberately no catch/finally, even after then.
   function thenable<T>(promise: Promise<T>): PromiseLike<T> {
@@ -89,11 +89,11 @@ describe('academic loaders with PromiseLike-only query builders', () => {
     await act(async () => root.render(<CourseRaioX institutionId="ies-test" courses={courses} role="master" />));
     await click('Direito sintético');
     expect(container.textContent).not.toContain('Carregando');
-    for (const table of ['vertice_tcc_works','v_ac_course_summary','v_internship_course_summary','vertice_governance_bodies']) assertInstitutionFilter(table);
+    for (const table of ['vertice_tcc_works','v_ac_course_summary','v_internship_course_summary','governance_bodies']) assertInstitutionFilter(table);
     expect(container.textContent).toContain('TCC');
     expect(container.textContent).toContain('Estágio');
   });
-  it('loads the showcase and preserves RPC fallbacks on rejected thenables', async () => {
+  it('loads the showcase without the absent RPCs', async () => {
     fixtures.results.set('count_meetings_by_course', new Error('Synthetic RPC rejection'));
     fixtures.results.set('count_deliberations_by_course', new Error('Synthetic RPC rejection'));
     await act(async () => root.render(<CourseShowcase institutionId="ies-test" courses={courses} role="master" />));
@@ -101,5 +101,50 @@ describe('academic loaders with PromiseLike-only query builders', () => {
     expect(container.textContent).not.toContain('Preparando vitrine');
     expect(container.textContent).toContain('VITRINE DO CURSO');
     for (const table of ['vertice_tcc_works','v_ac_course_summary','v_internship_course_summary']) assertInstitutionFilter(table);
+  });
+});
+
+describe('academic read failures and recovery', () => {
+  for (const [Component, loadingText] of [[CourseRaioX, 'Carregando Raio-X'], [CourseShowcase, 'Preparando vitrine']] as const) {
+    it(`${loadingText}: exposes Supabase errors and supports retry`, async () => {
+      fixtures.results.set('v_course_raio_x', {data:null, error:{message:'PGRST002'}});
+      await act(async () => root.render(<Component institutionId="ies-test" courses={courses} role="master" />));
+      await click('Direito sintético');
+      expect(container.querySelector('[role="alert"]')?.textContent).toContain('Não foi possível carregar');
+      expect(container.textContent).not.toContain(loadingText);
+      fixtures.results.set('v_course_raio_x', {data:{course_name:'Curso recuperado',...Object.fromEntries('docentes_total docentes_doutores docentes_mestres docentes_integral docentes_parcial docentes_horista alunos_risco reprovacoes_total reprovacoes_falta reprovacoes_nota orgaos_colegiados deliberacoes_pendentes cpa_achados cpa_fragilidades egressos_total extensao_projetos extensao_alunos metas_total metas_concluidas acoes_total acoes_concluidas diagnostico_total diagnostico_media diagnostico_frageis evidencias_total evidencias_validadas'.split(' ').map(key => [key,0]))}});
+      await click('Tentar novamente');
+      expect(container.querySelector('[role="alert"]')).toBeNull();
+    });
+    it(`${loadingText}: handles rejected transport requests`, async () => {
+      fixtures.results.set('vertice_academic_reports', new Error('offline'));
+      await act(async () => root.render(<Component institutionId="ies-test" courses={courses} role="master" />));
+      await click('Direito sintético');
+      expect(container.querySelector('[role="alert"]')).not.toBeNull();
+      expect(container.textContent).not.toContain(loadingText);
+    });
+  }
+  it('uses actual reports and governance, counts exact diagnosis scores, and excludes other courses', async () => {
+    fixtures.results.set('v_course_raio_x', {data:{docentes_total:0,extensao_alunos:10,diagnostico_total:10,diagnostico_media:4}});
+    fixtures.results.set('vertice_academic_reports', {data:[{payload:{matriculados:100}}]});
+    fixtures.results.set('governance_bodies', {data:[{id:'body-course'}]});
+    fixtures.results.set('governance_meetings', {data:[{body_id:'body-course'},{body_id:'other'}]});
+    fixtures.results.set('governance_deliberations', {data:[{body_id:'body-course'},{body_id:'other'}]});
+    fixtures.results.set('vertice_diagnosis_items', {data:null,count:3});
+    fixtures.results.set('vertice_ac_submissions', {data:null,count:2});
+    fixtures.results.set('v_ac_course_summary', {data:{submissions_total:4}});
+    await act(async () => root.render(<CourseShowcase institutionId="ies-test" courses={courses} role="master" />));
+    await click('Direito sintético');
+    expect(container.textContent).toContain('3 de 10 critérios');
+    expect(container.textContent).toContain('1 reuniões realizadas e 1 deliberações concluídas');
+    expect(container.textContent).toContain('10%');
+    expect(container.textContent).toContain('2 atividade(s) creditada(s) de 4');
+    expect(fixtures.calls).toContainEqual({table:'vertice_ac_submissions',method:'eq',args:['rule.course_id','course-test']});
+    expect(fixtures.calls).toContainEqual({table:'vertice_academic_reports',method:'select',args:['payload']});
+    expect(fixtures.calls.some(call => call.table.startsWith('count_'))).toBe(false);
+    for (const table of ['governance_bodies','vertice_diagnosis_items']) {
+      assertInstitutionFilter(table);
+      expect(fixtures.calls).toContainEqual({table,method:'eq',args:['course_id','course-test']});
+    }
   });
 });
