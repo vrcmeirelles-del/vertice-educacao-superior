@@ -39,14 +39,14 @@ export const MACRO_TABS: MacroTabDef[] = [
     label: 'Cursos e Ofertas',
     icon: '▤',
     description: 'Cursos, matrículas e desempenho',
-    tabs: ['visao', 'eorbit', 'auditoria', 'backups', 'raio-x-direito', 'resultado-curso', 'simulador', 'escola-enem', 'escola-egressos'],
+    tabs: ['visao', 'eorbit', 'auditoria', 'backups', 'raio-x-direito', 'resultado-curso', 'simulador', 'escola-enem', 'escola-egressos', 'vitrine-curso'],
   },
   {
     key: 'gestores',
     label: 'Gestores e Acessos',
     icon: '♙',
     description: 'Equipe, convites e permissões',
-    tabs: ['equipe', 'metas', 'plano', 'diagnostico', 'governanca', 'inclusao', 'acompanhamento-especial', 'extensao', 'aquisicoes', 'egressos', 'cpa-autoavaliacao', 'tcc', 'atividades-complementares', 'estagio'],
+    tabs: ['equipe', 'metas', 'plano', 'diagnostico', 'governanca', 'inclusao', 'acompanhamento-especial', 'extensao', 'aquisicoes', 'egressos', 'cpa-autoavaliacao', 'tcc', 'atividades-complementares', 'estagio', 'egressos-pesquisa', 'egressos-cpa', 'egressos-indicadores'],
   },
   {
     key: 'integracoes',
@@ -60,7 +60,7 @@ export const MACRO_TABS: MacroTabDef[] = [
     label: 'Licenciamento',
     icon: '📜',
     description: 'Contrato, módulos e faturamento',
-    tabs: ['conta', 'contrato', 'billing', 'modulos', 'catalogo'],
+    tabs: ['conta', 'contrato', 'billing', 'modulos', 'catalogo', 'gerenciar-modulos', 'catalogo-modulos', 'minha-conta', 'painel-financeiro'],
   },
   {
     key: 'historico',

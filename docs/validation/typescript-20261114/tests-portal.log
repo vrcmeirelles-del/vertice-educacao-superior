@@ -1,0 +1,296 @@
+
+ RUN  v2.1.9 /workspace/scratch/a6fa738a22a6/vertice-educacao-superior/.validation-build
+
+stderr | client/src/components/bi/ReitorBI.ui.test.ts > Reitoria: renderização dos contratos efetivos > carrega o catálogo de semestres e exibe contagens, nome docente e saúde fornecidos pelas consultas
+ReitorBI load error TypeError: __vite_ssr_import_5__.supabase.from(...).select(...).eq(...).maybeSingle is not a function
+    at /workspace/scratch/a6fa738a22a6/vertice-educacao-superior/.validation-build/client/src/components/bi/ReitorBI.tsx:275:85
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+stderr | client/src/components/bi/ReitorBI.ui.test.ts > Reitoria: renderização dos contratos efetivos > mantém plano e notas no mesmo semestre e identifica curso/período ENADE
+ReitorBI load error TypeError: __vite_ssr_import_5__.supabase.from(...).select(...).eq(...).maybeSingle is not a function
+    at /workspace/scratch/a6fa738a22a6/vertice-educacao-superior/.validation-build/client/src/components/bi/ReitorBI.tsx:275:85
+
+stderr | client/src/components/bi/ReitorBI.ui.test.ts > Reitoria: renderização dos contratos efetivos > usa títulos e exemplares do resumo da biblioteca
+ReitorBI load error TypeError: __vite_ssr_import_5__.supabase.from(...).select(...).eq(...).maybeSingle is not a function
+    at /workspace/scratch/a6fa738a22a6/vertice-educacao-superior/.validation-build/client/src/components/bi/ReitorBI.tsx:275:85
+
+stderr | client/src/components/bi/ReitorBI.ui.test.ts > Reitoria: renderização dos contratos efetivos > usa data/situação do edital e nome do curso de vestibular
+ReitorBI load error TypeError: __vite_ssr_import_5__.supabase.from(...).select(...).eq(...).maybeSingle is not a function
+    at /workspace/scratch/a6fa738a22a6/vertice-educacao-superior/.validation-build/client/src/components/bi/ReitorBI.tsx:275:85
+
+stderr | client/src/components/bi/ReitorBI.ui.test.ts > Reitoria: renderização dos contratos efetivos > renderiza ocupação desconhecida e a descrição do alerta sem fabricar vagas
+ReitorBI load error TypeError: __vite_ssr_import_5__.supabase.from(...).select(...).eq(...).maybeSingle is not a function
+    at /workspace/scratch/a6fa738a22a6/vertice-educacao-superior/.validation-build/client/src/components/bi/ReitorBI.tsx:275:85
+
+stderr | client/src/components/bi/ReitorBI.ui.test.ts > Reitoria: renderização dos contratos efetivos > distingue célula zero de célula sem fonte no mapa de calor
+ReitorBI load error TypeError: __vite_ssr_import_5__.supabase.from(...).select(...).eq(...).maybeSingle is not a function
+    at /workspace/scratch/a6fa738a22a6/vertice-educacao-superior/.validation-build/client/src/components/bi/ReitorBI.tsx:275:85
+
+stderr | client/src/components/bi/ReitorBI.ui.test.ts > Reitoria: renderização dos contratos efetivos > não trata ID de período desconhecido como resumo corrente
+ReitorBI load error TypeError: __vite_ssr_import_5__.supabase.from(...).select(...).eq(...).maybeSingle is not a function
+    at /workspace/scratch/a6fa738a22a6/vertice-educacao-superior/.validation-build/client/src/components/bi/ReitorBI.tsx:275:85
+
+stderr | client/src/components/bi/ReitorBI.ui.test.ts > Reitoria: renderização dos contratos efetivos > limpa o resumo de evasão quando a próxima instituição não possui coortes
+ReitorBI load error TypeError: __vite_ssr_import_5__.supabase.from(...).select(...).eq(...).maybeSingle is not a function
+    at /workspace/scratch/a6fa738a22a6/vertice-educacao-superior/.validation-build/client/src/components/bi/ReitorBI.tsx:275:85
+
+stderr | client/src/components/bi/ReitorBI.ui.test.ts > Reitoria: renderização dos contratos efetivos > limpa o resumo de evasão quando a próxima instituição não possui coortes
+ReitorBI load error TypeError: __vite_ssr_import_5__.supabase.from(...).select(...).eq(...).maybeSingle is not a function
+    at /workspace/scratch/a6fa738a22a6/vertice-educacao-superior/.validation-build/client/src/components/bi/ReitorBI.tsx:275:85
+
+ ✓ client/src/components/bi/ReitorBI.ui.test.ts (8 tests) 431ms
+stderr | client/src/components/bi/PortalBI.scope.ui.test.tsx > existing PortalBI explicit scope > embeds captation under the selected IES with independent period and separate simulation
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | client/src/components/bi/PortalBI.scope.ui.test.tsx > existing PortalBI explicit scope > embeds captation under the selected IES with independent period and separate simulation
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | client/src/components/bi/PortalBI.scope.ui.test.tsx > existing PortalBI explicit scope > embeds captation under the selected IES with independent period and separate simulation
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | client/src/components/bi/PortalBI.scope.ui.test.tsx > existing PortalBI explicit scope > embeds captation under the selected IES with independent period and separate simulation
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | client/src/components/bi/PortalBI.scope.ui.test.tsx > existing PortalBI explicit scope > embeds captation under the selected IES with independent period and separate simulation
+The current testing environment is not configured to support act(...)
+
+stderr | client/src/components/bi/PortalBI.scope.ui.test.tsx > existing PortalBI explicit scope > ignores late records from an institution after switching scope
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | client/src/components/bi/PortalBI.scope.ui.test.tsx > existing PortalBI explicit scope > ignores late records from an institution after switching scope
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | client/src/components/bi/PortalBI.scope.ui.test.tsx > existing PortalBI explicit scope > ignores late records from an institution after switching scope
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | client/src/components/bi/PortalBI.scope.ui.test.tsx > existing PortalBI explicit scope > ignores late records from an institution after switching scope
+The current testing environment is not configured to support act(...)
+
+stderr | client/src/components/bi/PortalBI.scope.ui.test.tsx > existing PortalBI explicit scope > does not query the first institution by default
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | client/src/components/bi/PortalBI.scope.ui.test.tsx > existing PortalBI explicit scope > loads only explicitly selected IES and displays lowercase snapshot counts
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | client/src/components/bi/PortalBI.scope.ui.test.tsx > existing PortalBI explicit scope > loads only explicitly selected IES and displays lowercase snapshot counts
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | client/src/components/bi/PortalBI.scope.ui.test.tsx > existing PortalBI explicit scope > loads only explicitly selected IES and displays lowercase snapshot counts
+The current testing environment is not configured to support act(...)
+
+stderr | client/src/components/bi/PortalBI.scope.ui.test.tsx > existing PortalBI explicit scope > clears previous institution content when selection is removed
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | client/src/components/bi/PortalBI.scope.ui.test.tsx > existing PortalBI explicit scope > clears previous institution content when selection is removed
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | client/src/components/bi/PortalBI.scope.ui.test.tsx > existing PortalBI explicit scope > clears previous institution content when selection is removed
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | client/src/components/bi/PortalBI.scope.ui.test.tsx > existing PortalBI explicit scope > changes scope without retaining the earlier enrollment count
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | client/src/components/bi/PortalBI.scope.ui.test.tsx > existing PortalBI explicit scope > changes scope without retaining the earlier enrollment count
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | client/src/components/bi/PortalBI.scope.ui.test.tsx > existing PortalBI explicit scope > changes scope without retaining the earlier enrollment count
+The current testing environment is not configured to support act(...)
+
+ ✓ client/src/components/bi/PortalBI.scope.ui.test.tsx (6 tests) 443ms
+ ✓ client/src/lib/student-support.ui.test.ts (8 tests) 184ms
+ ✓ client/src/lib/student-support-contracts.test.ts (34 tests) 12ms
+ ✓ client/src/lib/academic-coverage.test.ts (7 tests) 10ms
+ ✓ client/src/lib/bi/reitor-summary.test.ts (6 tests) 15ms
+ ✓ client/src/lib/enrollment-summary.test.ts (3 tests) 3ms
+
+ Test Files  7 passed (7)
+      Tests  72 passed (72)
+   Start at  07:12:32
+   Duration  6.89s (transform 2.33s, setup 0ms, collect 3.32s, tests 1.10s, environment 1.34s, prepare 309ms)
+

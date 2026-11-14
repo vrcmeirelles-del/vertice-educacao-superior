@@ -1,0 +1,82 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> vertice@1.0.0 test
+> vitest run --maxWorkers=2 --minWorkers=1
+
+
+ RUN  v2.1.9 /workspace/scratch/a6fa738a22a6/vertice-educacao-superior/.validation-build
+
+ ✓ server/ies-onboarding.test.ts (54 tests) 91ms
+ ✓ server/master-invitations.test.ts (22 tests) 41ms
+ ✓ server/repository.test.ts (25 tests) 41ms
+ ✓ server/emec-rendering.test.ts (23 tests) 115ms
+ ✓ server/reitor-ebitda.test.ts (8 tests) 146ms
+ ✓ server/portal-integration.test.ts (10 tests) 34ms
+ ✓ server/goal-signals.test.ts (13 tests) 21ms
+ ✓ server/master-ies-composition.test.ts (19 tests) 158ms
+ ✓ server/commercial-demo.test.ts (9 tests) 23ms
+ ✓ server/master-bootstrap.test.ts (29 tests) 19ms
+ ✓ server/pilot.test.ts (7 tests) 6ms
+ ✓ server/organization-assistant.test.ts (6 tests) 25ms
+ ✓ server/management.test.ts (9 tests) 5ms
+ ✓ server/inep-library-loading.test.ts (9 tests) 103ms
+ ✓ server/course-ai.test.ts (7 tests) 34ms
+ ✓ client/src/components/area/InstitutionTabs.test.tsx (8 tests) 26ms
+ ✓ server/document-integrated.test.ts (4 tests) 23ms
+ ✓ server/impacto-schema.test.ts (13 tests) 4ms
+ ✓ server/management-review.test.ts (8 tests) 23ms
+ ✓ server/assistant-crosscheck.test.ts (3 tests) 12ms
+ ✓ server/dreamshaper-adapter.test.ts (8 tests) 5ms
+ ✓ server/master-commercial-suite.test.ts (5 tests) 3ms
+ ✓ server/integration-settings.test.ts (9 tests) 12ms
+stdout | server/platform.test.ts
+[OAuth] Initialized with baseURL: 
+
+stderr | server/platform.test.ts
+[OAuth] ERROR: MANUS_OAUTH_API_URL is not configured! Set MANUS_OAUTH_API_URL environment variable.
+
+stderr | server/platform.test.ts > current platform integration > binds signed app sessions to this project and accepts an empty display name
+[Auth] Session payload missing required fields
+
+ ✓ server/platform.test.ts (5 tests) 15ms
+ ✓ server/uni-giz-structural-validation.test.ts (3 tests) 17ms
+ ✓ server/master-demo-invitations.test.ts (4 tests) 3ms
+ ✓ server/prerender-build.test.ts (3 tests) 236ms
+ ✓ server/demo-showroom.test.ts (4 tests) 50ms
+ ✓ server/emec.test.ts (11 tests) 7ms
+ ✓ server/learning-demo-feed.test.ts (4 tests) 4ms
+ ✓ server/course-labels.test.ts (3 tests) 17ms
+ ✓ server/owner.test.ts (9 tests) 5ms
+ ✓ server/source-curation.test.ts (4 tests) 6ms
+ ✓ server/passwordMfa.test.ts (5 tests) 5ms
+ ✓ server/json-structure-preview.test.ts (4 tests) 5ms
+ ✓ server/inep-library.test.ts (4 tests) 10ms
+ ✓ server/security.test.ts (3 tests) 3ms
+ ✓ server/management-metrics.test.ts (3 tests) 5ms
+ ✓ server/institution-pagination.test.ts (2 tests) 6ms
+ ✓ server/auth.logout.test.ts (1 test) 4ms
+ ✓ server/premium-bi.test.ts (3 tests) 5ms
+ ✓ server/database-table-catalog.test.ts (4 tests) 5ms
+ ✓ server/course-spreadsheets.test.ts (3 tests) 5ms
+ ✓ server/bi-public-access.test.ts (2 tests) 3ms
+ ✓ server/commercial-showcase.test.ts (2 tests) 39ms
+stderr | server/course-ai-citations.test.ts > limits quotations to safe literal source excerpts and rejects invented quotations
+review_validation:quote_mismatch
+
+ ✓ server/course-ai-citations.test.ts (1 test) 5ms
+ ✓ server/master-lifecycle.test.ts (1 test) 13ms
+ ✓ server/reitor-tv-premium.test.ts (1 test) 9ms
+stdout | server/login.test.ts
+[OAuth] Initialized with baseURL: 
+
+stderr | server/login.test.ts
+[OAuth] ERROR: MANUS_OAUTH_API_URL is not configured! Set MANUS_OAUTH_API_URL environment variable.
+
+ ✓ server/login.test.ts (7 tests) 2ms
+ ✓ server/master-release.test.ts (3 tests) 7ms
+
+ Test Files  50 passed (50)
+      Tests  407 passed (407)
+   Start at  07:15:44
+   Duration  9.56s (transform 1.79s, setup 0ms, collect 6.58s, tests 1.46s, environment 8ms, prepare 2.84s)
+

@@ -41,32 +41,19 @@ jobs:
           mkdir -p .ci-base
           unzip -qo .ci-main-source/vertice-servidor-source.zip -d .ci-base
           cp -a .ci-main-source/source-overrides/. .ci-base/
-          ln -s "$PWD/.ci-build/node_modules" .ci-base/node_modules
+          npm ci --prefix .ci-base --legacy-peer-deps --no-audit --no-fund
       - name: Comparar erros TypeScript com a branch principal
         shell: bash
         run: |
-          set +e
-          (cd .ci-base && ../.ci-build/node_modules/.bin/tsc --noEmit) > typecheck-base.log 2>&1
-          base_rc=$?
-          (cd .ci-build && npm run check) > typecheck-mobile.log 2>&1
-          mobile_rc=$?
-          set -e
-          # Compare diagnostics by file, TS code and message rather than volatile line numbers.
-          # Fixing existing diagnostics is allowed; only new diagnostics fail the branch.
-          grep -E 'error TS[0-9]+:' typecheck-base.log | sed -E 's/\\([0-9]+,[0-9]+\\):/(__line__):/' | sort -u > typecheck-base-errors.txt || true
-          grep -E 'error TS[0-9]+:' typecheck-mobile.log | sed -E 's/\\([0-9]+,[0-9]+\\):/(__line__):/' | sort -u > typecheck-mobile-errors.txt || true
-          echo "TypeScript base exit: $base_rc; mobile exit: $mobile_rc"
-          echo "Erros distintos pré-existentes: $(wc -l < typecheck-base-errors.txt)"
-          echo "Erros distintos da branch: $(wc -l < typecheck-mobile-errors.txt)"
-          comm -13 typecheck-base-errors.txt typecheck-mobile-errors.txt > typecheck-new-errors.txt
-          if [ -s typecheck-new-errors.txt ]; then
-            cat typecheck-new-errors.txt
-            echo "::error::A branch acrescentou erros TypeScript não presentes na main."
-            exit 1
-          fi
-          if [ "$mobile_rc" -ne 0 ]; then
-            echo "::warning::A checagem global da main já contém erros TypeScript; o Mobile não acrescentou novos erros."
-          fi
+          node --test scripts/tests/compare-typescript.test.mjs
+          node scripts/compare-typescript.mjs .ci-base .ci-build .typecheck-logs/mobile
+      - name: Guardar diagnósticos TypeScript
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-typescript-diagnostics
+          path: .typecheck-logs/mobile
+          if-no-files-found: ignore
       - name: Testes existentes
         id: tests
         continue-on-error: true

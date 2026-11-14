@@ -31,11 +31,11 @@ export default function EvasionRiskPanel({ institutionId, courses }: { instituti
 
   useEffect(() => {
     setLoading(true);
-    supabase.from('v_student_evasion_risk')
+    Promise.resolve(supabase.from('v_student_evasion_risk')
       .select('*')
       .eq('institution_id', institutionId)
       .order('risk_score', { ascending: false })
-      .limit(200)
+      .limit(200))
       .then(r => { setStudents((r.data ?? []) as RiskStudent[]); })
       .finally(() => setLoading(false));
   }, [institutionId]);
