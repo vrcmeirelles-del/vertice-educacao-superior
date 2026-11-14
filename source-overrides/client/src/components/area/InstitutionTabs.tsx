@@ -39,7 +39,7 @@ export const MACRO_TABS: MacroTabDef[] = [
     label: 'Cursos e Ofertas',
     icon: '▤',
     description: 'Cursos, matrículas e desempenho',
-    tabs: ['visao', 'eorbit', 'auditoria', 'backups', 'raio-x-direito', 'resultado-curso', 'simulador', 'escola-enem', 'escola-egressos'],
+    tabs: ['visao', 'eorbit', 'auditoria', 'backups', 'raio-x-direito', 'vitrine-curso', 'resultado-curso', 'simulador', 'escola-enem', 'escola-egressos'],
   },
   {
     key: 'gestores',

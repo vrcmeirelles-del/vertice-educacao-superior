@@ -9,6 +9,8 @@ on:
       - 'vertice-servidor-source.zip'
       - 'scripts/portal-types.vitest.config.ts'
       - 'scripts/tests/types-runtime/**'
+      - 'scripts/compare-typescript-diagnostics.mjs'
+      - 'scripts/tests/typescript-diagnostics.test.mjs'
       - '.github/workflows/verify-portal-types.yml'
 permissions:
   contents: read
@@ -36,6 +38,8 @@ jobs:
           npm ci --prefix .typecheck-build --legacy-peer-deps --no-audit --no-fund
           npm ci --prefix scripts/tests/types-runtime --no-audit --no-fund
           ln -s "$GITHUB_WORKSPACE/scripts/tests/types-runtime/node_modules/jsdom" .typecheck-build/node_modules/jsdom
+      - name: Testar o bloqueio de regressões do compilador
+        run: node --test scripts/tests/typescript-diagnostics.test.mjs
       - name: TypeScript completo, sem tolerar erros da base
         working-directory: .typecheck-build
         run: npm run check

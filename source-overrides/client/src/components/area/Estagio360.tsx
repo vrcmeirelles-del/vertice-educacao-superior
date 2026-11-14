@@ -462,7 +462,7 @@ function CreatePlacementForm({ institutionId, courses, orgs, fields, students, r
         <label>Curso<select value={courseId} onChange={e => setCourseId(e.target.value)} style={fld}>{courses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
         <label>Aluno<select value={studentId} onChange={e => setStudentId(e.target.value)} style={fld}><option value="">Selecione…</option>{courseStudents.map(s => <option key={s.id} value={s.id}>{s.full_name} — {s.enrollment_code}</option>)}</select></label>
         <label>Tipo<select value={locType} onChange={e => setLocType(e.target.value as any)} style={fld}><option value="internal">Interno</option><option value="external">Externo</option></select></label>
-        <label>Concedente<select value={orgId} onChange={e => setOrgId(e.target.value)} style={fld}><option value="">Selecione…</option>{orgs.map(o => <option key={o.id} value={o.id}>{o.trade_name || o.legal_name}</option>)}</select></label>
+        <label>Concedente<select value={orgId} onChange={e => setOrgId(e.target.value)} style={fld}><option value="">Selecione…</option>{orgs.map(o => <option key={o.id} value={o.id}>{o.trade_name || o.name}</option>)}</select></label>
         <label>Campo<select value={fieldId} onChange={e => setFieldId(e.target.value)} style={fld}><option value="">Selecione…</option>{fields.filter(f => !orgId || f.organization_id === orgId).map(f => <option key={f.id} value={f.id}>{f.name}</option>)}</select></label>
         <label>Orientador<input value={advisor} onChange={e => setAdvisor(e.target.value)} style={fld} placeholder="Nome do orientador" /></label>
         <label>Início<input type="date" value={startsAt} onChange={e => setStartsAt(e.target.value)} style={fld} /></label>
@@ -550,7 +550,7 @@ function CreateFieldForm({ institutionId, courses, orgs, onCreated, onCancel }: 
       <strong style={{ display: 'block', marginBottom: 12 }}>Novo Campo de Estágio</strong>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
         <label>Nome do Campo *<input value={name} onChange={e => setName(e.target.value)} style={fld} placeholder="Ex: Setor jurídico — DPE/TO" required /></label>
-        <label>Concedente *<select value={orgId} onChange={e => setOrgId(e.target.value)} style={fld}><option value="">Selecione…</option>{orgs.map(o => <option key={o.id} value={o.id}>{o.trade_name || o.legal_name}</option>)}</select></label>
+        <label>Concedente *<select value={orgId} onChange={e => setOrgId(e.target.value)} style={fld}><option value="">Selecione…</option>{orgs.map(o => <option key={o.id} value={o.id}>{o.trade_name || o.name}</option>)}</select></label>
         <label>Curso<select value={courseId} onChange={e => setCourseId(e.target.value)} style={fld}>{courses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
         <label>Tipo<select value={locType} onChange={e => setLocType(e.target.value as any)} style={fld}><option value="internal">Interno</option><option value="external">Externo</option></select></label>
         <label>Área de prática<input value={area} onChange={e => setArea(e.target.value)} style={fld} placeholder="Direito civil, administrativo…" /></label>

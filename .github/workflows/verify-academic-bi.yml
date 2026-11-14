@@ -5,6 +5,8 @@ on:
       - 'source-overrides/**'
       - 'vertice-servidor-source.zip'
       - '.github/workflows/verify-academic-bi.yml'
+      - 'scripts/compare-typescript-diagnostics.mjs'
+      - 'scripts/tests/typescript-diagnostics.test.mjs'
   workflow_dispatch:
 
 permissions:
@@ -13,13 +15,17 @@ permissions:
 jobs:
   validation:
     runs-on: ubuntu-latest
-    timeout-minutes: 18
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['22', '24']
     steps:
       - uses: actions/checkout@v4
-      - name: Node 22
+      - name: Node ${{ matrix.node }}
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: ${{ matrix.node }}
       - name: Extrair fonte editável e aplicar overrides
         run: |
           test -f vertice-servidor-source.zip
@@ -35,7 +41,7 @@ jobs:
       - name: Preparar base TypeScript da main
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: ${{ github.event.pull_request.base.sha || 'main' }}
           path: .validation-main-source
       - name: Bloquear novos erros TypeScript em relação à main
         shell: bash
@@ -44,22 +50,17 @@ jobs:
           unzip -qo .validation-main-source/vertice-servidor-source.zip -d .validation-main-build
           cp -a .validation-main-source/source-overrides/. .validation-main-build/
           if [ -d .validation-main-source/supabase ]; then cp -a .validation-main-source/supabase .validation-main-build/; fi
-          ln -s "$PWD/.validation-build/node_modules" .validation-main-build/node_modules
-          set +e
-          (cd .validation-main-build && ../.validation-build/node_modules/.bin/tsc --noEmit) > /tmp/vertice-ts-main.log 2>&1
-          (cd .validation-build && npm run check) > /tmp/vertice-ts-branch.log 2>&1
-          set -e
-          grep -E 'error TS[0-9]+:' /tmp/vertice-ts-main.log | sed -E 's/\\([0-9]+,[0-9]+\\):/(__line__):/' | sort -u > /tmp/vertice-ts-base.txt || true
-          grep -E 'error TS[0-9]+:' /tmp/vertice-ts-branch.log | sed -E 's/\\([0-9]+,[0-9]+\\):/(__line__):/' | sort -u > /tmp/vertice-ts-feature.txt || true
-          comm -13 /tmp/vertice-ts-base.txt /tmp/vertice-ts-feature.txt > /tmp/vertice-ts-new.txt
-          if [ -s /tmp/vertice-ts-new.txt ]; then
-            cat /tmp/vertice-ts-new.txt
-            echo "::error::Há erros TypeScript introduzidos por esta alteração."
-            exit 1
-          fi
-          if [ -s /tmp/vertice-ts-feature.txt ]; then
-            echo "::warning::Persistem erros TypeScript legados na main; nenhum erro novo foi introduzido."
-          fi
+          npm ci --prefix .validation-main-build --legacy-peer-deps --no-audit --no-fund
+          node --test scripts/tests/typescript-diagnostics.test.mjs
+          node scripts/compare-typescript-diagnostics.mjs .validation-main-build .validation-build .typescript-evidence
+      - name: Guardar logs TypeScript
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: typescript-regression-node-${{ matrix.node }}
+          path: .typescript-evidence
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Testes
         working-directory: .validation-build
         run: npm test
