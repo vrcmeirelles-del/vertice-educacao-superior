@@ -826,23 +826,29 @@ function VagasExtensaoTab({ outcomes, evolucao, vacancies }: { outcomes: any[]; 
         </div>
       </div>
 
-      {/* Evolução histórica */}
-      <strong style={{ fontSize: '.85rem' }}>Evolução por semestre</strong>
-      <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 8 }}>
-        <thead><tr>{['Semestre', 'Disciplinas CE', 'Matrículas em CE', 'Total curso', '% em extensão'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
-        <tbody>{Object.entries(ceBySem).sort(([a],[b]) => a.localeCompare(b)).map(([sem, d]) => {
+      {/* Evolução histórica com barras */}
+      <strong style={{ fontSize: '.85rem', display: 'block', marginTop: 16, marginBottom: 8 }}>📈 Evolução por semestre</strong>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {Object.entries(ceBySem).sort(([a],[b]) => a.localeCompare(b)).map(([sem, d]) => {
           const evSem = evolucao.find(e => e.semestre === sem);
           const matSem = evSem?.matriculados || evSem?.total_matriculados || 1;
           const pct = Math.round(100 * d.total / matSem);
-          return <tr key={sem}>
-            <td style={{ ...td, fontWeight: 700 }}>{sem}</td>
-            <td style={tdR}>{d.discs.length}</td>
-            <td style={{ ...tdR, fontWeight: 700, color: '#059669' }}>{d.total}</td>
-            <td style={tdR}>{matSem}</td>
-            <td style={{ ...tdR, fontWeight: 700, color: pct >= 30 ? '#16a34a' : pct >= 10 ? '#f59e0b' : '#dc2626' }}>{pct}%</td>
-          </tr>;
-        })}</tbody>
-      </table>
+          const maxBar = Math.max(...Object.values(ceBySem).map(x => x.total), 1);
+          const barW = Math.round(100 * d.total / maxBar);
+          return <div key={sem} style={{ display: 'grid', gridTemplateColumns: '70px 1fr 50px', gap: 8, alignItems: 'center' }}>
+            <strong style={{ fontSize: '.8rem' }}>{sem}</strong>
+            <div style={{ position: 'relative', height: 28, borderRadius: 6, background: '#f1f5f9', overflow: 'hidden' }}>
+              <div style={{ height: '100%', width: `${barW}%`, borderRadius: 6, background: pct >= 30 ? 'linear-gradient(90deg, #059669, #10b981)' : pct >= 10 ? 'linear-gradient(90deg, #f59e0b, #fbbf24)' : 'linear-gradient(90deg, #dc2626, #f87171)', transition: 'width .3s' }} />
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', padding: '0 8px', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: '.7rem', fontWeight: 700, color: barW > 40 ? '#fff' : '#1e293b' }}>{d.total} matrículas CE</span>
+                <span style={{ fontSize: '.65rem', color: barW > 60 ? '#fff' : '#64748b' }}>{d.discs.length} disc. · {matSem} total</span>
+              </div>
+            </div>
+            <span style={{ fontSize: '.8rem', fontWeight: 800, textAlign: 'right', color: pct >= 30 ? '#16a34a' : pct >= 10 ? '#f59e0b' : '#dc2626' }}>{pct}%</span>
+          </div>;
+        })}
+      </div>
+      <p style={{ fontSize: '.7rem', color: '#64748b', margin: '8px 0 0' }}>% = matrículas em extensão ÷ total de matriculados no semestre. Res. 7/2018: mín. 10% da carga em extensão.</p>
     </div>
 
     {/* ESTÁGIO */}
