@@ -24,7 +24,7 @@ interface Props {
   role: 'master' | 'gestor' | 'equipe';
 }
 
-type View = 'overview' | 'governanca' | 'referenciais' | 'ciclos' | 'instrumentos' | 'campanhas' | 'resultados' | 'relatorios' | 'achados' | 'planos' | 'devolutivas' | 'meta';
+type View = 'overview' | 'governanca' | 'referenciais' | 'ciclos' | 'instrumentos' | 'campanhas' | 'resultados' | 'relatorios' | 'achados' | 'planos' | 'devolutivas' | 'mesa' | 'meta';
 
 const NAV: { v: View; label: string; icon: string }[] = [
   { v: 'overview', label: 'Visão Geral', icon: '📊' },
@@ -38,6 +38,7 @@ const NAV: { v: View; label: string; icon: string }[] = [
   { v: 'achados', label: 'Achados', icon: '🔍' },
   { v: 'planos', label: 'Planos', icon: '🎯' },
   { v: 'devolutivas', label: 'Devolutivas', icon: '📢' },
+  { v: 'mesa', label: 'Mesa Digital', icon: '🖥' },
   { v: 'meta', label: 'Meta-avaliação', icon: '🔬' },
 ];
 
@@ -87,6 +88,7 @@ export default function CpaAutoavaliacao({ institutionId, role }: Props) {
       {view === 'achados' && <AchadosCPA institutionId={institutionId} role={role} />}
       {view === 'planos' && <PlanosCPA institutionId={institutionId} role={role} />}
       {view === 'devolutivas' && <DevolutivasCPA institutionId={institutionId} role={role} />}
+      {view === 'mesa' && <MesaDigitalCPA institutionId={institutionId} role={role} />}
       {view === 'meta' && <MetaCPA institutionId={institutionId} />}
     </div>
   );
@@ -941,6 +943,52 @@ function RelatoriosCPA({ institutionId, role }: { institutionId: string; role: s
     setEditSection(null);
   };
 
+  const exportReportWord = (report: any) => {
+    const sections = Object.values(report.content_json) as any[];
+    const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head><meta charset="utf-8"><style>
+body{font-family:Calibri,sans-serif;font-size:12pt;line-height:1.6;margin:40px}
+h1{font-size:18pt;color:#1e3a5f;text-align:center;margin-bottom:8px}
+h2{font-size:14pt;color:#1e3a5f;border-bottom:2px solid #2563eb;padding-bottom:4px;margin-top:24px}
+p{text-align:justify}
+.meta{text-align:center;color:#666;font-size:10pt;margin-bottom:24px}
+.footer{text-align:center;font-size:9pt;color:#999;margin-top:40px;border-top:1px solid #ccc;padding-top:10px}
+</style></head><body>
+<h1>${report.title || 'Relatório de Autoavaliação Institucional'}</h1>
+<p class="meta">${report.report_type === 'integral' ? 'Relatório Integral' : 'Relatório Parcial'} — Ano-base ${report.year_base}<br/>Gerado pela Plataforma Vértice Educação Superior</p>
+${sections.map(s => `<h2>${s.title}</h2><p>${(s.content || '').replace(/\n/g, '</p><p>')}</p>`).join('')}
+<p class="footer">Documento gerado automaticamente — Vértice Educação Superior © ${new Date().getFullYear()}</p>
+</body></html>`;
+    const blob = new Blob(['﻿' + html], { type: 'application/msword' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `Relatorio_CPA_${report.year_base}_${report.report_type}.doc`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+
+  const exportReportPDF = (report: any) => {
+    const sections = Object.values(report.content_json) as any[];
+    const win = window.open('', '_blank');
+    if (!win) { alert('Permita pop-ups para exportar PDF'); return; }
+    win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${report.title}</title>
+<style>@media print{@page{margin:20mm}body{-webkit-print-color-adjust:exact}}
+body{font-family:Calibri,Arial,sans-serif;font-size:12pt;line-height:1.6;margin:40px;color:#1e293b}
+h1{font-size:18pt;color:#1e3a5f;text-align:center;margin-bottom:4px}
+h2{font-size:13pt;color:#1e3a5f;border-bottom:2px solid #2563eb;padding-bottom:4px;margin-top:20px}
+p{text-align:justify}
+.meta{text-align:center;color:#64748b;font-size:10pt;margin-bottom:20px}
+.footer{text-align:center;font-size:9pt;color:#94a3b8;margin-top:30px;border-top:1px solid #e2e8f0;padding-top:8px}
+</style></head><body>
+<h1>${report.title || 'Relatório de Autoavaliação Institucional'}</h1>
+<p class="meta">${report.report_type === 'integral' ? 'Relatório Integral' : 'Relatório Parcial'} — Ano-base ${report.year_base}<br/>Vértice Educação Superior</p>
+${sections.map(s => `<h2>${s.title}</h2><p>${(s.content || '').replace(/\n/g, '</p><p>')}</p>`).join('')}
+<p class="footer">Vértice Educação Superior © ${new Date().getFullYear()}</p>
+</body></html>`);
+    win.document.close();
+    setTimeout(() => { win.print(); }, 500);
+  };
+
   if (loading) return <p className="alumni-loading">Carregando relatórios…</p>;
 
   return (
@@ -1001,6 +1049,14 @@ function RelatoriosCPA({ institutionId, role }: { institutionId: string; role: s
               {viewReport.status === 'aprovado' && (
                 <button style={{ fontSize: '.75rem', padding: '4px 12px', borderRadius: 6, border: '1px solid #059669', background: '#ecfdf5', color: '#059669', fontWeight: 600, cursor: 'pointer' }}
                   onClick={() => updateStatus(viewReport.id, 'finalizado')}>📦 Finalizar para postagem</button>
+              )}
+              {(viewReport.status === 'aprovado' || viewReport.status === 'finalizado') && (
+                <>
+                  <button style={{ fontSize: '.75rem', padding: '4px 12px', borderRadius: 6, border: '1px solid #7c3aed', background: '#f5f3ff', color: '#7c3aed', fontWeight: 600, cursor: 'pointer' }}
+                    onClick={() => exportReportWord(viewReport)}>📥 Word</button>
+                  <button style={{ fontSize: '.75rem', padding: '4px 12px', borderRadius: 6, border: '1px solid #dc2626', background: '#fef2f2', color: '#dc2626', fontWeight: 600, cursor: 'pointer' }}
+                    onClick={() => exportReportPDF(viewReport)}>📥 PDF</button>
+                </>
               )}
               <button style={{ fontSize: '.75rem', padding: '4px 12px', borderRadius: 6, border: '1px solid #2563eb', background: '#eff6ff', color: '#2563eb', cursor: 'pointer' }}
                 onClick={() => { setViewReport(null); }}>✕ Fechar</button>
@@ -1160,4 +1216,146 @@ function KPI({ label, value, pct, color }: { label: string; value: number; pct?:
 }
 function EmptyState({ msg }: { msg: string }) {
   return <div className="alumni-empty"><p>{msg}</p></div>;
+}
+
+function MesaDigitalCPA({ institutionId, role }: { institutionId: string; role: string }) {
+  const [posts, setPosts] = useState<any[]>([]);
+  const [reports, setReports] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ report_id: '', protocol_number: '', notes: '', posted_to: 'e-MEC' });
+
+  useEffect(() => {
+    Promise.all([
+      supabase.from('vertice_cpa_mesa_digital').select('*, report:vertice_cpa_reports(title,report_type,year_base)').eq('institution_id', institutionId).order('posted_at', { ascending: false }),
+      supabase.from('vertice_cpa_reports').select('id,title,report_type,year_base,status').eq('institution_id', institutionId).in('status', ['finalizado','postagem_registrada']).order('created_at', { ascending: false })
+    ]).then(([{ data: p }, { data: r }]) => {
+      setPosts(p || []);
+      setReports(r || []);
+    }).finally(() => setLoading(false));
+  }, [institutionId]);
+
+  const submit = async () => {
+    if (!form.report_id) { alert('Selecione um relatório'); return; }
+    const { data, error } = await supabase.from('vertice_cpa_mesa_digital').insert({
+      institution_id: institutionId, report_id: form.report_id, protocol_number: form.protocol_number || null,
+      notes: form.notes || null, posted_to: form.posted_to
+    }).select('*, report:vertice_cpa_reports(title,report_type,year_base)').single();
+    if (error) { alert('Erro: ' + error.message); return; }
+    // Update report status
+    await supabase.from('vertice_cpa_reports').update({ status: 'postagem_registrada', updated_at: new Date().toISOString() }).eq('id', form.report_id);
+    setPosts(prev => [data, ...prev]);
+    setShowForm(false);
+    setForm({ report_id: '', protocol_number: '', notes: '', posted_to: 'e-MEC' });
+  };
+
+  const updatePostStatus = async (postId: string, status: string) => {
+    await supabase.from('vertice_cpa_mesa_digital').update({ status, confirmed_at: status === 'confirmado' ? new Date().toISOString() : null, updated_at: new Date().toISOString() }).eq('id', postId);
+    setPosts(prev => prev.map(p => p.id === postId ? { ...p, status, confirmed_at: status === 'confirmado' ? new Date().toISOString() : null } : p));
+  };
+
+  const ST: Record<string,{l:string;bg:string}> = { postado:{l:'Postado',bg:'#2563eb'}, confirmado:{l:'Confirmado',bg:'#16a34a'}, rejeitado:{l:'Rejeitado',bg:'#dc2626'}, repostado:{l:'Repostado',bg:'#f59e0b'} };
+
+  if (loading) return <p className="alumni-loading">Carregando mesa digital…</p>;
+
+  return (
+    <section>
+      <div className="alumni-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h3>🖥 Mesa Digital — Postagem e-MEC/SINAES</h3>
+        {(role === 'master' || role === 'gestor') && (
+          <button className="alumni-btn-primary" onClick={() => setShowForm(!showForm)}>
+            {showForm ? '✕ Cancelar' : '📤 Registrar postagem'}
+          </button>
+        )}
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10, margin: '12px 0' }}>
+        <KPI label="Total postagens" value={posts.length} color="#2563eb" />
+        <KPI label="Confirmadas" value={posts.filter(p => p.status === 'confirmado').length} color="#16a34a" />
+        <KPI label="Pendentes" value={posts.filter(p => p.status === 'postado' || p.status === 'repostado').length} color="#f59e0b" />
+        <KPI label="Rejeitadas" value={posts.filter(p => p.status === 'rejeitado').length} color="#dc2626" />
+      </div>
+
+      {showForm && (
+        <div style={{ border: '2px solid #7c3aed', borderRadius: 12, padding: 16, background: '#faf5ff', marginBottom: 16 }}>
+          <strong style={{ fontSize: '.95rem', color: '#7c3aed' }}>📤 Registrar postagem de relatório</strong>
+          <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
+            <div>
+              <label style={{ fontSize: '.8rem', fontWeight: 600 }}>Relatório finalizado *</label>
+              <select value={form.report_id} onChange={e => setForm(f => ({ ...f, report_id: e.target.value }))}
+                style={{ width: '100%', padding: 8, borderRadius: 8, border: '1px solid #d4d4d8', fontSize: '.85rem' }}>
+                <option value="">Selecione…</option>
+                {reports.map(r => <option key={r.id} value={r.id}>{r.title} ({r.report_type} — {r.year_base})</option>)}
+              </select>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <div>
+                <label style={{ fontSize: '.8rem', fontWeight: 600 }}>Destino</label>
+                <select value={form.posted_to} onChange={e => setForm(f => ({ ...f, posted_to: e.target.value }))}
+                  style={{ width: '100%', padding: 8, borderRadius: 8, border: '1px solid #d4d4d8', fontSize: '.85rem' }}>
+                  <option value="e-MEC">e-MEC</option>
+                  <option value="SINAES">SINAES</option>
+                  <option value="INEP">INEP</option>
+                  <option value="Outro">Outro</option>
+                </select>
+              </div>
+              <div>
+                <label style={{ fontSize: '.8rem', fontWeight: 600 }}>Nº Protocolo</label>
+                <input value={form.protocol_number} onChange={e => setForm(f => ({ ...f, protocol_number: e.target.value }))}
+                  placeholder="Opcional" style={{ width: '100%', padding: 8, borderRadius: 8, border: '1px solid #d4d4d8', fontSize: '.85rem' }} />
+              </div>
+            </div>
+            <div>
+              <label style={{ fontSize: '.8rem', fontWeight: 600 }}>Observações</label>
+              <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={3}
+                placeholder="Detalhes da postagem…" style={{ width: '100%', padding: 8, borderRadius: 8, border: '1px solid #d4d4d8', fontSize: '.85rem', resize: 'vertical' }} />
+            </div>
+            <button onClick={submit} style={{ padding: '10px 20px', borderRadius: 8, border: 'none', background: '#7c3aed', color: '#fff', fontWeight: 700, fontSize: '.9rem', cursor: 'pointer' }}>
+              ✅ Confirmar registro de postagem
+            </button>
+          </div>
+        </div>
+      )}
+
+      {posts.length === 0 ? <EmptyState msg="Nenhuma postagem registrada. Finalize um relatório e registre a postagem ao e-MEC." /> : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {posts.map(p => (
+            <div key={p.id} style={{ border: '1px solid #e2e8f0', borderRadius: 10, padding: 14, background: '#fff' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
+                <div>
+                  <strong style={{ fontSize: '.9rem' }}>{p.report?.title || 'Relatório'}</strong>
+                  <div style={{ fontSize: '.75rem', color: '#64748b' }}>
+                    {p.report?.report_type} — Ano-base {p.report?.year_base} · {p.posted_to}
+                    {p.protocol_number && <> · Protocolo: <strong>{p.protocol_number}</strong></>}
+                  </div>
+                  <div style={{ fontSize: '.7rem', color: '#94a3b8' }}>Postado em {new Date(p.posted_at).toLocaleDateString('pt-BR')}</div>
+                </div>
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                  <span style={{ fontSize: '.7rem', padding: '2px 8px', borderRadius: 99, color: '#fff', background: (ST[p.status] || ST.postado).bg }}>{(ST[p.status] || ST.postado).l}</span>
+                  {(role === 'master' || role === 'gestor') && p.status === 'postado' && (
+                    <>
+                      <button style={{ fontSize: '.7rem', padding: '3px 8px', borderRadius: 6, border: '1px solid #16a34a', background: '#f0fdf4', color: '#16a34a', cursor: 'pointer' }}
+                        onClick={() => updatePostStatus(p.id, 'confirmado')}>✅ Confirmar</button>
+                      <button style={{ fontSize: '.7rem', padding: '3px 8px', borderRadius: 6, border: '1px solid #dc2626', background: '#fef2f2', color: '#dc2626', cursor: 'pointer' }}
+                        onClick={() => updatePostStatus(p.id, 'rejeitado')}>❌ Rejeitar</button>
+                    </>
+                  )}
+                  {(role === 'master' || role === 'gestor') && p.status === 'rejeitado' && (
+                    <button style={{ fontSize: '.7rem', padding: '3px 8px', borderRadius: 6, border: '1px solid #f59e0b', background: '#fffbeb', color: '#b45309', cursor: 'pointer' }}
+                      onClick={() => updatePostStatus(p.id, 'repostado')}>🔄 Repostar</button>
+                  )}
+                </div>
+              </div>
+              {p.notes && <div style={{ marginTop: 6, fontSize: '.8rem', color: '#475569', background: '#f8fafc', padding: 8, borderRadius: 6 }}>{p.notes}</div>}
+              {p.confirmed_at && <div style={{ fontSize: '.7rem', color: '#16a34a', marginTop: 4 }}>✅ Confirmado em {new Date(p.confirmed_at).toLocaleDateString('pt-BR')}</div>}
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div style={{ marginTop: 16, padding: 12, background: '#f5f3ff', borderRadius: 10, fontSize: '.8rem', color: '#475569' }}>
+        🖥 <strong>Mesa Digital</strong> — Registre aqui as postagens dos relatórios CPA ao e-MEC/SINAES. Após postagem, aguarde a confirmação do protocolo.
+      </div>
+    </section>
+  );
 }
