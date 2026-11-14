@@ -1,5 +1,5 @@
 // InstitutionalDashboard360.tsx — Painel 360° integrado para Reitoria
-// Puxa v_course_academic_360 (cruza TCC + AC + Estágio + Extensão + Egressos + CPA)
+// Puxa v_course_academic_360 (cruza TCC + AC + Fraude + Estágio + Extensão + Egressos + CPA + Campanhas + Relatórios + Mesa Digital)
 // e v_institutional_alerts (alertas cruzados de todos os módulos)
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
@@ -10,10 +10,14 @@ interface Course360 {
   course_id: string; course_name: string;
   tcc_works_active: number; tcc_deposited: number; tcc_overdue: number; tcc_authors: number; tcc_advisors: number; tcc_hours_min: number; tcc_evidence_validated: number;
   ac_submissions: number; ac_pending: number; ac_approved: number; ac_credited_min: number; ac_students_with_rule: number;
+  ac_fraud_alerts: number; ac_fraud_high: number; ac_fraud_pending: number; ac_fraud_escalated: number;
   estagio_total: number; estagio_active: number; estagio_internal: number; estagio_external: number; estagio_completed: number; estagio_hours_min: number; estagio_orgs: number;
   extensao_projetos: number; extensao_alunos: number;
   egressos_total: number;
   cpa_achados: number; cpa_potencialidades: number; cpa_fragilidades: number;
+  cpa_campaigns: number; cpa_campaigns_active: number; cpa_responses: number; cpa_avg_score: number;
+  cpa_reports: number; cpa_reports_finalized: number; cpa_reports_approved: number;
+  mesa_postings: number; mesa_confirmed: number; mesa_pending: number;
 }
 interface Alert { module: string; alert_type: string; message: string; course_id: string | null; detail: string | null; }
 
@@ -44,6 +48,10 @@ export default function InstitutionalDashboard360({ institutionId }: Props) {
     ac_submissions: acc.ac_submissions + c.ac_submissions,
     ac_pending: acc.ac_pending + c.ac_pending,
     ac_credited: acc.ac_credited + c.ac_credited_min,
+    ac_fraud_alerts: Math.max(acc.ac_fraud_alerts, c.ac_fraud_alerts),
+    ac_fraud_high: Math.max(acc.ac_fraud_high, c.ac_fraud_high),
+    ac_fraud_pending: Math.max(acc.ac_fraud_pending, c.ac_fraud_pending),
+    ac_fraud_escalated: Math.max(acc.ac_fraud_escalated, c.ac_fraud_escalated),
     estagio_active: acc.estagio_active + c.estagio_active,
     estagio_completed: acc.estagio_completed + c.estagio_completed,
     estagio_hours: acc.estagio_hours + c.estagio_hours_min,
@@ -52,7 +60,16 @@ export default function InstitutionalDashboard360({ institutionId }: Props) {
     egressos: acc.egressos + c.egressos_total,
     cpa_achados: acc.cpa_achados + c.cpa_achados,
     cpa_fragilidades: acc.cpa_fragilidades + c.cpa_fragilidades,
-  }), { tcc_active:0, tcc_deposited:0, tcc_overdue:0, tcc_hours:0, tcc_evidence:0, ac_submissions:0, ac_pending:0, ac_credited:0, estagio_active:0, estagio_completed:0, estagio_hours:0, extensao_projetos:0, extensao_alunos:0, egressos:0, cpa_achados:0, cpa_fragilidades:0 });
+    cpa_campaigns: Math.max(acc.cpa_campaigns, c.cpa_campaigns),
+    cpa_campaigns_active: Math.max(acc.cpa_campaigns_active, c.cpa_campaigns_active),
+    cpa_responses: Math.max(acc.cpa_responses, c.cpa_responses),
+    cpa_avg_score: Math.max(acc.cpa_avg_score, c.cpa_avg_score),
+    cpa_reports: Math.max(acc.cpa_reports, c.cpa_reports),
+    cpa_reports_finalized: Math.max(acc.cpa_reports_finalized, c.cpa_reports_finalized),
+    mesa_postings: Math.max(acc.mesa_postings, c.mesa_postings),
+    mesa_confirmed: Math.max(acc.mesa_confirmed, c.mesa_confirmed),
+    mesa_pending: Math.max(acc.mesa_pending, c.mesa_pending),
+  }), { tcc_active:0, tcc_deposited:0, tcc_overdue:0, tcc_hours:0, tcc_evidence:0, ac_submissions:0, ac_pending:0, ac_credited:0, ac_fraud_alerts:0, ac_fraud_high:0, ac_fraud_pending:0, ac_fraud_escalated:0, estagio_active:0, estagio_completed:0, estagio_hours:0, extensao_projetos:0, extensao_alunos:0, egressos:0, cpa_achados:0, cpa_fragilidades:0, cpa_campaigns:0, cpa_campaigns_active:0, cpa_responses:0, cpa_avg_score:0, cpa_reports:0, cpa_reports_finalized:0, mesa_postings:0, mesa_confirmed:0, mesa_pending:0 });
 
   const h = (m: number) => { const hr = Math.floor(m / 60); return hr > 0 ? `${hr.toLocaleString('pt-BR')}h` : '0h'; };
   const moduleColors: Record<string, string> = { tcc: '#8b5cf6', ac: '#0891b2', estagio: '#d97706', complementary_activities: '#0891b2', mandatory_internship: '#d97706' };
@@ -73,6 +90,10 @@ export default function InstitutionalDashboard360({ institutionId }: Props) {
           { label: 'Solicitações', value: t.ac_submissions }, { label: 'Pendentes', value: t.ac_pending, bad: t.ac_pending > 5 },
           { label: 'Horas creditadas', value: h(t.ac_credited) },
         ]} />
+        {t.ac_fraud_alerts > 0 && <ModuleCard title="🛡 Integridade AC" color="#dc2626" items={[
+          { label: 'Alertas', value: t.ac_fraud_alerts, bad: true }, { label: 'Alta severidade', value: t.ac_fraud_high, bad: t.ac_fraud_high > 0 },
+          { label: 'Pendentes', value: t.ac_fraud_pending, bad: t.ac_fraud_pending > 0 }, { label: 'Escalados', value: t.ac_fraud_escalated },
+        ]} />}
         <ModuleCard title="🏢 Estágio Obrigatório" color="#d97706" items={[
           { label: 'Em andamento', value: t.estagio_active }, { label: 'Concluídos', value: t.estagio_completed },
           { label: 'Horas validadas', value: h(t.estagio_hours) },
@@ -81,8 +102,20 @@ export default function InstitutionalDashboard360({ institutionId }: Props) {
           { label: 'Projetos', value: t.extensao_projetos }, { label: 'Alunos', value: t.extensao_alunos },
         ]} />
         <ModuleCard title="🎓 Egressos" color="#7c3aed" items={[{ label: 'Acompanhados', value: t.egressos }]} />
-        <ModuleCard title="📊 CPA" color="#ec4899" items={[
+        <ModuleCard title="📊 CPA — Achados" color="#ec4899" items={[
           { label: 'Achados', value: t.cpa_achados }, { label: 'Fragilidades', value: t.cpa_fragilidades, bad: t.cpa_fragilidades > 0 },
+        ]} />
+        <ModuleCard title="📨 CPA — Campanhas" color="#2563eb" items={[
+          { label: 'Campanhas', value: t.cpa_campaigns }, { label: 'Ativas', value: t.cpa_campaigns_active },
+          { label: 'Respostas', value: t.cpa_responses }, { label: 'Score médio', value: t.cpa_avg_score > 0 ? Number(t.cpa_avg_score).toFixed(1) : '—' },
+        ]} />
+        <ModuleCard title="📄 CPA — Relatórios" color="#7c3aed" items={[
+          { label: 'Total', value: t.cpa_reports }, { label: 'Finalizados', value: t.cpa_reports_finalized },
+          { label: 'Aprovados', value: t.cpa_reports_approved },
+        ]} />
+        <ModuleCard title="🖥 Mesa Digital" color="#059669" items={[
+          { label: 'Postagens', value: t.mesa_postings }, { label: 'Confirmadas', value: t.mesa_confirmed },
+          { label: 'Pendentes', value: t.mesa_pending, bad: t.mesa_pending > 0 },
         ]} />
       </div>
 
@@ -114,7 +147,9 @@ export default function InstitutionalDashboard360({ institutionId }: Props) {
                 <th colSpan={3} style={{ textAlign: 'center', background: '#d9770622', padding: '4px' }}>Estágio</th>
                 <th style={{ textAlign: 'center' }}>Ext.</th>
                 <th style={{ textAlign: 'center' }}>Egr.</th>
-                <th style={{ textAlign: 'center' }}>CPA</th>
+                <th colSpan={2} style={{ textAlign: 'center', background: '#ec489922', padding: '4px' }}>CPA</th>
+                <th style={{ textAlign: 'center' }}>🛡</th>
+                <th style={{ textAlign: 'center' }}>🖥</th>
               </tr>
               <tr style={{ borderBottom: '1px solid #e2e8f0', fontSize: '.6875rem', color: '#64748b' }}>
                 <th></th>
@@ -124,6 +159,9 @@ export default function InstitutionalDashboard360({ institutionId }: Props) {
                 <th style={{ textAlign: 'center' }}>Proj.</th>
                 <th style={{ textAlign: 'center' }}>Total</th>
                 <th style={{ textAlign: 'center' }}>Ach.</th>
+                <th style={{ textAlign: 'center' }}>Resp.</th>
+                <th style={{ textAlign: 'center' }}>Fraude</th>
+                <th style={{ textAlign: 'center' }}>Mesa</th>
               </tr>
             </thead>
             <tbody>{courses.filter(c => c.tcc_works_active + c.ac_submissions + c.estagio_total + c.extensao_projetos + c.egressos_total + c.cpa_achados > 0).map(c => (
@@ -140,6 +178,9 @@ export default function InstitutionalDashboard360({ institutionId }: Props) {
                 <td style={{ textAlign: 'center' }}>{c.extensao_projetos || '—'}</td>
                 <td style={{ textAlign: 'center' }}>{c.egressos_total || '—'}</td>
                 <td style={{ textAlign: 'center' }}>{c.cpa_achados || '—'}</td>
+                <td style={{ textAlign: 'center' }}>{c.cpa_responses || '—'}</td>
+                <td style={{ textAlign: 'center', color: c.ac_fraud_alerts > 0 ? '#dc2626' : undefined }}>{c.ac_fraud_alerts || '—'}</td>
+                <td style={{ textAlign: 'center', color: c.mesa_pending > 0 ? '#f59e0b' : c.mesa_confirmed > 0 ? '#059669' : undefined }}>{c.mesa_postings || '—'}</td>
               </tr>
             ))}</tbody>
           </table>
