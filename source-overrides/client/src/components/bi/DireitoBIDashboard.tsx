@@ -424,31 +424,43 @@ function ProfsTab({ profs, onDrill }: { profs: any[]; onDrill: (d: any) => void 
       })}
     </div>
 
+    {/* Legenda fixa */}
+    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', padding: '8px 12px', background: '#f8fafc', borderRadius: 8, border: '1px solid #e2e8f0', marginBottom: 8, position: 'sticky', top: 0, zIndex: 5 }}>
+      <span style={{ fontSize: '.7rem', fontWeight: 600 }}>Perfil:</span>
+      <span style={{ fontSize: '.7rem' }}><span style={badge('#f59e0b')}>⚡ Falta</span> evasão silenciosa</span>
+      <span style={{ fontSize: '.7rem' }}><span style={badge('#7c3aed')}>📝 Nota</span> rigor avaliativo</span>
+      <span style={{ fontSize: '.7rem' }}><span style={badge('#dc2626')}>💀 Ambos</span> desiste + não atinge nota</span>
+      <span style={{ fontSize: '.7rem' }}><span style={badge('#ca8a04')}>🔶 Branda</span> nunca reprova, média ≥9.5</span>
+      <span style={{ fontSize: '.7rem' }}><span style={badge('#16a34a')}>🟢 OK</span> equilibrado</span>
+    </div>
+
     {/* Tabela completa */}
-    <div style={{ maxHeight: 500, overflowY: 'auto' }}>
+    <div style={{ maxHeight: 520, overflowY: 'auto', borderRadius: 10, border: '1px solid #e2e8f0' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-        <thead><tr>{['Professor','Alunos','Turmas','Sem.','RF','RN','RA','Total','%','Média','Perfil'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
+        <thead><tr>{['Professor','Alunos','Turmas','Sem.','RF','RN','RA','Total','%','Média','Perfil'].map(h =>
+          <th key={h} style={{ ...th, position: 'sticky', top: 0, background: '#0f172a', color: '#e2e8f0', zIndex: 2, padding: '10px 8px' }}>{h}</th>
+        )}</tr></thead>
         <tbody>{sorted.sort((a,b) => b.total_rep - a.total_rep).map((p, i) => {
           const main = p.rf >= p.rn && p.rf >= p.ra ? 'falta' : p.rn >= p.ra ? 'nota' : 'ambos';
           const profLabel = p.total_rep === 0 ? (p.media >= 9.5 ? '🔶 Branda' : '🟢 OK') : main === 'falta' ? '⚡ Falta' : main === 'nota' ? '📝 Nota' : '💀 Ambos';
           const profColor = p.total_rep === 0 ? (p.media >= 9.5 ? '#ca8a04' : '#16a34a') : main === 'falta' ? '#f59e0b' : main === 'nota' ? '#7c3aed' : '#dc2626';
-          return <tr key={i} style={{ cursor: 'pointer' }} onClick={() => onDrill({ type: 'professor', data: p })}
-            onMouseEnter={e => (e.currentTarget.style.background = '#f8fafc')} onMouseLeave={e => (e.currentTarget.style.background = '')}>
-            <td style={{ ...td, fontWeight: 600, maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={p.nome}>{p.nome}</td>
-            <td style={tdR}>{p.alunos}</td><td style={tdR}>{p.turmas}</td><td style={tdR}>{p.semesters}</td>
-            <td style={{ ...tdR, color: p.rf > 10 ? '#dc2626' : '#64748b' }}>{p.rf}</td>
-            <td style={{ ...tdR, color: p.rn > 5 ? '#7c3aed' : '#64748b' }}>{p.rn}</td>
-            <td style={{ ...tdR, color: p.ra > 5 ? '#dc2626' : '#64748b' }}>{p.ra}</td>
-            <td style={{ ...tdR, fontWeight: 700 }}>{p.total_rep}</td>
-            <td style={{ ...tdR, fontWeight: 800, color: p.pct_rep > 20 ? '#dc2626' : p.pct_rep > 10 ? '#f59e0b' : '#16a34a' }}>{p.pct_rep}%</td>
-            <td style={{ ...tdR, color: (p.media ?? 10) < 7 ? '#dc2626' : '#1e293b' }}>{p.media ?? '—'}</td>
-            <td style={td}><span style={badge(profColor)}>{profLabel}</span></td>
+          const stripe = i % 2 === 0 ? '#fff' : '#f8fafc';
+          return <tr key={i} style={{ cursor: 'pointer', background: stripe }} onClick={() => onDrill({ type: 'professor', data: p })}
+            onMouseEnter={e => (e.currentTarget.style.background = '#eff6ff')} onMouseLeave={e => (e.currentTarget.style.background = stripe)}>
+            <td style={{ ...td, fontWeight: 600, maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', padding: '10px 8px' }} title={p.nome}>{p.nome}</td>
+            <td style={{ ...tdR, padding: '10px 6px' }}>{p.alunos}</td>
+            <td style={{ ...tdR, padding: '10px 6px' }}>{p.turmas}</td>
+            <td style={{ ...tdR, padding: '10px 6px' }}>{p.semesters}</td>
+            <td style={{ ...tdR, padding: '10px 6px', color: p.rf > 10 ? '#dc2626' : '#64748b', fontWeight: p.rf > 10 ? 700 : 400 }}>{p.rf}</td>
+            <td style={{ ...tdR, padding: '10px 6px', color: p.rn > 5 ? '#7c3aed' : '#64748b', fontWeight: p.rn > 5 ? 700 : 400 }}>{p.rn}</td>
+            <td style={{ ...tdR, padding: '10px 6px', color: p.ra > 5 ? '#dc2626' : '#64748b', fontWeight: p.ra > 5 ? 700 : 400 }}>{p.ra}</td>
+            <td style={{ ...tdR, padding: '10px 6px', fontWeight: 800, fontSize: '.85rem' }}>{p.total_rep}</td>
+            <td style={{ ...tdR, padding: '10px 6px', fontWeight: 800, fontSize: '.85rem', color: p.pct_rep > 20 ? '#dc2626' : p.pct_rep > 10 ? '#f59e0b' : '#16a34a' }}>{p.pct_rep}%</td>
+            <td style={{ ...tdR, padding: '10px 6px', fontWeight: 600, color: (p.media ?? 10) < 7 ? '#dc2626' : '#1e293b' }}>{p.media ?? '—'}</td>
+            <td style={{ ...td, padding: '10px 6px' }}><span style={badge(profColor)}>{profLabel}</span></td>
           </tr>;
         })}</tbody>
       </table>
-    </div>
-    <div style={{ marginTop: 10, display: 'flex', gap: 12, fontSize: '.7rem', color: 'var(--vx-muted, #64748b)', flexWrap: 'wrap' }}>
-      <span>⚡ Falta = evasão silenciosa</span><span>📝 Nota = rigor avaliativo</span><span>💀 Ambos = aluno desiste E não atinge nota</span><span>🔶 Branda = nunca reprova, média ≥9.5</span>
     </div>
   </div>;
 }
