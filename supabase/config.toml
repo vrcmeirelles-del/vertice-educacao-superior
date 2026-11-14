@@ -4,3 +4,7 @@ verify_jwt = false
 # Visitor demo uses random capability tokens, consent gates and server quotas.
 [functions.vertice-demo]
 verify_jwt = false
+
+# Master-only Sapiens approval/dispatch and aggregate feedback; handler also verifies JWT + AAL2.
+[functions.vertice-sapiens-bridge]
+verify_jwt = true

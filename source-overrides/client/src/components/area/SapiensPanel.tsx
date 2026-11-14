@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
 type Tab = "diagnoses" | "interventions" | "briefings" | "goals";
+type Effectiveness = { id: string; intervention_id: string; measured_at: string; current_sample_size: number; attempts_since_baseline: number; p_know_change: number | null; sample_overlap: number; effectiveness: string };
 
 type Diagnosis = {
   id: string; module: string; severity: string; summary: string;
@@ -12,7 +13,8 @@ type Intervention = {
   id: string; title: string; module: string; status: string;
   intervention_type: string; description: string; reviewed_by: string | null;
   reviewed_at: string | null; reviewer_notes: string | null;
-  created_at: string; diagnosis_id: string;
+  created_at: string; diagnosis_id: string; course_id: string;
+  delivery_status: string; last_delivery_code: string | null;
 };
 type Briefing = {
   id: string; briefing_type: string; summary: string;
@@ -77,6 +79,7 @@ export default function SapiensPanel({ institutionId, role }: Props) {
   const [interventions, setInterventions] = useState<Intervention[]>([]);
   const [briefings, setBriefings] = useState<Briefing[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
+  const [effectiveness, setEffectiveness] = useState<Effectiveness[]>([]);
   const [actions, setActions] = useState<ActionPlan[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -87,7 +90,7 @@ export default function SapiensPanel({ institutionId, role }: Props) {
     setBusy(true);
     setError("");
     try {
-      const [d, i, b, g, a] = await Promise.all([
+      const [d, i, b, g, a, e] = await Promise.all([
         supabase.from("vertice_sapiens_diagnoses").select("*")
           .eq("institution_id", institutionId).order("created_at", { ascending: false }).limit(50),
         supabase.from("vertice_sapiens_interventions").select("*")
@@ -98,7 +101,10 @@ export default function SapiensPanel({ institutionId, role }: Props) {
           .eq("institution_id", institutionId).order("created_at", { ascending: false }).limit(30),
         supabase.from("vertice_sapiens_action_plans").select("*")
           .eq("institution_id", institutionId).order("sort_order").limit(100),
+        supabase.from("vertice_sapiens_effectiveness").select("id,intervention_id,measured_at,current_sample_size,attempts_since_baseline,p_know_change,sample_overlap,effectiveness").eq("institution_id", institutionId).order("measured_at", { ascending: false }).limit(100),
       ]);
+      for (const result of [d,i,b,g,a,e]) if (result.error) throw result.error;
+      if (e.data) setEffectiveness(e.data as Effectiveness[]);
       if (d.data) setDiagnoses(d.data as Diagnosis[]);
       if (i.data) setInterventions(i.data as Intervention[]);
       if (b.data) setBriefings(b.data as Briefing[]);
@@ -113,21 +119,18 @@ export default function SapiensPanel({ institutionId, role }: Props) {
 
   useEffect(() => { load(); }, [load]);
 
-  const approveIntervention = async (id: string, approved: boolean) => {
+  const runIntervention = async (id: string, action: "approve" | "reject" | "retry" | "feedback") => {
+    if (role !== "master") return;
     setBusy(true); setError(""); setSuccess("");
+    let failure = "";
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Sessão expirada");
-      const { error: err } = await supabase.from("vertice_sapiens_interventions").update({
-        status: approved ? "approved" : "rejected",
-        reviewed_by: user.id,
-        reviewed_at: new Date().toISOString(),
-      }).eq("id", id);
-      if (err) throw err;
-      setSuccess(approved ? "Intervenção aprovada." : "Intervenção rejeitada.");
-      await load();
-    } catch (e) { setError((e as Error).message); }
-    finally { setBusy(false); }
+      const { data, error: err } = await supabase.functions.invoke("vertice-sapiens-bridge", {
+        body: { institutionId, interventionId: id, action },
+      });
+      if (err || data?.error) throw err || new Error(data.error);
+      setSuccess(action === "reject" ? "Intervenção rejeitada." : action === "feedback" ? "Medição longitudinal recebida." : "Envio confirmado pelo Fato & Ordem.");
+    } catch (e) { failure = (e as Error).message + " Atualize o painel para consultar o estado e repetir a operação."; }
+    finally { await load(); if (failure) setError(failure); setBusy(false); }
   };
 
   const tabs: { key: Tab; label: string; count?: number }[] = [
@@ -212,19 +215,25 @@ export default function SapiensPanel({ institutionId, role }: Props) {
                 <span style={{ fontSize: 11, color: "#94a3b8", marginLeft: "auto" }}>{fmtDate(iv.created_at)}</span>
               </div>
               <p style={{ fontSize: 13, margin: "4px 0", lineHeight: 1.5, color: "#475569" }}>{iv.description}</p>
+              <p style={{ fontSize: 12 }}>Curso: {iv.course_id} · Entrega: {iv.delivery_status}{iv.last_delivery_code ? ` (${iv.last_delivery_code})` : ""}</p>
+              {role === "master" && iv.status === "approved" && <button type="button" disabled={busy} onClick={() => runIntervention(iv.id, "retry")}>Repetir envio</button>}
+              {role === "master" && iv.status === "sent" && <button type="button" disabled={busy} onClick={() => runIntervention(iv.id, "feedback")}>Atualizar resultados</button>}
+              {effectiveness.filter(e => e.intervention_id === iv.id).map(e => <p key={e.id} style={{fontSize:12}}>
+                {fmtDate(e.measured_at)} · {e.effectiveness} · {e.current_sample_size} estudantes · {e.sample_overlap} comparáveis · {e.attempts_since_baseline} novas tentativas · Variação p_know: {e.p_know_change == null ? "sem dados" : (e.p_know_change * 100).toFixed(1) + " p.p."}
+              </p>)}
               {iv.reviewer_notes && (
                 <p style={{ fontSize: 12, color: "#64748b", fontStyle: "italic" }}>
                   Nota do revisor: {iv.reviewer_notes}
                 </p>
               )}
-              {iv.status === "proposed" && (
+              {iv.status === "proposed" && role === "master" && (
                 <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-                  <button type="button" disabled={busy} onClick={() => approveIntervention(iv.id, true)}
+                  <button type="button" disabled={busy} onClick={() => runIntervention(iv.id, "approve")}
                     style={{ padding: "6px 16px", fontSize: 13, borderRadius: 6, border: "none",
                       background: "#22c55e", color: "#fff", cursor: "pointer", fontWeight: 600 }}>
                     ✓ Aprovar
                   </button>
-                  <button type="button" disabled={busy} onClick={() => approveIntervention(iv.id, false)}
+                  <button type="button" disabled={busy} onClick={() => runIntervention(iv.id, "reject")}
                     style={{ padding: "6px 16px", fontSize: 13, borderRadius: 6,
                       border: "1px solid #dc2626", background: "#fff", color: "#dc2626", cursor: "pointer" }}>
                     ✗ Rejeitar

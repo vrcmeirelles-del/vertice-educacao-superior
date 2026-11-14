@@ -1,0 +1,11 @@
+CREATE ROLE anon;CREATE ROLE authenticated;CREATE ROLE service_role BYPASSRLS;
+CREATE SCHEMA auth;CREATE SCHEMA vertice_private;
+CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$SELECT nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
+CREATE FUNCTION auth.jwt() RETURNS jsonb LANGUAGE sql STABLE AS $$SELECT jsonb_build_object('aal',current_setting('request.jwt.claim.aal',true))$$;
+CREATE TABLE vertice_institutions(id uuid PRIMARY KEY,name text);
+CREATE TABLE vertice_courses(id uuid,institution_id uuid,name text,PRIMARY KEY(id,institution_id));
+CREATE TABLE vertice_admins(user_id uuid PRIMARY KEY);
+CREATE TABLE vertice_memberships(user_id uuid,institution_id uuid,role text);
+CREATE TABLE vertice_private.learning_students(institution_id uuid,course_id uuid,student_token char(64),active boolean,PRIMARY KEY(institution_id,course_id,student_token));
+GRANT USAGE ON SCHEMA public,auth TO authenticated,service_role;
+GRANT EXECUTE ON FUNCTION auth.uid(),auth.jwt() TO authenticated,service_role;
