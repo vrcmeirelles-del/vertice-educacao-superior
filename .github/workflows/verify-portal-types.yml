@@ -8,6 +8,7 @@ on:
       - 'source-overrides/tsconfig.json'
       - 'source-overrides/package*.json'
       - 'supabase/migrations/*extension_electronic_forms.sql'
+      - 'supabase/migrations/*tcc*.sql'
       - 'scripts/extension.vitest.config.ts'
       - 'scripts/tests/extension-runtime/**'
       - 'vertice-servidor-source.zip'
@@ -47,7 +48,7 @@ jobs:
       - name: Testar permissões e conclusão dos formulários de extensão
         run: |
           npm ci --prefix scripts/tests/extension-runtime --no-audit --no-fund
-          node --test scripts/tests/extension-runtime/forms.test.mjs
+          node --test scripts/tests/extension-runtime/*.test.mjs
       - name: Testar o bloqueio de regressões do compilador
         run: node --test scripts/tests/typescript-diagnostics.test.mjs
       - name: TypeScript completo, sem tolerar erros da base

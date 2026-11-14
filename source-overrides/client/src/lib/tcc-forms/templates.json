@@ -1,0 +1,1610 @@
+{
+  "convite": {
+    "label": "Convite de orientação",
+    "source": "Convites de orientação TCC I e II",
+    "role_group": "work",
+    "note": "",
+    "fields": [
+      {
+        "key": "title",
+        "label": "Título do trabalho",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "authors",
+        "label": "Autores e matrículas",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "advisor",
+        "label": "Orientador(a)",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "coadvisor",
+        "label": "Coorientador(a)",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "semester",
+        "label": "Semestre",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "class",
+        "label": "Turma / período",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "city",
+        "label": "Local de emissão",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "date",
+        "label": "Data de emissão",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "responsible",
+        "label": "Responsável pelo preenchimento",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "previous_protocol",
+        "label": "Protocolo de emissão anterior (se houver)",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "phase",
+        "label": "Etapa",
+        "type": "select",
+        "required": true,
+        "options": [
+          "TCC I",
+          "TCC II"
+        ]
+      },
+      {
+        "key": "theme",
+        "label": "Tema proposto",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "invitation",
+        "label": "Convite e compromisso dos discentes",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "signatories",
+        "label": "Discentes que deverão assinar",
+        "type": "textarea",
+        "required": true
+      }
+    ]
+  },
+  "aceite": {
+    "label": "Aceite do orientador",
+    "source": "Declarações de aceite TCC I e II",
+    "role_group": "advisor",
+    "note": "",
+    "fields": [
+      {
+        "key": "title",
+        "label": "Título do trabalho",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "authors",
+        "label": "Autores e matrículas",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "advisor",
+        "label": "Orientador(a)",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "coadvisor",
+        "label": "Coorientador(a)",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "semester",
+        "label": "Semestre",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "class",
+        "label": "Turma / período",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "city",
+        "label": "Local de emissão",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "date",
+        "label": "Data de emissão",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "responsible",
+        "label": "Responsável pelo preenchimento",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "previous_protocol",
+        "label": "Protocolo de emissão anterior (se houver)",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "phase",
+        "label": "Etapa",
+        "type": "select",
+        "required": true,
+        "options": [
+          "TCC I",
+          "TCC II"
+        ]
+      },
+      {
+        "key": "qualification",
+        "label": "Formação do orientador",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "contact",
+        "label": "Contato institucional",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "acceptance",
+        "label": "Declaração de aceite e compromissos",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "governing_rules",
+        "label": "Regulamento institucional aplicável",
+        "type": "textarea",
+        "required": true
+      }
+    ]
+  },
+  "projeto": {
+    "label": "Projeto de pesquisa — TCC I",
+    "source": "Normas para elaboração de projetos e modelo TCC I",
+    "role_group": "work",
+    "note": "",
+    "fields": [
+      {
+        "key": "title",
+        "label": "Título do trabalho",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "authors",
+        "label": "Autores e matrículas",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "advisor",
+        "label": "Orientador(a)",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "coadvisor",
+        "label": "Coorientador(a)",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "semester",
+        "label": "Semestre",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "class",
+        "label": "Turma / período",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "city",
+        "label": "Local de emissão",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "date",
+        "label": "Data de emissão",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "responsible",
+        "label": "Responsável pelo preenchimento",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "previous_protocol",
+        "label": "Protocolo de emissão anterior (se houver)",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "introduction",
+        "label": "Introdução e delimitação do tema",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "problem",
+        "label": "Problema de pesquisa",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "justification",
+        "label": "Justificativa",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "general_objective",
+        "label": "Objetivo geral",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "specific_objectives",
+        "label": "Objetivos específicos",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "methodology",
+        "label": "Metodologia e critérios de inclusão/exclusão aplicáveis",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "theoretical_framework",
+        "label": "Referencial teórico",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "schedule",
+        "label": "Cronograma: etapa, prazo e responsável",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "references",
+        "label": "Referências",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "ethics",
+        "label": "Exigências éticas e providências aplicáveis",
+        "type": "textarea",
+        "required": false
+      }
+    ]
+  },
+  "acompanhamento": {
+    "label": "Ficha de acompanhamento das orientações",
+    "source": "Fichas de acompanhamento TCC I e II",
+    "role_group": "advisor",
+    "note": "",
+    "fields": [
+      {
+        "key": "title",
+        "label": "Título do trabalho",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "authors",
+        "label": "Autores e matrículas",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "advisor",
+        "label": "Orientador(a)",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "coadvisor",
+        "label": "Coorientador(a)",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "semester",
+        "label": "Semestre",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "class",
+        "label": "Turma / período",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "city",
+        "label": "Local de emissão",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "date",
+        "label": "Data de emissão",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "responsible",
+        "label": "Responsável pelo preenchimento",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "previous_protocol",
+        "label": "Protocolo de emissão anterior (se houver)",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "period",
+        "label": "Mês / período de acompanhamento",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "meetings",
+        "label": "Encontros: data, duração e participantes",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "activities",
+        "label": "Orientações desenvolvidas",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "decisions",
+        "label": "Devolutivas, decisões e ajustes",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "pending",
+        "label": "Pendências e próximos passos",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "signatories",
+        "label": "Orientador e discentes que deverão assinar",
+        "type": "textarea",
+        "required": true
+      }
+    ]
+  },
+  "aprovacao": {
+    "label": "Avaliação e aprovação do projeto",
+    "source": "CCG-FOR-70 / AV1",
+    "role_group": "manager",
+    "note": "",
+    "fields": [
+      {
+        "key": "title",
+        "label": "Título do trabalho",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "authors",
+        "label": "Autores e matrículas",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "advisor",
+        "label": "Orientador(a)",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "coadvisor",
+        "label": "Coorientador(a)",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "semester",
+        "label": "Semestre",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "class",
+        "label": "Turma / período",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "city",
+        "label": "Local de emissão",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "date",
+        "label": "Data de emissão",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "responsible",
+        "label": "Responsável pelo preenchimento",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "previous_protocol",
+        "label": "Protocolo de emissão anterior (se houver)",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "theme",
+        "label": "Tema proposto",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "problem",
+        "label": "Problema",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "general_objective",
+        "label": "Objetivo geral",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "specific_objectives",
+        "label": "Objetivos específicos",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "methodology",
+        "label": "Classificação e descrição metodológica",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "checklist",
+        "label": "Conferência: introdução, justificativa, metodologia, referencial e referências",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "decision",
+        "label": "Parecer proposto",
+        "type": "select",
+        "required": true,
+        "options": [
+          "Favorável",
+          "Desfavorável",
+          "Solicitar ajustes"
+        ]
+      },
+      {
+        "key": "reason",
+        "label": "Fundamentação e ajustes necessários",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "governing_rules",
+        "label": "Regulamento e critérios adotados",
+        "type": "textarea",
+        "required": true
+      }
+    ]
+  },
+  "qualificacao": {
+    "label": "Ficha de qualificação — TCC I",
+    "source": "Ficha de qualificação TCC I AV2",
+    "role_group": "examiner",
+    "note": "",
+    "fields": [
+      {
+        "key": "title",
+        "label": "Título do trabalho",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "authors",
+        "label": "Autores e matrículas",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "advisor",
+        "label": "Orientador(a)",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "coadvisor",
+        "label": "Coorientador(a)",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "semester",
+        "label": "Semestre",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "class",
+        "label": "Turma / período",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "city",
+        "label": "Local de emissão",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "date",
+        "label": "Data de emissão",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "responsible",
+        "label": "Responsável pelo preenchimento",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "previous_protocol",
+        "label": "Protocolo de emissão anterior (se houver)",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "event_date",
+        "label": "Data da qualificação",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "examiners",
+        "label": "Avaliadores e respectivas funções",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "written_criteria",
+        "label": "Critérios e pontuação da escrita",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "oral_criteria",
+        "label": "Critérios e pontuação da apresentação oral",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "student_results",
+        "label": "Resultado individual por discente: matrícula, avaliador e nota",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "opinion",
+        "label": "Parecer e correções solicitadas",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "governing_rules",
+        "label": "Regulamento e regra de avaliação adotados",
+        "type": "textarea",
+        "required": true
+      }
+    ]
+  },
+  "deposito": {
+    "label": "Carta de depósito do orientador",
+    "source": "Cartas de depósito TCC I e II",
+    "role_group": "advisor",
+    "note": "",
+    "fields": [
+      {
+        "key": "title",
+        "label": "Título do trabalho",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "authors",
+        "label": "Autores e matrículas",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "advisor",
+        "label": "Orientador(a)",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "coadvisor",
+        "label": "Coorientador(a)",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "semester",
+        "label": "Semestre",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "class",
+        "label": "Turma / período",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "city",
+        "label": "Local de emissão",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "date",
+        "label": "Data de emissão",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "responsible",
+        "label": "Responsável pelo preenchimento",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "previous_protocol",
+        "label": "Protocolo de emissão anterior (se houver)",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "phase",
+        "label": "Etapa / finalidade",
+        "type": "select",
+        "required": true,
+        "options": [
+          "TCC I — qualificação",
+          "TCC II — defesa",
+          "Versão definitiva pós-banca"
+        ]
+      },
+      {
+        "key": "version",
+        "label": "Identificação da versão / arquivo entregue",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "assessment",
+        "label": "Declaração do orientador sobre aptidão e condições",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "restrictions",
+        "label": "Ressalvas e correções pendentes",
+        "type": "textarea",
+        "required": false
+      }
+    ]
+  },
+  "originalidade": {
+    "label": "Declaração de autoria e originalidade",
+    "source": "Declarações de inexistência de plágio",
+    "role_group": "work",
+    "note": "Declaração atribuída aos autores; a emissão não equivale à detecção de plágio.",
+    "fields": [
+      {
+        "key": "title",
+        "label": "Título do trabalho",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "authors",
+        "label": "Autores e matrículas",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "advisor",
+        "label": "Orientador(a)",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "coadvisor",
+        "label": "Coorientador(a)",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "semester",
+        "label": "Semestre",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "class",
+        "label": "Turma / período",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "city",
+        "label": "Local de emissão",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "date",
+        "label": "Data de emissão",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "responsible",
+        "label": "Responsável pelo preenchimento",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "previous_protocol",
+        "label": "Protocolo de emissão anterior (se houver)",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "declarants",
+        "label": "Autores declarantes",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "version",
+        "label": "Versão do trabalho a que se refere",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "declaration",
+        "label": "Declaração dos autores sobre autoria, citações e fontes",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "governing_rules",
+        "label": "Regulamento de integridade acadêmica aplicável",
+        "type": "textarea",
+        "required": true
+      }
+    ]
+  },
+  "ata": {
+    "label": "Ata de apresentação e defesa",
+    "source": "CCG-FOR-24",
+    "role_group": "examiner",
+    "note": "Notas transcritas para a minuta. A emissão não lança notas no histórico e não altera a etapa acadêmica.",
+    "fields": [
+      {
+        "key": "title",
+        "label": "Título do trabalho",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "authors",
+        "label": "Autores e matrículas",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "advisor",
+        "label": "Orientador(a)",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "coadvisor",
+        "label": "Coorientador(a)",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "semester",
+        "label": "Semestre",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "class",
+        "label": "Turma / período",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "city",
+        "label": "Local de emissão",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "date",
+        "label": "Data de emissão",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "responsible",
+        "label": "Responsável pelo preenchimento",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "previous_protocol",
+        "label": "Protocolo de emissão anterior (se houver)",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "event_date",
+        "label": "Data da defesa",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "event_time",
+        "label": "Horário",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "location",
+        "label": "Local / modalidade",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "examiner1",
+        "label": "Avaliador 1",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "grade1",
+        "label": "Nota do avaliador 1",
+        "type": "number",
+        "required": true,
+        "min": 0,
+        "max": 10
+      },
+      {
+        "key": "examiner2",
+        "label": "Avaliador 2",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "grade2",
+        "label": "Nota do avaliador 2",
+        "type": "number",
+        "required": false,
+        "min": 0,
+        "max": 10
+      },
+      {
+        "key": "examiner3",
+        "label": "Avaliador 3",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "grade3",
+        "label": "Nota do avaliador 3",
+        "type": "number",
+        "required": false,
+        "min": 0,
+        "max": 10
+      },
+      {
+        "key": "grade_rule",
+        "label": "Regra de composição da nota e nota por discente, quando aplicável",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "result",
+        "label": "Resultado declarado pela banca",
+        "type": "select",
+        "required": true,
+        "options": [
+          "Aprovado",
+          "Aprovado com correções",
+          "Reprovado",
+          "Resultado pendente"
+        ]
+      },
+      {
+        "key": "remarks",
+        "label": "Observações, correções e prazo de entrega",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "signatories",
+        "label": "Membros da banca que deverão assinar",
+        "type": "textarea",
+        "required": true
+      }
+    ]
+  },
+  "publicacao": {
+    "label": "Termo de autorização de publicação",
+    "source": "CCG-MDL-24",
+    "role_group": "work",
+    "note": "Registro documental da manifestação. Não torna o acervo público nem substitui a assinatura dos titulares.",
+    "fields": [
+      {
+        "key": "title",
+        "label": "Título do trabalho",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "authors",
+        "label": "Autores e matrículas",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "advisor",
+        "label": "Orientador(a)",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "coadvisor",
+        "label": "Coorientador(a)",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "semester",
+        "label": "Semestre",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "class",
+        "label": "Turma / período",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "city",
+        "label": "Local de emissão",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "date",
+        "label": "Data de emissão",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "responsible",
+        "label": "Responsável pelo preenchimento",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "previous_protocol",
+        "label": "Protocolo de emissão anterior (se houver)",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "material",
+        "label": "Natureza do material",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "declarants",
+        "label": "Autores titulares e responsáveis pela manifestação",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "repository",
+        "label": "Repositório e instituição destinatária",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "permission",
+        "label": "Manifestação de publicação",
+        "type": "select",
+        "required": true,
+        "options": [
+          "Autoriza nas condições descritas",
+          "Não autoriza",
+          "Autoriza após embargo"
+        ]
+      },
+      {
+        "key": "scope",
+        "label": "Condições, finalidades e modalidades de acesso",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "embargo",
+        "label": "Prazo / data e condições de embargo",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "email_permission",
+        "label": "Divulgação de e-mail",
+        "type": "select",
+        "required": true,
+        "options": [
+          "Não autoriza",
+          "Autoriza nas condições descritas"
+        ]
+      },
+      {
+        "key": "keywords",
+        "label": "Palavras-chave",
+        "type": "text",
+        "required": false
+      }
+    ]
+  },
+  "imagem": {
+    "label": "Termo de uso de imagem",
+    "source": "Permissão de uso de imagem",
+    "role_group": "work",
+    "note": "A emissão da minuta não concede consentimento por terceiros nem publica imagens.",
+    "fields": [
+      {
+        "key": "title",
+        "label": "Título do trabalho",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "authors",
+        "label": "Autores e matrículas",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "advisor",
+        "label": "Orientador(a)",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "coadvisor",
+        "label": "Coorientador(a)",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "semester",
+        "label": "Semestre",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "class",
+        "label": "Turma / período",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "city",
+        "label": "Local de emissão",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "date",
+        "label": "Data de emissão",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "responsible",
+        "label": "Responsável pelo preenchimento",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "previous_protocol",
+        "label": "Protocolo de emissão anterior (se houver)",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "declarants",
+        "label": "Pessoas que deverão manifestar o consentimento",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "permission",
+        "label": "Manifestação de uso de imagem",
+        "type": "select",
+        "required": true,
+        "options": [
+          "Autoriza nas condições descritas",
+          "Não autoriza"
+        ]
+      },
+      {
+        "key": "purpose",
+        "label": "Finalidade específica e contexto das imagens",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "scope",
+        "label": "Meios de utilização, prazo e limites",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "revocation",
+        "label": "Canal e condições para solicitar revogação",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "signatories",
+        "label": "Titulares e responsáveis que deverão assinar",
+        "type": "textarea",
+        "required": true
+      }
+    ]
+  },
+  "final": {
+    "label": "Roteiro e registro da versão final — TCC II",
+    "source": "Modelo TCC II",
+    "role_group": "work",
+    "note": "Roteiro de conteúdo e registro de entrega. O manuscrito original deve ser anexado; a emissão não certifica conformidade integral com normas de formatação.",
+    "fields": [
+      {
+        "key": "title",
+        "label": "Título do trabalho",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "authors",
+        "label": "Autores e matrículas",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "advisor",
+        "label": "Orientador(a)",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "coadvisor",
+        "label": "Coorientador(a)",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "semester",
+        "label": "Semestre",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "class",
+        "label": "Turma / período",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "city",
+        "label": "Local de emissão",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "date",
+        "label": "Data de emissão",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "responsible",
+        "label": "Responsável pelo preenchimento",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "previous_protocol",
+        "label": "Protocolo de emissão anterior (se houver)",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "abstract",
+        "label": "Resumo",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "keywords",
+        "label": "Palavras-chave",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "abstract_foreign",
+        "label": "Resumo em língua estrangeira",
+        "type": "textarea",
+        "required": false
+      },
+      {
+        "key": "introduction",
+        "label": "Introdução",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "development",
+        "label": "Desenvolvimento / capítulos e resultados",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "conclusions",
+        "label": "Considerações finais",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "references",
+        "label": "Referências",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "format_rules",
+        "label": "Orientações de formatação adotadas pela IES",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "final_file",
+        "label": "Identificação do arquivo final",
+        "type": "text",
+        "required": true
+      }
+    ]
+  },
+  "dossie": {
+    "label": "Dossiê documental de TCC",
+    "source": "Conjunto de formulários TCC I / TCC II",
+    "role_group": "work",
+    "note": "Dossiê de evidências do percurso. Não substitui aprovação, assinatura, depósito ou autorização de publicação.",
+    "fields": [
+      {
+        "key": "title",
+        "label": "Título do trabalho",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "authors",
+        "label": "Autores e matrículas",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "advisor",
+        "label": "Orientador(a)",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "coadvisor",
+        "label": "Coorientador(a)",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "semester",
+        "label": "Semestre",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "class",
+        "label": "Turma / período",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "city",
+        "label": "Local de emissão",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "date",
+        "label": "Data de emissão",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "responsible",
+        "label": "Responsável pelo preenchimento",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "previous_protocol",
+        "label": "Protocolo de emissão anterior (se houver)",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "phase",
+        "label": "Etapa coberta",
+        "type": "select",
+        "required": true,
+        "options": [
+          "TCC I",
+          "TCC II",
+          "TCC I e II"
+        ]
+      },
+      {
+        "key": "document_inventory",
+        "label": "Relação de documentos e versões",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "orientation_summary",
+        "label": "Síntese do acompanhamento",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "assessment_summary",
+        "label": "Qualificação, defesa e resultados registrados",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "pending",
+        "label": "Pendências e providências",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "destination",
+        "label": "Finalidade e destinatário institucional",
+        "type": "textarea",
+        "required": true
+      }
+    ]
+  },
+  "edital": {
+    "label": "Edital de TCC e programação de defesas",
+    "source": "Editais de TCC e modelo institucional",
+    "role_group": "manager",
+    "note": "Minuta vinculada ao trabalho de referência. A coordenação deve revisar o escopo, o calendário e os critérios da instituição antes da assinatura.",
+    "fields": [
+      {
+        "key": "title",
+        "label": "Título do trabalho",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "authors",
+        "label": "Autores e matrículas",
+        "type": "textarea",
+        "required": false
+      },
+      {
+        "key": "advisor",
+        "label": "Orientador(a)",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "coadvisor",
+        "label": "Coorientador(a)",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "semester",
+        "label": "Semestre",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "class",
+        "label": "Turma / período",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "city",
+        "label": "Local de emissão",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "date",
+        "label": "Data de emissão",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "responsible",
+        "label": "Responsável pelo preenchimento",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "previous_protocol",
+        "label": "Protocolo de emissão anterior (se houver)",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "notice_title",
+        "label": "Título do edital / comunicado",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "notice_number",
+        "label": "Número e versão",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "scope",
+        "label": "Escopo: curso, turmas e semestre",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "procedures",
+        "label": "Procedimentos e documentos de submissão",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "deadlines",
+        "label": "Prazos e canais institucionais",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "schedule",
+        "label": "Programação das defesas: trabalho, autores, data, horário e local",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "evaluation_rules",
+        "label": "Critérios de avaliação e regulamento adotado",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "signatories",
+        "label": "Autoridade responsável pela aprovação e assinatura",
+        "type": "textarea",
+        "required": true
+      }
+    ]
+  }
+}
