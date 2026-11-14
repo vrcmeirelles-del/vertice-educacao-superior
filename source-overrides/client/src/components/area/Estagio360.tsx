@@ -5,11 +5,13 @@ import { fetchOrganizations, fetchFields, fetchInternshipRules, fetchPlacements,
 import { fetchStudentRegistry, type StudentRegistryEntry } from '@/lib/atividades-complementares';
 import { fetchProtocols, PROTOCOL_STATUS_LABELS } from '@/lib/atividades-complementares';
 import './egressos360.css';
+import EstagioFormularios from './EstagioFormularios';
 
-type Section = 'overview'|'organizations'|'fields'|'placements'|'attendance'|'reports'|'protocols'|'bi'|'config';
+type Section = 'forms'|'overview'|'organizations'|'fields'|'placements'|'attendance'|'reports'|'protocols'|'bi'|'config';
 interface Props { institutionId: string; courses: { id: string; name: string }[]; role: string; onNavigate?: (tab: string) => void; }
 
 const NAV: { key: Section; label: string; icon: string }[] = [
+  { key: 'forms', label: 'Modelos e PDF', icon: '📄' },
   { key: 'overview', label: 'Visão Geral', icon: '◎' },
   { key: 'organizations', label: 'Concedentes', icon: '🏢' },
   { key: 'fields', label: 'Campos', icon: '📍' },
@@ -22,6 +24,7 @@ const NAV: { key: Section; label: string; icon: string }[] = [
 ];
 
 export default function Estagio360({ institutionId, courses, role, onNavigate }: Props) {
+  const [formsVisited,setFormsVisited]=useState(false);
   const [section, setSection] = useState<Section>('overview');
   const [orgs, setOrgs] = useState<InternshipOrg[]>([]);
   const [fields, setFields] = useState<InternshipField[]>([]);
@@ -69,12 +72,13 @@ export default function Estagio360({ institutionId, courses, role, onNavigate }:
         {NAV.map(n => (
           <button key={n.key} role="tab" aria-selected={section === n.key}
             className={`alumni-nav-btn${section === n.key ? ' alumni-nav-btn-active' : ''}`}
-            onClick={() => { setSection(n.key); setSelectedPlacement(null); }}>
+            onClick={() => { setSection(n.key); if(n.key==='forms')setFormsVisited(true); setSelectedPlacement(null); }}>
             <span className="alumni-nav-icon">{n.icon}</span> {n.label}
           </button>
         ))}
       </nav>
 
+      {(formsVisited||section==='forms')&&<div hidden={section!=='forms'}><EstagioFormularios key={institutionId} institutionId={institutionId} role={role} courses={courses} placements={placements} students={students} rules={rules} onChanged={()=>{}} /></div>}
       {loading ? <p className="alumni-loading">Carregando Estágio 360…</p> : (<>
 
         {section === 'overview' && (<div>
