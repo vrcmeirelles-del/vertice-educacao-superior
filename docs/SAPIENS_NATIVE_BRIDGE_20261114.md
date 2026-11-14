@@ -10,14 +10,14 @@ Status: código e testes locais concluídos; NÃO implantado; migrações NÃO a
 4. O F&O exige tokens explícitos. A seleção cruza instituição, curso, token, vínculo verificado e não revogado. Qualquer participante fora desse escopo recusa o lote inteiro. A transação congela os participantes e a linha de base por estudante/KC. `suggested_kc_ids` passa de `integer[]` para `text[]`, conforme o motor existente. Se a lista de KCs estiver vazia, são resolvidos e congelados os KCs ativos mapeados para o módulo e a disciplina solicitados; sem mapeamento a operação é recusada.
 5. A identificação da intervenção e um hash do conteúdo normalizado controlam a idempotência. Repetição idêntica retorna o recibo original; mesmo ID com conteúdo diferente retorna 409. A repetição não amplia a turma nem redefine a baseline.
 6. `Atualizar resultados` no painel consulta o retorno longitudinal. O F&O usa os participantes originais ainda elegíveis; compara KCs emparelhados e conta diferenças de tentativas, sem somar todo o histórico. Revogação, mudança de curso e reinício de contadores são considerados. A medição tem UUID próprio, resultado imutável no F&O e pendência persistente na Vértice para repetir após uma falha local.
-7. A Vértice salva apenas agregados permitidos. Não recebe nomes, CPF, matrícula, e-mail, resposta textual ou tokens na devolutiva. Não são copiados dados individuais para o histórico público de efetividade. As tabelas individuais e os recibos internos do F&O têm RLS e acesso das roles de navegador revogado.
+7. A Vértice salva apenas agregados permitidos. Não recebe nomes, CPF, matrícula, e-mail, resposta textual ou tokens na devolutiva. Não são copiados dados individuais para o histórico público de efetividade. As tabelas individuais e os recibos internos do F&O têm RLS e acesso das roles de navegador revogado. Os grants específicos são aplicados somente quando as roles existem, mantendo a compatibilidade com PostgreSQL local sem roles Supabase.
 8. A trilha registra ator, decisão, tentativas, entrega, código de falha e medições. Logs de falha não incluem corpos remotos ou segredos.
 
 ## Testes executados
 
 | Verificação | Resultado |
 |---|---:|
-| F&O: regressão da ponte e segurança/longitudinal novos | 20/20 |
+| F&O: regressão da ponte e segurança/longitudinal novos | 29/29 |
 | Ciclo entre dois PostgreSQL PGlite e HTTP local real | 7/7 |
 | Contratos do portal, incluindo 3 testes novos do Sapiens | 83/83 |
 | Suíte existente do portal | 408/408 |
@@ -29,7 +29,7 @@ Os cenários incluem aprovação, rejeição sem despacho, ausência de elegíve
 
 ## Alcance da evidência
 
-Os testes usam dados exclusivamente sintéticos e o código efetivo dos handlers e das migrações. O transporte HTTP local conecta o handler Vértice ao handler F&O; as duas bases são instâncias independentes de PostgreSQL via PGlite. O verificador externo de usuários Supabase é substituído por uma identidade sintética nos testes: login real, emissão/verificação real de JWT, gateway hospedado, TLS de produção e DNS não foram homologados. Não foi executada a aplicação inteira do F&O, nem sua suíte completa; foi testada sua ponte e as novas rotas já conectadas a ela.
+Os testes usam dados exclusivamente sintéticos e o código efetivo dos handlers e das migrações. O transporte HTTP local conecta o handler Vértice ao handler F&O; as duas bases são instâncias independentes de PostgreSQL via PGlite. O verificador externo de usuários Supabase é substituído por uma identidade sintética nos testes: login real, emissão/verificação real de JWT, gateway hospedado, TLS de produção e DNS não foram homologados. Na verificação local não foi executada a aplicação inteira do F&O, nem sua suíte completa; foram testadas sua ponte e as novas rotas já conectadas a ela. A suíte completa também é executada pelo GitHub Actions; o resultado de cada revisão deve ser consultado na PR correspondente.
 
 A medição é acionada pelo Master no painel; este pacote não cria agendamento recorrente. A entrega registra a intervenção na ponte existente do F&O; não acrescenta uma interface de execução pedagógica do aluno nem muda o algoritmo de seleção de questões. `active_intervention_id` continua sendo um marcador de compatibilidade e os participantes longitudinais usam a nova relação própria.
 
@@ -49,7 +49,7 @@ FATO_ORDEM_REPO=/caminho/absoluto/fato-e-ordem node --test scripts/tests/sapiens
 No F&O, com as dependências do seu package-lock instaladas:
 
 ```bash
-node --test test/vertice-bridge.test.mjs test/sapiens-native.test.mjs
+node --test test/vertice-bridge.test.mjs test/vertice-intervention.test.mjs test/sapiens-native.test.mjs
 ```
 
 O portal deve ser composto como o build existente: extrair `vertice-servidor-source.zip`, sobrepor `source-overrides/`, instalar com lockfile e executar `npm run check`, `npm test`, os contratos definidos em `scripts/portal-types.vitest.config.ts` e `npm run build:static`.
