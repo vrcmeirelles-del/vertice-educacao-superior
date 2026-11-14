@@ -264,10 +264,10 @@ function StudentDashboard({ data, session, purpose, onLogout, onChanged }: { dat
               <div style={stat}><div style={statLabel}>Em análise</div><div style={statValue}>{pending}</div></div>
             </div>
           ) : (
-            <p role="status" style={{ ...box, background: '#fffbeb' }}>O regulamento do seu curso ainda não foi cadastrado pela coordenação. O envio de atividades fica disponível assim que ele for publicado.</p>
+            <p role="status" style={{ ...box, background: '#eff6ff' }}>O regulamento do curso ainda não foi publicado. Você já pode enviar seus certificados — a validação será feita após a publicação do regulamento.</p>
           )}
 
-          {data.rule && data.categories.length > 0 && <SubmitActivity session={session} categories={data.categories} onDone={onChanged} />}
+          <SubmitActivity session={session} categories={data.categories} onDone={onChanged} />
 
           <h3 style={{ fontSize: '.9375rem', margin: '20px 0 8px' }}>Suas solicitações</h3>
           {data.submissions.length === 0 ? <p style={small}>Nenhuma atividade enviada ainda.</p> : data.submissions.map(s => (
@@ -321,7 +321,7 @@ function SubmitActivity({ session, categories, onDone }: { session: string; cate
       const up = await call<{ path: string; token: string }>({ action: 'upload_url', session, content_type: file.type, size: file.size });
       const { error: upErr } = await supabase.storage.from('vertice-documents').uploadToSignedUrl(up.path, up.token, file, { contentType: file.type });
       if (upErr) throw new Error('file_missing');
-      await call({ action: 'submit', session, title: title.trim(), issuer: issuer.trim(), category_id: categoryId, hours: Number(hours.replace(',', '.')), start_date: start, end_date: end, path: up.path });
+      await call({ action: 'submit', session, title: title.trim(), issuer: issuer.trim(), category_id: categoryId || null, hours: Number(hours.replace(',', '.')), start_date: start, end_date: end, path: up.path });
       reset();
       setOpen(false);
       setMsg({ ok: true, text: 'Atividade enviada. Ela aparece abaixo como "Enviada" até a análise da coordenação.' });
@@ -344,14 +344,20 @@ function SubmitActivity({ session, categories, onDone }: { session: string; cate
   return (
     <form onSubmit={submit} style={{ ...box, padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
       <strong>Nova atividade complementar</strong>
-      <label style={label}>Categoria
-        <select value={categoryId} onChange={e => setCategoryId(e.target.value)} required style={input}>
-          <option value="">Selecione…</option>
-          {categories.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
-        </select>
-      </label>
-      {cat?.description && <p style={{ ...small, margin: 0 }}>{cat.description}</p>}
-      {cat?.max_per_item_minutes ? <p style={{ ...small, margin: 0 }}>Limite por atividade nesta categoria: {minutesToH(cat.max_per_item_minutes)}.</p> : null}
+      {categories.length > 0 ? (
+        <>
+          <label style={label}>Categoria
+            <select value={categoryId} onChange={e => setCategoryId(e.target.value)} required style={input}>
+              <option value="">Selecione…</option>
+              {categories.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+            </select>
+          </label>
+          {cat?.description && <p style={{ ...small, margin: 0 }}>{cat.description}</p>}
+          {cat?.max_per_item_minutes ? <p style={{ ...small, margin: 0 }}>Limite por atividade nesta categoria: {minutesToH(cat.max_per_item_minutes)}.</p> : null}
+        </>
+      ) : (
+        <p style={{ ...small, margin: 0, color: '#6b7280' }}>As categorias ainda não foram cadastradas. Envie o certificado e a coordenação classificará a atividade.</p>
+      )}
       <label style={label}>Título da atividade
         <input value={title} onChange={e => setTitle(e.target.value)} maxLength={200} required placeholder="Ex.: Congresso de Direito Constitucional" style={input} />
       </label>
