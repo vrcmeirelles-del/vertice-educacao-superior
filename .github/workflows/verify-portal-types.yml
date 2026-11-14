@@ -9,6 +9,7 @@ on:
       - 'source-overrides/package*.json'
       - 'supabase/migrations/*extension_electronic_forms.sql'
       - 'supabase/migrations/*tcc*.sql'
+      - 'supabase/migrations/*internship*.sql'
       - 'scripts/extension.vitest.config.ts'
       - 'scripts/tests/extension-runtime/**'
       - 'vertice-servidor-source.zip'

@@ -1,0 +1,1500 @@
+{
+  "compromisso": {
+    "label": "Termo de compromisso de estágio",
+    "source": "Modelo genérico Vértice; Lei 11.788/2008 e regulamento/PPC da IES",
+    "role_group": "manager",
+    "note": "Minuta de informação declarada. Revisar adequação ao PPC, responsabilidades e assinaturas. A emissão não autoriza atividade nem valida horas.",
+    "fields": [
+      {
+        "key": "title",
+        "label": "Identificação do estágio",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "student",
+        "label": "Estudante / matrícula",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "advisor",
+        "label": "Professor orientador",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "supervisor",
+        "label": "Supervisor de campo",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "semester",
+        "label": "Semestre (AAAA/1 ou AAAA/2)",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "component",
+        "label": "Componente curricular / regra do PPC",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "city",
+        "label": "Local de emissão",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "date",
+        "label": "Data de emissão",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "responsible",
+        "label": "Responsável pelo preenchimento",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "previous_protocol",
+        "label": "Protocolo anterior",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "parties",
+        "label": "Qualificação das partes e representantes",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "period",
+        "label": "Vigência e jornada pactuadas",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "activities",
+        "label": "Atividades e compatibilidade com o PPC",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "insurance",
+        "label": "Seguro de acidentes pessoais: seguradora, apólice e vigência",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "conditions",
+        "label": "Condições, responsabilidades, benefícios e encerramento",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "signatories",
+        "label": "Signatários: estudante, concedente e instituição",
+        "type": "textarea",
+        "required": true
+      }
+    ]
+  },
+  "plano": {
+    "label": "Plano de atividades e aprendizagem",
+    "source": "Modelo genérico Vértice; Lei 11.788/2008 e regulamento/PPC da IES",
+    "role_group": "advisor",
+    "note": "Minuta de informação declarada. Revisar adequação ao PPC, responsabilidades e assinaturas. A emissão não autoriza atividade nem valida horas.",
+    "fields": [
+      {
+        "key": "title",
+        "label": "Identificação do estágio",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "student",
+        "label": "Estudante / matrícula",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "advisor",
+        "label": "Professor orientador",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "supervisor",
+        "label": "Supervisor de campo",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "semester",
+        "label": "Semestre (AAAA/1 ou AAAA/2)",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "component",
+        "label": "Componente curricular / regra do PPC",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "city",
+        "label": "Local de emissão",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "date",
+        "label": "Data de emissão",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "responsible",
+        "label": "Responsável pelo preenchimento",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "previous_protocol",
+        "label": "Protocolo anterior",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "objectives",
+        "label": "Objetivos de aprendizagem",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "activities",
+        "label": "Atividades previstas e competências",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "schedule",
+        "label": "Cronograma e jornada",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "supervision",
+        "label": "Como será feita a orientação e supervisão",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "assessment",
+        "label": "Critérios de avaliação conforme regulamento",
+        "type": "textarea",
+        "required": true
+      }
+    ]
+  },
+  "campo": {
+    "label": "Avaliação do campo de estágio",
+    "source": "Modelo genérico Vértice; Lei 11.788/2008 e regulamento/PPC da IES",
+    "role_group": "manager",
+    "note": "Minuta de informação declarada. Revisar adequação ao PPC, responsabilidades e assinaturas. A emissão não autoriza atividade nem valida horas.",
+    "fields": [
+      {
+        "key": "title",
+        "label": "Identificação do estágio",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "student",
+        "label": "Estudante / matrícula",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "advisor",
+        "label": "Professor orientador",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "supervisor",
+        "label": "Supervisor de campo",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "semester",
+        "label": "Semestre (AAAA/1 ou AAAA/2)",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "component",
+        "label": "Componente curricular / regra do PPC",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "city",
+        "label": "Local de emissão",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "date",
+        "label": "Data de emissão",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "responsible",
+        "label": "Responsável pelo preenchimento",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "previous_protocol",
+        "label": "Protocolo anterior",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "location",
+        "label": "Endereço e condições do campo",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "infrastructure",
+        "label": "Instalações, acessibilidade e recursos",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "risks",
+        "label": "Riscos e medidas de proteção",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "compatibility",
+        "label": "Compatibilidade das atividades com a formação",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "opinion",
+        "label": "Parecer técnico e providências",
+        "type": "textarea",
+        "required": true
+      }
+    ]
+  },
+  "externa": {
+    "label": "Plano de ação externa / atividade na praça",
+    "source": "Modelo genérico Vértice; Lei 11.788/2008 e regulamento/PPC da IES",
+    "role_group": "advisor",
+    "note": "Minuta de informação declarada. Revisar adequação ao PPC, responsabilidades e assinaturas. A emissão não autoriza atividade nem valida horas.",
+    "fields": [
+      {
+        "key": "title",
+        "label": "Identificação do estágio",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "student",
+        "label": "Estudante / matrícula",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "advisor",
+        "label": "Professor orientador",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "supervisor",
+        "label": "Supervisor de campo",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "semester",
+        "label": "Semestre (AAAA/1 ou AAAA/2)",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "component",
+        "label": "Componente curricular / regra do PPC",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "city",
+        "label": "Local de emissão",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "date",
+        "label": "Data de emissão",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "responsible",
+        "label": "Responsável pelo preenchimento",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "previous_protocol",
+        "label": "Protocolo anterior",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "action",
+        "label": "Nome da ação",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "activity_date",
+        "label": "Data da atividade",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "location",
+        "label": "Praça / endereço / ponto de apoio",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "objectives",
+        "label": "Objetivos e competências do PPC",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "activities",
+        "label": "Atividades dos estudantes",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "schedule",
+        "label": "Horários, deslocamento e pausas",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "supervision",
+        "label": "Orientação e supervisão presencial",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "permissions",
+        "label": "Autorizações e articulação com o campo / poder público",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "risks",
+        "label": "Segurança, acessibilidade e proteção de dados",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "insurance",
+        "label": "Conferência do seguro e cobertura da atividade",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "validation",
+        "label": "Responsável pela autorização e referência do termo/plano vigente",
+        "type": "textarea",
+        "required": true
+      }
+    ]
+  },
+  "diario": {
+    "label": "Diário de campo e registro da ação",
+    "source": "Modelo genérico Vértice; Lei 11.788/2008 e regulamento/PPC da IES",
+    "role_group": "advisor",
+    "note": "Minuta de informação declarada. Revisar adequação ao PPC, responsabilidades e assinaturas. A emissão não autoriza atividade nem valida horas.",
+    "fields": [
+      {
+        "key": "title",
+        "label": "Identificação do estágio",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "student",
+        "label": "Estudante / matrícula",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "advisor",
+        "label": "Professor orientador",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "supervisor",
+        "label": "Supervisor de campo",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "semester",
+        "label": "Semestre (AAAA/1 ou AAAA/2)",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "component",
+        "label": "Componente curricular / regra do PPC",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "city",
+        "label": "Local de emissão",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "date",
+        "label": "Data de emissão",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "responsible",
+        "label": "Responsável pelo preenchimento",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "previous_protocol",
+        "label": "Protocolo anterior",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "action",
+        "label": "Nome da ação",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "activity_date",
+        "label": "Data da atividade",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "location",
+        "label": "Local da atividade",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "activities",
+        "label": "Atividades efetivamente realizadas",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "learning",
+        "label": "Aprendizagens, competências e reflexão do estudante",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "supervision",
+        "label": "Intervenções e acompanhamento do supervisor",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "public_count",
+        "label": "Público atendido (total agregado)",
+        "type": "number",
+        "required": true,
+        "min": 0,
+        "max": 1000000
+      },
+      {
+        "key": "results",
+        "label": "Resultados e encaminhamentos sem identificar atendidos",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "occurrences",
+        "label": "Intercorrências e providências; informe nenhuma se aplicável",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "declared_minutes",
+        "label": "Tempo declarado em minutos (não validado)",
+        "type": "number",
+        "required": true,
+        "min": 0,
+        "max": 1440
+      }
+    ]
+  },
+  "frequencia": {
+    "label": "Ficha de frequência e atividades",
+    "source": "Modelo genérico Vértice; Lei 11.788/2008 e regulamento/PPC da IES",
+    "role_group": "advisor",
+    "note": "Minuta de informação declarada. Revisar adequação ao PPC, responsabilidades e assinaturas. A emissão não autoriza atividade nem valida horas.",
+    "fields": [
+      {
+        "key": "title",
+        "label": "Identificação do estágio",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "student",
+        "label": "Estudante / matrícula",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "advisor",
+        "label": "Professor orientador",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "supervisor",
+        "label": "Supervisor de campo",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "semester",
+        "label": "Semestre (AAAA/1 ou AAAA/2)",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "component",
+        "label": "Componente curricular / regra do PPC",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "city",
+        "label": "Local de emissão",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "date",
+        "label": "Data de emissão",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "responsible",
+        "label": "Responsável pelo preenchimento",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "previous_protocol",
+        "label": "Protocolo anterior",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "period",
+        "label": "Período coberto",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "attendance",
+        "label": "Por dia: entrada, saída, intervalo e atividades",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "declared_minutes",
+        "label": "Total declarado em minutos (não validado)",
+        "type": "number",
+        "required": true,
+        "min": 0,
+        "max": 1000000
+      },
+      {
+        "key": "confirmation",
+        "label": "Responsáveis pela confirmação em campo e análise acadêmica",
+        "type": "textarea",
+        "required": true
+      }
+    ]
+  },
+  "supervisao": {
+    "label": "Registro de orientação e supervisão",
+    "source": "Modelo genérico Vértice; Lei 11.788/2008 e regulamento/PPC da IES",
+    "role_group": "advisor",
+    "note": "Minuta de informação declarada. Revisar adequação ao PPC, responsabilidades e assinaturas. A emissão não autoriza atividade nem valida horas.",
+    "fields": [
+      {
+        "key": "title",
+        "label": "Identificação do estágio",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "student",
+        "label": "Estudante / matrícula",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "advisor",
+        "label": "Professor orientador",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "supervisor",
+        "label": "Supervisor de campo",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "semester",
+        "label": "Semestre (AAAA/1 ou AAAA/2)",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "component",
+        "label": "Componente curricular / regra do PPC",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "city",
+        "label": "Local de emissão",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "date",
+        "label": "Data de emissão",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "responsible",
+        "label": "Responsável pelo preenchimento",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "previous_protocol",
+        "label": "Protocolo anterior",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "meeting_date",
+        "label": "Data do acompanhamento",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "activities",
+        "label": "Atividades observadas / discutidas",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "feedback",
+        "label": "Devolutiva e competências acompanhadas",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "next_steps",
+        "label": "Encaminhamentos e próximo acompanhamento",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "signatories",
+        "label": "Responsáveis pelo visto e assinatura",
+        "type": "textarea",
+        "required": true
+      }
+    ]
+  },
+  "parcial": {
+    "label": "Relatório periódico de atividades",
+    "source": "Modelo genérico Vértice; Lei 11.788/2008 e regulamento/PPC da IES",
+    "role_group": "advisor",
+    "note": "Minuta de informação declarada. Revisar adequação ao PPC, responsabilidades e assinaturas. A emissão não autoriza atividade nem valida horas.",
+    "fields": [
+      {
+        "key": "title",
+        "label": "Identificação do estágio",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "student",
+        "label": "Estudante / matrícula",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "advisor",
+        "label": "Professor orientador",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "supervisor",
+        "label": "Supervisor de campo",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "semester",
+        "label": "Semestre (AAAA/1 ou AAAA/2)",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "component",
+        "label": "Componente curricular / regra do PPC",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "city",
+        "label": "Local de emissão",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "date",
+        "label": "Data de emissão",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "responsible",
+        "label": "Responsável pelo preenchimento",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "previous_protocol",
+        "label": "Protocolo anterior",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "period",
+        "label": "Período abrangido",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "activities",
+        "label": "Síntese das atividades",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "learning",
+        "label": "Competências e aprendizagem",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "supervision",
+        "label": "Acompanhamento efetivo e vistos previstos",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "pending",
+        "label": "Dificuldades e ajustes",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "next_report",
+        "label": "Próxima entrega conforme regulamento (observar limite legal)",
+        "type": "date",
+        "required": true
+      }
+    ]
+  },
+  "avaliacao": {
+    "label": "Avaliação de desempenho",
+    "source": "Modelo genérico Vértice; Lei 11.788/2008 e regulamento/PPC da IES",
+    "role_group": "advisor",
+    "note": "Minuta de informação declarada. Revisar adequação ao PPC, responsabilidades e assinaturas. A emissão não autoriza atividade nem valida horas.",
+    "fields": [
+      {
+        "key": "title",
+        "label": "Identificação do estágio",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "student",
+        "label": "Estudante / matrícula",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "advisor",
+        "label": "Professor orientador",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "supervisor",
+        "label": "Supervisor de campo",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "semester",
+        "label": "Semestre (AAAA/1 ou AAAA/2)",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "component",
+        "label": "Componente curricular / regra do PPC",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "city",
+        "label": "Local de emissão",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "date",
+        "label": "Data de emissão",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "responsible",
+        "label": "Responsável pelo preenchimento",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "previous_protocol",
+        "label": "Protocolo anterior",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "period",
+        "label": "Período avaliado",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "criteria",
+        "label": "Critérios e escala previstos no regulamento",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "assessment",
+        "label": "Avaliação fundamentada por critério",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "feedback",
+        "label": "Devolutiva ao estudante",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "opinion",
+        "label": "Parecer e responsável pela decisão acadêmica",
+        "type": "textarea",
+        "required": true
+      }
+    ]
+  },
+  "aditivo": {
+    "label": "Aditivo / alteração do estágio",
+    "source": "Modelo genérico Vértice; Lei 11.788/2008 e regulamento/PPC da IES",
+    "role_group": "manager",
+    "note": "Minuta de informação declarada. Revisar adequação ao PPC, responsabilidades e assinaturas. A emissão não autoriza atividade nem valida horas.",
+    "fields": [
+      {
+        "key": "title",
+        "label": "Identificação do estágio",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "student",
+        "label": "Estudante / matrícula",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "advisor",
+        "label": "Professor orientador",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "supervisor",
+        "label": "Supervisor de campo",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "semester",
+        "label": "Semestre (AAAA/1 ou AAAA/2)",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "component",
+        "label": "Componente curricular / regra do PPC",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "city",
+        "label": "Local de emissão",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "date",
+        "label": "Data de emissão",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "responsible",
+        "label": "Responsável pelo preenchimento",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "previous_protocol",
+        "label": "Protocolo anterior",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "original",
+        "label": "Identificação do termo original",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "changes",
+        "label": "Alterações propostas e justificativa",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "effective_date",
+        "label": "Data de vigência proposta",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "insurance",
+        "label": "Impacto no seguro, jornada e supervisão",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "signatories",
+        "label": "Concordância e signatários das partes",
+        "type": "textarea",
+        "required": true
+      }
+    ]
+  },
+  "ocorrencia": {
+    "label": "Registro de ocorrência e providências",
+    "source": "Modelo genérico Vértice; Lei 11.788/2008 e regulamento/PPC da IES",
+    "role_group": "advisor",
+    "note": "Minuta de informação declarada. Revisar adequação ao PPC, responsabilidades e assinaturas. A emissão não autoriza atividade nem valida horas.",
+    "fields": [
+      {
+        "key": "title",
+        "label": "Identificação do estágio",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "student",
+        "label": "Estudante / matrícula",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "advisor",
+        "label": "Professor orientador",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "supervisor",
+        "label": "Supervisor de campo",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "semester",
+        "label": "Semestre (AAAA/1 ou AAAA/2)",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "component",
+        "label": "Componente curricular / regra do PPC",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "city",
+        "label": "Local de emissão",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "date",
+        "label": "Data de emissão",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "responsible",
+        "label": "Responsável pelo preenchimento",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "previous_protocol",
+        "label": "Protocolo anterior",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "activity_date",
+        "label": "Data da ocorrência",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "description",
+        "label": "Descrição objetiva sem dados sensíveis de atendidos",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "measures",
+        "label": "Providências e responsáveis",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "followup",
+        "label": "Prazo e acompanhamento",
+        "type": "textarea",
+        "required": true
+      }
+    ]
+  },
+  "final": {
+    "label": "Relatório final e reflexão de aprendizagem",
+    "source": "Modelo genérico Vértice; Lei 11.788/2008 e regulamento/PPC da IES",
+    "role_group": "advisor",
+    "note": "Minuta de informação declarada. Revisar adequação ao PPC, responsabilidades e assinaturas. A emissão não autoriza atividade nem valida horas.",
+    "fields": [
+      {
+        "key": "title",
+        "label": "Identificação do estágio",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "student",
+        "label": "Estudante / matrícula",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "advisor",
+        "label": "Professor orientador",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "supervisor",
+        "label": "Supervisor de campo",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "semester",
+        "label": "Semestre (AAAA/1 ou AAAA/2)",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "component",
+        "label": "Componente curricular / regra do PPC",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "city",
+        "label": "Local de emissão",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "date",
+        "label": "Data de emissão",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "responsible",
+        "label": "Responsável pelo preenchimento",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "previous_protocol",
+        "label": "Protocolo anterior",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "period",
+        "label": "Período realizado",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "activities",
+        "label": "Atividades realizadas",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "learning",
+        "label": "Competências, resultados e reflexão crítica",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "hours",
+        "label": "Horas declaradas e referência da frequência validada",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "assessment",
+        "label": "Avaliações, vistos e pendências",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "conclusions",
+        "label": "Conclusões e encaminhamento acadêmico",
+        "type": "textarea",
+        "required": true
+      }
+    ]
+  },
+  "realizacao": {
+    "label": "Termo de realização / encerramento",
+    "source": "Modelo genérico Vértice; Lei 11.788/2008 e regulamento/PPC da IES",
+    "role_group": "manager",
+    "note": "Minuta de informação declarada. Revisar adequação ao PPC, responsabilidades e assinaturas. A emissão não autoriza atividade nem valida horas.",
+    "fields": [
+      {
+        "key": "title",
+        "label": "Identificação do estágio",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "student",
+        "label": "Estudante / matrícula",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "advisor",
+        "label": "Professor orientador",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "supervisor",
+        "label": "Supervisor de campo",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "semester",
+        "label": "Semestre (AAAA/1 ou AAAA/2)",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "component",
+        "label": "Componente curricular / regra do PPC",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "city",
+        "label": "Local de emissão",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "date",
+        "label": "Data de emissão",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "responsible",
+        "label": "Responsável pelo preenchimento",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "previous_protocol",
+        "label": "Protocolo anterior",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "period",
+        "label": "Período realizado",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "activities",
+        "label": "Resumo das atividades desenvolvidas",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "assessment",
+        "label": "Avaliação de desempenho da concedente",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "closure",
+        "label": "Motivo e condições do encerramento",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "signatories",
+        "label": "Responsáveis pela emissão e assinatura",
+        "type": "textarea",
+        "required": true
+      }
+    ]
+  },
+  "dossie": {
+    "label": "Dossiê de evidências do estágio",
+    "source": "Modelo genérico Vértice; Lei 11.788/2008 e regulamento/PPC da IES",
+    "role_group": "advisor",
+    "note": "Minuta de informação declarada. Revisar adequação ao PPC, responsabilidades e assinaturas. A emissão não autoriza atividade nem valida horas.",
+    "fields": [
+      {
+        "key": "title",
+        "label": "Identificação do estágio",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "student",
+        "label": "Estudante / matrícula",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "advisor",
+        "label": "Professor orientador",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "supervisor",
+        "label": "Supervisor de campo",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "semester",
+        "label": "Semestre (AAAA/1 ou AAAA/2)",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "component",
+        "label": "Componente curricular / regra do PPC",
+        "type": "text",
+        "required": true,
+        "readonly": true
+      },
+      {
+        "key": "city",
+        "label": "Local de emissão",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "date",
+        "label": "Data de emissão",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "responsible",
+        "label": "Responsável pelo preenchimento",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "previous_protocol",
+        "label": "Protocolo anterior",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "inventory",
+        "label": "Inventário de documentos e protocolos",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "activities",
+        "label": "Síntese do percurso e ações externas",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "supervision",
+        "label": "Orientação, supervisão e avaliações",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "hours",
+        "label": "Referência aos registros de frequência e horas validadas",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "pending",
+        "label": "Pendências documentais e plano de providências",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "destination",
+        "label": "Finalidade e destinatário institucional",
+        "type": "textarea",
+        "required": true
+      }
+    ]
+  }
+}
