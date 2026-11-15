@@ -1,15 +1,19 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useLocation } from 'wouter';
-import { LayoutDashboard, Building2, GraduationCap, Wallet, Users, Mail, Brain, GitBranch, ChartColumn, Smartphone, PanelLeftClose, PanelLeftOpen, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Building2, GraduationCap, Wallet, Users, Mail, Brain, GitBranch, ChartColumn, Smartphone, PanelLeftClose, PanelLeftOpen, Menu, X, Settings, FolderOpen } from 'lucide-react';
 import { Brand } from './Brand';
 import './master-layout.css';
 
 const groups = [
-  { label: 'Gestão', items: [
+  { label: 'Plataforma', items: [
     { label: 'Visão geral', href: '/master', icon: LayoutDashboard },
-    { label: 'Universidades', href: '/master#tier=superior', icon: Building2 },
-    { label: 'Escolas', href: '/master#tier=escolas', icon: GraduationCap },
     { label: 'Financeiro', href: '/master#financeiro=1', icon: Wallet },
+    { label: 'Administração de acessos', href: '/master#masters=1', icon: Settings },
+  ] },
+  { label: 'Instituições', items: [
+    { label: 'Educação superior', href: '/master#tier=superior', icon: Building2 },
+    { label: 'Escolas', href: '/master#tier=escolas', icon: GraduationCap },
+    { label: 'Repositórios', href: '/master#repositorios=1', icon: FolderOpen },
   ] },
   { label: 'Gestão de acessos', items: [
     { label: 'Cadastro e convites', href: '/master#ies=1', icon: Users },
@@ -58,6 +62,7 @@ export default function MasterLayout({ children }: { children: ReactNode }) {
     return () => { document.body.style.overflow = previousOverflow; window.removeEventListener('keydown', close); };
   }, [open]);
   const active = groups.flatMap(group => group.items).find(item => item.href === `${path}${hash}`);
+  const institutionalContext = new URLSearchParams(hash.slice(1)).has('instituicao');
   return <div className={`corporate-site master-layout${collapsed ? ' is-collapsed' : ''}${open ? ' is-open' : ''}`}>
     <a className="skip-link" href="#master-content">Pular para o conteúdo</a>
     {open && <button className="master-overlay" aria-label="Fechar menu" onClick={() => { setOpen(false); menuButton.current?.focus(); }} />}
@@ -75,7 +80,7 @@ export default function MasterLayout({ children }: { children: ReactNode }) {
     <div className="master-workspace">
       <header className="master-topbar">
         <button ref={menuButton} className="master-mobile-toggle" aria-label="Abrir menu" aria-expanded={open} aria-controls="master-navigation" onClick={() => setOpen(true)}><Menu size={22}/></button>
-        <div><small>VÉRTICE EDUCAÇÃO SUPERIOR</small><strong>{active?.label ?? 'Painel institucional'}</strong></div>
+        <div><small>{institutionalContext ? 'MASTER / AMBIENTE INSTITUCIONAL' : 'VÉRTICE / ADMINISTRAÇÃO MASTER'}</small><strong>{institutionalContext ? 'Gestão da instituição' : active?.label ?? 'Painel Master'}</strong></div>
         <a className="master-public-link" href="/">Site institucional</a>
       </header>
       <div id="master-content" className="master-content" tabIndex={-1}>{children}</div>

@@ -1,11 +1,11 @@
 /* ================================================================
-   InstitutionTabs — layout com menu lateral direito (7 abas macro)
+   InstitutionTabs — layout com navegação contextual à direita
    ================================================================ */
 
 .inst-tabs-layout {
   display: grid;
-  grid-template-columns: 1fr 248px;
-  gap: 0;
+  grid-template-columns: minmax(0,1fr) 232px;
+  gap: 20px;
   min-height: 70vh;
   position: relative;
 }
@@ -13,19 +13,19 @@
 /* ---- Content area ---- */
 .inst-tabs-content {
   min-width: 0;
-  padding: 0 24px 40px 0;
+  padding: 0 0 40px;
 }
 
 /* ---- Right sidebar nav ---- */
 .inst-tabs-nav {
   position: sticky;
-  top: 72px;               /* adjust if header height differs */
+  top: 88px;
   align-self: start;
-  max-height: calc(100vh - 88px);
+  max-height: calc(100dvh - 104px);
   overflow-y: auto;
-  background: #f8f9fc;
-  border-left: 1px solid #e2e5ef;
-  border-radius: 0 12px 12px 0;
+  background: #fff;
+  border: 1px solid #dce4ef;
+  border-radius: 12px;
   padding: 16px 0;
   display: flex;
   flex-direction: column;
@@ -46,10 +46,7 @@
   font-size: 13px;
   line-height: 1.3;
   color: #1b2440;
-  max-width: 170px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 .inst-tabs-nav-sub {
   display: block;
@@ -89,7 +86,7 @@
   box-shadow: inset 0 0 0 2px #4f8cf7;
 }
 .inst-tabs-nav-item--active {
-  background: #e8edf7;
+  background: #eaf1ff;
   border-left-color: #2563eb;
   color: #1a3080;
   font-weight: 600;
@@ -122,7 +119,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 180px;
+  max-width: 162px;
 }
 
 .inst-tabs-nav-footer {
@@ -161,7 +158,7 @@
 }
 
 /* ---- Responsive: tablet ---- */
-@media (max-width: 1024px) {
+@media (min-width: 1101px) and (max-width: 1280px) {
   .inst-tabs-layout {
     grid-template-columns: 1fr 200px;
   }
@@ -174,17 +171,27 @@
 }
 
 /* ---- Responsive: mobile ---- */
-@media (max-width: 768px) {
+@media (max-width: 1100px) {
   .inst-tabs-layout {
     display: flex;
     flex-direction: column;
   }
   .inst-tabs-mobile-bar {
     display: block;
+    position: sticky;
+    top: 64px;
+    z-index: 21;
+    background: #f5f7fb;
+    padding: 8px 0;
   }
   .inst-tabs-nav {
-    position: static;
-    max-height: none;
+    position: sticky;
+    width: 100%;
+    align-self: stretch;
+    top: 148px;
+    max-height: calc(100dvh - 164px);
+    overflow-y: auto;
+    z-index: 20;
     border-left: none;
     border-radius: 10px;
     border: 1px solid #e2e5ef;
@@ -216,6 +223,9 @@
   }
 }
 
+.inst-tabs-mobile-context{min-width:0;text-align:left}
+.inst-tabs-mobile-context small{display:block;font-size:11px;font-weight:500;color:#526581;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60vw}
+
 /* ---- Respect reduced motion ---- */
 @media (prefers-reduced-motion: reduce) {
   .inst-tabs-nav-item {
@@ -227,10 +237,12 @@
 .inst-active-module,
 .inst-module-workspace { scroll-margin-top: 112px; }
 .inst-active-module[hidden] { display: none !important; }
-.inst-active-module { min-width: 0; border-top: 4px solid #298d87; border-radius: 12px; padding: 16px; background: #fff; box-shadow: 0 8px 24px rgb(25 62 74 / 8%); }
+.inst-active-module { min-width: 0; border-top: 4px solid #1a56db; border-radius: 12px; padding: 16px; background: #fff; box-shadow: 0 8px 24px rgb(24 61 115 / 8%); }
 .inst-active-module:focus-visible,
-.inst-module-workspace:focus-visible { outline: 3px solid #298d87; outline-offset: 4px; }
-.inst-active-module-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding-bottom: 16px; margin-bottom: 16px; border-bottom: 1px solid #dce9e7; }
-.inst-active-module-head p { margin: 0 0 4px; color: #346b67; font-size: .78rem; font-weight: 700; }
-.inst-active-module-head h3 { margin: 0; color: #173f43; font-size: clamp(1.2rem, 2vw, 1.6rem); }
+.inst-module-workspace:focus-visible { outline: 3px solid #1a56db; outline-offset: 4px; }
+.inst-active-module-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding-bottom: 16px; margin-bottom: 16px; border-bottom: 1px solid #dce6f4; }
+.inst-active-module-head p { margin: 0 0 4px; color: #2457a4; font-size: .78rem; font-weight: 700; }
+.inst-active-module-head h3 { margin: 0; color: #182e50; font-size: clamp(1.2rem, 2vw, 1.6rem); }
 @media (max-width: 768px) { .inst-active-module { padding: 12px; } }
+
+@media(max-width:1100px){.inst-active-module,.inst-module-workspace{scroll-margin-top:180px}}

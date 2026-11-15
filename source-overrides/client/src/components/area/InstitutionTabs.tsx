@@ -1,5 +1,5 @@
 /**
- * InstitutionTabs — menu lateral direito com 7 abas macro para a página Master → Instituição.
+ * InstitutionTabs — navegação contextual da página Master → Instituição.
  *
  * Substitui o grid de módulos do Workspace mantendo toda a funcionalidade existente.
  * As tabs internas de cada aba macro continuam controladas pelo Workspace via `choose()`.
@@ -8,7 +8,7 @@ import { useState, useEffect, useRef, type ReactNode } from "react";
 import type { Tab } from "@/lib/area";
 import "./institution-tabs.css";
 
-export type MacroTab = 'visao-geral' | 'dados' | 'cursos' | 'gestores' | 'integracoes' | 'licenciamento' | 'historico';
+export type MacroTab = 'visao-geral' | 'dados' | 'cursos' | 'academico' | 'gestores' | 'integracoes' | 'licenciamento' | 'historico';
 
 export interface MacroTabDef {
   key: MacroTab;
@@ -42,11 +42,18 @@ export const MACRO_TABS: MacroTabDef[] = [
     tabs: ['visao', 'eorbit', 'auditoria', 'backups', 'raio-x-direito', 'vitrine-curso', 'resultado-curso', 'simulador', 'escola-enem', 'escola-egressos'],
   },
   {
+    key: 'academico',
+    label: 'Módulos Acadêmicos',
+    icon: '▥',
+    description: 'CPA, egressos, TCC, extensão e estágio',
+    tabs: ['inclusao', 'acompanhamento-especial', 'extensao', 'egressos', 'cpa-autoavaliacao', 'tcc', 'atividades-complementares', 'estagio'],
+  },
+  {
     key: 'gestores',
-    label: 'Gestores e Acessos',
+    label: 'Gestão e Acessos',
     icon: '♙',
-    description: 'Equipe, convites e permissões',
-    tabs: ['equipe', 'metas', 'plano', 'diagnostico', 'governanca', 'inclusao', 'acompanhamento-especial', 'extensao', 'aquisicoes', 'egressos', 'cpa-autoavaliacao', 'tcc', 'atividades-complementares', 'estagio'],
+    description: 'Equipe, metas, planos e governança',
+    tabs: ['equipe', 'metas', 'plano', 'diagnostico', 'governanca', 'aquisicoes'],
   },
   {
     key: 'integracoes',
@@ -104,6 +111,15 @@ export default function InstitutionTabs({ activeTab, onSelectMacro, activeMacro,
     if (mobileOpen) { setMobileOpen(false); toggleRef.current?.focus(); }
   }, [activeMacro]);
 
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const close = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') { setMobileOpen(false); toggleRef.current?.focus(); }
+    };
+    window.addEventListener('keydown', close);
+    return () => window.removeEventListener('keydown', close);
+  }, [mobileOpen]);
+
   if (!enabled) return <>{children}</>;
 
   return (
@@ -119,7 +135,7 @@ export default function InstitutionTabs({ activeTab, onSelectMacro, activeMacro,
           onClick={() => setMobileOpen(v => !v)}
         >
           <span aria-hidden="true">{MACRO_TABS.find(m => m.key === activeMacro)?.icon}</span>
-          {' '}{MACRO_TABS.find(m => m.key === activeMacro)?.label ?? 'Menu'}
+          <span className="inst-tabs-mobile-context"><small>{institutionName}</small>{MACRO_TABS.find(m => m.key === activeMacro)?.label ?? 'Menu'}</span>
           <span className="inst-tabs-chevron" aria-hidden="true">{mobileOpen ? '▲' : '▼'}</span>
         </button>
       </div>
