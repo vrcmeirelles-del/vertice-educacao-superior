@@ -70,6 +70,7 @@ const Tcc360 = lazy(() => import("./Tcc360"));
 const AtividadesComplementares360 = lazy(() => import("./AtividadesComplementares360"));
 const Estagio360 = lazy(() => import("./Estagio360"));
 import Egressos360 from "./Egressos360";
+import Conecta360 from "./Conecta360";
 import Governanca360 from "./Governanca360";
 import Inclusao360 from "./Inclusao360";
 import AcompanhamentoEspecial360 from "./AcompanhamentoEspecial360";
@@ -95,7 +96,7 @@ const TAB_GROUPS: {label:string;subtitle:string;icon:string;tabs:Tab[];tier?:'su
   {label:'Regulação',subtitle:'Instrumentos e evidências MEC/INEP',icon:'◇',tabs:['emec','repositorio','validacao','enade','avaliacao','novo_instrumento','biblioteca'],tier:'superior'},
   {label:'Acadêmico',subtitle:'Cursos, estudantes e desempenho',icon:'▤',tabs:['geral','cadastro','visao','eorbit','backups','auditoria'],tier:'superior'},
   {label:'Inteligência',subtitle:'Análises, integrações e decisões',icon:'◎',tabs:['analise','ia','fontes','conexoes','reitor','resultado-curso','simulador','raio-x-direito','vitrine-curso','aprendizagem'],tier:'superior'},
-  {label:'Egressos',subtitle:'Acompanhamento longitudinal e empregabilidade',icon:'🎓',tabs:['egressos'],tier:'superior'},
+  {label:'Carreiras e Egressos',subtitle:'Relacionamento, desenvolvimento e empregabilidade',icon:'🎓',tabs:['conecta','egressos'],tier:'superior'},
   {label:'Extensão',subtitle:'Projetos de extensão, participantes e cobertura',icon:'🤝',tabs:['extensao'],tier:'superior'},
   {label:'TCC e Pesquisa',subtitle:'Trabalhos, orientações, bancas, acervo e evidências PPC/ODS',icon:'📝',tabs:['tcc'],tier:'superior'},
   {label:'Atividades Complementares',subtitle:'Recebimento, análise, validação e contabilização de AC',icon:'📜',tabs:['atividades-complementares'],tier:'superior'},
@@ -150,6 +151,7 @@ const TAB_DETAILS: Partial<Record<Tab,{icon:string;description:string}>> = {
   'raio-x-direito':{icon:'⌕',description:'Visão 360° do curso: matrículas, metas, ações, diagnóstico, extensão, CPA, egressos e inclusão'},
   'vitrine-curso':{icon:'🏆',description:'Vitrine do curso para avaliador MEC: pontos fortes organizados por dimensão do instrumento'},
   aprendizagem:{icon:'↔',description:'Acompanhamento da aprendizagem'},
+  conecta:{icon:'↗',description:'Carreiras, oportunidades, trajetórias e inteligência institucional'},
   egressos:{icon:'🎓',description:'Egressos, empregabilidade e trajetória profissional'},
   extensao:{icon:'🤝',description:'Projetos de extensão, participantes, entregas e cobertura por curso'},
   governanca:{icon:'⚖',description:'NDE, Colegiado, reuniões, atas e deliberações'},
@@ -210,6 +212,7 @@ const TABS: [Tab, string][] = [
   ["simulador", "Simulador de Custo"],
   ["raio-x-direito", "Raio-X do Curso"],
   ["vitrine-curso", "Vitrine do Curso · Avaliador"],
+  ["conecta", "Conecta 360°"],
   ["egressos", "Egressos 360°"],
   ["extensao", "Extensão 360°"],
   ["tcc", "TCC e Pesquisa 360°"],
@@ -406,7 +409,7 @@ export default function Workspace({
       setModuleSearch(""); setOnlyFavorites(false);
     }
   };
-  const isLocked = (tabKey: string) => !["escola-individual","escola-documentos","escola-bi", "escola-permanencia", "escola-financeiro", "escola-dados", "escola-projetos", "escola-estagio", "escola-captacao"].includes(tabKey) && tabKey !== "gestao-escolar" && tabKey !== "planejamento-estrategico" && tabKey !== "planejamento-semestral" && activeTabs.size > 0 && !activeTabs.has(tabKey);
+  const isLocked = (tabKey: string) => !["escola-individual","escola-documentos","escola-bi", "escola-permanencia", "escola-financeiro", "escola-dados", "escola-projetos", "escola-estagio", "escola-captacao"].includes(tabKey) && tabKey !== "conecta" && tabKey !== "gestao-escolar" && tabKey !== "planejamento-estrategico" && tabKey !== "planejamento-semestral" && activeTabs.size > 0 && !activeTabs.has(tabKey);
   const isTasting = (tabKey: string) => {
     const mod = findModuleByTab(moduleCatalog, tabKey);
     return mod?.display_status === 'tasting';
@@ -629,6 +632,8 @@ export default function Workspace({
         <Suspense fallback={<p role="status">Carregando Raio-X…</p>}><CourseRaioX institutionId={id} courses={data.courses.map((c: Row) => ({ id: c.id as string, name: c.name as string, modality: c.modality as string, code: c.code as string }))} role={role||'master'} onNavigate={(t, cid) => { if (cid) { /* could set course filter */ } choose(t as Tab); }} /></Suspense>
       ) : tab === "vitrine-curso" ? (
         <Suspense fallback={<p role="status">Carregando Vitrine…</p>}><CourseShowcase institutionId={id} courses={data.courses.map((c: Row) => ({ id: c.id as string, name: c.name as string, modality: c.modality as string, code: c.code as string }))} role={role||'master'} onNavigate={(t) => choose(t as Tab)} /></Suspense>
+      ) : tab === "conecta" ? (
+        <Conecta360 key={id} institutionId={id} role={role} onNavigate={choose} onDirtyChange={value=>{edited.current=value;}}/>
       ) : tab === "egressos" ? (
         (() => { const m=findModuleByTab(moduleCatalog,'egressos'); return <ModulePreview locked={isLocked('egressos')} tasting={isTasting('egressos')} tastingEnds={m?.tasting_ends} moduleCode="GEST_EGRESSOS" moduleName="Egressos 360°" moduleDescription="Acompanhamento longitudinal de egressos, empregabilidade e trajetória profissional." institutionId={id} estimatedFee={m?.estimated_monthly_fee||1000} tier={m?.tier||'gestao'}><Egressos360 institutionId={id} courses={data.courses.map((c: Row) => ({ id: c.id as string, name: c.name as string, modality: c.modality as string }))} role={role as 'master' | 'gestor' | 'equipe'} /></ModulePreview>; })()
       ) : tab === "extensao" ? (
