@@ -6,6 +6,10 @@ on:
     branches: [main]
 permissions:
   contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}-${{ github.event_name == 'workflow_dispatch' && github.run_id || 0 }}
+  cancel-in-progress: true
+
 jobs:
   canonical-source:
     runs-on: ubuntu-latest
