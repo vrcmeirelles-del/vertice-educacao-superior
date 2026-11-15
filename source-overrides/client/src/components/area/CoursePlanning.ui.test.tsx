@@ -44,3 +44,42 @@ it('disables editing for readers and exposes failures without a false success',a
  mock.fail=true;await click('Salvar planejamento estratégico');
  expect(el.querySelector('[role=alert]')?.textContent).toContain('Falha de autorização');expect(el.textContent).not.toContain('Planejamento salvo.');
 });
+it.each(['strategic','semester'] as const)('keeps the independent %s editor, history and writes in the same plan kind',async(kind)=>{
+ await act(async()=>root.render(<CoursePlanning institutionId="ies-a" courses={courses} role="coordenador" initialCourseId="curso-a" kind={kind}/>));
+ const semester=kind==='semester';
+ const label=semester?'semestral':'estratégico';
+ expect(el.querySelector('h2')?.textContent).toBe(semester?'Planejamento Semestral do Curso':'Planejamento Estratégico do Curso');
+ expect(el.textContent).toContain(`Histórico ${label}`);
+ expect(el.textContent).not.toContain(`Histórico ${semester?'estratégico':'semestral'}`);
+ expect(el.querySelector('nav')===null).toBe(semester);
+ if(!semester)expect([...el.querySelectorAll('nav button')].map(b=>b.textContent)).not.toContain('Planejamento Semestral');
+ await click('Abrir versão');
+ await click(`Salvar planejamento ${label}`);
+ const save=mock.calls.find(c=>c.p_action==='save')!;
+ expect(save).toMatchObject({p_kind:kind,p_institution_id:'ies-a',p_course_id:'curso-a',p_payload:{id:`${kind}-curso-a`,expected_updated_at:'2026-11-15T10:01:00Z'}});
+ await click('Publicar versão salva');
+ expect(mock.calls.find(c=>c.p_action==='publish')).toMatchObject({p_kind:kind,p_payload:{id:`${kind}-curso-a`}});
+ await click(`Novo planejamento ${label}`);
+ expect(el.textContent).toContain('versão 1');
+ expect(el.textContent).not.toContain('Publicar versão salva');
+});
+it('remounts the editor when changing independent planning kind without carrying the previous record',async()=>{
+ await act(async()=>root.render(<CoursePlanning institutionId="ies-a" courses={courses} role="nde" initialCourseId="curso-a" kind="strategic"/>));
+ await click('2. Visão');
+ expect(el.querySelector('textarea')?.value).toBe('Visão de curso-a');
+ await act(async()=>root.render(<CoursePlanning institutionId="ies-a" courses={courses} role="nde" initialCourseId="curso-a" kind="semester"/>));
+ expect(el.textContent).toContain('Histórico semestral');
+ expect(el.textContent).not.toContain('Histórico estratégico');
+ await click('Salvar planejamento semestral');
+ expect(mock.calls.find(c=>c.p_action==='save')).toMatchObject({p_kind:'semester',p_payload:{id:'semester-curso-a'}});
+});
+it.each(['strategic','semester'] as const)('retains read-only access and RPC error feedback in the independent %s editor',async(kind)=>{
+ await act(async()=>root.render(<CoursePlanning institutionId="ies-a" courses={courses} role="leitor" initialCourseId="curso-a" kind={kind}/>));
+ expect(el.querySelector('fieldset')?.disabled).toBe(true);
+ expect([...el.querySelectorAll('button')].some(b=>b.textContent?.startsWith('Salvar planejamento'))).toBe(false);
+ await act(async()=>root.render(<CoursePlanning institutionId="ies-a" courses={courses} role="master" initialCourseId="curso-a" kind={kind}/>));
+ mock.fail=true;
+ await click(`Salvar planejamento ${kind==='semester'?'semestral':'estratégico'}`);
+ expect(el.querySelector('[role=alert]')?.textContent).toContain('Falha de autorização');
+ expect(el.textContent).not.toContain('Planejamento salvo.');
+});
