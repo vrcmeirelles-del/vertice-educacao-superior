@@ -2,7 +2,7 @@
 Data: 15/11/2026. Base: 905309f9004e8ee9e584da4c6707c221d69c07ac.
 
 ## Estado
-Implementação inicial em branch de revisão. Não aplicada ao Supabase, não integrada à main e não publicada no Render nesta entrega.
+Núcleo inicial publicado em 15/11/2026. O usuário aplicou a migração SQL, e a estrutura foi conferida no banco. A PR #154 foi integrada à main; a função vertice-student-portal foi atualizada para a versão 2; os dois serviços existentes do Render concluíram o deploy.
 O escopo integral do Prompt Mestre ainda não está concluído ou homologado.
 
 ## Entregue no código
@@ -33,16 +33,16 @@ Nenhum dado sintético gravado em produção. Nenhuma mensagem enviada nesta imp
 - 16 testes de interface/navegação aprovados (6 novos e 10 de navegação existente).
 - TypeScript sem diagnósticos na composição do pacote-base com os overrides atuais.
 - build:static aprovado, incluindo prerender.
-- Conferência visual desktop/mobile em navegador: pendente. O navegador disponibilizado recusou a prévia local; não há screenshot de homologação.
-- Testes ponta a ponta com usuários reais e provedores externos: pendentes.
+- Conferência publicada: formulário público da UNITOP e ajuda contextual verificados; painel Master autenticado abriu visão geral, trajetórias, oportunidades, metas e relacionamento sem alertas de erro. Layout Master observado em 1280 e 390 pixels; no recorte móvel, largura do documento 375 px para viewport de 390 px, sem overflow horizontal nessa conferência.
+- Teste completo de aluno/egresso (e-mail recebido, resgate do link, edição e gravação), demais perfis e provedores externos: pendente.
 Os testes locais usam fixtures de dependências acadêmicas; não substituem homologação no ambiente publicado.
 
-## Implantação preparada
+## Sequência de implantação e homologação
 1. Revisar a PR e a migração explícita supabase/migrations/20261115213753_conecta_360_native.sql. Não executar db push indiscriminado.
 2. Aplicar a migração no Supabase institucional qvetbbmviatxxatzzuzc.
 3. Publicar a alteração da função existente vertice-student-portal preservando verify_jwt=false e seus controles internos; nenhum novo serviço é necessário.
 4. Integrar a branch no repositório canônico. Os serviços Render existentes têm deploy automático.
-5. Homologar gestão, coordenação, CPA e autoatendimento com usuários autorizados, visual desktop/mobile e regressões de AC/Estágio.
+5. Gestão Master e acessos de consulta conferidos em produção. Completar homologação de coordenação, CPA e autoatendimento com usuários autorizados, revisão das demais telas em desktop/mobile e regressões funcionais completas de AC/Estágio.
 6. Registrar evidências antes de marcar como comprovadamente funcional.
 
 Gestão: Master → instituição → Módulos Acadêmicos → Conecta 360°.
@@ -63,3 +63,19 @@ Egressos sem registro nominal e contato verificável dependem de conciliação i
 - Homologação ponta a ponta, acessibilidade completa e revisão visual do ambiente publicado.
 
 Esta entrega é um núcleo incremental implementado e testado localmente, não a conclusão dos 21 blocos do Prompt Mestre.
+
+## Evidências da publicação — 15/11/2026
+- PR: https://github.com/vrcmeirelles-del/vertice-educacao-superior/pull/154 (integrada).
+- Commit de aplicação publicado: d4ed7d911b410c4c0042f25a15a8de8d6126e68e.
+- Edge Function existente: vertice-student-portal, versão 2, ACTIVE; código publicado comparado com a branch e correspondente. A configuração verify_jwt=false já existia; a autenticação permanece dentro da função e da sessão validada.
+- Render vertice-portal: dep-dbt32hvf3r2c73f1fi60, live.
+- Render vertice-educacao-superior: dep-dbt32hvf3r2c73f1fi20, live.
+- version.json do domínio www.verticesuperior.com.br e do portal confirmou o commit publicado.
+- Banco: oito tabelas com RLS; zero privilégios diretos de tabela para navegador; RPC pessoal restrita a service_role; gatilho Sapiens habilitado.
+- Oito consultas do RPC de gestão verificadas no banco real em transação de leitura, com claims de teste de um Master existente. Esta verificação não substitui autenticação ponta a ponta dos demais perfis.
+- Endpoint real recusou sessões inválidas com HTTP 401/session_invalid em Conecta, AC e Estágio.
+- Nenhuma trajetória fictícia foi inserida e nenhum e-mail ou WhatsApp foi enviado para teste.
+- Master UNITOP: https://www.verticesuperior.com.br/master#instituicao=1f5fd5b4-93c6-4626-834d-136884915587&aba=conecta
+- Autoatendimento UNITOP: https://www.verticesuperior.com.br/acesso-estudante?ies=1f5fd5b4-93c6-4626-834d-136884915587&mod=conecta
+
+O núcleo está publicado e parcialmente verificado em produção. As pendências funcionais e de homologação listadas acima permanecem abertas; o Prompt Mestre integral não está concluído.
