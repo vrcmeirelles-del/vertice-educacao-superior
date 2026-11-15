@@ -100,10 +100,13 @@ interface Props {
   children: ReactNode;
   institutionName: string;
   institutionLogo?: string;
+  educationTier?: string;
   kpis?: ReactNode;
 }
 
-export default function InstitutionTabs({ activeTab, onSelectMacro, activeMacro, children, institutionName, institutionLogo, kpis, enabled = true, availableMacros }: Props) {
+export default function InstitutionTabs({ activeTab, onSelectMacro, activeMacro, children, institutionName, institutionLogo, educationTier, kpis, enabled = true, availableMacros }: Props) {
+  const school=educationTier==='escolas';
+  const macroLabel=(label:string)=>school?label.replace('Cursos e Ofertas','Etapas e Ofertas').replace('Módulos Acadêmicos','Gestão Pedagógica'):label;
   const [failedLogo,setFailedLogo]=useState<string|null>(null);
   const showLogo=!!institutionLogo&&failedLogo!==institutionLogo;
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -138,7 +141,7 @@ export default function InstitutionTabs({ activeTab, onSelectMacro, activeMacro,
           onClick={() => setMobileOpen(v => !v)}
         >
           <span aria-hidden="true">{MACRO_TABS.find(m => m.key === activeMacro)?.icon}</span>
-          <span className="inst-tabs-mobile-context"><small>{institutionName}</small>{MACRO_TABS.find(m => m.key === activeMacro)?.label ?? 'Menu'}</span>
+          <span className="inst-tabs-mobile-context"><small>{institutionName}</small>{macroLabel(MACRO_TABS.find(m => m.key === activeMacro)?.label ?? 'Menu')}</span>
           <span className="inst-tabs-chevron" aria-hidden="true">{mobileOpen ? '▲' : '▼'}</span>
         </button>
       </div>
@@ -174,15 +177,15 @@ export default function InstitutionTabs({ activeTab, onSelectMacro, activeMacro,
               >
                 <span className="inst-tabs-nav-item-icon" aria-hidden="true">{mt.icon}</span>
                 <span className="inst-tabs-nav-item-text">
-                  <strong>{mt.label}</strong>
-                  <small>{mt.description}</small>
+                  <strong>{macroLabel(mt.label)}</strong>
+                  <small>{school&&mt.key==='academico'?'Aprendizagem, inclusão e acompanhamento escolar':school&&mt.key==='cursos'?'Etapas ofertadas e desempenho escolar':mt.description}</small>
                 </span>
               </button>
             </li>
           ))}
         </ul>
         <div className="inst-tabs-nav-footer">
-          Vértice · Educação Superior
+          Vértice · {school?'Escolas':'Educação Superior'}
         </div>
       </nav>
     </div>

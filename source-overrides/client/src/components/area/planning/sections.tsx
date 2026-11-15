@@ -411,6 +411,7 @@ export function ObjetivosTab({ plan, setPlan }: { plan: PlanDraft; setPlan: (p: 
 
 // ── 3. SWOT ──────────────────────────────────────────────────
 export function SwotTab({ plan, setPlan }: { plan: PlanDraft; setPlan: (p: PlanDraft) => void }) {
+  const school=useContext(PlanningSchoolContext);
   const sw = {
     strengths: Array.isArray(plan.swot?.strengths) ? plan.swot.strengths : [],
     weaknesses: Array.isArray(plan.swot?.weaknesses) ? plan.swot.weaknesses : [],
@@ -426,7 +427,7 @@ export function SwotTab({ plan, setPlan }: { plan: PlanDraft; setPlan: (p: PlanD
   ];
   return (
     <SectionCard title="Análise SWOT">
-      <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '0 0 16px' }}>Identifique os fatores internos (Forças/Fraquezas) e externos (Oportunidades/Ameaças) que impactam o curso.</p>
+      <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '0 0 16px' }}>{school?'Identifique os fatores internos e externos que impactam a escola.':'Identifique os fatores internos (Forças/Fraquezas) e externos (Oportunidades/Ameaças) que impactam o curso.'}</p>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
         {quadrants.map(q => (
           <div key={q.key} className="card" style={{ padding: 14, borderLeft: `3px solid ${q.color}` }}>
@@ -450,10 +451,11 @@ export function SwotTab({ plan, setPlan }: { plan: PlanDraft; setPlan: (p: PlanD
 
 // ── 8. Benchmarking ──────────────────────────────────────────
 export function BenchmarkingTab({ plan, setPlan }: { plan: PlanDraft; setPlan: (p: PlanDraft) => void }) {
+  const school=useContext(PlanningSchoolContext);
   const rows = plan.benchmarking ?? [];
   return (
     <SectionCard title="Benchmarking Competitivo">
-      <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '0 0 12px' }}>Compare indicadores do curso com os concorrentes diretos. Use dados do ENADE, CPC, Censo ou pesquisa própria.</p>
+      <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '0 0 12px' }}>{school?'Compare indicadores da escola com referências verificáveis da educação básica e pesquisas próprias.':'Compare indicadores do curso com os concorrentes diretos. Use dados do ENADE, CPC, Censo ou pesquisa própria.'}</p>
       <div className="planning-scroll">
         <table className="table">
           <thead><tr><th>Concorrente</th><th>Indicador</th><th>Valor</th><th>Fonte</th></tr></thead>
@@ -502,10 +504,11 @@ const PROB_LABELS: Record<string, string> = { alta: 'Alta', media: 'Média', bai
 const IMPACT_LABELS: Record<string, string> = { alto: 'Alto', medio: 'Médio', baixo: 'Baixo' };
 
 export function RiscosTab({ plan, setPlan }: { plan: PlanDraft; setPlan: (p: PlanDraft) => void }) {
+  const school=useContext(PlanningSchoolContext);
   const rows = plan.risks ?? [];
   return (
     <SectionCard title="Riscos Estratégicos">
-      <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '0 0 12px' }}>Identifique riscos que podem impactar os objetivos do curso. Defina probabilidade, impacto e ação de mitigação.</p>
+      <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '0 0 12px' }}>{school?'Identifique riscos aos objetivos da escola, com probabilidade, impacto e mitigação.':'Identifique riscos que podem impactar os objetivos do curso. Defina probabilidade, impacto e ação de mitigação.'}</p>
       <div className="stack" style={{ gap: 10 }}>
         {rows.map((r, i) => (
           <div key={i} className="card" style={{ padding: 12 }}>
