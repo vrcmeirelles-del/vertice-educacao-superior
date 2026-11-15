@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import StudentAccessPortal from '@/components/area/StudentAccessPortal';
+import ConectaStudentPortal from '@/components/area/ConectaStudentPortal';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -32,5 +33,6 @@ export default function StudentAccess() {
       <p style={{ color: 'var(--vx-muted,#64748b)' }}>Este endereço não identifica uma instituição ativa. Use o link enviado pela coordenação do seu curso.</p>
     </main>
   );
+  if(mod==='conecta')return <ConectaStudentPortal institutionId={ies} institutionName={name??''} token={token}/>;
   return <StudentAccessPortal institutionId={ies} institutionName={name ?? ''} purpose={purpose} token={token} />;
 }
