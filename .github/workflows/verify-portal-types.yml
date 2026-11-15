@@ -7,6 +7,7 @@ on:
       - 'source-overrides/server/**'
       - 'source-overrides/tsconfig.json'
       - 'source-overrides/package*.json'
+      - 'supabase/migrations/*integration_observations.sql'
       - 'supabase/migrations/*extension_electronic_forms.sql'
       - 'supabase/migrations/*tcc*.sql'
       - 'supabase/migrations/*internship*.sql'
