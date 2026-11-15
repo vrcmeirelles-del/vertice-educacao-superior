@@ -12,6 +12,7 @@ import MasterLayout from "./components/MasterLayout";
 import { publicPages } from "./lib/consultancy";
 import { passwordCallback } from "./lib/supabase";
 import ResetPassword from "./pages/public/ResetPassword";
+const IntegracaoPage = lazy(() => import("./pages/IntegracaoPage"));
 const OwnerDashboard = lazy(() => import("./pages/OwnerDashboard"));
 const VerticeMobileBI = lazy(() => import("./components/bi/VerticeMobileBI"));
 const VerticeMobilePublicPreview = lazy(() => import("./components/bi/VerticeMobilePublicPreview"));
@@ -46,7 +47,7 @@ export default function App() {
   useEffect(() => {
     const page = publicPages.find(p => p.path === normalized);
     document.title =
-      (normalized === "/experience" ? "Vértice Experience | Visita demonstrativa" : normalized === "/master/experience" ? "Vértice Experience | Administração Master" : iesActive ? "Cadastro institucional | Vértice Educação Superior" : normalized === "/mobile/apresentacao" ? "Vértice Mobile | Demonstração sem login" : normalized === "/mobile" ? "Vértice Mobile | Inteligência executiva" : ["/master","/gestor","/admin-ies","/painel-real"].includes(normalized) ? "Painel institucional | Vértice Educação Superior" : normalized === "/master/aquisicoes" ? "Aquisições e incorporações | Vértice" : normalized === "/redefinir-senha" || passwordCallback ? "Definir nova senha | Vértice Educação Superior" : normalized === "/reitor/reservado" ? "Área reservada do reitor | Vértice Educação Superior" : normalized === "/acesso-estudante" ? "Acesso do estudante | Vértice Educação Superior" : normalized === "/entrar" ? "Entrar | Vértice Educação Superior" : page?.title) ??
+      (normalized === "/integracao" ? "Integração Fato & Ordem × Vértice | Acompanhamento Master" : normalized === "/experience" ? "Vértice Experience | Visita demonstrativa" : normalized === "/master/experience" ? "Vértice Experience | Administração Master" : iesActive ? "Cadastro institucional | Vértice Educação Superior" : normalized === "/mobile/apresentacao" ? "Vértice Mobile | Demonstração sem login" : normalized === "/mobile" ? "Vértice Mobile | Inteligência executiva" : ["/master","/gestor","/admin-ies","/painel-real"].includes(normalized) ? "Painel institucional | Vértice Educação Superior" : normalized === "/master/aquisicoes" ? "Aquisições e incorporações | Vértice" : normalized === "/redefinir-senha" || passwordCallback ? "Definir nova senha | Vértice Educação Superior" : normalized === "/reitor/reservado" ? "Área reservada do reitor | Vértice Educação Superior" : normalized === "/acesso-estudante" ? "Acesso do estudante | Vértice Educação Superior" : normalized === "/entrar" ? "Entrar | Vértice Educação Superior" : page?.title) ??
       (demoPaths.has(normalized)
         ? "Demonstração de gestão | Vértice Educação Superior"
         : "Página não encontrada | Vértice Educação Superior");
@@ -64,6 +65,7 @@ export default function App() {
       if (description) description.content = page.description;
     }
   }, [path, normalized, isPublic, iesActive]);
+  if (normalized === "/integracao") return <ErrorBoundary><Suspense fallback={<main role="status">Verificando acesso à integração…</main>}><IntegracaoPage /></Suspense></ErrorBoundary>;
   if (normalized === "/acesso-estudante") return <ErrorBoundary><PublicLayout><Suspense fallback={<main style={{padding:40}} role="status">Carregando acesso do estudante…</main>}><StudentAccess /></Suspense></PublicLayout></ErrorBoundary>;
   if (normalized === "/ac-aluno") return <ErrorBoundary><Suspense fallback={<main style={{padding:40}} role="status">Carregando portal do aluno…</main>}><AcPortalAluno /></Suspense></ErrorBoundary>;
   if (normalized === "/extensao-convite") return <ErrorBoundary><Suspense fallback={<main style={{padding:40}} role="status">Carregando convite…</main>}><ExtensaoConvite /></Suspense></ErrorBoundary>;
