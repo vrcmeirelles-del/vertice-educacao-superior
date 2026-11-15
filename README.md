@@ -2,6 +2,12 @@
 
 Produção: https://www.verticesuperior.com.br
 
+Este é o repositório ativo único da Vértice. O planejamento estratégico e semestral
+utiliza o portal, seu login e o Supabase existentes. Consulte
+[a consolidação](docs/CONSOLIDACAO_REPOSITORIO.md) e as regras em `AGENTS.md` antes
+de criar módulos ou alterar a implantação. O pacote em `archives/` é histórico e
+não deve ser implantado.
+
 Área do reitor: `/reitor` para cálculo público e `/reitor/reservado` para cálculo e DRE privados. Ver [UPDATE_REITOR_EBITDA_20261101.md](UPDATE_REITOR_EBITDA_20261101.md). Para reproduzir a versão atual, extraia o ZIP de fonte e sobreponha `source-overrides/` antes dos comandos de validação/build. Os ZIPs permanecem como pacotes-base anteriores.
 
 Biblioteca INEP: em `/master`, abrir a instituição e a aba **Biblioteca INEP**.

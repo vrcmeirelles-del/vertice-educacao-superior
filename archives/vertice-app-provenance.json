@@ -1,0 +1,39 @@
+{
+  "repository": "vrcmeirelles-del/vertice-app",
+  "last_commit": "de67f5fe979e483e082f3ac8cf7c6212cb178a49",
+  "commits": [
+    {
+      "sha": "de67f5fe979e483e082f3ac8cf7c6212cb178a49",
+      "message": "Remove obsolete semester form designation",
+      "parents": [
+        "dcc35f5ec0e15c46fd8c4ee35253b899a3f0503a"
+      ]
+    },
+    {
+      "sha": "dcc35f5ec0e15c46fd8c4ee35253b899a3f0503a",
+      "message": "Trust official Supabase CA for verified TLS connections",
+      "parents": [
+        "1b19523d46dba8276705df5df208ae061bbe9abf"
+      ]
+    },
+    {
+      "sha": "1b19523d46dba8276705df5df208ae061bbe9abf",
+      "message": "Use existing Supabase schema and preserve Render records during cutover",
+      "parents": [
+        "837da156ef6080bd1f7070c3ff0e118455c6e4a1"
+      ]
+    },
+    {
+      "sha": "837da156ef6080bd1f7070c3ff0e118455c6e4a1",
+      "message": "Configure Render deployment with shared web/API and managed database",
+      "parents": [
+        "bdcdd0d49c352438ed782d040e061723c78cd143"
+      ]
+    },
+    {
+      "sha": "bdcdd0d49c352438ed782d040e061723c78cd143",
+      "message": "Modulo de Planejamento Estrategico do Curso\n\nAdiciona o ambiente de planejamento estrategico por formularios, cobrindo\no PEC completo e o planejamento semestral de atividades.\n\nBackend:\n- migracao 0006 com strategic_plans e semester_plannings, ambas com\n  institution_id, versionamento e status\n- rotas /v1/strategic-plans e /v1/semester-plannings com leitura, criacao,\n  atualizacao, nova versao e mudanca de status\n- auditoria em audit_log e isolamento por instituicao em toda consulta\n\nFrontend:\n- pagina Planejamento Estrategico com abas para identificacao, visao,\n  ciclo de vida, matriz BCG, cinco forcas de Porter, FCS, matriz de\n  atributos, objetivos estrategicos, plano de acao e semestre\n- entrada no menu lateral para os papeis da instituicao",
+      "parents": []
+    }
+  ]
+}
