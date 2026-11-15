@@ -269,6 +269,11 @@ export default function MasterHub({ onNavigate }: Props) {
           onClick={() => onNavigate('escolas')}
         />
         <HubCard
+          icon="🔗" title="Integração Fato & Ordem" color="#2563eb"
+          subtitle="Painel de acompanhamento, testes, evidências e homologação da integração Fato & Ordem × Vértice."
+          onClick={() => { window.location.assign('/integracao'); }}
+        />
+        <HubCard
           icon="⚙️" title="Configurações" color="#4b5563"
           subtitle="Módulos, usuários, integrações, termos contratuais e catálogo da plataforma."
           onClick={() => onNavigate('configuracoes')}
