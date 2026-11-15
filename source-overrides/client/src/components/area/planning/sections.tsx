@@ -467,7 +467,7 @@ function CollapsibleSection({ icon, title, hint, children }: { icon: string; tit
   );
 }
 
-export function SemestreTab({ draft, setDraft }: { draft: SemesterDraft; setDraft: (d: SemesterDraft) => void }) {
+export function SemestreTab({ draft, setDraft, crossData }: { draft: SemesterDraft; setDraft: (d: SemesterDraft) => void; crossData?: {extensionProjects?:{name:string;hours_per_student?:number}[];goals?:{area:string;target_value:string;metric:string;baseline?:string}[];internshipCount?:number;tccDefenseCount?:number;atRiskCount?:number;peiCount?:number;professors?:{name:string;title?:string}[]}|null }) {
   const ctx = draft.context ?? { start_date: null, end_date: null, school_days: null, objective: null, notes: null };
   const fac = draft.faculty ?? { assignments: [], trainings: [], meetings: [] };
   const ext = draft.extension_ac ?? { extension_projects: [], ac_activities: [], partnerships: [] };
@@ -541,6 +541,7 @@ export function SemestreTab({ draft, setDraft }: { draft: SemesterDraft; setDraf
 
     {/* 4. Corpo Docente */}
     <CollapsibleSection icon="👩‍🏫" title="Corpo Docente e Colegiados" hint="Atribuição de carga, capacitações e reuniões de NDE/Colegiado programadas.">
+      {crossData?.professors?.length ? <p style={{fontSize:13,color:'var(--text-secondary)',margin:'0 0 10px',padding:'6px 10px',background:'var(--bg-card)',borderRadius:6,borderLeft:'3px solid var(--accent)'}}>📊 <strong>{crossData.professors.length} docentes</strong> registrados no e-ORBIT para este curso</p> : null}
       <h4 style={{ margin: '0 0 8px', fontSize: 14, fontWeight: 600 }}>Atribuição de Carga Docente</h4>
       <div className="planning-scroll">
         <table className="table">
@@ -602,6 +603,7 @@ export function SemestreTab({ draft, setDraft }: { draft: SemesterDraft; setDraf
 
     {/* 5. Metas */}
     <CollapsibleSection icon="🎯" title="Metas Acadêmicas do Semestre" hint="Conecte com as metas do módulo de Gestão para acompanhamento automático.">
+      {crossData?.goals?.length ? <p style={{fontSize:13,color:'var(--text-secondary)',margin:'0 0 10px',padding:'6px 10px',background:'var(--bg-card)',borderRadius:6,borderLeft:'3px solid var(--accent)'}}>📊 <strong>{crossData.goals.length} metas ativas</strong> no módulo de Gestão — vincule aqui as metas específicas deste semestre</p> : null}
       <div className="planning-scroll">
         <table className="table">
           <thead><tr><th>Área</th><th>Meta</th><th>Métrica</th><th>Linha de base</th></tr></thead>
@@ -624,6 +626,7 @@ export function SemestreTab({ draft, setDraft }: { draft: SemesterDraft; setDraf
 
     {/* 6. Extensão e AC */}
     <CollapsibleSection icon="🤝" title="Extensão e Atividades Complementares" hint="Projetos cadastrados no módulo Extensão 360° aparecem automaticamente. Adicione atividades específicas deste semestre.">
+      {crossData?.extensionProjects?.length ? <p style={{fontSize:13,color:'var(--text-secondary)',margin:'0 0 10px',padding:'6px 10px',background:'var(--bg-card)',borderRadius:6,borderLeft:'3px solid var(--accent)'}}>📊 <strong>{crossData.extensionProjects.length} projetos ativos</strong> no módulo Extensão 360°</p> : null}
       <h4 style={{ margin: '0 0 8px', fontSize: 14, fontWeight: 600 }}>Projetos de Extensão Vinculados</h4>
       <div className="planning-scroll">
         <table className="table">
@@ -671,6 +674,7 @@ export function SemestreTab({ draft, setDraft }: { draft: SemesterDraft; setDraf
 
     {/* 7. Estágio e TCC */}
     <CollapsibleSection icon="🏢" title="Estágio e TCC" hint="Dados vinculados aos módulos Estágio 360° e TCC 360°.">
+      {(crossData?.internshipCount||crossData?.tccDefenseCount)?<p style={{fontSize:13,color:'var(--text-secondary)',margin:'0 0 10px',padding:'6px 10px',background:'var(--bg-card)',borderRadius:6,borderLeft:'3px solid var(--accent)'}}>📊 {crossData.internshipCount?<><strong>{crossData.internshipCount} estágios</strong> ativos</>:null}{crossData.internshipCount&&crossData.tccDefenseCount?' · ':''}{crossData.tccDefenseCount?<><strong>{crossData.tccDefenseCount} TCCs</strong> em andamento</>:null}</p>:null}
       <h4 style={{ margin: '0 0 8px', fontSize: 14, fontWeight: 600 }}>Estágio Obrigatório</h4>
       <div className="row">
         <Field label="Alunos em estágio"><input className="input" type="number" value={itcc.internship.student_count ?? ""} onChange={(e) => setDraft({ ...draft, internship_tcc: { ...itcc, internship: { ...itcc.internship, student_count: e.target.value === "" ? null : Number(e.target.value) } } })} /></Field>
@@ -718,6 +722,7 @@ export function SemestreTab({ draft, setDraft }: { draft: SemesterDraft; setDraf
 
     {/* 9. Acompanhamento */}
     <CollapsibleSection icon="♿" title="Acompanhamento e Suporte ao Estudante" hint="Dados vinculados aos módulos Inclusão 360° e Acompanhamento Especial.">
+      {(crossData?.atRiskCount||crossData?.peiCount)?<p style={{fontSize:13,color:'var(--text-secondary)',margin:'0 0 10px',padding:'6px 10px',background:'var(--bg-card)',borderRadius:6,borderLeft:'3px solid var(--accent)'}}>📊 {crossData.atRiskCount?<><strong>{crossData.atRiskCount} alunos em risco</strong> identificados</>:null}{crossData.atRiskCount&&crossData.peiCount?' · ':''}{crossData.peiCount?<><strong>{crossData.peiCount} PEIs</strong> ativos</>:null}</p>:null}
       <div className="planning-scroll">
         <table className="table">
           <thead><tr><th>Categoria</th><th>Descrição</th><th>Alunos</th><th>Responsável</th></tr></thead>

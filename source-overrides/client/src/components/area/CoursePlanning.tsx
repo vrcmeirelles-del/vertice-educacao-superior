@@ -1,8 +1,42 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { isFullAccess, type Role } from '@/lib/area';
 import { TABS, EMPTY_PLAN, EMPTY_SEMESTER, type TabKey, type PlanDraft, type SemesterDraft, IdentificacaoTab, VisaoTab, CicloTab, BcgTab, PorterTab, FcsTab, AtributosTab, ObjetivosTab, OperacionalTab, SemestreTab } from './planning/sections';
 import './planning/planning.css';
+
+export interface CrossModuleData {
+  extensionProjects: {name:string;hours_per_student?:number}[];
+  goals: {area:string;target_value:string;metric:string;baseline?:string}[];
+  internshipCount: number;
+  tccDefenseCount: number;
+  atRiskCount: number;
+  peiCount: number;
+  professors: {name:string;title?:string}[];
+}
+
+async function loadCrossModuleData(institutionId:string, courseId:string): Promise<CrossModuleData> {
+  const empty:CrossModuleData = {extensionProjects:[],goals:[],internshipCount:0,tccDefenseCount:0,atRiskCount:0,peiCount:0,professors:[]};
+  try {
+    const [ext, goals, intern, tcc, risk, pei, profs] = await Promise.allSettled([
+      supabase.from('vertice_extension_projects').select('name,expected_hours_per_student').eq('institution_id',institutionId).eq('status','active').limit(50),
+      supabase.from('vertice_goals').select('title,target_value,metric,baseline_value').eq('institution_id',institutionId).eq('status','active').limit(30),
+      supabase.from('vertice_internship_placements').select('id',{count:'exact',head:true}).eq('institution_id',institutionId).eq('course_id',courseId).in('status',['active','pending']),
+      supabase.from('vertice_tcc_works').select('id',{count:'exact',head:true}).eq('institution_id',institutionId).eq('course_id',courseId).in('status',['defense_scheduled','in_progress']),
+      supabase.from('vertice_risco_agregado').select('total_risco').eq('institution_id',institutionId).eq('course_id',courseId).maybeSingle(),
+      supabase.from('student_individual_plans').select('id',{count:'exact',head:true}).eq('institution_id',institutionId).in('status',['active','review']),
+      supabase.from('vertice_eorbit_professores').select('nome,titulacao').eq('instituicao_id',institutionId).limit(50),
+    ]);
+    return {
+      extensionProjects: ext.status==='fulfilled'&&ext.value.data? ext.value.data.map((r:Record<string,unknown>)=>({name:String(r.name??''),hours_per_student:Number(r.expected_hours_per_student??0)})) : [],
+      goals: goals.status==='fulfilled'&&goals.value.data? goals.value.data.map((r:Record<string,unknown>)=>({area:String(r.title??''),target_value:String(r.target_value??''),metric:String(r.metric??''),baseline:r.baseline_value?String(r.baseline_value):undefined})) : [],
+      internshipCount: intern.status==='fulfilled'?intern.value.count??0:0,
+      tccDefenseCount: tcc.status==='fulfilled'?tcc.value.count??0:0,
+      atRiskCount: risk.status==='fulfilled'&&risk.value.data?Number(risk.value.data.total_risco??0):0,
+      peiCount: pei.status==='fulfilled'?pei.value.count??0:0,
+      professors: profs.status==='fulfilled'&&profs.value.data? profs.value.data.map((r:Record<string,unknown>)=>({name:String(r.nome??''),title:r.titulacao?String(r.titulacao):undefined})) : [],
+    };
+  } catch { return empty; }
+}
 
 type Course = {id:string;name:string;code?:string|null};
 type Stored = {id:string;version:number;status:'draft'|'published'|'archived';updated_at:string;created_at:string;semester?:string;[key:string]:unknown};
@@ -44,6 +78,7 @@ function PlanningEditor({institutionId,courseId,canWrite,onDirty,kind='both'}:{i
   const [draft,setDraft]=useState<PlanDraft>({...EMPTY_PLAN,courseId}),[semDraft,setSemDraft]=useState<SemesterDraft>({...EMPTY_SEMESTER,courseId});
   const [strategicRevision,setStrategicRevision]=useState(''),[semesterRevision,setSemesterRevision]=useState('');
   const [loading,setLoading]=useState(true),[saving,setSaving]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
+  const [crossData,setCrossData]=useState<CrossModuleData|null>(null);
   const [dirtyKinds,setDirtyKinds]=useState({strategic:false,semester:false});
   const dirty=tab==='semestre'?dirtyKinds.semester:dirtyKinds.strategic;
   const anyDirty=dirtyKinds.strategic||dirtyKinds.semester;
@@ -55,10 +90,15 @@ function PlanningEditor({institutionId,courseId,canWrite,onDirty,kind='both'}:{i
   }
   useEffect(()=>{
     let active=true;
-    Promise.all([planningRequest(institutionId,courseId,'strategic','list'),planningRequest(institutionId,courseId,'semester','list')]).then(([a,b])=>{
+    Promise.all([
+      planningRequest(institutionId,courseId,'strategic','list'),
+      planningRequest(institutionId,courseId,'semester','list'),
+      loadCrossModuleData(institutionId,courseId),
+    ]).then(([a,b,cross])=>{
       if(!active)return;setPlans(a.plans??[]);setSemesters(b.plans??[]);
       if(a.plans?.[0])loadRecord(a.plans[0],'strategic');
       if(b.plans?.[0])loadRecord(b.plans[0],'semester');
+      setCrossData(cross);
     }).catch(e=>{if(active)setError(e.message);}).finally(()=>{if(active)setLoading(false);});
     return()=>{active=false;};
   },[institutionId,courseId]);
@@ -96,7 +136,7 @@ function PlanningEditor({institutionId,courseId,canWrite,onDirty,kind='both'}:{i
     <div className="planning-toolbar"><p>{statusNames[current.status]} · versão {current.version}</p>{canWrite&&<button type="button" onClick={fresh}>Novo {semester?'planejamento semestral':'planejamento estratégico'}</button>}</div>
     {error&&!plans.length&&!semesters.length?<p>Confira o acesso e atualize a página antes de editar.</p>:<>
       {!canWrite&&<p>Seu perfil permite consultar este planejamento.</p>}
-      <fieldset disabled={!canWrite||saving}><legend className="planning-sr">Conteúdo do planejamento</legend>{Section?<Section plan={draft} setPlan={value=>{setDraft(value);setDirty(true);setNotice('');}}/>:<SemestreTab draft={semDraft} setDraft={value=>{setSemDraft(value);setDirty(true);setNotice('');}}/>}</fieldset>
+      <fieldset disabled={!canWrite||saving}><legend className="planning-sr">Conteúdo do planejamento</legend>{Section?<Section plan={draft} setPlan={value=>{setDraft(value);setDirty(true);setNotice('');}}/>:<SemestreTab draft={semDraft} setDraft={value=>{setSemDraft(value);setDirty(true);setNotice('');}} crossData={crossData}/>}</fieldset>
       {canWrite&&<div className="planning-toolbar"><button type="button" className="planning-primary" disabled={saving||(semester&&!semDraft.semester)} onClick={()=>persist()}>{saving?'Salvando…':semester?'Salvar planejamento semestral':'Salvar planejamento estratégico'}</button>{current.id&&current.status==='draft'&&<button type="button" disabled={saving||dirty} onClick={()=>persist('publish')}>Publicar versão salva</button>}{current.status!=='draft'&&<small>Salvar alterações cria uma nova versão em rascunho e preserva a versão anterior.</small>}</div>}
     </>}
     <h3>Histórico {semester?'semestral':'estratégico'}</h3>

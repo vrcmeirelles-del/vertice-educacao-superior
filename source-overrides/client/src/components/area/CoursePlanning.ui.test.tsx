@@ -2,12 +2,13 @@ import {beforeEach,afterEach,it,expect,vi} from 'vitest';
 import {act} from 'react';
 import {createRoot,type Root} from 'react-dom/client';
 const mock=vi.hoisted(()=>({calls:[] as Record<string,unknown>[],fail:false}));
+const mockChain={select:()=>mockChain,eq:()=>mockChain,in:()=>mockChain,maybeSingle:()=>Promise.resolve({data:null,error:null,count:0}),limit:()=>Promise.resolve({data:[],error:null}),then:(fn:Function)=>Promise.resolve({data:[],error:null,count:0}).then(fn as any)};
 vi.mock('@/lib/supabase',()=>({supabase:{rpc:vi.fn(async(_name:string,args:Record<string,unknown>)=>{
   mock.calls.push(args);
   if(mock.fail)return {data:null,error:{message:'Falha de autorização de teste'}};
-  const row={id:`${args.p_kind}-${args.p_course_id}`,course_id:args.p_course_id,version:2,status:'draft',created_at:'2026-11-15T10:00:00Z',updated_at:'2026-11-15T10:01:00Z',semester:'2026/2',activities:[],vision_text:`Visão de ${args.p_course_id}`};
+  const row={id:`${args.p_kind}-${args.p_course_id}`,course_id:args.p_course_id,version:2,status:'draft',created_at:'2026-11-15T10:00:00Z',updated_at:'2026-11-15T10:01:00Z',semester:'2026/2',activities:[],context:{},calendar:[],course_offerings:[],faculty:{assignments:[],trainings:[],meetings:[]},semester_goals:[],extension_ac:{extension_projects:[],ac_activities:[],partnerships:[]},internship_tcc:{internship:{student_count:null,supervisors:null,conventions_to_renew:null},tcc:{defense_count:null,defense_dates:null,advisors:null},conventions:[]},infrastructure:[],student_support:{entries:[],leveling_actions:[]},engagement:{actions:[]},vision_text:`Visão de ${args.p_course_id}`};
   return {data:args.p_action==='list'?{plans:[row]}:{plan:row},error:null};
-})}}));
+}),from:vi.fn(()=>mockChain)}}));
 vi.mock('@/lib/area',()=>({isFullAccess:(role:string)=>['master','gestor','reitor'].includes(role)}));
 import CoursePlanning from './CoursePlanning';
 let el:HTMLDivElement,root:Root;
