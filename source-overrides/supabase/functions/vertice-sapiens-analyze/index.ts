@@ -13,6 +13,8 @@ declare const Deno: {
   serve: (fn: (req: Request) => Promise<Response>) => void;
 };
 
+import { analyzePlanning } from "./planning.ts";
+
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
 
 const env = (k: string) => String(Deno.env.get(k) || "");
@@ -232,6 +234,14 @@ Deno.serve(async (req: Request) => {
     const body = await req.json();
     const institutionId = String(body.institutionId || "").trim().toLowerCase();
     if (!UUID.test(institutionId)) return send({ error: "invalid_institution" }, 400, origin);
+
+    if (body.action === "planning") {
+      if (isService || !actorId) return send({error:"user_auth_required"},403,origin);
+      const pk = env("SUPABASE_ANON_KEY") || (()=>{try{return JSON.parse(env("SUPABASE_PUBLISHABLE_KEYS")||"{}").default;}catch{return "";}})();
+      const userClient = createClient(url, pk || sk, {global:{headers:{Authorization:auth}},auth:{persistSession:false}});
+      const output = await analyzePlanning(userClient,admin,institutionId,body,callOpenAI,callAnthropic);
+      return send(output.body,output.status,origin);
+    }
 
     // Get institution info
     const { data: inst } = await admin

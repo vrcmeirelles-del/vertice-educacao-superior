@@ -1,3 +1,4 @@
+import SapiensPlanning from './SapiensPlanning';
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { isFullAccess, type Role } from '@/lib/area';
@@ -67,13 +68,13 @@ export default function CoursePlanning({institutionId,courses,role,initialCourse
     {isFullAccess(role)&&<div><button type="button" aria-expanded={portfolioOpen} onClick={()=>setPortfolioOpen(!portfolioOpen)}>Consolidação da alta gestão</button>{portfolioOpen&&<PlanningManagement key={institutionId} institutionId={institutionId}/>}</div>}
     <header><h2>{title.heading}</h2><p>{title.description}</p></header>
     <label className="planning-field"><span>Curso</span><select aria-label="Curso do planejamento" value={selected?.id??''} onChange={e=>{if(!unsaved||window.confirm('Há alterações não salvas. Deseja trocar de curso?')){setSelection(e.target.value);setUnsaved(false);}}}><option value="">Selecione um curso</option>{courses.map(c=><option key={c.id} value={c.id}>{c.code?`${c.code} · `:''}{c.name}</option>)}</select></label>
-    {!courses.length?<p role="status">Nenhum curso disponível neste cadastro.</p>:!selected?<p role="status">Selecione o curso para consultar seus planejamentos.</p>:<PlanningEditor key={`${institutionId}:${selected.id}:${kind}`} institutionId={institutionId} courseId={selected.id} canWrite={canWrite} onDirty={setUnsaved} kind={kind}/>}
+    {!courses.length?<p role="status">Nenhum curso disponível neste cadastro.</p>:!selected?<p role="status">Selecione o curso para consultar seus planejamentos.</p>:<PlanningEditor key={`${institutionId}:${selected.id}:${kind}`} institutionId={institutionId} courseId={selected.id} canAnalyze={isFullAccess(role)} canWrite={canWrite} onDirty={setUnsaved} kind={kind}/>}
   </section>;
 }
 
 const STRATEGIC_TABS:TabKey[]=['identificacao','visao','swot','ciclo','bcg','porter','fcs','benchmarking','atributos','objetivos','alinhamento','riscos','operacional'];
 
-function PlanningEditor({institutionId,courseId,canWrite,onDirty,kind='both'}:{institutionId:string;courseId:string;canWrite:boolean;onDirty:(value:boolean)=>void;kind?:'strategic'|'semester'|'both'}) {
+function PlanningEditor({institutionId,courseId,canWrite,canAnalyze,onDirty,kind='both'}:{institutionId:string;courseId:string;canAnalyze:boolean;canWrite:boolean;onDirty:(value:boolean)=>void;kind?:'strategic'|'semester'|'both'}) {
   const defaultTab:TabKey=kind==='semester'?'semestre':'identificacao';
   const [tab,setTab]=useState<TabKey>(defaultTab);
   const visibleTabs=kind==='strategic'?TABS.filter(t=>STRATEGIC_TABS.includes(t.key)):kind==='semester'?TABS.filter(t=>t.key==='semestre'):TABS;
@@ -140,6 +141,7 @@ function PlanningEditor({institutionId,courseId,canWrite,onDirty,kind='both'}:{i
   const Section=tab==='semestre'?null:sections[tab as keyof typeof sections];
   const [helpOpen,setHelpOpen]=useState<string|null>(null);
   const activeTab=visibleTabs.find(t=>t.key===tab);
+  const [sapiensOpen,setSapiensOpen]=useState(false);
   if(loading)return <p role="status">Carregando planejamentos do curso…</p>;
   return <>
     {error&&<p role="alert" className="planning-error">{error}</p>}
@@ -164,6 +166,7 @@ function PlanningEditor({institutionId,courseId,canWrite,onDirty,kind='both'}:{i
       {canWrite&&<div className="planning-toolbar planning-save-bar"><button type="button" className="planning-primary" disabled={saving||(isSemester&&!semDraft.semester)} onClick={()=>persist()}>{saving?'Salvando…':isSemester?'Salvar planejamento semestral':'Salvar planejamento estratégico'}</button>{current.id&&current.status==='draft'&&<button type="button" disabled={saving||dirty} onClick={()=>persist('publish')}>Publicar versão salva</button>}{current.status!=='draft'&&<small>Salvar alterações cria uma nova versão em rascunho e preserva a versão anterior.</small>}</div>}
     </>}
     {visibleTabs.length>1&&<div className="planning-step-controls"><button type="button" disabled={visibleTabs[0].key===tab} onClick={()=>setTab(visibleTabs[visibleTabs.findIndex(t=>t.key===tab)-1].key)}>← Etapa anterior</button><span>{visibleTabs.findIndex(t=>t.key===tab)+1} / {visibleTabs.length}</span><button type="button" disabled={visibleTabs[visibleTabs.length-1].key===tab} onClick={()=>setTab(visibleTabs[visibleTabs.findIndex(t=>t.key===tab)+1].key)}>Próxima etapa →</button></div>}
+    {canAnalyze&&<><button type="button" onClick={()=>setSapiensOpen(v=>!v)} aria-expanded={sapiensOpen}>Análise interpretativa · Sapiens</button>{sapiensOpen&&<SapiensPlanning institutionId={institutionId} courseId={courseId} semester={isSemester?semDraft.semester:undefined}/>}</>}
     <details className="planning-history"><summary>Histórico {isSemester?'semestral':'estratégico'} · {records.length} versão(ões)</summary>
     {!records.length?<p>Nenhuma versão registrada para este curso.</p>:<div className="planning-scroll"><table><thead><tr>{isSemester&&<th>Semestre</th>}<th>Versão</th><th>Situação</th><th>Atualização</th><th>Acesso</th></tr></thead><tbody>{records.map(row=><tr key={row.id}>{isSemester&&<td>{row.semester}</td>}<td>{row.version}</td><td>{statusNames[row.status]}</td><td>{new Date(row.updated_at).toLocaleString('pt-BR')}</td><td><button type="button" onClick={()=>{if(!dirty||window.confirm('Deseja trocar a versão sem salvar as alterações?')){loadRecord(row,planKind);setDirty(false);setNotice('');}}}>Abrir versão</button></td></tr>)}</tbody></table></div>}
     </details>
