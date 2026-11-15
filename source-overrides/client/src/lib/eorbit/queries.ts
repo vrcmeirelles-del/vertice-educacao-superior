@@ -20,10 +20,12 @@ async function fetchAll<T>(
   table: string,
   filters: Record<string, unknown>,
   order = 'id',
+  columns = '*',
 ): Promise<T[]> {
   const rows: T[] = [];
   for (let from = 0; ; from += 1000) {
-    let q = supabase.from(table).select('*').order(order, { ascending: true });
+    let q = supabase.from(table).select(columns).order(order, { ascending: true });
+    if (order !== 'id') q = q.order('id', { ascending: true });
     for (const [k, v] of Object.entries(filters)) {
       if (v !== undefined && v !== null && v !== '') q = q.eq(k, v);
     }
@@ -37,7 +39,7 @@ async function fetchAll<T>(
 
 // ---------------------------------------------------------------- Semestres
 export async function getSemestres(instId: string): Promise<Semestre[]> {
-  return fetchAll<Semestre>('vertice_eorbit_semestres', { instituicao_id: instId }, 'codigo');
+  return fetchAll<Semestre>('vertice_eorbit_semestres', { instituicao_id: instId }, 'semestre', '*,codigo:semestre');
 }
 
 // ---------------------------------------------------------------- Cursos
@@ -46,7 +48,7 @@ export async function getCursos(instId: string): Promise<CursoEorbit[]> {
 }
 
 export async function getCursosNormalizados(instId: string): Promise<CursoNormalizado[]> {
-  return fetchAll<CursoNormalizado>('vertice_eorbit_cursos_normalizados', { instituicao_id: instId }, 'nome_normalizado');
+  return fetchAll<CursoNormalizado>('vertice_eorbit_cursos_normalizados', { instituicao_id: instId }, 'curso_canonico', '*,nome_normalizado:curso_canonico');
 }
 
 // ---------------------------------------------------------------- Quantitativo
@@ -95,7 +97,8 @@ export async function getEnade(instId: string): Promise<Enade[]> {
 export async function getCompliancePlano(filtro: FiltroEorbit): Promise<CompliancePlano[]> {
   const filters: Record<string, unknown> = { instituicao_id: filtro.instituicaoId };
   if (filtro.semestreId) filters.semestre_id = filtro.semestreId;
-  return fetchAll<CompliancePlano>('vertice_eorbit_compliance_plano', filters, 'semestre_id');
+  return fetchAll<CompliancePlano>('vertice_eorbit_compliance_plano', filters, 'semestre_id',
+    '*,enviados:plano_enviado,nao_enviados:plano_nao_enviado,percentual_envio:percentual_conformidade');
 }
 
 export async function getCompliancePlanoDetalhe(filtro: FiltroEorbit): Promise<CompliancePlanoDetalhe[]> {
@@ -108,7 +111,8 @@ export async function getCompliancePlanoDetalhe(filtro: FiltroEorbit): Promise<C
 export async function getComplianceNotas(filtro: FiltroEorbit): Promise<ComplianceNotas[]> {
   const filters: Record<string, unknown> = { instituicao_id: filtro.instituicaoId };
   if (filtro.semestreId) filters.semestre_id = filtro.semestreId;
-  return fetchAll<ComplianceNotas>('vertice_eorbit_compliance_notas', filters, 'semestre_id');
+  return fetchAll<ComplianceNotas>('vertice_eorbit_compliance_notas', filters, 'semestre_id',
+    '*,postadas:notas_postadas,nao_postadas:notas_nao_postadas,percentual_postagem:percentual_conformidade');
 }
 
 export async function getComplianceNotasDetalhe(filtro: FiltroEorbit): Promise<ComplianceNotasDetalhe[]> {
@@ -220,11 +224,12 @@ export async function getProfessores(instId: string): Promise<Professor[]> {
 
 // ---------------------------------------------------------------- Vestibular
 export async function getVestibularEditais(instId: string): Promise<VestibularEdital[]> {
-  return fetchAll<VestibularEdital>('vertice_eorbit_vestibular_editais', { instituicao_id: instId }, 'codigo');
+  return fetchAll<VestibularEdital>('vertice_eorbit_vestibular_editais', { instituicao_id: instId }, 'edital_id',
+    '*,codigo:edital_id,descricao:edital_nome');
 }
 
 export async function getVestibularCursos(instId: string): Promise<VestibularCurso[]> {
-  return fetchAll<VestibularCurso>('vertice_eorbit_vestibular_cursos', { instituicao_id: instId }, 'curso_nome');
+  return fetchAll<VestibularCurso>('vertice_eorbit_vestibular_cursos', { instituicao_id: instId }, 'curso', '*,curso_nome:curso');
 }
 
 // ---------------------------------------------------------------- Biblioteca
