@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useLocation } from 'wouter';
-import { LayoutDashboard, Building2, GraduationCap, Wallet, Users, Mail, Brain, ChartColumn, Smartphone, PanelLeftClose, PanelLeftOpen, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Building2, GraduationCap, Wallet, Users, Mail, Brain, GitBranch, ChartColumn, Smartphone, PanelLeftClose, PanelLeftOpen, Menu, X } from 'lucide-react';
 import { Brand } from './Brand';
 import './master-layout.css';
 
@@ -16,6 +16,7 @@ const groups = [
     { label: 'Convites Experience', href: '/master/experience', icon: Mail },
   ] },
   { label: 'Inteligência e resultados', items: [
+    { label: 'Integração F&O', href: '/integracao', icon: GitBranch },
     { label: 'Sapiens', href: '/master#sapiens=1', icon: Brain },
     { label: 'BI Vértice', href: '/master#bi-vertice=1', icon: ChartColumn },
     { label: 'BI Premium · demo', href: '/demonstracao?perfil=faculdade&bi=1', icon: ChartColumn },
