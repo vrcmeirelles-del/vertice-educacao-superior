@@ -1,6 +1,6 @@
 import {supabase} from './supabase';
 export type RecordRow={id:string;[key:string]:any};
-export type Detail={profile:RecordRow;preferences:RecordRow[];evidence:RecordRow[];applications:RecordRow[];opportunities:RecordRow[];internships:RecordRow[];activities:RecordRow[]};
+export type Detail={longitudinal?:{education_id?:string;history:RecordRow[]};profile:RecordRow;preferences:RecordRow[];evidence:RecordRow[];applications:RecordRow[];opportunities:RecordRow[];internships:RecordRow[];activities:RecordRow[]};
 export async function conectaRequest<T=any>(institution:string,action:string,payload:Record<string,unknown>={}):Promise<T>{
  const {data,error}=await supabase.rpc('vertice_conecta',{p_institution:institution,p_action:action,p_payload:payload});
  if(error)throw new Error(error.message||'Consulta indisponível.');return data as T;
