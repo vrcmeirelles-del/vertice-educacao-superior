@@ -4,7 +4,7 @@ import {
   type Role, type Tab,
 } from "@/lib/area";
 
-const TAB_LABELS: Record<Tab, string> = {
+const TAB_LABELS: Record<Tab, string> = {"planejamento-curso":"Planejamento do Curso",
   tcc: "TCC e Pesquisa 360°",
   "atividades-complementares": "Atividades Complementares 360°",
   estagio: "Estágio Obrigatório 360°",

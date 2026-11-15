@@ -5,7 +5,9 @@ import {courseTotals} from "@/lib/enrollment-summary";
 export {courseTotals} from "@/lib/enrollment-summary";
 import "./academic-data.css";
 import CourseIndicators, {type CourseIndicatorPayload} from "./CourseIndicators";
-import {useMemo, useState} from 'react';
+import {lazy, Suspense, useMemo, useState} from 'react';
+const CoursePlanning = lazy(() => import('./area/CoursePlanning'));
+import type {Role} from '@/lib/area';
 import AcademicReports, {type AcademicReport} from '@/components/AcademicReports';
 
 export type Institution={id:string;name:string};
@@ -94,7 +96,7 @@ export function InstitutionView({institution,courses,enrollments,onOpenCourse,on
  </section>;
 }
 
-export function CourseView({course,institution,enrollments,reports,onBack,onPlan}:{course:Course;institution:Institution;enrollments:Enrollment[];reports:(AcademicReport&{course_id?:string})[];onBack:()=>void;onPlan?:(draft:{course_id:string;what:string;why:string;how:string})=>void}){
+export function CourseView({course,institution,enrollments,reports,onBack,onPlan,role}:{course:Course;role?:Role|null;institution:Institution;enrollments:Enrollment[];reports:(AcademicReport&{course_id?:string})[];onBack:()=>void;onPlan?:(draft:{course_id:string;what:string;why:string;how:string})=>void}){
  const rows=enrollments.filter(r=>r.course_id===course.id&&isEnrolledStatus(r.student_status));
  const semesters=[...new Set(rows.map(r=>r.semester))].sort(sortSem);
  const [semester,setSemester]=useState(semesters[0]??'');
@@ -130,6 +132,7 @@ export function CourseView({course,institution,enrollments,reports,onBack,onPlan
    <aside><h4>{delta!==null&&delta<0?'Atenção à continuidade':'Próxima decisão'}</h4><p>{guidance}</p><p>A variação compara totais. A evasão depende do acompanhamento individual.</p>
    {onPlan&&<button className="corp-button" onClick={()=>onPlan({course_id:course.id,what:delta===null?'Completar a base de matrículas':delta<0?'Investigar queda e acompanhar rematrículas':'Avaliar potencial de expansão do curso',why:`Matrículas em ${previous??'semestre anterior'} e ${sem}: ${change}.`,how:guidance})}>Preparar ação 5W2H</button>}</aside>
   </section>
+  <details className="course-planning-entry"><summary>Planejamento Estratégico e Semestral do Curso</summary><Suspense fallback={<p role="status">Carregando planejamento…</p>}><CoursePlanning institutionId={institution.id} courses={[course]} initialCourseId={course.id} role={role??null} /></Suspense></details>
   <h3>Matrículas por turma</h3>
   {!semesters.length?<p>Nenhum relatório importado para este curso.</p>:<>
   <HelpLabel>Semestre <select value={sem} onChange={e=>setSemester(e.target.value)}>{semesters.map(s=><option key={s} value={s}>{s}</option>)}</select></HelpLabel>

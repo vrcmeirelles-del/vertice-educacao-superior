@@ -61,6 +61,7 @@ const MODULE_LABELS: Record<string,string> = { tcc:'TCC', ac:'AC', estagio:'Est�
 function MiniKpi({ label, value, detail, bad }: { label: string; value: number; detail?: string; bad?: boolean }) {
   return <div style={{ textAlign: 'center' }}><div style={{ fontSize: '1.125rem', fontWeight: 700, color: bad ? '#ef4444' : value > 0 ? '#1e293b' : '#94a3b8' }}>{value}</div><div style={{ fontSize: '.6875rem', color: 'var(--vx-muted,#64748b)' }}>{label}</div>{detail && <div style={{ fontSize: '.625rem', color: bad ? '#ef4444' : '#94a3b8' }}>{detail}</div>}</div>;
 }
+const CoursePlanning = lazy(() => import("./CoursePlanning"));
 const Tcc360 = lazy(() => import("./Tcc360"));
 const AtividadesComplementares360 = lazy(() => import("./AtividadesComplementares360"));
 const Estagio360 = lazy(() => import("./Estagio360"));
@@ -86,7 +87,7 @@ import "./area.css";
 import "./module-offer.css";
 
 const TAB_GROUPS: {label:string;subtitle:string;icon:string;tabs:Tab[];tier?:'superior'|'escolas'|'both'}[] = [
-  {label:'Gestão',subtitle:'Planejamento, metas e governança',icon:'▦',tabs:['base','metas','plano','diagnostico','equipe','cpa-autoavaliacao'],tier:'both'},
+  {label:'Gestão',subtitle:'Planejamento, metas e governança',icon:'▦',tabs:['planejamento-curso','base','metas','plano','diagnostico','equipe','cpa-autoavaliacao'],tier:'both'},
   {label:'Regulação',subtitle:'Instrumentos e evidências MEC/INEP',icon:'◇',tabs:['emec','repositorio','validacao','enade','avaliacao','novo_instrumento','biblioteca'],tier:'superior'},
   {label:'Acadêmico',subtitle:'Cursos, estudantes e desempenho',icon:'▤',tabs:['geral','cadastro','visao','eorbit','backups','auditoria'],tier:'superior'},
   {label:'Inteligência',subtitle:'Análises, integrações e decisões',icon:'◎',tabs:['analise','ia','fontes','conexoes','reitor','resultado-curso','simulador','raio-x-direito','vitrine-curso','aprendizagem'],tier:'superior'},
@@ -106,6 +107,7 @@ const TAB_GROUPS: {label:string;subtitle:string;icon:string;tabs:Tab[];tier?:'su
 ];
 
 const TAB_DETAILS: Partial<Record<Tab,{icon:string;description:string}>> = {
+  "planejamento-curso":{icon:"◎",description:"Planejamento estratégico e semestral por curso"},
   base:{icon:'⌂',description:'Estrutura e identificação institucional'},
   metas:{icon:'◎',description:'Metas, avanços e indicadores'},
   plano:{icon:'☷',description:'Ações, responsáveis e prazos'},
@@ -157,6 +159,7 @@ const TAB_DETAILS: Partial<Record<Tab,{icon:string;description:string}>> = {
 };
 
 const TABS: [Tab, string][] = [
+  ["planejamento-curso", "Planejamento do Curso"],
   ["base", "Base da organização"],
   ["fontes", "Importar dados de sites"],
   ["conexoes", "Conexões de dados"],
@@ -376,7 +379,7 @@ export default function Workspace({
       setModuleSearch(""); setOnlyFavorites(false);
     }
   };
-  const isLocked = (tabKey: string) => activeTabs.size > 0 && !activeTabs.has(tabKey);
+  const isLocked = (tabKey: string) => tabKey !== "planejamento-curso" && activeTabs.size > 0 && !activeTabs.has(tabKey);
   const isTasting = (tabKey: string) => {
     const mod = findModuleByTab(moduleCatalog, tabKey);
     return mod?.display_status === 'tasting';
@@ -530,6 +533,8 @@ export default function Workspace({
         overview
       ) : loading ? (
         <p role="status">Carregando…</p>
+      ) : tab === "planejamento-curso" ? (
+        <Suspense fallback={<p role="status">Carregando planejamento…</p>}><CoursePlanning institutionId={String(id)} courses={data.courses.map(c=>({id:String(c.id),name:String(c.name),code:String(c.code??"")}))} role={role} /></Suspense>
       ) : tab === "fontes" ? (
         role==="master"||role==="gestor" ? <SourceUpload key={id} institutionId={id} institutionName={String(institution.name)} onBackups={()=>choose("backups")}/> : <p>O recebimento de extrações é restrito à gestão autorizada da IES.</p>
       ) : tab === "conexoes" ? (
