@@ -7,12 +7,12 @@ import './conecta360.css';
 export const partnerFields:FieldSpec[]=[
  {key:'name',label:'Nome da organização ou parceiro',required:true,min:3,max:250,help:'Nome institucional ou nome completo do parceiro.'},
  {key:'trade_name',label:'Nome fantasia',max:250,help:'Opcional. Nome pelo qual a organização é conhecida.'},
- {key:'partner_type',label:'Tipo de parceiro',kind:'select',required:true,options:[['empresa','Empresa'],['organizacao','Organização'],['governo','Órgão público'],['ong','ONG'],['comunidade','Comunidade'],['pessoa_fisica','Pessoa física']],help:'Identifica o perfil de atuação. Não representa convênio firmado.'},
- {key:'identifier',label:'CNPJ ou CPF',max:20,help:'Opcional no envio inicial. A gestão confere e concilia com os cadastros existentes antes de aprovar.'},
+ {key:'partner_type',label:'Tipo de parceiro',kind:'select',required:true,options:[['empresa','Empresa'],['escritorio','Escritório'],['consultorio','Consultório'],['clinica','Clínica'],['organizacao','Organização'],['governo','Órgão público'],['ong','ONG'],['comunidade','Comunidade'],['pessoa_fisica','Pessoa física']],help:'Identifica o perfil de atuação. Não representa convênio firmado.'},
+ {key:'identifier',label:'CNPJ ou CPF',required:true,max:20,help:'Obrigatório. Informe o CNPJ da organização ou o CPF do parceiro pessoa física. A gestão confere e concilia com os cadastros existentes antes de aprovar.'},
  {key:'contact_name',label:'Responsável pelo contato',required:true,min:3,max:250,help:'Pessoa que acompanhará a proposta junto à instituição.'},
- {key:'contact_email',label:'E-mail para contato',kind:'email',max:250,help:'Informe e-mail ou telefone. E-mail não é obrigatório quando há telefone válido.'},
- {key:'contact_phone',label:'Telefone / WhatsApp',kind:'tel',max:25,help:'Informe DDD e telefone. Ao menos um canal de contato é necessário.'},
- ...(['address','city','state','sector'] as const).map((key,i)=>({key,label:['Endereço','Cidade','Estado','Área de atuação'][i],max:key==='address'?1000:250,help:'Informação para análise e relacionamento com a instituição.'}))
+ {key:'contact_email',label:'E-mail para contato',kind:'email',required:true,max:250,help:'Informe um e-mail válido para contato com a instituição.'},
+ {key:'contact_phone',label:'Telefone / WhatsApp',kind:'tel',required:true,max:25,help:'Obrigatório. Informe DDD e telefone para contato.'},
+ ...(['address','city','state','sector'] as const).map((key,i)=>({key,label:['Endereço','Cidade','Estado','Área de atuação'][i],required:true,max:key==='address'?1000:250,help:'Informação para análise e relacionamento com a instituição.'}))
 ];
 export const proposalFields:FieldSpec[]=[
  {key:'kind',label:'Tipo de proposta',kind:'select',required:true,options:[['emprego','Vaga de emprego'],['estagio','Vaga de estágio'],['campo_estagio','Campo de estágio'],['evento','Evento'],['extensao','Projeto de extensão'],['formacao','Curso ou formação'],['mentoria','Mentoria'],['acao_institucional','Outra ação institucional']],help:'Campos de estágio e extensão passam também pela validação acadêmica do módulo de destino.'},
