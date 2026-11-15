@@ -12,6 +12,10 @@ on:
       - ".github/workflows/validate-learning-connected.yml"
 permissions:
   contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}-${{ github.event_name == 'workflow_dispatch' && github.run_id || 0 }}
+  cancel-in-progress: true
+
 jobs:
   learning:
     runs-on: ubuntu-latest
@@ -21,6 +25,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+          cache: npm
+          cache-dependency-path: |
+            source-overrides/package-lock.json
+            scripts/tests/**/package-lock.json
       - name: Preparar mesmo overlay do Render
         shell: bash
         run: |
