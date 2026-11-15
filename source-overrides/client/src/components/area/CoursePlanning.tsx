@@ -88,7 +88,11 @@ function PlanningEditor({institutionId,courseId,canWrite,onDirty,kind='both'}:{i
     // Strip null/undefined values so EMPTY defaults survive the spread
     const clean:Record<string,unknown>={};
     for(const[k,v]of Object.entries(row)){if(v!=null)clean[k]=v;}
-    if(kind==='strategic'){setDraft({...EMPTY_PLAN,...clean,courseId} as PlanDraft);setStrategicRevision(row.updated_at);}
+    if(kind==='strategic'){
+      const swot=clean.swot as Partial<PlanDraft['swot']>|undefined;
+      const normalizedSwot=Object.fromEntries(['strengths','weaknesses','opportunities','threats'].map(key=>[key,Array.isArray(swot?.[key as keyof typeof swot])?swot![key as keyof typeof swot]:[]]));
+      setDraft({...EMPTY_PLAN,...clean,swot:normalizedSwot,alignment:Array.isArray(clean.alignment)?clean.alignment:[],courseId} as PlanDraft);setStrategicRevision(row.updated_at);
+    }
     else{setSemDraft({...EMPTY_SEMESTER,...clean,form_code:null,courseId} as SemesterDraft);setSemesterRevision(row.updated_at);}
   }
   useEffect(()=>{
