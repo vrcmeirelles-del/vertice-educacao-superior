@@ -5,6 +5,9 @@ import { explain, type Row } from "@/lib/area";
 
 /** Estrutura salva em vertice_institutions.document_branding (jsonb). */
 type DocumentBranding = {
+  logo_data?: string | null;
+  header_text?: string | null;
+  theme_color?: string | null;
   logo_url?: string | null;
   display_name?: string | null;
   brand_color?: string | null;
@@ -15,6 +18,30 @@ const SUPABASE_URL = "https://qvetbbmviatxxatzzuzc.supabase.co";
 
 function publicUrl(path: string) {
   return `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${path}`;
+}
+
+export async function normalizeDocumentLogo(file:Blob):Promise<string> {
+ if(file.size>2*1024*1024)throw new Error('A imagem deve ter até 2 MB.');
+ if(!['image/png','image/jpeg','image/webp'].includes(file.type))throw new Error('Use uma imagem PNG, JPG ou WebP.');
+ const url=URL.createObjectURL(file);
+ try {
+  const image=new Image();
+  await new Promise<void>((resolve,reject)=>{image.onload=()=>resolve();image.onerror=()=>reject(new Error('Não foi possível ler a imagem.'));image.src=url;});
+  if(!image.naturalWidth||!image.naturalHeight)throw new Error('Imagem inválida.');
+  const canvas=document.createElement('canvas');canvas.width=300;canvas.height=120;
+  const ctx=canvas.getContext('2d');if(!ctx)throw new Error('Não foi possível preparar a imagem.');
+  const scale=Math.min(300/image.naturalWidth,120/image.naturalHeight);
+  const width=image.naturalWidth*scale,height=image.naturalHeight*scale;
+  ctx.drawImage(image,(300-width)/2,(120-height)/2,width,height);
+  return canvas.toDataURL('image/png');
+ }finally{URL.revokeObjectURL(url);}
+}
+export function brandingError(error:unknown):string {
+ const e=error as {code?:string;message?:string};
+ if(e.code==='40001')return 'A instituição foi atualizada em outra tela. Reabra o cadastro antes de salvar; suas alterações ainda não foram gravadas.';
+ if(e.code==='23514')return 'A identidade visual não está no formato aceito. Selecione novamente a logo e confira a cor.';
+ if(e.code==='42501')return 'Não foi possível autorizar o salvamento. Confira o perfil institucional e a verificação de segurança da sessão.';
+ return e.message||explain(error);
 }
 
 /**
@@ -34,9 +61,9 @@ export default function BrandingPanel({
   onChanged: () => void;
 }) {
   const existing = (institution.document_branding ?? {}) as DocumentBranding;
-  const [displayName, setDisplayName] = useState(existing.display_name ?? "");
-  const [brandColor, setBrandColor] = useState(existing.brand_color ?? "#333333");
-  const [logoUrl, setLogoUrl] = useState(existing.logo_url ?? "");
+  const [displayName, setDisplayName] = useState(existing.header_text ?? existing.display_name ?? "");
+  const [brandColor, setBrandColor] = useState(existing.theme_color ?? existing.brand_color ?? "#333333");
+  const [logoUrl, setLogoUrl] = useState(existing.logo_data ?? existing.logo_url ?? "");
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
@@ -46,40 +73,33 @@ export default function BrandingPanel({
   // Sync state when institution prop changes (e.g., after reload).
   useEffect(() => {
     const b = (institution.document_branding ?? {}) as DocumentBranding;
-    setDisplayName(b.display_name ?? "");
-    setBrandColor(b.brand_color ?? "#333333");
-    setLogoUrl(b.logo_url ?? "");
-  }, [institution.document_branding]);
+    setDisplayName(b.header_text ?? b.display_name ?? "");
+    setBrandColor(b.theme_color ?? b.brand_color ?? "#333333");
+    setLogoUrl(b.logo_data ?? b.logo_url ?? "");
+  }, [institution.id,institution.document_branding]);
 
   const dirty =
-    displayName !== (existing.display_name ?? "") ||
-    brandColor !== (existing.brand_color ?? "#333333") ||
-    logoUrl !== (existing.logo_url ?? "");
+    displayName !== (existing.header_text ?? existing.display_name ?? "") ||
+    brandColor !== (existing.theme_color ?? existing.brand_color ?? "#333333") ||
+    logoUrl !== (existing.logo_data ?? existing.logo_url ?? "");
 
-  /** Upload logo to Supabase Storage. */
+  /** Prepare the document logo locally; persist only through the versioned RPC. */
   const uploadLogo = useCallback(
     async (file: File) => {
       setUploading(true);
       setError("");
       try {
-        const ext = file.name.split(".").pop()?.toLowerCase() ?? "png";
-        const path = `${institution.id}/logo.${ext}`;
-
-        const { error: upErr } = await supabase.storage
-          .from(BUCKET)
-          .upload(path, file, { upsert: true, contentType: file.type });
-        if (upErr) throw upErr;
-
-        const url = publicUrl(path);
+        if (!canEdit) throw new Error('Sem permissão para editar esta instituição.');
+        const url = await normalizeDocumentLogo(file);
         setLogoUrl(url);
-        setMessage("Logo enviado. Clique em Salvar para confirmar.");
+        setMessage("Logo preparada. Clique em Salvar para confirmar.");
       } catch (err) {
-        setError(explain(err));
+        setError(brandingError(err));
       } finally {
         setUploading(false);
       }
     },
-    [institution.id],
+    [institution.id,canEdit],
   );
 
   /** Persist document_branding jsonb. */
@@ -88,24 +108,22 @@ export default function BrandingPanel({
     setError("");
     setMessage("");
     try {
-      const branding: DocumentBranding = {
-        logo_url: logoUrl || null,
-        display_name: displayName.trim() || null,
-        brand_color: brandColor || null,
-      };
-      const { error: upErr } = await supabase
-        .from("vertice_institutions")
-        .update({ document_branding: branding })
-        .eq("id", institution.id);
-      if (upErr) throw upErr;
+      if (!canEdit) throw new Error('Sem permissão para editar esta instituição.');
+      if (logoUrl && !logoUrl.startsWith('data:image/png;base64,')) throw new Error('Selecione a logo novamente para adequar a imagem ao formato dos documentos.');
+      const branding = {logo_data:logoUrl || null,header_text:displayName.trim(),theme_color:brandColor || null};
+      const {data,error:upErr}=await supabase.rpc('vertice_save_document_branding',{
+        institution:institution.id, expected_updated_at:institution.updated_at, branding,
+      });
+      if(upErr)throw upErr;
+      if(!data?.updated_at)throw new Error('O servidor não confirmou o salvamento.');
       setMessage("Identidade visual salva com sucesso.");
       onChanged();
     } catch (err) {
-      setError(explain(err));
+      setError(brandingError(err));
     } finally {
       setSaving(false);
     }
-  }, [institution.id, logoUrl, displayName, brandColor, onChanged]);
+  }, [institution.id,institution.updated_at,canEdit,logoUrl,displayName,brandColor,onChanged]);
 
   const removeLogo = useCallback(() => {
     setLogoUrl("");
@@ -192,16 +210,17 @@ export default function BrandingPanel({
             <input
               ref={fileRef}
               type="file"
-              accept="image/png,image/jpeg,image/svg+xml,image/webp"
-              disabled={uploading}
+              accept="image/png,image/jpeg,image/webp"
+              disabled={uploading || saving}
               onChange={(e) => {
                 const f = e.target.files?.[0];
                 if (f) void uploadLogo(f);
               }}
             />
-            <small>PNG, JPG, SVG ou WebP — até 2 MB</small>
+            <small>PNG, JPG ou WebP — até 2 MB. Ajuste proporcional para o cabeçalho (300 × 120 px).</small>
           </HelpLabel>
 
+          <div className="wide"><button type="button" disabled={uploading||saving} onClick={async()=>{setUploading(true);setError('');try{const response=await fetch(publicUrl(`${institution.id}/logo.png`));if(!response.ok)throw new Error('Logo anterior não encontrada. Escolha o arquivo no computador.');const blob=await response.blob();setLogoUrl(await normalizeDocumentLogo(blob));setMessage('Logo recuperada. Clique em Salvar identidade visual para confirmar.');}catch(e){setError(brandingError(e));}finally{setUploading(false);}}}>Recuperar logo PNG já enviada</button></div>
           {/* Display name */}
           <HelpLabel className="wide">
             <span>Nome exibido no cabeçalho dos documentos</span>
