@@ -47,3 +47,5 @@
 @media(max-width:800px){.master-segment-grid,.master-tools{grid-template-columns:1fr}}
 @media(max-width:540px){.master-overview{gap:24px}.master-overview-heading{padding:20px;flex-direction:column;gap:14px}.master-summary>div{padding:0 12px}.master-summary strong{font-size:23px}.master-invites{padding:16px}.master-invite-form{grid-template-columns:1fr}.master-invite-form>div{flex-wrap:wrap}.master-invites-content input{min-width:0}.master-invites-content div{overflow-wrap:anywhere}}
 @media(prefers-reduced-motion:reduce){.master-tool{transition:none}}
+
+.master-tool:last-child:nth-child(odd){grid-column:1/-1}

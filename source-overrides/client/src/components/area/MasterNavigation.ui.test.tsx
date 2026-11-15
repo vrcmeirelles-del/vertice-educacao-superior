@@ -25,7 +25,7 @@ describe('Master navigation and institution boundaries', () => {
     const navigate = vi.fn();
     render(<MasterOverview ies={[{id:'ies-a',name:'IES A',acronym:'IES A',city:'Palmas',state:'TO'}]} schools={[]} contracts={3} trials={1} revenue={12000} onNavigate={navigate}/>);
     click('IES A'); expect(navigate).toHaveBeenLastCalledWith('institution', 'ies-a');
-    for (const [label, destination] of [['Gerenciar educação superior','universidades'], ['Gerenciar escolas','escolas'], ['BI Vértice','bi-vertice'], ['Financeiro','financeiro'], ['Sapiens','sapiens'], ['Administração de acessos','configuracoes']]) {
+    for (const [label, destination] of [['Gerenciar educação superior','universidades'], ['Gerenciar escolas','escolas'], ['BI Vértice','bi-vertice'], ['Financeiro','financeiro'], ['Sapiens','sapiens'], ['Integração Fato & Ordem','integracao'], ['Administração de acessos','configuracoes']]) {
       click(label); expect(navigate).toHaveBeenLastCalledWith(destination);
     }
     expect(host.textContent).toContain('Nenhuma escola ativa cadastrada');

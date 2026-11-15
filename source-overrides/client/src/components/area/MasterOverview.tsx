@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
-import { ArrowRight, Building2, GraduationCap, ChartColumn, Wallet, Settings, Brain } from 'lucide-react';
+import { ArrowRight, Building2, GraduationCap, ChartColumn, Wallet, Settings, Brain, GitBranch } from 'lucide-react';
 import './master-overview.css';
 
-export type MasterDestination = 'universidades' | 'escolas' | 'financeiro' | 'bi-vertice' | 'configuracoes' | 'institution' | 'sapiens';
+export type MasterDestination = 'universidades' | 'escolas' | 'financeiro' | 'bi-vertice' | 'configuracoes' | 'institution' | 'sapiens' | 'integracao';
 export interface MasterInstitution { id: string; name: string; acronym: string | null; city: string | null; state: string | null }
 interface Props {
   ies: MasterInstitution[];
@@ -49,7 +49,7 @@ export default function MasterOverview({ ies, schools, revenue, contracts, trial
     <section aria-labelledby="master-operation-title">
       <div className="master-section-heading"><div><h3 id="master-operation-title">Administração e inteligência</h3><p>Ferramentas da plataforma, separadas da gestão de cada instituição.</p></div><span>02 · Operação da Vértice</span></div>
       <div className="master-tools">
-        {([{destination: 'bi-vertice', title: 'BI Vértice', text: 'Receita, crescimento e indicadores da plataforma.', icon: ChartColumn}, {destination: 'financeiro', title: 'Financeiro', text: 'Contratos, faturas e previsão de receita.', icon: Wallet}, {destination: 'sapiens', title: 'Sapiens', text: 'Diagnósticos, intervenções e metas.', icon: Brain}, {destination: 'configuracoes', title: 'Administração de acessos', text: 'Diretório e permissões de administradores Master.', icon: Settings}] as const).map(tool => <button type="button" className="master-tool" key={tool.destination} onClick={() => onNavigate(tool.destination)}>
+        {([{destination: 'bi-vertice', title: 'BI Vértice', text: 'Receita, crescimento e indicadores da plataforma.', icon: ChartColumn}, {destination: 'financeiro', title: 'Financeiro', text: 'Contratos, faturas e previsão de receita.', icon: Wallet}, {destination: 'sapiens', title: 'Sapiens', text: 'Diagnósticos, intervenções e metas.', icon: Brain}, {destination: 'integracao', title: 'Integração Fato & Ordem', text: 'Acompanhamento, testes, evidências e homologação.', icon: GitBranch}, {destination: 'configuracoes', title: 'Administração de acessos', text: 'Diretório e permissões de administradores Master.', icon: Settings}] as const).map(tool => <button type="button" className="master-tool" key={tool.destination} onClick={() => onNavigate(tool.destination)}>
           <span className="master-tool-icon"><tool.icon size={20} aria-hidden="true"/></span><span><strong>{tool.title}</strong><small>{tool.text}</small></span><ArrowRight size={17} aria-hidden="true"/>
         </button>)}
       </div>

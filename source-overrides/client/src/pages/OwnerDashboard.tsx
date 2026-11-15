@@ -371,6 +371,7 @@ export default function OwnerDashboard(){
   else if(dest==='universidades'){window.location.hash='tier=superior';}
   else if(dest==='escolas'){window.location.hash='tier=escolas';}
   else if(dest==='financeiro'){window.location.hash='financeiro=1';}
+  else if(dest==='integracao'){window.location.assign('/integracao');return;}
   else if(dest==='sapiens'){window.location.hash='sapiens=1';}
   else if(dest==='configuracoes'){window.location.hash='masters=1';}
   else if(dest==='institution'&&instId){window.location.hash=`instituicao=${instId}`;}
