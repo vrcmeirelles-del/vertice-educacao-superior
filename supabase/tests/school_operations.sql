@@ -1,0 +1,31 @@
+BEGIN;
+DO $$ DECLARE inst uuid; other_inst uuid; manager uuid; c jsonb; f jsonb; payload jsonb; rows_before int; BEGIN
+ SELECT id INTO inst FROM public.vertice_institutions WHERE tier='escolas' ORDER BY id LIMIT 1;
+ SELECT id INTO other_inst FROM public.vertice_institutions WHERE tier<>'escolas' LIMIT 1;
+ SELECT user_id INTO manager FROM public.vertice_admins LIMIT 1;
+ IF inst IS NULL OR manager IS NULL THEN RAISE EXCEPTION 'Missing fixtures'; END IF;
+ PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',manager,'aal','aal2','role','authenticated')::text,true);
+ payload:=jsonb_build_object('year',2026,'source','Teste transacional','reference_date',current_date,'data',jsonb_build_object('name','Test-'||gen_random_uuid(),'grade','1º ano','shift','matutino','enrolled',20,'capacity',30));
+ c:=public.vertice_school_operations(inst,'save_class',payload);
+ IF c->>'approved' IS NOT NULL THEN RAISE EXCEPTION 'Missing count became zero'; END IF;
+ BEGIN PERFORM public.vertice_school_operations(inst,'save_class',payload); RAISE EXCEPTION 'Duplicate class accepted'; EXCEPTION WHEN unique_violation THEN NULL; END;
+ BEGIN PERFORM public.vertice_school_operations(inst,'save_class',payload||jsonb_build_object('id',c->>'id','expected_updated_at','2000-01-01')); RAISE EXCEPTION 'Stale update accepted'; EXCEPTION WHEN serialization_failure THEN NULL; END;
+ payload:=jsonb_build_object('kind','finance','title','Teste de fechamento','year',2026,'class_id',c->>'id','source','Teste transacional','reference_date',current_date,'status','completed','data',jsonb_build_object('month',11,'revenue_received',20000,'personnel',10000,'direct_cost',1000,'allocated_cost',2000));
+ f:=public.vertice_school_operations(inst,'save_record',payload);
+ BEGIN PERFORM public.vertice_school_operations(inst,'save_record',payload); RAISE EXCEPTION 'Duplicate financial scope accepted'; EXCEPTION WHEN unique_violation THEN NULL; END;
+ BEGIN PERFORM public.vertice_school_operations(inst,'save_record',jsonb_set(payload,'{year}','2025')); RAISE EXCEPTION 'Wrong class year accepted'; EXCEPTION WHEN insufficient_privilege THEN NULL; END;
+ BEGIN PERFORM public.vertice_school_operations(other_inst,'overview','{}'); RAISE EXCEPTION 'Superior accepted'; EXCEPTION WHEN invalid_parameter_value THEN NULL; END;
+ SELECT count(*) INTO rows_before FROM public.vertice_school_classes WHERE institution_id=inst;
+ BEGIN
+  PERFORM public.vertice_school_operations(inst,'import_classes',jsonb_build_object('rows',jsonb_build_array(jsonb_build_object('year',2026,'source','Test import','reference_date',current_date,'data',jsonb_build_object('name','Batch-'||gen_random_uuid(),'grade','1º','shift','matutino','enrolled',10,'capacity',20)),jsonb_build_object('year',2026,'source','Test import','reference_date',current_date,'data',jsonb_build_object('name','Invalid','grade','1º','enrolled',-1)))));
+  RAISE EXCEPTION 'Invalid import accepted';
+ EXCEPTION WHEN raise_exception THEN IF SQLERRM='Invalid import accepted' THEN RAISE; END IF; END;
+ IF (SELECT count(*) FROM public.vertice_school_classes WHERE institution_id=inst)<>rows_before THEN RAISE EXCEPTION 'Partial batch committed'; END IF;
+ f:=vertice_planning.school_operations_context(inst,2026);
+ IF f->'records' IS NULL OR f::text LIKE '%learner_reference%' THEN RAISE EXCEPTION 'Unsafe/missing Sapiens aggregate'; END IF;
+ PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',gen_random_uuid(),'aal','aal2','role','authenticated')::text,true);
+ BEGIN PERFORM public.vertice_school_operations(inst,'overview','{}'); RAISE EXCEPTION 'Unlinked user accepted'; EXCEPTION WHEN insufficient_privilege THEN NULL; END;
+ PERFORM set_config('request.jwt.claims','{}',true);
+ BEGIN PERFORM public.vertice_school_operations(inst,'overview','{}'); RAISE EXCEPTION 'Anonymous accepted'; EXCEPTION WHEN insufficient_privilege THEN NULL; END;
+END $$;
+ROLLBACK;
