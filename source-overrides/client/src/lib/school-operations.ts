@@ -23,3 +23,7 @@ export function parseClassCSV(text:string){
  if(!r.name||!r.grade||!r.shift||r.capacity==null||r.enrolled==null||!r.source||!/^\d{4}-\d{2}-\d{2}$/.test(r.reference_date||'')||r.year<2000||r.year>2100)throw new Error(`Linha ${i+2}: confira nome, série, turno, capacidade, matrículas, ano, fonte e data.`);
  return r;});
 }
+
+export function schoolSegmentLabel(value:string){return ({infantil:'Educação Infantil',fundamental_1:'Ensino Fundamental · Anos Iniciais',fundamental_2:'Ensino Fundamental · Anos Finais',medio:'Ensino Médio',tecnico:'Educação Profissional',eja:'Educação de Jovens e Adultos'} as Record<string,string>)[value]||value;}
+
+export function schoolGradeLabel(value:string){return value.replace(/^(\d+)ano$/, '$1º ano').replace(/^(\d+)serie$/, '$1ª série');}

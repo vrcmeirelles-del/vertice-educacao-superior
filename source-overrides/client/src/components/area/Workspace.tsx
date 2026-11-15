@@ -389,7 +389,8 @@ export default function Workspace({
   const visible = TABS.filter(([k]) => allowedTabs.includes(k));
   const availableWorkspaceTabs = visible.filter(([key]) => visibleGroups.some(group => group.tabs.includes(key)));
   const activeMacro = macroOverride ?? macroTabFor(tab);
-  const activeMacroDefinition = MACRO_TABS.find(macro => macro.key === activeMacro)!;
+  const originalMacroDefinition = MACRO_TABS.find(macro => macro.key === activeMacro)!;
+  const activeMacroDefinition = instTier==='escolas'?{...originalMacroDefinition,label:originalMacroDefinition.label.replace('Cursos e Ofertas','Etapas e Ofertas').replace('Módulos Acadêmicos','Gestão Pedagógica')}:originalMacroDefinition;
   const selectMacro = (macro: MacroTab) => {
     const target = macroDestination(macro, availableWorkspaceTabs.map(([key]) => key), isLocked);
     if (target) {
