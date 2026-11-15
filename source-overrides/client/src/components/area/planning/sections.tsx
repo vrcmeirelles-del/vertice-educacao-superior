@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 function Field({label,children}:{label:string;children:ReactNode}) { return <label className="planning-field"><span>{label}</span>{children}</label>; }
 export type TabKey =
   | "identificacao"
@@ -55,6 +55,19 @@ interface SemesterActivity {
   location: string | null;
   status: "planned" | "in_progress" | "completed" | "cancelled";
 }
+interface CalendarEntry { date: string; label: string; category: 'aula'|'avaliacao'|'recesso'|'tematica'|'sabado_letivo'|'colacao'|'outro'; notes: string | null; }
+interface CourseOffering { period: string; discipline: string; professor: string | null; workload_hours: number | null; is_new: boolean; needs_hire: boolean; }
+interface FacultyAssignment { professor: string; class_hours: number | null; advising_hours: number | null; extension_hours: number | null; research_hours: number | null; }
+interface FacultyTraining { professor: string; topic: string; date: string | null; status: 'planned'|'completed'|'cancelled'; }
+interface CollegiateMinutes { body: 'NDE'|'colegiado'|'outro'; date: string; agenda: string | null; }
+interface SemesterGoal { area: 'aprovacao'|'evasao'|'frequencia'|'rematricula'|'enade'|'outro'; target_value: string; metric: string; baseline: string | null; }
+interface ExtensionLink { project_name: string; hours_per_student: number | null; linked_from: string | null; }
+interface AcActivity { name: string; type: string | null; date: string | null; hours: number | null; partner: string | null; }
+interface InternshipInfo { student_count: number | null; supervisors: string | null; conventions_to_renew: string | null; }
+interface TccInfo { defense_count: number | null; defense_dates: string | null; advisors: string | null; }
+interface InfraItem { item: string; category: 'sala'|'laboratorio'|'biblioteca'|'software'|'orcamento'|'outro'; status: 'disponivel'|'a_providenciar'|'pendente'; notes: string | null; }
+interface StudentSupportEntry { category: 'pei'|'risco'|'nivelamento'|'regime_especial'; description: string; student_count: number | null; responsible: string | null; }
+interface EngagementAction { type: 'reuniao_turma'|'acolhimento'|'cpa'|'integracao'|'outro'; description: string; date: string | null; }
 
 export interface PlanDraft {
   id?: string;
@@ -94,6 +107,16 @@ export interface SemesterDraft {
   semester: string;
   version: number;
   status: "draft" | "published" | "archived";
+  context: { start_date: string | null; end_date: string | null; school_days: number | null; objective: string | null; notes: string | null; };
+  calendar: CalendarEntry[];
+  course_offerings: CourseOffering[];
+  faculty: { assignments: FacultyAssignment[]; trainings: FacultyTraining[]; meetings: CollegiateMinutes[]; };
+  semester_goals: SemesterGoal[];
+  extension_ac: { extension_projects: ExtensionLink[]; ac_activities: AcActivity[]; partnerships: string[]; };
+  internship_tcc: { internship: InternshipInfo; tcc: TccInfo; conventions: string[]; };
+  infrastructure: InfraItem[];
+  student_support: { entries: StudentSupportEntry[]; leveling_actions: string[]; };
+  engagement: { actions: EngagementAction[]; };
   activities: SemesterActivity[];
 }
 
@@ -110,7 +133,18 @@ export const EMPTY_PLAN: PlanDraft = {
 };
 
 export const EMPTY_SEMESTER: SemesterDraft = {
-  courseId: "", semester: "", version: 1, status: "draft", activities: [],
+  courseId: "", semester: "", version: 1, status: "draft",
+  context: { start_date: null, end_date: null, school_days: null, objective: null, notes: null },
+  calendar: [],
+  course_offerings: [],
+  faculty: { assignments: [], trainings: [], meetings: [] },
+  semester_goals: [],
+  extension_ac: { extension_projects: [], ac_activities: [], partnerships: [] },
+  internship_tcc: { internship: { student_count: null, supervisors: null, conventions_to_renew: null }, tcc: { defense_count: null, defense_dates: null, advisors: null }, conventions: [] },
+  infrastructure: [],
+  student_support: { entries: [], leveling_actions: [] },
+  engagement: { actions: [] },
+  activities: [],
 };
 
 function TextField({ label, value, onChange, multiline = false, rows = 3 }: {
@@ -410,43 +444,351 @@ export function OperacionalTab({ plan, setPlan }: { plan: PlanDraft; setPlan: (p
   );
 }
 
-export function SemestreTab({ draft, setDraft }: { draft: SemesterDraft; setDraft: (d: SemesterDraft) => void }) {
-  const statuses = ["planned", "in_progress", "completed", "cancelled"] as const;
-  return (
-    <SectionCard title="Planejamento Semestral de Atividades">
-      <div className="row">
-        <Field label="Semestre (AAAA/S)">
-          <input className="input" placeholder="2026/1" value={draft.semester}
-            onChange={(e) => setDraft({ ...draft, semester: e.target.value })} />
-        </Field>
+const STATUS_LABELS: Record<string, string> = { planned: 'Planejado', in_progress: 'Em andamento', completed: 'Concluído', cancelled: 'Cancelado' };
+const CAL_LABELS: Record<string, string> = { aula: 'Aula', avaliacao: 'Avaliação', recesso: 'Recesso', tematica: 'Semana Temática', sabado_letivo: 'Sábado Letivo', colacao: 'Colação', outro: 'Outro' };
+const INFRA_CAT: Record<string, string> = { sala: 'Sala', laboratorio: 'Laboratório', biblioteca: 'Biblioteca', software: 'Software', orcamento: 'Orçamento', outro: 'Outro' };
+const INFRA_STATUS: Record<string, string> = { disponivel: 'Disponível', a_providenciar: 'A providenciar', pendente: 'Pendente' };
+const SUPPORT_CAT: Record<string, string> = { pei: 'PEI', risco: 'Risco acadêmico', nivelamento: 'Nivelamento', regime_especial: 'Regime especial' };
+const ENGAGE_TYPE: Record<string, string> = { reuniao_turma: 'Reunião de turma', acolhimento: 'Acolhimento', cpa: 'Pesquisa CPA', integracao: 'Integração', outro: 'Outro' };
+const GOAL_AREA: Record<string, string> = { aprovacao: 'Aprovação', evasao: 'Evasão', frequencia: 'Frequência', rematricula: 'Rematrícula', enade: 'ENADE', outro: 'Outro' };
 
-      </div>
-      <table className="table" style={{ marginTop: 12 }}>
-        <thead>
-          <tr><th>Mês</th><th>Data</th><th>Evento</th><th>Tipo</th><th>Status</th></tr>
-        </thead>
-        <tbody>
-          {draft.activities.map((a, i) => (
-            <tr key={i}>
-              <td><input className="input" value={a.month} onChange={(e) => { const n = [...draft.activities]; n[i] = { ...a, month: e.target.value }; setDraft({ ...draft, activities: n }); }} /></td>
-              <td><input className="input" value={a.date} onChange={(e) => { const n = [...draft.activities]; n[i] = { ...a, date: e.target.value }; setDraft({ ...draft, activities: n }); }} /></td>
-              <td><input className="input" value={a.event} onChange={(e) => { const n = [...draft.activities]; n[i] = { ...a, event: e.target.value }; setDraft({ ...draft, activities: n }); }} /></td>
-              <td><input className="input" value={a.event_type ?? ""} onChange={(e) => { const n = [...draft.activities]; n[i] = { ...a, event_type: e.target.value || null }; setDraft({ ...draft, activities: n }); }} /></td>
-              <td>
-                <select className="select" value={a.status}
-                  onChange={(e) => { const n = [...draft.activities]; n[i] = { ...a, status: e.target.value as SemesterActivity["status"] }; setDraft({ ...draft, activities: n }); }}>
-                  {statuses.map((s) => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <button className="btn btn-ghost"
-        onClick={() => setDraft({ ...draft, activities: [...draft.activities, { month: "", date: "", event: "", event_type: null, action: null, student_count: null, location: null, status: "planned" }] })}>
-        + Adicionar atividade
+function CollapsibleSection({ icon, title, hint, children }: { icon: string; title: string; hint?: string; children: ReactNode }) {
+  const [open, setOpen] = useState(true);
+  return (
+    <div className="card" style={{ padding: 20 }}>
+      <button type="button" onClick={() => setOpen(!open)} style={{ background: 'none', border: 'none', cursor: 'pointer', width: '100%', textAlign: 'left', padding: 0 }}>
+        <h3 style={{ margin: 0, fontSize: 16, fontWeight: 650, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span>{icon}</span> {title} <span style={{ marginLeft: 'auto', fontSize: 13, opacity: 0.5 }}>{open ? '▾' : '▸'}</span>
+        </h3>
+        {hint && <p style={{ margin: '4px 0 0', fontSize: 13, opacity: 0.65, fontWeight: 400 }}>{hint}</p>}
       </button>
-    </SectionCard>
+      {open && <div className="stack" style={{ marginTop: 14 }}>{children}</div>}
+    </div>
   );
+}
+
+export function SemestreTab({ draft, setDraft }: { draft: SemesterDraft; setDraft: (d: SemesterDraft) => void }) {
+  const ctx = draft.context ?? { start_date: null, end_date: null, school_days: null, objective: null, notes: null };
+  const fac = draft.faculty ?? { assignments: [], trainings: [], meetings: [] };
+  const ext = draft.extension_ac ?? { extension_projects: [], ac_activities: [], partnerships: [] };
+  const itcc = draft.internship_tcc ?? { internship: { student_count: null, supervisors: null, conventions_to_renew: null }, tcc: { defense_count: null, defense_dates: null, advisors: null }, conventions: [] };
+  const sup = draft.student_support ?? { entries: [], leveling_actions: [] };
+  const eng = draft.engagement ?? { actions: [] };
+  const statuses = ["planned", "in_progress", "completed", "cancelled"] as const;
+  const setCtx = (patch: Partial<typeof ctx>) => setDraft({ ...draft, context: { ...ctx, ...patch } });
+  return <>
+    {/* Semestre identifier */}
+    <div className="card" style={{ padding: 20 }}>
+      <Field label="Semestre (AAAA/S)">
+        <input className="input" placeholder="2026/1" value={draft.semester} onChange={(e) => setDraft({ ...draft, semester: e.target.value })} />
+      </Field>
+    </div>
+
+    {/* 1. Contexto */}
+    <CollapsibleSection icon="📋" title="Contexto e Período Letivo" hint="Datas, dias letivos, objetivo geral e observações do semestre.">
+      <div className="row">
+        <Field label="Início do semestre"><input className="input" type="date" value={ctx.start_date ?? ""} onChange={(e) => setCtx({ start_date: e.target.value || null })} /></Field>
+        <Field label="Fim do semestre"><input className="input" type="date" value={ctx.end_date ?? ""} onChange={(e) => setCtx({ end_date: e.target.value || null })} /></Field>
+        <Field label="Dias letivos previstos"><input className="input" type="number" min={0} value={ctx.school_days ?? ""} onChange={(e) => setCtx({ school_days: e.target.value === "" ? null : Number(e.target.value) })} /></Field>
+      </div>
+      <TextField label="Objetivo geral do semestre" value={ctx.objective} onChange={(v) => setCtx({ objective: v })} multiline rows={3} />
+      <TextField label="Observações / contexto institucional" value={ctx.notes} onChange={(v) => setCtx({ notes: v })} multiline rows={3} />
+    </CollapsibleSection>
+
+    {/* 2. Calendário */}
+    <CollapsibleSection icon="📅" title="Calendário Acadêmico" hint="Datas-chave: aulas, avaliações, recessos, semanas temáticas, sábados letivos e colação.">
+      <div className="planning-scroll">
+        <table className="table">
+          <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Observação</th></tr></thead>
+          <tbody>
+            {(draft.calendar ?? []).map((c, i) => (
+              <tr key={i}>
+                <td><input className="input" type="date" value={c.date} onChange={(e) => { const n = [...draft.calendar]; n[i] = { ...c, date: e.target.value }; setDraft({ ...draft, calendar: n }); }} /></td>
+                <td><input className="input" value={c.label} onChange={(e) => { const n = [...draft.calendar]; n[i] = { ...c, label: e.target.value }; setDraft({ ...draft, calendar: n }); }} /></td>
+                <td><select className="select" value={c.category} onChange={(e) => { const n = [...draft.calendar]; n[i] = { ...c, category: e.target.value as CalendarEntry['category'] }; setDraft({ ...draft, calendar: n }); }}>
+                  {Object.entries(CAL_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                </select></td>
+                <td><input className="input" value={c.notes ?? ""} onChange={(e) => { const n = [...draft.calendar]; n[i] = { ...c, notes: e.target.value || null }; setDraft({ ...draft, calendar: n }); }} /></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <button className="btn btn-ghost" onClick={() => setDraft({ ...draft, calendar: [...(draft.calendar ?? []), { date: "", label: "", category: "outro", notes: null }] })}>+ Adicionar data</button>
+    </CollapsibleSection>
+
+    {/* 3. Oferta de Disciplinas */}
+    <CollapsibleSection icon="📚" title="Oferta de Disciplinas no Semestre" hint="Grade do semestre com disciplinas, professores e carga horária por período.">
+      <div className="planning-scroll">
+        <table className="table">
+          <thead><tr><th>Período</th><th>Disciplina</th><th>Professor</th><th>CH</th><th>Nova</th><th>A contratar</th></tr></thead>
+          <tbody>
+            {(draft.course_offerings ?? []).map((o, i) => (
+              <tr key={i}>
+                <td><input className="input" placeholder="1º" value={o.period} onChange={(e) => { const n = [...draft.course_offerings]; n[i] = { ...o, period: e.target.value }; setDraft({ ...draft, course_offerings: n }); }} /></td>
+                <td><input className="input" value={o.discipline} onChange={(e) => { const n = [...draft.course_offerings]; n[i] = { ...o, discipline: e.target.value }; setDraft({ ...draft, course_offerings: n }); }} /></td>
+                <td><input className="input" value={o.professor ?? ""} onChange={(e) => { const n = [...draft.course_offerings]; n[i] = { ...o, professor: e.target.value || null }; setDraft({ ...draft, course_offerings: n }); }} /></td>
+                <td><input className="input" type="number" style={{ width: 70 }} value={o.workload_hours ?? ""} onChange={(e) => { const n = [...draft.course_offerings]; n[i] = { ...o, workload_hours: e.target.value === "" ? null : Number(e.target.value) }; setDraft({ ...draft, course_offerings: n }); }} /></td>
+                <td><input type="checkbox" checked={o.is_new} onChange={(e) => { const n = [...draft.course_offerings]; n[i] = { ...o, is_new: e.target.checked }; setDraft({ ...draft, course_offerings: n }); }} /></td>
+                <td><input type="checkbox" checked={o.needs_hire} onChange={(e) => { const n = [...draft.course_offerings]; n[i] = { ...o, needs_hire: e.target.checked }; setDraft({ ...draft, course_offerings: n }); }} /></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <button className="btn btn-ghost" onClick={() => setDraft({ ...draft, course_offerings: [...(draft.course_offerings ?? []), { period: "", discipline: "", professor: null, workload_hours: null, is_new: false, needs_hire: false }] })}>+ Adicionar disciplina</button>
+    </CollapsibleSection>
+
+    {/* 4. Corpo Docente */}
+    <CollapsibleSection icon="👩‍🏫" title="Corpo Docente e Colegiados" hint="Atribuição de carga, capacitações e reuniões de NDE/Colegiado programadas.">
+      <h4 style={{ margin: '0 0 8px', fontSize: 14, fontWeight: 600 }}>Atribuição de Carga Docente</h4>
+      <div className="planning-scroll">
+        <table className="table">
+          <thead><tr><th>Professor</th><th>Aula (h)</th><th>Orientação (h)</th><th>Extensão (h)</th><th>Pesquisa (h)</th></tr></thead>
+          <tbody>
+            {fac.assignments.map((a, i) => (
+              <tr key={i}>
+                <td><input className="input" value={a.professor} onChange={(e) => { const n = [...fac.assignments]; n[i] = { ...a, professor: e.target.value }; setDraft({ ...draft, faculty: { ...fac, assignments: n } }); }} /></td>
+                <td><input className="input" type="number" style={{ width: 70 }} value={a.class_hours ?? ""} onChange={(e) => { const n = [...fac.assignments]; n[i] = { ...a, class_hours: e.target.value === "" ? null : Number(e.target.value) }; setDraft({ ...draft, faculty: { ...fac, assignments: n } }); }} /></td>
+                <td><input className="input" type="number" style={{ width: 70 }} value={a.advising_hours ?? ""} onChange={(e) => { const n = [...fac.assignments]; n[i] = { ...a, advising_hours: e.target.value === "" ? null : Number(e.target.value) }; setDraft({ ...draft, faculty: { ...fac, assignments: n } }); }} /></td>
+                <td><input className="input" type="number" style={{ width: 70 }} value={a.extension_hours ?? ""} onChange={(e) => { const n = [...fac.assignments]; n[i] = { ...a, extension_hours: e.target.value === "" ? null : Number(e.target.value) }; setDraft({ ...draft, faculty: { ...fac, assignments: n } }); }} /></td>
+                <td><input className="input" type="number" style={{ width: 70 }} value={a.research_hours ?? ""} onChange={(e) => { const n = [...fac.assignments]; n[i] = { ...a, research_hours: e.target.value === "" ? null : Number(e.target.value) }; setDraft({ ...draft, faculty: { ...fac, assignments: n } }); }} /></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <button className="btn btn-ghost" onClick={() => setDraft({ ...draft, faculty: { ...fac, assignments: [...fac.assignments, { professor: "", class_hours: null, advising_hours: null, extension_hours: null, research_hours: null }] } })}>+ Adicionar docente</button>
+
+      <h4 style={{ margin: '16px 0 8px', fontSize: 14, fontWeight: 600 }}>Capacitações Previstas</h4>
+      <div className="planning-scroll">
+        <table className="table">
+          <thead><tr><th>Professor</th><th>Tema</th><th>Data</th><th>Situação</th></tr></thead>
+          <tbody>
+            {fac.trainings.map((t, i) => (
+              <tr key={i}>
+                <td><input className="input" value={t.professor} onChange={(e) => { const n = [...fac.trainings]; n[i] = { ...t, professor: e.target.value }; setDraft({ ...draft, faculty: { ...fac, trainings: n } }); }} /></td>
+                <td><input className="input" value={t.topic} onChange={(e) => { const n = [...fac.trainings]; n[i] = { ...t, topic: e.target.value }; setDraft({ ...draft, faculty: { ...fac, trainings: n } }); }} /></td>
+                <td><input className="input" type="date" value={t.date ?? ""} onChange={(e) => { const n = [...fac.trainings]; n[i] = { ...t, date: e.target.value || null }; setDraft({ ...draft, faculty: { ...fac, trainings: n } }); }} /></td>
+                <td><select className="select" value={t.status} onChange={(e) => { const n = [...fac.trainings]; n[i] = { ...t, status: e.target.value as FacultyTraining['status'] }; setDraft({ ...draft, faculty: { ...fac, trainings: n } }); }}>
+                  {(['planned', 'completed', 'cancelled'] as const).map(s => <option key={s} value={s}>{STATUS_LABELS[s]}</option>)}
+                </select></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <button className="btn btn-ghost" onClick={() => setDraft({ ...draft, faculty: { ...fac, trainings: [...fac.trainings, { professor: "", topic: "", date: null, status: "planned" }] } })}>+ Adicionar capacitação</button>
+
+      <h4 style={{ margin: '16px 0 8px', fontSize: 14, fontWeight: 600 }}>Reuniões de NDE e Colegiado</h4>
+      <div className="planning-scroll">
+        <table className="table">
+          <thead><tr><th>Órgão</th><th>Data</th><th>Pauta prevista</th></tr></thead>
+          <tbody>
+            {fac.meetings.map((m, i) => (
+              <tr key={i}>
+                <td><select className="select" value={m.body} onChange={(e) => { const n = [...fac.meetings]; n[i] = { ...m, body: e.target.value as CollegiateMinutes['body'] }; setDraft({ ...draft, faculty: { ...fac, meetings: n } }); }}>
+                  <option value="NDE">NDE</option><option value="colegiado">Colegiado</option><option value="outro">Outro</option>
+                </select></td>
+                <td><input className="input" type="date" value={m.date} onChange={(e) => { const n = [...fac.meetings]; n[i] = { ...m, date: e.target.value }; setDraft({ ...draft, faculty: { ...fac, meetings: n } }); }} /></td>
+                <td><input className="input" value={m.agenda ?? ""} onChange={(e) => { const n = [...fac.meetings]; n[i] = { ...m, agenda: e.target.value || null }; setDraft({ ...draft, faculty: { ...fac, meetings: n } }); }} /></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <button className="btn btn-ghost" onClick={() => setDraft({ ...draft, faculty: { ...fac, meetings: [...fac.meetings, { body: "NDE", date: "", agenda: null }] } })}>+ Adicionar reunião</button>
+    </CollapsibleSection>
+
+    {/* 5. Metas */}
+    <CollapsibleSection icon="🎯" title="Metas Acadêmicas do Semestre" hint="Conecte com as metas do módulo de Gestão para acompanhamento automático.">
+      <div className="planning-scroll">
+        <table className="table">
+          <thead><tr><th>Área</th><th>Meta</th><th>Métrica</th><th>Linha de base</th></tr></thead>
+          <tbody>
+            {(draft.semester_goals ?? []).map((g, i) => (
+              <tr key={i}>
+                <td><select className="select" value={g.area} onChange={(e) => { const n = [...draft.semester_goals]; n[i] = { ...g, area: e.target.value as SemesterGoal['area'] }; setDraft({ ...draft, semester_goals: n }); }}>
+                  {Object.entries(GOAL_AREA).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                </select></td>
+                <td><input className="input" value={g.target_value} onChange={(e) => { const n = [...draft.semester_goals]; n[i] = { ...g, target_value: e.target.value }; setDraft({ ...draft, semester_goals: n }); }} /></td>
+                <td><input className="input" value={g.metric} onChange={(e) => { const n = [...draft.semester_goals]; n[i] = { ...g, metric: e.target.value }; setDraft({ ...draft, semester_goals: n }); }} /></td>
+                <td><input className="input" value={g.baseline ?? ""} onChange={(e) => { const n = [...draft.semester_goals]; n[i] = { ...g, baseline: e.target.value || null }; setDraft({ ...draft, semester_goals: n }); }} /></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <button className="btn btn-ghost" onClick={() => setDraft({ ...draft, semester_goals: [...(draft.semester_goals ?? []), { area: "aprovacao", target_value: "", metric: "", baseline: null }] })}>+ Adicionar meta</button>
+    </CollapsibleSection>
+
+    {/* 6. Extensão e AC */}
+    <CollapsibleSection icon="🤝" title="Extensão e Atividades Complementares" hint="Projetos cadastrados no módulo Extensão 360° aparecem automaticamente. Adicione atividades específicas deste semestre.">
+      <h4 style={{ margin: '0 0 8px', fontSize: 14, fontWeight: 600 }}>Projetos de Extensão Vinculados</h4>
+      <div className="planning-scroll">
+        <table className="table">
+          <thead><tr><th>Projeto</th><th>Horas/aluno</th><th>Origem</th></tr></thead>
+          <tbody>
+            {ext.extension_projects.map((p, i) => (
+              <tr key={i}>
+                <td><input className="input" value={p.project_name} onChange={(e) => { const n = [...ext.extension_projects]; n[i] = { ...p, project_name: e.target.value }; setDraft({ ...draft, extension_ac: { ...ext, extension_projects: n } }); }} /></td>
+                <td><input className="input" type="number" style={{ width: 80 }} value={p.hours_per_student ?? ""} onChange={(e) => { const n = [...ext.extension_projects]; n[i] = { ...p, hours_per_student: e.target.value === "" ? null : Number(e.target.value) }; setDraft({ ...draft, extension_ac: { ...ext, extension_projects: n } }); }} /></td>
+                <td><input className="input" value={p.linked_from ?? ""} placeholder="Extensão 360°" disabled style={{ opacity: 0.6 }} /></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <button className="btn btn-ghost" onClick={() => setDraft({ ...draft, extension_ac: { ...ext, extension_projects: [...ext.extension_projects, { project_name: "", hours_per_student: null, linked_from: null }] } })}>+ Adicionar projeto</button>
+
+      <h4 style={{ margin: '16px 0 8px', fontSize: 14, fontWeight: 600 }}>Atividades Complementares Programadas</h4>
+      <div className="planning-scroll">
+        <table className="table">
+          <thead><tr><th>Atividade</th><th>Tipo</th><th>Data</th><th>Horas</th><th>Parceiro</th></tr></thead>
+          <tbody>
+            {ext.ac_activities.map((a, i) => (
+              <tr key={i}>
+                <td><input className="input" value={a.name} onChange={(e) => { const n = [...ext.ac_activities]; n[i] = { ...a, name: e.target.value }; setDraft({ ...draft, extension_ac: { ...ext, ac_activities: n } }); }} /></td>
+                <td><input className="input" value={a.type ?? ""} placeholder="Palestra, Workshop…" onChange={(e) => { const n = [...ext.ac_activities]; n[i] = { ...a, type: e.target.value || null }; setDraft({ ...draft, extension_ac: { ...ext, ac_activities: n } }); }} /></td>
+                <td><input className="input" type="date" value={a.date ?? ""} onChange={(e) => { const n = [...ext.ac_activities]; n[i] = { ...a, date: e.target.value || null }; setDraft({ ...draft, extension_ac: { ...ext, ac_activities: n } }); }} /></td>
+                <td><input className="input" type="number" style={{ width: 70 }} value={a.hours ?? ""} onChange={(e) => { const n = [...ext.ac_activities]; n[i] = { ...a, hours: e.target.value === "" ? null : Number(e.target.value) }; setDraft({ ...draft, extension_ac: { ...ext, ac_activities: n } }); }} /></td>
+                <td><input className="input" value={a.partner ?? ""} onChange={(e) => { const n = [...ext.ac_activities]; n[i] = { ...a, partner: e.target.value || null }; setDraft({ ...draft, extension_ac: { ...ext, ac_activities: n } }); }} /></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <button className="btn btn-ghost" onClick={() => setDraft({ ...draft, extension_ac: { ...ext, ac_activities: [...ext.ac_activities, { name: "", type: null, date: null, hours: null, partner: null }] } })}>+ Adicionar atividade</button>
+
+      <h4 style={{ margin: '16px 0 8px', fontSize: 14, fontWeight: 600 }}>Parcerias Externas Ativas</h4>
+      <div className="stack" style={{ gap: 6 }}>
+        {ext.partnerships.map((p, i) => (
+          <input key={i} className="input" value={p} placeholder="Escritório, órgão público, empresa…" onChange={(e) => { const n = [...ext.partnerships]; n[i] = e.target.value; setDraft({ ...draft, extension_ac: { ...ext, partnerships: n } }); }} />
+        ))}
+        <button className="btn btn-ghost" onClick={() => setDraft({ ...draft, extension_ac: { ...ext, partnerships: [...ext.partnerships, ""] } })}>+ Adicionar parceria</button>
+      </div>
+    </CollapsibleSection>
+
+    {/* 7. Estágio e TCC */}
+    <CollapsibleSection icon="🏢" title="Estágio e TCC" hint="Dados vinculados aos módulos Estágio 360° e TCC 360°.">
+      <h4 style={{ margin: '0 0 8px', fontSize: 14, fontWeight: 600 }}>Estágio Obrigatório</h4>
+      <div className="row">
+        <Field label="Alunos em estágio"><input className="input" type="number" value={itcc.internship.student_count ?? ""} onChange={(e) => setDraft({ ...draft, internship_tcc: { ...itcc, internship: { ...itcc.internship, student_count: e.target.value === "" ? null : Number(e.target.value) } } })} /></Field>
+        <TextField label="Supervisores" value={itcc.internship.supervisors} onChange={(v) => setDraft({ ...draft, internship_tcc: { ...itcc, internship: { ...itcc.internship, supervisors: v } } })} />
+        <TextField label="Convênios a renovar" value={itcc.internship.conventions_to_renew} onChange={(v) => setDraft({ ...draft, internship_tcc: { ...itcc, internship: { ...itcc.internship, conventions_to_renew: v } } })} />
+      </div>
+      <h4 style={{ margin: '16px 0 8px', fontSize: 14, fontWeight: 600 }}>TCC</h4>
+      <div className="row">
+        <Field label="Bancas previstas"><input className="input" type="number" value={itcc.tcc.defense_count ?? ""} onChange={(e) => setDraft({ ...draft, internship_tcc: { ...itcc, tcc: { ...itcc.tcc, defense_count: e.target.value === "" ? null : Number(e.target.value) } } })} /></Field>
+        <TextField label="Datas das bancas" value={itcc.tcc.defense_dates} onChange={(v) => setDraft({ ...draft, internship_tcc: { ...itcc, tcc: { ...itcc.tcc, defense_dates: v } } })} />
+        <TextField label="Orientadores" value={itcc.tcc.advisors} onChange={(v) => setDraft({ ...draft, internship_tcc: { ...itcc, tcc: { ...itcc.tcc, advisors: v } } })} />
+      </div>
+      <h4 style={{ margin: '16px 0 8px', fontSize: 14, fontWeight: 600 }}>Convênios a Firmar</h4>
+      <div className="stack" style={{ gap: 6 }}>
+        {itcc.conventions.map((c, i) => (
+          <input key={i} className="input" value={c} placeholder="Novo convênio…" onChange={(e) => { const n = [...itcc.conventions]; n[i] = e.target.value; setDraft({ ...draft, internship_tcc: { ...itcc, conventions: n } }); }} />
+        ))}
+        <button className="btn btn-ghost" onClick={() => setDraft({ ...draft, internship_tcc: { ...itcc, conventions: [...itcc.conventions, ""] } })}>+ Adicionar convênio</button>
+      </div>
+    </CollapsibleSection>
+
+    {/* 8. Infraestrutura */}
+    <CollapsibleSection icon="🏗️" title="Infraestrutura e Recursos" hint="Salas, laboratórios, softwares, orçamento e aquisições necessárias.">
+      <div className="planning-scroll">
+        <table className="table">
+          <thead><tr><th>Item</th><th>Categoria</th><th>Situação</th><th>Observação</th></tr></thead>
+          <tbody>
+            {(draft.infrastructure ?? []).map((inf, i) => (
+              <tr key={i}>
+                <td><input className="input" value={inf.item} onChange={(e) => { const n = [...draft.infrastructure]; n[i] = { ...inf, item: e.target.value }; setDraft({ ...draft, infrastructure: n }); }} /></td>
+                <td><select className="select" value={inf.category} onChange={(e) => { const n = [...draft.infrastructure]; n[i] = { ...inf, category: e.target.value as InfraItem['category'] }; setDraft({ ...draft, infrastructure: n }); }}>
+                  {Object.entries(INFRA_CAT).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                </select></td>
+                <td><select className="select" value={inf.status} onChange={(e) => { const n = [...draft.infrastructure]; n[i] = { ...inf, status: e.target.value as InfraItem['status'] }; setDraft({ ...draft, infrastructure: n }); }}>
+                  {Object.entries(INFRA_STATUS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                </select></td>
+                <td><input className="input" value={inf.notes ?? ""} onChange={(e) => { const n = [...draft.infrastructure]; n[i] = { ...inf, notes: e.target.value || null }; setDraft({ ...draft, infrastructure: n }); }} /></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <button className="btn btn-ghost" onClick={() => setDraft({ ...draft, infrastructure: [...(draft.infrastructure ?? []), { item: "", category: "outro", status: "pendente", notes: null }] })}>+ Adicionar item</button>
+    </CollapsibleSection>
+
+    {/* 9. Acompanhamento */}
+    <CollapsibleSection icon="♿" title="Acompanhamento e Suporte ao Estudante" hint="Dados vinculados aos módulos Inclusão 360° e Acompanhamento Especial.">
+      <div className="planning-scroll">
+        <table className="table">
+          <thead><tr><th>Categoria</th><th>Descrição</th><th>Alunos</th><th>Responsável</th></tr></thead>
+          <tbody>
+            {sup.entries.map((s, i) => (
+              <tr key={i}>
+                <td><select className="select" value={s.category} onChange={(e) => { const n = [...sup.entries]; n[i] = { ...s, category: e.target.value as StudentSupportEntry['category'] }; setDraft({ ...draft, student_support: { ...sup, entries: n } }); }}>
+                  {Object.entries(SUPPORT_CAT).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                </select></td>
+                <td><input className="input" value={s.description} onChange={(e) => { const n = [...sup.entries]; n[i] = { ...s, description: e.target.value }; setDraft({ ...draft, student_support: { ...sup, entries: n } }); }} /></td>
+                <td><input className="input" type="number" style={{ width: 70 }} value={s.student_count ?? ""} onChange={(e) => { const n = [...sup.entries]; n[i] = { ...s, student_count: e.target.value === "" ? null : Number(e.target.value) }; setDraft({ ...draft, student_support: { ...sup, entries: n } }); }} /></td>
+                <td><input className="input" value={s.responsible ?? ""} onChange={(e) => { const n = [...sup.entries]; n[i] = { ...s, responsible: e.target.value || null }; setDraft({ ...draft, student_support: { ...sup, entries: n } }); }} /></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <button className="btn btn-ghost" onClick={() => setDraft({ ...draft, student_support: { ...sup, entries: [...sup.entries, { category: "risco", description: "", student_count: null, responsible: null }] } })}>+ Adicionar registro</button>
+
+      <h4 style={{ margin: '16px 0 8px', fontSize: 14, fontWeight: 600 }}>Ações de Nivelamento</h4>
+      <div className="stack" style={{ gap: 6 }}>
+        {sup.leveling_actions.map((a, i) => (
+          <input key={i} className="input" value={a} placeholder="Ex: Oficina de leitura e produção textual" onChange={(e) => { const n = [...sup.leveling_actions]; n[i] = e.target.value; setDraft({ ...draft, student_support: { ...sup, leveling_actions: n } }); }} />
+        ))}
+        <button className="btn btn-ghost" onClick={() => setDraft({ ...draft, student_support: { ...sup, leveling_actions: [...sup.leveling_actions, ""] } })}>+ Adicionar ação</button>
+      </div>
+    </CollapsibleSection>
+
+    {/* 10. Engajamento */}
+    <CollapsibleSection icon="📣" title="Engajamento e Comunicação" hint="Reuniões com representantes, acolhimento de calouros, pesquisas CPA e eventos de integração.">
+      <div className="planning-scroll">
+        <table className="table">
+          <thead><tr><th>Tipo</th><th>Descrição</th><th>Data</th></tr></thead>
+          <tbody>
+            {eng.actions.map((a, i) => (
+              <tr key={i}>
+                <td><select className="select" value={a.type} onChange={(e) => { const n = [...eng.actions]; n[i] = { ...a, type: e.target.value as EngagementAction['type'] }; setDraft({ ...draft, engagement: { ...eng, actions: n } }); }}>
+                  {Object.entries(ENGAGE_TYPE).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                </select></td>
+                <td><input className="input" value={a.description} onChange={(e) => { const n = [...eng.actions]; n[i] = { ...a, description: e.target.value }; setDraft({ ...draft, engagement: { ...eng, actions: n } }); }} /></td>
+                <td><input className="input" type="date" value={a.date ?? ""} onChange={(e) => { const n = [...eng.actions]; n[i] = { ...a, date: e.target.value || null }; setDraft({ ...draft, engagement: { ...eng, actions: n } }); }} /></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <button className="btn btn-ghost" onClick={() => setDraft({ ...draft, engagement: { ...eng, actions: [...eng.actions, { type: "outro", description: "", date: null }] } })}>+ Adicionar ação</button>
+    </CollapsibleSection>
+
+    {/* Legacy: Cronograma de Atividades */}
+    <CollapsibleSection icon="📆" title="Cronograma de Atividades" hint="Tabela legada de atividades do semestre com mês, data, evento, tipo e status.">
+      <div className="planning-scroll">
+        <table className="table">
+          <thead><tr><th>Mês</th><th>Data</th><th>Evento</th><th>Tipo</th><th>Status</th></tr></thead>
+          <tbody>
+            {draft.activities.map((a, i) => (
+              <tr key={i}>
+                <td><input className="input" value={a.month} onChange={(e) => { const n = [...draft.activities]; n[i] = { ...a, month: e.target.value }; setDraft({ ...draft, activities: n }); }} /></td>
+                <td><input className="input" value={a.date} onChange={(e) => { const n = [...draft.activities]; n[i] = { ...a, date: e.target.value }; setDraft({ ...draft, activities: n }); }} /></td>
+                <td><input className="input" value={a.event} onChange={(e) => { const n = [...draft.activities]; n[i] = { ...a, event: e.target.value }; setDraft({ ...draft, activities: n }); }} /></td>
+                <td><input className="input" value={a.event_type ?? ""} onChange={(e) => { const n = [...draft.activities]; n[i] = { ...a, event_type: e.target.value || null }; setDraft({ ...draft, activities: n }); }} /></td>
+                <td><select className="select" value={a.status} onChange={(e) => { const n = [...draft.activities]; n[i] = { ...a, status: e.target.value as SemesterActivity["status"] }; setDraft({ ...draft, activities: n }); }}>
+                  {statuses.map((s) => <option key={s} value={s}>{STATUS_LABELS[s]}</option>)}
+                </select></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <button className="btn btn-ghost" onClick={() => setDraft({ ...draft, activities: [...draft.activities, { month: "", date: "", event: "", event_type: null, action: null, student_count: null, location: null, status: "planned" }] })}>+ Adicionar atividade</button>
+    </CollapsibleSection>
+  </>;
 }
 
