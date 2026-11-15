@@ -99,10 +99,13 @@ interface Props {
   activeMacro: MacroTab;
   children: ReactNode;
   institutionName: string;
+  institutionLogo?: string;
   kpis?: ReactNode;
 }
 
-export default function InstitutionTabs({ activeTab, onSelectMacro, activeMacro, children, institutionName, kpis, enabled = true, availableMacros }: Props) {
+export default function InstitutionTabs({ activeTab, onSelectMacro, activeMacro, children, institutionName, institutionLogo, kpis, enabled = true, availableMacros }: Props) {
+  const [failedLogo,setFailedLogo]=useState<string|null>(null);
+  const showLogo=!!institutionLogo&&failedLogo!==institutionLogo;
   const [mobileOpen, setMobileOpen] = useState(false);
   const toggleRef = useRef<HTMLButtonElement>(null);
 
@@ -153,8 +156,8 @@ export default function InstitutionTabs({ activeTab, onSelectMacro, activeMacro,
         aria-label="Navegação da instituição"
         role="navigation"
       >
-        <div className="inst-tabs-nav-header">
-          <span className="inst-tabs-nav-icon" aria-hidden="true">🏛️</span>
+        <div className={`inst-tabs-nav-header${showLogo?' inst-tabs-nav-header--branded':''}`}>
+          {showLogo?<img className="inst-tabs-institution-logo" src={institutionLogo} alt={`Logo de ${institutionName}`} onError={()=>setFailedLogo(institutionLogo??null)}/>:<span className="inst-tabs-nav-icon" aria-hidden="true">🏛️</span>}
           <div>
             <strong className="inst-tabs-nav-title">{institutionName}</strong>
             <small className="inst-tabs-nav-sub">Painel institucional</small>

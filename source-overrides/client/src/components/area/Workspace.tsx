@@ -428,7 +428,7 @@ export default function Workspace({
       {(role !== "master" || activeMacro === "visao-geral") && <Suspense fallback={null}>
         <ExtensaoDashboard institutionId={String(id)} onNavigate={() => { choose("extensao" as Tab); }} />
       </Suspense>}
-      <InstitutionTabs enabled={role === "master"} activeTab={tab} activeMacro={activeMacro} onSelectMacro={selectMacro} institutionName={String(institution.name)} availableMacros={MACRO_TABS.filter(m => m.tabs.some(key => availableWorkspaceTabs.some(([k]) => k === key))).map(m => m.key)}>
+      <InstitutionTabs enabled={role === "master"} activeTab={tab} activeMacro={activeMacro} onSelectMacro={selectMacro} institutionName={String(institution.name)} institutionLogo={typeof (institution.document_branding as {logo_data?:unknown}|null)?.logo_data === "string" ? (institution.document_branding as {logo_data:string}).logo_data : undefined} availableMacros={MACRO_TABS.filter(m => m.tabs.some(key => availableWorkspaceTabs.some(([k]) => k === key))).map(m => m.key)}>
       <div ref={moduleNavigationRef} className="inst-module-workspace" onChangeCapture={e => { if ((e.target as HTMLElement).closest("input:not([type=search]), textarea, select")) edited.current = true; }}>
       {role === "master" && <InstitutionSubTabs
         macro={activeMacroDefinition}
