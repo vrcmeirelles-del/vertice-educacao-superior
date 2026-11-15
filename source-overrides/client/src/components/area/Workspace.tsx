@@ -87,7 +87,7 @@ import "./area.css";
 import "./module-offer.css";
 
 const TAB_GROUPS: {label:string;subtitle:string;icon:string;tabs:Tab[];tier?:'superior'|'escolas'|'both'}[] = [
-  {label:'Gestão',subtitle:'Planejamento, metas e governança',icon:'▦',tabs:['planejamento-curso','base','metas','plano','diagnostico','equipe','cpa-autoavaliacao'],tier:'both'},
+  {label:'Gestão',subtitle:'Planejamento, metas e governança',icon:'▦',tabs:['planejamento-estrategico','planejamento-semestral','base','metas','plano','diagnostico','equipe','cpa-autoavaliacao'],tier:'both'},
   {label:'Regulação',subtitle:'Instrumentos e evidências MEC/INEP',icon:'◇',tabs:['emec','repositorio','validacao','enade','avaliacao','novo_instrumento','biblioteca'],tier:'superior'},
   {label:'Acadêmico',subtitle:'Cursos, estudantes e desempenho',icon:'▤',tabs:['geral','cadastro','visao','eorbit','backups','auditoria'],tier:'superior'},
   {label:'Inteligência',subtitle:'Análises, integrações e decisões',icon:'◎',tabs:['analise','ia','fontes','conexoes','reitor','resultado-curso','simulador','raio-x-direito','vitrine-curso','aprendizagem'],tier:'superior'},
@@ -107,7 +107,8 @@ const TAB_GROUPS: {label:string;subtitle:string;icon:string;tabs:Tab[];tier?:'su
 ];
 
 const TAB_DETAILS: Partial<Record<Tab,{icon:string;description:string}>> = {
-  "planejamento-curso":{icon:"◎",description:"Planejamento estratégico e semestral por curso"},
+  "planejamento-estrategico":{icon:"◎",description:"Visão, análise de mercado, posicionamento e objetivos de longo prazo do curso"},
+  "planejamento-semestral":{icon:"📅",description:"Atividades, eventos e ações organizados por semestre letivo"},
   base:{icon:'⌂',description:'Estrutura e identificação institucional'},
   metas:{icon:'◎',description:'Metas, avanços e indicadores'},
   plano:{icon:'☷',description:'Ações, responsáveis e prazos'},
@@ -159,7 +160,8 @@ const TAB_DETAILS: Partial<Record<Tab,{icon:string;description:string}>> = {
 };
 
 const TABS: [Tab, string][] = [
-  ["planejamento-curso", "Planejamento do Curso"],
+  ["planejamento-estrategico", "Planejamento Estratégico"],
+  ["planejamento-semestral", "Planejamento Semestral"],
   ["base", "Base da organização"],
   ["fontes", "Importar dados de sites"],
   ["conexoes", "Conexões de dados"],
@@ -379,7 +381,7 @@ export default function Workspace({
       setModuleSearch(""); setOnlyFavorites(false);
     }
   };
-  const isLocked = (tabKey: string) => tabKey !== "planejamento-curso" && activeTabs.size > 0 && !activeTabs.has(tabKey);
+  const isLocked = (tabKey: string) => tabKey !== "planejamento-estrategico" && tabKey !== "planejamento-semestral" && activeTabs.size > 0 && !activeTabs.has(tabKey);
   const isTasting = (tabKey: string) => {
     const mod = findModuleByTab(moduleCatalog, tabKey);
     return mod?.display_status === 'tasting';
@@ -533,8 +535,10 @@ export default function Workspace({
         overview
       ) : loading ? (
         <p role="status">Carregando…</p>
-      ) : tab === "planejamento-curso" ? (
-        <Suspense fallback={<p role="status">Carregando planejamento…</p>}><CoursePlanning institutionId={String(id)} courses={data.courses.map(c=>({id:String(c.id),name:String(c.name),code:String(c.code??"")}))} role={role} /></Suspense>
+      ) : tab === "planejamento-estrategico" ? (
+        <Suspense fallback={<p role="status">Carregando planejamento estratégico…</p>}><CoursePlanning institutionId={String(id)} courses={data.courses.map(c=>({id:String(c.id),name:String(c.name),code:String(c.code??"")}))} role={role} kind="strategic" /></Suspense>
+      ) : tab === "planejamento-semestral" ? (
+        <Suspense fallback={<p role="status">Carregando planejamento semestral…</p>}><CoursePlanning institutionId={String(id)} courses={data.courses.map(c=>({id:String(c.id),name:String(c.name),code:String(c.code??"")}))} role={role} kind="semester" /></Suspense>
       ) : tab === "fontes" ? (
         role==="master"||role==="gestor" ? <SourceUpload key={id} institutionId={id} institutionName={String(institution.name)} onBackups={()=>choose("backups")}/> : <p>O recebimento de extrações é restrito à gestão autorizada da IES.</p>
       ) : tab === "conexoes" ? (

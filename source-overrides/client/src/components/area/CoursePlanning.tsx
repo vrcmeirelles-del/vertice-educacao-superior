@@ -15,20 +15,31 @@ export async function planningRequest(institutionId:string,courseId:string,kind:
   return data as {plans?:Stored[];plan?:Stored};
 }
 
-export default function CoursePlanning({institutionId,courses,role,initialCourseId}:{institutionId:string;courses:Course[];role:Role|null;initialCourseId?:string}) {
+const TITLES = {
+  strategic: { heading: 'Planejamento Estratégico do Curso', description: 'Defina a direção estratégica do curso: visão, análise de mercado, posicionamento e objetivos de longo prazo.' },
+  semester: { heading: 'Planejamento Semestral do Curso', description: 'Organize as atividades, eventos e ações de cada semestre letivo.' },
+  both: { heading: 'Planejamento Estratégico e Semestral do Curso', description: 'Defina a direção do curso e organize as atividades de cada semestre. Os planos utilizam o cadastro institucional e o acesso do portal.' },
+} as const;
+
+export default function CoursePlanning({institutionId,courses,role,initialCourseId,kind='both'}:{institutionId:string;courses:Course[];role:Role|null;initialCourseId?:string;kind?:'strategic'|'semester'|'both'}) {
   const [selection,setSelection]=useState(initialCourseId??'');
   const [unsaved,setUnsaved]=useState(false);
   const selected=courses.find(c=>c.id===selection);
   const canWrite=isFullAccess(role)||role==='coordenador'||role==='nde';
-  return <section className="course-planning" aria-label="Planejamento do curso">
-    <header><h2>Planejamento Estratégico e Semestral do Curso</h2><p>Defina a direção do curso e organize as atividades de cada semestre. Os planos utilizam o cadastro institucional e o acesso do portal.</p></header>
+  const title=TITLES[kind];
+  return <section className="course-planning" aria-label={title.heading}>
+    <header><h2>{title.heading}</h2><p>{title.description}</p></header>
     <label className="planning-field"><span>Curso</span><select aria-label="Curso do planejamento" value={selected?.id??''} onChange={e=>{if(!unsaved||window.confirm('Há alterações não salvas. Deseja trocar de curso?')){setSelection(e.target.value);setUnsaved(false);}}}><option value="">Selecione um curso</option>{courses.map(c=><option key={c.id} value={c.id}>{c.code?`${c.code} · `:''}{c.name}</option>)}</select></label>
-    {!courses.length?<p role="status">Nenhum curso disponível neste cadastro.</p>:!selected?<p role="status">Selecione o curso para consultar seus planejamentos.</p>:<PlanningEditor key={`${institutionId}:${selected.id}`} institutionId={institutionId} courseId={selected.id} canWrite={canWrite} onDirty={setUnsaved}/>}
+    {!courses.length?<p role="status">Nenhum curso disponível neste cadastro.</p>:!selected?<p role="status">Selecione o curso para consultar seus planejamentos.</p>:<PlanningEditor key={`${institutionId}:${selected.id}:${kind}`} institutionId={institutionId} courseId={selected.id} canWrite={canWrite} onDirty={setUnsaved} kind={kind}/>}
   </section>;
 }
 
-function PlanningEditor({institutionId,courseId,canWrite,onDirty}:{institutionId:string;courseId:string;canWrite:boolean;onDirty:(value:boolean)=>void}) {
-  const [tab,setTab]=useState<TabKey>('identificacao');
+const STRATEGIC_TABS:TabKey[]=['identificacao','visao','ciclo','bcg','porter','fcs','atributos','objetivos','operacional'];
+
+function PlanningEditor({institutionId,courseId,canWrite,onDirty,kind='both'}:{institutionId:string;courseId:string;canWrite:boolean;onDirty:(value:boolean)=>void;kind?:'strategic'|'semester'|'both'}) {
+  const defaultTab:TabKey=kind==='semester'?'semestre':'identificacao';
+  const [tab,setTab]=useState<TabKey>(defaultTab);
+  const visibleTabs=kind==='strategic'?TABS.filter(t=>STRATEGIC_TABS.includes(t.key)):kind==='semester'?TABS.filter(t=>t.key==='semestre'):TABS;
   const [plans,setPlans]=useState<Stored[]>([]),[semesters,setSemesters]=useState<Stored[]>([]);
   const [draft,setDraft]=useState<PlanDraft>({...EMPTY_PLAN,courseId}),[semDraft,setSemDraft]=useState<SemesterDraft>({...EMPTY_SEMESTER,courseId});
   const [strategicRevision,setStrategicRevision]=useState(''),[semesterRevision,setSemesterRevision]=useState('');
@@ -81,7 +92,7 @@ function PlanningEditor({institutionId,courseId,canWrite,onDirty}:{institutionId
   return <>
     {error&&<p role="alert" className="planning-error">{error}</p>}
     {notice&&<p role="status" className="planning-success">{notice}</p>}
-    <nav className="planning-tabs" aria-label="Seções do planejamento">{TABS.map(t=><button key={t.key} type="button" aria-pressed={tab===t.key} onClick={()=>setTab(t.key)}>{t.key==='semestre'?'Planejamento Semestral':t.label}</button>)}</nav>
+    {visibleTabs.length>1&&<nav className="planning-tabs" aria-label="Seções do planejamento">{visibleTabs.map(t=><button key={t.key} type="button" aria-pressed={tab===t.key} onClick={()=>setTab(t.key)}>{t.label}</button>)}</nav>}
     <div className="planning-toolbar"><p>{statusNames[current.status]} · versão {current.version}</p>{canWrite&&<button type="button" onClick={fresh}>Novo {semester?'planejamento semestral':'planejamento estratégico'}</button>}</div>
     {error&&!plans.length&&!semesters.length?<p>Confira o acesso e atualize a página antes de editar.</p>:<>
       {!canWrite&&<p>Seu perfil permite consultar este planejamento.</p>}

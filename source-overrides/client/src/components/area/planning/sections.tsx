@@ -22,7 +22,7 @@ export const TABS: { key: TabKey; label: string }[] = [
   { key: "atributos", label: "10. Atributos" },
   { key: "objetivos", label: "11. Objetivos Estratégicos" },
   { key: "operacional", label: "12. Plano de Ação" },
-  { key: "semestre", label: "Semestre" },
+  { key: "semestre", label: "Planejamento Semestral" },
 ];
 
 interface VisionReflection { item: string; current_state: string; desired_state: string; }
