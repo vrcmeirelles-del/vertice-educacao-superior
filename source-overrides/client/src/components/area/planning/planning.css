@@ -350,3 +350,34 @@
   .course-planning .planning-nav { grid-template-columns: 1fr; }
   .course-planning .card { padding: 16px; }
 }
+
+/* Compact workspace: the editor stays above the fold at narrow portal widths. */
+.course-planning { padding: clamp(16px, 2vw, 24px); }
+.course-planning .planning-section-picker { display:flex; flex-wrap:wrap; align-items:center; gap:12px; padding:16px; margin:20px 0 12px; background:#fff; border:1px solid var(--border); border-radius:12px; }
+.course-planning .planning-section-picker > .planning-field { flex:1 1 240px; margin:0; }
+.course-planning .planning-section-index { flex-basis:100%; min-width:0; }
+.course-planning summary { cursor:pointer; color:var(--accent); font-weight:600; padding:8px 0; }
+.course-planning .planning-nav { grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); margin:12px 0 0; }
+.course-planning .planning-nav-card { padding:10px; gap:8px; box-shadow:none; }
+.course-planning .planning-nav-icon { font-size:13px; width:26px; height:26px; display:grid; place-items:center; background:var(--accent-light); border-radius:50%; }
+.course-planning .planning-nav-text strong { font-size:13px; }
+.course-planning .planning-version { margin:12px 0; gap:10px; }
+.course-planning .planning-version p { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:0; }
+.course-planning .planning-status { background:#eaf2f8; border-radius:20px; padding:6px 12px; font-size:13px; font-weight:650; }
+.course-planning .planning-version small { color:var(--ink-soft); font-size:12px; }
+.course-planning .planning-section-heading { padding:12px 0 0; }
+.course-planning .planning-section-heading h3 { margin:0 0 4px; font-size:21px; }
+.course-planning .planning-section-heading p { margin:0 0 12px; color:var(--ink-soft); font-size:14px; }
+.course-planning .planning-reflections > p { color:var(--ink-soft); font-size:14px; }
+.course-planning .planning-reflection-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr)); gap:16px; }
+.course-planning .planning-reflection textarea { min-height:170px; font-weight:400; }
+.course-planning .planning-save-bar { position:sticky; bottom:12px; z-index:5; justify-content:flex-start; padding:12px; background:#fff; border:1px solid var(--border); border-radius:12px; box-shadow:0 4px 20px #17324c18; }
+.course-planning .planning-step-controls { display:flex; align-items:center; justify-content:space-between; gap:8px; margin:20px 0; }
+.course-planning .planning-step-controls span { color:var(--ink-soft); font-size:13px; white-space:nowrap; }
+.course-planning .planning-history { border-top:1px solid var(--border); padding-top:12px; margin-top:24px; }
+@media(max-width:650px) {
+ .course-planning .planning-save-bar { flex-direction:row; bottom:4px; gap:8px; }
+ .course-planning .planning-save-bar button { flex:1 1 150px; padding:10px; font-size:13px; }
+ .course-planning .planning-step-controls button { padding:10px 8px; font-size:12px; }
+ .course-planning .card { padding:16px; }
+}

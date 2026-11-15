@@ -137,24 +137,28 @@ function PlanningEditor({institutionId,courseId,canWrite,onDirty,kind='both'}:{i
   return <>
     {error&&<p role="alert" className="planning-error">{error}</p>}
     {notice&&<p role="status" className="planning-success">{notice}</p>}
-    {visibleTabs.length>1&&<nav className="planning-nav" aria-label="Seções do planejamento">
-      {visibleTabs.map(t=><button key={t.key} type="button" className={`planning-nav-card${tab===t.key?' planning-nav-active':''}`} onClick={()=>setTab(t.key)}>
-        <span className="planning-nav-icon">{t.icon}</span>
-        <span className="planning-nav-text">
-          <strong>{t.label}</strong>
-          <small>{t.description}</small>
-        </span>
-        <span className="planning-nav-help" title="O que é isso?" onClick={e=>{e.stopPropagation();setHelpOpen(helpOpen===t.key?null:t.key);}}>?</span>
-      </button>)}
-    </nav>}
+    {visibleTabs.length>1&&<div className="planning-section-picker">
+      <label className="planning-field"><span>Etapa {visibleTabs.findIndex(t=>t.key===tab)+1} de {visibleTabs.length} · Navegue pelo planejamento</span>
+        <select aria-label="Seção do planejamento" value={tab} onChange={e=>setTab(e.target.value as TabKey)}>{visibleTabs.map((t,i)=><option key={t.key} value={t.key}>{i+1}. {t.label}</option>)}</select>
+      </label>
+      <button type="button" aria-label="Ajuda sobre a seção atual" onClick={()=>setHelpOpen(tab)}>Como preencher?</button>
+      <details className="planning-section-index"><summary>Ver todas as etapas</summary><nav className="planning-nav" aria-label="Seções do planejamento">
+        {visibleTabs.map((t,i)=><button key={t.key} type="button" aria-current={tab===t.key?'step':undefined} className={`planning-nav-card${tab===t.key?' planning-nav-active':''}`} onClick={()=>setTab(t.key)}>
+          <span className="planning-nav-icon">{i+1}</span><span className="planning-nav-text"><strong>{t.label}</strong><small>{t.description}</small></span>
+        </button>)}
+      </nav></details>
+    </div>}
     {helpOpen&&<div className="planning-help-popup" role="dialog"><div className="planning-help-inner"><button className="planning-help-close" onClick={()=>setHelpOpen(null)}>✕</button><h4>{activeTab?.icon||'ℹ️'} {visibleTabs.find(t=>t.key===helpOpen)?.label}</h4><p>{visibleTabs.find(t=>t.key===helpOpen)?.help}</p></div></div>}
-    <div className="planning-toolbar"><p>{statusNames[current.status]} · versão {current.version}</p>{canWrite&&<button type="button" onClick={fresh}>Novo {isSemester?'planejamento semestral':'planejamento estratégico'}</button>}</div>
+    <div className="planning-toolbar planning-version"><p><span className="planning-status">{statusNames[current.status]} · versão {current.version}</span><small>{dirty?'Alterações não salvas':'Nenhuma alteração pendente'}</small></p>{canWrite&&<button type="button" onClick={fresh}>Novo {isSemester?'planejamento semestral':'planejamento estratégico'}</button>}</div>
     {error&&!plans.length&&!semesters.length?<p>Confira o acesso e atualize a página antes de editar.</p>:<>
       {!canWrite&&<p>Seu perfil permite consultar este planejamento.</p>}
+      <div className="planning-section-heading"><h3>{activeTab?.label}</h3><p>{activeTab?.description}</p></div>
       <fieldset disabled={!canWrite||saving}><legend className="planning-sr">Conteúdo do planejamento</legend>{Section?<Section plan={draft} setPlan={value=>{setDraft(value);setDirty(true);setNotice('');}}/>:<SemestreTab draft={semDraft} setDraft={value=>{setSemDraft(value);setDirty(true);setNotice('');}} crossData={crossData}/>}</fieldset>
-      {canWrite&&<div className="planning-toolbar"><button type="button" className="planning-primary" disabled={saving||(isSemester&&!semDraft.semester)} onClick={()=>persist()}>{saving?'Salvando…':isSemester?'Salvar planejamento semestral':'Salvar planejamento estratégico'}</button>{current.id&&current.status==='draft'&&<button type="button" disabled={saving||dirty} onClick={()=>persist('publish')}>Publicar versão salva</button>}{current.status!=='draft'&&<small>Salvar alterações cria uma nova versão em rascunho e preserva a versão anterior.</small>}</div>}
+      {canWrite&&<div className="planning-toolbar planning-save-bar"><button type="button" className="planning-primary" disabled={saving||(isSemester&&!semDraft.semester)} onClick={()=>persist()}>{saving?'Salvando…':isSemester?'Salvar planejamento semestral':'Salvar planejamento estratégico'}</button>{current.id&&current.status==='draft'&&<button type="button" disabled={saving||dirty} onClick={()=>persist('publish')}>Publicar versão salva</button>}{current.status!=='draft'&&<small>Salvar alterações cria uma nova versão em rascunho e preserva a versão anterior.</small>}</div>}
     </>}
-    <h3>Histórico {isSemester?'semestral':'estratégico'}</h3>
+    {visibleTabs.length>1&&<div className="planning-step-controls"><button type="button" disabled={visibleTabs[0].key===tab} onClick={()=>setTab(visibleTabs[visibleTabs.findIndex(t=>t.key===tab)-1].key)}>← Etapa anterior</button><span>{visibleTabs.findIndex(t=>t.key===tab)+1} / {visibleTabs.length}</span><button type="button" disabled={visibleTabs[visibleTabs.length-1].key===tab} onClick={()=>setTab(visibleTabs[visibleTabs.findIndex(t=>t.key===tab)+1].key)}>Próxima etapa →</button></div>}
+    <details className="planning-history"><summary>Histórico {isSemester?'semestral':'estratégico'} · {records.length} versão(ões)</summary>
     {!records.length?<p>Nenhuma versão registrada para este curso.</p>:<div className="planning-scroll"><table><thead><tr>{isSemester&&<th>Semestre</th>}<th>Versão</th><th>Situação</th><th>Atualização</th><th>Acesso</th></tr></thead><tbody>{records.map(row=><tr key={row.id}>{isSemester&&<td>{row.semester}</td>}<td>{row.version}</td><td>{statusNames[row.status]}</td><td>{new Date(row.updated_at).toLocaleString('pt-BR')}</td><td><button type="button" onClick={()=>{if(!dirty||window.confirm('Deseja trocar a versão sem salvar as alterações?')){loadRecord(row,planKind);setDirty(false);setNotice('');}}}>Abrir versão</button></td></tr>)}</tbody></table></div>}
+    </details>
   </>;
 }

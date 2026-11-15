@@ -16,6 +16,7 @@ const courses=[{id:'curso-a',name:'Direito'},{id:'curso-b',name:'Pedagogia'}];
 beforeEach(()=>{(globalThis as {IS_REACT_ACT_ENVIRONMENT?:boolean}).IS_REACT_ACT_ENVIRONMENT=true;mock.calls=[];mock.fail=false;el=document.createElement('div');document.body.append(el);root=createRoot(el);});
 afterEach(async()=>{await act(async()=>root.unmount());el.remove();});
 async function click(text:string){const b=[...el.querySelectorAll('button')].find(b=>b.textContent===text);expect(b).toBeDefined();await act(async()=>b!.click());}
+async function selectSection(value:string){const select=el.querySelector<HTMLSelectElement>('[aria-label="Seção do planejamento"]')!;await act(async()=>{select.value=value;select.dispatchEvent(new Event('change',{bubbles:true}));});}
 it('requires an explicit course and uses the native portal session instead of embedding another login',async()=>{
  await act(async()=>root.render(<CoursePlanning institutionId="ies-a" courses={courses} role="master"/>));
  expect(mock.calls).toHaveLength(0);expect(el.textContent).toContain('Selecione o curso');expect(el.querySelector('iframe')).toBeNull();
@@ -24,7 +25,7 @@ it('requires an explicit course and uses the native portal session instead of em
 });
 it('loads semester history and sends saved identity plus revision on updates',async()=>{
  await act(async()=>root.render(<CoursePlanning institutionId="ies-a" courses={courses} role="master" initialCourseId="curso-a"/>));
- await click('Planejamento Semestral');expect(el.textContent).toContain('2026/2');
+ await selectSection('semestre');expect(el.textContent).toContain('2026/2');
  expect(el.textContent).not.toContain(['CCG','FOR','36'].join('-'));expect(el.textContent).not.toContain('Código do formulário');
  await click('Salvar planejamento semestral');
  const call=mock.calls.find(c=>c.p_action==='save')!;
@@ -33,9 +34,9 @@ it('loads semester history and sends saved identity plus revision on updates',as
 });
 it('clears the previous course editor when selecting another course',async()=>{
  await act(async()=>root.render(<CoursePlanning institutionId="ies-a" courses={courses} role="master" initialCourseId="curso-a"/>));
- await click('2. Visão');expect(el.querySelector('textarea')?.value).toBe('Visão de curso-a');
+ await selectSection('visao');expect(el.querySelector('textarea')?.value).toBe('Visão de curso-a');
  const select=el.querySelector('select')!;await act(async()=>{select.value='curso-b';select.dispatchEvent(new Event('change',{bubbles:true}));});
- await click('2. Visão');expect(el.querySelector('textarea')?.value).toBe('Visão de curso-b');
+ await selectSection('visao');expect(el.querySelector('textarea')?.value).toBe('Visão de curso-b');
 });
 it('disables editing for readers and exposes failures without a false success',async()=>{
  await act(async()=>root.render(<CoursePlanning institutionId="ies-a" courses={courses} role="leitor" initialCourseId="curso-a"/>));
