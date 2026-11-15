@@ -1,9 +1,7 @@
-// vertice-student-portal — acesso do estudante sem senha (Atividades Complementares / Estágio)
-//
-// Fluxo: request (matrícula + CPF + e-mail) → link pessoal por e-mail → redeem (token de uso único,
-// 30 min) → sessão própria do estudante (8 h, guardada só como hash) → dashboard / envio de atividades.
-// Toda leitura e escrita passa por aqui com service role, sempre restrita ao estudante da sessão.
-// O navegador nunca consulta tabelas do estudante diretamente.
+// Existing student portal: AC/Estágio retain their academic passwordless flow.
+// Conecta validates enrollment + CPF, uses scoped reusable 72h links and native career/survey RPCs.
+// Partner intake uses scoped private links and institutional review; public callers never read students.
+// Only token/session hashes are stored, and all identity derivation remains server-side.
 import { createClient } from "npm:@supabase/supabase-js@2.118.0";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -217,6 +215,11 @@ async function handle(action: string, b: Record<string, unknown>, req: Request) 
 
   const mod=moduleOf(b.module);
   const {session,student}=await sessionFrom(b.session,mod);
+  if(action==='survey'){
+   if(mod!=='conecta')throw new Fail(400,'invalid_action');
+   const {data,error}=await admin.rpc('vertice_conecta_surveys_student',{p_session_hash:await sha256(String(b.session)),p_action:str(b.operation,20),p_payload:b.payload||{}});
+   if(error)throw new Fail(400,'survey_invalid');return {data};
+  }
   if(action==="conecta"){
    if(mod!=="conecta")throw new Fail(400,"invalid_action");
    const {data,error}=await admin.rpc("vertice_conecta_student",{p_session_hash:await sha256(String(b.session)),p_action:str(b.operation,30),p_payload:b.payload||{}});
