@@ -29,6 +29,7 @@ import { listRepository } from '@/lib/repository-data';
 import { isInstrumentRequest, latestInstrumentDocuments } from '@/lib/repository';
 import { latestSemesterSummary, reitorCompliance, sourceDate, type ReitorCompliance } from '@/lib/bi/reitor-summary';
 import './reitor-bi.css';
+import SchoolManagement from './SchoolManagement';
 import PlanningManagement from './PlanningManagement';
 
 // ─── types ───
@@ -758,7 +759,7 @@ export default function ReitorBI({ institutions, courses, enrollments, session, 
   }
 
   const RENDERERS: Record<Tab, () => ReactElement> = {
-    planejamento:()=> <PlanningManagement key={instId} institutionId={instId}/> ,
+    planejamento:()=> institutions.find(i=>i.id===instId)?.tier==='escolas'?<SchoolManagement key={instId} institutionId={instId}/>:<PlanningManagement key={instId} institutionId={instId}/>,
     geral: renderGeral, academico: renderAcademico, governanca_360: renderGovernanca360, captacao: renderCaptacao,
     compliance: renderCompliance, financeiro: renderFinanceiro, infra: renderInfra,
   };

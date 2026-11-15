@@ -1,0 +1,22 @@
+import {useState,useEffect} from 'react';
+import {supabase} from '@/lib/supabase';
+import {list} from './planning/model';
+import './planning/management.css';
+export default function SchoolManagement({institutionId}:{institutionId:string}){
+ const [data,setData]=useState<any>(null),[term,setTerm]=useState(''),[error,setError]=useState(''),[tick,setTick]=useState(0),[loading,setLoading]=useState(true);
+ useEffect(()=>{let active=true;setData(null);setError('');setLoading(true);Promise.resolve(supabase.rpc('vertice_school_planning',{p_institution_id:institutionId,p_kind:'strategic',p_action:'overview',p_payload:{}})).then(({data,error})=>{if(!active)return;if(error){setError(error.message);return;}setData(data);}).catch(e=>{if(active)setError(e.message);}).finally(()=>{if(active)setLoading(false);});return()=>{active=false;};},[institutionId,tick]);
+ const plan=data?.strategic,sem=data?.semesters?.find((s:any)=>s.semester===(term||data?.semesters?.[0]?.semester));
+ const objectives=list(plan?.data?.strategic_objectives),actions=list(plan?.data?.operational_objectives),risks=list(plan?.data?.risks),activities=list(sem?.data?.activities);
+ return <section className="planning-management" aria-label="Consolidação da gestão escolar"><header><div><p className="pm-eyebrow">VÉRTICE ESCOLAS · GESTÃO</p><h2>Estratégia e execução escolar</h2><p>Planejamento institucional, PPP, metas, ações e indicadores escolares.</p></div><button type="button" onClick={()=>setTick(t=>t+1)}>Atualizar consolidação escolar</button></header>
+ {loading?<p role="status">Consolidando dados da escola…</p>:error?<p role="alert">{error}</p>:!data?<p>Sem dados disponíveis.</p>:<>
+ <label>Semestre <select value={term} onChange={e=>setTerm(e.target.value)}><option value="">Mais recente cadastrado</option>{data.semesters.map((s:any)=><option key={s.id}>{s.semester}</option>)}</select></label>
+ <p className="pm-note">Consulta: {new Date(data.fetched_at).toLocaleString('pt-BR')}. Metas e 5W2H representam o cadastro atual da escola. ENEM usa seu próprio ano de referência. Matrículas declaradas no planejamento não são tratadas como Censo validado.</p>
+ <div className="pm-kpis">{[[objectives.length,'Objetivos estratégicos'],[actions.length,'Ações estratégicas'],[data.goals.length,'Metas cadastradas'],[data.actions.length,'Ações 5W2H'],[activities.length,'Atividades do semestre']].map(([value,label])=><article key={String(label)}><strong>{value}</strong><span>{label}</span></article>)}</div>
+ <div className="pm-kpis"><article><strong>{plan?.status==='published'?'Publicado':plan?'Rascunho':'Ausente'}</strong><span>Planejamento estratégico</span></article><article><strong>{sem?.semester??'Ausente'}</strong><span>Plano semestral {sem?.status==='published'?'publicado':sem?'em rascunho':''}</span></article><article><strong>{data.enem?.average??'Sem dado'}</strong><span>Média ENEM · {data.enem?.year??'ano não disponível'}</span></article></div>
+ <h3>Pendências para revisão da direção</h3><ul>{!plan&&<li>Elaborar o planejamento estratégico institucional.</li>}{plan?.status==='draft'&&<li>Estratégia em rascunho, aguardando revisão.</li>}{!sem&&<li>Planejamento semestral não cadastrado para o recorte.</li>}{!data.enem&&<li>Sem indicador ENEM vinculado à escola. A disponibilidade depende das etapas ofertadas.</li>}<li>Validar o vínculo entre objetivos, PPP, Plano de Gestão e metas cadastradas.</li></ul>
+ <details><summary>Objetivos e riscos declarados</summary>{objectives.map((o,i)=><p key={i}>{o.theme} · {o.description} · indicador: {o.indicator||'ausente'}</p>)}{risks.map((r,i)=><p key={`r${i}`}>Risco: {r.description} · {r.probability}/{r.impact} · mitigação: {r.mitigation||'ausente'}</p>)}</details>
+ <details><summary>Metas e ações da escola</summary>{data.goals.map((g:any)=><p key={g.id}>{g.title} · {g.indicator} · base {g.baseline??'ausente'} → meta {g.target??'ausente'} · fonte: {g.source||'não informada'}</p>)}{data.actions.map((a:any)=><p key={a.id}>{a.what} · {a.who||'sem responsável'} · {a.due_date||'sem prazo'} · {a.status} · validação superior: {a.validated?'registrada':'pendente'}</p>)}</details>
+ <p className="pm-note">Fontes: planejamentos escolares versionados, vertice_goals, vertice_actions e v_enem_evolucao. Não há inferência automática de causalidade nem análise interpretativa por IA nesta consolidação.</p>
+ </>}
+ </section>;
+}

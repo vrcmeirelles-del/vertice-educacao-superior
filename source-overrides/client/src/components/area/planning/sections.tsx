@@ -1,5 +1,7 @@
-import { useState, type ReactNode } from "react";
-function Field({label,children}:{label:string;children:ReactNode}) { return <label className="planning-field"><span>{label}</span>{children}</label>; }
+import { useState, createContext, useContext, type ReactNode } from "react";
+export const PlanningSchoolContext=createContext(false);
+const schoolText=(text:string)=>text.replace(/do curso/g,'da escola').replace(/Do Curso/g,'Da Escola').replace(/Curso/g,'Escola').replace(/curso/g,'escola').replace(/PDI/g,'Plano de Gestão').replace(/PPC/g,'PPP');
+function Field({label,children}:{label:string;children:ReactNode}) { const school=useContext(PlanningSchoolContext); return <label className="planning-field"><span>{school?schoolText(label):label}</span>{children}</label>; }
 export type TabKey =
   | "identificacao"
   | "visao"
@@ -181,9 +183,10 @@ function TextField({ label, value, onChange, multiline = false, rows = 3 }: {
 }
 
 function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
+  const school=useContext(PlanningSchoolContext);
   return (
     <div className="card" style={{ padding: 20 }}>
-      <h3 style={{ margin: "0 0 14px", fontSize: 16, fontWeight: 650 }}>{title}</h3>
+      <h3 style={{ margin: "0 0 14px", fontSize: 16, fontWeight: 650 }}>{school?schoolText(title):title}</h3>
       <div className="stack">{children}</div>
     </div>
   );

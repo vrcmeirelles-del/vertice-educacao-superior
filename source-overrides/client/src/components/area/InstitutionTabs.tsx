@@ -53,7 +53,7 @@ export const MACRO_TABS: MacroTabDef[] = [
     label: 'Gestão e Acessos',
     icon: '♙',
     description: 'Equipe, metas, planos e governança',
-    tabs: ['planejamento-estrategico', 'planejamento-semestral', 'equipe', 'metas', 'plano', 'diagnostico', 'governanca', 'aquisicoes'],
+    tabs: ['gestao-escolar','planejamento-estrategico', 'planejamento-semestral', 'equipe', 'metas', 'plano', 'diagnostico', 'governanca', 'aquisicoes'],
   },
   {
     key: 'integracoes',
