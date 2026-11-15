@@ -7,6 +7,14 @@ import { readFileSync } from 'node:fs';
 import InstitutionTabs, { MACRO_TABS, macroTabFor, macroDestination } from './InstitutionTabs';
 
 describe('institution navigation', () => {
+  it('keeps both independent planning destinations scoped to management and course profiles', () => {
+    for (const tab of ['planejamento-estrategico', 'planejamento-semestral'] as const) {
+      for (const role of ['master', 'gestor', 'reitor', 'diretor_geral', 'diretor_pedagogico', 'procurador', 'coordenador', 'nde'] as const) expect(visibleTabs(role)).toContain(tab);
+      for (const role of ['cpa', 'equipe', 'leitor', null] as const) expect(visibleTabs(role)).not.toContain(tab);
+      expect(MACRO_TABS.filter(macro => macro.tabs.includes(tab))).toHaveLength(1);
+      expect(macroDestination(macroTabFor(tab)!, [tab], () => false)).toBe(tab);
+    }
+  });
   it('retains new modules in authorized navigation without granting them to other profiles', () => {
     for (const tab of ['tcc', 'atividades-complementares', 'estagio', 'vitrine-curso'] as const) {
       expect(visibleTabs('master')).toContain(tab);
