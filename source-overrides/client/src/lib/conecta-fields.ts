@@ -1,7 +1,9 @@
-export type FieldSpec={key:string;label:string;help:string;kind?:'text'|'date'|'url'|'number'|'textarea'|'select';required?:boolean;max?:number;min?:number;options?:[string,string][]};
+export type FieldSpec={key:string;label:string;help:string;kind?:'text'|'date'|'url'|'number'|'textarea'|'select'|'email'|'tel';required?:boolean;max?:number;min?:number;options?:[string,string][]};
 export const stages:[string,string][]=[['estudante','Estudante'],['estagiario','Estagiário'],['concluinte','Concluinte'],['egresso','Egresso'],['formacao_continuada','Formação continuada'],['mentor','Mentor']];
 export const profileFields:FieldSpec[]=[
  {key:'stage',label:'Etapa de relacionamento',kind:'select',options:stages,help:'Organiza o relacionamento no Conecta. Não altera a situação acadêmica da matrícula.'},
+ {key:'contact_email',label:'E-mail de contato atualizado',kind:'email',max:254,help:'Opcional. Pode ser alterado a qualquer momento; não é exigido para acessar o perfil e não altera o cadastro acadêmico.'},
+ {key:'contact_phone',label:'Telefone / WhatsApp atualizado',kind:'tel',max:25,help:'Opcional. Informe DDD e telefone. Preferências de mensagens são registradas separadamente.'},
  {key:'headline',label:'Apresentação profissional',max:250,help:'Opcional. Exemplo: estudante de Direito com interesse em mediação.'},
  {key:'linkedin',label:'LinkedIn',kind:'url',max:500,help:'Opcional. Use https://www.linkedin.com/in/seu-perfil. Pode ser removido; não inicia coleta externa.'},
  {key:'lattes',label:'Lattes',kind:'url',max:500,help:'Opcional. Use https://lattes.cnpq.br/ seguido dos 16 dígitos do currículo.'},
