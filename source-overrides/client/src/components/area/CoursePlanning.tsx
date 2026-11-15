@@ -85,8 +85,11 @@ function PlanningEditor({institutionId,courseId,canWrite,onDirty,kind='both'}:{i
   const setDirty=(value:boolean)=>setDirtyKinds(previous=>({...previous,[tab==='semestre'?'semester':'strategic']:value}));
   useEffect(()=>onDirty(anyDirty),[anyDirty,onDirty]);
   function loadRecord(row:Stored,kind:'strategic'|'semester') {
-    if(kind==='strategic'){setDraft({...EMPTY_PLAN,...row,courseId} as PlanDraft);setStrategicRevision(row.updated_at);}
-    else{setSemDraft({...EMPTY_SEMESTER,...row,form_code:null,courseId} as SemesterDraft);setSemesterRevision(row.updated_at);}
+    // Strip null/undefined values so EMPTY defaults survive the spread
+    const clean:Record<string,unknown>={};
+    for(const[k,v]of Object.entries(row)){if(v!=null)clean[k]=v;}
+    if(kind==='strategic'){setDraft({...EMPTY_PLAN,...clean,courseId} as PlanDraft);setStrategicRevision(row.updated_at);}
+    else{setSemDraft({...EMPTY_SEMESTER,...clean,form_code:null,courseId} as SemesterDraft);setSemesterRevision(row.updated_at);}
   }
   useEffect(()=>{
     let active=true;
