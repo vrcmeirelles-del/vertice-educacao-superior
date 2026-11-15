@@ -16,21 +16,21 @@ export type TabKey =
   | "operacional"
   | "semestre";
 
-export const TABS: { key: TabKey; label: string }[] = [
-  { key: "identificacao", label: "1. Identificação" },
-  { key: "visao", label: "2. Visão" },
-  { key: "swot", label: "3. SWOT" },
-  { key: "ciclo", label: "4. Ciclo de Vida" },
-  { key: "bcg", label: "5. BCG" },
-  { key: "porter", label: "6. Porter" },
-  { key: "fcs", label: "7. FCS" },
-  { key: "benchmarking", label: "8. Benchmarking" },
-  { key: "atributos", label: "9. Atributos" },
-  { key: "objetivos", label: "10. Objetivos" },
-  { key: "alinhamento", label: "11. Alinhamento" },
-  { key: "riscos", label: "12. Riscos" },
-  { key: "operacional", label: "13. Plano de Ação" },
-  { key: "semestre", label: "Planejamento Semestral" },
+export const TABS: { key: TabKey; label: string; icon: string; description: string; help: string }[] = [
+  { key: "identificacao", label: "Identificação", icon: "📋", description: "Dados do curso e coordenação", help: "Informações básicas do curso: quem é o coordenador, há quanto tempo atua, número de matriculados e quando a primeira turma começou. Esses dados contextualizam todo o planejamento." },
+  { key: "visao", label: "Visão de Futuro", icon: "🔭", description: "Onde o curso quer chegar", help: "Descreva a visão estratégica do curso para os próximos anos. Compare o estado atual com o desejado em cada aspecto relevante (infraestrutura, corpo docente, nota ENADE, etc.)." },
+  { key: "swot", label: "Forças e Fraquezas", icon: "⚡", description: "Análise SWOT do curso", help: "SWOT significa Strengths (Forças), Weaknesses (Fraquezas), Opportunities (Oportunidades) e Threats (Ameaças). Forças e Fraquezas são internas ao curso (corpo docente, infraestrutura). Oportunidades e Ameaças são externas (mercado, regulação, concorrência)." },
+  { key: "ciclo", label: "Ciclo de Vida", icon: "📈", description: "Estágio de maturidade do curso", help: "Todo curso passa por 4 fases: Introdução (curso novo, poucos alunos), Crescimento (demanda subindo), Maturidade (estabilizado) e Declínio (perda de alunos). Saber em qual fase o curso está ajuda a escolher as estratégias certas." },
+  { key: "bcg", label: "Posição no Mercado", icon: "🎯", description: "Matriz BCG — crescimento vs participação", help: "A Matriz BCG (Boston Consulting Group) classifica o curso em 4 quadrantes: Estrela (cresce e lidera), Interrogação (cresce mas não lidera), Vaca Leiteira (não cresce mas gera receita) ou Abacaxi (não cresce nem lidera). Ajuda a decidir onde investir." },
+  { key: "porter", label: "Forças Competitivas", icon: "🏟️", description: "5 Forças de Porter — pressões do mercado", help: "Michael Porter identificou 5 forças que determinam a competitividade: (1) Rivalidade entre concorrentes, (2) Poder dos alunos/clientes, (3) Poder dos fornecedores (professores, infraestrutura), (4) Ameaça de cursos substitutos (EAD, técnicos) e (5) Ameaça de novos concorrentes entrando na região." },
+  { key: "fcs", label: "Fatores Críticos", icon: "🔑", description: "FCS — o que não pode falhar", help: "Fatores Críticos de Sucesso (FCS) são os elementos que, se falharem, comprometem o curso. Exemplos: qualidade do corpo docente, aprovação na OAB, empregabilidade dos egressos. Identifique os fatores da instituição e do curso, e compare com concorrentes." },
+  { key: "benchmarking", label: "Comparação com Concorrentes", icon: "📊", description: "Indicadores reais vs concorrência", help: "Compare o desempenho do seu curso com os concorrentes diretos usando dados reais: nota ENADE, CPC, taxa de evasão, relação candidato/vaga, conceito de curso. Use dados do INEP, Censo e pesquisa própria." },
+  { key: "atributos", label: "Importância vs Satisfação", icon: "⚖️", description: "O que importa e como estamos", help: "Liste os atributos que os alunos e o mercado consideram importantes (ex: qualidade das aulas, infraestrutura, estágio) e avalie a satisfação atual. O GAP entre importância e satisfação mostra onde agir primeiro." },
+  { key: "objetivos", label: "Objetivos Estratégicos", icon: "🎖️", description: "Metas de longo prazo (5 anos)", help: "Defina os grandes objetivos do curso para os próximos 5 anos, com indicadores mensuráveis e metas anuais. Exemplo: 'Elevar nota ENADE de 3 para 4 até 2028' ou 'Reduzir evasão de 15% para 8% em 3 anos'." },
+  { key: "alinhamento", label: "Alinhamento PDI/PPC", icon: "🔗", description: "Vínculo com documentos institucionais", help: "PDI é o Plano de Desenvolvimento Institucional — o plano estratégico da IES como um todo. PPC é o Projeto Pedagógico do Curso. Cada objetivo estratégico do curso deve estar vinculado a uma meta do PDI e a uma competência do PPC. Avaliadores do MEC verificam esse alinhamento." },
+  { key: "riscos", label: "Riscos Estratégicos", icon: "⚠️", description: "O que pode dar errado e como evitar", help: "Identifique os riscos que podem impedir o curso de alcançar seus objetivos. Para cada risco, avalie a probabilidade (alta/média/baixa), o impacto (alto/médio/baixo) e defina uma ação de mitigação. Exemplos: perda de coordenador, regulação adversa, EAD concorrente." },
+  { key: "operacional", label: "Plano de Ação", icon: "✅", description: "Ações concretas com responsáveis e prazos", help: "Transforme os objetivos estratégicos em ações concretas: o que fazer, quem é responsável, quando deve estar pronto e quais recursos são necessários. Este é o plano que será executado e acompanhado pelo módulo de Metas e Indicadores." },
+  { key: "semestre", label: "Planejamento Semestral", icon: "📅", description: "Atividades do semestre letivo", help: "Organize todas as atividades, eventos e ações de cada semestre letivo." },
 ];
 
 interface VisionReflection { item: string; current_state: string; desired_state: string; }

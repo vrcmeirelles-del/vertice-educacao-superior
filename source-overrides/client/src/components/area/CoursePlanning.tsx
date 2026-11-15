@@ -131,11 +131,23 @@ function PlanningEditor({institutionId,courseId,canWrite,onDirty,kind='both'}:{i
     setDirty(false);setNotice('');
   }
   const Section=tab==='semestre'?null:sections[tab as keyof typeof sections];
+  const [helpOpen,setHelpOpen]=useState<string|null>(null);
+  const activeTab=visibleTabs.find(t=>t.key===tab);
   if(loading)return <p role="status">Carregando planejamentos do curso…</p>;
   return <>
     {error&&<p role="alert" className="planning-error">{error}</p>}
     {notice&&<p role="status" className="planning-success">{notice}</p>}
-    {visibleTabs.length>1&&<nav className="planning-tabs" aria-label="Seções do planejamento">{visibleTabs.map(t=><button key={t.key} type="button" aria-pressed={tab===t.key} onClick={()=>setTab(t.key)}>{t.label}</button>)}</nav>}
+    {visibleTabs.length>1&&<nav className="planning-nav" aria-label="Seções do planejamento">
+      {visibleTabs.map(t=><button key={t.key} type="button" className={`planning-nav-card${tab===t.key?' planning-nav-active':''}`} onClick={()=>setTab(t.key)}>
+        <span className="planning-nav-icon">{t.icon}</span>
+        <span className="planning-nav-text">
+          <strong>{t.label}</strong>
+          <small>{t.description}</small>
+        </span>
+        <span className="planning-nav-help" title="O que é isso?" onClick={e=>{e.stopPropagation();setHelpOpen(helpOpen===t.key?null:t.key);}}>?</span>
+      </button>)}
+    </nav>}
+    {helpOpen&&<div className="planning-help-popup" role="dialog"><div className="planning-help-inner"><button className="planning-help-close" onClick={()=>setHelpOpen(null)}>✕</button><h4>{activeTab?.icon||'ℹ️'} {visibleTabs.find(t=>t.key===helpOpen)?.label}</h4><p>{visibleTabs.find(t=>t.key===helpOpen)?.help}</p></div></div>}
     <div className="planning-toolbar"><p>{statusNames[current.status]} · versão {current.version}</p>{canWrite&&<button type="button" onClick={fresh}>Novo {isSemester?'planejamento semestral':'planejamento estratégico'}</button>}</div>
     {error&&!plans.length&&!semesters.length?<p>Confira o acesso e atualize a página antes de editar.</p>:<>
       {!canWrite&&<p>Seu perfil permite consultar este planejamento.</p>}
