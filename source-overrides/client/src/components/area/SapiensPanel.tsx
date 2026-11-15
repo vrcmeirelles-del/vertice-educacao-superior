@@ -1,8 +1,9 @@
+import SapiensPlanning from './SapiensPlanning';
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import ReadingIndicators from '@/components/bi/ReadingIndicators';
 
-type Tab = "diagnoses" | "interventions" | "briefings" | "goals" | "readings";
+type Tab = "planning" | "diagnoses" | "interventions" | "briefings" | "goals" | "readings";
 type Effectiveness = { id: string; intervention_id: string; measured_at: string; current_sample_size: number; attempts_since_baseline: number; p_know_change: number | null; sample_overlap: number; effectiveness: string };
 
 type Diagnosis = {
@@ -139,6 +140,7 @@ export default function SapiensPanel({ institutionId, role }: Props) {
   const tabs: { key: Tab; label: string; count?: number }[] = [
     { key: "diagnoses", label: "Diagnósticos", count: diagnoses.filter(d => d.status !== "archived").length },
     { key: "interventions", label: "Intervenções", count: interventions.filter(i => i.status === "proposed").length },
+    { key: "planning", label: "Planejamentos", count: 0 },
     { key: "briefings", label: "Briefings", count: briefings.length },
     { key: "goals", label: "Metas & Ações", count: goals.filter(g => g.status === "active").length },
     { key: "readings", label: "Leituras e contexto" },
@@ -252,6 +254,7 @@ export default function SapiensPanel({ institutionId, role }: Props) {
       )}
 
       {/* Briefings Tab */}
+      {tab === "planning" && <SapiensPlanning institutionId={institutionId}/>}
       {tab === "briefings" && (
         <div>
           {briefings.length === 0 && <p style={{ color: "#94a3b8", fontSize: 13 }}>Nenhum briefing gerado ainda.</p>}

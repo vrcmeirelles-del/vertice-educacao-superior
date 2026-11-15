@@ -1,3 +1,4 @@
+import SapiensPlanning from './SapiensPlanning';
 import {useEffect,useState} from 'react';
 import {supabase} from '@/lib/supabase';
 import {isFullAccess,type Role} from '@/lib/area';
@@ -8,6 +9,7 @@ type RecordPlan={id:string;version:number;status:string;updated_at:string;semest
 const sections={visao:VisaoTab,swot:SwotTab,ciclo:CicloTab,bcg:BcgTab,porter:PorterTab,fcs:FcsTab,benchmarking:BenchmarkingTab,atributos:AtributosTab,objetivos:ObjetivosTab,riscos:RiscosTab,operacional:OperacionalTab};
 export default function SchoolPlanning({institutionId,role,kind}:{institutionId:string;role:Role|null;kind:'strategic'|'semester'}){
  const [rows,setRows]=useState<RecordPlan[]>([]),[current,setCurrent]=useState<RecordPlan|null>(null),[draft,setDraft]=useState<Record<string,any>>({...EMPTY_PLAN}),[term,setTerm]=useState(''),[section,setSection]=useState('identificacao'),[dirty,setDirty]=useState(false),[loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState(''),[portfolio,setPortfolio]=useState(false);
+ const [sapiensOpen,setSapiensOpen]=useState(false);
  const canEdit=isFullAccess(role);
  async function request(action:string,payload:object={}){const {data,error}=await supabase.rpc('vertice_school_planning',{p_institution_id:institutionId,p_kind:kind,p_action:action,p_payload:payload});if(error)throw error;return data as {plans?:RecordPlan[];plan?:RecordPlan};}
  function open(row:RecordPlan|null){setCurrent(row);setDraft({...EMPTY_PLAN,...row?.data,swot:{strengths:[],weaknesses:[],opportunities:[],threats:[],...row?.data?.swot},alignment:Array.isArray(row?.data?.alignment)?row!.data.alignment:[]});setTerm(row?.semester??'');setDirty(false);setNotice('');}
@@ -35,6 +37,7 @@ export default function SchoolPlanning({institutionId,role,kind}:{institutionId:
  Section?<Section plan={draft as PlanDraft} setPlan={update}/>:null}
  </PlanningSchoolContext.Provider></fieldset>
  {canEdit&&<div className="planning-toolbar planning-save-bar"><button type="button" className="planning-primary" disabled={busy||(kind==='semester'&&!/^\d{4}\/[12]$/.test(term))} onClick={()=>save()}>{busy?'Salvando…':'Salvar planejamento escolar'}</button>{current?.status==='draft'&&<button type="button" disabled={busy||dirty} onClick={()=>save('publish')}>Publicar versão salva</button>}</div>}
+ {canEdit&&<><button type="button" onClick={()=>setSapiensOpen(v=>!v)} aria-expanded={sapiensOpen}>Análise interpretativa · Sapiens</button>{sapiensOpen&&<SapiensPlanning institutionId={institutionId} school semester={kind==='semester'?term:undefined}/>}</>}
  <details className="planning-history"><summary>Histórico escolar · {rows.length} versões</summary>{rows.map(row=><p key={row.id}>{row.semester??'Estratégico'} · v{row.version} · {row.status==='published'?'Publicado':'Rascunho'} · {new Date(row.updated_at).toLocaleString('pt-BR')} <button type="button" onClick={()=>{if(!dirty||window.confirm('Trocar versão sem salvar?'))open(row);}}>Abrir versão</button></p>)}</details>
  </>}
  </section>;

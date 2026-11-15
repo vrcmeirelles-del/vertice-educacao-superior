@@ -1,8 +1,10 @@
+import SapiensPlanning from '../area/SapiensPlanning';
 import {useState,useEffect} from 'react';
 import {supabase} from '@/lib/supabase';
 import {list} from './planning/model';
 import './planning/management.css';
 export default function SchoolManagement({institutionId}:{institutionId:string}){
+ const [sapiensOpen,setSapiensOpen]=useState(false);
  const [data,setData]=useState<any>(null),[term,setTerm]=useState(''),[error,setError]=useState(''),[tick,setTick]=useState(0),[loading,setLoading]=useState(true);
  useEffect(()=>{let active=true;setData(null);setError('');setLoading(true);Promise.resolve(supabase.rpc('vertice_school_planning',{p_institution_id:institutionId,p_kind:'strategic',p_action:'overview',p_payload:{}})).then(({data,error})=>{if(!active)return;if(error){setError(error.message);return;}setData(data);}).catch(e=>{if(active)setError(e.message);}).finally(()=>{if(active)setLoading(false);});return()=>{active=false;};},[institutionId,tick]);
  const plan=data?.strategic,sem=data?.semesters?.find((s:any)=>s.semester===(term||data?.semesters?.[0]?.semester));
@@ -16,7 +18,8 @@ export default function SchoolManagement({institutionId}:{institutionId:string})
  <h3>Pendências para revisão da direção</h3><ul>{!plan&&<li>Elaborar o planejamento estratégico institucional.</li>}{plan?.status==='draft'&&<li>Estratégia em rascunho, aguardando revisão.</li>}{!sem&&<li>Planejamento semestral não cadastrado para o recorte.</li>}{!data.enem&&<li>Sem indicador ENEM vinculado à escola. A disponibilidade depende das etapas ofertadas.</li>}<li>Validar o vínculo entre objetivos, PPP, Plano de Gestão e metas cadastradas.</li></ul>
  <details><summary>Objetivos e riscos declarados</summary>{objectives.map((o,i)=><p key={i}>{o.theme} · {o.description} · indicador: {o.indicator||'ausente'}</p>)}{risks.map((r,i)=><p key={`r${i}`}>Risco: {r.description} · {r.probability}/{r.impact} · mitigação: {r.mitigation||'ausente'}</p>)}</details>
  <details><summary>Metas e ações da escola</summary>{data.goals.map((g:any)=><p key={g.id}>{g.title} · {g.indicator} · base {g.baseline??'ausente'} → meta {g.target??'ausente'} · fonte: {g.source||'não informada'}</p>)}{data.actions.map((a:any)=><p key={a.id}>{a.what} · {a.who||'sem responsável'} · {a.due_date||'sem prazo'} · {a.status} · validação superior: {a.validated?'registrada':'pendente'}</p>)}</details>
- <p className="pm-note">Fontes: planejamentos escolares versionados, vertice_goals, vertice_actions e v_enem_evolucao. Não há inferência automática de causalidade nem análise interpretativa por IA nesta consolidação.</p>
+ <p className="pm-note">Fontes: planejamentos escolares versionados, vertice_goals, vertice_actions e v_enem_evolucao. A análise interpretativa está disponível no Sapiens abaixo, sujeita à revisão da gestão.</p>
+ <button type="button" onClick={()=>setSapiensOpen(v=>!v)} aria-expanded={sapiensOpen}>Análise interpretativa · Sapiens</button>{sapiensOpen&&<SapiensPlanning institutionId={institutionId} school semester={term||sem?.semester}/> }
  </>}
  </section>;
 }
