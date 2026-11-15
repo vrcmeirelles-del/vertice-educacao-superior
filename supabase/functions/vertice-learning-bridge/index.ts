@@ -1,4 +1,4 @@
-import {createClient} from "npm:@supabase/supabase-js@2.45.4";
+import {createClient,type SupabaseClient} from "npm:@supabase/supabase-js@2.45.4";
 
 // Server-only bridge. No CPF is persisted, logged or returned.
 const ORIGINS=new Set([
@@ -38,8 +38,8 @@ function object(value:unknown):Record<string,unknown>{
  return value as Record<string,unknown>;
 }
 const str=(value:unknown,max=500)=>String(value??"").trim().slice(0,max);
-const institution=v=>{const s=str(v,70).toLowerCase();if(!UUID.test(s))throw fail("Instituição inválida.");return s;};
-const course=v=>{const s=str(v,70).toLowerCase();if(!UUID.test(s))throw fail("Curso inválido.");return s;};
+const institution=(v:unknown)=>{const s=str(v,70).toLowerCase();if(!UUID.test(s))throw fail("Instituição inválida.");return s;};
+const course=(v:unknown)=>{const s=str(v,70).toLowerCase();if(!UUID.test(s))throw fail("Curso inválido.");return s;};
 function normalizeCpf(input:unknown){return String(input??"").replace(/\D/g,"");}
 function validCpf(input:unknown){
  const cpf=normalizeCpf(input);
@@ -60,7 +60,7 @@ async function tokenFor(cpf:unknown,institutionId:string){
  )));
  return Array.from(raw).map(x=>x.toString(16).padStart(2,"0")).join("");
 }
-async function authenticate(req:Request,inst:string,admin:ReturnType<typeof createClient>){
+async function authenticate(req:Request,inst:string,admin:SupabaseClient){
  const auth=req.headers.get("authorization")||"";
  if(!auth.startsWith("Bearer "))throw fail("Autenticação necessária.",401);
  const jwt=auth.slice(7);
@@ -80,12 +80,12 @@ async function authenticate(req:Request,inst:string,admin:ReturnType<typeof crea
  if(membershipError||!membership||!ALLOWED_ROLES.has(membership.role))throw fail("Acesso não autorizado à instituição.",403);
  return data.user.id;
 }
-async function rpc(admin:ReturnType<typeof createClient>,name:string,args:Record<string,unknown>){
+async function rpc(admin:SupabaseClient,name:string,args:Record<string,unknown>){
  const {data,error}=await admin.rpc(name,args);
  if(error)throw fail("Falha de validação ou integração acadêmica: "+name,422);
  return data;
 }
-async function remote(path:string,method="GET",body?:unknown){
+async function remote(path:string,method="GET",body?:unknown,aggregateOnly=false){
  const key=path==="/api/internal/vertice/institution-directory"
   ? env("VERTICE_DIRECTORY_API_KEY")||env("VERTICE_BRIDGE_API_KEY")
   : env("VERTICE_BRIDGE_API_KEY");
@@ -97,14 +97,17 @@ async function remote(path:string,method="GET",body?:unknown){
  const response=await fetch(url,{method,headers:{
   "x-vertice-bridge-key":key,
   ...(method!=="GET"?{"x-requested-with":"fato-e-ordem","content-type":"application/json"}:{})
- },body:body===undefined?undefined:JSON.stringify(body),signal:AbortSignal.timeout(20000)});
+ },body:body===undefined?undefined:JSON.stringify(body),signal:AbortSignal.timeout(20000),
+ ...(aggregateOnly?{redirect:"error" as const,cache:"no-store" as const}:{})});
  if(!response.ok){
+  if(aggregateOnly)throw fail("Indicadores de leitura indisponíveis na origem (HTTP "+response.status+").",502);
   const errBody=await response.text().catch(()=>"(sem corpo)");
   console.error("[vertice-bridge] F&O error:",response.status,errBody.slice(0,500));
   throw fail("Fato & Ordem não confirmou a integração (HTTP "+response.status+"): "+errBody.slice(0,200),502);
  }
  const result=await response.json().catch(()=>null);
  if(!result||typeof result!=="object"||!result.result){
+  if(aggregateOnly)throw fail("Contrato de leitura inválido na origem.",502);
   console.error("[vertice-bridge] F&O resposta inválida:",JSON.stringify(result).slice(0,500));
   throw fail("Resposta da integração inválida.",502);
  }
@@ -130,6 +133,36 @@ Deno.serve(async req=>{
   const {data:segment,error:segmentError}=await admin.from("vertice_institutions").select("tier").eq("id",inst).maybeSingle();
   if(segmentError||!segment)throw fail("Segmento institucional indisponível.",503);
   const school=segment.tier==="escolas";
+  if(operation==="reading_indicators"){
+   // This contract is institutional, never course/semester/student scoped.
+   if(segment.tier!=="superior"&&segment.tier!=="escolas")throw fail("Segmento institucional inválido.",403);
+   if(Object.keys(body).some(key=>!["institutionId","operation"].includes(key)))
+    throw fail("Leituras disponíveis somente no recorte institucional dos últimos 90 dias.");
+   const path=school?"school-reading-indicators":"reading-indicators";
+   let result;
+   try{result=await remote("/api/internal/vertice/"+path+"?institutionId="+encodeURIComponent(inst),"GET",undefined,true);}
+   catch(error){
+    const status=(error as {status?:number}).status;
+    throw fail(status===503?"Credencial de leitura não configurada.":"Não foi possível consultar as leituras autorizadas no Fato & Ordem.",status===503?503:502);
+   }
+   const readingModules=new Set(school?["enem"]:["oab","oab2","carreiras","cfc","enade","enamed","residencia"]);
+   const actions=new Set(["displayed","opened","declared_read"]),seen=new Set<string>();
+   if(result.periodDays!==90||!Array.isArray(result.indicators)||result.indicators.length>24)
+    throw fail("Contrato de indicadores de leitura inválido.",502);
+   const indicators=result.indicators.map((value:unknown)=>{
+    if(!value||typeof value!=="object"||Array.isArray(value))throw fail("Indicador de leitura inválido.",502);
+    const row=value as Record<string,unknown>,key=String(row.module)+":"+String(row.action);
+    if(!readingModules.has(String(row.module))||!actions.has(String(row.action))||
+      !Number.isSafeInteger(row.total)||Number(row.total)<0||seen.has(key))
+     throw fail("Indicador de leitura incompatível com o contrato institucional.",502);
+    seen.add(key);
+    // Allowlist fields: never forward source identities, topics, text or notice.
+    return {module:row.module,action:row.action,total:row.total};
+   });
+   return send({ok:true,institutionId:inst,educationTier:segment.tier,scope:"institution",
+    periodDays:90,retrievedAt:new Date().toISOString(),indicators,
+    notice:"Exibição, abertura e leitura autodeclarada. Não comprovam aprendizagem nem alteram desempenho."},200,origin);
+  }
   if(operation==="sync_enem"&&!school)throw fail("ENEM integra exclusivamente a Vértice Escolas.",403);
   if(operation==="sync"&&school)throw fail("Use a sincronização ENEM da Vértice Escolas.",403);
   if(operation==="map_subject"&&((str(body.module,30)==="enem")!==school))throw fail("Exame incompatível com o segmento institucional.",403);

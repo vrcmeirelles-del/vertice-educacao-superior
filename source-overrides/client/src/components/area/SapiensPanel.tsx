@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import ReadingIndicators from '@/components/bi/ReadingIndicators';
 
-type Tab = "diagnoses" | "interventions" | "briefings" | "goals";
+type Tab = "diagnoses" | "interventions" | "briefings" | "goals" | "readings";
 type Effectiveness = { id: string; intervention_id: string; measured_at: string; current_sample_size: number; attempts_since_baseline: number; p_know_change: number | null; sample_overlap: number; effectiveness: string };
 
 type Diagnosis = {
@@ -85,8 +86,10 @@ export default function SapiensPanel({ institutionId, role }: Props) {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [expandedBriefing, setExpandedBriefing] = useState<string | null>(null);
+  const [readingRevision,setReadingRevision]=useState(0);
 
   const load = useCallback(async () => {
+    setReadingRevision(n=>n+1);
     setBusy(true);
     setError("");
     try {
@@ -138,6 +141,7 @@ export default function SapiensPanel({ institutionId, role }: Props) {
     { key: "interventions", label: "Intervenções", count: interventions.filter(i => i.status === "proposed").length },
     { key: "briefings", label: "Briefings", count: briefings.length },
     { key: "goals", label: "Metas & Ações", count: goals.filter(g => g.status === "active").length },
+    { key: "readings", label: "Leituras e contexto" },
   ];
 
   return (
@@ -156,7 +160,7 @@ export default function SapiensPanel({ institutionId, role }: Props) {
       {success && <p role="status" style={{ color: "#059669", fontSize: 13 }}>{success}</p>}
 
       {/* Tabs */}
-      <nav style={{ display: "flex", gap: 4, borderBottom: "2px solid #e2e8f0", marginBottom: 16 }}>
+      <nav style={{ display: "flex", flexWrap:"wrap", gap: 4, borderBottom: "2px solid #e2e8f0", marginBottom: 16 }}>
         {tabs.map(t => (
           <button key={t.key} type="button" onClick={() => setTab(t.key)}
             aria-pressed={tab === t.key}
@@ -170,6 +174,8 @@ export default function SapiensPanel({ institutionId, role }: Props) {
           </button>
         ))}
       </nav>
+
+      {tab === "readings" && <><p>Contexto institucional de aprofundamento para apoiar a análise humana. Os totais não entram no cálculo de severidade, nas medições de eficácia ou nas propostas automáticas de intervenção.</p><ReadingIndicators institutionId={institutionId} role={role} revision={readingRevision}/></>}
 
       {/* Diagnoses Tab */}
       {tab === "diagnoses" && (

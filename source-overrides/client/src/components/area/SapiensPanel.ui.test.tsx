@@ -3,7 +3,7 @@ import {act} from 'react';import {createRoot,type Root} from 'react-dom/client';
 const mock=vi.hoisted(()=>({calls:[] as unknown[],fail:false,queryError:false}));
 vi.mock('@/lib/supabase',()=>({supabase:{
  from:(table:string)=>{const q={select:()=>q,eq:(...a:unknown[])=>{mock.calls.push([table,...a]);return q;},order:()=>q,limit:()=>q,then:(resolve:(r:unknown)=>unknown)=>Promise.resolve({data:table==='vertice_sapiens_interventions'?[{id:'synthetic-intervention',course_id:'synthetic-course',title:'Intervenção sintética',description:'Descrição pedagógica sintética',status:'proposed',delivery_status:'pending',created_at:'2026-11-14T12:00:00Z'}]:[],error:mock.queryError?new Error('synthetic query failure'):null}).then(resolve)};return q;},
- functions:{invoke:vi.fn(async(name:string,args:unknown)=>{mock.calls.push([name,args]);return mock.fail?{data:null,error:new Error('synthetic communication failure')}:{data:{status:'sent'},error:null};})}
+ functions:{invoke:vi.fn(async(name:string,args:any)=>{mock.calls.push([name,args]);return mock.fail?{data:null,error:new Error('synthetic communication failure')}:{data:args.body.operation==='reading_indicators'?{ok:true,institutionId:args.body.institutionId,scope:'institution',educationTier:'superior',periodDays:90,retrievedAt:'2026-11-15T08:00:00Z',indicators:[{module:'enade',action:'declared_read',total:6}]}:{status:'sent'},error:null};})}
 }}));
 import SapiensPanel from './SapiensPanel';
 let el:HTMLDivElement,root:Root;
@@ -21,4 +21,12 @@ it('non-Master cannot approve/reject and query errors are visible',async()=>{
 });
 it('communication failure remains visible after reload, with no false sent message',async()=>{
  mock.fail=true;await act(async()=>root.render(<SapiensPanel institutionId="synthetic-ies" role="master"/>));await click('Intervenções');await click('Aprovar');expect(el.querySelector('[role=alert]')?.textContent).toContain('synthetic communication failure');expect(el.textContent).not.toContain('Envio confirmado');
+});
+it('exposes readings as separate institutional context without running diagnoses or intervention delivery',async()=>{
+ await act(async()=>root.render(<SapiensPanel institutionId="synthetic-ies" role="master"/>));
+ expect(mock.calls.some((v:any)=>v[1]?.body?.operation==='reading_indicators')).toBe(false);
+ await click('Leituras e contexto');
+ expect(el.textContent).toContain('não entram no cálculo de severidade');expect(el.textContent).toContain('Leitura autodeclarada não comprova aprendizagem');expect(el.querySelector('tbody')?.textContent).toBe('ENADE006');
+ const functions=mock.calls.filter((v:any)=>v[0]==='vertice-learning-bridge'||v[0]==='vertice-sapiens-bridge');
+ expect(functions).toEqual([['vertice-learning-bridge',{body:{operation:'reading_indicators',institutionId:'synthetic-ies'}}]]);
 });
