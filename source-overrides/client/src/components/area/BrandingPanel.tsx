@@ -23,8 +23,8 @@ function publicUrl(path: string) {
 export async function normalizeDocumentLogo(file:Blob):Promise<string> {
  if(file.size>2*1024*1024)throw new Error('A imagem deve ter até 2 MB.');
  if(!['image/png','image/jpeg','image/webp'].includes(file.type))throw new Error('Use uma imagem PNG, JPG ou WebP.');
- const url=URL.createObjectURL(file);
- try {
+ const url=await new Promise<string>((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result));reader.onerror=()=>reject(new Error('Não foi possível ler o arquivo selecionado.'));reader.readAsDataURL(file);});
+ {
   const image=new Image();
   await new Promise<void>((resolve,reject)=>{image.onload=()=>resolve();image.onerror=()=>reject(new Error('Não foi possível ler a imagem.'));image.src=url;});
   if(!image.naturalWidth||!image.naturalHeight)throw new Error('Imagem inválida.');
@@ -34,7 +34,7 @@ export async function normalizeDocumentLogo(file:Blob):Promise<string> {
   const width=image.naturalWidth*scale,height=image.naturalHeight*scale;
   ctx.drawImage(image,(300-width)/2,(120-height)/2,width,height);
   return canvas.toDataURL('image/png');
- }finally{URL.revokeObjectURL(url);}
+ }
 }
 export function brandingError(error:unknown):string {
  const e=error as {code?:string;message?:string};
