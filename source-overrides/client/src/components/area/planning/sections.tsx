@@ -211,38 +211,13 @@ export function VisaoTab({ plan, setPlan }: { plan: PlanDraft; setPlan: (p: Plan
     <SectionCard title="Visão Estratégica">
       <TextField label="Onde o curso deseja estar no futuro?" value={plan.vision_text}
         onChange={(v) => setPlan({ ...plan, vision_text: v })} multiline rows={5} />
-      <Field label="Reflexões (Estado Atual vs. Desejado)">
-        <div className="stack" style={{ gap: 8 }}>
-          {plan.vision_reflections.map((r, i) => (
-            <div key={i} className="card" style={{ padding: 12 }}>
-              <input className="input" placeholder="Item" value={r.item}
-                onChange={(e) => {
-                  const next = [...plan.vision_reflections];
-                  next[i] = { ...r, item: e.target.value };
-                  setPlan({ ...plan, vision_reflections: next });
-                }} />
-              <div className="row" style={{ marginTop: 6 }}>
-                <input className="input" placeholder="Estado atual" value={r.current_state}
-                  onChange={(e) => {
-                    const next = [...plan.vision_reflections];
-                    next[i] = { ...r, current_state: e.target.value };
-                    setPlan({ ...plan, vision_reflections: next });
-                  }} />
-                <input className="input" placeholder="Estado desejado" value={r.desired_state}
-                  onChange={(e) => {
-                    const next = [...plan.vision_reflections];
-                    next[i] = { ...r, desired_state: e.target.value };
-                    setPlan({ ...plan, vision_reflections: next });
-                  }} />
-              </div>
-            </div>
-          ))}
-          <button className="btn btn-ghost" onClick={() => setPlan({
-            ...plan,
-            vision_reflections: [...plan.vision_reflections, { item: "", current_state: "", desired_state: "" }],
-          })}>+ Adicionar reflexão</button>
-        </div>
-      </Field>
+      <div className="planning-reflections"><h4>Estado atual e estado desejado</h4><p>Organize cada reflexão por tema e compare os dois cenários.</p>
+        {plan.vision_reflections.map((r,i)=><div key={i} className="card planning-reflection">
+          <Field label={`Tema da reflexão ${i+1}`}><input value={r.item} placeholder="Ex.: Permanência estudantil" onChange={e=>{const next=[...plan.vision_reflections];next[i]={...r,item:e.target.value};setPlan({...plan,vision_reflections:next});}}/></Field>
+          <div className="planning-reflection-grid">{(['current_state','desired_state'] as const).map(key=><Field key={key} label={key==='current_state'?'Como estamos hoje':'Onde queremos chegar'}><textarea rows={5} value={r[key]} onChange={e=>{const next=[...plan.vision_reflections];next[i]={...r,[key]:e.target.value};setPlan({...plan,vision_reflections:next});}}/></Field>)}</div>
+        </div>)}
+        <button type="button" className="btn-ghost" onClick={()=>setPlan({...plan,vision_reflections:[...plan.vision_reflections,{item:'',current_state:'',desired_state:''}]})}>+ Adicionar reflexão</button>
+      </div>
     </SectionCard>
   );
 }
