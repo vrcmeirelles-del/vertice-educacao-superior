@@ -36,7 +36,7 @@ function cfg() {
 }
 
 const send = (body: unknown, status = 200, origin = "") =>
-  new Response(JSON.stringify(body), {
+  new Response(status === 204 ? null : JSON.stringify(body), {
     status,
     headers: {
       "Content-Type": "application/json",
