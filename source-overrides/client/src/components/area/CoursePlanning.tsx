@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { isFullAccess, type Role } from '@/lib/area';
-import { TABS, EMPTY_PLAN, EMPTY_SEMESTER, type TabKey, type PlanDraft, type SemesterDraft, IdentificacaoTab, VisaoTab, CicloTab, BcgTab, PorterTab, FcsTab, AtributosTab, ObjetivosTab, OperacionalTab, SemestreTab } from './planning/sections';
+import { TABS, EMPTY_PLAN, EMPTY_SEMESTER, type TabKey, type PlanDraft, type SemesterDraft, IdentificacaoTab, VisaoTab, SwotTab, CicloTab, BcgTab, PorterTab, FcsTab, BenchmarkingTab, AtributosTab, ObjetivosTab, AlinhamentoTab, RiscosTab, OperacionalTab, SemestreTab } from './planning/sections';
 import './planning/planning.css';
 
 export interface CrossModuleData {
@@ -41,7 +41,7 @@ async function loadCrossModuleData(institutionId:string, courseId:string): Promi
 type Course = {id:string;name:string;code?:string|null};
 type Stored = {id:string;version:number;status:'draft'|'published'|'archived';updated_at:string;created_at:string;semester?:string;[key:string]:unknown};
 const statusNames = {draft:'Rascunho',published:'Publicado',archived:'Arquivado'};
-const sections = {identificacao:IdentificacaoTab,visao:VisaoTab,ciclo:CicloTab,bcg:BcgTab,porter:PorterTab,fcs:FcsTab,atributos:AtributosTab,objetivos:ObjetivosTab,operacional:OperacionalTab};
+const sections = {identificacao:IdentificacaoTab,visao:VisaoTab,swot:SwotTab,ciclo:CicloTab,bcg:BcgTab,porter:PorterTab,fcs:FcsTab,benchmarking:BenchmarkingTab,atributos:AtributosTab,objetivos:ObjetivosTab,alinhamento:AlinhamentoTab,riscos:RiscosTab,operacional:OperacionalTab};
 
 export async function planningRequest(institutionId:string,courseId:string,kind:'strategic'|'semester',action:string,payload:object={}) {
   const {data,error}=await supabase.rpc('vertice_course_planning',{p_institution_id:institutionId,p_course_id:courseId,p_kind:kind,p_action:action,p_payload:payload});
@@ -68,7 +68,7 @@ export default function CoursePlanning({institutionId,courses,role,initialCourse
   </section>;
 }
 
-const STRATEGIC_TABS:TabKey[]=['identificacao','visao','ciclo','bcg','porter','fcs','atributos','objetivos','operacional'];
+const STRATEGIC_TABS:TabKey[]=['identificacao','visao','swot','ciclo','bcg','porter','fcs','benchmarking','atributos','objetivos','alinhamento','riscos','operacional'];
 
 function PlanningEditor({institutionId,courseId,canWrite,onDirty,kind='both'}:{institutionId:string;courseId:string;canWrite:boolean;onDirty:(value:boolean)=>void;kind?:'strategic'|'semester'|'both'}) {
   const defaultTab:TabKey=kind==='semester'?'semestre':'identificacao';

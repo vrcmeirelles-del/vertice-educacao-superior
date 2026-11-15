@@ -3,29 +3,41 @@ function Field({label,children}:{label:string;children:ReactNode}) { return <lab
 export type TabKey =
   | "identificacao"
   | "visao"
+  | "swot"
   | "ciclo"
   | "bcg"
   | "porter"
   | "fcs"
+  | "benchmarking"
   | "atributos"
   | "objetivos"
+  | "alinhamento"
+  | "riscos"
   | "operacional"
   | "semestre";
 
 export const TABS: { key: TabKey; label: string }[] = [
   { key: "identificacao", label: "1. Identificação" },
   { key: "visao", label: "2. Visão" },
-  { key: "ciclo", label: "3. Ciclo de Vida" },
-  { key: "bcg", label: "4. Matriz BCG" },
-  { key: "porter", label: "5. Porter" },
-  { key: "fcs", label: "6-9. FCS" },
-  { key: "atributos", label: "10. Atributos" },
-  { key: "objetivos", label: "11. Objetivos Estratégicos" },
-  { key: "operacional", label: "12. Plano de Ação" },
+  { key: "swot", label: "3. SWOT" },
+  { key: "ciclo", label: "4. Ciclo de Vida" },
+  { key: "bcg", label: "5. BCG" },
+  { key: "porter", label: "6. Porter" },
+  { key: "fcs", label: "7. FCS" },
+  { key: "benchmarking", label: "8. Benchmarking" },
+  { key: "atributos", label: "9. Atributos" },
+  { key: "objetivos", label: "10. Objetivos" },
+  { key: "alinhamento", label: "11. Alinhamento" },
+  { key: "riscos", label: "12. Riscos" },
+  { key: "operacional", label: "13. Plano de Ação" },
   { key: "semestre", label: "Planejamento Semestral" },
 ];
 
 interface VisionReflection { item: string; current_state: string; desired_state: string; }
+interface SwotItem { text: string; }
+interface BenchmarkEntry { competitor: string; indicator: string; value: string; source: string | null; }
+interface RiskEntry { description: string; probability: 'alta'|'media'|'baixa'; impact: 'alto'|'medio'|'baixo'; mitigation: string | null; }
+interface AlignmentLink { objective: string; pdi_reference: string | null; ppc_reference: string | null; notes: string | null; }
 interface BcgStrategy { quadrant: string; strategy: string; }
 interface FcsInstitutional { name: string; description: string; differentiator: string; }
 interface FcsCourse { name: string; maturity: string; differentiator: string; }
@@ -99,6 +111,11 @@ export interface PlanDraft {
   attributes_matrix: AttributeRow[];
   strategic_objectives: StrategicObjective[];
   operational_objectives: OperationalObjective[];
+  // Novas seções
+  swot: { strengths: SwotItem[]; weaknesses: SwotItem[]; opportunities: SwotItem[]; threats: SwotItem[] };
+  benchmarking: BenchmarkEntry[];
+  risks: RiskEntry[];
+  alignment: AlignmentLink[];
 }
 
 export interface SemesterDraft {
@@ -130,6 +147,8 @@ export const EMPTY_PLAN: PlanDraft = {
   porter_substitutes: null, porter_new_entrants: null,
   fcs_institutional: [], fcs_course: [], fcs_competitors: [], fcs_competitive_matrix: [],
   attributes_matrix: [], strategic_objectives: [], operational_objectives: [],
+  swot: { strengths: [], weaknesses: [], opportunities: [], threats: [] },
+  benchmarking: [], risks: [], alignment: [],
 };
 
 export const EMPTY_SEMESTER: SemesterDraft = {
@@ -407,6 +426,125 @@ export function ObjetivosTab({ plan, setPlan }: { plan: PlanDraft; setPlan: (p: 
           onClick={() => setPlan({ ...plan, strategic_objectives: [...plan.strategic_objectives, { theme: "", indicator: "", description: "", targets: {} }] })}>
           + Adicionar objetivo
         </button>
+      </div>
+    </SectionCard>
+  );
+}
+
+// ── 3. SWOT ──────────────────────────────────────────────────
+export function SwotTab({ plan, setPlan }: { plan: PlanDraft; setPlan: (p: PlanDraft) => void }) {
+  const sw = plan.swot ?? { strengths: [], weaknesses: [], opportunities: [], threats: [] };
+  const update = (quad: keyof typeof sw, items: SwotItem[]) => setPlan({ ...plan, swot: { ...sw, [quad]: items } });
+  const quadrants: { key: keyof typeof sw; label: string; color: string; emoji: string }[] = [
+    { key: 'strengths', label: 'Forças', color: '#2e7d32', emoji: '💪' },
+    { key: 'weaknesses', label: 'Fraquezas', color: '#c62828', emoji: '⚠️' },
+    { key: 'opportunities', label: 'Oportunidades', color: '#1565c0', emoji: '🚀' },
+    { key: 'threats', label: 'Ameaças', color: '#e65100', emoji: '🔥' },
+  ];
+  return (
+    <SectionCard title="Análise SWOT">
+      <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '0 0 16px' }}>Identifique os fatores internos (Forças/Fraquezas) e externos (Oportunidades/Ameaças) que impactam o curso.</p>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        {quadrants.map(q => (
+          <div key={q.key} className="card" style={{ padding: 14, borderLeft: `3px solid ${q.color}` }}>
+            <h4 style={{ margin: '0 0 8px', fontSize: 14, fontWeight: 650 }}>{q.emoji} {q.label}</h4>
+            <div className="stack" style={{ gap: 4 }}>
+              {sw[q.key].map((item, i) => (
+                <div key={i} style={{ display: 'flex', gap: 4 }}>
+                  <input className="input" style={{ flex: 1 }} value={item.text} placeholder={`${q.label}…`}
+                    onChange={(e) => { const n = [...sw[q.key]]; n[i] = { text: e.target.value }; update(q.key, n); }} />
+                  <button className="btn btn-ghost" style={{ padding: '2px 6px', fontSize: 12 }} onClick={() => { const n = sw[q.key].filter((_, j) => j !== i); update(q.key, n); }}>✕</button>
+                </div>
+              ))}
+              <button className="btn btn-ghost" style={{ fontSize: 13 }} onClick={() => update(q.key, [...sw[q.key], { text: '' }])}>+ Adicionar</button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </SectionCard>
+  );
+}
+
+// ── 8. Benchmarking ──────────────────────────────────────────
+export function BenchmarkingTab({ plan, setPlan }: { plan: PlanDraft; setPlan: (p: PlanDraft) => void }) {
+  const rows = plan.benchmarking ?? [];
+  return (
+    <SectionCard title="Benchmarking Competitivo">
+      <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '0 0 12px' }}>Compare indicadores do curso com os concorrentes diretos. Use dados do ENADE, CPC, Censo ou pesquisa própria.</p>
+      <div className="planning-scroll">
+        <table className="table">
+          <thead><tr><th>Concorrente</th><th>Indicador</th><th>Valor</th><th>Fonte</th></tr></thead>
+          <tbody>
+            {rows.map((r, i) => (
+              <tr key={i}>
+                <td><input className="input" value={r.competitor} placeholder="IES concorrente" onChange={(e) => { const n = [...rows]; n[i] = { ...r, competitor: e.target.value }; setPlan({ ...plan, benchmarking: n }); }} /></td>
+                <td><input className="input" value={r.indicator} placeholder="Ex: Nota ENADE, CPC, Evasão" onChange={(e) => { const n = [...rows]; n[i] = { ...r, indicator: e.target.value }; setPlan({ ...plan, benchmarking: n }); }} /></td>
+                <td><input className="input" value={r.value} placeholder="Valor" onChange={(e) => { const n = [...rows]; n[i] = { ...r, value: e.target.value }; setPlan({ ...plan, benchmarking: n }); }} /></td>
+                <td><input className="input" value={r.source ?? ""} placeholder="Fonte" onChange={(e) => { const n = [...rows]; n[i] = { ...r, source: e.target.value || null }; setPlan({ ...plan, benchmarking: n }); }} /></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <button className="btn btn-ghost" onClick={() => setPlan({ ...plan, benchmarking: [...rows, { competitor: '', indicator: '', value: '', source: null }] })}>+ Adicionar comparação</button>
+    </SectionCard>
+  );
+}
+
+// ── 11. Alinhamento PDI/PPC ──────────────────────────────────
+export function AlinhamentoTab({ plan, setPlan }: { plan: PlanDraft; setPlan: (p: PlanDraft) => void }) {
+  const links = plan.alignment ?? [];
+  return (
+    <SectionCard title="Alinhamento com PDI e PPC">
+      <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '0 0 12px' }}>Vincule cada objetivo estratégico ao PDI da IES e ao PPC do curso. Avaliadores verificam esse alinhamento.</p>
+      <div className="stack" style={{ gap: 10 }}>
+        {links.map((l, i) => (
+          <div key={i} className="card" style={{ padding: 12 }}>
+            <input className="input" placeholder="Objetivo estratégico" value={l.objective} onChange={(e) => { const n = [...links]; n[i] = { ...l, objective: e.target.value }; setPlan({ ...plan, alignment: n }); }} />
+            <div className="row" style={{ marginTop: 8 }}>
+              <input className="input" placeholder="Referência no PDI (ex: Meta 3.2)" value={l.pdi_reference ?? ""} onChange={(e) => { const n = [...links]; n[i] = { ...l, pdi_reference: e.target.value || null }; setPlan({ ...plan, alignment: n }); }} />
+              <input className="input" placeholder="Referência no PPC (ex: Competência 5)" value={l.ppc_reference ?? ""} onChange={(e) => { const n = [...links]; n[i] = { ...l, ppc_reference: e.target.value || null }; setPlan({ ...plan, alignment: n }); }} />
+            </div>
+            <textarea className="textarea" rows={2} placeholder="Observação" style={{ marginTop: 6 }} value={l.notes ?? ""} onChange={(e) => { const n = [...links]; n[i] = { ...l, notes: e.target.value || null }; setPlan({ ...plan, alignment: n }); }} />
+          </div>
+        ))}
+        <button className="btn btn-ghost" onClick={() => setPlan({ ...plan, alignment: [...links, { objective: '', pdi_reference: null, ppc_reference: null, notes: null }] })}>+ Vincular objetivo</button>
+      </div>
+    </SectionCard>
+  );
+}
+
+// ── 12. Riscos ──────────────────────────────────────────────
+const PROB_LABELS: Record<string, string> = { alta: 'Alta', media: 'Média', baixa: 'Baixa' };
+const IMPACT_LABELS: Record<string, string> = { alto: 'Alto', medio: 'Médio', baixo: 'Baixo' };
+
+export function RiscosTab({ plan, setPlan }: { plan: PlanDraft; setPlan: (p: PlanDraft) => void }) {
+  const rows = plan.risks ?? [];
+  return (
+    <SectionCard title="Riscos Estratégicos">
+      <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '0 0 12px' }}>Identifique riscos que podem impactar os objetivos do curso. Defina probabilidade, impacto e ação de mitigação.</p>
+      <div className="stack" style={{ gap: 10 }}>
+        {rows.map((r, i) => (
+          <div key={i} className="card" style={{ padding: 12 }}>
+            <input className="input" placeholder="Risco (ex: Perda do coordenador, EAD concorrente, queda de demanda)" value={r.description}
+              onChange={(e) => { const n = [...rows]; n[i] = { ...r, description: e.target.value }; setPlan({ ...plan, risks: n }); }} />
+            <div className="row" style={{ marginTop: 8 }}>
+              <Field label="Probabilidade">
+                <select className="select" value={r.probability} onChange={(e) => { const n = [...rows]; n[i] = { ...r, probability: e.target.value as RiskEntry['probability'] }; setPlan({ ...plan, risks: n }); }}>
+                  {Object.entries(PROB_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                </select>
+              </Field>
+              <Field label="Impacto">
+                <select className="select" value={r.impact} onChange={(e) => { const n = [...rows]; n[i] = { ...r, impact: e.target.value as RiskEntry['impact'] }; setPlan({ ...plan, risks: n }); }}>
+                  {Object.entries(IMPACT_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                </select>
+              </Field>
+            </div>
+            <textarea className="textarea" rows={2} placeholder="Ação de mitigação" style={{ marginTop: 6 }} value={r.mitigation ?? ""}
+              onChange={(e) => { const n = [...rows]; n[i] = { ...r, mitigation: e.target.value || null }; setPlan({ ...plan, risks: n }); }} />
+          </div>
+        ))}
+        <button className="btn btn-ghost" onClick={() => setPlan({ ...plan, risks: [...rows, { description: '', probability: 'media', impact: 'medio', mitigation: null }] })}>+ Adicionar risco</button>
       </div>
     </SectionCard>
   );
