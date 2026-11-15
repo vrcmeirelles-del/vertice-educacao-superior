@@ -1,0 +1,27 @@
+BEGIN;
+DO $$ DECLARE inst uuid; other_inst uuid; manager uuid; classid uuid; student jsonb; event jsonb; tpl jsonb; doc jsonb; revision jsonb; BEGIN
+ SELECT id INTO inst FROM public.vertice_institutions WHERE tier='escolas' ORDER BY id LIMIT 1;
+ SELECT id INTO other_inst FROM public.vertice_institutions WHERE tier<>'escolas' LIMIT 1;
+ SELECT user_id INTO manager FROM public.vertice_admins LIMIT 1;
+ SELECT id INTO classid FROM public.vertice_school_classes WHERE institution_id=inst LIMIT 1;
+ IF inst IS NULL OR manager IS NULL OR classid IS NULL THEN RAISE EXCEPTION 'Missing fixtures'; END IF;
+ PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',manager,'aal','aal2','role','authenticated')::text,true);
+ student:=public.vertice_school_individual(inst,'save_student',jsonb_build_object('enrollment_code','TEST-'||gen_random_uuid(),'full_name','Estudante transacional','class_id',classid,'status','active','source','Teste transacional','reference_date',current_date));
+ BEGIN PERFORM public.vertice_school_individual(inst,'save_student',student||jsonb_build_object('expected_updated_at','2000-01-01')); RAISE EXCEPTION 'Stale update accepted'; EXCEPTION WHEN serialization_failure THEN NULL; END;
+ event:=public.vertice_school_individual(inst,'event',jsonb_build_object('student_id',student->>'id','kind','observation','source','Diário de teste','reference_date',current_date,'data',jsonb_build_object('period_start',current_date-20,'period_end',current_date-1,'scheduled_days',20,'present_days',14,'score_pct',40,'renewal','pending','renewal_due',current_date-1)));
+ BEGIN PERFORM public.vertice_school_individual(inst,'event',jsonb_build_object('student_id',student->>'id','kind','observation','source','Diário teste','reference_date',current_date,'data',jsonb_build_object('period_start',current_date-20,'period_end',current_date-1,'scheduled_days',20,'present_days',30))); RAISE EXCEPTION 'Impossible attendance accepted'; EXCEPTION WHEN raise_exception THEN IF SQLERRM='Impossible attendance accepted' THEN RAISE; END IF; END;
+ tpl:=public.vertice_school_individual(inst,'save_template','{"title":"Declaração de teste","body":"{{institution}} informa o vínculo de {{student}}, matrícula {{enrollment}}, turma {{class}}, ano {{year}}, emitido em {{issue_date}}."}');
+ BEGIN PERFORM public.vertice_school_individual(inst,'reserve_document',jsonb_build_object('student_id',student->>'id','template_id',tpl->>'id')); RAISE EXCEPTION 'Draft template issued'; EXCEPTION WHEN insufficient_privilege THEN NULL; END;
+ tpl:=public.vertice_school_individual(inst,'approve_template',jsonb_build_object('id',tpl->>'id','expected_updated_at',tpl->>'updated_at','note','Modelo revisado em teste transacional'));
+ doc:=public.vertice_school_individual(inst,'reserve_document',jsonb_build_object('student_id',student->>'id','template_id',tpl->>'id'));
+ IF doc->'snapshot'->>'student'<>'Estudante transacional' OR doc->>'original_sha256' IS NOT NULL OR doc->>'status'<>'generating' THEN RAISE EXCEPTION 'False issuance state'; END IF;
+ revision:=public.vertice_school_individual(inst,'save_template',tpl||jsonb_build_object('expected_updated_at',tpl->>'updated_at','body','Nova versão em rascunho para {{student}}.'));
+ IF revision->>'id'=tpl->>'id' OR revision->>'status'<>'draft' OR (revision->>'version')::int<>2 THEN RAISE EXCEPTION 'Approved version overwritten'; END IF;
+ BEGIN PERFORM public.vertice_school_individual(other_inst,'document',jsonb_build_object('id',doc->>'id')); RAISE EXCEPTION 'Other institution accepted'; EXCEPTION WHEN invalid_parameter_value THEN NULL; END;
+ BEGIN PERFORM public.vertice_school_individual(inst,'review_manual_signature',jsonb_build_object('id',doc->>'id','note','Tentativa indevida sem PDF assinado')); RAISE EXCEPTION 'Unsigned PDF reviewed'; EXCEPTION WHEN serialization_failure THEN NULL; END;
+ PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',gen_random_uuid(),'aal','aal2','role','authenticated')::text,true);
+ BEGIN PERFORM public.vertice_school_individual(inst,'overview','{}'); RAISE EXCEPTION 'Unlinked user accepted'; EXCEPTION WHEN insufficient_privilege THEN NULL; END;
+ PERFORM set_config('request.jwt.claims','{}',true);
+ BEGIN PERFORM public.vertice_school_individual(inst,'overview','{}'); RAISE EXCEPTION 'Anonymous accepted'; EXCEPTION WHEN insufficient_privilege THEN NULL; END;
+END $$;
+ROLLBACK;
