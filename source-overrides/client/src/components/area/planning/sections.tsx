@@ -408,7 +408,12 @@ export function ObjetivosTab({ plan, setPlan }: { plan: PlanDraft; setPlan: (p: 
 
 // ── 3. SWOT ──────────────────────────────────────────────────
 export function SwotTab({ plan, setPlan }: { plan: PlanDraft; setPlan: (p: PlanDraft) => void }) {
-  const sw = plan.swot ?? { strengths: [], weaknesses: [], opportunities: [], threats: [] };
+  const sw = {
+    strengths: Array.isArray(plan.swot?.strengths) ? plan.swot.strengths : [],
+    weaknesses: Array.isArray(plan.swot?.weaknesses) ? plan.swot.weaknesses : [],
+    opportunities: Array.isArray(plan.swot?.opportunities) ? plan.swot.opportunities : [],
+    threats: Array.isArray(plan.swot?.threats) ? plan.swot.threats : [],
+  };
   const update = (quad: keyof typeof sw, items: SwotItem[]) => setPlan({ ...plan, swot: { ...sw, [quad]: items } });
   const quadrants: { key: keyof typeof sw; label: string; color: string; emoji: string }[] = [
     { key: 'strengths', label: 'Forças', color: '#2e7d32', emoji: '💪' },

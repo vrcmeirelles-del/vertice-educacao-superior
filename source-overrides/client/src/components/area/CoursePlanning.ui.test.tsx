@@ -6,7 +6,7 @@ const mockChain={select:()=>mockChain,eq:()=>mockChain,in:()=>mockChain,maybeSin
 vi.mock('@/lib/supabase',()=>({supabase:{rpc:vi.fn(async(_name:string,args:Record<string,unknown>)=>{
   mock.calls.push(args);
   if(mock.fail)return {data:null,error:{message:'Falha de autorização de teste'}};
-  const row={id:`${args.p_kind}-${args.p_course_id}`,course_id:args.p_course_id,version:2,status:'draft',created_at:'2026-11-15T10:00:00Z',updated_at:'2026-11-15T10:01:00Z',semester:'2026/2',activities:[],context:{},calendar:[],course_offerings:[],faculty:{assignments:[],trainings:[],meetings:[]},semester_goals:[],extension_ac:{extension_projects:[],ac_activities:[],partnerships:[]},internship_tcc:{internship:{student_count:null,supervisors:null,conventions_to_renew:null},tcc:{defense_count:null,defense_dates:null,advisors:null},conventions:[]},infrastructure:[],student_support:{entries:[],leveling_actions:[]},engagement:{actions:[]},vision_text:`Visão de ${args.p_course_id}`};
+  const row={id:`${args.p_kind}-${args.p_course_id}`,course_id:args.p_course_id,version:2,status:'draft',created_at:'2026-11-15T10:00:00Z',updated_at:'2026-11-15T10:01:00Z',semester:'2026/2',activities:[],context:{},calendar:[],course_offerings:[],faculty:{assignments:[],trainings:[],meetings:[]},semester_goals:[],extension_ac:{extension_projects:[],ac_activities:[],partnerships:[]},internship_tcc:{internship:{student_count:null,supervisors:null,conventions_to_renew:null},tcc:{defense_count:null,defense_dates:null,advisors:null},conventions:[]},infrastructure:[],student_support:{entries:[],leveling_actions:[]},engagement:{actions:[]},swot:{},alignment:{},vision_text:`Visão de ${args.p_course_id}`};
   return {data:args.p_action==='list'?{plans:[row]}:{plan:row},error:null};
 }),from:vi.fn(()=>mockChain)}}));
 vi.mock('@/lib/area',()=>({isFullAccess:(role:string)=>['master','gestor','reitor'].includes(role)}));
@@ -44,4 +44,14 @@ it('disables editing for readers and exposes failures without a false success',a
  await act(async()=>root.render(<CoursePlanning institutionId="ies-a" courses={courses} role="master" initialCourseId="curso-a"/>));
  mock.fail=true;await click('Salvar planejamento estratégico');
  expect(el.querySelector('[role=alert]')?.textContent).toContain('Falha de autorização');expect(el.textContent).not.toContain('Planejamento salvo.');
+});
+
+it('opens legacy empty SWOT and normalizes empty alignment before saving',async()=>{
+ await act(async()=>root.render(<CoursePlanning institutionId="ies-a" courses={courses} role="master" initialCourseId="curso-a"/>));
+ await selectSection('swot');
+ expect(el.textContent).toContain('Análise SWOT');
+ expect(el.querySelectorAll('fieldset button')).toHaveLength(4);
+ await click('Salvar planejamento estratégico');
+ const call=mock.calls.find(c=>c.p_action==='save')!;
+ expect(call.p_payload).toMatchObject({swot:{strengths:[],weaknesses:[],opportunities:[],threats:[]},alignment:[]});
 });
