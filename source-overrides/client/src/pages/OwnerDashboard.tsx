@@ -36,6 +36,7 @@ import BIFrame from '@/components/bi/BIFrame';
 import ProfileSimulator from '@/components/area/ProfileSimulator';
 import ExperienceAdmin from './ExperienceAdmin';
 import MasterHub from '@/components/area/MasterHub';
+import InstitutionSummaryCard from '@/components/area/InstitutionSummaryCard';
 import VerticeBI from '@/components/area/VerticeBI';
 import BillingPanel from '@/components/area/BillingPanel';
 const Extensao360 = lazy(() => import('@/components/area/Extensao360'));
@@ -278,6 +279,9 @@ export default function OwnerDashboard(){
  const selectedAcademicoInstitution=institutions.find(i=>i.id===academicoInstitutionId);
  const selectedGovernancaInstitution=institutions.find(i=>i.id===(governancaInstitutionId||route.inst));
  const currentCourse=courses.find(c=>c.id===route.course&&c.institution_id===route.inst);
+ const visibleInstitutions=institutions
+  .filter(i=>!route.tierFilter||(i as unknown as Row).tier===route.tierFilter)
+  .filter(i=>[i.name,(i as unknown as Row).acronym,(i as unknown as Row).cnpj].some(value=>String(value??'').toLocaleLowerCase('pt-BR').includes(institutionSearch.trim().toLocaleLowerCase('pt-BR'))));
  async function load(){
   setLoading(true);setError('');
   try{
@@ -354,10 +358,9 @@ export default function OwnerDashboard(){
      </Suspense>
    </main>;
  }
- return <main className="corp-container corp-section"><h1>{window.location.pathname.startsWith('/reitor')?'Área reservada da Direção':master&&route.repositories?'Repositórios · visão master':master&&route.demonstrativos?'Convites demonstrativos · Master':master&&route.tierFilter==='superior'?'🏛️ Universidades':master&&route.tierFilter==='escolas'?'🏫 Escolas':master&&route.financeiro?'💰 Financeiro':master?'Painel Vértice':'Painel de gestão'}</h1>
+ return <main className="corp-container corp-section"><div className="master-page-heading"><h1>{window.location.pathname.startsWith('/reitor')?'Área reservada da Direção':master&&route.repositories?'Repositórios · visão master':master&&route.demonstrativos?'Convites demonstrativos · Master':master&&route.tierFilter==='superior'?'Educação superior':master&&route.tierFilter==='escolas'?'Escolas':master&&route.financeiro?'Financeiro':master&&currentInst?currentCourse?'Gestão do curso':'Ambiente institucional':master&&route.hub?'Visão geral':master?'Administração Master':'Painel de gestão'}</h1>{session&&<p className="master-session">Conectado como <strong>{session.user.email}</strong></p>}</div>
  {master&&(route.tierFilter||route.financeiro)&&!route.inst&&<button onClick={()=>{window.location.hash='';window.dispatchEvent(new HashChangeEvent('hashchange'));}} style={{background:'none',border:'none',color:'#2563eb',cursor:'pointer',fontSize:13,marginBottom:12,padding:0}}>← Voltar ao hub</button>}
  {loading?<p role="status">Verificando acesso…</p>:!session?<><p>Entre para acessar sua conta.</p><Link className="corp-button" href={window.location.pathname.startsWith('/reitor')?'/entrar?destino=reitor':'/entrar'}>Entrar</Link></>:<>
- <p>Conectado como <strong>{session.user.email}</strong>.</p>
  {aal!=='aal2'&&master?<section className="corp-login-card"><h2>Proteja seu acesso</h2><p>O segundo fator é obrigatório para consultar os dados das instituições como administrador.</p>
  {!factor?<button className="corp-button" disabled={busy} onClick={enroll}>Configurar aplicativo autenticador</button>:<>
  {qr&&<><p>Leia o QR code no seu aplicativo autenticador. Não compartilhe esta imagem.</p><img alt="QR code para configurar seu autenticador" src={qr} width={200} height={200}/></>}
@@ -368,16 +371,15 @@ export default function OwnerDashboard(){
   else if(dest==='universidades'){window.location.hash='tier=superior';}
   else if(dest==='escolas'){window.location.hash='tier=escolas';}
   else if(dest==='financeiro'){window.location.hash='financeiro=1';}
+  else if(dest==='integracao'){window.location.assign('/integracao');return;}
+  else if(dest==='sapiens'){window.location.hash='sapiens=1';}
   else if(dest==='configuracoes'){window.location.hash='masters=1';}
   else if(dest==='institution'&&instId){window.location.hash=`instituicao=${instId}`;}
   window.dispatchEvent(new HashChangeEvent('hashchange'));
 }}/>:route.clientes&&master?<ShowcaseClientsAdmin/>:route.sapiens&&master?<Suspense fallback={<p>Carregando Sapiens…</p>}><section aria-label="Vértice Sapiens"><button onClick={()=>{window.location.hash='';window.dispatchEvent(new HashChangeEvent('hashchange'));}} style={{background:'none',border:'none',color:'#2563eb',cursor:'pointer',fontSize:13,padding:0,marginBottom:12}}>← Voltar ao hub</button>{institutions.length?<SapiensPanel institutionId={institutions[0].id} role={master?'master':null}/>:<p>Nenhuma instituição ativa.</p>}</section></Suspense>:route.perfis&&master?<ProfileSimulator/>:master&&route.demonstrativos?<ExperienceAdmin embedded/>:master&&commercial?<DemoLeads/>:<>
- {!route.bi&&!route.captacao&&!route.academico&&!route.painelBi&&!currentInst&&!route.repositories&&!route.masters&&!route.demonstrativos&&<div className="vx-module-grid vx-kpi-row">
-  <div className="vx-module-card" style={{borderLeft:'3px solid #0073ea'}}><small style={{color:'#676e7a'}}>Instituições</small><strong style={{fontSize:28}}>{institutions.length}</strong></div>
-  <div className="vx-module-card" style={{borderLeft:'3px solid #7c3aed'}}><small style={{color:'#676e7a'}}>Cursos</small><strong style={{fontSize:28}}>{courses.length}</strong></div>
-  <div className="vx-module-card" style={{borderLeft:'3px solid #00a86b'}}><small style={{color:'#676e7a'}}>Vínculos</small><strong style={{fontSize:28}}>{members.length}</strong></div>
-  <div className="vx-module-card" style={{borderLeft:'3px solid '+(mgmt.goals.filter(x=>x.status!=='cancelada').length>0?'#b45309':'#00a86b')}}><small style={{color:'#676e7a'}}>Metas ativas</small><strong style={{fontSize:28}}>{mgmt.goals.filter(x=>x.status!=='cancelada').length}</strong></div>
-  <div className="vx-module-card" style={{borderLeft:'3px solid '+(mgmt.actions.filter(x=>isLate(x.due_date,x.status)).length>0?'#d83a52':'#00a86b')}}><small style={{color:'#676e7a'}}>Ações atrasadas</small><strong style={{fontSize:28,color:mgmt.actions.filter(x=>isLate(x.due_date,x.status)).length>0?'#d83a52':'#00a86b'}}>{mgmt.actions.filter(x=>isLate(x.due_date,x.status)).length}</strong></div>
+ {!route.bi&&!route.captacao&&!route.academico&&!route.painelBi&&!route.governanca&&!currentInst&&!route.repositories&&!route.masters&&!route.demonstrativos&&<div className="master-list-summary" aria-label="Resumo do segmento">
+  <span><strong>{institutions.filter(i=>!route.tierFilter||(i as unknown as Row).tier===route.tierFilter).length}</strong> instituições no segmento</span>
+  <span><strong>{courses.filter(c=>institutions.some(i=>i.id===c.institution_id&&(!route.tierFilter||(i as unknown as Row).tier===route.tierFilter))).length}</strong> cursos cadastrados</span>
  </div>}
  {route.governanca?<section aria-label="Governança 360 da instituição"><HelpLabel htmlFor="governanca-ies" style={{display:'grid',gap:8,maxWidth:560,margin:'15px 0'}}><strong>Instituição para análise de governança</strong><select id="governanca-ies" value={selectedGovernancaInstitution?.id??''} onChange={e=>setGovernancaInstitutionId(e.target.value)}><option value="">Selecione uma instituição autorizada</option>{institutions.map(inst=><option key={inst.id} value={inst.id}>{inst.name}</option>)}</select></HelpLabel>{selectedGovernancaInstitution&&can.manageGoals(roleIn(selectedGovernancaInstitution.id))?<GovernancaBI key={selectedGovernancaInstitution.id} institutionId={selectedGovernancaInstitution.id} institutionName={String(selectedGovernancaInstitution.name)} courses={courses.filter(c=>c.institution_id===selectedGovernancaInstitution.id)}/>:<p role="status">{selectedGovernancaInstitution?"A Governança 360 é restrita à alta gestão autorizada desta IES.":"Selecione uma IES para realizar a auditoria. Nenhum indicador de outra instituição é carregado por padrão."}</p>}</section>:route.painelBi?<BIFrame view="executivo" source="Supabase · matrículas, indicadores de curso e relatórios acadêmicos"><PainelBI institutions={institutions} courses={courses} enrollments={enrollments} session={session} reports={reports}/></BIFrame>:route.academico?<BIFrame view="academico" institutionName={selectedAcademicoInstitution?.name} source="e-ORBIT e relatórios acadêmicos importados · cobertura sujeita à conciliação"><section aria-label="Instituição do BI Acadêmico"><HelpLabel htmlFor="academico-instituicao" style={{display:"grid",gap:8,margin:"12px 0",maxWidth:520}}><strong>Instituição para análise acadêmica</strong><select id="academico-instituicao" value={selectedAcademicoInstitution?.id??""} onChange={e=>setAcademicoInstitutionId(e.target.value)}><option value="">Selecione uma instituição</option>{institutions.map(inst=><option key={inst.id} value={inst.id}>{inst.name}</option>)}</select></HelpLabel>{selectedAcademicoInstitution?<AcademicoBI key={selectedAcademicoInstitution.id} institutionId={selectedAcademicoInstitution.id} institutionName={selectedAcademicoInstitution.name}/>:<p role="status">Selecione uma instituição autorizada. Nenhum dado acadêmico é exibido antes de definir o escopo.</p>}</section></BIFrame>:route.captacao?<BIFrame view="captacao" institutionName={selectedCaptacaoInstitution?.name} source="Leads, custos de captação e snapshots · Supabase"><section aria-label="BI de Captação institucional">
     <HelpLabel htmlFor="captacao-instituicao" style={{display:'grid',gap:'8px',marginBottom:'16px',maxWidth:'560px'}}>
@@ -397,19 +399,17 @@ export default function OwnerDashboard(){
  :master&&route.repositories?<GlobalRepository institutions={institutions as unknown as Row[]} courses={courses as unknown as Row[]} onOpen={id=>writeHash(id,'',true)}/>
  :<><section className="vx-inst-hub" aria-label="Instituições sob gestão">
   <div className="vx-inst-hub-head">
-   <div><p className="vx-inst-eyebrow">GESTÃO DAS IES · BASE AUTENTICADA</p><h2>Instituições</h2><p>Visão consolidada por instituição, com cobertura das fontes e acesso rápido às áreas de trabalho.</p></div>
+   <div><p className="vx-inst-eyebrow">MASTER / INSTITUIÇÕES</p><h2>{route.tierFilter==='escolas'?'Escolas':route.tierFilter==='superior'?'Instituições de ensino superior':'Instituições'}</h2><p>Visão consolidada por instituição, com cobertura das fontes e acesso rápido às áreas de trabalho.</p></div>
    {master&&!creating&&<button className="vx-inst-create" type="button" onClick={()=>setCreating(true)}>＋ Nova instituição</button>}
   </div>
   {creating&&<RecordForm title="Nova instituição" fields={INSTITUTION_FIELDS} initial={{status:'ativa'}} onCancel={()=>setCreating(false)} onSubmit={async v=>{const row=await saveRow(TABLES.institutions,v);setCreating(false);await load();writeHash(row.id,'');}}/>}
   <div className="vx-inst-controls">
    <HelpLabel>Buscar instituição<input type="search" placeholder="Nome, sigla ou CNPJ..." value={institutionSearch} onChange={e=>setInstitutionSearch(e.target.value)} /></HelpLabel>
    <HelpLabel>Organizar por<select value={institutionSort} onChange={e=>setInstitutionSort(e.target.value as 'name'|'courses'|'pending')}><option value="name">Nome</option><option value="courses">Cursos cadastrados</option><option value="pending">Ações atrasadas</option></select></HelpLabel>
-   <span>{institutions.length} instituição(ões) autorizada(s)</span>
+   <span>{visibleInstitutions.length} de {institutions.filter(i=>!route.tierFilter||(i as unknown as Row).tier===route.tierFilter).length} instituições no segmento</span>
   </div>
   {!institutions.length?<p className="vx-inst-empty">Nenhuma instituição disponível para esta conta. O vínculo deve ser autorizado pela administração.</p>:
-   <div className="vx-inst-grid">{institutions
-    .filter(i=>!route.tierFilter||(i as any).tier===route.tierFilter)
-    .filter(i=>[i.name,(i as unknown as Row).acronym,(i as unknown as Row).cnpj].some(value=>String(value??'').toLocaleLowerCase('pt-BR').includes(institutionSearch.trim().toLocaleLowerCase('pt-BR'))))
+   <div className="vx-inst-grid">{visibleInstitutions
     .sort((a,b)=>institutionSort==='courses'?courses.filter(c=>c.institution_id===b.id).length-courses.filter(c=>c.institution_id===a.id).length:institutionSort==='pending'?mgmt.actions.filter(x=>x.institution_id===b.id&&isLate(x.due_date,x.status)).length-mgmt.actions.filter(x=>x.institution_id===a.id&&isLate(x.due_date,x.status)).length:String(a.name).localeCompare(String(b.name),'pt-BR'))
     .map(i=>{
       const ownCourses=courses.filter(c=>c.institution_id===i.id).length;
@@ -417,41 +417,13 @@ export default function OwnerDashboard(){
       const overdue=mgmt.actions.filter(x=>x.institution_id===i.id&&isLate(x.due_date,x.status)).length;
       const findings=mgmt.diagnosis.filter(x=>x.institution_id===i.id&&x.status!=='resolvido').length;
       const stats=instStats(i.id);
-      const coverage=stats&&stats.total>0?stats.covered/stats.total:null;
-      const incomplete=coverage!==null&&coverage<1;
       const openInstrument=()=>{const p=new URLSearchParams({instituicao:i.id,aba:'novo_instrumento'});window.history.pushState(null,'','#'+p.toString());window.dispatchEvent(new HashChangeEvent('hashchange'));window.scrollTo({top:0});};
-      return <article className="vx-inst-card" key={i.id}>
-       <div className="vx-inst-card-heading">
-        <span className="vx-inst-building" aria-hidden="true">{(i as any).tier==='escolas'?'🏫':'🏛️'}</span>
-        <div className="vx-inst-identity"><h3>{i.name}</h3><p>{String((i as unknown as Row).acronym??((i as any).tier==='escolas'?'Escola':'Instituição de ensino superior'))} · <span style={{padding:'1px 6px',borderRadius:8,fontSize:10,fontWeight:700,background:(i as any).tier==='escolas'?'#ede9fe':'#dbeafe',color:(i as any).tier==='escolas'?'#7c3aed':'#2563eb'}}>{(i as any).tier==='escolas'?'Escola':'IES'}</span> · {ROLE_LABEL[roleIn(i.id)??'leitor']}</p></div>
-        {((i as unknown as Row).status==='arquivada')&&<span className="vx-inst-archived">Arquivada</span>}
-       </div>
-       <div className="vx-inst-indicators">
-        <div><small>Cursos cadastrados</small><strong>{ownCourses.toLocaleString('pt-BR')}</strong></div>
-        <div><small>Metas registradas</small><strong>{ownGoals.toLocaleString('pt-BR')}</strong></div>
-        <div className={overdue?'vx-inst-attention':''}><small>Ações atrasadas</small><strong>{overdue.toLocaleString('pt-BR')}</strong></div>
-        <div className={findings?'vx-inst-attention':''}><small>Achados abertos</small><strong>{findings.toLocaleString('pt-BR')}</strong></div>
-       </div>
-       <section className="vx-inst-enrollment" aria-label={"Cobertura das matrículas de "+i.name}>
-        <div className="vx-inst-enrollment-top"><div><small>Matrículas no recorte consultado</small><strong>{stats?stats.enrolled.toLocaleString('pt-BR'):'Sem dados'}</strong></div><span className={incomplete?'vx-inst-source-partial':'vx-inst-source-neutral'}>{!stats?'Sem fonte':incomplete?'Cobertura parcial':'Cobertura disponível'}</span></div>
-        {stats?<><p>{stats.semester} · {stats.covered} de {stats.total} cursos com dados no recorte</p>
-         <div className="vx-inst-coverage" role="progressbar" aria-label="Cobertura de cursos com matrícula" aria-valuenow={stats.covered} aria-valuemin={0} aria-valuemax={Math.max(1,stats.total)}><span style={{width:(coverage===null?0:Math.min(100,coverage*100))+'%'}}/></div>
-         {incomplete&&<p className="vx-inst-caution">Atenção: total parcial da base; não representa necessariamente o total oficial de estudantes da IES. Reconciliar com a extração de origem.</p>}</>:<p>Nenhum registro de matrícula disponibilizado para esta instituição.</p>}
-       </section>
-       <div className="vx-inst-card-actions">
-        <button type="button" className="vx-inst-primary" onClick={()=>writeHash(i.id,'')}>Abrir gestão da instituição <span aria-hidden="true">↗</span></button>
-        <div className="vx-inst-shortcuts">
-         <button type="button" onClick={()=>writeHash(i.id,'',true)}>Repositório</button>
-         <button type="button" onClick={()=>writeHash(i.id,'',false,true)}>Biblioteca INEP</button>
-         {['master','gestor'].includes(roleIn(i.id)??'')&&<button type="button" onClick={()=>writeHash(i.id,'',false,false,true)}>EBITDA</button>}
-         <button type="button" onClick={openInstrument}>Novo Instrumento</button>
-        </div>
-       </div>
-      </article>;
+      return <InstitutionSummaryCard key={i.id} name={i.name} acronym={String((i as unknown as Row).acronym??'')} tier={String((i as unknown as Row).tier??'')} roleLabel={ROLE_LABEL[roleIn(i.id)??'leitor']} archived={(i as unknown as Row).status==='arquivada'} courseCount={ownCourses} goalCount={ownGoals} overdue={overdue} findings={findings} stats={stats}
+        onOpen={()=>writeHash(i.id,'')} onRepository={()=>writeHash(i.id,'',true)} onLibrary={()=>writeHash(i.id,'',false,true)} onEbitda={['master','gestor'].includes(roleIn(i.id)??'')?()=>writeHash(i.id,'',false,false,true):undefined} onInstrument={openInstrument}/>;
     })}</div>}
-   {!!institutions.length&&!institutions.some(i=>[i.name,(i as unknown as Row).acronym,(i as unknown as Row).cnpj].some(value=>String(value??'').toLocaleLowerCase('pt-BR').includes(institutionSearch.trim().toLocaleLowerCase('pt-BR'))))&&<p className="vx-inst-empty">Nenhuma instituição corresponde à pesquisa.</p>}
+   {!!institutions.length&&!visibleInstitutions.length&&<p className="vx-inst-empty">Nenhuma instituição neste segmento corresponde à pesquisa.</p>}
  </section></>}
- <p>Os dados desta área vêm do banco. Os exemplos da demonstração permanecem separados.</p><button className="corp-login-text-button" onClick={load}>Atualizar dados</button></>}
+ <p className="master-data-note">Os dados desta área vêm do banco. Os exemplos da demonstração permanecem separados.</p><button className="corp-login-text-button" onClick={load}>Atualizar dados</button></>}
  </>}
  <button className="corp-login-text-button" onClick={async()=>{const {error}=await supabase.auth.signOut();if(error)setError('Não foi possível encerrar a sessão.');}}>Sair da conta</button></>}
  {error&&<p role="alert">{error}</p>}<p><Link href="/privacidade.html">Privacidade</Link> · <Link href="/">Voltar ao site</Link></p></main>;

@@ -31,12 +31,21 @@ describe('institution navigation', () => {
     expect([...assigned].sort()).toEqual(supported.sort());
     for (const macro of MACRO_TABS) for (const tab of macro.tabs) expect(macroTabFor(tab)).toBe(macro.key);
   });
-  it('renders seven navigation destinations with one current destination', () => {
+  it('renders eight navigation destinations with one current destination', () => {
     const html = renderToStaticMarkup(<InstitutionTabs activeTab="cadastro" activeMacro="dados" onSelectMacro={() => {}} institutionName="IES teste"><p>Conteúdo</p></InstitutionTabs>);
-    expect(html.match(/class="inst-tabs-nav-item(?: |")/g)).toHaveLength(7);
+    expect(html.match(/class="inst-tabs-nav-item(?: |")/g)).toHaveLength(8);
     expect(html.match(/aria-current="page"/g)).toHaveLength(1);
     expect(html).toContain('Conteúdo');
     expect(html).not.toContain('role="tab"');
+  });
+  it('separates academic modules from team and administrative management while retaining deep links', () => {
+    for (const tab of ['tcc', 'atividades-complementares', 'estagio', 'extensao', 'egressos', 'cpa-autoavaliacao'] as const) {
+      expect(macroTabFor(tab)).toBe('academico');
+      expect(macroDestination('academico', [tab], () => false)).toBe(tab);
+    }
+    expect(macroTabFor('equipe')).toBe('gestores');
+    expect(macroTabFor('plano')).toBe('gestores');
+    expect(macroTabFor('visao')).toBe('cursos');
   });
   it('retains content without adding navigation outside Master', () => {
     expect(renderToStaticMarkup(<InstitutionTabs enabled={false} activeTab="geral" activeMacro="visao-geral" onSelectMacro={() => {}} institutionName="IES teste"><p>Original</p></InstitutionTabs>)).toBe('<p>Original</p>');
