@@ -29,11 +29,13 @@ import { listRepository } from '@/lib/repository-data';
 import { isInstrumentRequest, latestInstrumentDocuments } from '@/lib/repository';
 import { latestSemesterSummary, reitorCompliance, sourceDate, type ReitorCompliance } from '@/lib/bi/reitor-summary';
 import './reitor-bi.css';
+import PlanningManagement from './PlanningManagement';
 
 // ─── types ───
-type Tab = 'geral' | 'academico' | 'captacao' | 'compliance' | 'financeiro' | 'infra' | 'governanca_360';
+type Tab = 'planejamento' | 'geral' | 'academico' | 'captacao' | 'compliance' | 'financeiro' | 'infra' | 'governanca_360';
 const TABS: { key: Tab; label: string; icon: string }[] = [
   { key: 'geral', label: 'Visão Geral', icon: '📊' },
+  {key:'planejamento',label:'Estratégia e execução',icon:'◎'},
   { key: 'academico', label: 'Acadêmico', icon: '🎓' },
   { key: 'governanca_360', label: 'Governança 360°', icon: '⚖️' },
   { key: 'captacao', label: 'Captação', icon: '📈' },
@@ -756,6 +758,7 @@ export default function ReitorBI({ institutions, courses, enrollments, session, 
   }
 
   const RENDERERS: Record<Tab, () => ReactElement> = {
+    planejamento:()=> <PlanningManagement key={instId} institutionId={instId}/> ,
     geral: renderGeral, academico: renderAcademico, governanca_360: renderGovernanca360, captacao: renderCaptacao,
     compliance: renderCompliance, financeiro: renderFinanceiro, infra: renderInfra,
   };
