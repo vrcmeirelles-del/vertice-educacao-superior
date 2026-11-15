@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - 'source-overrides/client/src/components/area/LearningConnected.tsx'
+      - 'source-overrides/client/src/components/bi/ReadingIndicators*'
       - 'source-overrides/server/*.medical.spec.ts'
       - 'supabase/functions/vertice-learning-bridge/**'
       - 'supabase/migrations/*learning*'

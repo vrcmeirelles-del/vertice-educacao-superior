@@ -6,6 +6,7 @@ import type {Role,Row} from "@/lib/area";
 import RosterUpload from "./RosterUpload";
 import ApiConnectorSetup from "./ApiConnectorSetup";
 import StudentNotifications from "./StudentNotifications";
+import ReadingIndicators from '@/components/bi/ReadingIndicators';
 import "./learning-connected.css";
 
 type Metric={
@@ -40,6 +41,7 @@ export default function LearningConnected({institutionId,courses,role,schoolMode
  const [loading,setLoading]=useState(true);
  const [message,setMessage]=useState("");
  const [busy,setBusy]=useState(false);
+ const [readingRevision,setReadingRevision]=useState(0);
  const [filterCourse,setFilterCourse]=useState("");
  const [filterPeriod,setFilterPeriod]=useState("");
  const [filterModule,setFilterModule]=useState("");
@@ -57,7 +59,8 @@ export default function LearningConnected({institutionId,courses,role,schoolMode
    attempts:filtered.reduce((s,x)=>s+x.attempts,0),
    coherent:filtered.filter(x=>x.paired_students>=5&&x.comparison_gap!==null).length};
  // Counts of attempts may repeat when one event maps to multiple validated competencies.
- const reload=async()=>{
+ const reload=async(refreshReadings=true)=>{
+   if(refreshReadings)setReadingRevision(n=>n+1);
    const request=++reloadSequence.current;
    const isCurrent=()=>currentScope.current===scope&&reloadSequence.current===request;
    setLoading(true);
@@ -80,7 +83,7 @@ export default function LearningConnected({institutionId,courses,role,schoolMode
    }catch(error){if(isCurrent())setMessage("Consulta parcial: "+errorMessage(error));}
    finally{if(isCurrent())setLoading(false);}
  };
- useEffect(()=>{setData([]);setStatus(null);setMapping(initialMapping);setFilterModule("");void reload();return()=>{reloadSequence.current++;};},[institutionId,schoolMode,role]);
+ useEffect(()=>{setData([]);setStatus(null);setMapping(initialMapping);setFilterModule("");void reload(false);return()=>{reloadSequence.current++;};},[institutionId,schoolMode,role]);
  const bridgeAction=async(body:Record<string,unknown>)=>{
    if(actionPending.current)return false;
    actionPending.current=true;
@@ -91,6 +94,7 @@ export default function LearningConnected({institutionId,courses,role,schoolMode
      });
      if(currentScope.current!==scope)return false;
      if(error)throw error;
+     setReadingRevision(n=>n+1);
      setMessage((body.operation==="sync"||body.operation==="sync_enem")
        ?"Vinculações confirmadas: "+number(answer?.confirmedLinks??0)+". Novos eventos: "+number(answer?.newEvents??0)+
         ". Grupos gerenciais: "+number(answer?.publishedGroups??0)+
@@ -133,6 +137,7 @@ export default function LearningConnected({institutionId,courses,role,schoolMode
      <article><small>Tentativas por vínculo curricular</small><b>{totals.groups?number(totals.attempts):"—"}</b><span>Não representa total de tentativas únicas</span></article>
      <article><small>Comparações nota × exame</small><b>{number(totals.coherent)}</b><span>Amostra pareada validada</span></article>
    </div>
+   <ReadingIndicators institutionId={institutionId} role={role} expectedTier={schoolMode?'escolas':'superior'} revision={readingRevision}/>
    {canManage&&<RosterUpload institutionId={institutionId} courses={courses} role={role}/>}
    {canManage&&<ApiConnectorSetup institutionId={institutionId} role={role}/>}
    {canManage&&<StudentNotifications institutionId={institutionId} role={role}/>}
