@@ -61,6 +61,7 @@ const MODULE_LABELS: Record<string,string> = { tcc:'TCC', ac:'AC', estagio:'Est�
 function MiniKpi({ label, value, detail, bad }: { label: string; value: number; detail?: string; bad?: boolean }) {
   return <div style={{ textAlign: 'center' }}><div style={{ fontSize: '1.125rem', fontWeight: 700, color: bad ? '#ef4444' : value > 0 ? '#1e293b' : '#94a3b8' }}>{value}</div><div style={{ fontSize: '.6875rem', color: 'var(--vx-muted,#64748b)' }}>{label}</div>{detail && <div style={{ fontSize: '.625rem', color: bad ? '#ef4444' : '#94a3b8' }}>{detail}</div>}</div>;
 }
+const SchoolIndividual = lazy(() => import("./SchoolIndividual"));
 const SchoolOperations = lazy(() => import("./SchoolOperations"));
 const SchoolPlanning = lazy(() => import("./SchoolPlanning"));
 const SchoolManagement = lazy(() => import("../bi/SchoolManagement"));
@@ -102,7 +103,7 @@ const TAB_GROUPS: {label:string;subtitle:string;icon:string;tabs:Tab[];tier?:'su
   {label:'Governança',subtitle:'Órgãos colegiados, deliberações e fluxos',icon:'⚖',tabs:['governanca'],tier:'both'},
   {label:'Acompanhamento',subtitle:'Inclusão, PEI e regimes especiais',icon:'♿',tabs:['inclusao','acompanhamento-especial'],tier:'both'},
   {label:'Aquisições',subtitle:'Compras, fornecedores e ordens',icon:'🛒',tabs:['aquisicoes'],tier:'both'},
-  {label:'Gestão Escolar',subtitle:'Cadastro, planejamento e consolidação escolar',icon:'🏫',tabs:['cadastro','gestao-escolar','escola-bi','escola-permanencia','escola-financeiro','escola-dados','escola-projetos','escola-estagio','escola-captacao'],tier:'escolas'},
+  {label:'Gestão Escolar',subtitle:'Cadastro, planejamento e consolidação escolar',icon:'🏫',tabs:['cadastro','gestao-escolar','escola-individual','escola-documentos','escola-bi','escola-permanencia','escola-financeiro','escola-dados','escola-projetos','escola-estagio','escola-captacao'],tier:'escolas'},
   {label:'ENEM & Vestibular',subtitle:'Simulados, desempenho por área e metas',icon:'🎯',tabs:['escola-enem'],tier:'escolas'},
   {label:'Egressos Escolar',subtitle:'Destino pós-escola e aprovações',icon:'🎓',tabs:['escola-egressos'],tier:'escolas'},
   {label:'Documentos',subtitle:'Gestão documental e análise por IA',icon:'📄',tabs:['documentos'],tier:'both'},
@@ -111,6 +112,8 @@ const TAB_GROUPS: {label:string;subtitle:string;icon:string;tabs:Tab[];tier?:'su
 ];
 
 const TAB_DETAILS: Partial<Record<Tab,{icon:string;description:string}>> = {
+ "escola-individual":{icon:"▤",description:"Acompanhamento Individual com fontes, histórico e revisão da direção"},
+ "escola-documentos":{icon:"▤",description:"Documentos e Assinaturas com fontes, histórico e revisão da direção"},
  "escola-bi":{icon:"▦",description:"Desempenho Escolar, por etapa, turma e ano letivo"},
  "escola-permanencia":{icon:"▦",description:"Permanência Escolar, por etapa, turma e ano letivo"},
  "escola-financeiro":{icon:"▦",description:"Resultado e Custos Escolares, por etapa, turma e ano letivo"},
@@ -171,6 +174,8 @@ const TAB_DETAILS: Partial<Record<Tab,{icon:string;description:string}>> = {
 };
 
 const TABS: [Tab, string][] = [
+  ["escola-individual","Acompanhamento Individual"],
+  ["escola-documentos","Documentos e Assinaturas"],
   ["escola-bi", "Desempenho Escolar"],
   ["escola-permanencia", "Permanência Escolar"],
   ["escola-financeiro", "Resultado e Custos Escolares"],
@@ -401,7 +406,7 @@ export default function Workspace({
       setModuleSearch(""); setOnlyFavorites(false);
     }
   };
-  const isLocked = (tabKey: string) => !["escola-bi", "escola-permanencia", "escola-financeiro", "escola-dados", "escola-projetos", "escola-estagio", "escola-captacao"].includes(tabKey) && tabKey !== "gestao-escolar" && tabKey !== "planejamento-estrategico" && tabKey !== "planejamento-semestral" && activeTabs.size > 0 && !activeTabs.has(tabKey);
+  const isLocked = (tabKey: string) => !["escola-individual","escola-documentos","escola-bi", "escola-permanencia", "escola-financeiro", "escola-dados", "escola-projetos", "escola-estagio", "escola-captacao"].includes(tabKey) && tabKey !== "gestao-escolar" && tabKey !== "planejamento-estrategico" && tabKey !== "planejamento-semestral" && activeTabs.size > 0 && !activeTabs.has(tabKey);
   const isTasting = (tabKey: string) => {
     const mod = findModuleByTab(moduleCatalog, tabKey);
     return mod?.display_status === 'tasting';
@@ -559,6 +564,10 @@ export default function Workspace({
         <Suspense fallback={<p role="status">Carregando planejamento estratégico…</p>}>{instTier==='escolas'?<SchoolPlanning key={`${id}:strategic`} institutionId={String(id)} role={role} kind="strategic"/>:<CoursePlanning institutionId={String(id)} courses={data.courses.map(c=>({id:String(c.id),name:String(c.name),code:String(c.code??"")}))} role={role} kind="strategic" />}</Suspense>
       ) : tab === "planejamento-semestral" ? (
         <Suspense fallback={<p role="status">Carregando planejamento semestral…</p>}>{instTier==='escolas'?<SchoolPlanning key={`${id}:semester`} institutionId={String(id)} role={role} kind="semester"/>:<CoursePlanning institutionId={String(id)} courses={data.courses.map(c=>({id:String(c.id),name:String(c.name),code:String(c.code??"")}))} role={role} kind="semester" />}</Suspense>
+      ) : tab === "escola-individual" ? (
+        instTier==='escolas'&&can.viewManagement(role)?<Suspense fallback={<p role="status">Carregando acompanhamento escolar…</p>}><SchoolIndividual key={`${id}:students`} institutionId={String(id)} view="students"/></Suspense>:<p role="alert">Acesso restrito à direção escolar autorizada.</p>
+      ) : tab === "escola-documentos" ? (
+        instTier==='escolas'&&can.viewManagement(role)?<Suspense fallback={<p role="status">Carregando acompanhamento escolar…</p>}><SchoolIndividual key={`${id}:documents`} institutionId={String(id)} view="documents"/></Suspense>:<p role="alert">Acesso restrito à direção escolar autorizada.</p>
       ) : tab === "escola-bi" ? (
         instTier==='escolas'&&can.viewManagement(role)?<Suspense fallback={<p role="status">Carregando gestão escolar…</p>}><SchoolOperations key={`${id}:bi`} institutionId={String(id)} view="bi" onGo={choose}/></Suspense>:<p role="alert">Acesso restrito à gestão escolar autorizada.</p>
       ) : tab === "escola-permanencia" ? (

@@ -1,0 +1,11 @@
+import {it,expect} from 'vitest';
+import {studentSignals,renderSchoolTemplate} from './school-individual';
+const student={id:'s',status:'active'};
+const event={id:'e',student_id:'s',kind:'observation',source:'Diário',reference_date:'2026-11-15',created_at:'2026-11-15',data:{scheduled_days:20,present_days:14,score_pct:40,renewal:'pending',renewal_due:'2026-11-14'}};
+it('explains three independent signals without a probability claim',()=>{const r=studentSignals(student,[event],'2026-11-15');expect(r.label).toBe('Atenção elevada');expect(r.signals).toHaveLength(3);expect(r.signals.every(s=>s.source==='Diário')).toBe(true);expect(JSON.stringify(r)).not.toContain('probability');});
+it('does not interpret missing data or zero scheduled days as attendance zero',()=>{expect(studentSignals(student,[],'2026-11-15').label).toBe('Sem avaliação');expect(studentSignals(student,[{...event,data:{scheduled_days:0,present_days:0}}],'2026-11-15').label).toBe('Sem base suficiente');});
+it('uses latest observation, not intervention or another student',()=>{const r=studentSignals(student,[{...event,kind:'intervention'},{...event,student_id:'other'}],'2026-11-15');expect(r.label).toBe('Sem avaliação');});
+it('stale and inactive records are not treated as active risk',()=>{expect(studentSignals(student,[{...event,reference_date:'2026-09-01'}],'2026-11-15').label).toBe('Dados desatualizados');expect(studentSignals({...student,status:'transferred'},[event],'2026-11-15').label).toBe('Situação não ativa');});
+it('confirmed renewal and threshold boundaries do not trigger alarms',()=>{const r=studentSignals(student,[{...event,data:{scheduled_days:20,present_days:15,score_pct:50,renewal:'confirmed'}}],'2026-11-15');expect(r.signals).toHaveLength(0);expect(r.label).toBe('Sem alerta pelas regras');});
+it('does not evaluate future-dated observations as current data',()=>expect(studentSignals(student,[{...event,reference_date:'2026-12-01'}],'2026-11-15').label).toBe('Dados desatualizados'));
+it('renders only approved template fields and does not recursively expand student input',()=>{expect(renderSchoolTemplate('Aluno {{student}} · {{year}}',{student:'{{institution}}',year:2026})).toBe('Aluno {{institution}} · 2026');expect(()=>renderSchoolTemplate('{{cpf}}',{cpf:'123'})).toThrow();expect(()=>renderSchoolTemplate('{{student}}',{})).toThrow();});
