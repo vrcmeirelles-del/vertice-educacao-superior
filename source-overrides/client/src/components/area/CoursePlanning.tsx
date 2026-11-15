@@ -106,40 +106,40 @@ function PlanningEditor({institutionId,courseId,canWrite,onDirty,kind='both'}:{i
     const leave=(event:BeforeUnloadEvent)=>{if(anyDirty){event.preventDefault();event.returnValue='';}};
     window.addEventListener('beforeunload',leave);return()=>window.removeEventListener('beforeunload',leave);
   },[anyDirty]);
-  const semester=tab==='semestre',kind=semester?'semester':'strategic';
-  const current=semester?semDraft:draft;
-  const currentRevision=semester?semesterRevision:strategicRevision;
-  const records=semester?semesters:plans;
+  const isSemester=tab==='semestre',planKind:('strategic'|'semester')=isSemester?'semester':'strategic';
+  const current=isSemester?semDraft:draft;
+  const currentRevision=isSemester?semesterRevision:strategicRevision;
+  const records=isSemester?semesters:plans;
   async function persist(action='save') {
     setSaving(true);setError('');setNotice('');
     try {
-      const result=await planningRequest(institutionId,courseId,kind,action,{...current,form_code:null,expected_updated_at:currentRevision||null});
+      const result=await planningRequest(institutionId,courseId,planKind,action,{...current,form_code:null,expected_updated_at:currentRevision||null});
       if(!result.plan)throw new Error('O servidor não confirmou o planejamento.');
-      loadRecord(result.plan,kind);
-      const all=await planningRequest(institutionId,courseId,kind,'list');
-      if(semester)setSemesters(all.plans??[]);else setPlans(all.plans??[]);
+      loadRecord(result.plan,planKind);
+      const all=await planningRequest(institutionId,courseId,planKind,'list');
+      if(isSemester)setSemesters(all.plans??[]);else setPlans(all.plans??[]);
       setDirty(false);setNotice(action==='publish'?'Planejamento publicado.':'Planejamento salvo.');
     }catch(e){setError(e instanceof Error?e.message:'Não foi possível salvar.');}finally{setSaving(false);}
   }
   function fresh(){
     if(dirty&&!window.confirm('Há alterações não salvas. Deseja abrir um novo planejamento?'))return;
-    if(semester){setSemDraft({...EMPTY_SEMESTER,courseId});setSemesterRevision('');}
+    if(isSemester){setSemDraft({...EMPTY_SEMESTER,courseId});setSemesterRevision('');}
     else{setDraft({...EMPTY_PLAN,courseId});setStrategicRevision('');}
     setDirty(false);setNotice('');
   }
-  const Section=tab==='semestre'?null:sections[tab];
+  const Section=tab==='semestre'?null:sections[tab as keyof typeof sections];
   if(loading)return <p role="status">Carregando planejamentos do curso…</p>;
   return <>
     {error&&<p role="alert" className="planning-error">{error}</p>}
     {notice&&<p role="status" className="planning-success">{notice}</p>}
     {visibleTabs.length>1&&<nav className="planning-tabs" aria-label="Seções do planejamento">{visibleTabs.map(t=><button key={t.key} type="button" aria-pressed={tab===t.key} onClick={()=>setTab(t.key)}>{t.label}</button>)}</nav>}
-    <div className="planning-toolbar"><p>{statusNames[current.status]} · versão {current.version}</p>{canWrite&&<button type="button" onClick={fresh}>Novo {semester?'planejamento semestral':'planejamento estratégico'}</button>}</div>
+    <div className="planning-toolbar"><p>{statusNames[current.status]} · versão {current.version}</p>{canWrite&&<button type="button" onClick={fresh}>Novo {isSemester?'planejamento semestral':'planejamento estratégico'}</button>}</div>
     {error&&!plans.length&&!semesters.length?<p>Confira o acesso e atualize a página antes de editar.</p>:<>
       {!canWrite&&<p>Seu perfil permite consultar este planejamento.</p>}
       <fieldset disabled={!canWrite||saving}><legend className="planning-sr">Conteúdo do planejamento</legend>{Section?<Section plan={draft} setPlan={value=>{setDraft(value);setDirty(true);setNotice('');}}/>:<SemestreTab draft={semDraft} setDraft={value=>{setSemDraft(value);setDirty(true);setNotice('');}} crossData={crossData}/>}</fieldset>
-      {canWrite&&<div className="planning-toolbar"><button type="button" className="planning-primary" disabled={saving||(semester&&!semDraft.semester)} onClick={()=>persist()}>{saving?'Salvando…':semester?'Salvar planejamento semestral':'Salvar planejamento estratégico'}</button>{current.id&&current.status==='draft'&&<button type="button" disabled={saving||dirty} onClick={()=>persist('publish')}>Publicar versão salva</button>}{current.status!=='draft'&&<small>Salvar alterações cria uma nova versão em rascunho e preserva a versão anterior.</small>}</div>}
+      {canWrite&&<div className="planning-toolbar"><button type="button" className="planning-primary" disabled={saving||(isSemester&&!semDraft.semester)} onClick={()=>persist()}>{saving?'Salvando…':isSemester?'Salvar planejamento semestral':'Salvar planejamento estratégico'}</button>{current.id&&current.status==='draft'&&<button type="button" disabled={saving||dirty} onClick={()=>persist('publish')}>Publicar versão salva</button>}{current.status!=='draft'&&<small>Salvar alterações cria uma nova versão em rascunho e preserva a versão anterior.</small>}</div>}
     </>}
-    <h3>Histórico {semester?'semestral':'estratégico'}</h3>
-    {!records.length?<p>Nenhuma versão registrada para este curso.</p>:<div className="planning-scroll"><table><thead><tr>{semester&&<th>Semestre</th>}<th>Versão</th><th>Situação</th><th>Atualização</th><th>Acesso</th></tr></thead><tbody>{records.map(row=><tr key={row.id}>{semester&&<td>{row.semester}</td>}<td>{row.version}</td><td>{statusNames[row.status]}</td><td>{new Date(row.updated_at).toLocaleString('pt-BR')}</td><td><button type="button" onClick={()=>{if(!dirty||window.confirm('Deseja trocar a versão sem salvar as alterações?')){loadRecord(row,kind);setDirty(false);setNotice('');}}}>Abrir versão</button></td></tr>)}</tbody></table></div>}
+    <h3>Histórico {isSemester?'semestral':'estratégico'}</h3>
+    {!records.length?<p>Nenhuma versão registrada para este curso.</p>:<div className="planning-scroll"><table><thead><tr>{isSemester&&<th>Semestre</th>}<th>Versão</th><th>Situação</th><th>Atualização</th><th>Acesso</th></tr></thead><tbody>{records.map(row=><tr key={row.id}>{isSemester&&<td>{row.semester}</td>}<td>{row.version}</td><td>{statusNames[row.status]}</td><td>{new Date(row.updated_at).toLocaleString('pt-BR')}</td><td><button type="button" onClick={()=>{if(!dirty||window.confirm('Deseja trocar a versão sem salvar as alterações?')){loadRecord(row,planKind);setDirty(false);setNotice('');}}}>Abrir versão</button></td></tr>)}</tbody></table></div>}
   </>;
 }
