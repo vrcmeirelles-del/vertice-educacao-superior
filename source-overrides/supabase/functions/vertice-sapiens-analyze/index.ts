@@ -84,7 +84,7 @@ interface CompetencyAgg {
 async function callOpenAI(
   systemPrompt: string,
   userPrompt: string,
-  model = "gpt-4o",
+  model = env("OPENAI_MODEL") || "gpt-4o",
   maxTokens = 3000
 ): Promise<{ content: string; model: string } | null> {
   const key = env("OPENAI_API_KEY");
@@ -109,7 +109,7 @@ async function callOpenAI(
 async function callAnthropic(
   systemPrompt: string,
   userPrompt: string,
-  model = "claude-sonnet-4-20250514",
+  model = env("ANTHROPIC_MODEL") || "claude-sonnet-4-6",
   maxTokens = 3000
 ): Promise<{ content: string; model: string } | null> {
   const key = env("ANTHROPIC_API_KEY");
