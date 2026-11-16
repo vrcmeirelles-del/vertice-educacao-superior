@@ -26,6 +26,12 @@ const goal = {
   indicator: "Estudantes com acompanhamento registrado",
   unit: "%",
   direction: "aumentar",
+  updated_at: "2026-11-15T19:00:00Z",
+  indicator_definition: {
+    indicator: "Estudantes com acompanhamento registrado",
+    unit: "%",
+    direction: "aumentar",
+  },
   target: 80,
   status: "concluida",
   due_date: "2026-10-01",
@@ -164,6 +170,9 @@ export const supabase = {
           objective_index: p.objective_index,
           rationale: p.rationale,
           valid_for_snapshot: true,
+          objective_matches: true,
+          indicator_matches: true,
+          indicator_snapshot: p.expected_indicator_definition,
         },
       ];
       return { data: { ok: true }, error: null };

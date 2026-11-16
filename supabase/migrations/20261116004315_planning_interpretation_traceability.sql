@@ -10,10 +10,23 @@ $$;
 REVOKE ALL ON FUNCTION vertice_planning.can_interpret(uuid,uuid) FROM PUBLIC,anon;
 GRANT EXECUTE ON FUNCTION vertice_planning.can_interpret(uuid,uuid) TO authenticated;
 
+-- Freeze only the indicator's definition. Progress, deadlines and target changes
+-- do not by themselves change the meaning of an objective/indicator association.
+-- Optional definition fields are read through JSON, without requiring new columns.
+CREATE OR REPLACE FUNCTION vertice_planning.indicator_definition(p_goal jsonb)
+RETURNS jsonb LANGUAGE sql IMMUTABLE SECURITY INVOKER SET search_path='' AS $$
+ SELECT jsonb_strip_nulls(jsonb_build_object(
+  'indicator',p_goal->'indicator','unit',p_goal->'unit','direction',p_goal->'direction',
+  'formula',coalesce(nullif(p_goal->'indicator_formula','null'::jsonb),p_goal->'formula'),
+  'population',coalesce(nullif(p_goal->'indicator_population','null'::jsonb),p_goal->'population')));
+$$;
+REVOKE ALL ON FUNCTION vertice_planning.indicator_definition(jsonb) FROM PUBLIC,anon,authenticated;
+
 CREATE TABLE vertice_planning.objective_goal_links (
  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),institution_id uuid NOT NULL REFERENCES public.vertice_institutions(id),
  course_id uuid NOT NULL REFERENCES public.vertice_courses(id),plan_id uuid NOT NULL REFERENCES vertice_app.strategic_plans(id),
  objective_index integer NOT NULL CHECK(objective_index>=0),objective_snapshot jsonb NOT NULL,goal_id uuid NOT NULL REFERENCES public.vertice_goals(id),
+ indicator_snapshot jsonb NOT NULL CHECK(jsonb_typeof(indicator_snapshot)='object'),
  rationale text NOT NULL CHECK(length(btrim(rationale)) BETWEEN 10 AND 2000),linked_by uuid NOT NULL REFERENCES auth.users(id),linked_at timestamptz NOT NULL DEFAULT now(),
  unlinked_by uuid REFERENCES auth.users(id),unlinked_at timestamptz,
  CHECK((unlinked_by IS NULL)=(unlinked_at IS NULL))
@@ -80,7 +93,7 @@ BEGIN
  FOR c IN SELECT value FROM jsonb_array_elements(coalesce(p_context->'courses','[]')) LOOP
   cid:=(c->>'id')::uuid;
   IF term>observed_term THEN c:=c||jsonb_build_object('stats',NULL,'previous_stats',NULL); END IF;
-  SELECT coalesce(jsonb_agg(jsonb_build_object('id',g.id,'title',g.title,'indicator',g.indicator,'unit',g.unit,'direction',g.direction,'baseline',g.baseline,'baseline_date',g.baseline_date,'target',g.target,'due_date',g.due_date,'status',g.status,'source',g.source,'updated_at',g.updated_at,
+  SELECT coalesce(jsonb_agg(jsonb_build_object('id',g.id,'title',g.title,'indicator',g.indicator,'unit',g.unit,'direction',g.direction,'baseline',g.baseline,'baseline_date',g.baseline_date,'target',g.target,'due_date',g.due_date,'status',g.status,'source',g.source,'updated_at',g.updated_at,'indicator_definition',vertice_planning.indicator_definition(to_jsonb(g)),
    'action_documents',coalesce((SELECT jsonb_agg(to_jsonb(d) ORDER BY d.id) FROM (SELECT DISTINCT d.id,d.status,d.version_number,d.approved_at,d.expiry_date,d.updated_at,
     (d.status='active' AND d.approved_by IS NOT NULL AND d.approved_at IS NOT NULL AND d.superseded_by IS NULL AND (d.expiry_date IS NULL OR d.expiry_date>=(now() AT TIME ZONE 'America/Sao_Paulo')::date)) human_approved
     FROM public.vertice_actions a JOIN public.vertice_documents d ON d.id=a.evidence_doc_id AND d.institution_id=p_institution AND (d.course_id=cid OR d.course_id IS NULL)
@@ -99,7 +112,7 @@ BEGIN
     CASE WHEN count(*)=1 AND (c->>'code_matches')::integer=1 THEN min(st.cancelado) ELSE NULL END cancelado,
     CASE WHEN count(*)=1 AND (c->>'code_matches')::integer=1 THEN min(st.transferido) ELSE NULL END transferido,
     max(st.created_at) created_at
-   FROM public.vertice_course_semester_stats st WHERE st.institution_id=p_institution AND st.codigo=c->>'code' AND st.semestre ~ '^[0-9]{4}/0?[12]$' AND (term IS NULL OR regexp_replace(st.semestre,'/0([12])$','/\1')<=least(term,observed_term))
+   FROM public.vertice_course_semester_stats st WHERE st.institution_id=p_institution AND st.codigo=c->>'code' AND st.semestre ~ '^[0-9]{4}/0?[12]$' AND regexp_replace(st.semestre,'/0([12])$','/\1')<=least(coalesce(term,observed_term),observed_term)
    GROUP BY regexp_replace(st.semestre,'/0([12])$','/\1') ORDER BY semester DESC LIMIT 8) h;
   SELECT coalesce(jsonb_agg(to_jsonb(m) ORDER BY m.semester,m.subject_code,m.module,m.competency),'[]') INTO learning FROM (
    SELECT m.semester,m.subject_code,m.module,m.competency,m.participants,m.paired_students,m.curricular_average,m.external_accuracy,m.activity_rate,m.updated_at
@@ -113,8 +126,8 @@ BEGIN
    END;
   END IF;
   SELECT c||jsonb_build_object('goals',goals,'enrollment_history',history,'learning_history',learning,'learning_history_total',(SELECT count(*) FROM public.vertice_learning_course_metrics m WHERE m.institution_id=p_institution AND m.course_id=cid AND m.participants>=5 AND m.semester<=coalesce(least(term,observed_term),observed_term)),'permanence',risk,
-   'objective_links',coalesce((SELECT jsonb_agg(jsonb_build_object('id',l.id,'plan_id',l.plan_id,'goal_id',l.goal_id,'objective_index',l.objective_index,'rationale',l.rationale,'linked_at',l.linked_at,
-    'valid_for_snapshot',l.objective_snapshot=(c->'strategic'->'strategic_objectives'->l.objective_index)) ORDER BY l.id) FROM vertice_planning.objective_goal_links l WHERE l.institution_id=p_institution AND l.course_id=cid AND l.plan_id=(c->'strategic'->>'id')::uuid AND l.unlinked_at IS NULL),'[]'),
+   'objective_links',coalesce((SELECT jsonb_agg(jsonb_build_object('id',l.id,'plan_id',l.plan_id,'goal_id',l.goal_id,'objective_index',l.objective_index,'rationale',l.rationale,'linked_at',l.linked_at,'linked_by',l.linked_by,'indicator_snapshot',l.indicator_snapshot,
+    'valid_for_snapshot',l.objective_snapshot=(c->'strategic'->'strategic_objectives'->l.objective_index) AND EXISTS(SELECT 1 FROM public.vertice_goals g WHERE g.id=l.goal_id AND g.institution_id=p_institution AND g.course_id=cid AND g.status<>'cancelada' AND l.indicator_snapshot=vertice_planning.indicator_definition(to_jsonb(g)))) ORDER BY l.id) FROM vertice_planning.objective_goal_links l WHERE l.institution_id=p_institution AND l.course_id=cid AND l.plan_id=(c->'strategic'->>'id')::uuid AND l.unlinked_at IS NULL),'[]'),
    'actions',coalesce((SELECT jsonb_agg(jsonb_build_object('id',a.id,'goal_id',a.goal_id,'what',coalesce(a.what,a.what_description),'why',coalesce(a.why,a.why_justification),'where',coalesce(a.where_at,a.where_location),'who',coalesce(a.who,a.who_responsible),'how',coalesce(a.how,a.how_method),'declared_cost',coalesce(a.how_much,a.how_much_cost::text),'validated_by_superior',a.validated_by_superior IS NOT NULL,'evidence_doc_id',CASE WHEN EXISTS(SELECT 1 FROM public.vertice_documents d WHERE d.id=a.evidence_doc_id AND d.institution_id=p_institution AND (d.course_id=cid OR d.course_id IS NULL)) THEN a.evidence_doc_id ELSE NULL END,'status',a.status,'due_date',coalesce(a.due_date,a.when_deadline),'has_evidence',a.evidence_doc_id IS NOT NULL OR nullif(btrim(a.evidence::text),'') IS NOT NULL,'updated_at',a.updated_at) ORDER BY a.id) FROM public.vertice_actions a WHERE a.institution_id=p_institution AND a.course_id=cid),'[]')) INTO c;
   enriched:=enriched||jsonb_build_array(c);
  END LOOP;
@@ -167,8 +180,11 @@ BEGIN
   IF v_course IS NULL THEN RAISE EXCEPTION 'Selecione um curso'; END IF;
   SELECT * INTO v_plan FROM vertice_app.strategic_plans WHERE institution_id=p_institution_id AND course_id=v_course AND status<>'archived' ORDER BY version DESC,updated_at DESC,id LIMIT 1;
   RETURN jsonb_build_object('plan',CASE WHEN v_plan.id IS NULL THEN NULL ELSE jsonb_build_object('id',v_plan.id,'version',v_plan.version,'status',v_plan.status,'updated_at',v_plan.updated_at,'strategic_objectives',v_plan.strategic_objectives) END,
-   'goals',coalesce((SELECT jsonb_agg(jsonb_build_object('id',g.id,'title',g.title,'indicator',g.indicator) ORDER BY g.id) FROM public.vertice_goals g WHERE g.institution_id=p_institution_id AND g.course_id=v_course AND g.status<>'cancelada'),'[]'),
-   'links',coalesce((SELECT jsonb_agg(jsonb_build_object('id',l.id,'goal_id',l.goal_id,'objective_index',l.objective_index,'rationale',l.rationale,'valid_for_snapshot',l.objective_snapshot=(v_plan.strategic_objectives->l.objective_index)) ORDER BY l.id) FROM vertice_planning.objective_goal_links l WHERE l.institution_id=p_institution_id AND l.course_id=v_course AND l.plan_id=v_plan.id AND l.unlinked_at IS NULL),'[]'));
+   'goals',coalesce((SELECT jsonb_agg(jsonb_build_object('id',g.id,'title',g.title,'indicator',g.indicator,'unit',g.unit,'direction',g.direction,'updated_at',g.updated_at,'indicator_definition',vertice_planning.indicator_definition(to_jsonb(g))) ORDER BY g.id) FROM public.vertice_goals g WHERE g.institution_id=p_institution_id AND g.course_id=v_course AND g.status<>'cancelada'),'[]'),
+   'links',coalesce((SELECT jsonb_agg(jsonb_build_object('id',l.id,'goal_id',l.goal_id,'objective_index',l.objective_index,'rationale',l.rationale,'indicator_snapshot',l.indicator_snapshot,
+    'objective_matches',l.objective_snapshot=(v_plan.strategic_objectives->l.objective_index),
+    'indicator_matches',EXISTS(SELECT 1 FROM public.vertice_goals g WHERE g.id=l.goal_id AND g.institution_id=p_institution_id AND g.course_id=v_course AND g.status<>'cancelada' AND l.indicator_snapshot=vertice_planning.indicator_definition(to_jsonb(g))),
+    'valid_for_snapshot',l.objective_snapshot=(v_plan.strategic_objectives->l.objective_index) AND EXISTS(SELECT 1 FROM public.vertice_goals g WHERE g.id=l.goal_id AND g.institution_id=p_institution_id AND g.course_id=v_course AND g.status<>'cancelada' AND l.indicator_snapshot=vertice_planning.indicator_definition(to_jsonb(g)))) ORDER BY l.id) FROM vertice_planning.objective_goal_links l WHERE l.institution_id=p_institution_id AND l.course_id=v_course AND l.plan_id=v_plan.id AND l.unlinked_at IS NULL),'[]'));
  ELSIF p_action IN ('link_objective','unlink_objective') THEN
   IF v_course IS NULL THEN RAISE EXCEPTION 'Selecione um curso'; END IF;
   PERFORM pg_advisory_xact_lock(hashtextextended('course-planning:'||v_course::text,0));
@@ -180,11 +196,15 @@ BEGIN
   ELSE
    v_index:=(p_payload->>'objective_index')::integer;
    IF v_index IS NULL OR v_index<0 OR jsonb_typeof(v_plan.strategic_objectives->v_index) IS DISTINCT FROM 'object' THEN RAISE EXCEPTION 'Objetivo inválido'; END IF;
-   SELECT * INTO v_goal FROM public.vertice_goals WHERE id=(p_payload->>'goal_id')::uuid AND institution_id=p_institution_id AND course_id=v_course AND status<>'cancelada';
+   SELECT * INTO v_goal FROM public.vertice_goals WHERE id=(p_payload->>'goal_id')::uuid AND institution_id=p_institution_id AND course_id=v_course AND status<>'cancelada' FOR UPDATE;
    IF v_goal.id IS NULL THEN RAISE EXCEPTION 'Meta fora do curso autorizado' USING ERRCODE='42501'; END IF;
+   IF v_goal.updated_at IS DISTINCT FROM nullif(p_payload->>'expected_goal_updated_at','')::timestamptz OR
+      vertice_planning.indicator_definition(to_jsonb(v_goal)) IS DISTINCT FROM p_payload->'expected_indicator_definition' THEN
+    RAISE EXCEPTION 'Meta ou indicador alterado. Atualize os vínculos antes de confirmar.' USING ERRCODE='40001';
+   END IF;
    IF length(btrim(coalesce(p_payload->>'rationale',''))) NOT BETWEEN 10 AND 2000 THEN RAISE EXCEPTION 'Justifique o vínculo entre objetivo, meta e indicador (10 a 2000 caracteres)'; END IF;
-   INSERT INTO vertice_planning.objective_goal_links(institution_id,course_id,plan_id,objective_index,objective_snapshot,goal_id,rationale,linked_by)
-    VALUES(p_institution_id,v_course,v_plan.id,v_index,v_plan.strategic_objectives->v_index,v_goal.id,p_payload->>'rationale',auth.uid()) RETURNING id INTO v_id;
+   INSERT INTO vertice_planning.objective_goal_links(institution_id,course_id,plan_id,objective_index,objective_snapshot,goal_id,indicator_snapshot,rationale,linked_by)
+    VALUES(p_institution_id,v_course,v_plan.id,v_index,v_plan.strategic_objectives->v_index,v_goal.id,vertice_planning.indicator_definition(to_jsonb(v_goal)),p_payload->>'rationale',auth.uid()) RETURNING id INTO v_id;
   END IF;
   RETURN jsonb_build_object('ok',true,'id',v_id);
  ELSIF p_action='review' THEN
@@ -200,6 +220,7 @@ BEGIN
  IF v_tier='escolas' THEN
   IF v_course IS NOT NULL THEN RAISE EXCEPTION 'Escola utiliza escopo institucional'; END IF;
   v_context:=vertice_planning.school_planning(p_institution_id,'strategic','overview','{}');
+  v_context:=v_context||jsonb_build_object('school_operations',vertice_planning.school_operations_context(p_institution_id,CASE WHEN v_term IS NOT NULL THEN left(v_term,4)::int ELSE NULL END));
   v_context:=jsonb_set(v_context,'{semesters}',coalesce((SELECT jsonb_agg(s) FROM jsonb_array_elements(v_context->'semesters') s WHERE v_term IS NULL OR s->>'semester'=v_term),'[]'));
   IF v_context->'strategic'='null'::jsonb AND jsonb_array_length(v_context->'semesters')=0 THEN RAISE EXCEPTION 'Salve um planejamento antes de solicitar a interpretação'; END IF;
   v_context:=v_context||jsonb_build_object('reference_date',(now() AT TIME ZONE 'America/Sao_Paulo')::date);

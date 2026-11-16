@@ -56,6 +56,31 @@ function Sources({ refs, sources }: { refs: string[]; sources: Item[] }) {
     </details>
   );
 }
+function IndicatorDefinition({ value }: { value?: Item }) {
+  if (!value) return null;
+  return (
+    <dl>
+      {Object.entries({
+        indicator: "Indicador",
+        unit: "Unidade",
+        direction: "Direção",
+        formula: "Fórmula",
+        population: "População",
+      })
+        .filter(([key]) => value[key] != null)
+        .map(([key, label]) => (
+          <div key={key}>
+            <dt>{label}</dt>
+            <dd>
+              {typeof value[key] === "object"
+                ? JSON.stringify(value[key])
+                : String(value[key])}
+            </dd>
+          </div>
+        ))}
+    </dl>
+  );
+}
 function PlanningAnalysis({
   institutionId,
   semester,
@@ -264,9 +289,10 @@ function PlanningAnalysis({
           </summary>
           <p className="pm-note">
             Confirme relações por escolha explícita. A meta fornece indicador,
-            unidade, direção e medições. Alterar o objetivo ou criar outra
-            versão exige conferir os vínculos novamente. Esta associação não
-            altera o planejamento nem comprova alinhamento ao PDI.
+            unidade, direção e medições. Alterar o objetivo, a definição do
+            indicador ou criar outra versão exige conferir os vínculos
+            novamente. Esta associação não altera o planejamento nem comprova
+            alinhamento ao PDI.
           </p>
           <div className="sp-link-grid">
             <label className="sp-field">
@@ -315,6 +341,17 @@ function PlanningAnalysis({
               />
             </label>
           </div>
+          {goal && (
+            <details>
+              <summary>Definição atual do indicador selecionado</summary>
+              <IndicatorDefinition
+                value={
+                  links.goals.find((g: Item) => g.id === goal)
+                    ?.indicator_definition
+                }
+              />
+            </details>
+          )}
           <button
             type="button"
             disabled={
@@ -326,6 +363,12 @@ function PlanningAnalysis({
                 expected_updated_at: links.plan.updated_at,
                 objective_index: Number(objective),
                 goal_id: goal,
+                expected_goal_updated_at: links.goals.find(
+                  (g: Item) => g.id === goal,
+                )?.updated_at,
+                expected_indicator_definition: links.goals.find(
+                  (g: Item) => g.id === goal,
+                )?.indicator_definition,
                 rationale,
               })
             }
@@ -346,10 +389,18 @@ function PlanningAnalysis({
                 </strong>
                 <p>
                   {l.valid_for_snapshot
-                    ? "Vínculo compatível com o objetivo salvo"
-                    : "Objetivo alterado — vínculo exige revisão"}
+                    ? "Vínculo compatível com o objetivo e o indicador salvos"
+                    : l.objective_matches !== true
+                      ? "Objetivo alterado — vínculo exige revisão"
+                      : "Meta ou definição do indicador alterada — vínculo exige revisão"}
                   . {l.rationale}
                 </p>
+                {l.indicator_snapshot && (
+                  <details>
+                    <summary>Indicador confirmado no vínculo</summary>
+                    <IndicatorDefinition value={l.indicator_snapshot} />
+                  </details>
+                )}
                 <button
                   type="button"
                   disabled={busy}
@@ -473,6 +524,12 @@ function PlanningAnalysis({
                           {f.type} · {f.priority || "sem prioridade"}
                         </span>
                         <p>{f.text}</p>
+                        {f.type === "tendência" && f.metric_field && (
+                          <p className="pm-note">
+                            Campo numérico: {f.metric_field}. Comparabilidade
+                            declarada: {f.comparability}
+                          </p>
+                        )}
                         <small>
                           {f.id?.startsWith("check-")
                             ? "Regra de conferência do cadastro"

@@ -8,6 +8,9 @@ export type Source = {
   period: string | null;
   value: unknown;
   series_key: string | null;
+  series_eligible?: boolean;
+  numeric_fields?: string[];
+  series_definition?: unknown;
 };
 export type Finding = {
   id: string;
@@ -25,6 +28,24 @@ const number = (v: unknown): v is number =>
   typeof v === "number" && Number.isFinite(v);
 const pick = (r: Row, keys: string[]) =>
   Object.fromEntries(keys.filter((k) => k in r).map((k) => [k, r[k]]));
+const hasText = (v: unknown): v is string =>
+  typeof v === "string" && v.trim().length > 0;
+const observedPeriod = (period: unknown, context: Row): boolean => {
+  const reference = context.reference_date;
+  if (typeof period !== "string" || typeof reference !== "string") return false;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(period)) {
+    const date = new Date(period);
+    return (
+      Number.isFinite(date.getTime()) &&
+      date.toISOString().slice(0, 10) === period &&
+      period <= reference
+    );
+  }
+  if (!/^\d{4}\/[12]$/.test(period)) return false;
+  const limit = `${reference.slice(0, 4)}/${reference.slice(5, 7) <= "06" ? 1 : 2}`;
+  return period <= limit && (!context.semester || period <= context.semester);
+};
+const pointer = (key: string) => key.replace(/~/g, "~0").replace(/\//g, "~1");
 export function buildPlanningSources(context: Row): Source[] {
   const sources: Source[] = [];
   const add = (
@@ -35,6 +56,10 @@ export function buildPlanningSources(context: Row): Source[] {
     period: string | null,
     value: unknown = r,
     series_key: string | null = null,
+    series?: Pick<
+      Source,
+      "series_eligible" | "numeric_fields" | "series_definition"
+    >,
   ) =>
     sources.push({
       ref,
@@ -44,6 +69,7 @@ export function buildPlanningSources(context: Row): Source[] {
       period,
       value,
       series_key,
+      ...(series || {}),
     });
   for (const [i, c] of rows(context.courses).entries()) {
     const p = `/courses/${i}`;
@@ -51,18 +77,39 @@ export function buildPlanningSources(context: Row): Source[] {
       `${p}/strategic`,
       "vertice_app.strategic_plans",
       c.strategic,
-      "plan",
+      "plan_metadata",
       null,
       c.strategic
-        ? pick(c.strategic, [
+        ? pick(c.strategic, ["id", "version", "status", "updated_at"])
+        : null,
+    );
+    // Every strategic field sent to the model is available for human inspection.
+    // Keep objectives individually addressable and avoid duplicating the whole plan.
+    if (c.strategic) {
+      for (const [key, value] of Object.entries(c.strategic)) {
+        if (
+          [
             "id",
             "version",
             "status",
             "updated_at",
-            "alignment",
-          ])
-        : null,
-    );
+            "strategic_objectives",
+          ].includes(key)
+        )
+          continue;
+        add(
+          `${p}/strategic/${pointer(key)}`,
+          "vertice_app.strategic_plans",
+          c.strategic,
+          key,
+          null,
+          {
+            ...pick(c.strategic, ["id", "version", "status", "updated_at"]),
+            value,
+          },
+        );
+      }
+    }
     for (const [j, o] of rows(c.strategic?.strategic_objectives).entries())
       add(
         `${p}/strategic/strategic_objectives/${j}`,
@@ -75,6 +122,7 @@ export function buildPlanningSources(context: Row): Source[] {
           plan_id: c.strategic.id,
           version: c.strategic.version,
           status: c.strategic.status,
+          updated_at: c.strategic.updated_at,
         },
       );
     add(
@@ -105,6 +153,7 @@ export function buildPlanningSources(context: Row): Source[] {
           "status",
           "source",
           "updated_at",
+          "indicator_definition",
         ]),
       );
       for (const [k, m] of rows(g.measurements).entries())
@@ -116,6 +165,19 @@ export function buildPlanningSources(context: Row): Source[] {
           m.measured_on,
           m,
           `${c.id}:goal:${g.id}`,
+          {
+            series_eligible:
+              g.status !== "cancelada" &&
+              hasText(m.source) &&
+              observedPeriod(m.measured_on, context) &&
+              rows(g.measurements).filter(
+                (r) => r.measured_on === m.measured_on,
+              ).length === 1,
+            numeric_fields: number(m.value) ? ["value"] : [],
+            series_definition:
+              g.indicator_definition ||
+              pick(g, ["indicator", "unit", "direction"]),
+          },
         );
       for (const [k, d] of rows(g.documents).entries())
         add(
@@ -142,22 +204,74 @@ export function buildPlanningSources(context: Row): Source[] {
       ["enrollment_history", "vertice_course_semester_stats"],
       ["learning_history", "vertice_learning_course_metrics"],
     ] as const)
-      for (const [j, r] of rows(c[key]).entries())
+      for (const [j, r] of rows(c[key]).entries()) {
+        const enrollment = key === "enrollment_history";
+        const learning = key === "learning_history";
+        const period = r.semester ?? r.semestre ?? null;
+        const unique =
+          !(enrollment || learning) ||
+          rows(c[key]).filter(
+            (other) =>
+              (other.semester ?? other.semestre) === period &&
+              (!learning ||
+                (other.subject_code === r.subject_code &&
+                  other.module === r.module &&
+                  other.competency === r.competency)),
+          ).length === 1;
         add(
           `${p}/${key}/${j}`,
           table,
           r,
           key,
-          r.semester ?? r.semestre ?? null,
+          period,
           r,
-          key === "enrollment_history"
-            ? r.matches === 1
-              ? `${c.id}:enrollment`
-              : null
-            : key === "learning_history"
-              ? `${c.id}:learning:${r.subject_code}:${r.module}:${r.competency}`
+          enrollment
+            ? `${c.id}:enrollment`
+            : learning
+              ? `${c.id}:learning:${JSON.stringify([r.subject_code, r.module, r.competency])}`
               : null,
+          enrollment || learning
+            ? {
+                series_eligible:
+                  observedPeriod(period, context) &&
+                  unique &&
+                  (enrollment
+                    ? r.matches === 1 && c.code_matches === 1
+                    : number(r.participants) && r.participants >= 5),
+                numeric_fields: (enrollment
+                  ? [
+                      "matriculados",
+                      "abandono",
+                      "trancado",
+                      "cancelado",
+                      "transferido",
+                    ]
+                  : [
+                      "participants",
+                      "paired_students",
+                      "curricular_average",
+                      "external_accuracy",
+                      "activity_rate",
+                    ]
+                ).filter((field) => number(r[field])),
+                series_definition: enrollment
+                  ? {
+                      course_id: c.id,
+                      population:
+                        "Estoque declarado do curso; sem coorte verificada",
+                    }
+                  : {
+                      course_id: c.id,
+                      subject_code: r.subject_code,
+                      module: r.module,
+                      competency: r.competency,
+                      population:
+                        "Participantes do grupo; comparabilidade histórica exige conferência",
+                    },
+              }
+            : undefined,
         );
+      }
     for (const key of [
       "goals",
       "actions",
@@ -298,6 +412,18 @@ export function checkPlanning(context: Row): Finding[] {
           ],
           "alta",
         );
+      // The absence of a post-deadline observation is independent of the old value.
+      if (
+        last &&
+        g.due_date &&
+        g.due_date <= today &&
+        last.measured_on < g.due_date
+      )
+        emit(
+          "lacuna",
+          `${c.name}: última medição de “${g.title}” antecede o prazo da meta; falta aferição após o vencimento.`,
+          [gp, last.ref],
+        );
       if (
         !unambiguous ||
         !sufficient ||
@@ -329,18 +455,6 @@ export function checkPlanning(context: Row): Finding[] {
             ),
           ],
           "alta",
-        );
-      // A stale measurement before the deadline cannot establish failure at that deadline.
-      if (
-        offTarget &&
-        g.due_date &&
-        g.due_date <= today &&
-        last.measured_on < g.due_date
-      )
-        emit(
-          "lacuna",
-          `${c.name}: última medição de “${g.title}” antecede o prazo da meta; falta aferição após o vencimento.`,
-          [gp, last.ref],
         );
       const series = measurements
         .filter(

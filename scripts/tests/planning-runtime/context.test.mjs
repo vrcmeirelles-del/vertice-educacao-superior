@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { PGlite } from "@electric-sql/pglite";
 const id = (n) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
-async function fixture(t) {
+async function fixture(t, { beforeMigration = false } = {}) {
   const db = new PGlite();
   await db.waitReady;
   t.after(() => db.close());
@@ -27,14 +27,35 @@ async function fixture(t) {
       "../../../supabase/migrations/20261115201528_sapiens_planning_analysis.sql",
     ),
   );
+  // Replay the existing school-context integration before the proposed replacement.
+  // Only the data-producing functions are synthetic; the integration DO block is real.
+  const schoolIntegration = await read(
+    "../../../supabase/migrations/20261115203758_school_operations_validation_context.sql",
+  );
+  const integrationStart = schoolIntegration.indexOf(
+    "DO $$ DECLARE definition text;",
+  );
+  assert.ok(integrationStart >= 0);
+  await db.exec(schoolIntegration.slice(integrationStart));
+  const inventory = await read(
+    "../../../supabase/migrations/20261116000301_sapiens_bi_module_context.sql",
+  );
+  const triggerStart = inventory.indexOf(
+    "CREATE OR REPLACE FUNCTION vertice_private.sapiens_module_context()",
+  );
+  assert.ok(triggerStart >= 0);
   await db.exec(
-    await read(
-      "../../../supabase/migrations/20261116004315_planning_interpretation_traceability.sql",
-    ),
+    inventory.slice(triggerStart, inventory.indexOf("$fn$;", triggerStart) + 5),
   );
   await db.exec(
     "CREATE TRIGGER zz_sapiens_module_context BEFORE INSERT ON public.vertice_sapiens_planning_analyses FOR EACH ROW EXECUTE FUNCTION vertice_private.sapiens_module_context()",
   );
+  if (!beforeMigration)
+    await db.exec(
+      await read(
+        "../../../supabase/migrations/20261116004315_planning_interpretation_traceability.sql",
+      ),
+    );
   for (const n of [1, 2, 3, 4])
     await db.query("INSERT INTO auth.users VALUES($1)", [id(n)]);
   await db.query(
@@ -233,6 +254,8 @@ test("objective links require exact version, course and rationale; changed draft
     expected_updated_at: options.plan.updated_at,
     objective_index: 0,
     goal_id: id(41),
+    expected_goal_updated_at: options.goals[0].updated_at,
+    expected_indicator_definition: options.goals[0].indicator_definition,
     rationale: "Synthetic explicit relationship",
   };
   await assert.rejects(
@@ -408,4 +431,175 @@ test("direct action documents require current human approval and scoped institut
     false,
   );
   assert.equal(c.actions.find((a) => a.id === id(78)).evidence_doc_id, null);
+});
+
+test("default semester excludes future enrollment when no observed semester exists", async (t) => {
+  const { db, auth, rpc } = await fixture(t);
+  await db.exec(
+    "DELETE FROM vertice_app.semester_plannings; DELETE FROM vertice_course_semester_stats WHERE semestre NOT LIKE '2027/%'",
+  );
+  await auth(2);
+  const { context } = await rpc("start", { course_id: id(21) });
+  assert.equal(context.semester, null);
+  assert.deepEqual(context.courses[0].enrollment_history, []);
+  assert.equal(context.courses[0].stats, null);
+});
+
+test("school operational context survives replacement of the actual earlier Sapiens integration", async (t) => {
+  const { db, auth, rpc } = await fixture(t, { beforeMigration: true });
+  await db.query("UPDATE vertice_institutions SET tier='escolas' WHERE id=$1", [
+    id(11),
+  ]);
+  await auth(1);
+  const before = await rpc("start", { semester: "2026/2" });
+  assert.equal(before.context.school_operations.year, 2026);
+  assert.equal(before.context.school_operations.classes[0].enrolled, 30);
+  await db.exec(
+    "RESET ROLE; UPDATE vertice_sapiens_planning_analyses SET status='failed'",
+  );
+  await db.exec(
+    await readFile(
+      new URL(
+        "../../../supabase/migrations/20261116004315_planning_interpretation_traceability.sql",
+        import.meta.url,
+      ),
+      "utf8",
+    ),
+  );
+  await auth(1);
+  const after = await rpc("start", { semester: "2026/2" });
+  assert.deepEqual(
+    after.context.school_operations,
+    before.context.school_operations,
+  );
+  assert.ok(after.context.institutional_module_inventory);
+});
+
+test("indicator changes invalidate links and stale confirmations cannot overwrite history", async (t) => {
+  const { db, auth, rpc } = await fixture(t);
+  await auth(2);
+  const options = await rpc("links", { course_id: id(21) });
+  const base = {
+    course_id: id(21),
+    plan_id: options.plan.id,
+    expected_updated_at: options.plan.updated_at,
+    objective_index: 0,
+    goal_id: id(41),
+    expected_goal_updated_at: options.goals[0].updated_at,
+    expected_indicator_definition: options.goals[0].indicator_definition,
+    rationale: "O indicador cadastrado mede explicitamente este objetivo",
+  };
+  const first = await rpc("link_objective", base);
+  await db.exec("RESET ROLE");
+  await db.query(
+    "UPDATE vertice_goals SET indicator='Outro indicador',unit='alunos',direction='reduzir',updated_at=updated_at+interval '1 second' WHERE id=$1",
+    [id(41)],
+  );
+  await auth(2);
+  const changed = await rpc("links", { course_id: id(21) });
+  assert.equal(changed.links[0].valid_for_snapshot, false);
+  assert.equal(changed.links[0].objective_matches, true);
+  assert.equal(changed.links[0].indicator_matches, false);
+  assert.equal(
+    changed.links[0].indicator_snapshot.indicator,
+    "Indicador cadastrado",
+  );
+  await assert.rejects(
+    rpc("link_objective", base),
+    /Meta ou indicador alterado/,
+  );
+  await assert.rejects(
+    rpc("link_objective", {
+      ...base,
+      expected_goal_updated_at: changed.goals[0].updated_at,
+    }),
+    /Meta ou indicador alterado/,
+  );
+  await assert.rejects(
+    rpc("link_objective", {
+      ...base,
+      expected_indicator_definition: changed.goals[0].indicator_definition,
+    }),
+    /Meta ou indicador alterado/,
+  );
+  const job = await rpc("start", { course_id: id(21) });
+  assert.equal(
+    job.context.courses[0].objective_links[0].valid_for_snapshot,
+    false,
+  );
+  await rpc("unlink_objective", { ...base, id: first.id });
+  const second = await rpc("link_objective", {
+    ...base,
+    expected_goal_updated_at: changed.goals[0].updated_at,
+    expected_indicator_definition: changed.goals[0].indicator_definition,
+  });
+  assert.notEqual(second.id, first.id);
+  assert.equal(
+    (await rpc("links", { course_id: id(21) })).links[0].valid_for_snapshot,
+    true,
+  );
+  await db.exec("RESET ROLE");
+  const history = (
+    await db.query(
+      "SELECT * FROM vertice_planning.objective_goal_links ORDER BY linked_at,id",
+    )
+  ).rows;
+  assert.equal(history.length, 2);
+  const previous = history.find((l) => l.id === first.id);
+  assert.ok(previous.unlinked_at);
+  assert.equal(previous.unlinked_by, id(2));
+  assert.equal(previous.indicator_snapshot.unit, "%");
+});
+
+test("definition tracks optional formula and population while ordinary goal progress preserves the association", async (t) => {
+  const { db, auth, rpc } = await fixture(t);
+  await db.exec(
+    "ALTER TABLE vertice_goals ADD COLUMN indicator_formula text, ADD COLUMN indicator_population text",
+  );
+  await db.query(
+    "UPDATE vertice_goals SET indicator_formula='acompanhados/participantes',indicator_population='Participantes do curso' WHERE id=$1",
+    [id(41)],
+  );
+  await auth(2);
+  const options = await rpc("links", { course_id: id(21) });
+  await rpc("link_objective", {
+    course_id: id(21),
+    plan_id: options.plan.id,
+    expected_updated_at: options.plan.updated_at,
+    objective_index: 0,
+    goal_id: id(41),
+    expected_goal_updated_at: options.goals[0].updated_at,
+    expected_indicator_definition: options.goals[0].indicator_definition,
+    rationale: "Vínculo confirmado com fórmula e população declaradas",
+  });
+  await db.exec("RESET ROLE");
+  await db.query(
+    "UPDATE vertice_goals SET title='Título corrigido',target=85,updated_at=updated_at+interval '1 second' WHERE id=$1",
+    [id(41)],
+  );
+  await auth(2);
+  assert.equal(
+    (await rpc("links", { course_id: id(21) })).links[0].valid_for_snapshot,
+    true,
+  );
+  await db.exec("RESET ROLE");
+  await db.query(
+    "UPDATE vertice_goals SET indicator_population='Todos os matriculados',updated_at=updated_at+interval '1 second' WHERE id=$1",
+    [id(41)],
+  );
+  await auth(2);
+  assert.equal(
+    (await rpc("links", { course_id: id(21) })).links[0].valid_for_snapshot,
+    false,
+  );
+  await db.exec("RESET ROLE");
+  await db.query(
+    "UPDATE vertice_goals SET indicator_population='Participantes do curso',indicator_formula='aprovados/matriculados' WHERE id=$1",
+    [id(41)],
+  );
+  await auth(2);
+  assert.equal(
+    (await rpc("links", { course_id: id(21) })).links[0].valid_for_snapshot,
+    false,
+  );
 });

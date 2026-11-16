@@ -7,6 +7,9 @@ on:
       - 'source-overrides/server/**'
       - 'source-overrides/tsconfig.json'
       - 'source-overrides/package*.json'
+      - 'source-overrides/supabase/functions/vertice-sapiens-analyze/**'
+      - 'supabase/migrations/*planning*.sql'
+      - 'supabase/migrations/*school_operations*.sql'
       - 'supabase/migrations/*integration_observations.sql'
       - 'supabase/migrations/*extension_electronic_forms.sql'
       - 'supabase/migrations/*tcc*.sql'
@@ -16,6 +19,7 @@ on:
       - 'vertice-servidor-source.zip'
       - 'scripts/portal-types.vitest.config.ts'
       - 'scripts/tests/types-runtime/**'
+      - 'scripts/tests/planning-runtime/**'
       - 'scripts/compare-typescript-diagnostics.mjs'
       - 'scripts/tests/typescript-diagnostics.test.mjs'
       - '.github/workflows/verify-portal-types.yml'
@@ -61,6 +65,11 @@ jobs:
           node --test scripts/tests/extension-runtime/*.test.mjs
       - name: Testar o bloqueio de regressões do compilador
         run: node --test scripts/tests/typescript-diagnostics.test.mjs
+      - name: Testar autorização, contexto e rastreabilidade do planejamento em PostgreSQL
+        if: matrix.node == '24'
+        run: |
+          npm ci --prefix scripts/tests/planning-runtime --no-audit --no-fund
+          node --test scripts/tests/planning-runtime/context.test.mjs
       - name: TypeScript completo, sem tolerar erros da base
         working-directory: .typecheck-build
         run: npm run check

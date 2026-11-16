@@ -25,6 +25,7 @@ CREATE VIEW public.v_tcc_course_summary AS SELECT id course_id,institution_id,0 
 CREATE VIEW public.v_ac_course_summary AS SELECT id course_id,institution_id,0 submissions_pending FROM vertice_courses;
 CREATE VIEW public.v_internship_course_summary AS SELECT id course_id,institution_id,0 placements_active FROM vertice_courses;
 CREATE FUNCTION vertice_planning.school_planning(uuid,text,text,jsonb) RETURNS jsonb LANGUAGE sql AS $$SELECT '{"strategic":{"status":"draft"},"semesters":[]}'::jsonb$$;
+CREATE FUNCTION vertice_planning.school_operations_context(p_institution uuid,p_year integer) RETURNS jsonb LANGUAGE sql AS $$SELECT jsonb_build_object('year',p_year,'classes',jsonb_build_array(jsonb_build_object('id','synthetic-class','enrolled',30)),'records',jsonb_build_array(jsonb_build_object('kind','finance','source','Synthetic operational register')))$$;
 CREATE FUNCTION vertice_private.bi_module_snapshot(uuid) RETURNS jsonb LANGUAGE sql AS $$SELECT '{"synthetic_institutional_sentinel":"INSTITUTION_ONLY"}'::jsonb$$;
 GRANT USAGE ON SCHEMA public,auth,vertice_planning,vertice_private TO authenticated;
 GRANT EXECUTE ON FUNCTION auth.uid(),auth.jwt() TO authenticated;

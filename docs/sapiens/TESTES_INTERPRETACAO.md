@@ -1,22 +1,35 @@
 # Testes da camada interpretativa
 
-Validação local com dados fictícios. Nenhuma escrita de negócio nem geração de parecer com provedores reais foi feita em produção. Consulta remota limitada à estrutura das colunas utilizadas.
+Validação local com dados fictícios. Nenhuma escrita de negócio nem geração de parecer com provedores reais foi feita em produção. As consultas remotas da preparação/revisão limitaram-se a metadados de esquema, definições de funções, histórico e serviços. As correções foram executadas e testadas somente localmente.
 
 ## Resultados
 
 | Verificação | Resultado |
 | --- | --- |
-| Testes de regras, referências e motor de planejamento | 9 aprovados |
-| Interface da análise interpretativa | 5 aprovados |
+| Testes de regras, referências e motor de planejamento | 15 aprovados |
+| Interface da análise interpretativa | 7 aprovados |
 | Regressões do planejamento de curso, consolidação, modelo, ReitorBI, SapiensPanel e planejamento escolar | 25 aprovados |
-| PostgreSQL/PGlite: autorização, contexto, vínculos, histórico, datas futuras e documentos | 6 aprovados |
-| Total | 45 testes aprovados |
+| PostgreSQL/PGlite: autorização, contexto, vínculos, histórico, datas futuras e documentos | 10 aprovados |
+| Total | 57 testes aprovados |
 | TypeScript do portal completo | Sem erros |
 | TypeScript estrito dos módulos novos da função Edge | Sem erros |
 | Build estático do portal | Aprovado; aviso existente de tamanho dos chunks |
-| Conferência visual | Componente real com dados fictícios: desktop e largura de conteúdo de 390 px, coordenação e alta gestão, fontes e associação objetivo–meta |
+| Conferência visual da preparação inicial | Componente real com dados fictícios em desktop e contêiner de 390 px. As correções desta revisão foram verificadas por testes de interface; não houve nova conferência visual |
 
 O mock legado do ReitorBI emite aviso de método `maybeSingle` ausente. Os oito testes desse componente passaram; o aviso não é evidência de falha no serviço real. A conferência a 390 px foi feita reduzindo a largura do contêiner no exemplo local, sem alegação de teste em aparelho físico.
+
+## Regressões da revisão técnica de 16/11/2026
+
+Os seis achados da revisão foram transformados em verificações do repositório:
+
+- **R1:** executar o bloco real de integração das operações escolares da migração anterior; comparar o contexto antes e depois da nova migração. Somente os dados operacionais da fixture são sintéticos.
+- **R2:** curso com estratégia salva, sem semestre observado e com carga somente futura mantém histórico observado vazio.
+- **R3:** alteração do indicador/unidade/direção ou de fórmula/população cadastradas invalida o vínculo. Confirmação com revisão ou definição desatualizada é recusada; encerrar e confirmar novamente preserva o vínculo anterior. Mudança de título/alvo não invalida por si só a associação.
+- **R4:** meta vencida com valor antigo no alvo produz lacuna de aferição; a existência de medição posterior remove essa lacuna.
+- **R5:** SWOT, riscos, objetivos operacionais e visão aparecem em fontes próprias, com valor, campo, versão e data congelados.
+- **R6:** um achado de tendência exige `metric_field`, `comparability` e valores numéricos elegíveis em três períodos distintos. Valores nulos, fonte ausente, data duplicada/futura, código de curso ambíguo e mistura de grupos são recusados; zero observado continua válido.
+
+A interface tem testes da confirmação da revisão do indicador e da apresentação do campo numérico/comparabilidade. O workflow existente executa os dez testes PostgreSQL uma vez, no Node 24, e considera alterações nas funções Edge, migrações de planejamento e testes de banco. A execução remota deste commit pode ser omitida com `[skip ci]`; resultados locais não são descritos como CI remota.
 
 ## Casos de banco
 
@@ -26,7 +39,7 @@ O mock legado do ReitorBI emite aviso de método `maybeSingle` ausente. Os oito 
 - Normalização de semestre mantém duplicidade como ambiguidade; não soma nem transforma ausência em zero.
 - Medições e cargas futuras são excluídas; período futuro explicitamente selecionado não apresenta estoque futuro como resultado observado.
 - Fonte de risco ausente permanece indisponível; grupos menores que cinco são suprimidos.
-- Associação exige curso, objetivo e versão exatos, justificativa e revisão otimista. Alteração do rascunho invalida a associação; nova versão não a herda.
+- Associação exige curso, objetivo e versão exatos, definição congelada do indicador, justificativa e revisão otimista tanto do plano quanto da meta. Alteração do rascunho invalida a associação; nova versão não a herda.
 - Histórico filtra escopo antes de limitar a vinte, inclusive com 25 pareceres mais recentes de outro curso.
 - Revisão humana só pela gestão autorizada, com instituição e transição verificadas; planos existentes permanecem iguais.
 - Upload ativo sem aprovação, documento vencido e documento de outra instituição não contam como documento aprovado do curso. Arquivo novo devolvido prevalece sobre arquivo antigo validado.
@@ -62,7 +75,7 @@ npm ci --prefix scripts/tests/planning-runtime --no-audit --no-fund
 node --test scripts/tests/planning-runtime/context.test.mjs
 ```
 
-O teste de banco aplica as funções e a migração a um PostgreSQL isolado em memória, com papéis reais de banco e a função institucional `member_role` do repositório. Não recebe URL, credencial nem dados de produção.
+O teste de banco aplica as funções, o bloco real de integração escolar anterior, o trigger anterior e a migração proposta a um PostgreSQL isolado em memória, com papéis reais de banco e a função institucional `member_role` do repositório. Não recebe URL, credencial nem dados de produção.
 
 O exemplo visual está em `scripts/tests/planning-ui/`, usando o componente real e um mock local. Não é incluído na interface de produção. Instalar as dependências da composição e iniciar o Vite com sua configuração para conferência visual; o texto do cabeçalho identifica dados fictícios.
 

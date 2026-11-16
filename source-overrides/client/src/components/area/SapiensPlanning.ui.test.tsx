@@ -180,3 +180,117 @@ it("marks legacy evidence as unstructured and exposes no fabricated source link"
   expect(el.textContent).toContain("Fonte textual antiga");
   expect(el.querySelector("a[href]")).toBeNull();
 });
+
+it("confirms the loaded indicator revision and exposes changed definitions for human review", async () => {
+  const updated = "2026-11-16T07:00:00Z";
+  const definition = {
+    indicator: "Acompanhamento",
+    unit: "%",
+    direction: "aumentar",
+  };
+  rpc.mockImplementation(async (_name: string, args: any) => ({
+    error: null,
+    data:
+      args.p_action === "options"
+        ? {
+            scope: "superior",
+            can_review: false,
+            institutional: false,
+            audience: "coordenacao",
+            courses: [{ id: "c1", name: "Direito" }],
+          }
+        : args.p_action === "list"
+          ? []
+          : args.p_action === "links"
+            ? {
+                plan: {
+                  id: "plan",
+                  version: 1,
+                  status: "draft",
+                  updated_at: updated,
+                  strategic_objectives: [{ theme: "Permanência" }],
+                },
+                goals: [
+                  {
+                    id: "g1",
+                    title: "Acompanhamento",
+                    indicator: "Acompanhamento",
+                    updated_at: updated,
+                    indicator_definition: definition,
+                  },
+                ],
+                links: [
+                  {
+                    id: "old",
+                    goal_id: "g1",
+                    objective_index: 0,
+                    valid_for_snapshot: false,
+                    objective_matches: true,
+                    indicator_matches: false,
+                    rationale: "Vínculo anterior",
+                    indicator_snapshot: { ...definition, unit: "alunos" },
+                  },
+                ],
+              }
+            : { ok: true },
+  }));
+  await render({ institutionId: "ies-a", courseId: "c1" });
+  expect(el.textContent).toContain(
+    "Meta ou definição do indicador alterada — vínculo exige revisão",
+  );
+  expect(el.textContent).toContain("Indicador confirmado no vínculo");
+  expect(el.textContent).toContain("alunos");
+  for (const [label, value] of [
+    ["Objetivo do vínculo", "0"],
+    ["Meta do vínculo", "g1"],
+  ]) {
+    const select = el.querySelector(
+      `[aria-label="${label}"]`,
+    ) as HTMLSelectElement;
+    await act(async () => {
+      select.value = value;
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+  }
+  const textarea = el.querySelector(
+    '[aria-label="Justificativa do vínculo"]',
+  ) as HTMLTextAreaElement;
+  await act(async () => {
+    Object.getOwnPropertyDescriptor(
+      HTMLTextAreaElement.prototype,
+      "value",
+    )!.set!.call(
+      textarea,
+      "O indicador mede o acompanhamento previsto neste objetivo",
+    );
+    textarea.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  const register = Array.from(el.querySelectorAll("button")).find(
+    (b) => b.textContent === "Registrar vínculo justificado",
+  )!;
+  expect(register.disabled).toBe(false);
+  await act(async () => register.click());
+  expect(rpc).toHaveBeenCalledWith(
+    "vertice_sapiens_planning",
+    expect.objectContaining({
+      p_action: "link_objective",
+      p_payload: expect.objectContaining({
+        goal_id: "g1",
+        expected_goal_updated_at: updated,
+        expected_indicator_definition: definition,
+      }),
+    }),
+  );
+});
+
+it("shows the exact metric and declared comparability of an AI trend", async () => {
+  const r: any = row("trend", "tendência");
+  Object.assign(r.result.findings[0], {
+    metric_field: "matriculados",
+    comparability: "Estoque cadastral do mesmo curso, sem coorte verificada",
+  });
+  mock([r]);
+  await render({ institutionId: "ies-a", courseId: "c1" });
+  expect(el.textContent).toContain("Campo numérico: matriculados");
+  expect(el.textContent).toContain("sem coorte verificada");
+});

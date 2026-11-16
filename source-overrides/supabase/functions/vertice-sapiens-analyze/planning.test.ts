@@ -319,3 +319,208 @@ describe("Sapiens interpretation and traceability", () => {
     expect(call).not.toHaveBeenCalled();
   });
 });
+
+describe("Review regressions: observed periods, complete sources and numeric eligibility", () => {
+  const trend = (refs: string[], field = "value") => ({
+    ...result,
+    findings: [
+      {
+        ...result.findings[0],
+        type: "tendência",
+        source_refs: refs,
+        metric_field: field,
+        comparability:
+          "Série descritiva do mesmo cadastro; fórmula e população históricas ainda exigem conferência humana.",
+      },
+    ],
+  });
+  it("reports missing post-deadline measurement even when the old observation met the target", () => {
+    const c: any = structuredClone(context);
+    const g = c.courses[0].goals[0];
+    g.status = "ativa";
+    g.measurements = [
+      { id: "old", measured_on: "2026-09-01", value: 80, source: "Cadastro" },
+    ];
+    expect(
+      checkPlanning(c).some(
+        (f) => f.type === "lacuna" && f.text.includes("após o vencimento"),
+      ),
+    ).toBe(true);
+    g.target = null;
+    expect(
+      checkPlanning(c).some((f) => f.text.includes("após o vencimento")),
+    ).toBe(true);
+    g.measurements.push({
+      id: "current",
+      measured_on: "2026-10-15",
+      value: 80,
+      source: "Cadastro",
+    });
+    expect(
+      checkPlanning(c).some((f) => f.text.includes("após o vencimento")),
+    ).toBe(false);
+  });
+  it("retains strategic fields with frozen values, field names, version and update time", () => {
+    const c: any = structuredClone(context);
+    Object.assign(c.courses[0].strategic, {
+      updated_at: "2026-11-14T10:00:00Z",
+      swot: { weaknesses: [{ text: "Fragilidade documentada" }] },
+      risks: [{ description: "Risco registrado" }],
+      operational_objectives: [{ description: "Ação operacional" }],
+      vision_text: "Visão registrada",
+    });
+    const sources = buildPlanningSources(c);
+    for (const field of [
+      "swot",
+      "risks",
+      "operational_objectives",
+      "vision_text",
+    ]) {
+      const s: any = sources.find(
+        (x) => x.ref === `/courses/0/strategic/${field}`,
+      );
+      expect(s.record_id).toBe("p");
+      expect(s.field).toBe(field);
+      expect(s.value.version).toBe(1);
+      expect(s.value.updated_at).toBe("2026-11-14T10:00:00Z");
+      expect(s.value.value).toEqual(c.courses[0].strategic[field]);
+    }
+    expect(
+      (
+        sources.find((x) => x.ref.endsWith("strategic_objectives/0"))
+          ?.value as any
+      ).updated_at,
+    ).toBe("2026-11-14T10:00:00Z");
+  });
+  it("accepts an explicit numeric metric over three eligible observations, preserving observed zero", () => {
+    const c = structuredClone(context);
+    c.courses[0].goals[0].measurements[2].value = 0;
+    const sources = buildPlanningSources(c);
+    const refs = sources.filter((s) => s.series_key).map((s) => s.ref);
+    const parsed = parsePlanning(JSON.stringify(trend(refs)), sources);
+    expect(parsed.findings[0].metric_field).toBe("value");
+    expect(parsed.findings[0].comparability).toContain("conferência humana");
+  });
+  it("refuses null values, absent sources, duplicate dates, future dates and a missing metric/comparability", () => {
+    for (const change of [
+      (c: any) => {
+        c.courses[0].goals[0].measurements[0].value = null;
+      },
+      (c: any) => {
+        c.courses[0].goals[0].measurements[0].source = "";
+      },
+      (c: any) => {
+        c.courses[0].goals[0].measurements.push({
+          ...c.courses[0].goals[0].measurements[0],
+          id: "duplicate",
+        });
+      },
+      (c: any) => {
+        c.courses[0].goals[0].measurements[0].measured_on = "2027-01-01";
+      },
+    ]) {
+      const c: any = structuredClone(context);
+      change(c);
+      const sources = buildPlanningSources(c);
+      const refs = sources.filter((s) => s.series_key).map((s) => s.ref);
+      expect(() =>
+        parsePlanning(JSON.stringify(trend(refs)), sources),
+      ).toThrow();
+    }
+    const sources = buildPlanningSources(context);
+    const refs = sources.filter((s) => s.series_key).map((s) => s.ref);
+    for (const missing of ["metric_field", "comparability"]) {
+      const invalid: any = trend(refs);
+      delete invalid.findings[0][missing];
+      expect(() => parsePlanning(JSON.stringify(invalid), sources)).toThrow();
+    }
+    expect(() =>
+      parsePlanning(JSON.stringify(trend(refs, "target")), sources),
+    ).toThrow();
+  });
+  it("refuses an enrollment trend with unavailable values or ambiguous course codes", () => {
+    const c: any = {
+      reference_date: "2026-11-15",
+      semester: "2026/2",
+      courses: [
+        {
+          id: "c",
+          code_matches: 2,
+          enrollment_history: ["2025/2", "2026/1", "2026/2"].map(
+            (semester, i) => ({
+              id: `s${i}`,
+              semester,
+              matches: 1,
+              matriculados: null,
+            }),
+          ),
+        },
+      ],
+    };
+    let sources = buildPlanningSources(c);
+    const refs = sources.filter((s) => s.series_key).map((s) => s.ref);
+    expect(() =>
+      parsePlanning(JSON.stringify(trend(refs, "matriculados")), sources),
+    ).toThrow();
+    c.courses[0].enrollment_history.forEach((r: any, i: number) => {
+      r.matriculados = 100 - i * 10;
+    });
+    sources = buildPlanningSources(c);
+    expect(() =>
+      parsePlanning(JSON.stringify(trend(refs, "matriculados")), sources),
+    ).toThrow();
+    c.courses[0].code_matches = 1;
+    sources = buildPlanningSources(c);
+    expect(
+      parsePlanning(JSON.stringify(trend(refs, "matriculados")), sources)
+        .findings[0].type,
+    ).toBe("tendência");
+    c.courses[0].enrollment_history[1].matches = 2;
+    sources = buildPlanningSources(c);
+    expect(() =>
+      parsePlanning(JSON.stringify(trend(refs, "matriculados")), sources),
+    ).toThrow();
+  });
+  it("accepts learning trends only within one eligible group and for a metric present in every period", () => {
+    const c: any = {
+      reference_date: "2026-11-15",
+      semester: "2026/2",
+      courses: [
+        {
+          id: "c",
+          learning_history: ["2025/2", "2026/1", "2026/2"].map(
+            (semester, i) => ({
+              semester,
+              subject_code: "LAW",
+              module: "oab",
+              competency: "A",
+              participants: 10,
+              external_accuracy: 0.5 + i / 10,
+              curricular_average: null,
+            }),
+          ),
+        },
+      ],
+    };
+    let sources = buildPlanningSources(c);
+    const refs = sources.filter((s) => s.series_key).map((s) => s.ref);
+    expect(
+      parsePlanning(JSON.stringify(trend(refs, "external_accuracy")), sources)
+        .findings[0].metric_field,
+    ).toBe("external_accuracy");
+    expect(() =>
+      parsePlanning(JSON.stringify(trend(refs, "curricular_average")), sources),
+    ).toThrow();
+    c.courses[0].learning_history[0].competency = "B";
+    sources = buildPlanningSources(c);
+    expect(() =>
+      parsePlanning(JSON.stringify(trend(refs, "external_accuracy")), sources),
+    ).toThrow();
+    c.courses[0].learning_history[0].competency = "A";
+    c.courses[0].learning_history[0].participants = 4;
+    sources = buildPlanningSources(c);
+    expect(() =>
+      parsePlanning(JSON.stringify(trend(refs, "external_accuracy")), sources),
+    ).toThrow();
+  });
+});
