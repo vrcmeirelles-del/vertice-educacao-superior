@@ -79,6 +79,7 @@ jobs:
           npm test
           ./node_modules/.bin/vitest run --config scripts/portal-types.vitest.config.ts
           ./node_modules/.bin/vitest run --config scripts/extension.vitest.config.ts
+          ./node_modules/.bin/vitest run --config vitest.conecta.config.ts
       - name: Build estático completo
         working-directory: .typecheck-build
         run: npm run build:static
