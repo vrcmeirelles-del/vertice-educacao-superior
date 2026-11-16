@@ -14,6 +14,7 @@ declare const Deno: {
 };
 
 import { analyzePlanning } from "./planning.ts";
+import { reviewThematic } from "./thematic.ts";
 
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
 
@@ -234,6 +235,24 @@ Deno.serve(async (req: Request) => {
     }
 
     const body = await req.json();
+    if (body.action === "thematic_review") {
+      if (isService || !actorId) return send({error:"user_auth_required"},403,origin);
+      let claims: {aal?: string} = {};
+      try { const p=auth.slice(7).split(".")[1].replace(/-/g,"+").replace(/_/g,"/"); claims=JSON.parse(atob(p.padEnd(Math.ceil(p.length/4)*4,"="))); } catch {}
+      if (claims.aal !== "aal2") return send({error:"mfa_required"},403,origin);
+      const master = await admin.from("vertice_admins").select("user_id").eq("user_id",actorId).maybeSingle();
+      if (master.error) return send({error:"authorization_unavailable"},503,origin);
+      if (!master.data) return send({error:"master_required"},403,origin);
+      if (!env("OPENAI_API_KEY") || !env("ANTHROPIC_API_KEY")) return send({error:"two_providers_required"},503,origin);
+      if (Object.keys(body).some(k=>!["action","question"].includes(k))) return send({error:"invalid_review_request"},400,origin);
+      try {
+        const result = await reviewThematic(body.question,callOpenAI,callAnthropic);
+        return send(result,200,origin);
+      } catch(e) {
+        const err=e as Error & {status?:number};
+        return send({error:err.status===400?err.message:"thematic_review_failed"},err.status===400?400:503,origin);
+      }
+    }
     const institutionId = String(body.institutionId || "").trim().toLowerCase();
     if (!UUID.test(institutionId)) return send({ error: "invalid_institution" }, 400, origin);
 
@@ -506,3 +525,4 @@ ${prev ? `Ciclo anterior: #${(prev as Record<string, unknown>).sapiens_cycle} â€
     return send({ error: "internal", message: (e as Error).message }, 500, origin);
   }
 });
+
