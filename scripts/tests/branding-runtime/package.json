@@ -1,0 +1,7 @@
+{
+  "name": "vertice-branding-contract-tests",
+  "private": true,
+  "type": "module",
+  "scripts": { "test": "node --test branding.test.mjs codec.test.mjs authorization.test.mjs" },
+  "dependencies": { "@electric-sql/pglite": "0.5.16", "@napi-rs/canvas": "0.1.100", "jsdom": "27.2.0", "jszip": "3.10.1", "typescript": "5.9.3" }
+}
