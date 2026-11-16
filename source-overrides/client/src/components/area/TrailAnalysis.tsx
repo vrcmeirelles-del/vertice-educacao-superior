@@ -211,22 +211,35 @@ Seja direto, técnico e estratégico. Use os dados fornecidos. Não repita dados
     setSapiensLoading(false);
   }
 
-  // ── Promote to 5W2H ──
-  function promoteToAction(trailDiag: Diagnostic) {
+  // ── Promote to 5W2H (linked to ENADE goal + enters BI pipeline) ──
+  async function promoteToAction(trailDiag: Diagnostic) {
     const badge = BADGE[trailDiag.status] || BADGE.estavel;
+
+    // Find existing ENADE-related goal for this course
+    let goalId: string | undefined;
+    try {
+      const { data: goals } = await supabase.from('vertice_goals').select('id, title')
+        .eq('institution_id', institutionId).eq('course_id', courseId)
+        .or('title.ilike.%enade%,title.ilike.%trilha%,title.ilike.%desempenho%,dimension.eq.ensino')
+        .limit(1);
+      if (goals?.length) goalId = goals[0].id;
+    } catch { /* ok */ }
+
     storeActionDraft(institutionId, {
       what: `Ação corretiva — Trilha ${trailDiag.code}: ${trailDiag.name}`,
       why: `Discrepância ENADE de ${trailDiag.avg_discrepancy?.toFixed(1) || '?'}pp (${badge.label}). ${trailDiag.question_count} questões analisadas, média IES ${trailDiag.avg_ies_pct ?? '?'}% vs nacional ${trailDiag.avg_national_pct ?? '?'}%.`,
+      how: `Revisar ementa, metodologia e avaliação da trilha "${trailDiag.name}". Comparar cobertura curricular com itens cobrados no ENADE (${trailDiag.question_count} questões mapeadas via Fato & Ordem). Planejar oficinas, materiais e simulados dirigidos.`,
       scope: 'course',
       course_id: courseId,
+      goal_id: goalId || '',
       dimension: 'ensino',
       priority: trailDiag.status === 'critico' ? 'alta' : 'media',
       status: 'planned',
     });
-    // Navigate to action plan
+
     const link = document.querySelector<HTMLButtonElement>('[data-tab="plano"]');
     if (link) { link.click(); return; }
-    setNotice(`Ação pré-preenchida para "${trailDiag.name}". Vá para Plano de Ação 5W2H para concluir.`);
+    setNotice(`Ação pré-preenchida para "${trailDiag.name}"${goalId ? ' vinculada à meta ENADE' : ''}. Vá para Plano de Ação 5W2H para concluir.`);
   }
 
   // ── Question manual CRUD ──

@@ -11,6 +11,7 @@ type Audit={metrics:Metric[];findings:Finding[];scannedAt:string;coverage:{
   goalsMeasured:number|null;actions:number|null;requests:number|null;files:number|null;
   docsWithoutFile:number|null;docAwaiting:number|null;docValidated:number|null;diagnoses:number|null;
   captacaoLeads:number|null;captacaoCosts:number|null;enade:number|null;offerings:number|null;
+  trails:number|null;trailQuestions:number|null;
 }};
 
 const LEGACY_UNITOP="cda828bd-4f55-432a-a824-387716c3cb2b";
@@ -21,7 +22,8 @@ const MODULE_BY_FINDING:Record<string,string>={
  "fila-revisao":"repositorio","exigencias-vazias":"repositorio","matriculas-divergentes":"visao",
  "eorbit-restrito":"eorbit","enade-ausente":"enade","aprendizagem-sem-feed":"aprendizagem",
  "correspondencias-pendentes":"novo_instrumento","fontes-sem-analise":"fontes",
- "convites-sem-vinculo":"equipe","novo-instrumento-sem-envio":"novo_instrumento"
+ "convites-sem-vinculo":"equipe","novo-instrumento-sem-envio":"novo_instrumento",
+ "trilhas-enade-ausente":"trilhas-enade","trilhas-sem-questoes":"trilhas-enade"
 };
 
 const fmt=(v:number|null)=>v===null?"Indisponível":new Intl.NumberFormat("pt-BR").format(v);
@@ -62,7 +64,9 @@ export default function Governanca360Auditoria({institutionId}:{institutionId:st
     count("vertice_emec_snapshots"),
     count("vertice_ebitda_calculations"),
     count("vertice_cost_parameters"),
-    count("vertice_inep_library")
+    count("vertice_inep_library"),
+    count("formation_trails"),
+    count("trail_question_links")
    ]);
    const metric=(i:number,name:string,source:string):Metric=>{
     const r=counts[i];
@@ -86,7 +90,9 @@ export default function Governanca360Auditoria({institutionId}:{institutionId:st
     metric(14,"Registros e-MEC","vertice_emec_snapshots"),
     metric(15,"Apurações EBITDA","vertice_ebitda_calculations"),
     metric(16,"Premissas de custos cadastradas","vertice_cost_parameters"),
-    metric(17,"Documentos Biblioteca INEP","vertice_inep_library")
+    metric(17,"Documentos Biblioteca INEP","vertice_inep_library"),
+    metric(18,"Trilhas de Formação ENADE","formation_trails"),
+    metric(19,"Questões ENADE vinculadas","trail_question_links")
    ];
    const result=await Promise.allSettled([
     supabase.from("vertice_goals").select("id,status,owner_user_id").eq("institution_id",institutionId).limit(2000),
@@ -130,6 +136,8 @@ export default function Governanca360Auditoria({institutionId}:{institutionId:st
    sourceErrors.forEach((message,index)=>add("origem-adicional-"+index,"atencao","Origem histórica indisponível",message+" O painel não atribui zero a esta fonte.","Conferir conciliação de identidade da IES e permissões de acesso à origem."));
    if(metrics[4].count===0&&metrics[5].count===0)add("captacao-ausente","atencao","Captação sem alimentação estruturada","Nenhum lead ou custo de campanha cadastrado nesta fonte para a IES.", "Conectar CRM/captação com opt-in e fonte legitimamente autorizada.");
    if(metrics[6].count===0)add("enade-ausente","atencao","ENADE 360 sem desempenho validado","Não existem resultados cadastrados na tabela de desempenho ENADE 360.", "Importar resultados homologados por curso e período; não deduzir notas de outras avaliações.");
+   if(metrics[18].count===0)add("trilhas-enade-ausente","atencao","Trilhas de Formação ENADE não cadastradas","Nenhuma trilha de formação definida. As trilhas cruzam competências curriculares com questões do ENADE para diagnóstico de fragilidades.","Acesse Trilhas ENADE no módulo Acadêmico, importe da Construção Curricular e defina palavras-chave para vinculação automática com o Fato & Ordem.");
+   if(metrics[18].count!==null&&metrics[18].count>0&&metrics[19].count===0)add("trilhas-sem-questoes","atencao","Trilhas sem questões ENADE vinculadas","Existem "+fmt(metrics[18].count)+" trilha(s) mas nenhuma questão mapeada. Sem questões, o diagnóstico Sapiens não pode calcular discrepâncias.","Adicione palavras-chave nas trilhas para vincular automaticamente às questões do banco Fato & Ordem, ou cadastre questões manualmente com percentuais de acerto.");
    if(metrics[8].count===0&&metrics[9].count!==null&&metrics[9].count>0)add("convites-sem-vinculo","atencao","Convites sem membro institucional ativo","Há "+fmt(metrics[9].count)+" convite(s) nesta IES, mas nenhum membro vinculado na tabela de acesso. Isso não indica que o convidado aceitou ou recusou.","Conferir convites e consentimento; registrar acesso apenas após validação da identidade e do perfil.");
    if(metrics[10].count!==null&&metrics[10].count>0&&metrics[11].count===0)add("fontes-sem-analise","atencao","Fontes enviadas sem análise registrada","Existem "+fmt(metrics[10].count)+" arquivo(s) de origem e nenhuma análise registrada no módulo de fontes.","Conferir o pipeline, o estado da ingestão, a autorização e os relatórios produzidos.");
    if(metrics[12].count===0)add("aprendizagem-sem-feed","atencao","Fato & Ordem sem resultados integrados na Vértice","Não há registros de desempenho longitudinal por disciplina na tabela de integração desta instituição.","Verificar consentimento, identidade institucional, ligação por curso e envio dos indicadores agregados sem expor alunos desnecessariamente.");
@@ -144,7 +152,8 @@ export default function Governanca360Auditoria({institutionId}:{institutionId:st
     goals:goals.length,goalsUnassigned:unassigned,goalsMeasured:metrics[3].count,actions:metrics[1].count,
     requests:reqs.length,files:files.length,docsWithoutFile:withoutFile,docAwaiting:latestStatus("enviado"),docValidated:latestStatus("validado"),
     diagnoses:metrics[2].count,captacaoLeads:metrics[4].count,captacaoCosts:metrics[5].count,
-    enade:metrics[6].count,offerings:metrics[7].count
+    enade:metrics[6].count,offerings:metrics[7].count,
+    trails:metrics[18].count,trailQuestions:metrics[19].count
    }});
   }catch(e){setError(e instanceof Error?e.message:"Não foi possível executar a auditoria.");setAudit(null);}
   finally{setLoading(false);}
