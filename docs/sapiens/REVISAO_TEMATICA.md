@@ -88,3 +88,13 @@ e mídias completas; obter as referências aplicáveis; apresentar o lote e orç
 revisar o descritor final com ambos os provedores; arquivar recibos; obter autorização
 expressa de aplicação; conferir novamente a versão operacional e respeitar travas.
 Nenhuma dessas operações de massa é iniciada pela implantação do comando.
+
+## Registro de implantação inicial
+
+PR #162 integrada em 16/11/2026. A função existente chegou à versão 8, ACTIVE,
+com JWT habilitado e os quatro arquivos conferidos contra o código enviado.
+O teste HTTP público retornou OPTIONS 204 e POST sem token 401. O portal existente
+www.verticesuperior.com.br respondeu HTTP 200. Dez testes locais foram aprovados.
+Não houve nova chamada paga nem alteração de questões. Esses checks não comprovam
+uma revisão autenticada real com os dois provedores. O recibo usa o modelo retornado
+pela API, quando disponível, e preserva o identificador configurado como fallback.

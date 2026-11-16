@@ -106,7 +106,7 @@ async function callOpenAI(
   });
   if (!r.ok) return null;
   const data = await r.json();
-  return { content: data.choices?.[0]?.message?.content || "{}", model };
+  return { content: data.choices?.[0]?.message?.content || "{}", model: data.model || model };
 }
 
 async function callAnthropic(
@@ -134,7 +134,7 @@ async function callAnthropic(
   });
   if (!r.ok) return null;
   const data = await r.json();
-  return { content: data.content?.[0]?.text || "{}", model };
+  return { content: data.content?.[0]?.text || "{}", model: data.model || model };
 }
 
 // Generate: OpenAI primary, Anthropic fallback
