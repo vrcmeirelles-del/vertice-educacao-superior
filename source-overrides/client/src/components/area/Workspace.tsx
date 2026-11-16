@@ -67,6 +67,7 @@ const SchoolPlanning = lazy(() => import("./SchoolPlanning"));
 const SchoolManagement = lazy(() => import("../bi/SchoolManagement"));
 const MarketIntelligence = lazy(() => import("./MarketIntelligence"));
 const CoursePlanning = lazy(() => import("./CoursePlanning"));
+const CurriculumBuilder = lazy(() => import("./CurriculumBuilder"));
 const Tcc360 = lazy(() => import("./Tcc360"));
 const AtividadesComplementares360 = lazy(() => import("./AtividadesComplementares360"));
 const Estagio360 = lazy(() => import("./Estagio360"));
@@ -94,7 +95,7 @@ import "./module-offer.css";
 
 const TAB_GROUPS: {label:string;subtitle:string;icon:string;tabs:Tab[];tier?:'superior'|'escolas'|'both'}[] = [
   {label:'Gestão',subtitle:'Planejamento, metas e governança',icon:'▦',tabs:['planejamento-estrategico','planejamento-semestral','base','metas','plano','diagnostico','equipe','cpa-autoavaliacao'],tier:'both'},
-  {label:'Regulação',subtitle:'Instrumentos e evidências MEC/INEP',icon:'◇',tabs:['emec','repositorio','validacao','enade','avaliacao','novo_instrumento','biblioteca'],tier:'superior'},
+  {label:'Regulação',subtitle:'Instrumentos e evidências MEC/INEP',icon:'◇',tabs:['construcao-curricular','emec','repositorio','validacao','enade','avaliacao','novo_instrumento','biblioteca'],tier:'superior'},
   {label:'Acadêmico',subtitle:'Cursos, estudantes e desempenho',icon:'▤',tabs:['geral','cadastro','visao','eorbit','backups','auditoria'],tier:'superior'},
   {label:'Inteligência',subtitle:'Análises, integrações e decisões',icon:'◎',tabs:['mercado','analise','ia','fontes','conexoes','reitor','resultado-curso','simulador','raio-x-direito','vitrine-curso','aprendizagem'],tier:'superior'},
   {label:'Carreiras e Egressos',subtitle:'Relacionamento, desenvolvimento e empregabilidade',icon:'🎓',tabs:['conecta','egressos'],tier:'superior'},
@@ -124,6 +125,7 @@ const TAB_DETAILS: Partial<Record<Tab,{icon:string;description:string}>> = {
  "escola-projetos":{icon:"▦",description:"Projetos e Atividades Escolares, por etapa, turma e ano letivo"},
  "escola-estagio":{icon:"▦",description:"Estágio Escolar, por etapa, turma e ano letivo"},
  "escola-captacao":{icon:"▦",description:"Captação Escolar, por etapa, turma e ano letivo"},
+  "construcao-curricular":{icon:"🧬",description:"Matriz curricular por competências — perfil do egresso, DCNs e disciplinas"},
   "planejamento-estrategico":{icon:"◎",description:"Visão, análise de mercado, posicionamento e objetivos de longo prazo do curso"},
   "planejamento-semestral":{icon:"📅",description:"Atividades, eventos e ações organizados por semestre letivo"},
   base:{icon:'⌂',description:'Estrutura e identificação institucional'},
@@ -189,6 +191,7 @@ const TABS: [Tab, string][] = [
   ["escola-captacao", "Captação Escolar"],
   ["gestao-escolar", "Consolidação Escolar"],
   ["mercado", "Inteligência de Mercado"],
+  ["construcao-curricular", "Construção Curricular"],
   ["planejamento-estrategico", "Planejamento Estratégico"],
   ["planejamento-semestral", "Planejamento Semestral"],
   ["base", "Base da organização"],
@@ -568,6 +571,8 @@ export default function Workspace({
         <p role="status">Carregando…</p>
       ) : tab === "mercado" ? (
         <Suspense fallback={<p role="status">Carregando inteligência de mercado…</p>}><MarketIntelligence key={String(id)} institutionId={String(id)} courses={data.courses} goals={data.goals} role={role} onPlanning={()=>choose("planejamento-estrategico")}/></Suspense>
+      ) : tab === "construcao-curricular" ? (
+        <Suspense fallback={<p role="status">Carregando construção curricular…</p>}><CurriculumBuilder institutionId={String(id)} courses={data.courses.map(c=>({id:String(c.id),name:String(c.name),code:String(c.code??"")}))} role={role} /></Suspense>
       ) : tab === "planejamento-estrategico" ? (
         <Suspense fallback={<p role="status">Carregando planejamento estratégico…</p>}>{instTier==='escolas'?<SchoolPlanning key={`${id}:strategic`} institutionId={String(id)} role={role} kind="strategic"/>:<CoursePlanning institutionId={String(id)} courses={data.courses.map(c=>({id:String(c.id),name:String(c.name),code:String(c.code??"")}))} role={role} kind="strategic" />}</Suspense>
       ) : tab === "planejamento-semestral" ? (
