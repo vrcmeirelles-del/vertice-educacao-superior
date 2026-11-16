@@ -55,3 +55,10 @@ it('opens legacy empty SWOT and normalizes empty alignment before saving',async(
  const call=mock.calls.find(c=>c.p_action==='save')!;
  expect(call.p_payload).toMatchObject({swot:{strengths:[],weaknesses:[],opportunities:[],threats:[]},alignment:[]});
 });
+
+it('offers interpretative analysis to the coordinator without institutional consolidation and keeps other limited roles out',async()=>{
+ await act(async()=>root.render(<CoursePlanning institutionId="ies-a" courses={courses} role="coordenador" initialCourseId="curso-a"/>));
+ expect(el.textContent).toContain('Análise interpretativa · Sapiens');expect(el.textContent).not.toContain('Consolidação da alta gestão');
+ await act(async()=>root.render(<CoursePlanning institutionId="ies-a" courses={courses} role="cpa" initialCourseId="curso-a"/>));
+ expect(el.textContent).not.toContain('Análise interpretativa · Sapiens');
+});

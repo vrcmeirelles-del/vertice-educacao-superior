@@ -68,7 +68,7 @@ export default function CoursePlanning({institutionId,courses,role,initialCourse
     {isFullAccess(role)&&<div><button type="button" aria-expanded={portfolioOpen} onClick={()=>setPortfolioOpen(!portfolioOpen)}>Consolidação da alta gestão</button>{portfolioOpen&&<PlanningManagement key={institutionId} institutionId={institutionId}/>}</div>}
     <header><h2>{title.heading}</h2><p>{title.description}</p></header>
     <label className="planning-field"><span>Curso</span><select aria-label="Curso do planejamento" value={selected?.id??''} onChange={e=>{if(!unsaved||window.confirm('Há alterações não salvas. Deseja trocar de curso?')){setSelection(e.target.value);setUnsaved(false);}}}><option value="">Selecione um curso</option>{courses.map(c=><option key={c.id} value={c.id}>{c.code?`${c.code} · `:''}{c.name}</option>)}</select></label>
-    {!courses.length?<p role="status">Nenhum curso disponível neste cadastro.</p>:!selected?<p role="status">Selecione o curso para consultar seus planejamentos.</p>:<PlanningEditor key={`${institutionId}:${selected.id}:${kind}`} institutionId={institutionId} courseId={selected.id} canAnalyze={isFullAccess(role)} canWrite={canWrite} onDirty={setUnsaved} kind={kind}/>}
+    {!courses.length?<p role="status">Nenhum curso disponível neste cadastro.</p>:!selected?<p role="status">Selecione o curso para consultar seus planejamentos.</p>:<PlanningEditor key={`${institutionId}:${selected.id}:${kind}`} institutionId={institutionId} courseId={selected.id} canAnalyze={isFullAccess(role)||role==='coordenador'||role==='nde'} canWrite={canWrite} onDirty={setUnsaved} kind={kind}/>}
   </section>;
 }
 
