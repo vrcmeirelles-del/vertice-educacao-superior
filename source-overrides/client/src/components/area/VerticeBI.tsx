@@ -42,7 +42,7 @@ export default function VerticeBI({ onBack }: Props) {
     try{
     const [instRes, contractRes, modulesRes, docRes] = await Promise.all([
       supabase.from('vertice_institutions').select('id, name, tier, acronym, city, state').eq('status', 'ativa'),
-      supabase.from('vertice_contracts').select('institution_id, status, package'),
+      supabase.from('vertice_contracts').select('institution_id, status'),
       supabase.from('vertice_module_activations').select('institution_id, module_code, status'),
       supabase.from('v_doc_health').select('*'),
     ]);
@@ -134,6 +134,8 @@ export default function VerticeBI({ onBack }: Props) {
   );
 
   if (loading) return <div style={{ textAlign: 'center', padding: 60, color: '#999' }}>Carregando BI Vértice...</div>;
+
+  if(error)return <section><p role="alert">Não foi possível consultar o BI: {error}</p><button type="button" className="area-btn secondary" onClick={load}>Tentar novamente</button><button type="button" className="area-btn secondary" onClick={onBack}>Voltar ao painel</button></section>;
 
   return (
     <div style={{ fontFamily: 'Inter, system-ui, sans-serif', maxWidth: 1100, margin: '0 auto', padding: '24px 16px' }}>
