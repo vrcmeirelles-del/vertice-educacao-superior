@@ -7,3 +7,7 @@ O gerador e o revisor usam os provedores já presentes no Sapiens. A revisão us
 A interface aparece nos planejamentos (botão “Análise interpretativa · Sapiens”), nas consolidações e no Sapiens, aba “Planejamentos”. O histórico exibe até vinte pareceres da instituição. Alterações após a geração exigem nova análise. Recortes acima de 180 mil caracteres exigem escolha de curso, sem truncamento silencioso. Planos não salvos não entram no contexto. Ausência de planos produz mensagem, sem consumo dos provedores.
 
 Validação: testes de formato da IA, autorização antes de chamada externa e ausência de segundo provedor; testes de regressão dos editores e painéis; teste transacional de contexto, bloqueio concorrente, revisão humana e acesso anônimo. Evidência real de provedores deve ser conferida no histórico da instituição: existência de código/deploy não comprova geração bem-sucedida.
+
+## Evolução proposta para revisão
+
+A camada gerencial com vínculos explícitos objetivo–meta, fontes estruturadas, séries longitudinais e acesso por curso está descrita em [INTERPRETACAO_GERENCIAL.md](INTERPRETACAO_GERENCIAL.md). Essa evolução depende de autorização para integração e publicação; sua presença nesta branch não comprova ativação em produção.
