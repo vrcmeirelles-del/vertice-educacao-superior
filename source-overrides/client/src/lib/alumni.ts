@@ -81,10 +81,7 @@ export const EGRESSO_STATUSES: AcademicStatus[] = [
 /* ── Queries ── */
 
 export async function fetchAlumniOverview(institutionId: string): Promise<AlumniOverview[]> {
-  const { data, error } = await supabase
-    .from('vertice_alumni_overview')
-    .select('*')
-    .eq('institution_id', institutionId);
+  const { data, error } = await supabase.rpc('vertice_alumni_indicators', { p_institution: institutionId, p_kind: 'overview' });
   if (error) throw error;
   return (data ?? []) as AlumniOverview[];
 }
@@ -159,24 +156,12 @@ export async function importAlumniRows(
 
   for (const row of rows) {
     try {
-      // Hash CPF se disponível
+      const courseId = row.curso ? courseMap.get(row.curso.trim().toUpperCase()) : undefined;
+      if (!courseId) { errors.push(`${row.nome}: curso não identificado na base da IES; revise o nome do curso antes de importar.`); skipped++; continue; }
+      if (!row.matricula?.trim()) { errors.push(`${row.nome}: matrícula obrigatória para preservar o vínculo longitudinal.`); skipped++; continue; }
       const cpfDigits = row.cpf?.replace(/\D/g, '') ?? '';
-      const cpfHash = cpfDigits.length === 11
-        ? await hashCPF(cpfDigits)
-        : null;
-
-      // Upsert profile via RPC
-      const { data: profileId, error: profErr } = await supabase.rpc('alumni_find_or_create_profile', {
-        p_cpf_hash: cpfHash,
-        p_full_name: row.nome.trim(),
-        p_email: row.email?.trim() || null,
-        p_phone: row.telefone?.trim() || null,
-        p_source: 'import',
-      });
-      if (profErr) { errors.push(`${row.nome}: ${profErr.message}`); skipped++; continue; }
-
-      // Resolve course
-      const courseId = row.curso ? courseMap.get(row.curso.trim().toUpperCase()) ?? null : null;
+      const cpfHash = cpfDigits.length === 11 ? await hashCPF(cpfDigits) : null;
+      if (cpfDigits && !cpfHash) { errors.push(`${row.nome}: CPF inválido.`); skipped++; continue; }
 
       // Map status
       const statusMap: Record<string, AcademicStatus> = {
@@ -189,22 +174,11 @@ export async function importAlumniRows(
       const rawStatus = (row.situacao ?? 'ativo').trim().toUpperCase();
       const status: AcademicStatus = statusMap[rawStatus] ?? 'ativo';
 
-      // Insert education
-      const { error: edErr } = await supabase.from('vertice_alumni_education').upsert({
-        profile_id: profileId,
-        institution_id: institutionId,
-        course_id: courseId,
-        enrollment_id: row.matricula?.trim() || null,
-        modality: row.modalidade?.trim() || null,
-        degree: row.grau?.trim() || null,
-        admission_year: row.ano_ingresso || null,
-        admission_semester: row.semestre_ingresso || null,
-        academic_status: status,
-        conclusion_year: row.ano_conclusao || null,
-        conclusion_semester: row.semestre_conclusao || null,
-        graduation_date: row.data_colacao || null,
-        status_source: 'import',
-      }, { onConflict: 'institution_id,course_id,enrollment_id' });
+      const { error: edErr } = await supabase.rpc('vertice_alumni_import_record', {
+        p_institution: institutionId,
+        p_course: courseId,
+        p_record: { ...row, cpf: undefined, cpf_hash: cpfHash, academic_status: status },
+      });
 
       if (edErr) { errors.push(`${row.nome}: ${edErr.message}`); skipped++; }
       else { imported++; }
@@ -316,19 +290,13 @@ export async function fetchSurveys(institutionId: string): Promise<AlumniSurvey[
 }
 
 export async function fetchSurveyIndicators(institutionId: string): Promise<SurveyIndicators[]> {
-  const { data, error } = await supabase
-    .from('v_alumni_survey_indicators')
-    .select('*')
-    .eq('institution_id', institutionId);
+  const { data, error } = await supabase.rpc('vertice_alumni_indicators', { p_institution: institutionId, p_kind: 'surveys' });
   if (error) throw error;
   return (data ?? []) as SurveyIndicators[];
 }
 
 export async function fetchTrajectoryIndicators(institutionId: string): Promise<TrajectoryIndicators[]> {
-  const { data, error } = await supabase
-    .from('v_alumni_trajectory_indicators')
-    .select('*')
-    .eq('institution_id', institutionId);
+  const { data, error } = await supabase.rpc('vertice_alumni_indicators', { p_institution: institutionId, p_kind: 'trajectory' });
   if (error) throw error;
   return (data ?? []) as TrajectoryIndicators[];
 }

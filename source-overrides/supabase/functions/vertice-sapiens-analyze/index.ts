@@ -69,6 +69,8 @@ interface CompetencyAgg {
   competency: string | null;
   courseId: string;
   attempts: number;
+  graded: number;
+  semester: string;
   correct: number;
   accuracy: number;
   avgPKnow: number;
@@ -243,6 +245,18 @@ Deno.serve(async (req: Request) => {
       return send(output.body,output.status,origin);
     }
 
+    if (!isService) {
+      const jwt=auth.slice(7);let aal="";
+      try {const part=jwt.split(".")[1].replace(/-/g,"+").replace(/_/g,"/");aal=JSON.parse(atob(part.padEnd(Math.ceil(part.length/4)*4,"="))).aal;}catch{}
+      if(aal!=="aal2")return send({error:"mfa_required"},403,origin);
+      const master=await admin.from("vertice_admins").select("user_id").eq("user_id",actorId).maybeSingle();
+      if(master.error)return send({error:"authorization_unavailable"},503,origin);
+      if(!master.data){
+        const member=await admin.from("vertice_memberships").select("role").eq("user_id",actorId).eq("institution_id",institutionId).maybeSingle();
+        if(member.error||!member.data||!["gestor","reitor","diretor_geral","diretor_pedagogico","procurador"].includes(member.data.role))return send({error:"forbidden"},403,origin);
+      }
+    }
+
     // Get institution info
     const { data: inst } = await admin
       .from("vertice_institutions")
@@ -252,11 +266,12 @@ Deno.serve(async (req: Request) => {
     if (!inst) return send({ error: "institution_not_found" }, 404, origin);
 
     // Get course metrics from learning bridge
-    const { data: metrics } = await admin
+    const { data: metrics, error: metricsError } = await admin
       .from("vertice_learning_course_metrics")
       .select("*")
       .eq("institution_id", institutionId);
 
+    if(metricsError)return send({error:'metrics_unavailable'},503,origin);
     if (!metrics?.length) {
       return send({ ok: true, message: "No learning data available for analysis", diagnoses: [] }, 200, origin);
     }
@@ -264,17 +279,20 @@ Deno.serve(async (req: Request) => {
     // Aggregate by competency
     const competencyMap = new Map<string, CompetencyAgg>();
     for (const m of metrics) {
-      const key = `${m.course_id}:${m.module}:${m.semester}`;
+      const key = JSON.stringify([m.course_id,m.module,m.semester,m.subject_code,m.competency]);
       const existing = competencyMap.get(key);
       if (existing) {
         existing.attempts += m.attempts || 0;
+        existing.graded += m.graded || 0;
         existing.correct += m.correct || 0;
         existing.studentCount = Math.max(existing.studentCount, m.participants || 0);
       } else {
         competencyMap.set(key, {
           module: m.module,
-          competency: null, // Aggregated at module level from metrics
+          competency: [m.subject_code,m.competency].filter(Boolean).join(' · ') || null,
           courseId: m.course_id,
+          semester:m.semester,
+          graded:m.graded||0,
           attempts: m.attempts || 0,
           correct: m.correct || 0,
           accuracy: m.attempts > 0 ? (m.correct || 0) / m.attempts : 0,
@@ -287,7 +305,7 @@ Deno.serve(async (req: Request) => {
 
     // Recalculate accuracy
     for (const agg of competencyMap.values()) {
-      agg.accuracy = agg.attempts > 0 ? agg.correct / agg.attempts : 0;
+      agg.accuracy = agg.graded > 0 ? agg.correct / agg.graded : 0;
     }
 
     // Get courses for names
@@ -316,7 +334,7 @@ Deno.serve(async (req: Request) => {
     const interventionIds: string[] = [];
 
     for (const [key, agg] of competencyMap.entries()) {
-      if (agg.studentCount < 3) continue; // Skip tiny samples
+      if (agg.studentCount < 5 || agg.graded === 0) continue; // Skip tiny samples
 
       const severity = classifySeverity(agg.accuracy, agg.avgPKnow || agg.accuracy);
 
@@ -340,7 +358,7 @@ NÃO inclua contraditório — outra IA fará a revisão crítica do seu diagnó
 Instituição: ${inst.name}
 Curso: ${courseName}
 Módulo: ${agg.module}
-Semestre: ${semester}
+Semestre: ${agg.semester}
 Amostra: ${agg.studentCount} estudantes
 Tentativas totais: ${agg.attempts}
 Taxa de acerto: ${(agg.accuracy * 100).toFixed(1)}%
@@ -398,7 +416,7 @@ ${prev ? `Ciclo anterior: #${(prev as Record<string, unknown>).sapiens_cycle} �
           course_id: agg.courseId,
           module: agg.module,
           competency: agg.competency,
-          semester,
+          semester:agg.semester,
           sample_size: agg.studentCount,
           avg_p_know: agg.avgPKnow || null,
           avg_elo_rating: agg.avgElo || null,

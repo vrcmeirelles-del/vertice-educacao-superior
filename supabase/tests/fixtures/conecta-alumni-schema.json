@@ -1,0 +1,1530 @@
+{
+  "columns": [
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_education",
+      "column_name": "id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": "gen_random_uuid()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_education",
+      "column_name": "profile_id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_education",
+      "column_name": "institution_id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_education",
+      "column_name": "course_id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_education",
+      "column_name": "enrollment_id",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_education",
+      "column_name": "modality",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_education",
+      "column_name": "degree",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_education",
+      "column_name": "admission_year",
+      "data_type": "smallint",
+      "udt_name": "int2",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_education",
+      "column_name": "admission_semester",
+      "data_type": "smallint",
+      "udt_name": "int2",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_education",
+      "column_name": "academic_status",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "NO",
+      "column_default": "'ativo'::text"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_education",
+      "column_name": "conclusion_year",
+      "data_type": "smallint",
+      "udt_name": "int2",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_education",
+      "column_name": "conclusion_semester",
+      "data_type": "smallint",
+      "udt_name": "int2",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_education",
+      "column_name": "graduation_date",
+      "data_type": "date",
+      "udt_name": "date",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_education",
+      "column_name": "diploma_date",
+      "data_type": "date",
+      "udt_name": "date",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_education",
+      "column_name": "eorbit_aluno_id",
+      "data_type": "bigint",
+      "udt_name": "int8",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_education",
+      "column_name": "eorbit_curso_id",
+      "data_type": "bigint",
+      "udt_name": "int8",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_education",
+      "column_name": "status_source",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "NO",
+      "column_default": "'import'::text"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_education",
+      "column_name": "status_verified",
+      "data_type": "boolean",
+      "udt_name": "bool",
+      "is_nullable": "NO",
+      "column_default": "false"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_education",
+      "column_name": "status_verified_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_education",
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_education",
+      "column_name": "updated_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_employment",
+      "column_name": "id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": "gen_random_uuid()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_employment",
+      "column_name": "profile_id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_employment",
+      "column_name": "employment_status",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_employment",
+      "column_name": "occupation",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_employment",
+      "column_name": "sector",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_employment",
+      "column_name": "field_of_work",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_employment",
+      "column_name": "employer_name",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_employment",
+      "column_name": "related_to_degree",
+      "data_type": "boolean",
+      "udt_name": "bool",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_employment",
+      "column_name": "education_id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_employment",
+      "column_name": "started_at",
+      "data_type": "date",
+      "udt_name": "date",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_employment",
+      "column_name": "ended_at",
+      "data_type": "date",
+      "udt_name": "date",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_employment",
+      "column_name": "months_to_first_job",
+      "data_type": "smallint",
+      "udt_name": "int2",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_employment",
+      "column_name": "salary_range",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_employment",
+      "column_name": "location_city",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_employment",
+      "column_name": "location_state",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_employment",
+      "column_name": "source",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "NO",
+      "column_default": "'portal'::text"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_employment",
+      "column_name": "reported_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_employment",
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_employment",
+      "column_name": "employment_type",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": "'principal'::text"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_employment",
+      "column_name": "field_relation",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_employment",
+      "column_name": "out_of_field_reason",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_employment",
+      "column_name": "worked_before_graduation",
+      "data_type": "boolean",
+      "udt_name": "bool",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_employment",
+      "column_name": "is_first_after_graduation",
+      "data_type": "boolean",
+      "udt_name": "bool",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_employment",
+      "column_name": "reference_date",
+      "data_type": "date",
+      "udt_name": "date",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_employment",
+      "column_name": "seeking_work",
+      "data_type": "boolean",
+      "udt_name": "bool",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_profiles",
+      "column_name": "id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": "gen_random_uuid()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_profiles",
+      "column_name": "cpf_hash",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_profiles",
+      "column_name": "full_name",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_profiles",
+      "column_name": "social_name",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_profiles",
+      "column_name": "email",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_profiles",
+      "column_name": "phone",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_profiles",
+      "column_name": "preferred_channel",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": "'email'::text"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_profiles",
+      "column_name": "contact_verified_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_profiles",
+      "column_name": "contact_updated_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_profiles",
+      "column_name": "comm_opt_out",
+      "data_type": "boolean",
+      "udt_name": "bool",
+      "is_nullable": "NO",
+      "column_default": "false"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_profiles",
+      "column_name": "source",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "NO",
+      "column_default": "'import'::text"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_profiles",
+      "column_name": "source_ref",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_profiles",
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_profiles",
+      "column_name": "updated_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_answers",
+      "column_name": "id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": "gen_random_uuid()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_answers",
+      "column_name": "response_id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_answers",
+      "column_name": "question_id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_answers",
+      "column_name": "answer_value",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_answers",
+      "column_name": "answer_text",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_answers",
+      "column_name": "answer_json",
+      "data_type": "jsonb",
+      "udt_name": "jsonb",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_answers",
+      "column_name": "previous_value",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_answers",
+      "column_name": "corrected_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_answers",
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_invitations",
+      "column_name": "id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": "gen_random_uuid()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_invitations",
+      "column_name": "survey_id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_invitations",
+      "column_name": "profile_id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_invitations",
+      "column_name": "education_id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_invitations",
+      "column_name": "channel",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "NO",
+      "column_default": "'email'::text"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_invitations",
+      "column_name": "sent_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_invitations",
+      "column_name": "delivered_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_invitations",
+      "column_name": "delivery_status",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": "'pendente'::text"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_invitations",
+      "column_name": "reminder_count",
+      "data_type": "smallint",
+      "udt_name": "int2",
+      "is_nullable": "NO",
+      "column_default": "0"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_invitations",
+      "column_name": "max_reminders",
+      "data_type": "smallint",
+      "udt_name": "int2",
+      "is_nullable": "NO",
+      "column_default": "3"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_invitations",
+      "column_name": "token",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_invitations",
+      "column_name": "responded_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_invitations",
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_questions",
+      "column_name": "id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": "gen_random_uuid()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_questions",
+      "column_name": "survey_id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_questions",
+      "column_name": "sort_order",
+      "data_type": "smallint",
+      "udt_name": "int2",
+      "is_nullable": "NO",
+      "column_default": "0"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_questions",
+      "column_name": "section",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_questions",
+      "column_name": "question_text",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_questions",
+      "column_name": "question_type",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_questions",
+      "column_name": "options",
+      "data_type": "jsonb",
+      "udt_name": "jsonb",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_questions",
+      "column_name": "required",
+      "data_type": "boolean",
+      "udt_name": "bool",
+      "is_nullable": "NO",
+      "column_default": "false"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_questions",
+      "column_name": "depends_on",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_questions",
+      "column_name": "show_when_value",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_questions",
+      "column_name": "indicator_key",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_questions",
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_responses",
+      "column_name": "id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": "gen_random_uuid()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_responses",
+      "column_name": "survey_id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_responses",
+      "column_name": "profile_id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_responses",
+      "column_name": "education_id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_responses",
+      "column_name": "invitation_id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_responses",
+      "column_name": "status",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "NO",
+      "column_default": "'em_andamento'::text"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_responses",
+      "column_name": "started_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_responses",
+      "column_name": "completed_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_responses",
+      "column_name": "corrected_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_responses",
+      "column_name": "device",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_responses",
+      "column_name": "ip_hash",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_responses",
+      "column_name": "duration_seconds",
+      "data_type": "integer",
+      "udt_name": "int4",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_responses",
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_survey_responses",
+      "column_name": "updated_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_surveys",
+      "column_name": "id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": "gen_random_uuid()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_surveys",
+      "column_name": "institution_id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_surveys",
+      "column_name": "course_id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_surveys",
+      "column_name": "title",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_surveys",
+      "column_name": "version",
+      "data_type": "smallint",
+      "udt_name": "int2",
+      "is_nullable": "NO",
+      "column_default": "1"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_surveys",
+      "column_name": "description",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_surveys",
+      "column_name": "wave_type",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "NO",
+      "column_default": "'conclusao'::text"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_surveys",
+      "column_name": "custom_months",
+      "data_type": "smallint",
+      "udt_name": "int2",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_surveys",
+      "column_name": "opens_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_surveys",
+      "column_name": "closes_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_surveys",
+      "column_name": "status",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "NO",
+      "column_default": "'rascunho'::text"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_surveys",
+      "column_name": "target_audience",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": "'egressos'::text"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_surveys",
+      "column_name": "responsible_id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_surveys",
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_surveys",
+      "column_name": "updated_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_surveys",
+      "column_name": "conclusion_year",
+      "data_type": "smallint",
+      "udt_name": "int2",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_surveys",
+      "column_name": "conclusion_semester",
+      "data_type": "smallint",
+      "udt_name": "int2",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_surveys",
+      "column_name": "followup_months",
+      "data_type": "smallint",
+      "udt_name": "int2",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_alumni_surveys",
+      "column_name": "survey_origin",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_student_registry",
+      "column_name": "id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": "gen_random_uuid()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_student_registry",
+      "column_name": "institution_id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_student_registry",
+      "column_name": "course_id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_student_registry",
+      "column_name": "enrollment_code",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_student_registry",
+      "column_name": "cpf_hash",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_student_registry",
+      "column_name": "full_name",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_student_registry",
+      "column_name": "email",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_student_registry",
+      "column_name": "curriculum_version",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_student_registry",
+      "column_name": "academic_status",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": "'active'::text"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_student_registry",
+      "column_name": "verified",
+      "data_type": "boolean",
+      "udt_name": "bool",
+      "is_nullable": "NO",
+      "column_default": "false"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_student_registry",
+      "column_name": "imported_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_student_registry",
+      "column_name": "updated_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_student_registry",
+      "column_name": "current_semester",
+      "data_type": "smallint",
+      "udt_name": "int2",
+      "is_nullable": "YES",
+      "column_default": "1"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vertice_student_registry",
+      "column_name": "enrollment_date",
+      "data_type": "date",
+      "udt_name": "date",
+      "is_nullable": "YES",
+      "column_default": "CURRENT_DATE"
+    }
+  ],
+  "constraints": [
+    {
+      "tabela": "vertice_alumni_education",
+      "conname": "vertice_alumni_education_academic_status_check",
+      "regra": "CHECK ((academic_status = ANY (ARRAY['ativo'::text, 'provavel_concluinte'::text, 'concluinte'::text, 'integralizado'::text, 'formado'::text, 'diplomado'::text, 'egresso_acompanhado'::text, 'desistente'::text, 'transferido'::text, 'jubilado'::text, 'cancelado'::text])))"
+    },
+    {
+      "tabela": "vertice_alumni_education",
+      "conname": "vertice_alumni_education_admission_semester_check",
+      "regra": "CHECK ((admission_semester = ANY (ARRAY[1, 2])))"
+    },
+    {
+      "tabela": "vertice_alumni_education",
+      "conname": "vertice_alumni_education_conclusion_semester_check",
+      "regra": "CHECK ((conclusion_semester = ANY (ARRAY[1, 2])))"
+    },
+    {
+      "tabela": "vertice_alumni_education",
+      "conname": "vertice_alumni_education_course_id_fkey",
+      "regra": "FOREIGN KEY (course_id) REFERENCES vertice_courses(id)"
+    },
+    {
+      "tabela": "vertice_alumni_education",
+      "conname": "vertice_alumni_education_institution_id_course_id_enrollmen_key",
+      "regra": "UNIQUE (institution_id, course_id, enrollment_id)"
+    },
+    {
+      "tabela": "vertice_alumni_education",
+      "conname": "vertice_alumni_education_institution_id_fkey",
+      "regra": "FOREIGN KEY (institution_id) REFERENCES vertice_institutions(id)"
+    },
+    {
+      "tabela": "vertice_alumni_education",
+      "conname": "vertice_alumni_education_pkey",
+      "regra": "PRIMARY KEY (id)"
+    },
+    {
+      "tabela": "vertice_alumni_education",
+      "conname": "vertice_alumni_education_profile_id_fkey",
+      "regra": "FOREIGN KEY (profile_id) REFERENCES vertice_alumni_profiles(id) ON DELETE CASCADE"
+    },
+    {
+      "tabela": "vertice_alumni_education",
+      "conname": "vertice_alumni_education_status_source_check",
+      "regra": "CHECK ((status_source = ANY (ARRAY['import'::text, 'eorbit'::text, 'api'::text, 'portal'::text, 'manual'::text, 'academico'::text])))"
+    },
+    {
+      "tabela": "vertice_alumni_employment",
+      "conname": "vertice_alumni_employment_education_id_fkey",
+      "regra": "FOREIGN KEY (education_id) REFERENCES vertice_alumni_education(id)"
+    },
+    {
+      "tabela": "vertice_alumni_employment",
+      "conname": "vertice_alumni_employment_employment_status_check",
+      "regra": "CHECK ((employment_status = ANY (ARRAY['empregado_clt'::text, 'servidor_publico'::text, 'autonomo'::text, 'empresario'::text, 'estagiario'::text, 'freelancer'::text, 'desempregado'::text, 'nao_informado'::text, 'outro'::text])))"
+    },
+    {
+      "tabela": "vertice_alumni_employment",
+      "conname": "vertice_alumni_employment_employment_type_check",
+      "regra": "CHECK ((employment_type = ANY (ARRAY['principal'::text, 'secundaria'::text, 'eventual'::text, 'anterior'::text])))"
+    },
+    {
+      "tabela": "vertice_alumni_employment",
+      "conname": "vertice_alumni_employment_field_relation_check",
+      "regra": "CHECK ((field_relation = ANY (ARRAY['area_formacao'::text, 'area_correlata'::text, 'outra_area'::text, 'nao_informado'::text])))"
+    },
+    {
+      "tabela": "vertice_alumni_employment",
+      "conname": "vertice_alumni_employment_pkey",
+      "regra": "PRIMARY KEY (id)"
+    },
+    {
+      "tabela": "vertice_alumni_employment",
+      "conname": "vertice_alumni_employment_profile_id_fkey",
+      "regra": "FOREIGN KEY (profile_id) REFERENCES vertice_alumni_profiles(id) ON DELETE CASCADE"
+    },
+    {
+      "tabela": "vertice_alumni_employment",
+      "conname": "vertice_alumni_employment_salary_range_check",
+      "regra": "CHECK ((salary_range = ANY (ARRAY['ate_1sm'::text, '1_3sm'::text, '3_5sm'::text, '5_10sm'::text, '10_20sm'::text, 'acima_20sm'::text, 'nao_informado'::text])))"
+    },
+    {
+      "tabela": "vertice_alumni_employment",
+      "conname": "vertice_alumni_employment_source_check",
+      "regra": "CHECK ((source = ANY (ARRAY['portal'::text, 'pesquisa'::text, 'import'::text, 'manual'::text])))"
+    },
+    {
+      "tabela": "vertice_alumni_profiles",
+      "conname": "vertice_alumni_profiles_pkey",
+      "regra": "PRIMARY KEY (id)"
+    },
+    {
+      "tabela": "vertice_alumni_profiles",
+      "conname": "vertice_alumni_profiles_preferred_channel_check",
+      "regra": "CHECK ((preferred_channel = ANY (ARRAY['email'::text, 'whatsapp'::text, 'sms'::text, 'portal'::text, 'nenhum'::text])))"
+    },
+    {
+      "tabela": "vertice_alumni_profiles",
+      "conname": "vertice_alumni_profiles_source_check",
+      "regra": "CHECK ((source = ANY (ARRAY['import'::text, 'eorbit'::text, 'api'::text, 'portal'::text, 'manual'::text])))"
+    },
+    {
+      "tabela": "vertice_alumni_survey_answers",
+      "conname": "vertice_alumni_survey_answers_pkey",
+      "regra": "PRIMARY KEY (id)"
+    },
+    {
+      "tabela": "vertice_alumni_survey_answers",
+      "conname": "vertice_alumni_survey_answers_question_id_fkey",
+      "regra": "FOREIGN KEY (question_id) REFERENCES vertice_alumni_survey_questions(id)"
+    },
+    {
+      "tabela": "vertice_alumni_survey_answers",
+      "conname": "vertice_alumni_survey_answers_response_id_fkey",
+      "regra": "FOREIGN KEY (response_id) REFERENCES vertice_alumni_survey_responses(id) ON DELETE CASCADE"
+    },
+    {
+      "tabela": "vertice_alumni_survey_answers",
+      "conname": "vertice_alumni_survey_answers_response_id_question_id_key",
+      "regra": "UNIQUE (response_id, question_id)"
+    },
+    {
+      "tabela": "vertice_alumni_survey_questions",
+      "conname": "vertice_alumni_survey_questions_depends_on_fkey",
+      "regra": "FOREIGN KEY (depends_on) REFERENCES vertice_alumni_survey_questions(id)"
+    },
+    {
+      "tabela": "vertice_alumni_survey_questions",
+      "conname": "vertice_alumni_survey_questions_pkey",
+      "regra": "PRIMARY KEY (id)"
+    },
+    {
+      "tabela": "vertice_alumni_survey_questions",
+      "conname": "vertice_alumni_survey_questions_question_type_check",
+      "regra": "CHECK ((question_type = ANY (ARRAY['single_choice'::text, 'multiple_choice'::text, 'text'::text, 'number'::text, 'scale'::text, 'date'::text, 'salary_range'::text, 'boolean'::text, 'file'::text])))"
+    },
+    {
+      "tabela": "vertice_alumni_survey_questions",
+      "conname": "vertice_alumni_survey_questions_survey_id_fkey",
+      "regra": "FOREIGN KEY (survey_id) REFERENCES vertice_alumni_surveys(id) ON DELETE CASCADE"
+    },
+    {
+      "tabela": "vertice_alumni_survey_responses",
+      "conname": "vertice_alumni_survey_responses_education_id_fkey",
+      "regra": "FOREIGN KEY (education_id) REFERENCES vertice_alumni_education(id)"
+    },
+    {
+      "tabela": "vertice_alumni_survey_responses",
+      "conname": "vertice_alumni_survey_responses_invitation_id_fkey",
+      "regra": "FOREIGN KEY (invitation_id) REFERENCES vertice_alumni_survey_invitations(id)"
+    },
+    {
+      "tabela": "vertice_alumni_survey_responses",
+      "conname": "vertice_alumni_survey_responses_pkey",
+      "regra": "PRIMARY KEY (id)"
+    },
+    {
+      "tabela": "vertice_alumni_survey_responses",
+      "conname": "vertice_alumni_survey_responses_profile_id_fkey",
+      "regra": "FOREIGN KEY (profile_id) REFERENCES vertice_alumni_profiles(id)"
+    },
+    {
+      "tabela": "vertice_alumni_survey_responses",
+      "conname": "vertice_alumni_survey_responses_status_check",
+      "regra": "CHECK ((status = ANY (ARRAY['em_andamento'::text, 'concluida'::text, 'corrigida'::text, 'abandonada'::text])))"
+    },
+    {
+      "tabela": "vertice_alumni_survey_responses",
+      "conname": "vertice_alumni_survey_responses_survey_id_fkey",
+      "regra": "FOREIGN KEY (survey_id) REFERENCES vertice_alumni_surveys(id)"
+    },
+    {
+      "tabela": "vertice_alumni_survey_responses",
+      "conname": "vertice_alumni_survey_responses_survey_id_profile_id_key",
+      "regra": "UNIQUE (survey_id, profile_id)"
+    },
+    {
+      "tabela": "vertice_alumni_surveys",
+      "conname": "vertice_alumni_surveys_conclusion_semester_check",
+      "regra": "CHECK ((conclusion_semester = ANY (ARRAY[1, 2])))"
+    },
+    {
+      "tabela": "vertice_alumni_surveys",
+      "conname": "vertice_alumni_surveys_conclusion_year_check",
+      "regra": "CHECK (((conclusion_year >= 1900) AND (conclusion_year <= 2200)))"
+    },
+    {
+      "tabela": "vertice_alumni_surveys",
+      "conname": "vertice_alumni_surveys_course_id_fkey",
+      "regra": "FOREIGN KEY (course_id) REFERENCES vertice_courses(id)"
+    },
+    {
+      "tabela": "vertice_alumni_surveys",
+      "conname": "vertice_alumni_surveys_followup_months_check",
+      "regra": "CHECK (((followup_months >= 0) AND (followup_months <= 120)))"
+    },
+    {
+      "tabela": "vertice_alumni_surveys",
+      "conname": "vertice_alumni_surveys_institution_id_course_id_title_versi_key",
+      "regra": "UNIQUE (institution_id, course_id, title, version)"
+    },
+    {
+      "tabela": "vertice_alumni_surveys",
+      "conname": "vertice_alumni_surveys_institution_id_fkey",
+      "regra": "FOREIGN KEY (institution_id) REFERENCES vertice_institutions(id)"
+    },
+    {
+      "tabela": "vertice_alumni_surveys",
+      "conname": "vertice_alumni_surveys_pkey",
+      "regra": "PRIMARY KEY (id)"
+    },
+    {
+      "tabela": "vertice_alumni_surveys",
+      "conname": "vertice_alumni_surveys_status_check",
+      "regra": "CHECK ((status = ANY (ARRAY['rascunho'::text, 'teste'::text, 'ativa'::text, 'encerrada'::text, 'arquivada'::text])))"
+    },
+    {
+      "tabela": "vertice_alumni_surveys",
+      "conname": "vertice_alumni_surveys_survey_origin_check",
+      "regra": "CHECK (((survey_origin IS NULL) OR (survey_origin = 'conecta_short'::text)))"
+    },
+    {
+      "tabela": "vertice_alumni_surveys",
+      "conname": "vertice_alumni_surveys_target_audience_check",
+      "regra": "CHECK ((target_audience = ANY (ARRAY['egressos'::text, 'concluintes'::text, 'todos'::text])))"
+    },
+    {
+      "tabela": "vertice_alumni_surveys",
+      "conname": "vertice_alumni_surveys_wave_type_check",
+      "regra": "CHECK ((wave_type = ANY (ARRAY['conclusao'::text, '6m'::text, '12m'::text, '24m'::text, '36m'::text, '60m'::text, 'custom'::text])))"
+    },
+    {
+      "tabela": "vertice_student_registry",
+      "conname": "vertice_student_registry_academic_status_check",
+      "regra": "CHECK ((academic_status = ANY (ARRAY['active'::text, 'locked'::text, 'graduated'::text, 'cancelled'::text, 'transferred'::text])))"
+    },
+    {
+      "tabela": "vertice_student_registry",
+      "conname": "vertice_student_registry_course_id_fkey",
+      "regra": "FOREIGN KEY (course_id) REFERENCES vertice_courses(id)"
+    },
+    {
+      "tabela": "vertice_student_registry",
+      "conname": "vertice_student_registry_institution_id_enrollment_code_key",
+      "regra": "UNIQUE (institution_id, enrollment_code)"
+    },
+    {
+      "tabela": "vertice_student_registry",
+      "conname": "vertice_student_registry_institution_id_fkey",
+      "regra": "FOREIGN KEY (institution_id) REFERENCES vertice_institutions(id)"
+    },
+    {
+      "tabela": "vertice_student_registry",
+      "conname": "vertice_student_registry_pkey",
+      "regra": "PRIMARY KEY (id)"
+    }
+  ]
+}

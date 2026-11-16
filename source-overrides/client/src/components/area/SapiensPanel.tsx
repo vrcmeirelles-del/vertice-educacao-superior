@@ -1,3 +1,4 @@
+import ModuleSourceStatus from '../bi/ModuleSourceStatus';
 import SapiensPlanning from './SapiensPlanning';
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
@@ -137,6 +138,17 @@ export default function SapiensPanel({ institutionId, role }: Props) {
     finally { await load(); if (failure) setError(failure); setBusy(false); }
   };
 
+  const runDiagnosis=async()=>{
+    setBusy(true);setError("");setSuccess("");
+    try{
+      const {data,error}=await supabase.functions.invoke("vertice-sapiens-analyze",{body:{institutionId}});
+      if(error){let message=error.message;try{message=(await error.context?.json())?.error||message;}catch{}throw Error(message);}
+      if(!data?.ok)throw Error(data?.error||"Diagnóstico indisponível");
+      const count=Array.isArray(data.diagnoses)?data.diagnoses.length:Number(data.diagnoses||0);
+      setSuccess(count?count+" diagnóstico(s) gerado(s), em rascunho para revisão.":"Sem base de aprendizagem suficiente para gerar diagnóstico. Confira os vínculos e a sincronização da instituição.");
+    }catch(e){setError((e as Error).message);}finally{await load();setBusy(false);}
+  };
+
   const tabs: { key: Tab; label: string; count?: number }[] = [
     { key: "diagnoses", label: "Diagnósticos", count: diagnoses.filter(d => d.status !== "archived").length },
     { key: "interventions", label: "Intervenções", count: interventions.filter(i => i.status === "proposed").length },
@@ -157,10 +169,12 @@ export default function SapiensPanel({ institutionId, role }: Props) {
           {busy ? "Carregando…" : "↻ Atualizar"}
         </button>
       </header>
+      {["master","gestor","reitor","diretor_geral","diretor_pedagogico","procurador"].includes(role||"")&&<button type="button" className="area-btn secondary" disabled={busy} onClick={runDiagnosis}>Executar diagnóstico com a base atual</button>}
 
       {error && <p role="alert" style={{ color: "#dc2626", fontSize: 13 }}>{error}</p>}
       {success && <p role="status" style={{ color: "#059669", fontSize: 13 }}>{success}</p>}
 
+      <ModuleSourceStatus institutionId={institutionId} revision={readingRevision}/>
       {/* Tabs */}
       <nav style={{ display: "flex", flexWrap:"wrap", gap: 4, borderBottom: "2px solid #e2e8f0", marginBottom: 16 }}>
         {tabs.map(t => (

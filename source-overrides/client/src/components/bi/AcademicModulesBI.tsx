@@ -1,3 +1,4 @@
+import ModuleSourceStatus from './ModuleSourceStatus';
 // AcademicModulesBI.tsx — BI consolidado para TCC, AC e Estágio na Reitoria
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
@@ -7,22 +8,23 @@ interface Props { institutionId: string; module: 'tcc' | 'ac' | 'estagio'; }
 export default function AcademicModulesBI({ institutionId, module }: Props) {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error,setError]=useState(''),[revision,setRevision]=useState(0),[updatedAt,setUpdatedAt]=useState('');
 
   useEffect(() => {
-    setLoading(true);
+    let active=true;setLoading(true);setError('');setData([]);
     const view = module === 'tcc' ? 'v_tcc_course_summary' : module === 'ac' ? 'v_ac_course_summary' : 'v_internship_course_summary';
     Promise.resolve(supabase.from(view).select('*').eq('institution_id', institutionId))
-      .then(r => setData(r.data ?? []))
-      .catch(() => setData([]))
-      .finally(() => setLoading(false));
-  }, [institutionId, module]);
+      .then(r => {if(!active)return;if(r.error)throw r.error;setData(r.data??[]);setUpdatedAt(new Date().toISOString());})
+      .catch(e=>{if(active)setError(e.message||'Falha ao consultar indicadores');})
+      .finally(()=>{if(active)setLoading(false);});
+    return()=>{active=false;};
+  }, [institutionId, module,revision]);
 
   if (loading) return <p style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>Carregando…</p>;
-  if (data.length === 0) return <p style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>Nenhum dado disponível. Execute a migração SQL e cadastre dados para este módulo.</p>;
-
-  if (module === 'tcc') return <TccBI data={data} />;
-  if (module === 'ac') return <AcBI data={data} />;
-  return <EstagioBI data={data} />;
+  return <section><button type="button" className="area-btn secondary" onClick={()=>setRevision(n=>n+1)}>Atualizar indicadores</button>
+  {error?<p role="alert">Não foi possível consultar o módulo: {error}</p>:<><p>Consulta: {updatedAt?new Date(updatedAt).toLocaleString('pt-BR'):'—'}</p>
+  {!data.length?<p>Sem registros disponíveis para esta instituição.</p>:module==='tcc'?<TccBI data={data}/>:module==='ac'?<AcBI data={data}/>:<EstagioBI data={data}/>}</>}
+  <ModuleSourceStatus institutionId={institutionId} revision={revision}/></section>;
 }
 
 function KPI({ label, value, color }: { label: string; value: string | number; color?: string }) {

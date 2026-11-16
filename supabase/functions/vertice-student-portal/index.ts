@@ -1,9 +1,7 @@
-// vertice-student-portal — acesso do estudante sem senha (Atividades Complementares / Estágio)
-//
-// Fluxo: request (matrícula + CPF + e-mail) → link pessoal por e-mail → redeem (token de uso único,
-// 30 min) → sessão própria do estudante (8 h, guardada só como hash) → dashboard / envio de atividades.
-// Toda leitura e escrita passa por aqui com service role, sempre restrita ao estudante da sessão.
-// O navegador nunca consulta tabelas do estudante diretamente.
+// Existing student portal: AC/Estágio retain their academic passwordless flow.
+// Conecta validates enrollment + CPF, uses scoped reusable 72h links and native career/survey RPCs.
+// Partner intake uses scoped private links and institutional review; public callers never read students.
+// Only token/session hashes are stored, and all identity derivation remains server-side.
 import { createClient } from "npm:@supabase/supabase-js@2.118.0";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -39,7 +37,7 @@ const str = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slice
 const hex = (buf: ArrayBuffer) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
 const sha256 = async (s: string) => hex(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s)));
 const randomHex = (bytes = 32) => hex(crypto.getRandomValues(new Uint8Array(bytes)).buffer);
-const moduleOf = (v: unknown) => (v === "estagio" || v === "mandatory_internship" ? "estagio" : "ac");
+const moduleOf = (v: unknown) => v === "conecta" ? "conecta" : (v === "estagio" || v === "mandatory_internship" ? "estagio" : "ac");
 
 function clientIp(req: Request) {
   return req.headers.get("cf-connecting-ip")?.trim() || req.headers.get("x-real-ip")?.trim() || "unknown";
@@ -52,16 +50,18 @@ async function readJson(req: Request): Promise<Record<string, unknown>> {
   throw new Fail(400, "invalid_request");
 }
 
-async function sessionFrom(key: unknown) {
+const eligible = (status: string, mod: string) => status === "active" || (mod === "conecta" && status === "graduated");
+async function sessionFrom(key: unknown, mod = "ac") {
   if (typeof key !== "string" || !HEX64.test(key)) throw new Fail(401, "session_invalid");
   const { data: s } = await admin.from("vertice_student_sessions")
-    .select("id, institution_id, student_id, expires_at, revoked_at")
+    .select("id, institution_id, student_id, expires_at, revoked_at, access_scope")
     .eq("session_key_hash", await sha256(key)).maybeSingle();
   if (!s || s.revoked_at || new Date(s.expires_at).getTime() <= Date.now()) throw new Fail(401, "session_invalid");
+  if(s.access_scope !== (mod === 'conecta' ? 'conecta' : 'academic')) throw new Fail(401, 'session_invalid');
   const { data: st } = await admin.from("vertice_student_registry")
     .select("id, institution_id, course_id, enrollment_code, full_name, curriculum_version, academic_status")
     .eq("id", s.student_id).eq("institution_id", s.institution_id).maybeSingle();
-  if (!st || st.academic_status !== "active") throw new Fail(401, "session_invalid");
+  if (!st || !eligible(st.academic_status, mod)) throw new Fail(401, "session_invalid");
   return { session: s, student: st };
 }
 
@@ -76,6 +76,7 @@ async function activeRule(student: { institution_id: string; course_id: string; 
 }
 
 async function dashboard(student: { id: string; institution_id: string; course_id: string; full_name: string; enrollment_code: string; curriculum_version: string | null }, mod: string) {
+  if(mod === "conecta") return {student:{full_name:student.full_name,enrollment_code:student.enrollment_code},conecta:true};
   const [course, rule, subs] = await Promise.all([
     admin.from("vertice_courses").select("name").eq("id", student.course_id).maybeSingle(),
     activeRule(student),
@@ -115,7 +116,7 @@ async function dashboard(student: { id: string; institution_id: string; course_i
 
 async function sendLinkEmail(to: string, name: string, link: string, mod: string) {
   if (!RESEND_API_KEY) { console.error("student-portal: RESEND_API_KEY ausente"); return; }
-  const label = mod === "estagio" ? "Estágio Obrigatório" : "Atividades Complementares";
+  const label = mod === "conecta" ? "Conecta 360°" : mod === "estagio" ? "Estágio Obrigatório" : "Atividades Complementares";
   const html = `<div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:24px;color:#1e293b">
   <h2 style="margin:0 0 12px">Olá, ${esc(name)}!</h2>
   <p>Você solicitou acesso ao módulo de <strong>${esc(label)}</strong> da sua instituição.</p>
@@ -133,6 +134,37 @@ async function sendLinkEmail(to: string, name: string, link: string, mod: string
 }
 
 async function handle(action: string, b: Record<string, unknown>, req: Request) {
+  // Counters commit separately from credential validation, including failed requests.
+  const throttle=async(bucket:string,limit:number)=>{
+    const {data,error}=await admin.rpc('vertice_conecta_rate_limit',{p_key:await sha256(bucket),p_limit:limit,p_seconds:900});
+    if(error)throw new Fail(503,'unavailable');if(!data)throw new Fail(429,'too_many');
+  };
+  if(moduleOf(b.module)==='conecta' && (action==='request'||action==='redeem')){
+    const inst=str(b.institution_id,40);if(!UUID.test(inst))throw new Fail(400,'invalid_request');
+    await throttle('conecta-access-ip:'+clientIp(req),60);
+    const key=randomHex(),token=action==='request'?randomHex():str(b.token,80);
+    if(!HEX64.test(token))throw new Fail(401,'link_invalid');
+    const payload:Record<string,string>={session_hash:await sha256(key),token_hash:await sha256(token)};
+    if(action==='request'){
+      payload.enrollment=str(b.enrollment_code,40);const cpf=str(b.cpf,20).replace(/\D/g,'');
+      await throttle('conecta-enrollment:'+inst+':'+payload.enrollment,5);
+      if(!payload.enrollment||cpf.length!==11)throw new Fail(401,'invalid_credentials');payload.cpf_hash=await sha256(cpf);
+    }
+    const {data,error}=await admin.rpc('vertice_conecta_access',{p_action:action==='request'?'login':'redeem',p_institution:inst,p_payload:payload});
+    if(error)throw new Fail(503,'unavailable');if(!data?.ok)throw new Fail(401,action==='request'?'invalid_credentials':'link_invalid');
+    return {session:key,expires_at:data.expires_at,access_link:`${BASE_URL}/acesso-estudante?ies=${encodeURIComponent(inst)}&mod=conecta&token=${token}`};
+  }
+  if(action.startsWith('partner_')){
+    const inst=str(b.institution_id,40),operation=action.slice(8);
+    if(!UUID.test(inst)||!['info','register','me','proposal','logout'].includes(operation))throw new Fail(400,'invalid_request');
+    await throttle('conecta-partner-ip:'+clientIp(req),operation==='info'?120:30);
+    const token=operation==='register'?randomHex():str(b.token,80);
+    if(operation!=='info'&&!HEX64.test(token))throw new Fail(401,'link_invalid');
+    const {data,error}=await admin.rpc('vertice_conecta_partner_public',{p_action:operation,p_institution:inst,p_token_hash:operation==='info'?null:await sha256(token),p_payload:b.payload||{}});
+    if(error)throw new Fail(error.code==='42501'?401:400,'partner_invalid');
+    if(data?.ok===false)throw new Fail(409,'already_received');
+    return operation==='register'?{...data,access_link:`${BASE_URL}/conecta-parceiros?ies=${encodeURIComponent(inst)}&token=${token}`,token}:data;
+  }
   if (action === "request") {
     const institutionId = str(b.institution_id, 40);
     const enrollment = str(b.enrollment_code, 40);
@@ -143,7 +175,7 @@ async function handle(action: string, b: Record<string, unknown>, req: Request) 
     const { data: st } = await admin.from("vertice_student_registry")
       .select("id, institution_id, email, full_name, academic_status")
       .eq("institution_id", institutionId).eq("enrollment_code", enrollment).eq("cpf_hash", await sha256(cpf)).maybeSingle();
-    if (!st || st.academic_status !== "active" || String(st.email).trim().toLowerCase() !== email) return GENERIC_SENT;
+    if (!st || !eligible(st.academic_status, mod) || String(st.email).trim().toLowerCase() !== email) return GENERIC_SENT;
     const since = new Date(Date.now() - 3600_000).toISOString();
     const { count } = await admin.from("vertice_student_access_tokens")
       .select("id", { count: "exact", head: true }).eq("student_id", st.id).gte("created_at", since);
@@ -164,14 +196,14 @@ async function handle(action: string, b: Record<string, unknown>, req: Request) 
     if (!HEX64.test(token)) throw new Fail(401, "link_invalid");
     const { data: used } = await admin.from("vertice_student_access_tokens")
       .update({ consumed_at: new Date().toISOString(), consumed_ip: clientIp(req) })
-      .eq("token_hash", await sha256(token)).is("consumed_at", null).gt("expires_at", new Date().toISOString())
+      .eq("token_hash", await sha256(token)).eq("access_scope", "academic").is("revoked_at",null).is("consumed_at", null).gt("expires_at", new Date().toISOString())
       .select("id, institution_id, student_id");
     const t = used?.[0];
     if (!t) throw new Fail(401, "link_invalid");
     const { data: st } = await admin.from("vertice_student_registry")
       .select("id, institution_id, course_id, enrollment_code, full_name, curriculum_version, academic_status")
       .eq("id", t.student_id).eq("institution_id", t.institution_id).maybeSingle();
-    if (!st || st.academic_status !== "active") throw new Fail(401, "link_invalid");
+    if (!st || !eligible(st.academic_status, moduleOf(b.module))) throw new Fail(401, "link_invalid");
     const key = randomHex(32);
     const expires = new Date(Date.now() + SESSION_TTL_H * 3600_000).toISOString();
     const { error } = await admin.from("vertice_student_sessions").insert({
@@ -181,11 +213,28 @@ async function handle(action: string, b: Record<string, unknown>, req: Request) 
     return { session: key, expires_at: expires, data: await dashboard(st, moduleOf(b.module)) };
   }
 
-  const { session, student } = await sessionFrom(b.session);
+  const mod=moduleOf(b.module);
+  const {session,student}=await sessionFrom(b.session,mod);
+  if(action==='survey'){
+   if(mod!=='conecta')throw new Fail(400,'invalid_action');
+   const {data,error}=await admin.rpc('vertice_conecta_surveys_student',{p_session_hash:await sha256(String(b.session)),p_action:str(b.operation,20),p_payload:b.payload||{}});
+   if(error)throw new Fail(400,'survey_invalid');return {data};
+  }
+  if(action==="conecta"){
+   if(mod!=="conecta")throw new Fail(400,"invalid_action");
+   const {data,error}=await admin.rpc("vertice_conecta_student",{p_session_hash:await sha256(String(b.session)),p_action:str(b.operation,30),p_payload:b.payload||{}});
+   if(error){console.error("student-portal: conecta",error.code);throw new Fail(400,"conecta_invalid");}
+   return {data};
+  }
+  if(mod==="conecta"&&!["dashboard","logout"].includes(action))throw new Fail(400,"invalid_action");
 
   if (action === "dashboard") return { data: await dashboard(student, moduleOf(b.module)) };
 
   if (action === "logout") {
+    if(mod==='conecta'){
+      const {error}=await admin.rpc('vertice_conecta_access',{p_action:'logout',p_institution:student.institution_id,p_payload:{session_hash:await sha256(String(b.session))}});
+      if(error)throw new Fail(503,'unavailable');return {ok:true};
+    }
     await admin.from("vertice_student_sessions").update({ revoked_at: new Date().toISOString() }).eq("id", session.id);
     return { ok: true };
   }

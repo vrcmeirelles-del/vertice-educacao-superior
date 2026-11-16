@@ -1,3 +1,4 @@
+import ModuleSourceStatus from './ModuleSourceStatus';
 import SapiensPlanning from '../area/SapiensPlanning';
 import {useState,useEffect} from 'react';
 import {supabase} from '@/lib/supabase';
@@ -10,6 +11,7 @@ export default function SchoolManagement({institutionId}:{institutionId:string})
  const plan=data?.strategic,sem=data?.semesters?.find((s:any)=>s.semester===(term||data?.semesters?.[0]?.semester));
  const objectives=list(plan?.data?.strategic_objectives),actions=list(plan?.data?.operational_objectives),risks=list(plan?.data?.risks),activities=list(sem?.data?.activities);
  return <section className="planning-management" aria-label="Consolidação da gestão escolar"><header><div><p className="pm-eyebrow">VÉRTICE ESCOLAS · GESTÃO</p><h2>Estratégia e execução escolar</h2><p>Planejamento institucional, PPP, metas, ações e indicadores escolares.</p></div><button type="button" onClick={()=>setTick(t=>t+1)}>Atualizar consolidação escolar</button></header>
+ <ModuleSourceStatus institutionId={institutionId} revision={tick}/>
  {loading?<p role="status">Consolidando dados da escola…</p>:error?<p role="alert">{error}</p>:!data?<p>Sem dados disponíveis.</p>:<>
  <label>Semestre <select value={term} onChange={e=>setTerm(e.target.value)}><option value="">Mais recente cadastrado</option>{data.semesters.map((s:any)=><option key={s.id}>{s.semester}</option>)}</select></label>
  <p className="pm-note">Consulta: {new Date(data.fetched_at).toLocaleString('pt-BR')}. Metas e 5W2H representam o cadastro atual da escola. ENEM usa seu próprio ano de referência. Matrículas declaradas no planejamento não são tratadas como Censo validado.</p>
