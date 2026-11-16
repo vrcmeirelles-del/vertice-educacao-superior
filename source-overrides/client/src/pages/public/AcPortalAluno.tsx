@@ -30,7 +30,7 @@ export default function AcPortalAluno() {
     e.preventDefault(); setBusy(true); setMsg('');
     const cleanCpf = cpf.replace(/\D/g, '');
     if (cleanCpf.length !== 11) { setMsg('CPF deve ter 11 dígitos.'); setBusy(false); return; }
-    const { data } = await supabase.rpc('vertice_ac_student_login', { p_matricula: matricula.trim(), p_cpf: cleanCpf });
+    const { data } = await supabase.rpc('vertice_ac_student_login', { p_matricula: matricula.trim(), p_cpf: cleanCpf, p_institution_id: INST_ID });
     if (!data?.ok) { setMsg(data?.error || 'Matrícula ou CPF não encontrado.'); setBusy(false); return; }
     setStudent(data as Student);
     // Carregar categorias e submissões
