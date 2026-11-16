@@ -69,7 +69,7 @@ jobs:
         if: matrix.node == '24'
         run: |
           npm ci --prefix scripts/tests/planning-runtime --no-audit --no-fund
-          node --test scripts/tests/planning-runtime/context.test.mjs
+          node --test scripts/tests/planning-runtime/*.test.mjs
       - name: TypeScript completo, sem tolerar erros da base
         working-directory: .typecheck-build
         run: npm run check

@@ -60,10 +60,11 @@ describe('academic loaders with PromiseLike-only query builders', () => {
     expect(container.textContent).not.toContain('Carregando');
     assertInstitutionFilter(view);
   });
-  it('keeps the existing fallback when the summary query rejects', async () => {
+  it('shows the source failure without presenting it as an empty dataset', async () => {
     fixtures.results.set('v_tcc_course_summary', new Error('Synthetic network failure'));
     await act(async () => root.render(<AcademicModulesBI institutionId="ies-test" module="tcc" />));
-    expect(container.textContent).toContain('Nenhum dado disponível');
+    expect(container.textContent).toContain('Não foi possível consultar o módulo: Synthetic network failure');
+    expect(container.textContent).not.toContain('Nenhum dado disponível');
   });
   it('finishes loading the risk panel with PromiseLike-only results', async () => {
     fixtures.results.set('v_student_evasion_risk', {data:[{student_id:'s1',full_name:'Aluno sintético',course_id:'course-test',risk_level:'high',risk_score:50}]});

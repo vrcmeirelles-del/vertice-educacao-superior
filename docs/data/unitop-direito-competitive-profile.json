@@ -1,0 +1,31 @@
+{
+  "campus": "Palmas/TO",
+  "minimum_relevance": "medium",
+  "relevance_criteria": "Mudança local confirmada em bolsas de transferência, elegibilidade, duração/renovação, valor líquido, matrícula, prazos, vagas, turnos, turmas ou modalidade de Direito. Não tratar descoberta de página como novidade; preservar limitações e distinguir propostas de turmas formadas.",
+  "competitors": [
+    {
+      "name": "Afya Faculdade de Ciências Médicas de Palmas / Afya Palmas",
+      "official_hosts": [
+        "faculdades.afya.com.br"
+      ]
+    },
+    {
+      "name": "Centro Universitário Luterano de Palmas / CEULP-ULBRA",
+      "official_hosts": [
+        "www.ulbra.br"
+      ]
+    },
+    {
+      "name": "Centro de Ensino Superior de Palmas / CESUP",
+      "official_hosts": [
+        "cesup.edu.br"
+      ]
+    },
+    {
+      "name": "Centro Universitário Católica do Tocantins / UniCatólica",
+      "official_hosts": [
+        "to.catolica.edu.br"
+      ]
+    }
+  ]
+}

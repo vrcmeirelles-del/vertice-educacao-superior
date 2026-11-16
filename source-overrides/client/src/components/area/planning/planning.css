@@ -381,3 +381,10 @@
  .course-planning .planning-step-controls button { padding:10px 8px; font-size:12px; }
  .course-planning .card { padding:16px; }
 }
+.competitive-intelligence{margin-block:1rem;min-width:0}
+.competitive-intelligence details,.competitive-finding{padding:1rem;margin-block:.75rem;border:1px solid #cbd5e1;border-radius:.5rem;background:#fff;color:#0f172a}
+.competitive-config-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;gap:.75rem;align-items:center;margin-block:.75rem}
+.competitive-finding dl{display:grid;grid-template-columns:minmax(8rem,1fr) minmax(0,3fr);gap:.35rem 1rem}
+.competitive-finding dt{font-weight:600}.competitive-finding dd{margin:0;overflow-wrap:anywhere;white-space:pre-wrap}
+.competitive-event{white-space:pre-wrap;overflow-wrap:anywhere;max-height:24rem;overflow:auto;font-size:.85rem}
+@media(max-width:640px){.competitive-config-row,.competitive-finding dl{grid-template-columns:1fr}.competitive-finding dd{margin-bottom:.5rem}}
