@@ -118,3 +118,10 @@
 @media(prefers-reduced-motion:reduce){
  .master-layout .area-ws :is(button,a,.area-card,.area-panel){transition:none}
 }
+
+/* Shared controls also used by cross-institutional Sapiens and BI screens. */
+.master-layout .area-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:36px;padding:8px 12px;border:1px solid #256b73;border-radius:8px;background:#256b73;color:#fff;font:inherit;font-size:13px;font-weight:500;line-height:1.4;text-decoration:none;box-shadow:none;cursor:pointer}
+.master-layout .area-btn.secondary{background:#fff;border-color:#dce5eb;color:#243b4b}
+.master-layout .area-btn:hover:not(:disabled){background:#edf5f6;border-color:#b7cfd3;color:#256b73}
+.master-layout .area-btn:disabled{opacity:.5;cursor:not-allowed}
+@media(pointer:coarse){.master-layout .area-btn{min-height:44px}}
