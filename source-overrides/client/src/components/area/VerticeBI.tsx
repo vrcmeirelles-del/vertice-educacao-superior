@@ -42,7 +42,7 @@ export default function VerticeBI({ onBack }: Props) {
     try{
     const [instRes, contractRes, modulesRes, docRes] = await Promise.all([
       supabase.from('vertice_institutions').select('id, name, tier, acronym, city, state').eq('status', 'ativa'),
-      supabase.from('vertice_contracts').select('institution_id, status'),
+      supabase.rpc('vertice_platform_bi_contract_counts'),
       supabase.from('vertice_module_activations').select('institution_id, module_code, status'),
       supabase.from('v_doc_health').select('*'),
     ]);
@@ -51,7 +51,7 @@ export default function VerticeBI({ onBack }: Props) {
     const insts = instRes.data || [];
     setInstitutions(insts);
 
-    const contracts = contractRes.data || [];
+    const contracts: {institution_id:string;status:string;total:number}[] = Array.isArray(contractRes.data)?contractRes.data:[];
     const modules = modulesRes.data || [];
     if (docRes.data) setDocHealth(docRes.data);
 
@@ -72,10 +72,10 @@ export default function VerticeBI({ onBack }: Props) {
       tierMap[tier] = {
         tier,
         institutions: tierInsts.length,
-        contracts: tierContracts.length,
+        contracts: tierContracts.reduce((sum,c)=>sum+Number(c.total||0),0),
         mrr: null, // Não calculado sem fonte financeira consolidada.
         avg_ticket: null,
-        trials: tierTrials.length,
+        trials: tierTrials.reduce((sum,c)=>sum+Number(c.total||0),0),
         modules_active: tierModules.length,
       };
     }
