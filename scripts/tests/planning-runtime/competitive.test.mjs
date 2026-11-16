@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {PGlite} from '@electric-sql/pglite';
 const id=n=>`00000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
 const read=p=>readFile(new URL(p,import.meta.url),'utf8');
-const migration='../../../supabase/migrations/20261116122858_competitive_planning_intelligence.sql';
+const migration='../../../supabase/migrations/20261116124215_competitive_planning_intelligence.sql';
 async function fixture(t){
  const db=new PGlite();await db.waitReady;t.after(()=>db.close());await db.exec(await read('./fixture.sql'));
  const area=await read('../../../supabase/migrations/202610300001_area_real.sql');let start=area.indexOf('create or replace function vertice_private.member_role(');
