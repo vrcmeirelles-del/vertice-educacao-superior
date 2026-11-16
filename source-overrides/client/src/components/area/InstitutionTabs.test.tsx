@@ -7,6 +7,15 @@ import { readFileSync } from 'node:fs';
 import InstitutionTabs, { MACRO_TABS, macroTabFor, macroDestination } from './InstitutionTabs';
 
 describe('institution navigation', () => {
+  it('renders the saved institution logo in the navigation card', () => {
+    const logo='data:image/png;base64,c3ludGhldGlj';
+    const html=renderToStaticMarkup(<InstitutionTabs activeTab="cadastro" activeMacro="dados" onSelectMacro={()=>{}} institutionName="IES sintética" institutionLogo={logo}><p>Cadastro</p></InstitutionTabs>);
+    expect(html).toContain(`src="${logo}"`);expect(html).toContain('Logo de IES sintética');expect(html).toContain('inst-tabs-nav-header--branded');
+  });
+  it('keeps the navigation card readable without a saved logo', () => {
+    const html=renderToStaticMarkup(<InstitutionTabs activeTab="cadastro" activeMacro="dados" onSelectMacro={()=>{}} institutionName="IES sintética"><p>Cadastro</p></InstitutionTabs>);
+    expect(html).toContain('inst-tabs-nav-icon');expect(html).toContain('IES sintética');expect(html).not.toContain('inst-tabs-institution-logo');
+  });
   it('retains new modules in authorized navigation without granting them to other profiles', () => {
     for (const tab of ['tcc', 'atividades-complementares', 'estagio', 'vitrine-curso'] as const) {
       expect(visibleTabs('master')).toContain(tab);

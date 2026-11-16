@@ -1,0 +1,28 @@
+{
+  "captured_at": "2026-11-16",
+  "purpose": "Local regression fixtures only; not a migration or deployment source.",
+  "functions": [
+    {
+      "schema": "vertice_private",
+      "name": "save_document_branding",
+      "security_definer": true,
+      "privileges": "{postgres=X/postgres,authenticated=X/postgres}",
+      "definition": "CREATE OR REPLACE FUNCTION vertice_private.save_document_branding(institution uuid, expected_updated_at timestamp with time zone, branding jsonb)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare result jsonb;\nbegin\n if auth.uid() is null or coalesce(auth.jwt()->>'aal','') <> 'aal2' or coalesce((auth.jwt()->>'is_anonymous')::boolean,false)\n   or not vertice_private.has_role(institution,array['gestor']) then raise exception 'Acesso negado' using errcode='42501'; end if;\n if expected_updated_at is null then raise exception 'Versão obrigatória' using errcode='40001'; end if;\n update public.vertice_institutions i set document_branding=branding\n where i.id=institution and i.updated_at=expected_updated_at\n returning jsonb_build_object('document_branding',i.document_branding,'updated_at',i.updated_at) into result;\n if result is null then raise exception 'Registro alterado; recarregue antes de salvar' using errcode='40001'; end if;\n return result;\nend; $function$\n"
+    },
+    {
+      "schema": "vertice_private",
+      "name": "has_role",
+      "definition": "CREATE OR REPLACE FUNCTION vertice_private.has_role(target uuid, roles text[])\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n select coalesce(vertice_private.member_role(target) = 'master'\n   or vertice_private.member_role(target) = any(roles), false);\n$function$\n"
+    },
+    {
+      "schema": "vertice_private",
+      "name": "branding_version",
+      "definition": "CREATE OR REPLACE FUNCTION vertice_private.branding_version()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO ''\nAS $function$\nbegin new.updated_at := greatest(clock_timestamp(), old.updated_at + interval '1 microsecond'); return new; end; $function$\n"
+    },
+    {
+      "schema": "vertice_private",
+      "name": "valid_document_branding",
+      "definition": "CREATE OR REPLACE FUNCTION vertice_private.valid_document_branding(b jsonb)\n RETURNS boolean\n LANGUAGE plpgsql\n IMMUTABLE\n SET search_path TO ''\nAS $function$\ndeclare image bytea; payload text; pos integer; chunk_length bigint; crc bigint; expected_crc bigint; i integer; bit integer; kind text; saw_idat boolean := false;\nbegin\n if b is null then return true; end if;\n if jsonb_typeof(b) <> 'object' or not (b ?& array['header_text','theme_color','logo_data'])\n   or (b - array['header_text','theme_color','logo_data']) <> '{}'::jsonb\n   or jsonb_typeof(b->'header_text') <> 'string' or char_length(b->>'header_text') > 600\n   or (b->>'header_text') ~ '[\\x01-\\x08\\x0B\\x0C\\x0E-\\x1F]' then return false; end if;\n if b->'theme_color' <> 'null'::jsonb and (jsonb_typeof(b->'theme_color') <> 'string' or (b->>'theme_color') !~ '^#[0-9A-Fa-f]{6}$') then return false; end if;\n if b->'logo_data' <> 'null'::jsonb then\n  payload := b->>'logo_data';\n  if jsonb_typeof(b->'logo_data') <> 'string' or length(payload) > 2800000 or payload !~ '^data:image/png;base64,[A-Za-z0-9+/]+={0,2}$' then return false; end if;\n  image := decode(substr(payload,23),'base64');\n  if octet_length(image) < 57 or octet_length(image) > 2097152\n    or substring(image from 1 for 16) <> decode('89504e470d0a1a0a0000000d49484452','hex')\n    or substring(image from 17 for 8) <> decode('0000012c00000078','hex')\n    or get_byte(image,24) <> 8 or get_byte(image,25) not in (2,6)\n    or get_byte(image,26) <> 0 or get_byte(image,27) <> 0 or get_byte(image,28) <> 0\n    or substring(image from octet_length(image)-11 for 12) <> decode('0000000049454e44ae426082','hex') then return false; end if;\n  pos := 8;\n  while pos < octet_length(image) loop\n   if pos + 12 > octet_length(image) then return false; end if;\n   chunk_length := get_byte(image,pos)::bigint*16777216 + get_byte(image,pos+1)*65536 + get_byte(image,pos+2)*256 + get_byte(image,pos+3);\n   if chunk_length > 2097152 or pos + chunk_length + 12 > octet_length(image) then return false; end if;\n   kind := convert_from(substring(image from pos+5 for 4),'UTF8');\n   if pos > 8 and kind='IHDR' then return false; end if;\n   if kind in ('acTL','fcTL','fdAT') then return false; end if;\n   crc := 4294967295;\n   for i in pos+4..pos+7+chunk_length loop\n    crc := crc # get_byte(image,i);\n    for bit in 1..8 loop\n     if (crc & 1)=1 then crc := (crc >> 1) # 3988292384; else crc := crc >> 1; end if;\n    end loop;\n   end loop;\n   crc := crc # 4294967295;\n   i := pos+8+chunk_length;\n   expected_crc := get_byte(image,i)::bigint*16777216 + get_byte(image,i+1)*65536 + get_byte(image,i+2)*256 + get_byte(image,i+3);\n   if crc <> expected_crc then return false; end if;\n   if kind='IDAT' then saw_idat := true; end if;\n   pos := pos+12+chunk_length;\n   if kind='IEND' then return chunk_length=0 and saw_idat and pos=octet_length(image); end if;\n  end loop;\n  return false;\n end if;\n return true;\nexception when others then return false;\nend; $function$\n"
+    }
+  ]
+}
