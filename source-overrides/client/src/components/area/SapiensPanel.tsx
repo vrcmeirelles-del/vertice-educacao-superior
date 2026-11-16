@@ -4,7 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import ReadingIndicators from '@/components/bi/ReadingIndicators';
 
-type Tab = "planning" | "diagnoses" | "interventions" | "briefings" | "goals" | "readings";
+type Tab = "planning" | "diagnoses" | "interventions" | "briefings" | "goals" | "readings" | "trails";
+type TrailDiag = { trail_id: string; code: string; name: string; question_count: number; avg_national_pct: number|null; avg_ies_pct: number|null; total_discrepancy: number|null; avg_discrepancy: number|null; status: string };
 type Effectiveness = { id: string; intervention_id: string; measured_at: string; current_sample_size: number; attempts_since_baseline: number; p_know_change: number | null; sample_overlap: number; effectiveness: string };
 
 type Diagnosis = {
@@ -84,6 +85,7 @@ export default function SapiensPanel({ institutionId, role }: Props) {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [effectiveness, setEffectiveness] = useState<Effectiveness[]>([]);
   const [actions, setActions] = useState<ActionPlan[]>([]);
+  const [trails, setTrails] = useState<TrailDiag[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -95,7 +97,7 @@ export default function SapiensPanel({ institutionId, role }: Props) {
     setBusy(true);
     setError("");
     try {
-      const [d, i, b, g, a, e] = await Promise.all([
+      const [d, i, b, g, a, e, tr] = await Promise.all([
         supabase.from("vertice_sapiens_diagnoses").select("*")
           .eq("institution_id", institutionId).order("created_at", { ascending: false }).limit(50),
         supabase.from("vertice_sapiens_interventions").select("*")
@@ -107,6 +109,7 @@ export default function SapiensPanel({ institutionId, role }: Props) {
         supabase.from("vertice_sapiens_action_plans").select("*")
           .eq("institution_id", institutionId).order("sort_order").limit(100),
         supabase.from("vertice_sapiens_effectiveness").select("id,intervention_id,measured_at,current_sample_size,attempts_since_baseline,p_know_change,sample_overlap,effectiveness").eq("institution_id", institutionId).order("measured_at", { ascending: false }).limit(100),
+        supabase.from("v_trail_diagnostic").select("*").eq("institution_id", institutionId),
       ]);
       for (const result of [d,i,b,g,a,e]) if (result.error) throw result.error;
       if (e.data) setEffectiveness(e.data as Effectiveness[]);
@@ -115,6 +118,7 @@ export default function SapiensPanel({ institutionId, role }: Props) {
       if (b.data) setBriefings(b.data as Briefing[]);
       if (g.data) setGoals(g.data as Goal[]);
       if (a.data) setActions(a.data as ActionPlan[]);
+      if (tr.data) setTrails(tr.data as TrailDiag[]);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -155,6 +159,7 @@ export default function SapiensPanel({ institutionId, role }: Props) {
     { key: "planning", label: "Planejamentos", count: 0 },
     { key: "briefings", label: "Briefings", count: briefings.length },
     { key: "goals", label: "Metas & Ações", count: goals.filter(g => g.status === "active").length },
+    { key: "trails", label: "Trilhas ENADE", count: trails.filter(t => t.status === "critico" || t.status === "atencao").length },
     { key: "readings", label: "Leituras e contexto" },
   ];
 
@@ -191,6 +196,35 @@ export default function SapiensPanel({ institutionId, role }: Props) {
         ))}
       </nav>
 
+      {tab === "trails" && (
+        <div>
+          <p style={{fontSize:13,color:"#475569",margin:"0 0 16px"}}>Diagnóstico automatizado por trilha de formação — cruza competências curriculares com desempenho ENADE. Trilhas com discrepância negativa indicam fragilidades que demandam intervenção.</p>
+          {!trails.length ? <p style={{color:"#94a3b8",fontStyle:"italic"}}>Nenhuma trilha cadastrada. Acesse <strong>Trilhas ENADE</strong> no grupo Regulação para configurar as trilhas do curso.</p> : (
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:12}}>
+              {[...trails].sort((a,b)=>(a.total_discrepancy??0)-(b.total_discrepancy??0)).map(t=>{
+                const color = t.status==="critico"?"#dc2626":t.status==="atencao"?"#f59e0b":t.status==="forte"?"#059669":"#3b82f6";
+                const label = t.status==="critico"?"Crítico":t.status==="atencao"?"Atenção":t.status==="forte"?"Forte":"Estável";
+                const disc = t.total_discrepancy??0;
+                return <div key={t.trail_id} style={{background:"#fff",border:"1px solid #e2e8f0",borderLeft:`4px solid ${color}`,borderRadius:10,padding:16}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+                    <strong style={{fontSize:14}}>{t.code} — {t.name}</strong>
+                    <span style={{fontSize:11,fontWeight:600,color:"#fff",background:color,padding:"2px 8px",borderRadius:4}}>{label}</span>
+                  </div>
+                  <div style={{display:"flex",gap:16,fontSize:13,color:"#475569"}}>
+                    <span>Questões: <strong>{t.question_count}</strong></span>
+                    <span>% Brasil: <strong>{t.avg_national_pct?.toFixed(1)??"—"}</strong></span>
+                    <span>% IES: <strong>{t.avg_ies_pct?.toFixed(1)??"—"}</strong></span>
+                  </div>
+                  <div style={{marginTop:8,fontSize:22,fontWeight:700,color:disc<0?"#dc2626":disc>0?"#059669":"#475569"}}>
+                    {disc>0?"+":""}{disc.toFixed(1)}pp
+                  </div>
+                  <div style={{fontSize:11,color:"#94a3b8"}}>discrepância {disc<0?"abaixo":"acima"} da média nacional</div>
+                </div>;
+              })}
+            </div>
+          )}
+        </div>
+      )}
       {tab === "readings" && <><p>Contexto institucional de aprofundamento para apoiar a análise humana. Os totais não entram no cálculo de severidade, nas medições de eficácia ou nas propostas automáticas de intervenção.</p><ReadingIndicators institutionId={institutionId} role={role} revision={readingRevision}/></>}
 
       {/* Diagnoses Tab */}
