@@ -4,12 +4,12 @@ As rotas `/conecta-parceiros` e `/acesso-estudante` passam a resolver o nome e a
 
 O contexto descarta respostas de uma instituição anterior, limpa dados ao mudar o UUID e separa link incompleto de erro de rede, com nova tentativa. Parceiros não carrega sessões ou habilita cadastros antes de resolver uma IES ativa. AC, estágio, Conecta e os links pessoais mantêm seus mecanismos de autenticação.
 
-A migração `20261116131733_public_institution_branding.sql` atualiza somente a projeção pública `logo_url`. Copia a imagem já cadastrada em `document_branding.logo_data` quando PNG/JPEG/WebP, limitada a 2 MiB e com assinatura binária compatível; alternativamente aceita URL HTTPS sem credenciais. Não publica o JSON privado, não modifica os registros originais, slugs ou permissões. O trigger existente mantém as próximas alterações sincronizadas. SVG inline e fontes ativas são rejeitados; uma imagem que não abre usa iniciais.
+A migração `20261116132330_public_institution_branding.sql` atualiza somente a projeção pública `logo_url`. Copia a imagem já cadastrada em `document_branding.logo_data` quando PNG/JPEG/WebP, limitada a 2 MiB e com assinatura binária compatível; alternativamente aceita URL HTTPS sem credenciais. Não publica o JSON privado, não modifica os registros originais, slugs ou permissões. O trigger existente mantém as próximas alterações sincronizadas. SVG inline e fontes ativas são rejeitados; uma imagem que não abre usa iniciais.
 
 ## Validação local
 
 - TypeScript completo: aprovado.
-- Suíte base: 409 testes aprovados.
+- Suíte base atualizada com a PR #165: 415 testes aprovados.
 - Contratos do portal: 214 testes aprovados, incluindo 13 regressões novas de identidade, logo, erros, escopo e respostas fora de ordem.
 - Formulários eletrônicos: 19 testes aprovados.
 - Conecta: 30 testes aprovados; inclusão dessa suíte no workflow de Node 22/24.
@@ -18,4 +18,4 @@ A migração `20261116131733_public_institution_branding.sql` atualiza somente a
 
 As duas falhas de CI originalmente auditadas já foram corrigidas na PR #164, que integra a base desta correção. Seus testes foram preservados.
 
-A aplicação da migração e a confirmação visual no ambiente publicado devem ser registradas após a implantação. Os testes sintéticos não equivalem ao aceite completo das jornadas autenticadas ou a um teste em aparelho físico.
+Migração aplicada no Supabase existente em 16/11/2026, versão 20261116132330. A impressão digital dos seis cadastros institucionais permaneceu idêntica; 27 vínculos e as permissões foram preservados. Duas logos públicas foram projetadas, incluindo UNITOP. A confirmação visual deve ser registrada após a publicação da interface. Os testes sintéticos não equivalem ao aceite completo das jornadas autenticadas ou a um teste em aparelho físico.
