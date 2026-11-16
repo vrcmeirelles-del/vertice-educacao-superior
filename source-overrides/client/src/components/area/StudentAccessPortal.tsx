@@ -148,8 +148,7 @@ export default function StudentAccessPortal({ institutionId, institutionName, pu
     <div style={{ maxWidth: step === 'dashboard' ? 760 : 480, margin: '2rem auto', padding: '0 1rem' }}>
       <div style={{ background: 'var(--vx-surface,#fff)', border: '1px solid var(--vx-border,#e2e8f0)', borderRadius: 12, padding: '2rem', boxShadow: '0 1px 3px rgba(0,0,0,.08)' }}>
         <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-          <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--vx-text,#1e293b)' }}>VÉRTICE</div>
-          <div style={{ fontSize: '.8125rem', color: 'var(--vx-muted,#64748b)', marginTop: 4 }}>{institutionName}</div>
+          <div style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--vx-text,#1e293b)', overflowWrap: 'anywhere' }}>{institutionName}</div>
           <h2 style={{ fontSize: '1.125rem', margin: '1rem 0 .25rem', color: 'var(--vx-text)' }}>{purposeLabel}</h2>
           {step !== 'dashboard' && <p style={{ fontSize: '.8125rem', color: 'var(--vx-muted)' }}>Acesse para enviar comprovantes e acompanhar suas solicitações.</p>}
         </div>
@@ -168,7 +167,7 @@ export default function StudentAccessPortal({ institutionId, institutionName, pu
         )}
       </div>
       <p style={{ fontSize: '.6875rem', color: 'var(--vx-muted,#94a3b8)', textAlign: 'center', marginTop: 16 }}>
-        Plataforma Vértice Educação Superior · Acesso restrito a estudantes com vínculo ativo
+        Acesso restrito a estudantes com vínculo ativo na instituição
       </p>
     </div>
   );
