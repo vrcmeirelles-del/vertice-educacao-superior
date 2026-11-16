@@ -1,0 +1,716 @@
+{
+  "asOf": "2026-11-16",
+  "notice": "Referências técnicas consultadas em 16/11/2026. Não há sincronização automática com os serviços. Uma referência transversal não comprova a homologação de uma IES ou curso.",
+  "modules": [
+    {
+      "owner": "A designar",
+      "ownerNote": "Sugestão de área responsável; sem atribuição nominal confirmada.",
+      "branch": "main",
+      "productionUrl": "https://verticesuperior.com.br/UNITOP",
+      "urlNote": "Entrada institucional de referência. A disponibilidade deste fluxo não foi revalidada nesta integração.",
+      "updated": "2026-11-16",
+      "checklist": [
+        {
+          "key": "version",
+          "result": "Documentado",
+          "note": "Relatório registra commit e dois serviços live. Não rechecado ao vivo nesta criação.",
+          "source": "s-conecta"
+        }
+      ],
+      "id": "conecta",
+      "name": "Conecta 360°",
+      "short": "Relacionamento e egressos",
+      "icon": "users",
+      "status": "Publicado",
+      "acceptance": "Sem aceite registrado nesta central",
+      "level": "Publicação documentada",
+      "summary": "Conciliação longitudinal, acesso pessoal e pesquisas por turma de conclusão.",
+      "version": "PR #160 · 3831ddb",
+      "sha": "3831ddb0c6a185f2f2816e0a6ce72c218407ef8b",
+      "release": "Dois serviços live registrados às 04h30 de 16/11 (Brasília).",
+      "test": "68 PostgreSQL/Edge · 29 interface · 10 integrações locais",
+      "testScope": "Testes locais com identidades sintéticas. Não são 107 fluxos reais de produção.",
+      "real": "Nenhuma pessoa real conciliada; nenhuma pesquisa curta real criada/ativada nesta execução do relatório.",
+      "ownerArea": "Coordenação · CPA · Gestão",
+      "sources": [
+        "s-conecta"
+      ],
+      "integrations": [
+        [
+          "Portal do estudante",
+          "Acesso, rascunho, retomada e revogação testados localmente"
+        ],
+        [
+          "Egressos / Sapiens",
+          "Agregados e snapshots locais; apresentação publicada pendente"
+        ],
+        [
+          "WhatsApp / e-mail",
+          "Sem envio real registrado nesta execução"
+        ]
+      ],
+      "risks": [
+        [
+          "alto",
+          "Base de egressos sintética",
+          "100 formações sintéticas preservadas; zero formações não sintéticas no recorte do relatório."
+        ],
+        [
+          "alto",
+          "Jornadas pessoais pendentes",
+          "Conferir aluno e egresso reais, sem tratar testes sintéticos como aceite."
+        ]
+      ],
+      "pending": [
+        "Importar base institucional real com curso e identidade documentados.",
+        "Validar sessões reais de aluno, egresso, coordenação e Master.",
+        "Concluir celular e apresentação dos indicadores publicados."
+      ],
+      "decisions": [
+        "Definir lote nominal e público de pesquisa antes de qualquer execução real.",
+        "Designar responsável institucional pelo aceite."
+      ],
+      "next": "Conferir uma jornada nominal autorizada, com evidência e recorte institucional.",
+      "flows": [
+        [
+          "Aluno",
+          "Acesso pessoal → rascunho → retomada → conclusão",
+          "Local / sintético"
+        ],
+        [
+          "Egresso",
+          "Preparação nominal → conciliação explícita → pesquisa",
+          "Pendente com pessoa real"
+        ],
+        [
+          "Coordenação",
+          "Conferência de curso e matrícula → revisão",
+          "Sessão real pendente"
+        ],
+        [
+          "CPA",
+          "Agregados autorizados → leitura institucional",
+          "Agregado local; sessão pendente"
+        ],
+        [
+          "Gestão",
+          "Preparar cadastro → definir público → acompanhar",
+          "Publicação documentada; uso real pendente"
+        ]
+      ]
+    },
+    {
+      "owner": "A designar",
+      "ownerNote": "Sugestão de área responsável; sem atribuição nominal confirmada.",
+      "branch": "main",
+      "productionUrl": "https://verticesuperior.com.br/UNITOP",
+      "urlNote": "Entrada institucional de referência. A disponibilidade deste fluxo não foi revalidada nesta integração.",
+      "updated": "2026-11-16",
+      "checklist": [
+        {
+          "key": "version",
+          "result": "Documentado",
+          "note": "PR #157 registra implantação. Estado do software distinto do aceite do processo.",
+          "source": "s157"
+        }
+      ],
+      "id": "planejamento",
+      "name": "Planejamento Estratégico",
+      "short": "Objetivos, metas e execução",
+      "icon": "target",
+      "status": "Publicado",
+      "acceptance": "Sem aceite registrado nesta central",
+      "level": "Publicação documentada",
+      "summary": "Consolidação institucional, planejamento dos cursos, metas e ações 5W2H.",
+      "version": "PRs #140 / #141 / #157",
+      "sha": "011a9227d647a1d9e987b32279a710e63b3f3af5",
+      "release": "A PR #157 registra publicação e conferência de version.json nos três endereços.",
+      "test": "18 testes da consolidação · 57 testes locais compartilhados com a PR #157",
+      "testScope": "Os 57 testes pertencem à PR #157 e também aparecem em Sapiens. Não somar como cenários distintos.",
+      "real": "Consultas reais e negativas transacionais registradas. Jornada visual autenticada completa não comprovada.",
+      "ownerArea": "Coordenação · Alta gestão",
+      "sources": [
+        "s140",
+        "s141",
+        "s157",
+        "s157-old"
+      ],
+      "integrations": [
+        [
+          "BI Reitor / executivo",
+          "Consolidação registrada na PR #140"
+        ],
+        [
+          "TCC / AC / Estágio",
+          "Cadastros atuais; não são recortes exclusivos do semestre"
+        ],
+        [
+          "Sapiens",
+          "Associação de objetivos e indicadores por confirmação explícita"
+        ]
+      ],
+      "risks": [
+        [
+          "alto",
+          "Recortes diferentes",
+          "TCC, AC, estágio, metas e ações têm cadastro atual, sem recorte semestral exclusivo."
+        ],
+        [
+          "medio",
+          "Aceite visual pendente",
+          "Painel privado e perfis reais não foram homologados no registro mais recente."
+        ]
+      ],
+      "pending": [
+        "Conferir coordenação e gestão com sessões reais.",
+        "Validar vínculo objetivo–meta–indicador e histórico na interface.",
+        "Medir volume e latência em recorte representativo."
+      ],
+      "decisions": [
+        "Definir curso piloto e responsável pelo aceite.",
+        "Definir critérios institucionais de revisão dos planos."
+      ],
+      "next": "Validar a leitura da consolidação e um vínculo explícito em sessão autorizada.",
+      "flows": [
+        [
+          "Aluno",
+          "Sem fluxo direto de edição de planejamento",
+          "Não aplicável ao roteiro proposto"
+        ],
+        [
+          "Egresso",
+          "Indicadores longitudinais como insumo",
+          "Integração a conferir"
+        ],
+        [
+          "Coordenação",
+          "Plano do próprio curso → meta → indicador",
+          "Sessão real pendente"
+        ],
+        [
+          "CPA",
+          "Evidências institucionais → subsídio à revisão",
+          "Escopo a confirmar"
+        ],
+        [
+          "Gestão",
+          "Consolidação → comparação → decisão humana",
+          "Consultas reais; jornada visual pendente"
+        ]
+      ]
+    },
+    {
+      "owner": "A designar",
+      "ownerNote": "Sugestão de área responsável; sem atribuição nominal confirmada.",
+      "branch": "feature/sapiens-planning-interpretation → main",
+      "productionUrl": "https://verticesuperior.com.br/UNITOP",
+      "urlNote": "Entrada institucional de referência. A disponibilidade deste fluxo não foi revalidada nesta integração.",
+      "updated": "2026-11-16",
+      "checklist": [
+        {
+          "key": "version",
+          "result": "Documentado",
+          "note": "PR #157 registra Edge v7, commit e deploys.",
+          "source": "s157"
+        }
+      ],
+      "id": "sapiens",
+      "name": "Sapiens 360°",
+      "short": "Análise para decisão humana",
+      "icon": "spark",
+      "status": "Publicado",
+      "acceptance": "Sem aceite registrado nesta central",
+      "level": "Publicação documentada",
+      "summary": "Análises rastreáveis do planejamento, com fatos, hipóteses, fontes e revisão humana.",
+      "version": "PR #157 · Edge v7",
+      "sha": "011a9227d647a1d9e987b32279a710e63b3f3af5",
+      "release": "PR integrada; função v7 ACTIVE e dois deploys live registrados.",
+      "test": "57 testes locais · TypeScript e build aprovados",
+      "testScope": "47 testes de lógica/interface/regressão e 10 PostgreSQL/PGlite. CI remota não alegada.",
+      "real": "Contexto de curso recuperado e comparado em transação revertida; sem parecer com provedores reais na homologação.",
+      "ownerArea": "Gestão · Coordenação · Equipe técnica",
+      "sources": [
+        "s157",
+        "s127",
+        "s157-old"
+      ],
+      "integrations": [
+        [
+          "Planejamento / indicadores",
+          "Vínculos explícitos, medições e fontes versionadas"
+        ],
+        [
+          "Provedores de IA",
+          "Homologação com provedores reais pendente"
+        ],
+        [
+          "Revisão institucional",
+          "Sem decisão gerencial ou vínculo criado automaticamente"
+        ]
+      ],
+      "risks": [
+        [
+          "alto",
+          "Provedores reais pendentes",
+          "Modelos, latência, custos e volumes ainda sem homologação completa."
+        ],
+        [
+          "medio",
+          "Piloto sem chave por curso",
+          "PR registra ausência de chave de piloto por IES/curso."
+        ]
+      ],
+      "pending": [
+        "Gerar e persistir um parecer com provedores reais em escopo autorizado.",
+        "Conferir modelos utilizados, fontes, contexto e revisão humana.",
+        "Testar falha de provedor, concorrência e recuperação."
+      ],
+      "decisions": [
+        "Definir escopo e responsáveis pela homologação dos provedores.",
+        "Priorizar controle de ativação por IES/curso."
+      ],
+      "next": "Registrar geração e revisão reais com ID do parecer, modelos, fontes e latência.",
+      "flows": [
+        [
+          "Aluno",
+          "Sem acesso direto a este fluxo gerencial",
+          "Não aplicável ao roteiro proposto"
+        ],
+        [
+          "Egresso",
+          "Agregados longitudinais como contexto",
+          "Integração a conferir"
+        ],
+        [
+          "Coordenação",
+          "Análise do próprio curso → fontes → revisão",
+          "Sessão real pendente"
+        ],
+        [
+          "CPA",
+          "Leitura dos agregados permitidos",
+          "Permissão a conferir no fluxo específico"
+        ],
+        [
+          "Gestão",
+          "Gerar → conferir fontes → aceitar ou rejeitar parecer",
+          "Provedores e sessão real pendentes"
+        ]
+      ]
+    },
+    {
+      "owner": "A designar",
+      "ownerNote": "Sugestão de área responsável; sem atribuição nominal confirmada.",
+      "branch": "A confirmar",
+      "productionUrl": "https://verticesuperior.com.br/UNITOP",
+      "urlNote": "Entrada institucional de referência. A disponibilidade deste fluxo não foi revalidada nesta integração.",
+      "updated": "2026-11-16",
+      "checklist": [],
+      "id": "tcc",
+      "name": "TCC",
+      "short": "Produção acadêmica e repositório",
+      "icon": "book",
+      "status": "Em revisão",
+      "acceptance": "Sem aceite registrado nesta central",
+      "level": "Evidência pendente",
+      "summary": "Roteiro de homologação para submissão, orientação, repositório e indicadores.",
+      "version": "A confirmar",
+      "sha": "",
+      "release": "Versão e publicação específicas do módulo ainda sem evidência selecionada.",
+      "test": "Sem resultado específico confirmado",
+      "testScope": "Não há contagem de testes aprovada atribuída ao TCC neste painel.",
+      "real": "Funcionamento de ponta a ponta com estudante e orientador reais não verificado.",
+      "ownerArea": "Coordenação de TCC · Secretaria",
+      "sources": [],
+      "integrations": [
+        [
+          "Mesa Digital",
+          "Conferir arquivo, metadados, acesso e recuperação"
+        ],
+        [
+          "PPC / ODS",
+          "Conferir classificação e revisão humana"
+        ],
+        [
+          "BI / Planejamento",
+          "Conferir origem e recorte dos indicadores"
+        ]
+      ],
+      "risks": [
+        [
+          "alto",
+          "Falta de evidência específica",
+          "Versão, testes e fluxo em produção precisam de fonte própria."
+        ]
+      ],
+      "pending": [
+        "Identificar versão, branch e URL do módulo.",
+        "Conferir submissão PDF/link, orientação e recuperação.",
+        "Anexar resultado do fluxo e indicadores."
+      ],
+      "decisions": [
+        "Designar responsável e amostra institucional para o TCC."
+      ],
+      "next": "Selecionar a fonte técnica do TCC e executar o roteiro com escopo documentado.",
+      "flows": [
+        [
+          "Aluno",
+          "Submissão → acompanhamento → versão final",
+          "Roteiro proposto; não verificado"
+        ],
+        [
+          "Egresso",
+          "Consulta ao próprio trabalho, se prevista",
+          "Aplicabilidade a confirmar"
+        ],
+        [
+          "Coordenação",
+          "Distribuir orientação → revisar → acompanhar",
+          "Roteiro proposto; não verificado"
+        ],
+        [
+          "CPA",
+          "Consultar indicadores agregados",
+          "Permissão a confirmar"
+        ],
+        [
+          "Gestão",
+          "Produção e alinhamento institucional",
+          "Integração a confirmar"
+        ]
+      ]
+    },
+    {
+      "owner": "A designar",
+      "ownerNote": "Sugestão de área responsável; sem atribuição nominal confirmada.",
+      "branch": "claude/vertice-ecosystem-audit-44ry26 → main",
+      "productionUrl": "https://verticesuperior.com.br/UNITOP",
+      "urlNote": "Entrada institucional de referência. A disponibilidade deste fluxo não foi revalidada nesta integração.",
+      "updated": "2026-11-16",
+      "checklist": [],
+      "id": "ac",
+      "name": "Atividades Complementares",
+      "short": "Comprovantes e carga horária",
+      "icon": "file",
+      "status": "Em revisão",
+      "acceptance": "Sem aceite registrado nesta central",
+      "level": "Demonstração em ambiente publicado",
+      "summary": "Acesso pessoal, envio de comprovantes e revisão institucional de horas.",
+      "version": "PR #119 · 151c083",
+      "sha": "151c083a095bb5e8ba85a72070d3361ef21227d3",
+      "release": "PR integrada; função publicada v1 registrada naquele momento, não como versão atual.",
+      "test": "Sondagens HTTP e gravações transacionais descritas na PR",
+      "testScope": "Aluno de teste na IES de demonstração. Build aprovado na PR; TypeScript tinha erros preexistentes na época.",
+      "real": "Upload real pelo navegador não testado no registro. Nenhuma homologação completa com pessoa real comprovada.",
+      "ownerArea": "Coordenação · Secretaria",
+      "sources": [
+        "s119"
+      ],
+      "integrations": [
+        [
+          "Portal do estudante",
+          "Troca de token por sessão e painel testados com aluno de demonstração"
+        ],
+        [
+          "Storage / comprovantes",
+          "URL assinada testada; upload real no navegador pendente"
+        ],
+        [
+          "Auditoria / coordenação",
+          "Gravações conferidas em transação revertida"
+        ]
+      ],
+      "risks": [
+        [
+          "alto",
+          "Upload completo pendente",
+          "URL emitida não comprova envio, recuperação e análise do arquivo."
+        ]
+      ],
+      "pending": [
+        "Testar e-mail, entrada, upload, envio e recuperação em navegador.",
+        "Conferir decisão humana de horas e devolutiva.",
+        "Validar coordenação → secretaria e saldo atualizado."
+      ],
+      "decisions": [
+        "Selecionar categoria, regulamento e amostra de comprovantes."
+      ],
+      "next": "Completar envio e conferência de um comprovante em sessão autorizada.",
+      "flows": [
+        [
+          "Aluno",
+          "Link → sessão → comprovante → solicitação",
+          "Demonstração publicada; upload pendente"
+        ],
+        [
+          "Egresso",
+          "Sem fluxo confirmado para este módulo",
+          "Aplicabilidade a confirmar"
+        ],
+        [
+          "Coordenação",
+          "Analisar documento → decidir horas",
+          "Transação de teste; jornada pendente"
+        ],
+        [
+          "CPA",
+          "Indicadores agregados",
+          "Permissão a confirmar"
+        ],
+        [
+          "Gestão",
+          "Pendências, saldo e conclusão",
+          "Integração a conferir"
+        ]
+      ]
+    },
+    {
+      "owner": "A designar",
+      "ownerNote": "Sugestão de área responsável; sem atribuição nominal confirmada.",
+      "branch": "feat/estagio-formularios-mesa-digital → main",
+      "productionUrl": "https://verticesuperior.com.br/UNITOP",
+      "urlNote": "Entrada institucional de referência. A disponibilidade deste fluxo não foi revalidada nesta integração.",
+      "updated": "2026-11-16",
+      "checklist": [],
+      "id": "estagio",
+      "name": "Estágio 360°",
+      "short": "Formulários, campo e dossiê",
+      "icon": "case",
+      "status": "Validado",
+      "acceptance": "Sem aceite registrado nesta central",
+      "level": "Testes técnicos documentados",
+      "summary": "14 modelos de formulários, ação externa e dossiê na Mesa Digital.",
+      "version": "PR #125 · 447e8b6",
+      "sha": "447e8b693dd4422a651ecd7574c9599d2c7d7cd7",
+      "release": "PR integrada e migração aplicada declarada. Publicação específica do fluxo não revalidada.",
+      "test": "408 testes gerais · 19 formulários · 2 cenários PostgreSQL",
+      "testScope": "Contagem do registro da PR; testes técnicos, sem equivalência a estágio real.",
+      "real": "Homologação com estágio real e espelhamento OneDrive explicitamente pendentes na PR.",
+      "ownerArea": "Coordenação de estágio · Supervisão",
+      "sources": [
+        "s125"
+      ],
+      "integrations": [
+        [
+          "Mesa Digital",
+          "Emissão e dossiê documentados nos testes técnicos"
+        ],
+        [
+          "OneDrive",
+          "Espelhamento externo pendente"
+        ],
+        [
+          "Supervisão e orientação",
+          "Rascunhos vinculados; atos administrativos com gestão"
+        ]
+      ],
+      "risks": [
+        [
+          "alto",
+          "Campo e assinaturas pendentes",
+          "Minutas aguardam assinatura e validação institucional; não encerram estágio."
+        ],
+        [
+          "medio",
+          "Espelhamento externo pendente",
+          "OneDrive ainda requer homologação específica."
+        ]
+      ],
+      "pending": [
+        "Executar os formulários com estágio real autorizado.",
+        "Conferir anexos, PDF, assinaturas e recuperação do dossiê.",
+        "Validar espelhamento externo e permissões."
+      ],
+      "decisions": [
+        "Escolher estágio e supervisores para o aceite institucional."
+      ],
+      "next": "Conferir um dossiê completo, preservando horas e resultado acadêmico.",
+      "flows": [
+        [
+          "Aluno",
+          "Registro de estágio → documentos → acompanhamento",
+          "Uso real pendente"
+        ],
+        [
+          "Egresso",
+          "Sem fluxo confirmado para este módulo",
+          "Aplicabilidade a confirmar"
+        ],
+        [
+          "Coordenação",
+          "Conferir modelos → dossiê → validação institucional",
+          "Técnico documentado; uso real pendente"
+        ],
+        [
+          "CPA",
+          "Evidências e indicadores agregados",
+          "Permissão a confirmar"
+        ],
+        [
+          "Gestão",
+          "Atos administrativos e arquivo institucional",
+          "Uso real pendente"
+        ]
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "id": "s-conecta",
+      "title": "Conecta 360° · Relatório atualizado",
+      "url": "https://chatgpt.com/library?file_id=libfile_f1a93a4786888191a1d762c9f0cc48cf&account_id=personal",
+      "date": "2026-11-16",
+      "type": "Relatório técnico",
+      "note": "Atualização às 04h33 de Brasília. Publicação e conferências técnicas; homologação institucional parcial."
+    },
+    {
+      "id": "s157",
+      "title": "PR #157 · Registro atualizado da implantação",
+      "url": "https://github.com/vrcmeirelles-del/vertice-educacao-superior/pull/157",
+      "date": "2026-11-16",
+      "type": "GitHub · metadados e descrição",
+      "note": "Consulta nesta criação: integrada. A descrição registra implantação e ressalva perfis e provedores reais pendentes."
+    },
+    {
+      "id": "s157-old",
+      "title": "PR #157 · Revisão anterior",
+      "url": "https://chatgpt.com/library?file_id=libfile_46b9b8f1eba881919041add33a7ba126&account_id=personal",
+      "date": "2026-11-16",
+      "type": "Relatório histórico",
+      "note": "O preparo de migração deste documento foi superado pelo registro atualizado da PR. Mantido como histórico."
+    },
+    {
+      "id": "s119",
+      "title": "PR #119 · Acesso às Atividades Complementares",
+      "url": "https://github.com/vrcmeirelles-del/vertice-educacao-superior/pull/119",
+      "date": "2026-11-13",
+      "type": "GitHub · metadados e descrição",
+      "note": "Integrada. Teste na função publicada com aluno de demonstração; upload real pelo navegador não testado."
+    },
+    {
+      "id": "s125",
+      "title": "PR #125 · Formulários de Estágio",
+      "url": "https://github.com/vrcmeirelles-del/vertice-educacao-superior/pull/125",
+      "date": "2026-11-14",
+      "type": "GitHub · metadados e descrição",
+      "note": "Integrada. Migração aplicada declarada; estágio real e espelhamento externo permanecem pendentes."
+    },
+    {
+      "id": "s140",
+      "title": "PR #140 · Consolidação do planejamento",
+      "url": "https://github.com/vrcmeirelles-del/vertice-educacao-superior/pull/140",
+      "date": "2026-11-15",
+      "type": "GitHub · metadados e descrição",
+      "note": "Integrada. 18 testes aprovados registrados; consultas reais e negativas transacionais. Conferência visual pós-deploy pendente naquele registro."
+    },
+    {
+      "id": "s141",
+      "title": "PR #141 · Filtros do planejamento",
+      "url": "https://github.com/vrcmeirelles-del/vertice-educacao-superior/pull/141",
+      "date": "2026-11-15",
+      "type": "GitHub · metadados e descrição",
+      "note": "Integrada. Ajuste de CSS após conferência visual da PR #140."
+    },
+    {
+      "id": "s127",
+      "title": "PR #127 · Sapiens Marco Zero",
+      "url": "https://github.com/vrcmeirelles-del/vertice-educacao-superior/pull/127",
+      "date": "2026-11-14",
+      "type": "GitHub · metadados e descrição",
+      "note": "Integrada. Plano de testes sem marcações; não representa comprovação de aprovação."
+    }
+  ],
+  "checkTemplate": [
+    {
+      "key": "version",
+      "title": "Versão e URL conferidas",
+      "help": "Registrar commit, branch, URL, data e ambiente."
+    },
+    {
+      "key": "access",
+      "title": "Perfis e isolamento",
+      "help": "Conferir perfis permitidos e negações entre IES/cursos."
+    },
+    {
+      "key": "journey",
+      "title": "Fluxo completo com pessoa real",
+      "help": "Registrar início, retomada, conclusão e resultado em produção."
+    },
+    {
+      "key": "documents",
+      "title": "Documentos e persistência",
+      "help": "Conferir arquivo, versão, acesso, recuperação e revisão humana."
+    },
+    {
+      "key": "integration",
+      "title": "Integrações de ponta a ponta",
+      "help": "Conferir entrada, saída, falha e rastreabilidade nos sistemas envolvidos."
+    },
+    {
+      "key": "mobile",
+      "title": "Celular e acessibilidade",
+      "help": "Conferir teclado, foco, leitura e fluxo em celular."
+    },
+    {
+      "key": "failure",
+      "title": "Falhas e recuperação",
+      "help": "Registrar erros, retentativas e recuperação sem duplicação."
+    },
+    {
+      "key": "acceptance",
+      "title": "Aceite institucional",
+      "help": "Anexar decisão humana, responsável e escopo aceito."
+    }
+  ],
+  "institutions": [
+    {
+      "id": "unitop",
+      "name": "UNITOP",
+      "courses": [
+        "Direito"
+      ]
+    }
+  ],
+  "timeline": [
+    {
+      "id": "t1",
+      "module": "ac",
+      "date": "2026-11-13T19:36:10-03:00",
+      "title": "Acesso às Atividades Complementares integrado",
+      "detail": "PR #119: sondagens com aluno de demonstração; upload completo no navegador pendente.",
+      "source": "s119"
+    },
+    {
+      "id": "t2",
+      "module": "estagio",
+      "date": "2026-11-14T11:57:11-03:00",
+      "title": "14 formulários de Estágio integrados",
+      "detail": "PR #125: validação técnica registrada; estágio real e OneDrive pendentes.",
+      "source": "s125"
+    },
+    {
+      "id": "t3",
+      "module": "planejamento",
+      "date": "2026-11-15T16:04:16-03:00",
+      "title": "Consolidação e filtros do planejamento integrados",
+      "detail": "PRs #140 e #141: leitura institucional e ajuste responsivo.",
+      "source": "s141"
+    },
+    {
+      "id": "t4",
+      "module": "conecta",
+      "date": "2026-11-16T04:30:00-03:00",
+      "title": "Conecta: correções publicadas",
+      "detail": "Relatório registra dois serviços live. Nenhuma conciliação nominal ou pesquisa curta real executada.",
+      "source": "s-conecta"
+    },
+    {
+      "id": "t5",
+      "module": "sapiens",
+      "date": "2026-11-16T04:59:05-03:00",
+      "title": "Sapiens: implantação registrada na PR #157",
+      "detail": "PR atualizada registra banco, Edge v7 e publicação. Homologação com provedores e perfis reais continua pendente.",
+      "source": "s157"
+    }
+  ]
+}

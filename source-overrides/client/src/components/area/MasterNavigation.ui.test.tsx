@@ -25,7 +25,7 @@ describe('Master navigation and institution boundaries', () => {
     const navigate = vi.fn();
     render(<MasterOverview ies={[{id:'ies-a',name:'IES A',acronym:'IES A',city:'Palmas',state:'TO'}]} schools={[]} contracts={3} trials={1} revenue={12000} onNavigate={navigate}/>);
     click('IES A'); expect(navigate).toHaveBeenLastCalledWith('institution', 'ies-a');
-    for (const [label, destination] of [['Gerenciar educação superior','universidades'], ['Gerenciar escolas','escolas'], ['BI Vértice','bi-vertice'], ['Financeiro','financeiro'], ['Sapiens','sapiens'], ['Integração Fato & Ordem','integracao'], ['Administração de acessos','configuracoes']]) {
+    for (const [label, destination] of [['Gerenciar educação superior','universidades'], ['Gerenciar escolas','escolas'], ['Abrir Central de Homologação','homologacao'], ['BI Vértice','bi-vertice'], ['Financeiro','financeiro'], ['Sapiens','sapiens'], ['Integração Fato & Ordem','integracao'], ['Administração de acessos','configuracoes']]) {
       click(label); expect(navigate).toHaveBeenLastCalledWith(destination);
     }
     expect(host.textContent).toContain('Nenhuma escola ativa cadastrada');
@@ -58,6 +58,7 @@ describe('Master navigation and institution boundaries', () => {
     expect(host.querySelector('.master-topbar')?.textContent).toContain('AMBIENTE INSTITUCIONAL');
     expect(host.querySelector('.master-sidebar a[aria-current]')).toBeNull();
     expect(host.querySelector('a[href="/integracao"]')).not.toBeNull();
+    expect(host.querySelector('a[href="/master#homologacao=1"]')).not.toBeNull();
     click('Abrir menu'); expect(document.body.style.overflow).toBe('hidden');
     act(() => window.dispatchEvent(new KeyboardEvent('keydown', {key:'Escape'})));
     expect(document.body.style.overflow).not.toBe('hidden');
