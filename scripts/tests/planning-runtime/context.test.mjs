@@ -53,7 +53,7 @@ async function fixture(t, { beforeMigration = false } = {}) {
   if (!beforeMigration)
     await db.exec(
       await read(
-        "../../../supabase/migrations/20261116004315_planning_interpretation_traceability.sql",
+        "../../../supabase/migrations/20261116074720_planning_interpretation_traceability.sql",
       ),
     );
   for (const n of [1, 2, 3, 4])
@@ -460,7 +460,7 @@ test("school operational context survives replacement of the actual earlier Sapi
   await db.exec(
     await readFile(
       new URL(
-        "../../../supabase/migrations/20261116004315_planning_interpretation_traceability.sql",
+        "../../../supabase/migrations/20261116074720_planning_interpretation_traceability.sql",
         import.meta.url,
       ),
       "utf8",

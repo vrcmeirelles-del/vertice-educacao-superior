@@ -1,5 +1,7 @@
 # Análise interpretativa do planejamento — proposta para integração
 
+**Atualização da implantação autorizada:** consulte [IMPLANTACAO_PR157.md](IMPLANTACAO_PR157.md). O registro abaixo preserva o estado da preparação/revisão.
+
 **Estado desta entrega:** implementação em branch de revisão, sem integração à `main`, sem aplicação desta migração ao banco real e sem publicação. A autorização para integrar e publicar deve ocorrer após a revisão desta proposta e dos testes. Dados usados nos testes e no exemplo visual são fictícios.
 
 ## Inventário realizado antes de desenvolver
@@ -57,7 +59,7 @@ Os filtros de foco gerencial organizam a leitura; a autorização ocorre no banc
 
 ## Alterações técnicas
 
-- Migração aditiva `20261116004315_planning_interpretation_traceability.sql`. Nova tabela privada `vertice_planning.objective_goal_links`, com objetivo e definição do indicador congelados, versão, meta, justificativa, autor e datas de vínculo/encerramento. A função privada `indicator_definition` compara os atributos materiais; alterar título, alvo ou progresso não invalida por si só o significado do vínculo. Não altera linhas de planejamento, medições ou metas existentes.
+- Migração aditiva `20261116074720_planning_interpretation_traceability.sql`. Nova tabela privada `vertice_planning.objective_goal_links`, com objetivo e definição do indicador congelados, versão, meta, justificativa, autor e datas de vínculo/encerramento. A função privada `indicator_definition` compara os atributos materiais; alterar título, alvo ou progresso não invalida por si só o significado do vínculo. Não altera linhas de planejamento, medições ou metas existentes.
 - `portfolio` compartilha a consulta da consolidação. O endpoint institucional continua exigindo alta gestão; a coordenação só obtém o curso expressamente autorizado. O catálogo de semestres também respeita o curso. Sem período escolhido, o padrão não avança para carga acadêmica futura.
 - A RPC existente ganha `links`, `link_objective` e `unlink_objective`. Histórico é filtrado por curso e período antes do limite de vinte registros. Revisões humanas usam transição condicional de `pending_review` e verificam instituição e perfil no servidor.
 - Contexto enriquecido com até oito semestres, 24 medições por meta e cem grupos de aprendizagem, com limites e totais registrados. Dados acadêmicos futuros são excluídos das séries observadas, inclusive quando não há semestre observado disponível para seleção automática. Metas, documentos, ações, planos mais recentes e resumos TCC/AC/Estágio permanecem identificados como cadastro atual.

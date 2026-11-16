@@ -1,5 +1,7 @@
 # PR #157 — correções da revisão técnica
 
+**Atualização da implantação autorizada:** consulte [IMPLANTACAO_PR157.md](IMPLANTACAO_PR157.md). O registro abaixo preserva o estado da preparação/revisão.
+
 Estado em 16/11/2026: seis achados corrigidos na branch da mesma PR, com validação local. Sem merge, migração remota, publicação ou geração com provedores reais. A autorização para corrigir a proposta não autoriza essas operações de implantação.
 
 ## Achados e correções
@@ -32,7 +34,7 @@ As instruções reproduzíveis estão em [TESTES_INTERPRETACAO.md](TESTES_INTERP
 
 ## Migração preparada
 
-A migração `20261116004315_planning_interpretation_traceability.sql` continua sem aplicação remota. Ela foi corrigida antes de qualquer aplicação, incluindo a coluna obrigatória `indicator_snapshot` e a função privada `indicator_definition`. O SQL e seu checksum precisam ser reapresentados na autorização final.
+A migração `20261116074720_planning_interpretation_traceability.sql` continua sem aplicação remota. Ela foi corrigida antes de qualquer aplicação, incluindo a coluna obrigatória `indicator_snapshot` e a função privada `indicator_definition`. O SQL e seu checksum precisam ser reapresentados na autorização final.
 
 Os atributos materiais comparados são indicador, unidade e direção; fórmula e população entram quando esses campos existirem no cadastro. A leitura desses campos opcionais usa JSON e não acrescenta colunas à tabela de metas. Alvo, título, prazo e progresso não mudam, por si sós, a definição do indicador. Esses cadastros continuam sem reconstrução histórica completa.
 

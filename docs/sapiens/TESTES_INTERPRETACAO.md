@@ -1,5 +1,7 @@
 # Testes da camada interpretativa
 
+**Atualização da implantação autorizada:** consulte [IMPLANTACAO_PR157.md](IMPLANTACAO_PR157.md). O registro abaixo preserva o estado da preparação/revisão.
+
 Validação local com dados fictícios. Nenhuma escrita de negócio nem geração de parecer com provedores reais foi feita em produção. As consultas remotas da preparação/revisão limitaram-se a metadados de esquema, definições de funções, histórico e serviços. As correções foram executadas e testadas somente localmente.
 
 ## Resultados
