@@ -1,3 +1,4 @@
+import ModuleSourceStatus from '../bi/ModuleSourceStatus';
 import { ContextHelp } from '@/components/ContextHelp';
 /**
  * VerticeBI.tsx — BI unificado da plataforma Vértice
@@ -14,8 +15,8 @@ interface TierSummary {
   tier: string;
   institutions: number;
   contracts: number;
-  mrr: number;
-  avg_ticket: number;
+  mrr: number | null;
+  avg_ticket: number | null;
   trials: number;
   modules_active: number;
 }
@@ -34,10 +35,11 @@ export default function VerticeBI({ onBack }: Props) {
   const [institutions, setInstitutions] = useState<Institution[]>([]);
   const [docHealth, setDocHealth] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error,setError]=useState(''),[updatedAt,setUpdatedAt]=useState(''),[selected,setSelected]=useState(''),[revision,setRevision]=useState(0);
 
   const load = useCallback(async () => {
-    setLoading(true);
-
+    setLoading(true);setError('');
+    try{
     const [instRes, contractRes, modulesRes, docRes] = await Promise.all([
       supabase.from('vertice_institutions').select('id, name, tier, acronym, city, state').eq('status', 'ativa'),
       supabase.from('vertice_contracts').select('institution_id, status, package'),
@@ -45,6 +47,7 @@ export default function VerticeBI({ onBack }: Props) {
       supabase.from('v_doc_health').select('*'),
     ]);
 
+    for(const r of [instRes,contractRes,modulesRes,docRes])if(r.error)throw r.error;
     const insts = instRes.data || [];
     setInstitutions(insts);
 
@@ -70,14 +73,16 @@ export default function VerticeBI({ onBack }: Props) {
         tier,
         institutions: tierInsts.length,
         contracts: tierContracts.length,
-        mrr: 0, // virá da view quando tiver dados de billing
-        avg_ticket: 0,
+        mrr: null, // Não calculado sem fonte financeira consolidada.
+        avg_ticket: null,
         trials: tierTrials.length,
         modules_active: tierModules.length,
       };
     }
     setTiers(Object.values(tierMap));
-    setLoading(false);
+    setUpdatedAt(new Date().toISOString());setRevision(n=>n+1);
+    }catch(e){setError((e as Error).message||'Falha ao consultar BI Vértice');setTiers([]);setInstitutions([]);setDocHealth([]);}
+    finally{setLoading(false);}
   }, []);
 
   useEffect(() => { load(); }, [load]);
@@ -85,7 +90,7 @@ export default function VerticeBI({ onBack }: Props) {
   const totalInst = tiers.reduce((s, t) => s + t.institutions, 0);
   const totalContracts = tiers.reduce((s, t) => s + t.contracts, 0);
   const totalModules = tiers.reduce((s, t) => s + t.modules_active, 0);
-  const totalMRR = tiers.reduce((s, t) => s + t.mrr, 0);
+  const totalMRR = tiers.length&&tiers.every(t=>t.mrr!=null)?tiers.reduce((s,t)=>s+(t.mrr??0),0):null;
 
   const totalDocs = docHealth.reduce((s, d) => s + (d.total_docs || 0), 0);
   const totalExpired = docHealth.reduce((s, d) => s + (d.expired_docs || 0), 0);
@@ -122,8 +127,8 @@ export default function VerticeBI({ onBack }: Props) {
         <div><div style={{ fontSize: 10, color: '#999', textTransform: 'uppercase' }}>Contratos</div><div style={{ fontSize: 20, fontWeight: 700 }}>{t.contracts}</div></div>
         <div><div style={{ fontSize: 10, color: '#999', textTransform: 'uppercase' }}>Trials</div><div style={{ fontSize: 20, fontWeight: 700, color: '#0891b2' }}>{t.trials}</div></div>
         <div><div style={{ fontSize: 10, color: '#999', textTransform: 'uppercase' }}>Módulos ativos</div><div style={{ fontSize: 20, fontWeight: 700 }}>{t.modules_active}</div></div>
-        <div><div style={{ fontSize: 10, color: '#999', textTransform: 'uppercase' }}>MRR</div><div style={{ fontSize: 20, fontWeight: 700, color: '#16a34a' }}>R$ {t.mrr.toLocaleString('pt-BR')}</div></div>
-        <div><div style={{ fontSize: 10, color: '#999', textTransform: 'uppercase' }}>Ticket médio</div><div style={{ fontSize: 20, fontWeight: 700 }}>R$ {t.avg_ticket.toLocaleString('pt-BR')}</div></div>
+        <div><div style={{ fontSize: 10, color: '#999', textTransform: 'uppercase' }}>MRR</div><div style={{ fontSize: 20, fontWeight: 700, color: '#16a34a' }}>{t.mrr==null?'Não calculado':'R$ '+t.mrr.toLocaleString('pt-BR')}</div></div>
+        <div><div style={{ fontSize: 10, color: '#999', textTransform: 'uppercase' }}>Ticket médio</div><div style={{ fontSize: 20, fontWeight: 700 }}>{t.avg_ticket==null?'Não calculado':'R$ '+t.avg_ticket.toLocaleString('pt-BR')}</div></div>
       </div>
     </div>
   );
@@ -140,13 +145,18 @@ export default function VerticeBI({ onBack }: Props) {
         </div>
       </div>
 
+      <div style={{display:'flex',gap:12,alignItems:'center',flexWrap:'wrap',marginBottom:16}}><button type="button" className="area-btn secondary" onClick={load}>Atualizar BI Vértice</button><span>Consulta: {updatedAt?new Date(updatedAt).toLocaleString('pt-BR'):'não concluída'}</span></div>
+      {error&&<p role="alert">Não foi possível consultar o BI: {error}</p>}
+      <label>Fontes dos módulos por instituição <select aria-label="Instituição das fontes do BI" value={selected} onChange={e=>setSelected(e.target.value)}><option value="">Selecione uma instituição</option>{institutions.map(i=><option key={i.id} value={i.id}>{i.name} · {i.tier==='escolas'?'Escolas':'Ensino Superior'}</option>)}</select></label>
+      {selected&&institutions.some(i=>i.id===selected)&&<ModuleSourceStatus institutionId={selected} revision={revision}/>}
+      <p style={{fontSize:12,color:'#617383'}}>Os totais incluem ambientes de demonstração cadastrados, identificados pelo nome. MRR e ticket dependem da consolidação financeira e não são presumidos como zero.</p>
       {/* KPIs globais */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10, marginBottom: 24 }}>
         <KPI label="Instituições" value={totalInst} color="#333" sub={`${tiers.find(t=>t.tier==='superior')?.institutions||0} IES · ${tiers.find(t=>t.tier==='escolas')?.institutions||0} escolas`} />
-        <KPI label="MRR Total" value={`R$ ${totalMRR.toLocaleString('pt-BR')}`} color="#16a34a" />
+        <KPI label="MRR Total" value={totalMRR==null?'Não calculado':`R$ ${totalMRR.toLocaleString('pt-BR')}`} color="#16a34a" />
         <KPI label="Contratos" value={totalContracts} color="#ea580c" />
         <KPI label="Módulos ativos" value={totalModules} color="#2563eb" />
-        <KPI label="Documentos" value={totalDocs} color="#7c3aed" sub={totalExpired > 0 ? `${totalExpired} vencidos` : 'Todos em dia'} />
+        <KPI label="Documentos" value={totalDocs} color="#7c3aed" sub={totalDocs===0?'Sem documentos na fonte':totalExpired>0?`${totalExpired} vencidos`:'Nenhum vencido na fonte consultada'} />
         <KPI label="Score IA médio" value={avgCompliance ? avgCompliance.toFixed(0) : '—'} color={avgCompliance && avgCompliance >= 70 ? '#16a34a' : '#ca8a04'} />
         <KPI label="Achados abertos" value={totalFindings} color={totalFindings > 0 ? '#dc2626' : '#16a34a'} />
       </div>
