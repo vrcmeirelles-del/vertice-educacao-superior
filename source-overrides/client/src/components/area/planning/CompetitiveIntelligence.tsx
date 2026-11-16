@@ -11,7 +11,7 @@ type Context = {profile:{config:Config;updated_at:string}|null;plans:Plan[];goal
 const EMPTY:Config={campus:'',relevance_criteria:'Bolsas de transferência, condições de matrícula, vagas, turnos, turmas e modalidade local do curso.',minimum_relevance:'medium',competitors:[{name:'',official_hosts:[]}]};
 const levels={low:'Baixa',medium:'Média',high:'Alta'};
 const statuses={pending:'Proposta pendente de revisão',approved:'Ação criada por decisão do gestor',rejected:'Não acolhida pelo gestor'};
-const events:Record<string,string>={configured:'Configuração salva',imported:'Achado importado',approve:'Sugestão acolhida',reject:'Sugestão não acolhida'};
+const events:Record<string,string>={objective_relinked:'Vínculo ao objetivo revisado',configured:'Configuração salva',imported:'Achado importado',approve:'Sugestão acolhida',reject:'Sugestão não acolhida'};
 const date=(value?:string)=>value?new Date(`${value}T12:00:00`).toLocaleDateString('pt-BR'):'Não informada';
 
 export async function competitiveRequest(institutionId:string,courseId:string,operation:string,payload:object={}) {
