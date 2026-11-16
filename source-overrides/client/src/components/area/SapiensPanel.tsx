@@ -1,3 +1,4 @@
+import ModuleSourceStatus from '../bi/ModuleSourceStatus';
 import SapiensPlanning from './SapiensPlanning';
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
@@ -161,6 +162,7 @@ export default function SapiensPanel({ institutionId, role }: Props) {
       {error && <p role="alert" style={{ color: "#dc2626", fontSize: 13 }}>{error}</p>}
       {success && <p role="status" style={{ color: "#059669", fontSize: 13 }}>{success}</p>}
 
+      <ModuleSourceStatus institutionId={institutionId} revision={readingRevision}/>
       {/* Tabs */}
       <nav style={{ display: "flex", flexWrap:"wrap", gap: 4, borderBottom: "2px solid #e2e8f0", marginBottom: 16 }}>
         {tabs.map(t => (
