@@ -42,6 +42,7 @@ import MasterHub from '@/components/area/MasterHub';
 import InstitutionSummaryCard from '@/components/area/InstitutionSummaryCard';
 import VerticeBI from '@/components/area/VerticeBI';
 import BillingPanel from '@/components/area/BillingPanel';
+const MasterHomologation = lazy(() => import('@/components/homologacao/MasterHomologation'));
 const Extensao360 = lazy(() => import('@/components/area/Extensao360'));
 const SapiensPanel = lazy(() => import('@/components/area/SapiensPanel'));
 
@@ -60,7 +61,7 @@ async function fetchDashboardRows(table:string,order:string,ascending=true,colum
  for(let from=0;;from+=1000){const {data,error}=await supabase.from(table).select(columns).order(order,{ascending}).order('id').range(from,from+999);if(error)throw error;rows.push(...((data??[]) as unknown as Row[]));if(!data||data.length<1000)break;}
  return {data:rows,error:null};
 }
-function readHash(){const p=new URLSearchParams(typeof window==='undefined'?'':window.location.hash.slice(1));return {inst:p.get('instituicao')??'',course:p.get('curso')??'',repositories:p.get('repositorios')==='1',bi:p.get('bi')==='1',captacao:p.get('captacao')==='1',academico:p.get('academico')==='1',painelBi:p.get('painel-bi')==='1',perfis:p.get('perfis')==='1',masters:p.get('masters')==='1',demonstrativos:p.get('demonstrativos')==='1',clientes:p.get('clientes')==='1',governanca:p.get('governanca')==='1',hub:!p.toString(),biVertice:p.get('bi-vertice')==='1',tierFilter:p.get('tier')??'',financeiro:p.get('financeiro')==='1',sapiens:p.get('sapiens')==='1'};}
+function readHash(){const p=new URLSearchParams(typeof window==='undefined'?'':window.location.hash.slice(1));return {inst:p.get('instituicao')??'',course:p.get('curso')??'',repositories:p.get('repositorios')==='1',bi:p.get('bi')==='1',captacao:p.get('captacao')==='1',academico:p.get('academico')==='1',painelBi:p.get('painel-bi')==='1',perfis:p.get('perfis')==='1',masters:p.get('masters')==='1',demonstrativos:p.get('demonstrativos')==='1',clientes:p.get('clientes')==='1',governanca:p.get('governanca')==='1',hub:!p.toString(),biVertice:p.get('bi-vertice')==='1',tierFilter:p.get('tier')??'',financeiro:p.get('financeiro')==='1',sapiens:p.get('sapiens')==='1',homologacao:p.get('homologacao')==='1'};}
 function writeHash(inst:string,course:string,repositories=false,library=false,reitor=false,masters=false){const p=new URLSearchParams();if(masters)p.set('masters','1');if(inst)p.set('instituicao',inst);if(course)p.set('curso',course);if(repositories){if(inst)p.set('aba','repositorio');else p.set('repositorios','1');}if(library)p.set('aba','biblioteca');if(reitor)p.set('aba','reitor');const h=p.toString();window.history.pushState(null,'',h?`#${h}`:window.location.pathname);window.dispatchEvent(new HashChangeEvent('hashchange'));window.scrollTo({top:0});}
 
 type BiItem = {label:string; group:string; value:number; href?:string};
@@ -362,7 +363,7 @@ export default function OwnerDashboard(){
      </Suspense>
    </main>;
  }
- return <main className="corp-container corp-section"><div className="master-page-heading"><h1>{window.location.pathname.startsWith('/reitor')?'Área reservada da Direção':master&&route.repositories?'Repositórios · visão master':master&&route.demonstrativos?'Convites demonstrativos · Master':master&&route.tierFilter==='superior'?'Educação superior':master&&route.tierFilter==='escolas'?'Escolas':master&&route.financeiro?'Financeiro':master&&currentInst?currentCourse?'Gestão do curso':'Ambiente institucional':master&&route.hub?'Visão geral':master?'Administração Master':'Painel de gestão'}</h1>{session&&<p className="master-session">Conectado como <strong>{session.user.email}</strong></p>}</div>
+ return <main className="corp-container corp-section"><div className="master-page-heading"><h1>{window.location.pathname.startsWith('/reitor')?'Área reservada da Direção':master&&route.homologacao?'Central de Homologação':master&&route.repositories?'Repositórios · visão master':master&&route.demonstrativos?'Convites demonstrativos · Master':master&&route.tierFilter==='superior'?'Educação superior':master&&route.tierFilter==='escolas'?'Escolas':master&&route.financeiro?'Financeiro':master&&currentInst?currentCourse?'Gestão do curso':'Ambiente institucional':master&&route.hub?'Visão geral':master?'Administração Master':'Painel de gestão'}</h1>{session&&<p className="master-session">Conectado como <strong>{session.user.email}</strong></p>}</div>
  {master&&(route.tierFilter||route.financeiro)&&!route.inst&&<button onClick={()=>{window.location.hash='';window.dispatchEvent(new HashChangeEvent('hashchange'));}} style={{background:'none',border:'none',color:'#2563eb',cursor:'pointer',fontSize:13,marginBottom:12,padding:0}}>← Voltar ao hub</button>}
  {loading?<p role="status">Verificando acesso…</p>:!session?<><p>Entre para acessar sua conta.</p><Link className="corp-button" href={window.location.pathname.startsWith('/reitor')?'/entrar?destino=reitor':'/entrar'}>Entrar</Link></>:<>
  {aal!=='aal2'&&master?<section className="corp-login-card"><h2>Proteja seu acesso</h2><p>O segundo fator é obrigatório para consultar os dados das instituições como administrador.</p>
@@ -370,13 +371,14 @@ export default function OwnerDashboard(){
  {qr&&<><p>Leia o QR code no seu aplicativo autenticador. Não compartilhe esta imagem.</p><img alt="QR code para configurar seu autenticador" src={qr} width={200} height={200}/></>}
  <form className="access-form" onSubmit={verify}><HelpLabel>Código do autenticador<input autoComplete="one-time-code" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} required value={code} onChange={e=>setCode(e.target.value)}/></HelpLabel><button className="corp-button" disabled={busy}>Validar segundo fator</button></form></>}
  </section>:<><MasterInvitationGate onAccepted={load}/>
- {route.biVertice&&master?<VerticeBI onBack={()=>{window.location.hash='';window.dispatchEvent(new HashChangeEvent('hashchange'));}}/>:route.financeiro&&master?<><button onClick={()=>{window.location.hash='';window.dispatchEvent(new HashChangeEvent('hashchange'));}} style={{background:'none',border:'none',color:'#2563eb',cursor:'pointer',fontSize:13,padding:0,marginBottom:12}}>← Voltar ao hub</button><BillingPanel/></>:route.hub&&master?<MasterHub onNavigate={(dest,instId)=>{
+ {route.homologacao?master?<Suspense fallback={<p>Carregando Central de Homologação…</p>}><MasterHomologation institutions={institutions} courses={courses} onBack={()=>{window.location.hash='';window.dispatchEvent(new HashChangeEvent('hashchange'));}}/></Suspense>:<p role="alert">Central restrita ao Master com segundo fator.</p>:route.biVertice&&master?<VerticeBI onBack={()=>{window.location.hash='';window.dispatchEvent(new HashChangeEvent('hashchange'));}}/>:route.financeiro&&master?<><button onClick={()=>{window.location.hash='';window.dispatchEvent(new HashChangeEvent('hashchange'));}} style={{background:'none',border:'none',color:'#2563eb',cursor:'pointer',fontSize:13,padding:0,marginBottom:12}}>← Voltar ao hub</button><BillingPanel/></>:route.hub&&master?<MasterHub onNavigate={(dest,instId)=>{
   if(dest==='bi-vertice'){window.location.hash='bi-vertice=1';}
   else if(dest==='universidades'){window.location.hash='tier=superior';}
   else if(dest==='escolas'){window.location.hash='tier=escolas';}
   else if(dest==='financeiro'){window.location.hash='financeiro=1';}
   else if(dest==='integracao'){window.location.assign('/integracao');return;}
   else if(dest==='sapiens'){window.location.hash='sapiens=1';}
+  else if(dest==='homologacao'){window.location.hash='homologacao=1';}
   else if(dest==='configuracoes'){window.location.hash='masters=1';}
   else if(dest==='institution'&&instId){window.location.hash=`instituicao=${instId}`;}
   window.dispatchEvent(new HashChangeEvent('hashchange'));

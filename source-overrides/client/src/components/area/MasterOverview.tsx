@@ -1,8 +1,9 @@
 import type { ReactNode } from 'react';
 import { ArrowRight, Building2, GraduationCap, ChartColumn, Wallet, Settings, Brain, GitBranch } from 'lucide-react';
 import './master-overview.css';
+import '../homologacao/homologation.css';
 
-export type MasterDestination = 'universidades' | 'escolas' | 'financeiro' | 'bi-vertice' | 'configuracoes' | 'institution' | 'sapiens' | 'integracao';
+export type MasterDestination = 'universidades' | 'escolas' | 'financeiro' | 'bi-vertice' | 'configuracoes' | 'institution' | 'sapiens' | 'integracao' | 'homologacao';
 export interface MasterInstitution { id: string; name: string; acronym: string | null; city: string | null; state: string | null }
 interface Props {
   ies: MasterInstitution[];
@@ -27,6 +28,11 @@ export default function MasterOverview({ ies, schools, revenue, contracts, trial
       <div><span>Contratos ativos</span><strong>{contracts.toLocaleString('pt-BR')}</strong><small>Operação contratual</small></div>
       <div><span>Receita mensal recorrente</span><strong>{revenue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })}</strong><small>MRR · fonte: visão financeira</small></div>
       <div><span>Contratos em teste</span><strong>{trials.toLocaleString('pt-BR')}</strong><small>Períodos de avaliação</small></div>
+    </section>
+
+    <section className="master-homologation-intro" aria-labelledby="master-homologation-title">
+      <div><h3 id="master-homologation-title">Central de Homologação</h3><p>Acompanhe versões, testes, evidências, riscos e o funcionamento real dos módulos. Publicação, validação técnica e aceite institucional permanecem separados.</p><div className="master-homologation-modules">{['Conecta 360°','Planejamento','Sapiens','TCC','Atividades Complementares','Estágio 360°'].map(name=><span key={name}>{name}</span>)}</div></div>
+      <button type="button" onClick={()=>onNavigate('homologacao')}>Abrir Central de Homologação <ArrowRight size={17} aria-hidden="true"/></button>
     </section>
 
     <section aria-labelledby="master-institutions-title">

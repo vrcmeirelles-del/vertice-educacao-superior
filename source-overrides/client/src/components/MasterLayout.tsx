@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useLocation } from 'wouter';
-import { LayoutDashboard, Building2, GraduationCap, Wallet, Users, Mail, Brain, GitBranch, ChartColumn, Smartphone, PanelLeftClose, PanelLeftOpen, Menu, X, Settings, FolderOpen } from 'lucide-react';
+import { LayoutDashboard, Building2, GraduationCap, Wallet, Users, Mail, Brain, ClipboardCheck, GitBranch, ChartColumn, Smartphone, PanelLeftClose, PanelLeftOpen, Menu, X, Settings, FolderOpen } from 'lucide-react';
 import { Brand } from './Brand';
 import './master-layout.css';
 
 const groups = [
   { label: 'Plataforma', items: [
     { label: 'Visão geral', href: '/master', icon: LayoutDashboard },
+    { label: 'Central de Homologação', href: '/master#homologacao=1', icon: ClipboardCheck },
     { label: 'Financeiro', href: '/master#financeiro=1', icon: Wallet },
     { label: 'Administração de acessos', href: '/master#masters=1', icon: Settings },
   ] },
