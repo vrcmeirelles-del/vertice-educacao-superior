@@ -6,10 +6,10 @@ import './planning/planning.css';
 type Course = { id: string; name: string; code?: string | null };
 type Discipline = { id?: string; discipline_name: string; category: 'profissional' | 'instrumental' | 'basica'; sort_order: number };
 type Competency = { id?: string; code: string; title: string; description: string; sort_order: number; disciplines: Discipline[] };
-type Build = { id?: string; version: number; status: 'draft' | 'published' | 'archived'; graduate_profile: string; dcn_reference: string; competencies: Competency[] };
+type Build = { id?: string; version: number; status: 'draft' | 'published' | 'archived'; graduate_profile: string; graduate_profile_source: string; dcn_reference: string; dcn_document_url: string; competencies: Competency[] };
 
 const EMPTY_BUILD: Build = {
-  version: 1, status: 'draft', graduate_profile: '', dcn_reference: '',
+  version: 1, status: 'draft', graduate_profile: '', graduate_profile_source: '', dcn_reference: '', dcn_document_url: '',
   competencies: Array.from({ length: 6 }, (_, i) => ({
     code: `C${i + 1}`, title: '', description: '', sort_order: i, disciplines: [],
   })),
@@ -44,7 +44,7 @@ export default function CurriculumBuilder({ institutionId, courses, role }: { in
       </label>
       {!courseId
         ? <p role="status" style={{ color: 'var(--ink-soft)', padding: '20px 0' }}>Selecione o curso para construir ou editar a matriz curricular.</p>
-        : <BuildEditor key={`${institutionId}:${courseId}`} institutionId={institutionId} courseId={courseId} canWrite={canWrite} onDirty={setUnsaved} />}
+        : <BuildEditor key={`${institutionId}:${courseId}`} institutionId={institutionId} courseId={courseId} courseName={courses.find(c => c.id === courseId)?.name || ''} canWrite={canWrite} onDirty={setUnsaved} />}
     </section>
   );
 }
@@ -62,22 +62,27 @@ function HelpBanner() {
         <button className="planning-help-close" onClick={() => setOpen(false)}>✕</button>
         <h4>🧬 O que é a Construção Curricular por Competências?</h4>
         <p style={{ marginBottom: 14 }}>É a organização do currículo do curso a partir das competências que o aluno deve desenvolver ao longo da formação, conforme as Diretrizes Curriculares Nacionais (DCNs).</p>
-        <p style={{ marginBottom: 14 }}><strong>Perfil do Egresso:</strong> Descreve quem é o profissional que o curso forma — onde pode atuar, o que sabe fazer, que valores carrega.</p>
+        <p style={{ marginBottom: 14 }}><strong>Perfil do Egresso:</strong> Deve ser extraído do PPC do curso. Se já houver documentos no Repositório, o sistema puxa automaticamente.</p>
+        <p style={{ marginBottom: 14 }}><strong>DCNs:</strong> As Diretrizes Curriculares Nacionais de cada curso. O sistema pode buscar a resolução vigente online.</p>
         <p style={{ marginBottom: 14 }}><strong>Competências (C1 a C6):</strong> São as grandes áreas de capacidade que o aluno precisa desenvolver. Cada competência reúne conhecimentos, habilidades e atitudes.</p>
         <p style={{ marginBottom: 14 }}><strong>Disciplinas Profissionais:</strong> Diretamente ligadas à prática da profissão.</p>
         <p style={{ marginBottom: 14 }}><strong>Disciplinas Instrumentais:</strong> Habilidades técnicas de apoio.</p>
-        <p><strong>Disciplinas Básicas:</strong> Fundamentação científica e humanística.</p>
+        <p style={{ marginBottom: 14 }}><strong>Disciplinas Básicas:</strong> Fundamentação científica e humanística.</p>
+        <p><strong>Sapiens:</strong> A IA pode gerar um modelo replicável desta construção para outros cursos, adaptando competências e disciplinas às DCNs de cada área.</p>
       </div>
     </div>}
   </>;
 }
 
-function BuildEditor({ institutionId, courseId, canWrite, onDirty }: { institutionId: string; courseId: string; canWrite: boolean; onDirty: (v: boolean) => void }) {
+function BuildEditor({ institutionId, courseId, courseName, canWrite, onDirty }: { institutionId: string; courseId: string; courseName: string; canWrite: boolean; onDirty: (v: boolean) => void }) {
   const [build, setBuild] = useState<Build>({ ...EMPTY_BUILD });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const [sapiensLoading, setSapiensLoading] = useState(false);
+  const [sapiensResult, setSapiensResult] = useState<string | null>(null);
+  const [ppcLoading, setPpcLoading] = useState(false);
 
   const update = useCallback((patch: Partial<Build>) => {
     setBuild(prev => ({ ...prev, ...patch }));
@@ -99,7 +104,7 @@ function BuildEditor({ institutionId, courseId, canWrite, onDirty }: { instituti
             const { data: links } = await supabase.from('curriculum_discipline_links').select('*').eq('competency_id', c.id).order('sort_order');
             competencies.push({ id: c.id, code: c.code, title: c.title, description: c.description || '', sort_order: c.sort_order, disciplines: (links || []).map((l: Record<string, unknown>) => ({ id: String(l.id), discipline_name: String(l.discipline_name), category: String(l.category) as Discipline['category'], sort_order: Number(l.sort_order) })) });
           }
-          if (active) setBuild({ id: b.id, version: b.version, status: b.status, graduate_profile: b.graduate_profile || '', dcn_reference: b.dcn_reference || '', competencies: competencies.length > 0 ? competencies : EMPTY_BUILD.competencies });
+          if (active) setBuild({ id: b.id, version: b.version, status: b.status, graduate_profile: b.graduate_profile || '', graduate_profile_source: b.graduate_profile_source || '', dcn_reference: b.dcn_reference || '', dcn_document_url: b.dcn_document_url || '', competencies: competencies.length > 0 ? competencies : EMPTY_BUILD.competencies });
         }
       } catch (e) { if (active) setError(e instanceof Error ? e.message : 'Erro ao carregar'); }
       finally { if (active) setLoading(false); }
@@ -107,16 +112,97 @@ function BuildEditor({ institutionId, courseId, canWrite, onDirty }: { instituti
     return () => { active = false; };
   }, [institutionId, courseId]);
 
+  /* ── Buscar perfil do egresso no PPC (repositório) ── */
+  async function fetchProfileFromPPC() {
+    setPpcLoading(true);
+    try {
+      // Look for PPC-related documents in repository
+      const { data: files } = await supabase.from('vertice_repository_files')
+        .select('id, file_name, file_url, created_at')
+        .eq('institution_id', institutionId)
+        .or('file_name.ilike.%ppc%,file_name.ilike.%perfil%egresso%,file_name.ilike.%projeto%pedagogico%')
+        .order('created_at', { ascending: false }).limit(5);
+
+      if (files?.length) {
+        update({ graduate_profile_source: `PPC encontrado no Repositório: ${files[0].file_name} (${new Date(files[0].created_at).toLocaleDateString('pt-BR')})` });
+        setNotice(`📄 Documento PPC encontrado: "${files[0].file_name}". Extraia o perfil do egresso do documento e cole acima.`);
+      } else {
+        setNotice('Nenhum PPC encontrado no Repositório. Você pode digitar o perfil manualmente ou anexar o documento.');
+      }
+    } catch { setNotice('Erro ao buscar no Repositório.'); }
+    setPpcLoading(false);
+  }
+
+  /* ── Sapiens: gerar modelo replicável ── */
+  async function generateSapiensModel() {
+    if (!build.competencies.some(c => c.title)) {
+      setNotice('Preencha pelo menos as competências antes de gerar o modelo Sapiens.');
+      return;
+    }
+    setSapiensLoading(true);
+    setSapiensResult(null);
+    try {
+      const payload = {
+        institutionId, courseId,
+        context: 'curriculum_model_generation',
+        curriculum: {
+          course: courseName,
+          graduate_profile: build.graduate_profile,
+          dcn_reference: build.dcn_reference,
+          competencies: build.competencies.map(c => ({
+            code: c.code, title: c.title, description: c.description,
+            disciplines: {
+              profissional: c.disciplines.filter(d => d.category === 'profissional').map(d => d.discipline_name),
+              instrumental: c.disciplines.filter(d => d.category === 'instrumental').map(d => d.discipline_name),
+              basica: c.disciplines.filter(d => d.category === 'basica').map(d => d.discipline_name),
+            }
+          }))
+        },
+        prompt: `A partir desta construção curricular do curso de ${courseName}, gere um MODELO REPLICÁVEL que possa ser usado como template para outros cursos. O modelo deve:
+
+1. ESTRUTURA GENÉRICA: Transforme cada competência em um padrão abstrato (ex: C1 "Interpretação e Aplicação do Direito" vira "[COMPETÊNCIA TÉCNICA CENTRAL]") com instruções sobre como adaptar para qualquer área.
+
+2. CRITÉRIOS DE CLASSIFICAÇÃO: Defina regras claras para classificar disciplinas como profissional, instrumental ou básica em qualquer curso.
+
+3. GUIA POR ÁREA: Para as áreas mais comuns (Administração, Pedagogia, Enfermagem, Engenharia Civil, Contabilidade), sugira as competências-tipo e exemplos de disciplinas baseados nas DCNs de cada área.
+
+4. CHECKLIST DE VALIDAÇÃO: O que verificar para saber se a construção está coerente com as DCNs.
+
+Formato: texto estruturado, direto, prático. Sem floreio.`
+      };
+      const { data, error: err } = await supabase.functions.invoke('vertice-sapiens-analyze', { body: payload });
+      if (err) throw err;
+      setSapiensResult(data?.report || data?.analysis || data?.text || JSON.stringify(data));
+      setNotice('Modelo Sapiens gerado. Pode ser usado como referência para construção curricular de outros cursos.');
+    } catch (e: any) {
+      setSapiensResult(`⚠️ Sapiens indisponível no momento: ${e.message}`);
+    }
+    setSapiensLoading(false);
+  }
+
   const save = async () => {
     setSaving(true); setError(''); setNotice('');
     try {
       let buildId = build.id;
       if (!buildId) {
-        const { data, error: err } = await supabase.from('curriculum_builds').insert({ institution_id: institutionId, course_id: courseId, graduate_profile: build.graduate_profile, dcn_reference: build.dcn_reference, created_by: (await supabase.auth.getUser()).data.user?.id }).select('id').single();
+        const { data, error: err } = await supabase.from('curriculum_builds').insert({
+          institution_id: institutionId, course_id: courseId,
+          graduate_profile: build.graduate_profile,
+          graduate_profile_source: build.graduate_profile_source || null,
+          dcn_reference: build.dcn_reference,
+          dcn_document_url: build.dcn_document_url || null,
+          created_by: (await supabase.auth.getUser()).data.user?.id,
+        }).select('id').single();
         if (err) throw new Error(err.message);
         buildId = data.id;
       } else {
-        const { error: err } = await supabase.from('curriculum_builds').update({ graduate_profile: build.graduate_profile, dcn_reference: build.dcn_reference, updated_at: new Date().toISOString() }).eq('id', buildId);
+        const { error: err } = await supabase.from('curriculum_builds').update({
+          graduate_profile: build.graduate_profile,
+          graduate_profile_source: build.graduate_profile_source || null,
+          dcn_reference: build.dcn_reference,
+          dcn_document_url: build.dcn_document_url || null,
+          updated_at: new Date().toISOString(),
+        }).eq('id', buildId);
         if (err) throw new Error(err.message);
       }
       await supabase.from('curriculum_competencies').delete().eq('build_id', buildId);
@@ -141,24 +227,68 @@ function BuildEditor({ institutionId, courseId, canWrite, onDirty }: { instituti
     <div className="planning-toolbar"><p>{STATUS_LABELS[build.status]} · versão {build.version}</p></div>
     <fieldset disabled={!canWrite || saving}>
       <legend className="planning-sr">Construção curricular</legend>
-      <div className="card">
-        <h3>📋 Perfil Profissional do Egresso</h3>
-        <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: '0 0 12px' }}>Descreva quem é o profissional que o curso forma: onde pode atuar, que habilidades possui e que valores carrega. Use como referência o artigo 3º das DCNs do curso.</p>
+
+      {/* ── Perfil do Egresso ── */}
+      <div className="card" style={{ borderLeft: '4px solid #145b8c' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+          <h3 style={{ margin: 0 }}>📋 Perfil Profissional do Egresso</h3>
+          <button type="button" className="btn-ghost" style={{ width: 'auto', padding: '8px 16px', fontSize: 12 }} onClick={fetchProfileFromPPC} disabled={ppcLoading}>
+            {ppcLoading ? '🔄 Buscando…' : '📄 Buscar no PPC (Repositório)'}
+          </button>
+        </div>
+        <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: '8px 0 12px' }}>Extraído do PPC do curso. Se já estiver no Repositório, clique em "Buscar no PPC". Senão, cole ou digite abaixo.</p>
+        {build.graduate_profile_source && <p style={{ fontSize: 12, color: '#145b8c', margin: '0 0 8px', display: 'flex', alignItems: 'center', gap: 6 }}>📎 {build.graduate_profile_source}</p>}
         <textarea rows={6} placeholder="O egresso do curso de [nome] é um profissional capacitado para..." value={build.graduate_profile} onChange={e => update({ graduate_profile: e.target.value })} />
       </div>
-      <div className="card">
-        <h3>📜 Referência Normativa (DCNs)</h3>
-        <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: '0 0 12px' }}>Indique a Resolução CNE/CES que estabelece as Diretrizes Curriculares Nacionais do curso.</p>
-        <input placeholder="Ex: Resolução CNE/CES nº 5/2018 (Direito)" value={build.dcn_reference} onChange={e => update({ dcn_reference: e.target.value })} />
+
+      {/* ── DCNs ── */}
+      <div className="card" style={{ borderLeft: '4px solid #059669' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+          <h3 style={{ margin: 0 }}>📜 Diretrizes Curriculares Nacionais (DCNs)</h3>
+        </div>
+        <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: '8px 0 12px' }}>Indique a Resolução CNE/CES vigente. Se tiver o documento digital, cole o link abaixo.</p>
+        <div className="row">
+          <label className="planning-field" style={{ flex: 2 }}><span>Resolução</span>
+            <input placeholder="Ex: Resolução CNE/CES nº 5/2018 (Direito)" value={build.dcn_reference} onChange={e => update({ dcn_reference: e.target.value })} />
+          </label>
+          <label className="planning-field" style={{ flex: 1 }}><span>Link do documento (opcional)</span>
+            <input placeholder="https://..." value={build.dcn_document_url} onChange={e => update({ dcn_document_url: e.target.value })} />
+          </label>
+        </div>
       </div>
-      <h3 style={{ marginTop: 28 }}>🎯 Competências Centrais</h3>
-      <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: '0 0 16px' }}>Cada competência representa uma grande área de capacidade profissional. Para cada uma, vincule as disciplinas que contribuem para seu desenvolvimento.</p>
-      {build.competencies.map((comp, ci) => (
-        <CompetencyCard key={ci} comp={comp} index={ci} onChange={updated => { const next = [...build.competencies]; next[ci] = updated; update({ competencies: next }); }} onRemove={() => update({ competencies: build.competencies.filter((_, i) => i !== ci) })} canWrite={canWrite} />
-      ))}
+
+      {/* ── Competências ── */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 28, flexWrap: 'wrap', gap: 8 }}>
+        <div>
+          <h3 style={{ margin: 0 }}>🎯 Competências Centrais</h3>
+          <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: '4px 0 0' }}>Cada competência representa uma grande área de capacidade profissional. Para cada uma, vincule as disciplinas em três categorias.</p>
+        </div>
+      </div>
+      <div style={{ marginTop: 16 }}>
+        {build.competencies.map((comp, ci) => (
+          <CompetencyCard key={ci} comp={comp} index={ci} onChange={updated => { const next = [...build.competencies]; next[ci] = updated; update({ competencies: next }); }} onRemove={() => update({ competencies: build.competencies.filter((_, i) => i !== ci) })} canWrite={canWrite} />
+        ))}
+      </div>
       <button type="button" className="btn-ghost" onClick={() => update({ competencies: [...build.competencies, { code: `C${build.competencies.length + 1}`, title: '', description: '', sort_order: build.competencies.length, disciplines: [] }] })}>+ Adicionar Competência</button>
     </fieldset>
-    {canWrite && <div className="planning-toolbar" style={{ marginTop: 24 }}><button type="button" className="planning-primary" disabled={saving} onClick={save}>{saving ? 'Salvando…' : '💾 Salvar Matriz Curricular'}</button></div>}
+
+    {/* ── Toolbar: Save + Sapiens ── */}
+    {canWrite && <div className="planning-toolbar" style={{ marginTop: 24, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+      <button type="button" className="planning-primary" disabled={saving} onClick={save}>{saving ? 'Salvando…' : '💾 Salvar Matriz Curricular'}</button>
+      <button type="button" className="btn-ghost" style={{ width: 'auto', padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 8 }} disabled={sapiensLoading} onClick={generateSapiensModel}>
+        {sapiensLoading ? '🔄 Sapiens gerando…' : '🤖 Gerar Modelo Replicável (Sapiens)'}
+      </button>
+    </div>}
+
+    {/* ── Sapiens result ── */}
+    {sapiensResult && <div className="card" style={{ marginTop: 20, padding: 24, borderLeft: '5px solid #6366f1', background: '#faf5ff' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+        <span style={{ fontSize: 20 }}>🤖</span>
+        <strong style={{ fontSize: 15, color: '#4338ca' }}>Modelo Replicável — Sapiens</strong>
+      </div>
+      <p style={{ fontSize: 12, color: '#64748b', margin: '0 0 12px' }}>Este modelo pode ser usado como template para construção curricular de outros cursos. Adapte as competências e disciplinas conforme as DCNs de cada área.</p>
+      <div style={{ whiteSpace: 'pre-wrap', fontSize: 14, lineHeight: 1.7, color: '#1e293b' }}>{sapiensResult}</div>
+    </div>}
   </>;
 }
 
