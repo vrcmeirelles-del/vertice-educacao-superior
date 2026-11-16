@@ -48,11 +48,28 @@ export default function IesBrandedLayout({
       .maybeSingle()
       .then(({ data }) => {
         if (!alive || !data) return;
-        setIes({
-          name: data.name || "",
-          acronym: data.acronym || "",
-          logo_url: null, // future: IES logo from storage
-        });
+        // Logo by convention: bucket vertice-institution-logos, file {id}.png
+        const { data: urlData } = supabase.storage
+          .from("vertice-institution-logos")
+          .getPublicUrl(`${iesId}.png`);
+        const logoCandidate = urlData?.publicUrl || null;
+        if (logoCandidate) {
+          fetch(logoCandidate, { method: "HEAD" })
+            .then(r => {
+              if (!alive) return;
+              setIes({
+                name: data.name || "",
+                acronym: data.acronym || "",
+                logo_url: r.ok ? logoCandidate : null,
+              });
+            })
+            .catch(() => {
+              if (!alive) return;
+              setIes({ name: data.name || "", acronym: data.acronym || "", logo_url: null });
+            });
+        } else {
+          setIes({ name: data.name || "", acronym: data.acronym || "", logo_url: null });
+        }
       }, () => {});
     return () => { alive = false; };
   }, [iesId]);
