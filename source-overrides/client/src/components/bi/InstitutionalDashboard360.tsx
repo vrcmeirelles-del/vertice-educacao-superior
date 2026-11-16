@@ -1,3 +1,4 @@
+import ModuleSourceStatus from './ModuleSourceStatus';
 // InstitutionalDashboard360.tsx — Painel 360° integrado para Reitoria
 // Puxa v_course_academic_360 (cruza TCC + AC + Fraude + Estágio + Extensão + Egressos + CPA + Campanhas + Relatórios + Mesa Digital)
 // e v_institutional_alerts (alertas cruzados de todos os módulos)
@@ -25,19 +26,25 @@ export default function InstitutionalDashboard360({ institutionId }: Props) {
   const [courses, setCourses] = useState<Course360[]>([]);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error,setError]=useState(''),[revision,setRevision]=useState(0),[updatedAt,setUpdatedAt]=useState('');
 
   useEffect(() => {
-    setLoading(true);
+    let active=true;setLoading(true);setError('');setCourses([]);setAlerts([]);
     Promise.all([
       supabase.from('v_course_academic_360').select('*').eq('institution_id', institutionId),
       supabase.from('v_institutional_alerts').select('*').eq('institution_id', institutionId),
     ]).then(([c, a]) => {
+      if(!active)return;if(c.error||a.error)throw c.error||a.error;
+      setUpdatedAt(new Date().toISOString());
       setCourses((c.data ?? []) as Course360[]);
       setAlerts((a.data ?? []) as Alert[]);
-    }).catch(() => {}).finally(() => setLoading(false));
-  }, [institutionId]);
+    }).catch(e => {if(active)setError(e.message||'Falha ao consultar painel integrado');}).finally(() => {if(active)setLoading(false);});
+    return()=>{active=false;};
+  }, [institutionId,revision]);
 
   if (loading) return <p style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>Carregando painel integrado…</p>;
+
+  if(error)return <div><p role="alert">Não foi possível atualizar o BI: {error}</p><button type="button" onClick={()=>setRevision(n=>n+1)}>Tentar novamente</button></div>;
 
   const t = courses.reduce((acc, c) => ({
     tcc_active: acc.tcc_active + c.tcc_works_active,
@@ -78,7 +85,7 @@ export default function InstitutionalDashboard360({ institutionId }: Props) {
 
   return (
     <div>
-      <h3 style={{ margin: '0 0 12px' }}>Painel Acadêmico 360° — Visão Integrada</h3>
+      <h3 style={{ margin: '0 0 12px' }}>Painel Acadêmico 360° — Visão Integrada</h3><p>Consultado em {updatedAt?new Date(updatedAt).toLocaleString('pt-BR'):'—'} · Fontes acadêmicas da instituição.</p><button type="button" className="area-btn secondary" onClick={()=>setRevision(n=>n+1)}>Atualizar todos os indicadores deste painel</button><ModuleSourceStatus institutionId={institutionId} revision={revision}/>
 
       {/* KPIs por módulo */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 12, marginBottom: 16 }}>
