@@ -4,8 +4,8 @@ type Snapshot={institution_id:string;tier:string;retrieved_at:string;notice:stri
 export default function ModuleSourceStatus({institutionId,revision=0}:{institutionId:string;revision?:number}){
  const [state,setState]=useState<{institution:string;data?:Snapshot;error?:string}>({institution:''}),[tick,setTick]=useState(0);
  useEffect(()=>{let active=true;setState({institution:institutionId});
- Promise.resolve(supabase.rpc('vertice_bi_module_status',{p_institution:institutionId})).then(({data,error})=>{
- if(!active)return;if(error)throw error;setState({institution:institutionId,data});
+ Promise.resolve().then(()=>supabase.rpc('vertice_bi_module_status',{p_institution:institutionId})).then(({data,error})=>{
+ if(!active)return;if(error)throw error;if(!data||data.institution_id!==institutionId||!Array.isArray(data.modules))throw Error('Resposta das fontes indisponível');setState({institution:institutionId,data});
  }).catch(e=>{if(active)setState({institution:institutionId,error:e.message||'Falha ao consultar fontes dos módulos'});});
  return()=>{active=false;};},[institutionId,revision,tick]);
  const current=state.institution===institutionId?state:undefined;
