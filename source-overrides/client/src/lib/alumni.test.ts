@@ -1,0 +1,9 @@
+import {beforeEach,expect,it,vi}from'vitest';
+const state=vi.hoisted(()=>({rpc:vi.fn(async()=>({data:[],error:null}))}));
+vi.mock('./supabase',()=>({supabase:{rpc:state.rpc}}));
+import{importAlumniRows,fetchAlumniOverview,fetchSurveyIndicators,fetchTrajectoryIndicators}from'./alumni';
+beforeEach(()=>state.rpc.mockClear());
+it('unknown course is rejected before any profile or education mutation',async()=>{const r=await importAlumniRows([{nome:'Pessoa sintética',matricula:'A1',curso:'Curso inexistente'}],'ies-a',new Map([['DIREITO','course-a']]));expect(r.imported).toBe(0);expect(r.skipped).toBe(1);expect(r.errors[0]).toContain('curso não identificado');expect(state.rpc).not.toHaveBeenCalled();});
+it('missing enrollment is rejected before any mutation',async()=>{const r=await importAlumniRows([{nome:'Pessoa sintética',curso:'Direito'}],'ies-a',new Map([['DIREITO','course-a']]));expect(r.skipped).toBe(1);expect(state.rpc).not.toHaveBeenCalled();});
+it('import uses the scoped atomic endpoint with institutional course and enrollment',async()=>{const r=await importAlumniRows([{nome:'Pessoa sintética',matricula:'A1',curso:' Direito ',situacao:'FORMADO'}],'ies-a',new Map([['DIREITO','course-a']]));expect(r.imported).toBe(1);expect(state.rpc).toHaveBeenCalledWith('vertice_alumni_import_record',expect.objectContaining({p_institution:'ies-a',p_course:'course-a',p_record:expect.objectContaining({matricula:'A1',academic_status:'formado'})}));});
+it('aggregate reads use authorized RPCs instead of unrestricted direct table queries',async()=>{await fetchAlumniOverview('ies-a');await fetchSurveyIndicators('ies-a');await fetchTrajectoryIndicators('ies-a');expect(state.rpc.mock.calls).toEqual([['vertice_alumni_indicators',{p_institution:'ies-a',p_kind:'overview'}],['vertice_alumni_indicators',{p_institution:'ies-a',p_kind:'surveys'}],['vertice_alumni_indicators',{p_institution:'ies-a',p_kind:'trajectory'}]]);});
