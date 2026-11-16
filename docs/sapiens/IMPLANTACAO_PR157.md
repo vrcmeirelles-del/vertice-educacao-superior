@@ -17,7 +17,18 @@ Em 16/11/2026, o usuário autorizou integrar a PR, aplicar a migração ao Supab
 
 ## Publicação dos portais
 
-Integração e acompanhamento dos deploys em andamento. Os serviços existentes vertice-portal e vertice-educacao-superior acompanham a main e mantêm sua política de publicação automática. Banco e Edge foram preparados antes do merge para evitar disponibilizar uma interface dependente de objetos ausentes. Nenhum serviço, banco ou repositório paralelo foi criado.
+PR #157 integrada no commit 011a9227d647a1d9e987b32279a710e63b3f3af5, após a autorização. Ambos os serviços existentes concluíram a publicação desse código:
+
+| Serviço | Deploy | Conclusão UTC | Estado |
+| --- | --- | --- | --- |
+| vertice-portal | dep-dbtbc3ff3r2c73f9ukvg | 16/11/2026 07:52:19 | live |
+| vertice-educacao-superior | dep-dbtbc3ff3r2c73f9uks0 | 16/11/2026 07:56:02 | live |
+
+O version.json do domínio canônico https://www.verticesuperior.com.br e dos dois endereços Render confirmou o commit 011a9227d647a1d9e987b32279a710e63b3f3af5. Os serviços mantêm a política de publicação automática. Banco e Edge foram preparados antes do merge. Nenhum serviço, banco ou repositório paralelo foi criado.
+
+A recuperação do contexto de um curso salvo foi exercitada no banco existente, com claims controladas de Master e rollback: retornou somente o curso, sem inventário institucional, e o contexto devolvido coincidiu com o persistido temporariamente. Nenhum parecer de teste foi mantido. A Edge recusou requisição HTTP sem autenticação com 401. A comparação dos advisors de segurança manteve os seis avisos anteriores, sem avisos novos.
+
+A verificação visual do domínio abriu o painel institucional, que solicitou login. Não foi possível conferir o painel privado ou gerar parecer com provedores reais nesta sessão. Esse limite permanece na homologação, sem ser apresentado como falha de autenticação da plataforma.
 
 ## Limites de homologação
 
