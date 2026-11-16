@@ -8,7 +8,7 @@ export function ContextHelp({title,text}:{title:string;text?:string}) {
   const id=useId();
   const trigger=useRef<HTMLButtonElement>(null);
   return <Popover.Root open={open} onOpenChange={setOpen}>
-    <Popover.Trigger asChild><button ref={trigger} type="button" className="vx-help-dot" aria-label={`Ajuda: ${title}`} aria-expanded={open} aria-controls={open?id:undefined} aria-haspopup="dialog" onClick={e=>e.stopPropagation()}>?</button></Popover.Trigger>
+    <Popover.Trigger asChild><button ref={trigger} type="button" className="vx-help-dot" aria-label={`Ajuda: ${title}`} aria-expanded={open} aria-controls={open?id:undefined} aria-haspopup="dialog" onClick={e=>e.stopPropagation()}><span className="vx-help-glyph" aria-hidden="true">?</span></button></Popover.Trigger>
     <Popover.Portal><Popover.Content id={id} className="vx-help-card" sideOffset={7} collisionPadding={16} aria-label={`Explicação: ${title}`} onClick={e=>e.stopPropagation()}>
       <div className="vx-help-top"><strong>{title}</strong><Popover.Close type="button" aria-label="Fechar ajuda">×</Popover.Close></div>
       <p>{text || findHelp(title) || fieldGuidance(title)}</p>
