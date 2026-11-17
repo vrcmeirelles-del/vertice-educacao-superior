@@ -108,3 +108,12 @@ Antes de cada etapa consultar os três documentos. Concluído só com evidência
 - Documentada `MATRIZ-METODOLOGIAS-E-TOLERANCIAS.md` com identificação de fontes e lacunas das metodologias de Conceito, IDD, CPC e IGC 2021–2023. Ainda NÃO se concluiu auditoria integral das fórmulas, exceções, precisão, arredondamentos ou tolerâncias.
 - Próxima frente independente: aprofundar os contratos R2–R6 com modelos de itens/variáveis por prova, condições de ausência e em especial distinção de SC de indicador não aplicável; parametrizar fontes por edição sem valores presumidos. Executar novos casos de borda e revisão humana.
 - P-ZIP-001, P-NT-001, P-REF-001, P-TOL-001 permanecem abertas; P-CROSS-001 parcial até dados reais e integração autorizada. Gate de especialização permanece fechado.
+
+## Adendo v1.2 — Estados de dados e exceções (2026-11-17)
+- Criados `result-state-controls.cjs` e `test-result-states.cjs` e integrado o controle ao gate interpretativo.
+- Seis estados distintos com exigência documental e semântica; SC restrito a edições/indicadores com política cadastrada; nenhum estado não numérico pode ter valor zero como substituto.
+- GitHub Actions run 44016416528, commit 94c42399989dd181a37cf459b4ab48c9a8ca4f45: 178/178 testes sintéticos aprovados, evidências no arquivo `EVIDENCIAS-ESTADOS-007.md`.
+- P-STATE-001 aberta: formalizar regras por indicador e edição com fontes, expandir testes e distinguir ausência na fonte, exceção de elegibilidade e inaplicabilidade normativa.
+- P-CROSS-001 parcial, P-TOL-001/P-NT-001/P-REF-001 abertas, P-ZIP-001 aguardando usuário.
+- Próximo passo independente do ZIP: validar metadados de proveniência nos relatórios R1–R7, matriz de aplicabilidade do indicador, e projetar contrato de importação, sem implantar em produção.
+- Núcleo científico e especialização bloqueados até reprodução auditável de indicadores oficiais.
