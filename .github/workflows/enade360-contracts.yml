@@ -38,3 +38,28 @@ jobs:
         run: node docs/enade-360/validator/test-rls-policy-contract.cjs
       - name: Validate positive and negative Draft 2020-12 instances
         run: python docs/enade-360/validator/test-json-schema.py
+
+  disposable-postgres-rls:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: fixture-only
+          POSTGRES_DB: enade_fixture
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PostgreSQL client
+        run: sudo apt-get update -qq && sudo apt-get install -y postgresql-client
+      - name: Run disposable PostgreSQL RLS and rollback assertions
+        env:
+          PGPASSWORD: fixture-only
+        run: psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 5432 -U postgres -d enade_fixture -f docs/enade-360/validator/test-rls-postgres-disposable.sql
