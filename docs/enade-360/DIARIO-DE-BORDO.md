@@ -148,3 +148,12 @@ Data/hora; etapa; fonte/URL/versão; ação executada; resultado e evidências; 
 - Execução CI confirmada: GitHub Actions run 44046339541, commit f09ad17a49c1f1d1f2a94222928d56973d829bfb, completed/success; 240/240 testes sintéticos totais, zero falhas.
 - Limites: hash chain em memória não equivale a imutabilidade persistente; nenhuma RLS real, sessão autenticada, migração, API implantada ou assinatura validada. Proposta de papéis sujeita ao cadastro real.
 - Novas pendências P-ACCESS-001 e P-API-001, P-TRACE-001 aberta; P-CROSS-001 parcial, P-ZIP-001 aguardando o usuário, P-NT-001/P-REF-001/P-TOL-001 abertas. Nenhuma publicação antecipada e nenhum indicador INEP reproduzido.
+
+## Entrada 020 — 2026-11-17 — Ciclo 01 de três ações
+- Procedimento solicitado: executar em grupos de três ações, com revisão das evidências ao final.
+- Ação 1: comparação das migrações versionadas `20261107200000_enade360_continuous_quality.sql`, `20261107203000_enade360_mirror_read.sql` e `202610300001_area_real.sql`. Identificado predicado institucional de RLS e ausência, nesses arquivos, de predicado comprovado por curso para Coordenação/NDE. Estado do banco vivo não consultado.
+- Ação 2: criado `CICLO-01-TRES-ACOES.md`, com contrato de extensão aditiva/reversão, sem geração de migração SQL executável nem aplicação de DDL.
+- Ação 3: protótipo `audit-event-prototype.cjs` passou a exigir MFA aal2; suíte `test-audit-governance.cjs` incluiu dois casos de ausência/insuficiência de MFA.
+- CI verificado: run 44046955001, commit d339a13dca41fd834a3095b8edaab828ac3f18a0, completed/success; 242/242 testes sintéticos, zero falhas.
+- Limites: autorização e log testados em memória, não RLS/SQL/autenticação em produção. Schema vivo, correspondência de perfis e segregação real continuam pendentes.
+- P-SCHEMA-REAL-001 aberta, demais P-TRACE-001/P-ACCESS-001/P-API-001/P-CROSS-001/P-ZIP-001/P-NT-001/P-REF-001/P-TOL-001 preservadas. Sem publicação, homologação ou especialização.
