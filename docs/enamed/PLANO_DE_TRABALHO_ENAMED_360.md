@@ -362,3 +362,12 @@ RECOMENDAÇÃO PARA A ETAPA SEGUINTE:
 - [ ] Recuperar gabaritos definitivos e retificações, homologar notas técnicas e matrizes, somente então iniciar curadoria clínica formal e dupla IA.
 - [ ] Executar os 16 cenários em ambiente autenticado de homologação com massa sintética, MFA/RLS, escopos curso e duas instituições.
 **Gate:** E1 ainda aberta; sem atualização de produção ou publicação da PR.
+
+
+## Fechamento da auditoria técnica preliminar — 17/11/2026
+- [x] Entregar termo final `TERMO_ENCERRAMENTO_AUDITORIA_PRELIMINAR_20261117.md`, distinguindo evidência conclusiva e gates externos.
+- [x] Validar em `SELECT` oito diferenças numéricas com marcadores encontrados no PDF oficial, gerando `ENCERRAMENTO_8_DIVERGENCIAS_NUMERICAS_VERIFICADAS_20261117.json`.
+- [x] Encerrar as verificações repetitivas de hashes, gabaritos preliminares, permutações de cadernos e diferenças numéricas já evidenciadas.
+- [ ] Aceite E1: versões DEFINITIVAS/retificações, notas metodológicas, texto integral/mídias e curadoria profissional.
+- [ ] Homologação autenticação: 16 cenários reais de MFA/RLS/isolamento IES e ponte sintética.
+- [ ] Homologação final, merge/deploy somente após os dois aceites. **Não considerar produto concluído.**
