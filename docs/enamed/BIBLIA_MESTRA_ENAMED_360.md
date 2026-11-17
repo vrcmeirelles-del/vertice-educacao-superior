@@ -1,6 +1,6 @@
 # BÍBLIA-MESTRA DO PROJETO — ENAMED 360° / INEP INTELLIGENCE
 **Projeto:** Vértice Educação Superior × Fato & Ordem × Sapiens 360°  
-**Versão:** 2.2 — E1 parcial + oito PDFs com SHA256 e 483 gabaritos preliminares reconciliados  
+**Versão:** 2.3 — E1 parcial + triagem textual 483/483 e permutações dos cadernos  
 **Data-base:** 16 de novembro de 2026  
 **Status:** documento-mestre de projeto; NÃO corresponde à implantação ou homologação da solução.  
 **Governança:** evolução cumulativa por etapas, com revisão retrospectiva obrigatória.  
@@ -401,3 +401,21 @@ No banco F&O (leitura) só foram encontrados `fo_enamed_items` e `fo_enamed_atte
 **ADR-ENAMED-021:** lacunas de reaplicação são catalogadas para importação futura apenas após curadoria e rastreio por ID, sem supor que ausência em `fo_enamed_items` signifique ausência em todo o F&O.
 
 **Próximo compromisso:** verificar enunciados e alternativas contra os cadernos autenticados, priorizando 57 diferenças de enunciado, os 17 números da reaplicação e as 100 posições de reaplicação C2 sem registro; aguardar documento definitivo e manter as revisões clínicas sob gate regulatório E1. Segurança multi-IES deve ser provada em sessões reais antes de merge/deploy.
+
+
+## 22. Atualização cumulativa v2.3 — auditoria textual inicial e equivalência real entre cadernos (17/11/2026)
+**Estado:** E1 permanece aberta até validação normativa, gabaritos definitivos, mídia e correspondência integral. E2/E3 preparatórias; E9 de dados reais por IES futura. Preserve todas as decisões anteriores.
+
+### Achado central: cadernos diferentes não implicam questões diferentes
+- Extração dos quatro cadernos oficiais ENAMED 2026 recuperados por HTTPS válido: **400 posições numeradas** (100 por caderno) com localizadores de página física em `ENAMED_2026_LOCALIZADOR_PAGINAS_400_QUESTOES.json`.
+- `ENAMED_2026_MAPA_PERMUTACOES_CADERNOS_DRAFT.json`: no regular, Caderno 2 corresponde a **100/100** questões do Caderno 1 em ordem permutada; na reaplicação, também **100/100**. Os 200 pares foram conferidos por abertura textual normalizada e por 200 concordâncias das **letras preliminares**, não por revisão integral de mídia.
+- **Correção da avaliação anterior:** as 100 posições sem linha da reaplicação C2 em `fo_enamed_items` não são 100 conteúdos clínicos inéditos. São **100 referências de caderno não presentes nessa tabela**, remapeáveis aos 100 conteúdos do C1, sujeitos a homologação. A lacuna candidata de **conteúdo distinto** é de 17 questões do C1, preservada em `ENAMED_2026_REAPLICACAO_17_POSICOES_EQUIVALENTES.json`. Não apagar nem importar automaticamente.
+- Na consulta somente leitura, **483/483 registros** do F&O têm seus **24 primeiros caracteres alfanuméricos normalizados** compatíveis com a abertura do enunciado oficial correspondente, após a permutação. Isso confirma identidade inicial da questão, **não equivalência textual completa** nem revisão de alternativas/comando.
+- O relatório `E1_AUDITORIA_TEXTUAL_483_E_MAPA_CADERNOS_20261117.md` distingue rigorosamente o teste de abertura, o mapa de cadernos, o gabarito preliminar e o que ainda requer revisão clínica. As 57 diferenças de enunciado entre cópias, 191 subtemas e 192 keywords continuam na fila; nenhuma mudança no acervo.
+
+### Novos contratos
+- `scripts/tests/enamed-booklet-maps.test.mjs` e workflow `verify-enamed-contracts.yml` verificam a integridade das duas permutações 1–100 e dos quatro localizadores de páginas. Não substituem RLS, UI autenticada ou curadoria médica.
+- ADR-ENAMED-022: identificar unicamente o item clínico por conteúdo homologado e preservar separadamente **edição, aplicação, caderno, número e alternativa**; mapear aliases de caderno apenas após aprovação humana, mantendo tentativas ligadas ao ID original.
+- ADR-ENAMED-023: a auditoria de prefixo normalizado é **triagem automatizada de identidade**, nunca um certificado de equivalência integral ou correção médica. Não transformar resultado 483/483 de prefixos em 483 questões homologadas.
+
+**Status da publicação:** PR #168 permanece draft, sem merge/deploy; as áreas em código não representam publicação em produção. A matriz de acessos reais Master/Reitoria/CPA/Coordenação/NDE ainda não foi homologada em sessões autenticadas; o controle RLS permanece sujeito a prova efetiva.
