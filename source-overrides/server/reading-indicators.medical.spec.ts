@@ -5,7 +5,10 @@ import ts from 'typescript';
 const institution='00000000-0000-4000-8000-000000000001';
 const other='00000000-0000-4000-8000-000000000003';
 const user='00000000-0000-4000-8000-000000000002';
-const code=ts.transpile(readFileSync('supabase/functions/vertice-learning-bridge/index.ts','utf8').replace(/^import .*\n/,''),{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.None});
+// Evaluate the actual shared guards with the handler in the isolated VM.
+const guards=readFileSync('supabase/functions/_shared/bridge-origins.ts','utf8').replace(/^export /gm,'');
+const source=readFileSync('supabase/functions/vertice-learning-bridge/index.ts','utf8').replace(/^import .*\n/gm,'');
+const code=ts.transpile(guards+'\n'+source,{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.None});
 function harness(options:{tier?:string;role?:string;master?:boolean;aal?:string;invalidSession?:boolean;membershipError?:boolean;key?:string;base?:string;remoteStatus?:number;result?:unknown;raw?:unknown}={}){
  let handler:any;
  const queries:{table:string;filters:unknown[]}[]=[];
