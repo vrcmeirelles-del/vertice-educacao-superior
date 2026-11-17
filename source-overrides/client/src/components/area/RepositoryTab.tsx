@@ -1281,6 +1281,13 @@ function UploadDialog(
       if (readError || !data) throw error;
     }
     setPending(null);
+    // Indexing is local to the existing Supabase function: no AI provider or auto-approval.
+    if(manager&&values.storage_path){
+      try{
+        const indexed=await supabase.functions.invoke("vertice-doc-prevalidate",{body:{institution_id:props.institutionId,source_table:"vertice_repository_files",file_id:String(values.id),action:"index"}});
+        if(indexed.error||indexed.data?.error)setError("Arquivo salvo. Extração de texto pendente; consulte Pré-validar para conferir ou reprocessar.");
+      }catch{setError("Arquivo salvo. Extração pendente por falha de comunicação.");}
+    }
     // Após registrar o arquivo institucional, solicita correspondências para a proposta de 2026.
     // Falha na IA não desfaz nem invalida o upload do documento original.
     if (props.institutional) {

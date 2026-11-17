@@ -1,3 +1,4 @@
+import EvidenceSearch from "./EvidenceSearch";
 import { ContextHelp } from '@/components/ContextHelp';
 import { HelpLabel } from '@/components/ContextHelp';
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
@@ -308,6 +309,7 @@ export default function Enade360({institutionId,courses,actions,goals,role,onPla
       {canValidate?<p><button type="button" className="corp-button secondary small" disabled={busy} onClick={()=>void createAction()}>Criar ação geral 5W2H para este curso</button></p>:null}
     </section>:null}
     {message?<p role="status" className="enade360-feedback">{message}</p>:null}
+    <EvidenceSearch institutionId={institutionId} courseId={courseId||null}/>
     <section className="enade360-panel enade360-mirror">
       <h4>Espelho acadêmico existente · e-ORBIT</h4>
       <p>{mirror.length?<>Registros visíveis para esta sessão: <strong>{fmt.format(mirror.length)}</strong>. Períodos presentes: {mirrorSemesters.join(", ")}.</>:<>Contagem indisponível. {mirrorNotice}</>} Esses registros não comprovam, isoladamente, comparecimento, conceito oficial ou equivalência com o cadastro de cursos da Vértice.</p>
