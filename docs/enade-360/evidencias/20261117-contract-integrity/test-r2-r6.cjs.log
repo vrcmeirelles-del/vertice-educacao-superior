@@ -1,0 +1,24 @@
+PASS valid_R2
+PASS valid_R3
+PASS valid_R4
+PASS valid_R5
+PASS valid_R6
+PASS r2_missing_component_n
+PASS r2_method_mismatch
+PASS r2_missing_specific_component
+PASS r3_wrong_population
+PASS r3_negative_missing
+PASS r3_identifiable
+PASS r4_sc_as_zero
+PASS r4_invalid_indicator
+PASS r4_enade_wrong_policy
+PASS r4_igc_course_scope
+PASS r5_rupture_claimed_comparable
+PASS r5_unknown_claimed_comparable
+PASS r5_cross_area_raw
+PASS r5_no_justification
+PASS r6_no_evidence
+PASS r6_no_limitations
+PASS r6_unapproved
+PASS r2_mixed_course
+{"suite":"r2-r6-controls","tests":23,"passed":23,"failed":0,"node":"v24.22.1"}

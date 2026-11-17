@@ -299,7 +299,8 @@ export default function OwnerDashboard(){
     setFactor(data.totp[0]?.id??'');
     // Verificar se é admin (master) — se for, exigir MFA
     const {data:adminCheck}=await supabase.from('vertice_admins').select('user_id').eq('user_id',current.user.id);
-    if(adminCheck?.length){return;} // Master precisa de MFA
+    setMaster(Boolean(adminCheck?.length));
+    if(adminCheck?.length){return;} // Master reconhecido; dados seguem bloqueados até validar MFA
     // Equipe/gestor pode continuar sem MFA
    }
    // Aquisições depende apenas da sessão e do MFA; seu backend aplica as permissões.

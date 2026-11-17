@@ -1,0 +1,1016 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://verticesuperior.com.br/schemas/enade360-report-0.4.json",
+  "title": "ENADE 360 — R0–R7 contract 0.4, internal integrity controls",
+  "type": "object",
+  "required": [
+    "report_id",
+    "report_type",
+    "schema_version",
+    "generated_at",
+    "edition_year",
+    "academic_degree",
+    "area_code",
+    "area_name",
+    "methodology_id",
+    "methodology_url",
+    "engine_version",
+    "dataset_hash",
+    "sample_n",
+    "denominator",
+    "exclusion_counts",
+    "missing_counts",
+    "comparability_class",
+    "caveats",
+    "generated_by",
+    "review_status",
+    "source_documents",
+    "claims",
+    "payload"
+  ],
+  "properties": {
+    "report_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "report_type": {
+      "enum": [
+        "R1",
+        "R2",
+        "R3",
+        "R4",
+        "R5",
+        "R6",
+        "R7"
+      ]
+    },
+    "schema_version": {
+      "const": "0.4"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "edition_year": {
+      "type": "integer",
+      "minimum": 2004
+    },
+    "academic_degree": {
+      "enum": [
+        "bacharelado",
+        null
+      ]
+    },
+    "area_code": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "area_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "methodology_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "methodology_url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "engine_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "dataset_hash": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "sample_n": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "denominator": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "exclusion_counts": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 0
+      }
+    },
+    "missing_counts": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 0
+      }
+    },
+    "comparability_class": {
+      "enum": [
+        "C0",
+        "C1",
+        "C2",
+        "C3",
+        "C4",
+        "CX"
+      ]
+    },
+    "caveats": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "generated_by": {
+      "type": "string",
+      "minLength": 1
+    },
+    "review_status": {
+      "enum": [
+        "PENDING",
+        "APPROVED",
+        "REJECTED"
+      ]
+    },
+    "source_documents": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "url",
+          "document_title",
+          "retrieval_date",
+          "file_version",
+          "sha256",
+          "source_id"
+        ],
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "document_title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "retrieval_date": {
+            "type": "string"
+          },
+          "file_version": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{64}$"
+          },
+          "source_id": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "claim_id",
+          "text",
+          "epistemic_label",
+          "validation_status",
+          "evidence_refs"
+        ],
+        "properties": {
+          "claim_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1
+          },
+          "epistemic_label": {
+            "enum": [
+              "OFFICIAL_FACT",
+              "REPRODUCED_CALCULATION",
+              "STATISTICAL_INFERENCE",
+              "PEDAGOGICAL_HYPOTHESIS",
+              "ACTION_PROPOSAL"
+            ]
+          },
+          "validation_status": {
+            "enum": [
+              "PENDING",
+              "VALIDATED",
+              "REJECTED"
+            ]
+          },
+          "evidence_refs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "calculation_formula": {
+            "type": "string",
+            "minLength": 1
+          },
+          "causal": {
+            "type": "boolean"
+          },
+          "causal_design_verified": {
+            "type": "boolean"
+          },
+          "comparison_assertion": {
+            "type": "boolean"
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "epistemic_label": {
+                  "enum": [
+                    "OFFICIAL_FACT",
+                    "REPRODUCED_CALCULATION"
+                  ]
+                }
+              },
+              "required": [
+                "epistemic_label"
+              ]
+            },
+            "then": {
+              "properties": {
+                "evidence_refs": {
+                  "minItems": 1
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "epistemic_label": {
+                  "const": "REPRODUCED_CALCULATION"
+                }
+              },
+              "required": [
+                "epistemic_label"
+              ]
+            },
+            "then": {
+              "required": [
+                "calculation_formula"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "causal": {
+                  "const": true
+                }
+              },
+              "required": [
+                "causal"
+              ]
+            },
+            "then": {
+              "properties": {
+                "causal_design_verified": {
+                  "const": true
+                }
+              },
+              "required": [
+                "causal_design_verified"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "payload": {
+      "type": "object"
+    },
+    "public_output": {
+      "type": "boolean"
+    },
+    "contains_individual_records": {
+      "type": "boolean"
+    },
+    "official_publication": {
+      "type": "boolean"
+    },
+    "publication_verified": {
+      "type": "boolean"
+    },
+    "course_code": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "institution_code": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "report_type": {
+            "const": "R1"
+          }
+        },
+        "required": [
+          "report_type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "required": [
+              "inscribed",
+              "present",
+              "valid"
+            ],
+            "properties": {
+              "inscribed": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "present": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "valid": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "report_type": {
+            "const": "R2"
+          }
+        },
+        "required": [
+          "report_type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "required": [
+              "general_formation",
+              "specific_component"
+            ],
+            "properties": {
+              "general_formation": {
+                "$ref": "#/$defs/component"
+              },
+              "specific_component": {
+                "$ref": "#/$defs/component"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "report_type": {
+            "const": "R3"
+          }
+        },
+        "required": [
+          "report_type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "required": [
+              "questionnaire_categories"
+            ],
+            "properties": {
+              "questionnaire_categories": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "$ref": "#/$defs/question"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "report_type": {
+            "const": "R4"
+          }
+        },
+        "required": [
+          "report_type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "required": [
+              "indicators"
+            ],
+            "properties": {
+              "indicators": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "$ref": "#/$defs/indicator"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "report_type": {
+            "const": "R5"
+          }
+        },
+        "required": [
+          "report_type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "required": [
+              "comparisons"
+            ],
+            "properties": {
+              "comparisons": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "$ref": "#/$defs/comparison"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "report_type": {
+            "const": "R6"
+          }
+        },
+        "required": [
+          "report_type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "required": [
+              "interventions"
+            ],
+            "properties": {
+              "interventions": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "$ref": "#/$defs/intervention"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "report_type": {
+            "const": "R7"
+          }
+        },
+        "required": [
+          "report_type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "required": [
+              "reconciliations"
+            ],
+            "properties": {
+              "reconciliations": {
+                "type": "array"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "review_status": {
+            "const": "APPROVED"
+          }
+        },
+        "required": [
+          "review_status"
+        ]
+      },
+      "then": {
+        "required": [
+          "reviewed_by",
+          "reviewed_at"
+        ],
+        "properties": {
+          "reviewed_by": {
+            "type": "string",
+            "minLength": 1
+          },
+          "reviewed_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "claims": {
+            "items": {
+              "properties": {
+                "validation_status": {
+                  "const": "VALIDATED"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "report_type": {
+            "const": "R6"
+          },
+          "review_status": {
+            "const": "APPROVED"
+          }
+        },
+        "required": [
+          "report_type",
+          "review_status"
+        ]
+      },
+      "then": {
+        "required": [
+          "human_intervention_approval"
+        ],
+        "properties": {
+          "human_intervention_approval": {
+            "const": true
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "public_output": {
+            "const": true
+          },
+          "contains_individual_records": {
+            "const": true
+          }
+        },
+        "required": [
+          "public_output",
+          "contains_individual_records"
+        ]
+      },
+      "then": false
+    },
+    {
+      "if": {
+        "properties": {
+          "official_publication": {
+            "const": true
+          },
+          "edition_year": {
+            "minimum": 2026
+          }
+        },
+        "required": [
+          "official_publication",
+          "edition_year"
+        ]
+      },
+      "then": {
+        "required": [
+          "publication_verified"
+        ],
+        "properties": {
+          "publication_verified": {
+            "const": true
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "academic_degree": {
+            "type": "null"
+          }
+        },
+        "required": [
+          "academic_degree"
+        ]
+      },
+      "then": {
+        "properties": {
+          "report_type": {
+            "const": "R4"
+          },
+          "payload": {
+            "properties": {
+              "indicators": {
+                "items": {
+                  "properties": {
+                    "indicator": {
+                      "const": "IGC"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "component": {
+      "type": "object",
+      "required": [
+        "methodology_id",
+        "unit",
+        "measure",
+        "n",
+        "value"
+      ],
+      "properties": {
+        "methodology_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "unit": {
+          "enum": [
+            "points",
+            "standardized_points"
+          ]
+        },
+        "measure": {
+          "enum": [
+            "RAW_SCORE",
+            "COURSE_MEAN",
+            "STANDARDIZED_SCORE"
+          ]
+        },
+        "n": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "value": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100
+        },
+        "missing": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "not_applicable": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "population_rule_ref": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "question": {
+      "type": "object",
+      "required": [
+        "question_id",
+        "respondents",
+        "missing",
+        "denominator"
+      ],
+      "properties": {
+        "question_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "respondents": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "missing": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "denominator": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "excluded": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "not_applicable": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "population_rule_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "contains_identifiable_data": {
+          "const": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "comparison_side": {
+      "type": "object",
+      "required": [
+        "edition_year",
+        "area_code",
+        "academic_degree",
+        "instrument_id",
+        "methodology_id",
+        "measure",
+        "unit",
+        "source_ref"
+      ],
+      "properties": {
+        "edition_year": {
+          "type": "integer",
+          "minimum": 2004
+        },
+        "area_code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "academic_degree": {
+          "type": "string",
+          "minLength": 1
+        },
+        "instrument_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "methodology_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "measure": {
+          "type": "string",
+          "minLength": 1
+        },
+        "unit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_ref": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "comparison": {
+      "type": "object",
+      "required": [
+        "class",
+        "justification",
+        "claimed_comparable"
+      ],
+      "properties": {
+        "class": {
+          "enum": [
+            "C0",
+            "C1",
+            "C2",
+            "C3",
+            "C4",
+            "CX"
+          ]
+        },
+        "justification": {
+          "type": "string",
+          "minLength": 1
+        },
+        "claimed_comparable": {
+          "type": "boolean"
+        },
+        "measure": {
+          "type": "string",
+          "minLength": 1
+        },
+        "left": {
+          "$ref": "#/$defs/comparison_side"
+        },
+        "right": {
+          "$ref": "#/$defs/comparison_side"
+        },
+        "equivalence_refs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "indicator": {
+      "type": "object",
+      "required": [
+        "indicator",
+        "methodology_id",
+        "source_version",
+        "status"
+      ],
+      "properties": {
+        "indicator": {
+          "enum": [
+            "CONCEITO_ENADE",
+            "IDD",
+            "CPC",
+            "IGC"
+          ]
+        },
+        "methodology_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "enum": [
+            "SC",
+            "PENDING",
+            "OFFICIAL"
+          ]
+        },
+        "source_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "result_origin": {
+          "const": "OFFICIAL_SOURCE"
+        },
+        "continuous_value": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 5
+        },
+        "band": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 5
+        },
+        "value_state": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    },
+    "intervention": {
+      "type": "object",
+      "required": [
+        "hypothesis",
+        "action",
+        "evidence_refs",
+        "limitations",
+        "status"
+      ],
+      "properties": {
+        "hypothesis": {
+          "type": "string",
+          "minLength": 1
+        },
+        "action": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence_refs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "limitations": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "status": {
+          "enum": [
+            "DRAFT",
+            "APPROVED",
+            "REJECTED"
+          ]
+        },
+        "intervention_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "review_decision_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reviewed_by": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reviewed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "basis_state": {
+          "type": "object"
+        },
+        "basis_indicator": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "$comment": "Requires integrated-gate.cjs on the same instance. Source/decision/comparison callbacks are not authentication implementations and default to denial. No official indicator reproduction or scientific acceptance."
+}

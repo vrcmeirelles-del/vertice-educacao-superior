@@ -1,0 +1,12 @@
+{
+  "url": "https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/microdados/idd",
+  "obtained_at": "2026-11-17T10:21:47.982246+00:00",
+  "http_status": 200,
+  "bytes": 224756,
+  "sha256": "759e62b54fb4cac65d41b591d7b81d0b67fc9378dd3437d1c646da10a754de55",
+  "links": [
+    "https://download.inep.gov.br/microdados/microdados_IDD_2023.zip",
+    "https://download.inep.gov.br/microdados/microdados_IDD_2022.zip",
+    "https://download.inep.gov.br/microdados/microdados_IDD_2021.zip"
+  ]
+}

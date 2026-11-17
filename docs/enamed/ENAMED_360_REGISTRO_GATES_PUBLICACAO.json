@@ -81,9 +81,10 @@
         "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json",
         "docs/enamed/evidencias/20261117_LOCKDOWN_APLICADO_APOS_CONFIRMACAO.json",
         "docs/enamed/evidencias/20261117_RESTAURACAO_DEFINICOES_APLICADAS.json",
-        "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json"
+        "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json",
+        "docs/enamed/evidencias/20261117_CONCILIACAO_MAIN_E_FUNCOES.json"
       ],
-      "reason": "Esquema isolado restaurado e duas pontes ACTIVE; zero contas Auth autorizadas com MFA/AAL2. Os 16 casos reais não executados. Pipeline automática bloqueada por HTTP 413 na cópia da pré-validação (38,48 MB).",
+      "reason": "Esquema restaurado; Sapiens v5, Learning v26 e pré-validação v4 ACTIVE/JWT obrigatório. Falha automática 413 compensada com fonte idêntica, sem aprovar a pipeline. Zero contas autorizadas/MFA; 16 casos reais não executados.",
       "history": [
         {
           "date": "2026-11-17",
@@ -106,6 +107,18 @@
           "evidence": [
             "docs/enamed/MATRIZ_HOMOLOGACAO_EXECUCAO_20261117.json",
             "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json"
+          ]
+        },
+        {
+          "date": "2026-11-17",
+          "approved": false,
+          "reason": "Esquema isolado restaurado e duas pontes ACTIVE; zero contas Auth autorizadas com MFA/AAL2. Os 16 casos reais não executados. Pipeline automática bloqueada por HTTP 413 na cópia da pré-validação (38,48 MB).",
+          "evidence": [
+            "docs/enamed/MATRIZ_HOMOLOGACAO_EXECUCAO_20261117.json",
+            "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json",
+            "docs/enamed/evidencias/20261117_LOCKDOWN_APLICADO_APOS_CONFIRMACAO.json",
+            "docs/enamed/evidencias/20261117_RESTAURACAO_DEFINICOES_APLICADAS.json",
+            "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json"
           ]
         }
       ],
@@ -211,6 +224,12 @@
         ],
         "caveat": "TypeScript/build Node22/24; local 427 tests. Isolated frontend deploy is not authenticated QA or production release."
       }
+    },
+    {
+      "date": "2026-11-17",
+      "event": "Main conflicts reconciled; exact-source prevalidation redeploy compensated HTTP 413",
+      "evidence": "docs/enamed/evidencias/20261117_CONCILIACAO_MAIN_E_FUNCOES.json",
+      "all_six_gates_remain_unapproved": true
     }
   ]
 }

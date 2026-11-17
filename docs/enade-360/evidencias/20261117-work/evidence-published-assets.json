@@ -1,0 +1,102 @@
+[
+  {
+    "base": "https://www.verticesuperior.com.br",
+    "checked_at": "2026-11-17T15:02:19.519104+00:00",
+    "version": {
+      "sha": "c266140afcb9c81d612a5c7917d476329e3aff6a",
+      "built": "2026-11-17T14:58:50.276Z"
+    },
+    "asset": "https://www.verticesuperior.com.br/assets/OwnerDashboard-DxHGWnLJ.js",
+    "sha256": "cbdc88e5f95bc43268c1f10f00678fbf5bf836d3d26d3cb8dc587f61164322c6",
+    "markers": {
+      "vertice_evidence_search": false,
+      "Extrair textos dos resultados pendentes": false,
+      "Homologação científica pendente": true
+    },
+    "shared_entry_asset": {
+      "url": "https://www.verticesuperior.com.br/assets/index-TbQ7neB_.js",
+      "sha256": "145256ccc4760c33ef6bf94b3a0ef35157442c01cd19e936bd3c0a811818a06f",
+      "markers": {
+        "vertice_evidence_search": false,
+        "Extrair textos dos resultados pendentes": false
+      }
+    },
+    "related_chunks": [
+      "SapiensPlanning-489MWcvo.js",
+      "PlanningManagement-DBRTcVa8.js"
+    ],
+    "shared_feature_chunks": [
+      {
+        "url": "https://www.verticesuperior.com.br/assets/PreValidationPanel-BfgqNP7L.js",
+        "sha256": "277a35f97ec1b19f3092209dff557b7eeda476f0ba9745fc92ab8afbe78baed0",
+        "markers": {
+          "vertice_evidence_search": false,
+          "Extrair textos dos resultados pendentes": false
+        }
+      }
+    ],
+    "bounded_dependency_scan": {
+      "referenced_assets_checked": 36,
+      "feature_matches": [
+        {
+          "url": "https://www.verticesuperior.com.br/assets/PlanningManagement-DBRTcVa8.js",
+          "sha256": "d2fd5baad819e77e1b13aa717b132e27d1b9757ddd1616904c4a1a94283527ab",
+          "markers": {
+            "vertice_evidence_search": true,
+            "Extrair textos dos resultados pendentes": true
+          }
+        }
+      ]
+    }
+  },
+  {
+    "base": "https://vertice-portal.onrender.com",
+    "checked_at": "2026-11-17T15:02:19.519493+00:00",
+    "version": {
+      "sha": "c266140afcb9c81d612a5c7917d476329e3aff6a",
+      "built": "2026-11-17T14:58:49.747Z"
+    },
+    "asset": "https://vertice-portal.onrender.com/assets/OwnerDashboard-CrCzmccS.js",
+    "sha256": "0fb038f04e9efefba117dab2c35e6543a115518e909a504a60dc46d0d1cc913e",
+    "markers": {
+      "vertice_evidence_search": false,
+      "Extrair textos dos resultados pendentes": false,
+      "Homologação científica pendente": true
+    },
+    "shared_entry_asset": {
+      "url": "https://vertice-portal.onrender.com/assets/index-CnstEhrX.js",
+      "sha256": "2fcd239c60a8ef4be52013898ecc2e80e4c7fe1cd5b71c57ef862666d0bfd513",
+      "markers": {
+        "vertice_evidence_search": false,
+        "Extrair textos dos resultados pendentes": false
+      }
+    },
+    "related_chunks": [
+      "SapiensPlanning-BjezAp-C.js",
+      "PlanningManagement-Bn5UOx3L.js"
+    ],
+    "shared_feature_chunks": [
+      {
+        "url": "https://vertice-portal.onrender.com/assets/PreValidationPanel-B0g2GnlD.js",
+        "sha256": "1a934324d337701e15bdfd211ecfedd07a4a8e9703da3bfd85ee01bea606b083",
+        "markers": {
+          "vertice_evidence_search": false,
+          "Extrair textos dos resultados pendentes": false
+        }
+      }
+    ],
+    "bounded_dependency_scan": {
+      "referenced_assets_checked": 36,
+      "feature_matches": [
+        {
+          "url": "https://vertice-portal.onrender.com/assets/PlanningManagement-Bn5UOx3L.js",
+          "sha256": "4875df3a19a372c8cfe551a654e649c8f5f081a3c9f0e1b5312e13c376b41b82",
+          "markers": {
+            "vertice_evidence_search": true,
+            "Extrair textos dos resultados pendentes": true
+          }
+        }
+      ]
+    }
+  }
+]

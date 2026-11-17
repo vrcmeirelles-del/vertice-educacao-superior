@@ -6,6 +6,7 @@ export {courseTotals} from "@/lib/enrollment-summary";
 import "./academic-data.css";
 import CourseIndicators, {type CourseIndicatorPayload} from "./CourseIndicators";
 import {lazy, Suspense, useMemo, useState} from 'react';
+const Discursiva360 = lazy(() => import('./area/Discursiva360'));
 const CoursePlanning = lazy(() => import('./area/CoursePlanning'));
 import type {Role} from '@/lib/area';
 import AcademicReports, {type AcademicReport} from '@/components/AcademicReports';
@@ -132,6 +133,7 @@ export function CourseView({course,institution,enrollments,reports,onBack,onPlan
    <aside><h4>{delta!==null&&delta<0?'Atenção à continuidade':'Próxima decisão'}</h4><p>{guidance}</p><p>A variação compara totais. A evasão depende do acompanhamento individual.</p>
    {onPlan&&<button className="corp-button" onClick={()=>onPlan({course_id:course.id,what:delta===null?'Completar a base de matrículas':delta<0?'Investigar queda e acompanhar rematrículas':'Avaliar potencial de expansão do curso',why:`Matrículas em ${previous??'semestre anterior'} e ${sem}: ${change}.`,how:guidance})}>Preparar ação 5W2H</button>}</aside>
   </section>
+  <details className="course-planning-entry"><summary>Discursiva 360° — casos, provas e correção</summary><Suspense fallback={<p role="status">Carregando avaliações…</p>}><Discursiva360 institutionId={institution.id} courses={[course]}/></Suspense></details>
   <details className="course-planning-entry"><summary>Planejamento Estratégico e Semestral do Curso</summary><Suspense fallback={<p role="status">Carregando planejamento…</p>}><CoursePlanning institutionId={institution.id} courses={[course]} initialCourseId={course.id} role={role??null} /></Suspense></details>
   <h3>Matrículas por turma</h3>
   {!semesters.length?<p>Nenhum relatório importado para este curso.</p>:<>

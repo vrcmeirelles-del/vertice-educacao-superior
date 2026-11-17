@@ -32,11 +32,6 @@ jobs:
           mkdir -p .enade-ci
           unzip -qo vertice-servidor-source.zip -d .enade-ci
           cp -a source-overrides/. .enade-ci/
-          git fetch --depth=1 origin feat/enade360-integracao-release-20261107
-          git archive FETCH_HEAD \
-            source-overrides/client/src/components/area/Workspace.tsx \
-            source-overrides/client/src/components/area/ProfileSimulator.tsx \
-            source-overrides/client/src/lib/area.ts | tar -xf - -C .enade-ci --strip-components=1
           test -f .enade-ci/client/src/components/area/Enade360.tsx
           grep -q 'ENADE 360' .enade-ci/client/src/components/area/Workspace.tsx
       - name: Instalar dependencias

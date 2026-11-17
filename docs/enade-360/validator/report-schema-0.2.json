@@ -1,0 +1,402 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://verticesuperior.com.br/schemas/enade360-report-0.2.json",
+  "title": "ENADE 360º — contrato R0/R1–R7",
+  "type": "object",
+  "required": [
+    "report_id",
+    "report_type",
+    "schema_version",
+    "generated_at",
+    "edition_year",
+    "academic_degree",
+    "area_code",
+    "area_name",
+    "methodology_id",
+    "methodology_url",
+    "engine_version",
+    "dataset_hash",
+    "sample_n",
+    "denominator",
+    "exclusion_counts",
+    "missing_counts",
+    "comparability_class",
+    "caveats",
+    "generated_by",
+    "review_status",
+    "source_documents",
+    "claims",
+    "payload"
+  ],
+  "properties": {
+    "report_id": {
+      "type": "string"
+    },
+    "report_type": {
+      "enum": [
+        "R1",
+        "R2",
+        "R3",
+        "R4",
+        "R5",
+        "R6",
+        "R7"
+      ]
+    },
+    "schema_version": {
+      "const": "0.2"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "edition_year": {
+      "type": "integer",
+      "minimum": 2004
+    },
+    "academic_degree": {
+      "const": "bacharelado"
+    },
+    "area_code": {
+      "type": "string"
+    },
+    "area_name": {
+      "type": "string"
+    },
+    "methodology_id": {
+      "type": "string"
+    },
+    "methodology_url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "engine_version": {
+      "type": "string"
+    },
+    "dataset_hash": {
+      "type": "string"
+    },
+    "sample_n": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "denominator": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "exclusion_counts": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 0
+      }
+    },
+    "missing_counts": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 0
+      }
+    },
+    "comparability_class": {
+      "enum": [
+        "C0",
+        "C1",
+        "C2",
+        "C3",
+        "C4",
+        "CX"
+      ]
+    },
+    "caveats": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "generated_by": {
+      "type": "string"
+    },
+    "review_status": {
+      "enum": [
+        "PENDING",
+        "APPROVED",
+        "REJECTED"
+      ]
+    },
+    "source_documents": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "url",
+          "document_title",
+          "retrieval_date",
+          "file_version",
+          "sha256"
+        ],
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "document_title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "retrieval_date": {
+            "type": "string"
+          },
+          "file_version": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{64}$"
+          }
+        }
+      }
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "claim_id",
+          "text",
+          "epistemic_label",
+          "validation_status",
+          "evidence_refs"
+        ],
+        "properties": {
+          "claim_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1
+          },
+          "epistemic_label": {
+            "enum": [
+              "OFFICIAL_FACT",
+              "REPRODUCED_CALCULATION",
+              "STATISTICAL_INFERENCE",
+              "PEDAGOGICAL_HYPOTHESIS",
+              "ACTION_PROPOSAL"
+            ]
+          },
+          "validation_status": {
+            "enum": [
+              "PENDING",
+              "VALIDATED",
+              "REJECTED"
+            ]
+          },
+          "evidence_refs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "calculation_formula": {
+            "type": "string"
+          },
+          "causal": {
+            "type": "boolean"
+          },
+          "causal_design_verified": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "payload": {
+      "type": "object"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "report_type": {
+            "const": "R1"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "required": [
+              "inscribed",
+              "present",
+              "valid"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "report_type": {
+            "const": "R2"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "required": [
+              "general_formation",
+              "specific_component"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "report_type": {
+            "const": "R3"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "required": [
+              "questionnaire_categories"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "report_type": {
+            "const": "R4"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "required": [
+              "indicators"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "report_type": {
+            "const": "R5"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "required": [
+              "comparisons"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "report_type": {
+            "const": "R6"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "required": [
+              "interventions"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "report_type": {
+            "const": "R7"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "required": [
+              "reconciliations"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "review_status": {
+            "const": "APPROVED"
+          }
+        },
+        "required": [
+          "review_status"
+        ]
+      },
+      "then": {
+        "required": [
+          "reviewed_by",
+          "reviewed_at"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "report_type": {
+            "const": "R6"
+          },
+          "review_status": {
+            "const": "APPROVED"
+          }
+        },
+        "required": [
+          "report_type",
+          "review_status"
+        ]
+      },
+      "then": {
+        "required": [
+          "human_intervention_approval"
+        ],
+        "properties": {
+          "human_intervention_approval": {
+            "const": true
+          }
+        }
+      }
+    }
+  ]
+}

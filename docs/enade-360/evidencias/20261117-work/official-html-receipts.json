@@ -1,0 +1,194 @@
+[
+  {
+    "url": "https://www.gov.br/inep/pt-br/areas-de-atuacao/pesquisas-estatisticas-e-indicadores/indicadores-de-qualidade-da-educacao-superior/outros-documentos/2022",
+    "year": 2022,
+    "obtained_at": "2026-11-17T10:20:17.210089+00:00",
+    "http_status": 200,
+    "filename": "methods-2022.html",
+    "bytes": 225768,
+    "sha256": "141120be4e53ba0bbc31d4d5dc1d202abd8aeac182e28d057a7e8ec44d3195c7",
+    "links": [
+      {
+        "url": "https://download.inep.gov.br/educacao_superior/enade/notas_tecnicas/2024/nt_5-2024-CEI-CGGI-DAES-sobre_IGC_2022.pdf",
+        "label": "Nota técnica CEI/CGGI/DAES n.º 5/2024 – Definição sobre a metodologia de cálculo do Índice Geral de Cursos Avaliados da Instituição (IGC) – edição 2022"
+      },
+      {
+        "url": "https://download.inep.gov.br/educacao_superior/enade/notas_tecnicas/2023/nota_tecnica_n_2_2023_cei_cggi_daes_descricao_da_metodologia_de_calculo_do_conceito_enade.pdf",
+        "label": "Nota Técnica CEI/CGGI/DAES nº 2/2023 – Descrição da metodologia de cálculo do Conceito Enade 2022"
+      },
+      {
+        "url": "http://download.inep.gov.br/educacao_superior/enade/notas_tecnicas/2023/nota_tecnica_n_29.pdf",
+        "label": "Nota Técnica CEI/CGGI/DAES nº 29/2023 em substituição da Nota Técnica nº 3/2023/CEI/CGGI/DAES – Descrição da metodologia de cálculo do IDD 2022"
+      },
+      {
+        "url": "https://download.inep.gov.br/educacao_superior/enade/notas_tecnicas/2023/nota_tecnica_n_4_2023_cei_cggi_daes_descricao_da_metodologia_de_calculo_do_cpc.pdf",
+        "label": "Nota Técnica CEI/CGGI/DAES nº 4/2023 – Descrição da metodologia de cálculo do CPC 2022"
+      },
+      {
+        "url": "https://download.inep.gov.br/educacao_superior/enade/notas_tecnicas/2023/nota_tecnica_n_5_2023_cei_cggi_daes_descricao_da_metodologia_de_calculo_do_igc.pdf",
+        "label": "Nota Técnica CEI/CGGI/DAES nº 5/2023 – Descrição da metodologia de cálculo do IGC 2022"
+      }
+    ]
+  },
+  {
+    "url": "https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/microdados/enade",
+    "filename": "enade-microdados-index.html",
+    "retrieved_at": "2026-11-17T09:07:01.270358+00:00",
+    "status": 200,
+    "bytes": 227982,
+    "sha256": "5ad0c79f789eb367837bdee4a00e706309a836ed92e6498cc949b5714fba4922",
+    "retrieved_at_basis": "observed local write timestamp of the original received HTML"
+  },
+  {
+    "url": "https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/indicadores-educacionais/indicadores-de-qualidade-da-educacao-superior/2023",
+    "filename": "2023.html",
+    "retrieved_at": "2026-11-17T09:09:08.499995+00:00",
+    "status": 200,
+    "final_url": "https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/indicadores-educacionais/indicadores-de-qualidade-da-educacao-superior/2023",
+    "content_type": "text/html;charset=utf-8",
+    "bytes": 225690,
+    "sha256": "62dd065f0c959313fba61c81c4f6ae19f19a89b2cfcb763ff537e4e553cd4ee8"
+  },
+  {
+    "url": "https://www.gov.br/inep/pt-br/areas-de-atuacao/pesquisas-estatisticas-e-indicadores/indicadores-de-qualidade-da-educacao-superior/indice-geral-de-cursos-igc",
+    "obtained_at": "2026-11-17T10:18:54.147799+00:00",
+    "http_status": 200,
+    "filename": "indice-geral-de-cursos-igc.html",
+    "sha256": "e80cb66233f657067b8372190406cc3392c3bb9345c2b2c2b21d5bf0a4cced76",
+    "bytes": 225303,
+    "document_routes": [
+      "",
+      "https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/microdados",
+      "https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/microdados"
+    ]
+  },
+  {
+    "url": "https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/microdados/idd",
+    "obtained_at": "2026-11-17T10:21:47.982246+00:00",
+    "http_status": 200,
+    "bytes": 224756,
+    "sha256": "759e62b54fb4cac65d41b591d7b81d0b67fc9378dd3437d1c646da10a754de55",
+    "links": [
+      "https://download.inep.gov.br/microdados/microdados_IDD_2023.zip",
+      "https://download.inep.gov.br/microdados/microdados_IDD_2022.zip",
+      "https://download.inep.gov.br/microdados/microdados_IDD_2021.zip"
+    ]
+  },
+  {
+    "url": "https://www.gov.br/inep/pt-br/areas-de-atuacao/pesquisas-estatisticas-e-indicadores/indicadores-de-qualidade-da-educacao-superior/outros-documentos",
+    "obtained_at": "2026-11-17T10:19:30.068494+00:00",
+    "http_status": 200,
+    "sha256": "a26a6a273a626aadc358a6a8a1cdae41af40ca5451bb9e2c7a6a364bf91c41fd",
+    "bytes": 235849,
+    "filename": "indicadores-outros-documentos.html",
+    "links": []
+  },
+  {
+    "url": "https://www.gov.br/inep/pt-br/areas-de-atuacao/pesquisas-estatisticas-e-indicadores/indicadores-de-qualidade-da-educacao-superior/conceito-preliminar-de-curso-cpc",
+    "obtained_at": "2026-11-17T10:18:54.147494+00:00",
+    "http_status": 200,
+    "filename": "conceito-preliminar-de-curso-cpc.html",
+    "sha256": "908d7e03d159b0d43e30262bb6f891fb048bb09a29d1bd7cc92740a02fbc7d7e",
+    "bytes": 225515,
+    "document_routes": [
+      "",
+      "https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/microdados",
+      "https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/microdados"
+    ]
+  },
+  {
+    "url": "https://www.gov.br/inep/pt-br/areas-de-atuacao/pesquisas-estatisticas-e-indicadores/indicadores-de-qualidade-da-educacao-superior/outros-documentos/2021",
+    "year": 2021,
+    "obtained_at": "2026-11-17T10:20:17.209687+00:00",
+    "http_status": 200,
+    "filename": "methods-2021.html",
+    "bytes": 225782,
+    "sha256": "3b0b4cabaa8810b9faa0e2254d6e5075bc0849f7527e10379b3cdcfc9931c5cb",
+    "links": [
+      {
+        "url": "https://download.inep.gov.br/educacao_superior/enade/notas_tecnicas/2021/nota_tecnica_n_9_2022_cei_cggi_daes_intercorrencia_na_operacao_reversa_do_enade_2021.pdf",
+        "label": "Nota Técnica CEI/CGGI/DAES nº 9/2022 – Encaminhamentos após intercorrências na Operação Reversa do Enade 2021"
+      },
+      {
+        "url": "https://download.inep.gov.br/educacao_superior/enade/notas_tecnicas/2019/nota_tecnica_n_10_2022_CGCQES_DAES_metodologia_calculo_igc_2021.pdf",
+        "label": "Nota Técnica CGCQES/DAES n.º 10/2022 – Descrição da metodologia de cálculo do IGC 2021"
+      },
+      {
+        "url": "https://download.inep.gov.br/educacao_superior/enade/notas_tecnicas/2019/nota_tecnica_n_9_2022_CGCQES_DAES_metodologia_calculo_cpc_2021.pdf",
+        "label": "Nota Técnica CGCQES/DAES n.º 9/2022 – Descrição da metodologia de cálculo do CPC 2021"
+      },
+      {
+        "url": "https://download.inep.gov.br/educacao_superior/enade/notas_tecnicas/2019/nota_tecnica_n_8_2022_CGCQES_DAES_metodologia_calculo_idd_2021.pdf",
+        "label": "Nota Técnica CGCQES/DAES n.º 8/2022 – Descrição da metodologia de cálculo do IDD 2021"
+      },
+      {
+        "url": "https://download.inep.gov.br/educacao_superior/enade/notas_tecnicas/2019/nota_tecnica_n_7_2022_CGCQES_DAES_metodologia_calculo_conceito_enade_2021.pdf",
+        "label": "Nota Técnica CGCQES/DAES n.º 7/2022 – Descrição da metodologia do Conceito Enade 2021"
+      }
+    ]
+  },
+  {
+    "url": "https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/indicadores-educacionais/indicadores-de-qualidade-da-educacao-superior/2021",
+    "filename": "2021.html",
+    "retrieved_at": "2026-11-17T09:09:08.499246+00:00",
+    "status": 200,
+    "final_url": "https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/indicadores-educacionais/indicadores-de-qualidade-da-educacao-superior/2021",
+    "content_type": "text/html;charset=utf-8",
+    "bytes": 225697,
+    "sha256": "0cb16e55e589c40b4ca01b3362575e09c374a181a0fb66cf6d251b1fd4899c1b"
+  },
+  {
+    "url": "https://www.gov.br/inep/pt-br/areas-de-atuacao/pesquisas-estatisticas-e-indicadores/indicadores-de-qualidade-da-educacao-superior/outros-documentos/2023",
+    "year": 2023,
+    "obtained_at": "2026-11-17T10:20:17.210397+00:00",
+    "http_status": 200,
+    "filename": "methods-2023.html",
+    "bytes": 225869,
+    "sha256": "a396fc4f0c1ac5697c295acf49da1fd3dbc81d42ac48b10bf9d729f79080a276",
+    "links": [
+      {
+        "url": "https://download.inep.gov.br/educacao_superior/enade/notas_tecnicas/2024/nota_tecnica_12_calculo_nota_final_enade_2023.pdf",
+        "label": "Nota Técnica CEI/CGGI/DAES nº 12/2024 – Cálculo da nota final do Exame Nacional de Desempenho dos Estudantes - Enade 2023 e Correlação Ponto-Bisserial"
+      },
+      {
+        "url": "https://download.inep.gov.br/educacao_superior/enade/notas_tecnicas/2024/nota_tecnica_6_metodologia_calculo_conceito_enade_2023.pdf",
+        "label": "Nota Técnica CEI/CGGI/DAES nº 6/2024 – Metodologia utilizada no cálculo do Conceito Enade referente ao ano de 2023"
+      },
+      {
+        "url": "https://download.inep.gov.br/educacao_superior/enade/notas_tecnicas/2023/nota_tecnica_n_7_2024_cei_cggi_daes_inep_metodologia_utilizada_no_calculo_do_idd_referente_ao_ano_de_2023.pdf",
+        "label": "Nota Técnica CEI/CGGI/DAES nº 7/2024 – Metodologia utilizada no cálculo do IDD referente ao ano de 2023"
+      },
+      {
+        "url": "https://download.inep.gov.br/educacao_superior/enade/notas_tecnicas/2023/nota_tecnica_n_19_2024_cei_cggi_daes_inep_metodologia_utilizada_no_calculo_do_cpc_referente_ao_ano_de_2023.pdf",
+        "label": "Nota Técnica CEI/CGGI/DAES nº 19/2024 – Metodologia utilizada no cálculo do CPC referente ao ano de 2023"
+      },
+      {
+        "url": "https://download.inep.gov.br/educacao_superior/enade/notas_tecnicas/2023/nota_tecnica_n_9_2024_cei_cggi_daes_inep_metodologia_utilizada_no_calculo_do_igc_referente_ao_ano_de_2023.pdf",
+        "label": "Nota Técnica CEI/CGGI/DAES nº 9/2024 – Metodologia utilizada no cálculo do IGC referente ao ano de 2023"
+      }
+    ]
+  },
+  {
+    "url": "https://www.gov.br/inep/pt-br/areas-de-atuacao/pesquisas-estatisticas-e-indicadores/indicadores-de-qualidade-da-educacao-superior/indicador-de-diferenca-entre-os-desempenhos-observado-e-esperado-idd",
+    "obtained_at": "2026-11-17T10:18:54.147012+00:00",
+    "http_status": 200,
+    "filename": "indicador-de-diferenca-entre-os-desempenhos-observado-e-esperado-idd.html",
+    "sha256": "3a2496261b01fc7f21c5096342ff1948e169410458c0f342b28044eb7c047132",
+    "bytes": 226501,
+    "document_routes": [
+      "",
+      "https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/microdados",
+      "https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/microdados"
+    ]
+  },
+  {
+    "url": "https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/indicadores-educacionais/indicadores-de-qualidade-da-educacao-superior/2022",
+    "filename": "2022.html",
+    "retrieved_at": "2026-11-17T09:09:08.499639+00:00",
+    "status": 200,
+    "final_url": "https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/indicadores-educacionais/indicadores-de-qualidade-da-educacao-superior/2022",
+    "content_type": "text/html;charset=utf-8",
+    "bytes": 225692,
+    "sha256": "acaef275fe93f050b428955bf478278f92c6fe9ae19b4be7b5ca9aaa9336b34d"
+  }
+]

@@ -1,0 +1,16 @@
+{
+  "tested_at": "2026-11-17T11:40:37.728043+00:00",
+  "authenticated_user": false,
+  "tests": [
+    {
+      "path": "/functions/v1/vertice-doc-prevalidate",
+      "status": 401,
+      "body": "{\"error\":\"authentication_required\"}"
+    },
+    {
+      "path": "/rest/v1/rpc/vertice_evidence_search",
+      "status": 401,
+      "body": "{\"code\":\"42501\",\"details\":null,\"hint\":null,\"message\":\"permission denied for function vertice_evidence_search\"}"
+    }
+  ]
+}

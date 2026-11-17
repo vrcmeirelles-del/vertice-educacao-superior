@@ -1,0 +1,16 @@
+{
+  "file": "enade2022-course-drive.pdf",
+  "source": "Drive copy of Faculdade de Olímpia report, not INEP-authenticated original or UNITOP",
+  "method": "pdfjs_text_layer",
+  "sha256": "8ac0753e25be12d34349ee6d26a9b97e53bdcdd387963b538cfd619c04812c9a",
+  "page_count": 46,
+  "pages_with_text": 44,
+  "pages_without_text": [
+    2,
+    4
+  ],
+  "characters": 69619,
+  "partial": true,
+  "ocr_applied": false,
+  "scientific_reproduction": false
+}

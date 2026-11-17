@@ -1,0 +1,7 @@
+PASS valid_with_trace
+PASS reject_wrong_course
+PASS reject_publish
+PASS reject_duplicate_trace
+PASS reject_without_traces
+PASS legacy_without_trace_allowed
+{"suite":"trace-integration","tests":6,"passed":6,"failed":0,"node":"v24.22.1"}

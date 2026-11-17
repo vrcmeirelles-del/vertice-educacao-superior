@@ -1,0 +1,362 @@
+[
+  {
+    "source_url": "http://download.inep.gov.br/educacao_superior/indicadores/resultados/2021/CPC_2021.xlsx",
+    "original_filename": "CPC_2021.xlsx",
+    "retrieved_at": "2026-11-17T10:16:03.912283+00:00",
+    "received": false,
+    "transport_authenticated": false,
+    "catalog_https_url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2021/CPC_2021.xlsx",
+    "error": "timed out",
+    "duration_seconds": 45.16,
+    "https_attempt": {
+      "source_url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2021/CPC_2021.xlsx",
+      "original_filename": "CPC_2021.xlsx",
+      "retrieved_at": "2026-11-17T10:16:03.417352+00:00",
+      "received": false,
+      "transport_authenticated": true,
+      "catalog_https_url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2021/CPC_2021.xlsx",
+      "error": "<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1011)>"
+    },
+    "requires_source_authenticity_review": true
+  },
+  {
+    "source_url": "http://download.inep.gov.br/educacao_superior/indicadores/resultados/2023/CPC_2023.xlsx",
+    "original_filename": "CPC_2023.xlsx",
+    "retrieved_at": "2026-11-17T10:16:03.915634+00:00",
+    "received": false,
+    "transport_authenticated": false,
+    "catalog_https_url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2023/CPC_2023.xlsx",
+    "error": "timed out",
+    "duration_seconds": 45.41,
+    "https_attempt": {
+      "source_url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2023/CPC_2023.xlsx",
+      "original_filename": "CPC_2023.xlsx",
+      "retrieved_at": "2026-11-17T10:16:03.418167+00:00",
+      "received": false,
+      "transport_authenticated": true,
+      "catalog_https_url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2023/CPC_2023.xlsx",
+      "error": "<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1011)>"
+    },
+    "requires_source_authenticity_review": true
+  },
+  {
+    "source_url": "http://download.inep.gov.br/educacao_superior/indicadores/resultados/2021/IDD_2021.xlsx",
+    "original_filename": "IDD_2021.xlsx",
+    "retrieved_at": "2026-11-17T10:16:03.911205+00:00",
+    "received": false,
+    "transport_authenticated": false,
+    "catalog_https_url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2021/IDD_2021.xlsx",
+    "error": "timed out",
+    "duration_seconds": 45.16,
+    "https_attempt": {
+      "source_url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2021/IDD_2021.xlsx",
+      "original_filename": "IDD_2021.xlsx",
+      "retrieved_at": "2026-11-17T10:16:03.418880+00:00",
+      "received": false,
+      "transport_authenticated": true,
+      "catalog_https_url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2021/IDD_2021.xlsx",
+      "error": "<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1011)>"
+    },
+    "requires_source_authenticity_review": true
+  },
+  {
+    "source_url": "http://download.inep.gov.br/educacao_superior/indicadores/resultados/2023/IDD_2023.xlsx",
+    "original_filename": "IDD_2023.xlsx",
+    "retrieved_at": "2026-11-17T10:16:03.911779+00:00",
+    "received": false,
+    "transport_authenticated": false,
+    "catalog_https_url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2023/IDD_2023.xlsx",
+    "error": "timed out",
+    "duration_seconds": 45.16,
+    "https_attempt": {
+      "source_url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2023/IDD_2023.xlsx",
+      "original_filename": "IDD_2023.xlsx",
+      "retrieved_at": "2026-11-17T10:16:03.419394+00:00",
+      "received": false,
+      "transport_authenticated": true,
+      "catalog_https_url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2023/IDD_2023.xlsx",
+      "error": "<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1011)>"
+    },
+    "requires_source_authenticity_review": true
+  },
+  {
+    "source_url": "http://download.inep.gov.br/educacao_superior/indicadores/resultados/2021/IGC_2021.xlsx",
+    "original_filename": "IGC_2021.xlsx",
+    "retrieved_at": "2026-11-17T10:16:49.567009+00:00",
+    "received": false,
+    "transport_authenticated": false,
+    "catalog_https_url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2021/IGC_2021.xlsx",
+    "error": "timed out",
+    "duration_seconds": 45.38,
+    "https_attempt": {
+      "source_url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2021/IGC_2021.xlsx",
+      "original_filename": "IGC_2021.xlsx",
+      "retrieved_at": "2026-11-17T10:16:49.075913+00:00",
+      "received": false,
+      "transport_authenticated": true,
+      "catalog_https_url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2021/IGC_2021.xlsx",
+      "error": "<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1011)>"
+    },
+    "requires_source_authenticity_review": true
+  },
+  {
+    "source_url": "http://download.inep.gov.br/educacao_superior/indicadores/resultados/2023/IGC_2023.xlsx",
+    "original_filename": "IGC_2023.xlsx",
+    "retrieved_at": "2026-11-17T10:16:49.565817+00:00",
+    "received": false,
+    "transport_authenticated": false,
+    "catalog_https_url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2023/IGC_2023.xlsx",
+    "error": "timed out",
+    "duration_seconds": 45.37,
+    "https_attempt": {
+      "source_url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2023/IGC_2023.xlsx",
+      "original_filename": "IGC_2023.xlsx",
+      "retrieved_at": "2026-11-17T10:16:49.076457+00:00",
+      "received": false,
+      "transport_authenticated": true,
+      "catalog_https_url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2023/IGC_2023.xlsx",
+      "error": "<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1011)>"
+    },
+    "requires_source_authenticity_review": true
+  },
+  {
+    "source_url": "http://download.inep.gov.br/educacao_superior/indicadores/resultados/2021/conceito_enade_2021.xlsx",
+    "original_filename": "conceito_enade_2021.xlsx",
+    "retrieved_at": "2026-11-17T10:16:49.566260+00:00",
+    "received": false,
+    "transport_authenticated": false,
+    "catalog_https_url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2021/conceito_enade_2021.xlsx",
+    "error": "timed out",
+    "duration_seconds": 45.38,
+    "https_attempt": {
+      "source_url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2021/conceito_enade_2021.xlsx",
+      "original_filename": "conceito_enade_2021.xlsx",
+      "retrieved_at": "2026-11-17T10:16:49.076921+00:00",
+      "received": false,
+      "transport_authenticated": true,
+      "catalog_https_url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2021/conceito_enade_2021.xlsx",
+      "error": "<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1011)>"
+    },
+    "requires_source_authenticity_review": true
+  },
+  {
+    "source_url": "http://download.inep.gov.br/educacao_superior/indicadores/resultados/2022/conceito_enade_2022.xlsx",
+    "original_filename": "conceito_enade_2022.xlsx",
+    "retrieved_at": "2026-11-17T10:16:49.802326+00:00",
+    "received": false,
+    "transport_authenticated": false,
+    "catalog_https_url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2022/conceito_enade_2022.xlsx",
+    "error": "timed out",
+    "duration_seconds": 45.41,
+    "https_attempt": {
+      "source_url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2022/conceito_enade_2022.xlsx",
+      "original_filename": "conceito_enade_2022.xlsx",
+      "retrieved_at": "2026-11-17T10:16:49.324775+00:00",
+      "received": false,
+      "transport_authenticated": true,
+      "catalog_https_url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2022/conceito_enade_2022.xlsx",
+      "error": "<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1011)>"
+    },
+    "requires_source_authenticity_review": true
+  },
+  {
+    "source_url": "http://download.inep.gov.br/educacao_superior/indicadores/resultados/2023/conceito_enade_2023.xlsx",
+    "original_filename": "conceito_enade_2023.xlsx",
+    "retrieved_at": "2026-11-17T10:17:35.428205+00:00",
+    "received": false,
+    "transport_authenticated": false,
+    "catalog_https_url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2023/conceito_enade_2023.xlsx",
+    "error": "timed out",
+    "duration_seconds": 45.17,
+    "https_attempt": {
+      "source_url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2023/conceito_enade_2023.xlsx",
+      "original_filename": "conceito_enade_2023.xlsx",
+      "retrieved_at": "2026-11-17T10:17:34.939663+00:00",
+      "received": false,
+      "transport_authenticated": true,
+      "catalog_https_url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2023/conceito_enade_2023.xlsx",
+      "error": "<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1011)>"
+    },
+    "requires_source_authenticity_review": true
+  },
+  {
+    "source_url": "http://download.inep.gov.br/educacao_superior/indicadores/resultados/2022/cpc_2022.xlsx",
+    "original_filename": "cpc_2022.xlsx",
+    "retrieved_at": "2026-11-17T10:17:35.427078+00:00",
+    "received": false,
+    "transport_authenticated": false,
+    "catalog_https_url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2022/cpc_2022.xlsx",
+    "error": "timed out",
+    "duration_seconds": 45.17,
+    "https_attempt": {
+      "source_url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2022/cpc_2022.xlsx",
+      "original_filename": "cpc_2022.xlsx",
+      "retrieved_at": "2026-11-17T10:17:34.943958+00:00",
+      "received": false,
+      "transport_authenticated": true,
+      "catalog_https_url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2022/cpc_2022.xlsx",
+      "error": "<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1011)>"
+    },
+    "requires_source_authenticity_review": true
+  },
+  {
+    "source_url": "http://download.inep.gov.br/educacao_superior/indicadores/resultados/2022/idd_2022.xlsx",
+    "original_filename": "idd_2022.xlsx",
+    "retrieved_at": "2026-11-17T10:17:35.427596+00:00",
+    "received": false,
+    "transport_authenticated": false,
+    "catalog_https_url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2022/idd_2022.xlsx",
+    "error": "timed out",
+    "duration_seconds": 45.16,
+    "https_attempt": {
+      "source_url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2022/idd_2022.xlsx",
+      "original_filename": "idd_2022.xlsx",
+      "retrieved_at": "2026-11-17T10:17:34.945899+00:00",
+      "received": false,
+      "transport_authenticated": true,
+      "catalog_https_url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2022/idd_2022.xlsx",
+      "error": "<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1011)>"
+    },
+    "requires_source_authenticity_review": true
+  },
+  {
+    "source_url": "http://download.inep.gov.br/educacao_superior/indicadores/resultados/2022/igc_2022.xlsx",
+    "original_filename": "igc_2022.xlsx",
+    "retrieved_at": "2026-11-17T10:17:35.471435+00:00",
+    "received": false,
+    "transport_authenticated": false,
+    "catalog_https_url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2022/igc_2022.xlsx",
+    "error": "timed out",
+    "duration_seconds": 45.37,
+    "https_attempt": {
+      "source_url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2022/igc_2022.xlsx",
+      "original_filename": "igc_2022.xlsx",
+      "retrieved_at": "2026-11-17T10:17:35.216275+00:00",
+      "received": false,
+      "transport_authenticated": true,
+      "catalog_https_url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2022/igc_2022.xlsx",
+      "error": "<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1011)>"
+    },
+    "requires_source_authenticity_review": true
+  },
+  {
+    "source_url": "http://download.inep.gov.br/microdados/microdados_enade_2021.zip",
+    "original_filename": "microdados_enade_2021.zip",
+    "retrieved_at": "2026-11-17T10:18:20.841674+00:00",
+    "received": false,
+    "transport_authenticated": false,
+    "catalog_https_url": "https://download.inep.gov.br/microdados/microdados_enade_2021.zip",
+    "error": "timed out",
+    "duration_seconds": 45.17,
+    "https_attempt": {
+      "source_url": "https://download.inep.gov.br/microdados/microdados_enade_2021.zip",
+      "original_filename": "microdados_enade_2021.zip",
+      "retrieved_at": "2026-11-17T10:18:20.584208+00:00",
+      "received": false,
+      "transport_authenticated": true,
+      "catalog_https_url": "https://download.inep.gov.br/microdados/microdados_enade_2021.zip",
+      "error": "<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1011)>"
+    },
+    "requires_source_authenticity_review": true
+  },
+  {
+    "source_url": "http://download.inep.gov.br/microdados/microdados_enade_2022_LGPD.rar",
+    "original_filename": "microdados_enade_2022_LGPD.rar",
+    "retrieved_at": "2026-11-17T10:18:20.856468+00:00",
+    "received": false,
+    "transport_authenticated": false,
+    "catalog_https_url": "https://download.inep.gov.br/microdados/microdados_enade_2022_LGPD.rar",
+    "error": "timed out",
+    "duration_seconds": 45.36,
+    "https_attempt": {
+      "source_url": "https://download.inep.gov.br/microdados/microdados_enade_2022_LGPD.rar",
+      "original_filename": "microdados_enade_2022_LGPD.rar",
+      "retrieved_at": "2026-11-17T10:18:20.600777+00:00",
+      "received": false,
+      "transport_authenticated": true,
+      "catalog_https_url": "https://download.inep.gov.br/microdados/microdados_enade_2022_LGPD.rar",
+      "error": "<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1011)>"
+    },
+    "requires_source_authenticity_review": true
+  },
+  {
+    "source_url": "http://download.inep.gov.br/microdados/microdados_enade_2023.zip",
+    "original_filename": "microdados_enade_2023.zip",
+    "retrieved_at": "2026-11-17T10:18:20.855997+00:00",
+    "received": false,
+    "transport_authenticated": false,
+    "catalog_https_url": "https://download.inep.gov.br/microdados/microdados_enade_2023.zip",
+    "error": "timed out",
+    "duration_seconds": 45.36,
+    "https_attempt": {
+      "source_url": "https://download.inep.gov.br/microdados/microdados_enade_2023.zip",
+      "original_filename": "microdados_enade_2023.zip",
+      "retrieved_at": "2026-11-17T10:18:20.601377+00:00",
+      "received": false,
+      "transport_authenticated": true,
+      "catalog_https_url": "https://download.inep.gov.br/microdados/microdados_enade_2023.zip",
+      "error": "<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1011)>"
+    },
+    "requires_source_authenticity_review": true
+  },
+  {
+    "source_url": "http://download.inep.gov.br/educacao_superior/enade/notas_tecnicas/2024/nota_tecnica_6_metodologia_calculo_conceito_enade_2023.pdf",
+    "original_filename": "nota_tecnica_6_metodologia_calculo_conceito_enade_2023.pdf",
+    "retrieved_at": "2026-11-17T10:18:21.330168+00:00",
+    "received": false,
+    "transport_authenticated": false,
+    "catalog_https_url": "https://download.inep.gov.br/educacao_superior/enade/notas_tecnicas/2024/nota_tecnica_6_metodologia_calculo_conceito_enade_2023.pdf",
+    "error": "timed out",
+    "duration_seconds": 45.41,
+    "https_attempt": {
+      "source_url": "https://download.inep.gov.br/educacao_superior/enade/notas_tecnicas/2024/nota_tecnica_6_metodologia_calculo_conceito_enade_2023.pdf",
+      "original_filename": "nota_tecnica_6_metodologia_calculo_conceito_enade_2023.pdf",
+      "retrieved_at": "2026-11-17T10:18:20.846645+00:00",
+      "received": false,
+      "transport_authenticated": true,
+      "catalog_https_url": "https://download.inep.gov.br/educacao_superior/enade/notas_tecnicas/2024/nota_tecnica_6_metodologia_calculo_conceito_enade_2023.pdf",
+      "error": "<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1011)>"
+    },
+    "requires_source_authenticity_review": true
+  },
+  {
+    "source_url": "http://download.inep.gov.br/educacao_superior/enade/notas_tecnicas/2023/nota_tecnica_n_2_2023_cei_cggi_daes_descricao_da_metodologia_de_calculo_do_conceito_enade.pdf",
+    "original_filename": "nota_tecnica_n_2_2023_cei_cggi_daes_descricao_da_metodologia_de_calculo_do_conceito_enade.pdf",
+    "retrieved_at": "2026-11-17T10:19:06.272638+00:00",
+    "received": false,
+    "transport_authenticated": false,
+    "catalog_https_url": "https://download.inep.gov.br/educacao_superior/enade/notas_tecnicas/2023/nota_tecnica_n_2_2023_cei_cggi_daes_descricao_da_metodologia_de_calculo_do_conceito_enade.pdf",
+    "error": "timed out",
+    "duration_seconds": 45.3,
+    "https_attempt": {
+      "source_url": "https://download.inep.gov.br/educacao_superior/enade/notas_tecnicas/2023/nota_tecnica_n_2_2023_cei_cggi_daes_descricao_da_metodologia_de_calculo_do_conceito_enade.pdf",
+      "original_filename": "nota_tecnica_n_2_2023_cei_cggi_daes_descricao_da_metodologia_de_calculo_do_conceito_enade.pdf",
+      "retrieved_at": "2026-11-17T10:19:06.015523+00:00",
+      "received": false,
+      "transport_authenticated": true,
+      "catalog_https_url": "https://download.inep.gov.br/educacao_superior/enade/notas_tecnicas/2023/nota_tecnica_n_2_2023_cei_cggi_daes_descricao_da_metodologia_de_calculo_do_conceito_enade.pdf",
+      "error": "<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1011)>"
+    },
+    "requires_source_authenticity_review": true
+  },
+  {
+    "source_url": "http://download.inep.gov.br/educacao_superior/enade/notas_tecnicas/2019/nota_tecnica_n_7_2022_CGCQES_DAES_metodologia_calculo_conceito_enade_2021.pdf",
+    "original_filename": "nota_tecnica_n_7_2022_CGCQES_DAES_metodologia_calculo_conceito_enade_2021.pdf",
+    "retrieved_at": "2026-11-17T10:19:06.694216+00:00",
+    "received": false,
+    "transport_authenticated": false,
+    "catalog_https_url": "https://download.inep.gov.br/educacao_superior/enade/notas_tecnicas/2019/nota_tecnica_n_7_2022_CGCQES_DAES_metodologia_calculo_conceito_enade_2021.pdf",
+    "error": "timed out",
+    "duration_seconds": 45.17,
+    "https_attempt": {
+      "source_url": "https://download.inep.gov.br/educacao_superior/enade/notas_tecnicas/2019/nota_tecnica_n_7_2022_CGCQES_DAES_metodologia_calculo_conceito_enade_2021.pdf",
+      "original_filename": "nota_tecnica_n_7_2022_CGCQES_DAES_metodologia_calculo_conceito_enade_2021.pdf",
+      "retrieved_at": "2026-11-17T10:19:06.219846+00:00",
+      "received": false,
+      "transport_authenticated": true,
+      "catalog_https_url": "https://download.inep.gov.br/educacao_superior/enade/notas_tecnicas/2019/nota_tecnica_n_7_2022_CGCQES_DAES_metodologia_calculo_conceito_enade_2021.pdf",
+      "error": "<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1011)>"
+    },
+    "requires_source_authenticity_review": true
+  }
+]

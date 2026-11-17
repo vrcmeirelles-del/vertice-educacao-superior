@@ -14,6 +14,10 @@ on:
   pull_request:
     branches: [main, feat/enamed-inep-environment-20261116]
     paths:
+      - 'supabase/functions/vertice-discursiva/**'
+      - 'supabase/migrations/*discursiva*.sql'
+      - 'scripts/tests/discursiva-runtime/**'
+      - 'source-overrides/shared/**'
       - 'source-overrides/client/**'
       - 'source-overrides/server/**'
       - 'source-overrides/tsconfig.json'
@@ -88,6 +92,11 @@ jobs:
         run: |
           npm ci --prefix scripts/tests/planning-runtime --no-audit --no-fund
           node --test scripts/tests/planning-runtime/*.test.mjs
+      - name: Discursiva — rubricas, QR, permissões e ciclo PostgreSQL
+        if: matrix.node == '24'
+        run: |
+          npm ci --prefix scripts/tests/discursiva-runtime --no-audit --no-fund
+          node --test scripts/tests/discursiva-runtime/*.test.mjs
       - name: TypeScript completo, sem tolerar erros da base
         working-directory: .typecheck-build
         run: npm run check

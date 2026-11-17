@@ -23,6 +23,18 @@ export function validateRemote(r:RecordValue,p:RecordValue,feedback=false){
  for(const v of [c.avgEloRating,b.avgEloRating,d.pKnowChange,d.eloChange])if(v!==null&&!finite(v))throw fail('invalid_delta',502);
  if(d.sampleOverlap>b.sampleSize||d.sampleOverlap>c.sampleSize||c.sampleSize>q.eligibleStudents||(q.sufficient&&(d.sampleOverlap<5||c.attemptsSinceBaseline===0||q.counterResets!==0||d.pKnowChange===null)))throw fail('invalid_overlap',502);
 }
+// Suppress estimates for small cohorts and comparisons with insufficient evidence.
+// Counts remain available for audit; this also applies when consent is withdrawn.
+export function sanitizeFeedback(result:RecordValue){
+ const clean=structuredClone(result);
+ const sufficient=clean.quality.sufficient===true && clean.baseline.sampleSize>=5 && clean.current.sampleSize>=5
+  && clean.delta.sampleOverlap>=5 && clean.current.attemptsSinceBaseline>0 && clean.quality.counterResets===0
+  && clean.delta.pKnowChange!==null;
+ for(const group of [clean.baseline,clean.current])if(group.sampleSize<5){group.avgPKnow=null;group.avgEloRating=null;}
+ if(!sufficient){clean.delta.pKnowChange=null;clean.delta.eloChange=null;}
+ clean.quality.sufficient=sufficient;
+ return clean;
+}
 export function createSapiensHandler(deps:Dependencies){const origins=bridgeOrigins(deps.supabaseUrl);return async(req:Request)=>{
  const origin=req.headers.get('origin')||'';
  const send=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status,headers:{'content-type':'application/json','cache-control':'no-store',...(origins.has(origin)?{'access-control-allow-origin':origin}:{}),'access-control-allow-headers':'authorization, content-type, apikey, x-client-info','access-control-allow-methods':'POST, OPTIONS','vary':'Origin'}});
@@ -50,7 +62,8 @@ export function createSapiensHandler(deps:Dependencies){const origins=bridgeOrig
   if(body.action==='reject')return send(await call('reject'));
   if(body.action==='feedback'){
    const payload=await call('feedback_request');
-   const result=await remote('/api/internal/vertice/feedback',payload);validateRemote(result,payload,true);
+   const remoteResult=await remote('/api/internal/vertice/feedback',payload);validateRemote(remoteResult,payload,true);
+   const result=sanitizeFeedback(remoteResult);
    const sufficient=result.quality.sufficient;
    const baselineVisible=result.baseline.sampleSize>=5;
    const currentVisible=result.current.sampleSize>=5;

@@ -66,6 +66,7 @@ const SchoolOperations = lazy(() => import("./SchoolOperations"));
 const SchoolPlanning = lazy(() => import("./SchoolPlanning"));
 const SchoolManagement = lazy(() => import("../bi/SchoolManagement"));
 const MarketIntelligence = lazy(() => import("./MarketIntelligence"));
+const Discursiva360 = lazy(() => import("./Discursiva360"));
 const CoursePlanning = lazy(() => import("./CoursePlanning"));
 const CurriculumBuilder = lazy(() => import("./CurriculumBuilder"));
 const TrailAnalysis = lazy(() => import("./TrailAnalysis"));
@@ -97,7 +98,7 @@ import "./module-offer.css";
 const TAB_GROUPS: {label:string;subtitle:string;icon:string;tabs:Tab[];tier?:'superior'|'escolas'|'both'}[] = [
   {label:'Gestão',subtitle:'Planejamento, metas e governança',icon:'▦',tabs:['planejamento-estrategico','planejamento-semestral','base','metas','plano','diagnostico','equipe','cpa-autoavaliacao'],tier:'both'},
   {label:'Regulação',subtitle:'Instrumentos e evidências MEC/INEP',icon:'◇',tabs:['emec','repositorio','validacao','avaliacao','novo_instrumento','biblioteca'],tier:'superior'},
-  {label:'Acadêmico',subtitle:'Currículo, desempenho e avaliação',icon:'▤',tabs:['geral','cadastro','visao','construcao-curricular','trilhas-enade','enade','eorbit','backups','auditoria'],tier:'superior'},
+  {label:'Acadêmico',subtitle:'Currículo, desempenho e avaliação',icon:'▤',tabs:['discursiva','geral','cadastro','visao','construcao-curricular','trilhas-enade','enade','eorbit','backups','auditoria'],tier:'superior'},
   {label:'Inteligência',subtitle:'Análises, integrações e decisões',icon:'◎',tabs:['mercado','analise','ia','fontes','conexoes','reitor','resultado-curso','simulador','raio-x-direito','vitrine-curso','aprendizagem'],tier:'superior'},
   {label:'Carreiras e Egressos',subtitle:'Relacionamento, desenvolvimento e empregabilidade',icon:'🎓',tabs:['conecta','egressos'],tier:'superior'},
   {label:'Extensão',subtitle:'Projetos de extensão, participantes e cobertura',icon:'🤝',tabs:['extensao'],tier:'superior'},
@@ -116,6 +117,7 @@ const TAB_GROUPS: {label:string;subtitle:string;icon:string;tabs:Tab[];tier?:'su
 ];
 
 const TAB_DETAILS: Partial<Record<Tab,{icon:string;description:string}>> = {
+ "discursiva":{icon:"✍",description:"Casos práticos, provas com QR e correção assistida por rubrica"},
  mercado:{icon:"◎",description:"Movimentações de mercado, fontes, exposição e decisões estratégicas"},
  "escola-individual":{icon:"▤",description:"Acompanhamento Individual com fontes, histórico e revisão da direção"},
  "escola-documentos":{icon:"▤",description:"Documentos e Assinaturas com fontes, histórico e revisão da direção"},
@@ -182,6 +184,7 @@ const TAB_DETAILS: Partial<Record<Tab,{icon:string;description:string}>> = {
 };
 
 const TABS: [Tab, string][] = [
+ ["discursiva", "Discursiva 360°"],
   ["escola-individual","Acompanhamento Individual"],
   ["escola-documentos","Documentos e Assinaturas"],
   ["escola-bi", "Desempenho Escolar"],
@@ -418,7 +421,7 @@ export default function Workspace({
       setModuleSearch(""); setOnlyFavorites(false);
     }
   };
-  const isLocked = (tabKey: string) => !["escola-individual","escola-documentos","escola-bi", "escola-permanencia", "escola-financeiro", "escola-dados", "escola-projetos", "escola-estagio", "escola-captacao"].includes(tabKey) && tabKey !== "mercado" && tabKey !== "conecta" && tabKey !== "gestao-escolar" && tabKey !== "planejamento-estrategico" && tabKey !== "planejamento-semestral" && activeTabs.size > 0 && !activeTabs.has(tabKey);
+  const isLocked = (tabKey: string) => tabKey !== "discursiva" && !["escola-individual","escola-documentos","escola-bi", "escola-permanencia", "escola-financeiro", "escola-dados", "escola-projetos", "escola-estagio", "escola-captacao"].includes(tabKey) && tabKey !== "mercado" && tabKey !== "conecta" && tabKey !== "gestao-escolar" && tabKey !== "planejamento-estrategico" && tabKey !== "planejamento-semestral" && activeTabs.size > 0 && !activeTabs.has(tabKey);
   const isTasting = (tabKey: string) => {
     const mod = findModuleByTab(moduleCatalog, tabKey);
     return mod?.display_status === 'tasting';
@@ -574,7 +577,9 @@ export default function Workspace({
         <p role="status">Carregando…</p>
       ) : tab === "mercado" ? (
         <Suspense fallback={<p role="status">Carregando inteligência de mercado…</p>}><MarketIntelligence key={String(id)} institutionId={String(id)} courses={data.courses} goals={data.goals} role={role} onPlanning={()=>choose("planejamento-estrategico")}/></Suspense>
-      ) : tab === "construcao-curricular" ? (
+      ) : tab === "discursiva" ? (
+ <Suspense fallback={<p role="status">Carregando Discursiva 360°…</p>}><Discursiva360 institutionId={String(id)} courses={data.courses.map(c=>({id:String(c.id),name:String(c.name)}))}/></Suspense>
+ ) : tab === "construcao-curricular" ? (
         <Suspense fallback={<p role="status">Carregando construção curricular…</p>}><CurriculumBuilder institutionId={String(id)} courses={data.courses.map(c=>({id:String(c.id),name:String(c.name),code:String(c.code??"")}))} role={role} /></Suspense>
       ) : tab === "trilhas-enade" ? (
         <Suspense fallback={<p role="status">Carregando trilhas ENADE…</p>}><TrailAnalysis institutionId={String(id)} courses={data.courses.map(c=>({id:String(c.id),name:String(c.name),code:String(c.code??"")}))} role={role} /></Suspense>

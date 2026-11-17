@@ -1,0 +1,30 @@
+[
+  {
+    "origin": "https://vertice-portal.onrender.com/",
+    "checked_at": "2026-11-17T09:33:59.597455+00:00",
+    "status": 200,
+    "final_url": "https://vertice-portal.onrender.com/",
+    "asset_url": "https://vertice-portal.onrender.com/assets/OwnerDashboard-DGFU8hqL.js",
+    "asset_sha256": "af00ea78f0204712cda76662e40d858b9c38bfa9c231a8c4dd7904cf0ce856eb",
+    "bytes": 2134907,
+    "markers": {
+      "Homologação científica pendente": true,
+      "Espelho indisponível": true,
+      "Contagem indisponível": true
+    }
+  },
+  {
+    "origin": "https://www.verticesuperior.com.br/",
+    "checked_at": "2026-11-17T09:33:59.597851+00:00",
+    "status": 200,
+    "final_url": "https://www.verticesuperior.com.br/",
+    "asset_url": "https://www.verticesuperior.com.br/assets/OwnerDashboard-Dl7JuBiz.js",
+    "asset_sha256": "61dc7b9b145f55cdde75e9bf7891d125cdabb00bc7c0cf3e92b7ce3d2b39caf6",
+    "bytes": 2133617,
+    "markers": {
+      "Homologação científica pendente": true,
+      "Espelho indisponível": true,
+      "Contagem indisponível": true
+    }
+  }
+]

@@ -1,0 +1,89 @@
+{
+  "date": "2026-11-17",
+  "project": "qvetbbmviatxxatzzuzc",
+  "migration": "20261117113047_enade360_evidence_text_index",
+  "source_commit_before": "a2cdc1e434368db37dae3d02ab2ca178c6350011",
+  "inventory": {
+    "repository_files": 776,
+    "unitop_files": 771,
+    "existing_classified_all": 515,
+    "existing_classified_unitop": 511,
+    "unitop_originals_present": 771,
+    "generic_documents": 11,
+    "generic_documents_institution": "Escola Vértice — Demonstração",
+    "generic_originals_present": 0
+  },
+  "before_after": {
+    "repository_files": [
+      776,
+      776
+    ],
+    "existing_classified": [
+      515,
+      515
+    ],
+    "scoped_policies": [
+      14,
+      14
+    ],
+    "prevalidations": [
+      0,
+      0
+    ]
+  },
+  "migration_applied": true,
+  "unauthenticated_manage_allowed": false,
+  "unauthenticated_search_rows": 0,
+  "engine_tests": 8,
+  "ui_tests": 2,
+  "typescript": "PASS",
+  "edge_source_download": "Connector returned ProtocolError twice; deployed source not retrieved",
+  "edge_deployment": {
+    "name": "vertice-doc-prevalidate",
+    "version": 3,
+    "status": "ACTIVE",
+    "verify_jwt": true,
+    "source_files_exact_match": true,
+    "bundle_sha256": "176d814865ac3d34abae9871628949ac8a534dc3bca1bd5e29ec157d451c20d9"
+  },
+  "render_deployment": {
+    "commit": "c266140afcb9c81d612a5c7917d476329e3aff6a",
+    "institutional": {
+      "id": "dep-dbu6n0ijnfac73e5ceig",
+      "status": "live",
+      "finished_utc": "2026-11-17T14:58:52.792243Z"
+    },
+    "portal": {
+      "id": "dep-dbu6n0ijnfac73e5cem0",
+      "status": "live",
+      "finished_utc": "2026-11-17T14:58:52.908163Z"
+    }
+  },
+  "real_private_backlog_indexed": 0,
+  "blockers": [
+    "Vértice cloud browser has no authenticated session; secure sign-in did not complete",
+    "Institutional instrument catalogs contain zero configured active records; no codes/versions inferred",
+    "Private-file backlog remains unprocessed; no service credential or new privilege introduced"
+  ],
+  "scientific_homologation": false,
+  "pr": "https://github.com/vrcmeirelles-del/vertice-educacao-superior/pull/175",
+  "ci": {
+    "head": "27d60d8a99c0a3183b64c58ad5fbde9050e51744",
+    "workflows_passed": 9,
+    "evidence_run": 44076054864,
+    "portal_run": 44076054875
+  },
+  "unitop_links": {
+    "files": 771,
+    "with_course": 768,
+    "institutional": 3,
+    "with_goal": 0
+  },
+  "authentication": {
+    "secure_request": "timed out; no success confirmation",
+    "fresh_tab_check": "Vértice /master displayed Entre para acessar sua conta",
+    "authenticated_backlog_processed": 0
+  },
+  "indexed_sources_final": 0,
+  "ai_links_final": 0
+}

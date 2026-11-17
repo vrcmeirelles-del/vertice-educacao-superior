@@ -2,7 +2,7 @@
   "schema_version": "enamed-authenticated-qa-v1",
   "date": "2026-11-17",
   "environment_observed": "https://vertice-enamed-homologacao.onrender.com/entrar",
-  "observed_state": "Isolated schema restored with documented variants; Sapiens v4 and Learning v26 ACTIVE/JWT enabled. No authorized Auth test users or authenticated session. Provider automatic function stage FUNCTIONS_FAILED.",
+  "observed_state": "Isolated schema restored; Sapiens v5, Learning v26 and prevalidation v4 ACTIVE/JWT required. Automatic historical FUNCTIONS_FAILED/413 compensated by exact-source manual deploy, not relabeled success. Zero authorized Auth test users; no live authenticated QA.",
   "supabase_development_branches": 1,
   "render_preview_enabled": false,
   "responsible": "Codex — registro técnico, não aceite humano",
@@ -469,7 +469,12 @@
         "storage_objects": 0,
         "notes": "Historical replay remains incomplete; do not label as full production-schema parity. Cost seed omitted only in the staging variant; original production migration remains unchanged. Metadata/history in staging stores actual variant SQL. No Supabase branch merge to production allowed."
       }
+    },
+    {
+      "date": "2026-11-17",
+      "observed_state": "Isolated schema restored with documented variants; Sapiens v4 and Learning v26 ACTIVE/JWT enabled. No authorized Auth test users or authenticated session. Provider automatic function stage FUNCTIONS_FAILED."
     }
   ],
-  "render_homologation_service": "srv-dbu771mc6qcc73fbog0g"
+  "render_homologation_service": "srv-dbu771mc6qcc73fbog0g",
+  "manual_function_recovery_evidence": "docs/enamed/evidencias/20261117_CONCILIACAO_MAIN_E_FUNCOES.json"
 }

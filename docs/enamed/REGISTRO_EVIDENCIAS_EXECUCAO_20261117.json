@@ -237,6 +237,13 @@
       },
       "production_modified": false,
       "authenticated_qa_executed": false
+    },
+    {
+      "date": "2026-11-17",
+      "event": "Main reconciliation and exact source recovery after HTTP 413",
+      "evidence": "docs/enamed/evidencias/20261117_CONCILIACAO_MAIN_E_FUNCOES.json",
+      "production_modified": false,
+      "authenticated_qa_executed": false
     }
   ]
 }
