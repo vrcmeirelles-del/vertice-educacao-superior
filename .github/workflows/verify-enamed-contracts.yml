@@ -41,6 +41,8 @@ jobs:
         run: python -m unittest discover -s scripts/tests -p "test_verify_inep_artifacts.py" -v
       - name: Rejeitar rotas TLS inseguras e intermediárias não validadas
         run: python -m unittest discover -s scripts/tests -p "test_enamed_verified_chain.py" -v
+      - name: Exigir aceite explícito antes de reindexar ou publicar
+        run: node --test scripts/tests/enamed-release-gates.test.mjs
       - name: Não declarar fontes do Inep homologadas
         run: |
           grep -q 'review_required' docs/enamed/DICIONARIO_COMPETENCIAS_478_2025_DRAFT.json
