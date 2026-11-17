@@ -280,3 +280,13 @@ RECOMENDAÇÃO PARA A ETAPA SEGUINTE:
 - [ ] Confrontar 483 registros e 200 pares duplicados com as provas originais, antes de liberar duas IAs e curadoria médica.
 - [ ] Confirmar CI completo do HEAD incluindo testes SSR ENAMED e executar sessões autenticadas reais para cada perfil/IES.
 **Aceite:** E1 bloqueada por transferência/autenticação de binários; não confundir URL publicada com prova autenticada.
+
+
+## QA consolidado após a rodada v2.0 — 16/11/2026
+- [x] Confirmar TypeScript completo no GitHub Actions run `44000644637`, com Node 22 e 24 aprovados.
+- [x] Executar os quatro testes SSR de ENAMED incorporados à suíte principal, **419/419 testes aprovados** em 52 arquivos, mais suítes complementares.
+- [x] Confirmar build estático na mesma revisão e CI de contratos ENAMED aprovado.
+- [ ] Testar interface em navegador autenticado e responsivo com perfis reais e isolamento multi-IES/MFA/RLS; não houve sessão autenticada.
+- [ ] Baixar todos os PDFs de fontes e gabaritos por TLS válido, verificar SHA-256 e revisão de documentos; oito transferências curl falharam.
+- [ ] Homologar 483 questões por fonte e gabarito antes de qualquer reindexação e diagnóstico Sapiens.
+**Status:** código passou pela regressão automatizada; E1 ainda sem aceite e PR #168 ainda não pronta para merge/deploy.
