@@ -69,3 +69,10 @@ Antes de cada etapa consultar os três documentos. Concluído só com evidência
 - Entrega de arquivos não equivale a execução comprovada: P-CI-002 exige verificar run final, SHA do commit, logs e resultados. P-SCHEMA-001 exige validar instâncias, consistência entre engines e ampliar asserts cruzados; permanece em andamento.
 - Seguintes trabalhos independentes: confrontar exceções do JSON Schema com gate semântico; testar populações e reconciliações contraditórias e rótulos epistêmicos falsos; preparar relatório de equivalência entre R0/R1–R7.
 - Dependências preservadas P-ZIP-001, P-NT-001 e P-REF-001. Não avançar a especialização sem reprodução oficial.
+
+## Adendo v0.8.1 — Corrigir falha observada do CI (2026-11-16)
+## Evidência de falha e correção — 2026-11-16
+- CI inicial do novo gate: GitHub run `43996758502`, conclusão `failure` no passo `Validate positive and negative Draft 2020-12 instances`; gate semântico Node passou (26/26). No Python, 26/28 passaram, 2 falhas: `bad_datetime` e `bad_method_url` foram erroneamente aceitos.
+- Causa provável tecnicamente fundamentada: instalação `jsonschema==4.23.0` sem extras de verificadores de formato opcional; isso pode impedir validação de `date-time` e `uri` mesmo quando o `FormatChecker` está presente. Não remover os testes.
+- Correção versionada no workflow: `python -m pip install "jsonschema[format]==4.23.0"`, commit `1f62c2163db65309e40957553abc7272d6b603a2`. Resultado final da repetição ainda sujeito a confirmação do CI.
+- Esta falha faz parte do histórico auditável e não deve ser apagada. Não representa prova com microdados INEP.
