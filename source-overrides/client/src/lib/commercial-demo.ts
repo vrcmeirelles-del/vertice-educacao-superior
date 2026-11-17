@@ -1,3 +1,4 @@
+import { SUPABASE_URL } from './supabase-config';
 export type DemoTrack='regulacao'|'aquisicoes'|'captacao';
 export type DemoProfile={track?:DemoTrack;pain?:string;goal?:string;urgency?:string;role?:string};
 export type DemoEvent={type:string;value:string;at:string;seconds?:number};
@@ -15,7 +16,7 @@ export function buildDemoBrief(profile:DemoProfile,events:DemoEvent[],conversati
  const observed=[...counts.entries()].sort((a,b)=>b[1]-a[1]).map(([key,n])=>`${labels[key]??key} (${n} interações)`);
  return `BRIEFING COMERCIAL — VÉRTICE\n\nINFORMAÇÕES DECLARADAS PELO VISITANTE\nFrente: ${selected}\nFunção: ${profile.role||'Não informada'}\nDesafio: ${profile.pain||(reports?'Não preenchido no formulário; consulte o relato abaixo.':'Ainda não declarado')}\nObjetivo: ${profile.goal||'Ainda não declarado'}\nPrazo ou urgência: ${profile.urgency||'A confirmar'}\nRelatos recentes na conversa: ${reports||'Nenhum relato livre compartilhado.'}\n\nPERCURSO OBSERVADO NA DEMONSTRAÇÃO\n${observed.join('; ')||'Nenhum módulo registrado.'}\nOs acessos sugerem interesse; não comprovam um problema institucional.\n\nPONTOS PARA A PRIMEIRA CONVERSA\nConfirmar contexto, escopo, fontes disponíveis, responsáveis e próximo passo.\nEste resumo é um briefing inicial, não um diagnóstico técnico ou avaliação oficial.`;
 }
-const endpoint='https://qvetbbmviatxxatzzuzc.supabase.co/functions/v1/vertice-demo';
+const endpoint=SUPABASE_URL+'/functions/v1/vertice-demo';
 const storageKey='vertice-demo-journey-v1';
 type Credential={token:string;expires:string;remember:boolean};
 function credential():Credential|null{if(typeof window==='undefined')return null;let stores:Storage[];try{stores=[localStorage,sessionStorage]}catch{return null}for(const storage of stores){try{const c=JSON.parse(storage.getItem(storageKey)||'null');if(c&&new Date(c.expires).getTime()>Date.now())return c;storage.removeItem(storageKey);}catch{}}return null;}

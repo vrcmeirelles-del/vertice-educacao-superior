@@ -1,5 +1,6 @@
 import type {DemoInstitutionMode} from './demo-showroom';
 import type {DemoSnapshot} from '@/components/DemoShowroom';
+import { SUPABASE_URL } from './supabase-config';
 
 export type ExperienceRole='mantenedor'|'reitor'|'coordenador'|'diretor_escola';
 export type ExperienceCredential={id:string;token:string};
@@ -9,7 +10,7 @@ export type ExperienceInvite={
  opens:number;saves:number;last_opened_at:string|null;usage:Record<string,number>;
 };
 export type ExperienceAccess={id:string;mode:DemoInstitutionMode;role:ExperienceRole;name:string;expires_at:string};
-const endpoint='https://qvetbbmviatxxatzzuzc.supabase.co/functions/v1/vertice-experience';
+const endpoint=SUPABASE_URL+'/functions/v1/vertice-experience';
 const secretKey='vertice-experience-capability-v1';
 const errors:Record<string,string>={
  invitation_expired_or_revoked:'Este convite expirou ou foi revogado pela Vértice.',

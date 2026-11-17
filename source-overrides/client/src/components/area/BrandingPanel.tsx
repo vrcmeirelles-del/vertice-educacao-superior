@@ -1,6 +1,7 @@
 import { HelpLabel } from '@/components/ContextHelp';
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { SUPABASE_URL } from "@/lib/supabase-config";
 import { explain, type Row } from "@/lib/area";
 
 /** Estrutura salva em vertice_institutions.document_branding (jsonb). */
@@ -14,7 +15,6 @@ type DocumentBranding = {
 };
 
 const BUCKET = "vertice-institution-logos";
-const SUPABASE_URL = "https://qvetbbmviatxxatzzuzc.supabase.co";
 
 function publicUrl(path: string) {
   return `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${path}`;
