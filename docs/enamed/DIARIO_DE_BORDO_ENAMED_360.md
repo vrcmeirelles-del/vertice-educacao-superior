@@ -196,3 +196,8 @@ Leia em conjunto com `BIBLIA_MESTRA_ENAMED_360.md` e `PLANO_DE_TRABALHO_ENAMED_3
 - **QA:** CI da revisão anterior aprovado; reexecução nova pendente de conclusão. Nenhuma sessão autenticada Master/Reitoria/CPA/Coordenação/NDE ou teste RLS com dados sintéticos executado.
 - **Preservação:** nenhum UPDATE, DELETE ou importação de questões/gabaritos/imagens, nenhuma mudança de notas, respostas ou vínculos estudantis, PR #168 draft, sem deploy Render.
 - **Status:** E1 aberta até cotejo integral e gabaritos definitivos; E2/E3 apenas preparação, E9 futura.
+
+
+### 2026-11-17 — Evidência de CI da triagem de 22 variantes
+- Workflow GitHub Actions `ENAMED 360 - validar contratos e dicionário`, run **44047302738**, referente ao commit `ae76798f2f6a242e51c39c7ca7ab9d85010303a9`: **success**. Log confirmou 2 testes Node do dicionário, 4 de integração, 2 de mapas, 2 dos 22 itens/páginas e 4+3 testes Python, sem falhas. A finalidade é integridade/contrato, **não homologação clínica**.
+- Workflows de build ENADE e cruzamentos do mesmo commit concluíram `success`; TypeScript completo ainda estava em execução na consulta realizada, portanto **não declarar o HEAD integralmente homologado**.
