@@ -48,8 +48,8 @@ A assinatura de QR deriva da chave secreta do servidor com separação de finali
 - Bucket `discursiva-responses` privado, limite 6291456 bytes.
 - Edge Function `vertice-discursiva` publicada, ACTIVE, versão 1.
 - HTTP em produção: POST sem autenticação retornou 401. Isso não comprova execução autenticada das IAs.
-- Envio do commit ao GitHub bloqueado pela revisão automática: classificou o push como exportação de código organizacional para remoto não verificado sem autorização explícita. Código preservado em commit local; nenhuma PR criada.
-- Publicação da interface depende de identificar o serviço existente de www.verticesuperior.com.br no workspace correto do Render. O conector retornou que a seleção precisa ser confirmada pelo usuário; não foi selecionado um workspace por inferência.
+- Após autorização explícita do usuário, código enviado ao repositório oficial pela integração GitHub: PR #180, branch feat/discursiva360. A branch principal não foi alterada.
+- O usuário confirmou o workspace Vértice Educação Superior (tea-dbb7us3rjlhs73cpgto0), mas ele contém serviços suspensos. O conector confirmou que o serviço principal vertice-portal (srv-dbm52uhsrm7s73f3ojkg) pertence a Virgílio Meirelles | Projetos (tea-d925voi8qa3s73csvir0). Publicação e integração em main aguardam confirmação desse workspace, pois main aciona publicação automática. Nenhum serviço suspenso foi reativado.
 
 ## Limites e próximos critérios de aceite
 
