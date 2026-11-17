@@ -211,3 +211,10 @@ Leia em conjunto com `BIBLIA_MESTRA_ENAMED_360.md` e `PLANO_DE_TRABALHO_ENAMED_3
 - **Governança:** relatório `E1_TRES_ACOES_TEXTOS_MIDIAS_CONTRATOS_20261117.md`, manifestos de comparação e mídia, Biblia-Mestra v2.5, Plano atualizado; evidências geradas exclusivamente em branch draft. Nenhum UPDATE/DELETE/importação, nenhuma tentativa/histórico/gabarito alterado.
 - **Acesso:** 16 cenários autenticados por Master/Reitoria/CPA/Coordenação/NDE/multi-IES continuam **não executados**; CI não equivale a sessão real.
 - **Estado:** E1 parcial sem aceite integral; E2/E3 apenas preparação; PR #168 draft, não publicada.
+
+
+## 2026-11-17 — Encerramento terminal da auditoria técnica preliminar
+- Resultado objetivo: oito PDFs preliminares com SHA-256; 483 respostas compatíveis com versão preliminar; 22 variantes sinalizadas; oito diferenças numéricas cotejadas por tokens oficiais, candidatos documentais anotados (Q12,42,44,49,74,99 em `ENAMED-2026-REG-C2`; Q89,90 em `enamed-2026-c2`).
+- Artefatos de fechamento: `ENCERRAMENTO_8_DIVERGENCIAS_NUMERICAS_VERIFICADAS_20261117.json` e `TERMO_ENCERRAMENTO_AUDITORIA_PRELIMINAR_20261117.md`.
+- Auditoria preliminar **ENCERRADA**. E1 regulatória completa e PR #168 **NÃO homologadas** devido a gabaritos definitivos/parecer médico, conferência integral do texto/mídias e 16 testes reais autenticados. Reindexação e publicação não autorizadas.
+- Nenhum UPDATE/DELETE/UPSERT, nenhum gabarito alterado, nenhuma sessão simulada reportada como real, nenhum dado de aluno ou histórico modificado.
