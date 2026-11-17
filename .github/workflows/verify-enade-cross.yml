@@ -33,11 +33,6 @@ jobs:
           mkdir -p .enade-build
           unzip -qo vertice-servidor-source.zip -d .enade-build
           cp -a source-overrides/. .enade-build/
-          git fetch --depth=1 origin release/novo-instrumento-20261107
-          git archive FETCH_HEAD \
-            source-overrides/client/src/components/area/Workspace.tsx \
-            source-overrides/client/src/components/area/ProfileSimulator.tsx \
-            source-overrides/client/src/lib/area.ts | tar -xf - -C .enade-build --strip-components=1
           test -f .enade-build/client/src/components/area/EnadeCross.tsx
           grep -q 'goals={data.goals}' .enade-build/client/src/components/area/Workspace.tsx
       - name: Instalar dependencias do pacote atual

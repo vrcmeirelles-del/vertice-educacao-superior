@@ -1,0 +1,76 @@
+name: ENADE 360 - Contract Tests
+on:
+  pull_request:
+    paths:
+      - "docs/enade-360/validator/**"
+      - ".github/workflows/enade360-contracts.yml"
+      - "source-overrides/client/src/components/area/enade-mirror.ts"
+      - "supabase/migrations/*enade360*.sql"
+  workflow_dispatch:
+jobs:
+  contract-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install JSON Schema validator
+        run: python -m pip install "jsonschema[format]==4.23.0"
+      - name: Test mirror identity and inaccessible sources
+        run: node --test docs/enade-360/validator/test-enade-mirror.mjs
+      - name: Run synthetic semantic contract tests
+        run: node docs/enade-360/validator/test-contracts.cjs
+      - name: Test edition eligibility SC bands and difference classification
+        run: node docs/enade-360/validator/test-edition-controls.cjs
+      - name: Cross-report institution course edition methodology and R7 guards
+        run: node docs/enade-360/validator/test-cross-report.cjs
+      - name: Validate deeper R2-R6 contracts and pedagogical controls
+        run: node docs/enade-360/validator/test-r2-r6.cjs
+      - name: Validate result states SC missing NA pending and publication
+        run: node docs/enade-360/validator/test-result-states.cjs
+      - name: Traceability provenance review and publication safeguards
+        run: node docs/enade-360/validator/test-traceability.cjs
+      - name: Validate traceability through the integrated report gate
+        run: node docs/enade-360/validator/test-trace-integration.cjs
+      - name: Test audit event-chain and read authorization prototype
+        run: node docs/enade-360/validator/test-audit-governance.cjs
+      - name: Test isolated RLS authorization contract (not Postgres)
+        run: node docs/enade-360/validator/test-rls-policy-contract.cjs
+      - name: Validate positive and negative Draft 2020-12 instances
+        run: python docs/enade-360/validator/test-json-schema.py
+
+  disposable-postgres-rls:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: fixture-only
+          POSTGRES_DB: enade_fixture
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PostgreSQL client
+        run: sudo apt-get update -qq && sudo apt-get install -y postgresql-client
+      - name: Run disposable PostgreSQL RLS and rollback assertions
+        env:
+          PGPASSWORD: fixture-only
+        run: psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 5432 -U postgres -d enade_fixture -f docs/enade-360/validator/test-rls-postgres-disposable.sql
+
+      - name: Run production audit migrations and authorization regression (synthetic identities)
+        env:
+          PGPASSWORD: fixture-only
+        run: |
+          createdb -h 127.0.0.1 -p 5432 -U postgres enade_regression
+          psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 5432 -U postgres -d enade_regression -c 'create schema extensions; create extension pgcrypto with schema extensions;' -f docs/enade-360/validator/test-live-audit-regression.sql
