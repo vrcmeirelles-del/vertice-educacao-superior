@@ -218,3 +218,10 @@ Leia em conjunto com `BIBLIA_MESTRA_ENAMED_360.md` e `PLANO_DE_TRABALHO_ENAMED_3
 - Artefatos de fechamento: `ENCERRAMENTO_8_DIVERGENCIAS_NUMERICAS_VERIFICADAS_20261117.json` e `TERMO_ENCERRAMENTO_AUDITORIA_PRELIMINAR_20261117.md`.
 - Auditoria preliminar **ENCERRADA**. E1 regulatória completa e PR #168 **NÃO homologadas** devido a gabaritos definitivos/parecer médico, conferência integral do texto/mídias e 16 testes reais autenticados. Reindexação e publicação não autorizadas.
 - Nenhum UPDATE/DELETE/UPSERT, nenhum gabarito alterado, nenhuma sessão simulada reportada como real, nenhum dado de aluno ou histórico modificado.
+
+
+## 2026-11-17 — Fechamento formal da solicitação de homologação e publicação
+- Revisão do histórico Bíblia v2.6 + Termo final; verificadas no GitHub as nove execuções `success` do commit `a34dfcf814cf4680f768213fd6db8f7edfb8a46c`.
+- Ferramenta de navegador conectado recusou acesso por falta de contexto de extensão; não houve login real de Master, Reitoria, CPA, Coordenação ou NDE. Consulta SQL somente leitura confirmou **0 linhas** em `public.vertice_learning_course_metrics` (Vértice).
+- Criado `ENAMED_360_REGISTRO_GATES_PUBLICACAO.json`: seis gates reprovados/pendentes de evidência para E1, revisão clínica, RLS real, ponte ponta a ponta e release, com operações de produção vedadas. Criado `enamed-release-gates.test.mjs` e vinculado à CI.
+- **Decisão:** auditoria preliminar concluída; homologação definitiva, reindexação e publicação **BLOQUEADAS** e não executadas; PR #168 permanece draft. Nenhum gabarito, item, tentativa, histórico, migração ou serviço produtivo alterado.
