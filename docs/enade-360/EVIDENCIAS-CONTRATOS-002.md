@@ -25,3 +25,7 @@ P-ZIP-001 aberto (ZIP fornecido futuramente pelo usuário). P-NT-001 aberto (aud
 
 ## Próxima execução permitida
 Obter checkout do commit versionado, executar `node docs/enade-360/validator/test-contracts.cjs`, executar verificação Draft 2020-12 contra fixtures, corrigir qualquer divergência e anexar logs completos. Não integrar ao aplicativo ou habilitar publicação sem aceite independente.
+
+## Adendo de verificação CI — 2026-11-16
+A execução da suíte versionada no GitHub Actions **foi confirmada** após o registro inicial das limitações locais. Workflow: `ENADE 360 - Contract Tests`, run_id `43996319804`, job `contract-tests`, job_id `133749143434`, commit `3ee01fd808e10fc2a62dd3b749cad528cf4b3e66`; status final `completed`, conclusão `success`. Os passos `Run synthetic contract cases` e `JSON Schema syntax check` concluíram com sucesso. URL do run: https://github.com/vrcmeirelles-del/vertice-educacao-superior/actions/runs/43996319804 .
+Esta evidência supera a pendência inicial de não confirmação do CI para aquele commit, **mas não demonstra** validação completa segundo JSON Schema (o CI só verifica sintaxe JSON), nem homologação científica, nem aprovação em produção. P-VAL-002 — atendida para a suíte Node versionada nesse commit; P-CI-001 — atendida para esse workflow; P-SCHEMA-001 — parcialmente atendida até implementação e execução de validação real das instâncias JSON Schema.
