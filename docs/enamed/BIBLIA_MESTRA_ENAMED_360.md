@@ -1,6 +1,6 @@
 # BÍBLIA-MESTRA DO PROJETO — ENAMED 360° / INEP INTELLIGENCE
 **Projeto:** Vértice Educação Superior × Fato & Ordem × Sapiens 360°  
-**Versão:** 2.3 — E1 parcial + triagem textual 483/483 e permutações dos cadernos  
+**Versão:** 2.4 — E1 parcial + revisão de 22 variantes e rastreabilidade de mídias  
 **Data-base:** 16 de novembro de 2026  
 **Status:** documento-mestre de projeto; NÃO corresponde à implantação ou homologação da solução.  
 **Governança:** evolução cumulativa por etapas, com revisão retrospectiva obrigatória.  
@@ -427,3 +427,23 @@ Revisada a comparação entre as duas cópias das 200 posições regulares usand
 
 ### Adendo v2.3 — homologação por perfil preparada, não executada
 O roteiro `docs/enamed/ENAMED_2026_ROTEIRO_HOMOLOGACAO_PERFIS.md` enumera **16 cenários verificáveis**, positivos e negativos, com duas IES sintéticas, Master/Reitoria/CPA/Coordenação/NDE/docentes, MFA AAL2, RLS por instituição/curso/disciplina, prevenção de exposição cruzada, responsividade e sessão expirada. **Nenhuma sessão autenticada real foi executada nesta conversa**, e zero linhas em métricas não prova isolamento. Não habilitar a aba ENADE institucional para coordenadores apenas por menu; preservar o escopo de curso e a decisão formal sobre permissões.
+
+
+## 23. Atualização cumulativa v2.4 — 22 divergências textuais e risco de mídia não indexada (17/11/2026)
+**Condição herdada:** E1 parcialmente verificada, ainda sem aceite completo; E2/E3 apenas preparação; E9 de IES real permanece futura. Sem escritas no F&O nem na Vértice.
+
+### Auditoria efetivamente executada nesta passagem
+- Usados os binários do Caderno 2 regular ENAMED 2026 já recuperados via HTTPS autenticado e os 22 pares divergentes da tabela `fo_enamed_items` (SQL somente leitura). Para cada um, foi inspecionada a primeira região textual divergente e comparado o contexto com o PDF recuperado. **Isso não equivale a cotejo integral da questão**.
+- Novo catálogo por questão: `ENAMED_2026_TRIAGEM_22_VARIANTES_TEXTUAIS_C2.json` contém IDs duplicados, posição C2, posição C1 equivalente, página física, evidência clínica e exigência de revisão humana; novo relatório `E1_AUDITORIA_22_VARIANTES_E_MIDIAS_20261117.md`.
+- **Q12 C2:** PDF tem diagrama de Lund–Browder e tabela de área queimada; uma cópia do F&O encurta referência essencial à imagem. **Q81/Q82:** PDF referencia imagem clínica dermatológica e radiografia; ambos os registros de cada item têm `blocks=[]`. Exigir vinculação documentada de mídia, sem liberação automática.
+- **Q40/Q42/Q44/Q45/Q49/Q51/Q74/Q90:** tabelas e resultados numéricos referidos no PDF aparecem com reestruturação narrativa e/ou omissão relativa em cópias. **Q18/Q29:** grafia técnica/aspas; demais variações incluem informações clínicas/contextuais. Não presumir que uma versão esteja correta sem confronto total.
+- Auditoria do esquema F&O: **483/483 `blocks` vazios, 483/483 `source_hash` nulos, 483/483 `competencies` vazias, 223/483 `source_page` nulos**. Por fonte: regular C1 100 páginas ausentes, regular C2 123, reaplicação C1 zero. Não afirmar que mídia inexiste em toda a plataforma a partir da coluna `blocks`.
+- Comparação SQL adicional confirmou: 57 diferenças brutas em enunciado de 200 posições duplicadas, 31 após remoção de espaços, **22 após remoção adicional de pontuação**. As 2 variações brutas de alternativas desaparecem ao retirar espaços; isso **não** comprova revisão integral das alternativas contra PDFs.
+- Criado `scripts/tests/enamed-text-variants.test.mjs`, incluído no workflow `verify-enamed-contracts.yml`. Teste valida a rastreabilidade de 22 IDs e o bloqueio de aplicação, não qualidade clínica. Resultado do CI deve ser interpretado por commit/HEAD.
+- A execução anterior do HEAD `af46a4f...` concluiu workflows TypeScript, ENADE e ENAMED com `success`; a revisão atual tem novos commits e exige revalidação.
+- **Homologação por perfil:** roteiro dos 16 cenários sintéticos preparado anteriormente, mas nenhuma sessão autenticada real de Master/Reitoria/CPA/Coordenação/NDE ou outro tenant foi executada. Não ampliar acesso por menu; manter exigência de MFA e RLS.
+
+### Decisão ADR-ENAMED-024
+Quando a questão utiliza imagem/tabela para fornecer informação necessária à resolução, a equivalência das letras preliminares e do prefixo não basta para publicá-la como íntegra. A indexação longitudinal do Sapiens só pode usar uma versão do item com mídia, evidência, gabarito e competência aprovados por curadoria e rastreados. Preservar simultaneamente IDs e tentativas de versões históricas.
+
+**Porta E1:** seguem pendentes cotejo integral 483/483, gabaritos definitivos e retificações, notas metodológicas e aceite normativo; E2/E3 não homologadas.
