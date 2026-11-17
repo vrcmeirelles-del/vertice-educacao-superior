@@ -7,7 +7,7 @@ export async function sha256(bytes: Uint8Array): Promise<string> {
   return Array.from(new Uint8Array(digest),v=>v.toString(16).padStart(2,'0')).join('');
 }
 export interface PdfOptions {brand:string;heading:string;templateLabel:string;notice:string;sections:{title:string;fields:{key:string;label:string}[]}[];subject:string;}
-export async function buildDossier(d: Dossier, read: (a: Attachment)=>Promise<Uint8Array>, custom?:PdfOptions): Promise<Uint8Array> {
+export async function buildDossier(d: Dossier, read: (a: Attachment)=>Promise<Uint8Array>, custom?:PdfOptions, references: string[] = []): Promise<Uint8Array> {
   const pdf = await PDFDocument.create();
   const font = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
@@ -45,8 +45,16 @@ export async function buildDossier(d: Dossier, read: (a: Attachment)=>Promise<Ui
     if(y<130)newPage(); line(section.title.toUpperCase(),true);
     for(const f of (custom ? section.fields : fieldsForTemplate(section.fields,d.template as Template))){if(y<105)newPage();line(f.label,true);line(d.answers[f.key]?.trim()||'Não informado / não se aplica.');}
   }
+  if (d.answers.ods_ids) line(`ODS selecionados: ${d.answers.ods_ids}`);
+  for (const [key,value] of Object.entries(d.answers)) {
+    if (!key.startsWith('source_')||!value) continue;
+    const label=SECTIONS.flatMap(section=>section.fields).find(field=>field.key===key.slice(7))?.label||key.slice(7);
+    line(`Fonte de ${label}: ${value}`);
+  }
   line('ANEXOS E RASTREABILIDADE',true);
-  line('Os arquivos originais permanecem na Mesa Digital. As páginas abaixo são cópias para consulta; assinaturas digitais devem ser verificadas nos originais.');
+  for (const reference of references) line(reference);
+  if (references.length) line('As referências identificam evidências registradas no portal ou em fontes externas.');
+  if (d.attachments.length) line('Os anexos originais permanecem na Mesa Digital. As páginas anexadas são cópias para consulta. Confira assinaturas digitais nos originais.');
   for(const [i,a] of d.attachments.entries()){
     line(`${i+1}. ${a.kind} | ${a.name}`);
     line(`SHA-256 do original: ${a.sha256}`);

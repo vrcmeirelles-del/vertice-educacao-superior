@@ -22,3 +22,23 @@ describe('formulário e PDF de extensão',()=>{
   await expect(buildDossier(d,async()=>new Uint8Array([1,2,3]))).rejects.toThrow('Integridade divergente');
  });
 });
+
+
+import { documentSuggestions, fillEmpty, projectAnswers } from './project-data';
+it('reuses only equivalent empty fields and preserves zeros and previously typed answers',()=>{
+ const base={title:'Parque Cesamar de teste',location:'Local preenchido manualmente',community_planned:'0'};
+ const project={id:'project',title:'Parque Cesamar de teste',activity_location:'Local antigo',target_audience_count:25,detailed_program:'Cronograma'};
+ const source=projectAnswers(project);
+ const filled=fillEmpty(base,source,['location','community_planned','program','community_actual']);
+ expect(filled.answers).toEqual({...base,program:'Cronograma'});
+ expect(filled.added).toEqual(['program']);
+ expect(fillEmpty(filled.answers,source,Object.keys(source)).answers).toBe(filled.answers);
+});
+
+it('suggests the exact text from a matching heading and leaves sections without a source empty',()=>{
+ const text='1. Objetivo geral\nAmpliar o acesso da comunidade à informação.\n\n2. Resultados esperados: Produzir material acessível.';
+ expect(documentSuggestions(text,['general_objective','results','expected_results'])).toEqual([
+  {key:'general_objective',excerpt:'Ampliar o acesso da comunidade à informação.'},
+  {key:'expected_results',excerpt:'Produzir material acessível.'},
+ ]);
+});

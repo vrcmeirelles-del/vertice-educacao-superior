@@ -20,3 +20,13 @@ create table public.vertice_repository_files(id uuid primary key default gen_ran
 create table public.vertice_admins(user_id uuid);
 create function auth.jwt() returns jsonb language sql stable as $$select jsonb_build_object('role','authenticated')$$;
 alter table public.vertice_repository_files add column uploaded_email text,add column created_at timestamptz,add column reviewed_by uuid,add column reviewed_at timestamptz,add column review_note text;
+
+alter table auth.users add column email_confirmed_at timestamptz;
+alter table public.vertice_extension_projects add column unit_name text,add column activity_location text,
+ add column activity_schedule text,add column modality text,add column thematic_area text,add column activity_type text,
+ add column detailed_program text,add column evaluation_method text,add column specific_objectives text[],
+ add column expected_results text[],add column target_audience_count integer,add column infrastructure_needs text,add column partnerships_detail text;
+create table public.vertice_extension_evidence_registry(id uuid primary key,institution_id uuid,project_id uuid);
+create table public.vertice_extension_project_history(
+ institution_id uuid,project_id uuid,field_changed text,old_value text,new_value text,changed_by uuid,reason text
+);

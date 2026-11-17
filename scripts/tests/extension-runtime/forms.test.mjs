@@ -7,6 +7,7 @@ test('tenant/owner access, stale edits, durable completion and idempotent retry'
  const db=new PGlite();
  await db.exec(readFileSync(new URL('./fixture.sql',import.meta.url),'utf8'));
  await db.exec(readFileSync(new URL('../../../supabase/migrations/20261114122806_extension_electronic_forms.sql',import.meta.url),'utf8'));
+ await db.exec(readFileSync(new URL('../../../supabase/migrations/20261117193500_extension_project_workspace.sql',import.meta.url),'utf8'));
  const guard=readFileSync(new URL('../../../supabase/migrations/20261031112756_repository_classification.sql',import.meta.url),'utf8');
  const start=guard.indexOf('create or replace function vertice_private.check_repository_file()');const end=guard.indexOf('$$;',start)+3;await db.exec(guard.slice(start,end));
  await db.exec('create trigger repository_file_guard before insert on public.vertice_repository_files for each row execute function vertice_private.check_repository_file()');

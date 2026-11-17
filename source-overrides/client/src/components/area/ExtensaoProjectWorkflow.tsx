@@ -46,7 +46,7 @@ const PIPELINE_ORDER: ReviewStatus[] = [
 ];
 
 export default function ExtensaoProjectWorkflow({
-  institutionId, projectId, projectTitle, currentStatus, canEdit, onStatusChange, onClose,
+  projectId, projectTitle, currentStatus, canEdit, onStatusChange, onClose,
 }: {
   institutionId: string;
   projectId: string;
@@ -73,30 +73,18 @@ export default function ExtensaoProjectWorkflow({
 
   const advanceStatus = async (newStatus: ReviewStatus) => {
     setChanging(true);
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { setChanging(false); return; }
-
-    let reason = '';
+    let reason: string | null = null;
     if (['pendente_ajustes', 'reprovado'].includes(newStatus)) {
-      reason = prompt(newStatus === 'reprovado' ? 'Motivo da reprovação:' : 'Ajustes necessários:') || '';
-      if (!reason) { setChanging(false); return; }
+      reason = prompt(newStatus === 'reprovado' ? 'Motivo da reprovação:' : 'Ajustes necessários:');
+      if (!reason?.trim()) { setChanging(false); return; }
     }
-
-    // Registrar histórico
-    await supabase.from('vertice_extension_project_history').insert({
-      institution_id: institutionId,
-      project_id: projectId,
-      field_changed: 'review_status',
-      old_value: currentStatus,
-      new_value: newStatus,
-      changed_by: user.id,
-      reason: reason || null,
+    if (newStatus === 'submetido' && !confirm(`Enviar “${projectTitle}” à instância superior?`)) {
+      setChanging(false);
+      return;
+    }
+    const { error } = await supabase.rpc('vertice_extension_review_move', {
+      p_project: projectId, p_current: currentStatus, p_next: newStatus, p_reason: reason,
     });
-
-    // Atualizar projeto
-    const { error } = await supabase.from('vertice_extension_projects')
-      .update({ review_status: newStatus, updated_at: new Date().toISOString() })
-      .eq('id', projectId);
 
     setChanging(false);
     if (error) return alert('Erro: ' + error.message);
@@ -129,7 +117,6 @@ export default function ExtensaoProjectWorkflow({
           const m = STATUS_META[s];
           const isCurrent = s === status;
           const isPast = pipelineIdx >= 0 && i < pipelineIdx;
-          const isSpecial = status === 'reprovado' || status === 'pendente_ajustes';
           return (
             <div key={s} style={{
               flex: '1 1 auto', minWidth: '70px', padding: '.4rem .3rem', textAlign: 'center',
@@ -165,7 +152,7 @@ export default function ExtensaoProjectWorkflow({
               <button key={ns} className="ext-btn-primary" disabled={changing}
                 style={{ background: nm.color }}
                 onClick={() => advanceStatus(ns)}>
-                {nm.icon} {nm.label}
+                {nm.icon} {ns === 'submetido' ? 'Enviar à instância superior' : nm.label}
               </button>
             );
           })}

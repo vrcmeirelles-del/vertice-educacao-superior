@@ -1,7 +1,12 @@
 import { useState, useEffect } from 'react';
+import ExtensaoAluno from './ExtensaoAluno';
 import { supabase } from '@/lib/supabase';
 
 export default function ExtensaoConvite() {
+  return new URLSearchParams(window.location.search).get('aluno') === '1' ? <ExtensaoAluno /> : <ConviteDocente />;
+}
+
+function ConviteDocente() {
   const params = new URLSearchParams(window.location.search);
   const conviteId = params.get('convite') || '';
   const [status, setStatus] = useState<'loading' | 'presenting' | 'logging-in' | 'done' | 'error'>('loading');

@@ -4,6 +4,7 @@ import { HelpLabel } from '@/components/ContextHelp';
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import "./extensao360.css";
+import { canDiscardProject, type ProjectSource } from '@/lib/extension-forms/project-data';
 import ExtensaoFormularios from "./ExtensaoFormularios";
 import ExtensaoHourLedger from "./ExtensaoHourLedger";
 import ExtensaoODS from "./ExtensaoODS";
@@ -23,7 +24,10 @@ import ExtensaoNotificacoes from "./ExtensaoNotificacoes";
 
 type View = 'formularios' | 'projetos' | 'equipe' | 'alunos' | 'entregas' | 'cobertura' | 'revisoes' | 'ods' | 'governanca' | 'atividades' | 'evidencias' | 'parceiros' | 'competencias' | 'achados' | 'ia' | 'perfis' | 'importacao' | 'relatorios' | 'conformidade';
 
-interface ExtProject {
+const PRIMARY_VIEWS: View[] = ['projetos','formularios','equipe','alunos','entregas','atividades','evidencias','revisoes'];
+const OTHER_VIEWS: View[] = ['competencias','parceiros','achados','conformidade','cobertura','ods','governanca','ia','perfis','importacao','relatorios'];
+
+interface ExtProject extends ProjectSource {
   id: string; title: string; code: string; project_type: string; description: string;
   target_community: string; target_audience_count: number; coordinator_name: string; coordinator_email: string;
   status: string; review_status: string; start_date: string; end_date: string; total_hours: number;
@@ -62,6 +66,7 @@ const STATUS_LABELS: Record<string, string> = {
   planejamento: 'Planejamento', em_aprovacao: 'Em Aprovação', aprovado: 'Aprovado',
   em_execucao: 'Em Execução', concluido: 'Concluído', cancelado: 'Cancelado', suspenso: 'Suspenso',
   ativo: 'Ativo', desligado: 'Desligado', trancado: 'Trancado',
+  rascunho: 'Rascunho', submetido: 'Submetido', pendente_ajustes: 'Pendente de ajustes',
   pendente: 'Pendente', em_analise: 'Em Análise', ajuste_solicitado: 'Ajuste Solicitado', rejeitado: 'Rejeitado',
 };
 const TYPE_LABELS: Record<string, string> = {
@@ -88,6 +93,14 @@ export default function Extensao360({ institutionId, role, courses = [], onBack 
   onBack?: () => void;
 }) {
   const [view, setView] = useState<View>('projetos');
+  const [showProjectInvites,setShowProjectInvites]=useState(false);
+  const [targetForm,setTargetForm] = useState<string>();
+  const [showDeleted,setShowDeleted] = useState(false);
+  const [projectQuery,setProjectQuery] = useState('');
+  const [projectError,setProjectError] = useState('');
+  const [actor,setActor] = useState({id:'',email:''});
+  const [archiving,setArchiving] = useState(false);
+  const [deletedProjects,setDeletedProjects] = useState<ExtProject[]>([]);
   const [formsVisited, setFormsVisited] = useState(false);
   useEffect(() => { if (view === 'formularios') setFormsVisited(true); }, [view]);
   const [projects, setProjects] = useState<ExtProject[]>([]);
@@ -127,7 +140,10 @@ export default function Extensao360({ institutionId, role, courses = [], onBack 
       supabase.from('v_extension_coverage').select('*').eq('institution_id', institutionId),
       supabase.rpc('get_institution_staff', { p_institution_id: institutionId }),
     ]);
-    setProjects((p.data || []) as ExtProject[]);
+    const all=(p.data || []) as ExtProject[];
+    setProjects(all.filter(row=>!row.deleted_at));
+    setDeletedProjects(all.filter(row=>row.deleted_at));
+    setProjectError(p.error?.message||'');
     setTeam((t.data || []) as TeamMember[]);
     setStudents((s.data || []) as Student[]);
     setDeliverables((del.data || []) as Deliverable[]);
@@ -139,6 +155,9 @@ export default function Extensao360({ institutionId, role, courses = [], onBack 
   }, [institutionId]);
 
   useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    void supabase.auth.getUser().then(({data})=>setActor({id:data.user?.id||'',email:data.user?.email||''}));
+  }, [institutionId]);
 
   const canEdit = role === 'master' || role === 'gestor';
 
@@ -154,7 +173,23 @@ export default function Extensao360({ institutionId, role, courses = [], onBack 
   const pctCobertura = totalCursos > 0 ? Math.round((cursosComExtensao / totalCursos) * 100) : 0;
   const pendentesRevisao = projects.filter(p => p.review_status === 'pendente' || p.review_status === 'ajuste_solicitado').length;
 
-  const filteredProjects = filterStatus === 'todos' ? projects : projects.filter(p => p.status === filterStatus);
+  const filteredProjects = (showDeleted ? deletedProjects : projects).filter(p =>
+    (!showDeleted || canManage(p)) && (showDeleted || filterStatus === 'todos' || p.status === filterStatus) &&
+    [p.title,p.code,p.coordinator_name,...(p.course_ids||[]).map(courseName)].some(v=>v?.toLocaleLowerCase('pt-BR').includes(projectQuery.trim().toLocaleLowerCase('pt-BR')))
+  );
+  function canManage(p:ProjectSource) { return canEdit || (!!actor.id && role==='equipe' && (p.owner_id===actor.id||(!p.owner_id&&!!actor.email&&p.coordinator_email?.toLowerCase()===actor.email.toLowerCase()))); }
+  function openReport(id:string,invites=false) { setTargetForm(id);setShowProjectInvites(invites);setView('formularios'); }
+  async function discardProject(p:ProjectSource,deleted:boolean) {
+    if(deleted&&!confirm(`Excluir o rascunho “${p.title}”? Você poderá recuperá-lo na lista de rascunhos excluídos.`))return;
+    setArchiving(true);setProjectError('');
+    try {
+      const {error}=await supabase.rpc('vertice_extension_draft_visibility',{p_project:p.id,p_deleted:deleted});
+      if(error)throw error;
+      setShowForm(false);setFormData({});
+      await load();
+    }catch(e){setProjectError((e as Error).message);}
+    finally{setArchiving(false);}
+  }
 
   function courseName(id: string) { return courses?.find(c => c.id === id)?.name || id.slice(0, 8); }
 
@@ -179,13 +214,18 @@ export default function Extensao360({ institutionId, role, courses = [], onBack 
     if (payload.status === 'concluido' && (!formData.id || projects.find(p => p.id === formData.id)?.status !== 'concluido')) {
       payload.review_status = 'pendente';
     }
+    delete payload.owner_id;delete payload.first_submitted_at;delete payload.deleted_at;
+    if(!payload.title?.trim()){setProjectError('Informe o título do projeto.');return;}
+    let result;
     if (payload.id) {
+      if(payload.status!=='concluido'||projects.find(p=>p.id===payload.id)?.status==='concluido')delete payload.review_status;
       payload.updated_at = new Date().toISOString();
-      await supabase.from('vertice_extension_projects').update(payload).eq('id', payload.id);
+      result=await supabase.from('vertice_extension_projects').update(payload).eq('id', payload.id);
     } else {
       delete payload.id;
-      await supabase.from('vertice_extension_projects').insert(payload);
+      result=await supabase.from('vertice_extension_projects').insert(payload);
     }
+    if(result.error){setProjectError(result.error.message);return;}
     setShowForm(false); setFormData({}); load();
   }
 
@@ -268,9 +308,14 @@ export default function Extensao360({ institutionId, role, courses = [], onBack 
     const pCourses = courses.filter(c => (project.course_ids || []).includes(c.id));
     const p = project as any;
 
+    const escape = (value: unknown) => {
+      const node = document.createElement('span');
+      node.textContent = String(value ?? '');
+      return node.innerHTML;
+    };
     const win = window.open('', '_blank');
     if (!win) { alert('Permita pop-ups para gerar o PDF'); return; }
-    win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Evidências — ${project.title}</title>
+    win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Evidências — ${escape(project.title)}</title>
 <style>
 @media print{@page{margin:18mm;size:A4}body{-webkit-print-color-adjust:exact}}
 body{font-family:Calibri,Arial,sans-serif;font-size:11pt;line-height:1.5;color:#1e293b;margin:0;padding:30px}
@@ -291,55 +336,55 @@ th{background:#f1f5f9;font-weight:600;color:#0f172a}
 
 <h2>1. Dados do Projeto</h2>
 <table>
-<tr><th>Título</th><td>${project.title}</td></tr>
-<tr><th>Código</th><td>${project.code}</td></tr>
-<tr><th>Tipo</th><td>${project.project_type}</td></tr>
-${p.category ? `<tr><th>Categoria</th><td>${p.category}${p.category_detail ? ' — ' + p.category_detail : ''}</td></tr>` : ''}
-${p.thematic_area ? `<tr><th>Área temática</th><td>${p.thematic_area}</td></tr>` : ''}
-${p.modality ? `<tr><th>Modalidade</th><td>${p.modality}</td></tr>` : ''}
-<tr><th>Coordenador</th><td>${project.coordinator_name} (${project.coordinator_email})</td></tr>
-${p.unit_name ? `<tr><th>Unidade</th><td>${p.unit_name}</td></tr>` : ''}
-<tr><th>Cursos</th><td>${pCourses.map(c => c.name).join(', ') || '—'}</td></tr>
-<tr><th>Eixo temático</th><td>${pAxis?.name || '—'}</td></tr>
-<tr><th>Período</th><td>${project.start_date || '—'} a ${project.end_date || '—'}</td></tr>
-<tr><th>Semestre</th><td>${project.semester || '—'}</td></tr>
-<tr><th>Carga horária</th><td>${project.total_hours || '—'}h</td></tr>
-<tr><th>Comunidade atendida</th><td>${project.target_community || '—'}</td></tr>
-<tr><th>Público estimado</th><td>${project.target_audience_count || '—'}</td></tr>
-${p.activity_location ? `<tr><th>Local</th><td>${p.activity_location}</td></tr>` : ''}
-<tr><th>ODS</th><td>${(project.ods_goals || []).join(', ') || '—'}</td></tr>
-<tr><th>Parceiros</th><td>${(project.partner_institutions || []).join(', ') || '—'}</td></tr>
-<tr><th>Status</th><td>${project.status}</td></tr>
+<tr><th>Título</th><td>${escape(project.title)}</td></tr>
+<tr><th>Código</th><td>${escape(project.code)}</td></tr>
+<tr><th>Tipo</th><td>${escape(project.project_type)}</td></tr>
+${p.category ? `<tr><th>Categoria</th><td>${escape(p.category)}${p.category_detail ? ' — ' + escape(p.category_detail) : ''}</td></tr>` : ''}
+${p.thematic_area ? `<tr><th>Área temática</th><td>${escape(p.thematic_area)}</td></tr>` : ''}
+${p.modality ? `<tr><th>Modalidade</th><td>${escape(p.modality)}</td></tr>` : ''}
+<tr><th>Coordenador</th><td>${escape(project.coordinator_name)} (${escape(project.coordinator_email)})</td></tr>
+${p.unit_name ? `<tr><th>Unidade</th><td>${escape(p.unit_name)}</td></tr>` : ''}
+<tr><th>Cursos</th><td>${escape(pCourses.map(c => c.name).join(', ') || '—')}</td></tr>
+<tr><th>Eixo temático</th><td>${escape(pAxis?.name || '—')}</td></tr>
+<tr><th>Período</th><td>${escape(project.start_date || '—')} a ${escape(project.end_date || '—')}</td></tr>
+<tr><th>Semestre</th><td>${escape(project.semester || '—')}</td></tr>
+<tr><th>Carga horária</th><td>${escape(project.total_hours ?? '—')}h</td></tr>
+<tr><th>Comunidade atendida</th><td>${escape(project.target_community || '—')}</td></tr>
+<tr><th>Público estimado</th><td>${escape(project.target_audience_count ?? '—')}</td></tr>
+${p.activity_location ? `<tr><th>Local</th><td>${escape(p.activity_location)}</td></tr>` : ''}
+<tr><th>ODS</th><td>${escape((project.ods_goals || []).join(', ') || '—')}</td></tr>
+<tr><th>Parceiros</th><td>${escape((project.partner_institutions || []).join(', ') || '—')}</td></tr>
+<tr><th>Status</th><td>${escape(project.status)}</td></tr>
 </table>
 
-${p.general_objective ? `<h2>2. Objetivo Geral</h2><p>${p.general_objective}</p>` : ''}
-${(p.specific_objectives || []).length > 0 ? `<h2>3. Objetivos Específicos</h2><ul>${p.specific_objectives.map((o: string) => `<li>${o}</li>`).join('')}</ul>` : ''}
-${p.methodology ? `<h2>4. Metodologia</h2><p>${p.methodology}</p>` : ''}
-${p.detailed_program ? `<h2>5. Programação Detalhada</h2><p>${p.detailed_program.replace(/\n/g, '<br/>')}</p>` : ''}
-${p.description ? `<h2>6. Descrição</h2><p>${p.description}</p>` : ''}
+${p.general_objective ? `<h2>2. Objetivo Geral</h2><p>${escape(p.general_objective)}</p>` : ''}
+${(p.specific_objectives || []).length > 0 ? `<h2>3. Objetivos Específicos</h2><ul>${p.specific_objectives.map((o: string) => `<li>${escape(o)}</li>`).join('')}</ul>` : ''}
+${p.methodology ? `<h2>4. Metodologia</h2><p>${escape(p.methodology)}</p>` : ''}
+${p.detailed_program ? `<h2>5. Programação Detalhada</h2><p>${escape(p.detailed_program).replace(/\n/g, '<br/>')}</p>` : ''}
+${p.description ? `<h2>6. Descrição</h2><p>${escape(p.description)}</p>` : ''}
 
 <h2>7. Equipe Docente</h2>
 ${pTeam.length > 0 ? `<table><tr><th>Nome</th><th>Função</th><th>E-mail</th><th>Horas</th></tr>
-${pTeam.map(t => `<tr><td>${t.full_name}</td><td>${t.role_type}</td><td>${t.email}</td><td>${t.hours_assigned}h</td></tr>`).join('')}
+${pTeam.map(t => `<tr><td>${escape(t.full_name)}</td><td>${escape(t.role_type)}</td><td>${escape(t.email)}</td><td>${escape(t.hours_assigned)}h</td></tr>`).join('')}
 </table>` : '<p>Nenhum docente vinculado.</p>'}
 
 <h2>8. Alunos Participantes</h2>
 ${pStudents.length > 0 ? `<table><tr><th>Nome</th><th>Matrícula</th><th>Horas atribuídas</th><th>Horas cumpridas</th><th>Bolsista</th></tr>
-${pStudents.map(s => `<tr><td>${s.full_name}</td><td>${s.registration_number}</td><td>${s.hours_assigned}h</td><td>${s.hours_completed}h</td><td>${s.is_scholarship ? 'Sim' : 'Não'}</td></tr>`).join('')}
+${pStudents.map(s => `<tr><td>${escape(s.full_name)}</td><td>${escape(s.registration_number)}</td><td>${escape(s.hours_assigned)}h</td><td>${escape(s.hours_completed)}h</td><td>${s.is_scholarship ? 'Sim' : 'Não'}</td></tr>`).join('')}
 </table>` : '<p>Nenhum aluno vinculado.</p>'}
 
 <h2>9. Entregas e Evidências</h2>
 ${pDeliverables.length > 0 ? `<table><tr><th>Título</th><th>Tipo</th><th>Data</th><th>Descrição</th></tr>
-${pDeliverables.map(d => `<tr><td>${d.title}</td><td>${d.deliverable_type}</td><td>${d.delivered_at ? new Date(d.delivered_at).toLocaleDateString('pt-BR') : '—'}</td><td>${d.description || '—'}</td></tr>`).join('')}
+${pDeliverables.map(d => `<tr><td>${escape(d.title)}</td><td>${escape(d.deliverable_type)}</td><td>${d.delivered_at ? new Date(d.delivered_at).toLocaleDateString('pt-BR') : '—'}</td><td>${escape(d.description || '—')}</td></tr>`).join('')}
 </table>` : '<p>Nenhuma entrega registrada.</p>'}
 
-${p.evaluation_method ? `<h2>10. Formas de Avaliação</h2><p>${p.evaluation_method}</p>` : ''}
-${(p.expected_results || []).length > 0 ? `<h2>11. Resultados Esperados</h2><ul>${p.expected_results.map((r: string) => `<li>${r}</li>`).join('')}</ul>` : ''}
-${p.infrastructure_needs ? `<h2>12. Infraestrutura Utilizada</h2><p>${p.infrastructure_needs}</p>` : ''}
+${p.evaluation_method ? `<h2>10. Formas de Avaliação</h2><p>${escape(p.evaluation_method)}</p>` : ''}
+${(p.expected_results || []).length > 0 ? `<h2>11. Resultados Esperados</h2><ul>${p.expected_results.map((r: string) => `<li>${escape(r)}</li>`).join('')}</ul>` : ''}
+${p.infrastructure_needs ? `<h2>12. Infraestrutura Utilizada</h2><p>${escape(p.infrastructure_needs)}</p>` : ''}
 
 <h2>13. Aprovação</h2>
 <table>
-<tr><td style="height:60px"><strong>Coordenador do Projeto:</strong><br/>${project.coordinator_name}</td><td style="height:60px"><strong>Data:</strong> ____/____/________</td></tr>
+<tr><td style="height:60px"><strong>Coordenador do Projeto:</strong><br/>${escape(project.coordinator_name)}</td><td style="height:60px"><strong>Data:</strong> ____/____/________</td></tr>
 <tr><td style="height:60px"><strong>Pró-Reitor / Coordenador de Extensão:</strong></td><td style="height:60px"><strong>Data:</strong> ____/____/________</td></tr>
 </table>
 
@@ -353,6 +398,30 @@ Este documento constitui evidência para fins de avaliação institucional (INEP
   const projTeam = selectedProject ? team.filter(t => t.project_id === selectedProject) : [];
   const projStudents = selectedProject ? students.filter(s => s.project_id === selectedProject) : [];
   const projDeliverables = selectedProject ? deliverables.filter(d => d.project_id === selectedProject) : [];
+
+  const viewButton=(v:View)=>(
+    <button key={v} className={view === v ? 'active' : ''} aria-current={view===v?'page':undefined} onClick={() => {if(v==='formularios'&&view!=='formularios'){setTargetForm(undefined);setShowProjectInvites(false);}setView(v);}}>
+            {v === 'projetos' ? `Projetos (${projects.length})` :
+             v === 'formularios' ? 'Formulários e PDF' :
+             v === 'equipe' ? `Equipe (${team.length})` :
+             v === 'alunos' ? `Alunos (${students.length})` :
+             v === 'entregas' ? `Entregas (${deliverables.length})` :
+             v === 'atividades' ? '📅 Atividades' :
+             v === 'evidencias' ? '📁 Evidências' :
+             v === 'competencias' ? '🎯 Competências' :
+             v === 'parceiros' ? '🤝 Parceiros' :
+             v === 'achados' ? '🔍 Achados' :
+             v === 'conformidade' ? '⚖️ Conformidade' :
+             v === 'cobertura' ? 'Cobertura por Curso' :
+             v === 'revisoes' ? `Revisões (${pendentesRevisao})` :
+             v === 'ods' ? '🌍 ODS' :
+             v === 'ia' ? '🤖 IA' :
+             v === 'perfis' ? '🔐 Perfis' :
+             v === 'importacao' ? '📥 Importação' :
+             v === 'relatorios' ? '📊 Relatórios' :
+             '📊 Governança'}
+          </button>
+  );
 
   return (
     <div className="ext-container">
@@ -368,7 +437,7 @@ Este documento constitui evidência para fins de avaliação institucional (INEP
         {canEdit && view === 'projetos' && (
           <div className="ext-header-actions">
             <button className="ext-btn-secondary" onClick={() => { setFormType('axis'); setFormData({}); setShowForm(true); }}>+ Eixo temático</button>
-            <button className="ext-btn-primary" onClick={async () => { const code = await generateCode(); setFormType('project'); setFormData({ status: 'planejamento', review_status: 'pendente', project_type: 'projeto', course_ids: [], code }); setShowForm(true); }}>+ Novo projeto</button>
+            <button className="ext-btn-primary" onClick={async () => { const code = await generateCode(); setFormType('project'); setFormData({ status: 'planejamento', review_status: 'rascunho', project_type: 'projeto', course_ids: [], code }); setShowForm(true); }}>+ Novo projeto</button>
           </div>
         )}
       </div>
@@ -402,41 +471,31 @@ Este documento constitui evidência para fins de avaliação institucional (INEP
       </div>
 
       {/* Tabs de navegação */}
-      <div className="ext-tabs">
-        {(['projetos','formularios','equipe','alunos','entregas','atividades','evidencias','competencias','parceiros','achados','conformidade','cobertura','revisoes','ods','governanca','ia','perfis','importacao','relatorios'] as View[]).map(v => (
-          <button key={v} className={view === v ? 'active' : ''} onClick={() => setView(v)}>
-            {v === 'projetos' ? `Projetos (${projects.length})` :
-             v === 'formularios' ? 'Formulários e PDF' :
-             v === 'equipe' ? `Equipe (${team.length})` :
-             v === 'alunos' ? `Alunos (${students.length})` :
-             v === 'entregas' ? `Entregas (${deliverables.length})` :
-             v === 'atividades' ? '📅 Atividades' :
-             v === 'evidencias' ? '📁 Evidências' :
-             v === 'competencias' ? '🎯 Competências' :
-             v === 'parceiros' ? '🤝 Parceiros' :
-             v === 'achados' ? '🔍 Achados' :
-             v === 'conformidade' ? '⚖️ Conformidade' :
-             v === 'cobertura' ? 'Cobertura por Curso' :
-             v === 'revisoes' ? `Revisões (${pendentesRevisao})` :
-             v === 'ods' ? '🌍 ODS' :
-             v === 'ia' ? '🤖 IA' :
-             v === 'perfis' ? '🔐 Perfis' :
-             v === 'importacao' ? '📥 Importação' :
-             v === 'relatorios' ? '📊 Relatórios' :
-             '📊 Governança'}
-          </button>
-        ))}
-      </div>
+      <nav aria-label="Áreas de Extensão" className="ext-module-navigation">
+        <div className="ext-tabs">{PRIMARY_VIEWS.map(viewButton)}</div>
+        <details open={OTHER_VIEWS.includes(view)}>
+          <summary>Mais áreas de Extensão</summary>
+          <div className="ext-tabs">{OTHER_VIEWS.map(viewButton)}</div>
+        </details>
+      </nav>
 
-      {(formsVisited || view === 'formularios') && <div hidden={view !== 'formularios'}><ExtensaoFormularios key={institutionId} institutionId={institutionId} role={role} courses={courses || []} onChanged={() => { void load(); }} /></div>}
+      {(formsVisited || view === 'formularios') && <div hidden={view !== 'formularios'}><ExtensaoFormularios key={`${institutionId}:${targetForm||''}:${showProjectInvites}`} institutionId={institutionId} role={role} courses={courses || []} projects={[...projects,...deletedProjects]} targetId={targetForm} startWithInvites={showProjectInvites} onBack={()=>{setView('projetos');setTargetForm(undefined);}} onChanged={() => { void load(); }} /></div>}
 
       {loading ? <p className="ext-loading">Carregando dados de extensão...</p> : (
         <>
           {/* ===== PROJETOS ===== */}
           {view === 'projetos' && (
             <div className="ext-section">
+              <div className="ext-project-list-tools">
+                <div><h3>Projetos de Extensão</h3><p>Abra um projeto para acompanhar a tramitação e o relatório.</p></div>
+                {canEdit||role==='equipe'?<button className="ext-btn-secondary" aria-pressed={showDeleted} onClick={()=>setShowDeleted(!showDeleted)}>
+                  {showDeleted?'Projetos ativos':`Rascunhos excluídos (${deletedProjects.filter(canManage).length})`}
+                </button>:null}
+              </div>
+              {projectError&&<p className="ext-project-error" role="alert">{projectError}</p>}
               <div className="ext-filter-row">
-                <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
+                <input type="search" aria-label="Buscar projetos" placeholder="Buscar por título, código, responsável ou curso" value={projectQuery} onChange={e=>setProjectQuery(e.target.value)}/>
+                <select value={filterStatus} aria-label="Filtrar por status" disabled={showDeleted} onChange={e => setFilterStatus(e.target.value)}>
                   <option value="todos">Todos os status</option>
                   {Object.entries(STATUS_LABELS).filter(([k]) => !['ativo','desligado','trancado','pendente','em_analise','ajuste_solicitado','rejeitado'].includes(k)).map(([k, v]) => (
                     <option key={k} value={k}>{v}</option>
@@ -645,21 +704,9 @@ Este documento constitui evidência para fins de avaliação institucional (INEP
                   </div>
 
                     <div className="ext-form-grid">
-                      <HelpLabel>Status de revisão
-                        <select value={formData.review_status || 'rascunho'} onChange={e => setFormData({ ...formData, review_status: e.target.value })}>
-                          <option value="rascunho">Rascunho</option>
-                          <option value="submetido">Submetido</option>
-                          <option value="em_analise">Em Análise</option>
-                          <option value="pendente_ajustes">Pendente Ajustes</option>
-                          <option value="aprovado">Aprovado</option>
-                          <option value="em_execucao">Em Execução</option>
-                          <option value="aguardando_evidencias">Aguardando Evidências</option>
-                          <option value="em_avaliacao">Em Avaliação</option>
-                          <option value="concluido">Concluído</option>
-                          <option value="reprovado">Reprovado</option>
-                          <option value="arquivado">Arquivado</option>
-                        </select>
-                      </HelpLabel>
+                      <div><strong>Tramitação</strong><p>{STATUS_LABELS[formData.review_status]||formData.review_status||'Rascunho'}</p>
+                        {formData.id&&<button type="button" className="ext-btn-secondary" onClick={()=>setWorkflowPanel({projectId:formData.id,projectTitle:formData.title,reviewStatus:formData.review_status})}>Abrir tramitação</button>}
+                      </div>
                     </div>
                   </div>
 
@@ -700,20 +747,21 @@ Este documento constitui evidência para fins de avaliação institucional (INEP
 
                   <div className="ext-form-actions">
                     <button className="ext-btn-save" onClick={saveProject}>Salvar</button>
+                    {formData.id&&canManage(formData)&&canDiscardProject(formData)&&<button className="ext-btn-danger" disabled={archiving} onClick={()=>void discardProject(formData,true)}>Excluir projeto</button>}
                     <button className="ext-btn-cancel" onClick={() => setShowForm(false)}>Cancelar</button>
                   </div>
                 </div>
               )}
 
               {/* Cards de projetos */}
-              {filteredProjects.length === 0 ? <p className="ext-empty">Nenhum projeto de extensão registrado.</p> : (
+              {filteredProjects.length === 0 ? <p className="ext-empty">{showDeleted?'Nenhum rascunho excluído encontrado.':'Nenhum projeto encontrado.'}</p> : (
                 <div className="ext-project-grid">
                   {filteredProjects.map(p => {
                     const pTeam = team.filter(t => t.project_id === p.id);
                     const pStudents = students.filter(s => s.project_id === p.id);
                     const pDel = deliverables.filter(d => d.project_id === p.id);
                     return (
-                      <div key={p.id} className="ext-project-card" onClick={() => { if (canEdit) { setFormType('project'); setFormData({ ...p, partner_institutions_text: (p.partner_institutions || []).join(', '), ods_goals_text: (p.ods_goals || []).join(', ') }); setShowForm(true); } }}>
+                      <div key={p.id} className="ext-project-card ext-project-discovery">
                         <div className="ext-card-top">
                           <span className="ext-card-type">{TYPE_LABELS[p.project_type] || p.project_type}</span>
                           <div style={{display:'flex',gap:'.35rem'}}><Badge status={p.status} /><Badge status={p.review_status} /></div>
@@ -722,7 +770,7 @@ Este documento constitui evidência para fins de avaliação institucional (INEP
                         {p.code && <span className="ext-card-code">{p.code}</span>}
                         {p.coordinator_name && <p className="ext-card-coord">👤 {p.coordinator_name}</p>}
                         {((p as any).axis_ids?.length > 0 || p.axis_id) && <p className="ext-card-coord">📌 {((p as any).axis_ids || (p.axis_id ? [p.axis_id] : [])).map((id:string) => axisName(id)).filter(Boolean).join(' · ')}</p>}
-                        {p.target_community && <p className="ext-card-community">🏘 {p.target_community}{(p as any).beneficiary_profile ? ` · ${(p as any).beneficiary_profile}` : ''}</p>}
+                        {p.target_community && <p className="ext-card-community ext-community-preview">🏘 {p.target_community}{(p as any).beneficiary_profile ? ` · ${(p as any).beneficiary_profile}` : ''}</p>}
                         {(p as any).social_problem && <p style={{fontSize:'.8rem',color:'#6b7280',margin:'.2rem 0'}}>💡 {String((p as any).social_problem).slice(0, 80)}{String((p as any).social_problem).length > 80 ? '…' : ''}</p>}
                         <div className="ext-card-meta">
                           <span>⏱ {p.total_hours || 0}h</span>
@@ -756,10 +804,16 @@ Este documento constitui evidência para fins de avaliação institucional (INEP
                           {pDel.length > 0 && <span className="ext-ai-badge">📎 {pDel.length} evidência{pDel.length>1?'s':''}</span>}
                           {p.review_status === 'ajuste_solicitado' && <span className="ext-ai-badge" style={{color:'#ef4444',background:'rgba(239,68,68,.1)'}}>⚠ Ajuste solicitado</span>}
                         </div>
-                        {canEdit && (
-                          <div className="ext-card-actions" onClick={e => e.stopPropagation()}>
+                        {showDeleted?<div className="ext-card-actions"><button disabled={archiving} onClick={()=>void discardProject(p,false)}>Recuperar rascunho</button></div>:<>
+                          <div className="ext-project-main-actions">
+                            <button className="ext-btn-primary" onClick={()=>openReport(p.id)}>Relatório Final</button>
+                            {canManage(p)&&<button className="ext-btn-secondary" onClick={()=>{setFormType('project');setFormData({...p,partner_institutions_text:(p.partner_institutions||[]).join(', '),ods_goals_text:(p.ods_goals||[]).join(', ')});setShowForm(true);}}>Editar projeto</button>}
+                            {canManage(p)&&canDiscardProject(p)&&<button className="ext-btn-danger" disabled={archiving} onClick={()=>void discardProject(p,true)}>Excluir projeto</button>}
+                          </div>
+                        {canManage(p) && (
+                          <div className="ext-card-actions"  onClick={e => e.stopPropagation()}>
                             <button onClick={() => { setSelectedProject(p.id); setView('equipe'); }}>Equipe</button>
-                            <button onClick={() => { setSelectedProject(p.id); setView('alunos'); }}>Alunos</button>
+                            <button onClick={() => openReport(p.id,true)}>Alunos e convites</button>
                             <button onClick={() => { setSelectedProject(p.id); setView('entregas'); }}>Entregas</button>
                             <button onClick={() => { setActivityPanel({ projectId: p.id, projectTitle: p.title }); setView('atividades'); }}>Atividades</button>
                             <button onClick={() => { setEvidencePanel({ projectId: p.id, projectTitle: p.title }); setView('evidencias'); }}>Evidências</button>
@@ -768,7 +822,7 @@ Este documento constitui evidência para fins de avaliação institucional (INEP
                               <button style={{background:'#7c3aed',color:'#fff',fontWeight:600}} onClick={() => generateEvidencePDF(p)}>📄 PDF Evidências</button>
                             )}
                           </div>
-                        )}
+                        )}</>}
                       </div>
                     );
                   })}
@@ -1113,7 +1167,7 @@ Este documento constitui evidência para fins de avaliação institucional (INEP
                   projectId={workflowPanel.projectId}
                   projectTitle={workflowPanel.projectTitle}
                   currentStatus={workflowPanel.reviewStatus}
-                  canEdit={canEdit}
+                  canEdit={!!projects.find(p=>p.id===workflowPanel.projectId&&canManage(p))}
                   onStatusChange={() => { load(); setWorkflowPanel(null); }}
                   onClose={() => setWorkflowPanel(null)}
                 />

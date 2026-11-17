@@ -8,3 +8,6 @@ verify_jwt = false
 # Master-only Sapiens approval/dispatch and aggregate feedback; handler also verifies JWT + AAL2.
 [functions.vertice-sapiens-bridge]
 verify_jwt = true
+
+[functions.vertice-extension-student-invite]
+verify_jwt = true

@@ -6,7 +6,7 @@ vi.mock('@/lib/supabase',()=>({supabase:{from:api.from,rpc:api.rpc,auth:{getUser
 import ExtensaoFormularios from './ExtensaoFormularios';
 let container:HTMLDivElement,root:Root;
 const record={id:'form',institution_id:'ies',project_id:'project',course_id:'course',template:'extensao',answers:{title:'PROJETO FICTÍCIO'},attachments:[],revision:1,owner_id:'user',status:'rascunho',document_id:null};
-function button(t:string){const b=Array.from(container.querySelectorAll('button')).find(b=>b.textContent===t);if(!b)throw new Error(t);return b;}
+function button(t:string){const b=Array.from(container.querySelectorAll('button')).find(b=>b.textContent===t||b.querySelector('span')?.textContent===t);if(!b)throw new Error(t);return b;}
 async function click(t:string){await act(async()=>button(t).click());}
 async function render(role='equipe'){await act(async()=>root.render(createElement(ExtensaoFormularios,{institutionId:'ies',role,courses:[{id:'course',name:'Direito'}],onChanged:vi.fn()})));}
 beforeEach(()=>{
@@ -20,7 +20,7 @@ it('keeps the draft and reports a failed save without success confirmation',asyn
  expect(container.querySelector('[role=alert]')?.textContent).toContain('Sessão expirada');expect(container.textContent).not.toContain('Rascunho salvo');expect(container.querySelector<HTMLInputElement>('input')?.value).toBe('PROJETO FICTÍCIO');
 });
 it('blocks incomplete completion before any PDF or RPC call',async()=>{
- await render();await click('Abrir formulário');await click('Anexos e conclusão');await click('Concluir projeto e gerar PDF na Mesa Digital');
+ await render();await click('Abrir formulário');await click('Evidências e envio');await click('Enviar Relatório Final e gerar PDF');
  expect(api.rpc).not.toHaveBeenCalled();expect(container.querySelector('[role=alert]')?.textContent).toContain('comprovante');
 });
 it('does not offer writing controls to readers or show fake empty state on load failure',async()=>{
