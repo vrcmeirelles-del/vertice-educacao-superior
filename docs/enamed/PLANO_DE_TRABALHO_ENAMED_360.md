@@ -255,3 +255,17 @@ RECOMENDAÇÃO PARA A ETAPA SEGUINTE:
 - [ ] Verificar se cadernos da reaplicação e 2025 estão em outras fontes F&O antes de registrar ausência definitiva.
 - [ ] Encerrar o aceite E1 somente após revisão normativa, testes e documentos íntegros.
 **E1 não concluída; E2/E3 só preparação, sem atualização dos itens.**
+
+
+## E1/QA — execução de recuperação pública e testes (16/11/2026)
+- [x] Reconferir no GitHub os 8 workflows aprovados do commit `ae19a8847c9ea4b0fe2935634be24ac7d34523e9`, inclusive TypeScript, 415 testes de suíte principal e build.
+- [x] Corrigir inclusão dos 4 testes SSR/visibilidade ENAMED na configuração principal do Vitest.
+- [x] Conferir RLS de `vertice_learning_course_metrics` e a exigência de MFA `aal2`; perfis ainda não testados com login.
+- [x] Criar coleta estática com evidência por GitHub Actions: HTML público recuperado, 0 PDFs expostos em run `43999397676`; segunda rodada confirmou 0 links.
+- [x] Criar tentativa browser/JavaScript em workflow isolado e corrigir runner para Ubuntu 24.04 após incompatibilidade Ubuntu 26.04.
+- [x] Catalogar cobertura da reaplicação C1 e ausência de C2 **nessa tabela**, sem generalizar ausência global.
+- [ ] Obter e autenticar PDFs originais INEP, hashes, gabaritos e retificações.
+- [ ] Confirmar resultado do navegador automatizado em uma execução não cancelada, com anexos e hashes se existirem.
+- [ ] Confirmar 4 testes SSR adicionais no CI e validar autenticação RLS efetiva por Master, Reitoria, CPA, Coordenação/NDE e outra IES.
+- [ ] Confrontar as 483 questões com provas e gabaritos oficiais, concluir revisão médica antes de atualizar F&O/Sapiens.
+**E1 não aceita; não avançar a etapas dependentes.**
