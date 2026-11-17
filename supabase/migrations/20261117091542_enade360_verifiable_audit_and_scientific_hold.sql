@@ -20,7 +20,7 @@ revoke all on function vertice_enade_audit.canonical_event(vertice_enade_audit.r
  from public,anon,authenticated;
 
 create or replace function vertice_enade_audit.capture_record_event()
-returns trigger language plpgsql security definer set search_path = '' as $$
+returns trigger language plpgsql security definer set search_path = '' set timezone = 'UTC' as $$
 declare e vertice_enade_audit.record_events%rowtype;
 begin
  if tg_op not in ('INSERT','UPDATE') then raise exception 'unsupported audit event'; end if;

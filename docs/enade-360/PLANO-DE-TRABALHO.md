@@ -174,3 +174,7 @@ Contrato de governança, testes sintéticos e protótipo isolado entregues. Ver 
 - Correções preparadas/testadas: hash v2 verificável, bloqueio científico em trigger e UI, resolução segura do espelho, build de CI igual ao overlay atual. 24 asserts SQL de regressão e 6 testes do leitor passaram; TypeScript/build locais passaram. Não repetir prototipação encerrada.
 - Credenciais recusadas pelo portal impedem homologação de sessões reais; não substituir por SQL com claims sintéticos. Permissões de negócio não serão ampliadas automaticamente. Manter P-ACCESS-001/P-RLS-REAL-001 e pendências científicas abertas.
 - Confirmar CI da revisão, aplicar somente a migração aditiva testada, integrar e conferir ambos os serviços Render existentes. Registrar o resultado efetivo no próximo adendo de conclusão; esta linha não declara execução futura.
+
+### Precisão dos achados Work
+- Acrescentado caso de fuso horário: 25 asserts SQL locais aprovados. Run 44054965128 comprovou em PostgreSQL 17 a revisão anterior de 24 asserts. Os registros históricos continuam intactos.
+- Exportados os 62 pares para decisão humana: 49 candidatos textuais únicos, 11 múltiplos, 2 sem candidato. Nenhum candidato foi promovido a equivalência. Snapshot e-MEC existente é parcial e contém instrução de modelo, sem evidência oficial dos códigos de curso.

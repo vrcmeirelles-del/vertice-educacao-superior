@@ -1,0 +1,1309 @@
+{
+  "retrieved_at": "2026-11-17",
+  "source": "Supabase Vértice; read-only query; identity from persisted institution map",
+  "accepted_equivalences": 0,
+  "rule": "Textual candidates are not evidence of equivalence. Separate internal namespaces; official course codes and degree evidence required.",
+  "rows": [
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 12,
+      "source_names": [
+        "ADMINISTRAÇÃO"
+      ],
+      "mirror_rows": 7,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "presencial",
+      "textual_candidates": [
+        {
+          "id": "c0e3de55-6bd1-4f92-9dba-3ecfc9794460",
+          "code": "001",
+          "name": "ADMINISTRAÇÃO",
+          "degree": "bacharelado",
+          "modality": "presencial"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 13,
+      "source_names": [
+        "CIÊNCIAS CONTÁBEIS"
+      ],
+      "mirror_rows": 7,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "presencial",
+      "textual_candidates": [
+        {
+          "id": "8b196e9b-cd46-42e6-bbee-e87105a9b028",
+          "code": "002",
+          "name": "CIÊNCIAS CONTÁBEIS",
+          "degree": null,
+          "modality": "presencial"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 14,
+      "source_names": [
+        "PEDAGOGIA"
+      ],
+      "mirror_rows": 2,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "presencial",
+      "textual_candidates": [
+        {
+          "id": "bc859159-94d2-47bf-a34f-7a2df3ec29b4",
+          "code": "003",
+          "name": "PEDAGOGIA",
+          "degree": null,
+          "modality": "presencial"
+        },
+        {
+          "id": "d86c3ae9-e28c-4b5b-a87f-c65ca5e78c7e",
+          "code": null,
+          "name": "PEDAGOGIA",
+          "degree": null,
+          "modality": null
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 18,
+      "source_names": [
+        "TECNOLOGIA EM LOGÍSTICA"
+      ],
+      "mirror_rows": 2,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "tecnologia",
+      "textual_candidates": [
+        {
+          "id": "6c9b5223-de5c-4ab0-9c5b-1adf8f017e0d",
+          "code": "006",
+          "name": "TECNOLOGIA EM LOGÍSTICA",
+          "degree": null,
+          "modality": "presencial"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 20,
+      "source_names": [
+        "TECNOLOGIA EM MARKETING"
+      ],
+      "mirror_rows": 5,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "tecnologia",
+      "textual_candidates": [
+        {
+          "id": "6d8d5f8f-073f-4bb8-b51d-59c2c3f2cb2e",
+          "code": "008",
+          "name": "TECNOLOGIA EM MARKETING",
+          "degree": null,
+          "modality": "presencial"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 21,
+      "source_names": [
+        "TECNOLOGIA EM GESTÃO DE RECURSOS HUMANOS"
+      ],
+      "mirror_rows": 3,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "tecnologia",
+      "textual_candidates": [
+        {
+          "id": "354308d3-d39e-4d19-9fc7-2f3a07afe19b",
+          "code": "009",
+          "name": "TECNOLOGIA EM GESTÃO DE RECURSOS HUMANOS",
+          "degree": null,
+          "modality": "presencial"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 25,
+      "source_names": [
+        "ENFERMAGEM"
+      ],
+      "mirror_rows": 7,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "presencial",
+      "textual_candidates": [
+        {
+          "id": "e28be233-8c60-47b0-86db-bdcc7ffd6290",
+          "code": "013",
+          "name": "ENFERMAGEM",
+          "degree": null,
+          "modality": "presencial"
+        },
+        {
+          "id": "90a30ddd-8b95-46b9-ac9e-ac16f7fc9cc9",
+          "code": null,
+          "name": "ENFERMAGEM",
+          "degree": null,
+          "modality": null
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 26,
+      "source_names": [
+        "ENGENHARIA CIVIL"
+      ],
+      "mirror_rows": 5,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "presencial",
+      "textual_candidates": [
+        {
+          "id": "f02e0585-91ea-4ca9-a9f7-a82ec67c1ff6",
+          "code": "022",
+          "name": "ENGENHARIA CIVIL",
+          "degree": null,
+          "modality": "presencial"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 28,
+      "source_names": [
+        "ADMINISTRAÇÃO - EAD"
+      ],
+      "mirror_rows": 7,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "ead",
+      "textual_candidates": [
+        {
+          "id": "0c5949ef-4c62-4203-9f1f-000ed5449240",
+          "code": "014",
+          "name": "ADMINISTRAÇÃO - EAD",
+          "degree": "bacharelado",
+          "modality": "ead"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 29,
+      "source_names": [
+        "FARMACIA"
+      ],
+      "mirror_rows": 7,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "presencial",
+      "textual_candidates": [
+        {
+          "id": "e154a485-7cd8-4ac7-b02a-6a2d3f02c09d",
+          "code": "012",
+          "name": "FARMACIA",
+          "degree": null,
+          "modality": "presencial"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 30,
+      "source_names": [
+        "BIOMEDICINA"
+      ],
+      "mirror_rows": 5,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "presencial",
+      "textual_candidates": [
+        {
+          "id": "846b150b-4500-4b1a-84ea-3d1e2a7459be",
+          "code": "023",
+          "name": "BIOMEDICINA",
+          "degree": null,
+          "modality": "presencial"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 31,
+      "source_names": [
+        "FISIOTERAPIA"
+      ],
+      "mirror_rows": 7,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "presencial",
+      "textual_candidates": [
+        {
+          "id": "dac3e275-0df6-453d-82ee-718473e7d66c",
+          "code": "024",
+          "name": "FISIOTERAPIA",
+          "degree": null,
+          "modality": "presencial"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 32,
+      "source_names": [
+        "NUTRIÇÃO"
+      ],
+      "mirror_rows": 7,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "presencial",
+      "textual_candidates": [
+        {
+          "id": "e1371326-45a1-4fb3-a413-44a63064169a",
+          "code": "025",
+          "name": "NUTRIÇÃO",
+          "degree": null,
+          "modality": "presencial"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 33,
+      "source_names": [
+        "PEDAGOGIA - EAD"
+      ],
+      "mirror_rows": 1,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "ead",
+      "textual_candidates": [
+        {
+          "id": "e7f731be-4244-44cf-9297-0b68b12998df",
+          "code": "026",
+          "name": "PEDAGOGIA - EAD",
+          "degree": null,
+          "modality": "ead"
+        },
+        {
+          "id": "d0cc1e0f-0a6c-4bb2-b49e-b2e2a7b5f98c",
+          "code": null,
+          "name": "PEDAGOGIA - EAD",
+          "degree": null,
+          "modality": null
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 34,
+      "source_names": [
+        "ESTÉTICA E COSMÉTICA"
+      ],
+      "mirror_rows": 3,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "presencial",
+      "textual_candidates": [
+        {
+          "id": "1c800399-a1e1-41da-8a5a-8b6190e69d12",
+          "code": "067",
+          "name": "ESTÉTICA E COSMÉTICA",
+          "degree": null,
+          "modality": "presencial"
+        },
+        {
+          "id": "59ede3a8-a6c5-4e25-8dba-5a35bbb94891",
+          "code": null,
+          "name": "ESTÉTICA E COSMÉTICA",
+          "degree": null,
+          "modality": null
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 35,
+      "source_names": [
+        "MEDICINA VETERINÁRIA"
+      ],
+      "mirror_rows": 7,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "presencial",
+      "textual_candidates": [
+        {
+          "id": "e431471e-18af-4a76-ab0d-5547464e5d7b",
+          "code": "020",
+          "name": "MEDICINA VETERINÁRIA",
+          "degree": null,
+          "modality": "presencial"
+        },
+        {
+          "id": "1a1ef44c-ccf3-4e28-9c0c-40e2ccd91e81",
+          "code": null,
+          "name": "MEDICINA VETERINÁRIA",
+          "degree": null,
+          "modality": null
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 37,
+      "source_names": [
+        "EDUCAÇÃO FÍSICA"
+      ],
+      "mirror_rows": 7,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "presencial",
+      "textual_candidates": [
+        {
+          "id": "1b8ea84f-9026-4a32-8c46-57d8c95eb06f",
+          "code": "047",
+          "name": "EDUCAÇÃO FÍSICA",
+          "degree": null,
+          "modality": "presencial"
+        },
+        {
+          "id": "671c1a44-e9c2-47dd-baef-c24a2e27fe70",
+          "code": null,
+          "name": "EDUCAÇÃO FÍSICA",
+          "degree": null,
+          "modality": null
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 38,
+      "source_names": [
+        "FONOAUDIOLOGIA"
+      ],
+      "mirror_rows": 7,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "presencial",
+      "textual_candidates": [
+        {
+          "id": "d86d3438-23b9-406a-83c4-78243ac0c9d8",
+          "code": "077",
+          "name": "FONOAUDIOLOGIA",
+          "degree": null,
+          "modality": "presencial"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 40,
+      "source_names": [
+        "ARQUITETURA E URBANISMO"
+      ],
+      "mirror_rows": 5,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "presencial",
+      "textual_candidates": [
+        {
+          "id": "3bb6876f-b2dd-453e-8a63-0d1f66517a13",
+          "code": "015",
+          "name": "ARQUITETURA E URBANISMO",
+          "degree": null,
+          "modality": "presencial"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 41,
+      "source_names": [
+        "TECNOLOGIA EM GASTRONOMIA"
+      ],
+      "mirror_rows": 2,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "tecnologia",
+      "textual_candidates": [
+        {
+          "id": "522240a1-e892-4664-a45b-a428fdcbaf9a",
+          "code": "016",
+          "name": "TECNOLOGIA EM GASTRONOMIA",
+          "degree": null,
+          "modality": "presencial"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 45,
+      "source_names": [
+        "AGRONOMIA"
+      ],
+      "mirror_rows": 7,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "presencial",
+      "textual_candidates": [
+        {
+          "id": "7430e3ae-2c91-4633-84e8-8c8d03ac3b5e",
+          "code": "021",
+          "name": "AGRONOMIA",
+          "degree": null,
+          "modality": "presencial"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 46,
+      "source_names": [
+        "DIREITO"
+      ],
+      "mirror_rows": 7,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "presencial",
+      "textual_candidates": [],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 47,
+      "source_names": [
+        "BIOMEDICINA (SEMIPRESENCIAL)"
+      ],
+      "mirror_rows": 1,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "semipresencial",
+      "textual_candidates": [
+        {
+          "id": "2af1188f-ce73-408b-bd35-5edc5fd2b5dd",
+          "code": "028",
+          "name": "BIOMEDICINA (SEMIPRESENCIAL)",
+          "degree": null,
+          "modality": "semipresencial"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 48,
+      "source_names": [
+        "CIÊNCIAS CONTÁBEIS -EAD"
+      ],
+      "mirror_rows": 7,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "ead",
+      "textual_candidates": [],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 49,
+      "source_names": [
+        "EDUCAÇÃO FÍSICA LICENCIATURA - EAD"
+      ],
+      "mirror_rows": 2,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "ead",
+      "textual_candidates": [
+        {
+          "id": "f674876f-6533-448c-9301-656a0fa7e40a",
+          "code": "030",
+          "name": "EDUCAÇÃO FÍSICA LICENCIATURA - EAD",
+          "degree": null,
+          "modality": "ead"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 63,
+      "source_names": [
+        "TECNOLOGIA EM GESTÃO PÚBLICA"
+      ],
+      "mirror_rows": 3,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "tecnologia",
+      "textual_candidates": [
+        {
+          "id": "6437a521-83f1-475e-8e2b-677f0664fa77",
+          "code": "038",
+          "name": "TECNOLOGIA EM GESTÃO PÚBLICA",
+          "degree": null,
+          "modality": "presencial"
+        },
+        {
+          "id": "6a9b0584-5ea7-41f6-823d-296ed8af7e53",
+          "code": "007",
+          "name": "TECNOLOGIA EM GESTÃO PÚBLICA",
+          "degree": null,
+          "modality": "presencial"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 64,
+      "source_names": [
+        "TECNOLOGIA EM ANÁLISE E DESENVOLVIMENTO DE SISTEMAS - SEMIPRESENCIAL"
+      ],
+      "mirror_rows": 1,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "semipresencial",
+      "textual_candidates": [
+        {
+          "id": "7186ea44-25c0-469e-9ffb-06062d6089c5",
+          "code": "076",
+          "name": "TECNOLOGIA EM ANÁLISE E DESENVOLVIMENTO DE SISTEMAS - SEMIPRESENCIAL",
+          "degree": null,
+          "modality": "semipresencial"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 66,
+      "source_names": [
+        "TECNOLOGIA EM MARKETING -EAD"
+      ],
+      "mirror_rows": 1,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "ead",
+      "textual_candidates": [
+        {
+          "id": "0918c730-5f78-415e-ab04-51f648e05182",
+          "code": "037",
+          "name": "TECNOLOGIA EM MARKETING -EAD",
+          "degree": null,
+          "modality": "ead"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 71,
+      "source_names": [
+        "TECNOLOGIA EM GESTÃO COMERCIAL - EAD - DESATIVADO"
+      ],
+      "mirror_rows": 4,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "ead",
+      "textual_candidates": [
+        {
+          "id": "d4c0b54d-fc67-4379-9e12-97d59f2f3fa9",
+          "code": "043",
+          "name": "TECNOLOGIA EM GESTÃO COMERCIAL - EAD - DESATIVADO",
+          "degree": null,
+          "modality": "ead"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 73,
+      "source_names": [
+        "TECNOLOGIA EM GESTÃO FINANCEIRA -EAD"
+      ],
+      "mirror_rows": 1,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "ead",
+      "textual_candidates": [
+        {
+          "id": "736b6218-bcd9-4dc9-a38d-52f8c2c1ba43",
+          "code": "045",
+          "name": "TECNOLOGIA EM GESTÃO FINANCEIRA -EAD",
+          "degree": null,
+          "modality": "ead"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 74,
+      "source_names": [
+        "TECNOLOGIA EM GESTÃO HOSPITALAR - EAD"
+      ],
+      "mirror_rows": 1,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "ead",
+      "textual_candidates": [
+        {
+          "id": "1cd9dbb7-564a-449b-b1fc-a21c2e638c57",
+          "code": "084",
+          "name": "TECNOLOGIA EM GESTÃO HOSPITALAR - EAD",
+          "degree": null,
+          "modality": "ead"
+        },
+        {
+          "id": "8a6ef5d4-b7c9-4d4d-ae42-8f3ec449818e",
+          "code": "046",
+          "name": "TECNOLOGIA EM GESTÃO HOSPITALAR - EAD",
+          "degree": null,
+          "modality": "ead"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 75,
+      "source_names": [
+        "TECNOLOGIA EM GESTÃO PÚBLICA - EAD"
+      ],
+      "mirror_rows": 5,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "ead",
+      "textual_candidates": [
+        {
+          "id": "ef339d52-7051-4ad4-9c75-2a18e661dd11",
+          "code": "048",
+          "name": "TECNOLOGIA EM GESTÃO PÚBLICA - EAD",
+          "degree": null,
+          "modality": "ead"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 76,
+      "source_names": [
+        "TECNOLOGIA EM LOGISTÍCA - EAD"
+      ],
+      "mirror_rows": 3,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "ead",
+      "textual_candidates": [
+        {
+          "id": "7f54c24a-32c1-441a-bd6d-66124bbb4b77",
+          "code": "049",
+          "name": "TECNOLOGIA EM LOGISTÍCA - EAD",
+          "degree": null,
+          "modality": "ead"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 78,
+      "source_names": [
+        "TECNOLOGIA EM GESTÃO DE RECURSOS HUMANOS -EAD"
+      ],
+      "mirror_rows": 7,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "ead",
+      "textual_candidates": [
+        {
+          "id": "83846d27-1c3e-4b97-b917-0fd90ec14ada",
+          "code": "051",
+          "name": "TECNOLOGIA EM GESTÃO DE RECURSOS HUMANOS -EAD",
+          "degree": null,
+          "modality": "ead"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 83,
+      "source_names": [
+        "TEOLOGIA - EAD"
+      ],
+      "mirror_rows": 1,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "ead",
+      "textual_candidates": [
+        {
+          "id": "2dccbfc3-f0b5-4c15-8e6c-365074453a89",
+          "code": "056",
+          "name": "TEOLOGIA - EAD",
+          "degree": null,
+          "modality": "ead"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 84,
+      "source_names": [
+        "TECNOLOGIA EM GESTÃO EM RECURSOS HUMANOS -EAD"
+      ],
+      "mirror_rows": 1,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "ead",
+      "textual_candidates": [
+        {
+          "id": "6efdbca8-d903-4cbd-982f-e8b89689a2b4",
+          "code": "072",
+          "name": "TECNOLOGIA EM GESTÃO EM RECURSOS HUMANOS -EAD",
+          "degree": null,
+          "modality": "ead"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 85,
+      "source_names": [
+        "CIÊNCIAS CONTÁBEIS - SEMIPRESENCIAL"
+      ],
+      "mirror_rows": 4,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "semipresencial",
+      "textual_candidates": [
+        {
+          "id": "23fca919-6e2d-43e8-b5cf-cd033282a92a",
+          "code": "064",
+          "name": "CIÊNCIAS CONTÁBEIS - SEMIPRESENCIAL",
+          "degree": null,
+          "modality": "semipresencial"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 87,
+      "source_names": [
+        "EDUCAÇÃO FÍSICA LICENCIATURA - SEMIPRESENCIAL"
+      ],
+      "mirror_rows": 5,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "semipresencial",
+      "textual_candidates": [
+        {
+          "id": "7e350d02-81fb-49ee-825c-b81b4720e4dc",
+          "code": "066",
+          "name": "EDUCAÇÃO FÍSICA LICENCIATURA - SEMIPRESENCIAL",
+          "degree": null,
+          "modality": "semipresencial"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 91,
+      "source_names": [
+        "GEOGRAFIA - SEMIPRESENCIAL"
+      ],
+      "mirror_rows": 3,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "semipresencial",
+      "textual_candidates": [
+        {
+          "id": "8aed8188-c078-4480-b75e-f89ed99c6f43",
+          "code": "073",
+          "name": "GEOGRAFIA - SEMIPRESENCIAL",
+          "degree": null,
+          "modality": "semipresencial"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 92,
+      "source_names": [
+        "HISTÓRIA - SEMIPRESENCIAL"
+      ],
+      "mirror_rows": 4,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "semipresencial",
+      "textual_candidates": [
+        {
+          "id": "d88455c3-44a6-4667-a2f5-13738fd422a5",
+          "code": "074",
+          "name": "HISTÓRIA - SEMIPRESENCIAL",
+          "degree": null,
+          "modality": "semipresencial"
+        },
+        {
+          "id": "2f04c18f-ef1f-4cf0-97bf-d3a786b8b80e",
+          "code": "057",
+          "name": "HISTÓRIA - SEMIPRESENCIAL",
+          "degree": null,
+          "modality": "semipresencial"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 95,
+      "source_names": [
+        "TECNOLOGIA EM GESTÃO COMERCIAL - SEMIPRESENCIAL"
+      ],
+      "mirror_rows": 4,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "semipresencial",
+      "textual_candidates": [
+        {
+          "id": "e0dfff4b-9e84-42bd-b09e-f2f5c97262d3",
+          "code": "081",
+          "name": "TECNOLOGIA EM GESTÃO COMERCIAL - SEMIPRESENCIAL",
+          "degree": null,
+          "modality": "semipresencial"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 96,
+      "source_names": [
+        "TECNOLOGIA EM GESTA DE RECURSOS HUMANOS / EAD"
+      ],
+      "mirror_rows": 4,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "ead",
+      "textual_candidates": [
+        {
+          "id": "eaef0d7e-9baa-4248-bd7b-5fbce514b2a8",
+          "code": "082",
+          "name": "TECNOLOGIA EM GESTA DE RECURSOS HUMANOS / EAD",
+          "degree": null,
+          "modality": "ead"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 97,
+      "source_names": [
+        "TECNOLOGIA EM GESTÃO FINANCEIRA - SEMIPRESENCIAL"
+      ],
+      "mirror_rows": 2,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "semipresencial",
+      "textual_candidates": [
+        {
+          "id": "b53100c6-4c1b-439c-a116-a859f7125c53",
+          "code": "083",
+          "name": "TECNOLOGIA EM GESTÃO FINANCEIRA - SEMIPRESENCIAL",
+          "degree": null,
+          "modality": "semipresencial"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 98,
+      "source_names": [
+        "TECNOLOGIA EM GESTÃO HOSPITALAR - EAD"
+      ],
+      "mirror_rows": 2,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "ead",
+      "textual_candidates": [
+        {
+          "id": "1cd9dbb7-564a-449b-b1fc-a21c2e638c57",
+          "code": "084",
+          "name": "TECNOLOGIA EM GESTÃO HOSPITALAR - EAD",
+          "degree": null,
+          "modality": "ead"
+        },
+        {
+          "id": "8a6ef5d4-b7c9-4d4d-ae42-8f3ec449818e",
+          "code": "046",
+          "name": "TECNOLOGIA EM GESTÃO HOSPITALAR - EAD",
+          "degree": null,
+          "modality": "ead"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 99,
+      "source_names": [
+        "TECNOLOGIA EM GESTAO PúBLICA / EAD"
+      ],
+      "mirror_rows": 5,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "ead",
+      "textual_candidates": [
+        {
+          "id": "2ca4c59d-1150-4010-82a1-8ecc74c5a69d",
+          "code": "085",
+          "name": "TECNOLOGIA EM GESTAO PúBLICA / EAD",
+          "degree": null,
+          "modality": "ead"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 100,
+      "source_names": [
+        "LETRAS PORTUGUÊS E INGLÊS - SEMIPRESENCIAL"
+      ],
+      "mirror_rows": 5,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "semipresencial",
+      "textual_candidates": [
+        {
+          "id": "4eabdb45-e8a7-4fca-a805-63239716d3ce",
+          "code": "086",
+          "name": "LETRAS PORTUGUÊS E INGLÊS - SEMIPRESENCIAL",
+          "degree": null,
+          "modality": "semipresencial"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 101,
+      "source_names": [
+        "LETRAS PORTUGUÊS E LITERATURA - SEMIPRESENCIAL"
+      ],
+      "mirror_rows": 3,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "semipresencial",
+      "textual_candidates": [
+        {
+          "id": "9aec0196-4020-491e-b72b-807d073af971",
+          "code": "087",
+          "name": "LETRAS PORTUGUÊS E LITERATURA - SEMIPRESENCIAL",
+          "degree": null,
+          "modality": "semipresencial"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 102,
+      "source_names": [
+        "PEDAGOGIA - SEMIPRESENCIAL"
+      ],
+      "mirror_rows": 7,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "semipresencial",
+      "textual_candidates": [
+        {
+          "id": "a9dcd729-8251-4843-bcd8-6ba79fc83d19",
+          "code": "088",
+          "name": "PEDAGOGIA - SEMIPRESENCIAL",
+          "degree": null,
+          "modality": "semipresencial"
+        },
+        {
+          "id": "b5d5ff7e-8251-4843-bcd8-6ba79fc83d19",
+          "code": null,
+          "name": "PEDAGOGIA - SEMIPRESENCIAL",
+          "degree": null,
+          "modality": null
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 105,
+      "source_names": [
+        "TECNOLOGIA EM MARKETING - SEMIPRESENCIAL"
+      ],
+      "mirror_rows": 5,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "semipresencial",
+      "textual_candidates": [
+        {
+          "id": "c0bbd539-ae07-4e4c-91af-cb63f6106f1d",
+          "code": "091",
+          "name": "TECNOLOGIA EM MARKETING - SEMIPRESENCIAL",
+          "degree": null,
+          "modality": "semipresencial"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 106,
+      "source_names": [
+        "TECNOLOGIA EM GESTÃO COMERCIAL - EAD"
+      ],
+      "mirror_rows": 1,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "ead",
+      "textual_candidates": [
+        {
+          "id": "c537819c-78c6-40e6-b911-9253facf7773",
+          "code": "092",
+          "name": "TECNOLOGIA EM GESTÃO COMERCIAL - EAD",
+          "degree": null,
+          "modality": "ead"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 110,
+      "source_names": [
+        "BIOLOGIA LICENCIATURA (SEMIPRESENCIAL)"
+      ],
+      "mirror_rows": 4,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "semipresencial",
+      "textual_candidates": [
+        {
+          "id": "c62cfba2-75cb-4a31-843c-3ffe61630cf4",
+          "code": "097",
+          "name": "BIOLOGIA LICENCIATURA (SEMIPRESENCIAL)",
+          "degree": null,
+          "modality": "semipresencial"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 113,
+      "source_names": [
+        "TECNOLOGIA EM GESTÃO AMBIENTAL - EAD"
+      ],
+      "mirror_rows": 2,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "ead",
+      "textual_candidates": [
+        {
+          "id": "838f6b1e-9f64-4d23-9487-61a965bc1a87",
+          "code": "111",
+          "name": "TECNOLOGIA EM GESTÃO AMBIENTAL - EAD",
+          "degree": null,
+          "modality": "ead"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 115,
+      "source_names": [
+        "TECNOLOGIA EM GESTÃO DE TURISMO - EAD"
+      ],
+      "mirror_rows": 2,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "ead",
+      "textual_candidates": [
+        {
+          "id": "0376fab7-c74f-4744-b82b-10431b060262",
+          "code": "102",
+          "name": "TECNOLOGIA EM GESTÃO DE TURISMO - EAD",
+          "degree": null,
+          "modality": "ead"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 116,
+      "source_names": [
+        "TECNOLOGIA EM GESTÃO DO AGRONEGÓCIO - EAD"
+      ],
+      "mirror_rows": 5,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "ead",
+      "textual_candidates": [
+        {
+          "id": "da2e810d-249d-489c-854e-3952e5d885c0",
+          "code": "103",
+          "name": "TECNOLOGIA EM GESTÃO DO AGRONEGÓCIO - EAD",
+          "degree": null,
+          "modality": "ead"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 117,
+      "source_names": [
+        "TECNOLOGIA EM LOGISTÍCA - SEMIPRESENCIAL"
+      ],
+      "mirror_rows": 5,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "semipresencial",
+      "textual_candidates": [
+        {
+          "id": "892b4801-3d29-490c-80f8-134292e97046",
+          "code": "104",
+          "name": "TECNOLOGIA EM LOGISTÍCA - SEMIPRESENCIAL",
+          "degree": null,
+          "modality": "semipresencial"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 118,
+      "source_names": [
+        "MATEMÁTICA - SEMIPRESENCIAL"
+      ],
+      "mirror_rows": 2,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "semipresencial",
+      "textual_candidates": [
+        {
+          "id": "9d9749a1-7522-435e-b7c1-86016a787246",
+          "code": "105",
+          "name": "MATEMÁTICA - SEMIPRESENCIAL",
+          "degree": null,
+          "modality": "semipresencial"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 121,
+      "source_names": [
+        "SERVIÇO SOCIAL - SEMIPRESENCIAL"
+      ],
+      "mirror_rows": 5,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "semipresencial",
+      "textual_candidates": [
+        {
+          "id": "e6ea5644-2606-484a-996d-77a41a1cffc3",
+          "code": "108",
+          "name": "SERVIÇO SOCIAL - SEMIPRESENCIAL",
+          "degree": null,
+          "modality": "semipresencial"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 126,
+      "source_names": [
+        "NUTRIÇÃO - SEMIPRESENCIAL"
+      ],
+      "mirror_rows": 3,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "semipresencial",
+      "textual_candidates": [
+        {
+          "id": "eb7d7771-92be-46f0-866c-43c99ae889c6",
+          "code": "114",
+          "name": "NUTRIÇÃO - SEMIPRESENCIAL",
+          "degree": null,
+          "modality": "semipresencial"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 127,
+      "source_names": [
+        "ESTÉTICA E COSMÉTICA - SEMIPRESENCIAL"
+      ],
+      "mirror_rows": 1,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "semipresencial",
+      "textual_candidates": [
+        {
+          "id": "97ddd5eb-2cc5-4d8e-98fa-0e89a14d8b69",
+          "code": "115",
+          "name": "ESTÉTICA E COSMÉTICA - SEMIPRESENCIAL",
+          "degree": null,
+          "modality": "semipresencial"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 128,
+      "source_names": [
+        "FARMÁCIA - SEMIPRESENCIAL"
+      ],
+      "mirror_rows": 1,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "semipresencial",
+      "textual_candidates": [
+        {
+          "id": "7cc14435-d73e-4a3e-ba7c-6dee0211af50",
+          "code": "116",
+          "name": "FARMÁCIA - SEMIPRESENCIAL",
+          "degree": null,
+          "modality": "semipresencial"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 129,
+      "source_names": [
+        "FISIOTERAPIA - SEMIPRESENCIAL"
+      ],
+      "mirror_rows": 1,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "semipresencial",
+      "textual_candidates": [
+        {
+          "id": "79b74eb6-58de-4181-8bc2-4e74cac178ce",
+          "code": "117",
+          "name": "FISIOTERAPIA - SEMIPRESENCIAL",
+          "degree": null,
+          "modality": "semipresencial"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    },
+    {
+      "instituicao_id": "cda828bd-4f55-432a-a824-387716c3cb2b",
+      "curso_id": 130,
+      "source_names": [
+        "EDUCAÇÃO FÍSICA BACHARELADO - SEMIPRESENCIAL"
+      ],
+      "mirror_rows": 1,
+      "vertice_institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+      "source_modality": "semipresencial",
+      "textual_candidates": [
+        {
+          "id": "08ecab0a-242c-4713-9d66-33f8e9012b7d",
+          "code": "118",
+          "name": "EDUCAÇÃO FÍSICA BACHARELADO - SEMIPRESENCIAL",
+          "degree": null,
+          "modality": "semipresencial"
+        }
+      ],
+      "mapping_status": "PENDING_HUMAN_EVIDENCE"
+    }
+  ]
+}

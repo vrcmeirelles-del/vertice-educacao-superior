@@ -199,3 +199,8 @@ Data/hora; etapa; fonte/URL/versão; ação executada; resultado e evidências; 
 - Conciliação institucional utiliza tabela existente para a UNITOP; 49 candidatos por texto não aprovados, 43 colisões entre códigos de namespaces diferentes e 90 cursos da IES sem grau. Nenhuma equivalência/cadastro alterado.
 - Testes locais: 24 asserts SQL com funções/migrações reais em PGlite (Auth sintético, digest com SHA-256 nativo), 6 testes do leitor, TypeScript e build passaram. CI remoto/aplicação da nova migração/merge/deploy ainda devem ser confirmados, não presumidos.
 - Decisão: proteger publicação e persistir achados. Zero indicadores reproduzidos, zero conciliações científicas, nenhuma homologação nem especialização autorizada.
+
+## Entrada 027 — 2026-11-17 — CI e detalhe de rastreabilidade
+- GitHub Actions 44054965128, commit 8e9166e1b166d0396ecdc27b5591b37e3d52eb9a: contract-tests e disposable-postgres-rls completed/success. Produção SQL de auditoria ensaiada em PostgreSQL 17/pgcrypto, com identidades sintéticas.
+- Antes de aplicar ao banco, incluída correção para serialização de linha sempre em UTC na função de captura, sem alterar timezone global; novo ensaio local 25/25 asserts passou. Nova revisão requer CI próprio.
+- Inventário pendente de 62 pares salvo. Snapshot e-MEC UNITOP revisão 3 não é evidência de cursos: partial, um registro institucional com texto de modelo. Não há fundamento para vincular cursos por ele.

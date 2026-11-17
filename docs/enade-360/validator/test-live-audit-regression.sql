@@ -63,6 +63,10 @@ select public.enade_test_assert((select count(*)=2 from public.vertice_enade360_
 select public.enade_test_assert((select count(*)=0 from public.vertice_enade360_audit_history('20000000-0000-4000-8000-000000000021')),'other institution history denied');
 update public.vertice_enade360_records set notes='Authorized institutional edit' where id='10000000-0000-4000-8000-000000000021';
 select public.enade_test_assert((select count(*)=4 from public.vertice_enade360_audit_history('10000000-0000-4000-8000-000000000021')),'authorized edit is audited');
+reset role;
+set timezone='UTC';
+select public.enade_test_assert((select e.row_sha256=encode(extensions.digest(convert_to(to_jsonb(r)::text,'UTF8'),'sha256'),'hex') from public.vertice_enade360_records r join vertice_enade_audit.record_events e on e.record_id=r.id where r.id='10000000-0000-4000-8000-000000000021' order by e.id desc limit 1),'row hash captured in UTC even when writer timezone differs');
+set role authenticated;
 do $$ begin
  begin
   update public.vertice_enade360_records set kind='resultado_oficial',source_kind='oficial',source_ref='https://www.gov.br/inep',validation_status='validado',validated_by=auth.uid(),validated_at=now() where id='10000000-0000-4000-8000-000000000021';
