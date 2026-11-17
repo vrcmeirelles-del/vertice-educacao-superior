@@ -225,3 +225,15 @@ Leia em conjunto com `BIBLIA_MESTRA_ENAMED_360.md` e `PLANO_DE_TRABALHO_ENAMED_3
 - Ferramenta de navegador conectado recusou acesso por falta de contexto de extensão; não houve login real de Master, Reitoria, CPA, Coordenação ou NDE. Consulta SQL somente leitura confirmou **0 linhas** em `public.vertice_learning_course_metrics` (Vértice).
 - Criado `ENAMED_360_REGISTRO_GATES_PUBLICACAO.json`: seis gates reprovados/pendentes de evidência para E1, revisão clínica, RLS real, ponte ponta a ponta e release, com operações de produção vedadas. Criado `enamed-release-gates.test.mjs` e vinculado à CI.
 - **Decisão:** auditoria preliminar concluída; homologação definitiva, reindexação e publicação **BLOQUEADAS** e não executadas; PR #168 permanece draft. Nenhum gabarito, item, tentativa, histórico, migração ou serviço produtivo alterado.
+
+
+## 2026-11-17 — execução em três ciclos, confronto completo e correções reais
+- **CONCLUÍDA:** confronto automatizado de 483 IDs × cinco campos; 414 equivalentes em tokens extraídos, 69 diferenças; 22 variantes e 17 posições da reaplicação com relatórios completos. Sem parecer clínico.
+- **CONCLUÍDA:** 30 ocorrências de imagens inventariadas; vínculos preparados, seis hashes herdados preservados; sem upload nem liberação de direitos.
+- **CONCLUÍDA:** cinco PDFs normativos adicionais recuperados e hashados no Actions 44054849030; revisão por edição em PARECER_DOCUMENTAL_EXECUCAO_20261117.md.
+- **CONCLUÍDA:** atualização da branch com main, conflito/menu duplicado corrigidos, prompt por curso, teste sintético ENAMED na ponte, proteção de médias/deltas com amostra insuficiente. Oito cenários nativos e regressões aprovados; evidência em REGISTRO_EVIDENCIAS_EXECUCAO_20261117.json.
+- **CONCLUÍDA:** dez workflows success no código 92b5f649d805df3f4ab1ecfaa6313777089a77c6, incluindo TS22/24 e contratos. Não é deploy.
+- **BLOQUEADA:** 16 cenários autenticados por ausência de ambiente isolado e contas por perfil/MFA; browser disponível, chegou à tela /entrar. Matriz individual atualizada.
+- **BLOQUEADA:** dual-IA real sem sessão Master AAL2; curador médico e aceite por item ausentes; mídia não pode ser homologada pelo comando textual.
+- **BLOQUEADA:** definitivos previstos em 04/12/2026, retificações e aceites; migração/reindexação/merge/deploy NÃO EXECUTADOS.
+- Histórico preservado; nenhuma operação em dados produtivos. Bíblia v2.8.

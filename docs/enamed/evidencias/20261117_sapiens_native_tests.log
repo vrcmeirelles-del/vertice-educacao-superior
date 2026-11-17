@@ -1,0 +1,16 @@
+✔ complete native cycle across HTTP and two PostgreSQL engines; stores longitudinal aggregates and audit (3801.908032ms)
+✔ rejection never dispatches; Master and MFA checks reject before mutations; forged request scope rejected (1800.824876ms)
+✔ lost acknowledgement retries immutable payload without duplicate registration or baseline reset (1638.142764ms)
+✔ communication errors, invalid acknowledgement and failed local commit never become sent; expired lease recovers (1832.315909ms)
+✔ no eligible students, course mismatch, F&O eligibility loss and disabled tenant fail closed (1587.774816ms)
+✔ feedback retry after local failure reuses remote measurement; revoked cohort produces insufficient_data (1759.403171ms)
+✔ database ACL/RLS: browser cannot decide, read outbox or forge audit; reads require institution and AAL2 (1597.990429ms)
+✔ ENAMED synthetic intervention: native HTTP registration, scoped competency, longitudinal feedback and consent withdrawal (1595.677128ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 15858.331495

@@ -1,0 +1,38 @@
+[
+  {
+    "id": "NT40",
+    "url": "https://download.inep.gov.br/educacao_superior/enade/notas_tecnicas/2025/nota_tecnica_40_calculo_conceito_enade_medicina.pdf",
+    "status": "BLOQUEADA",
+    "error": "HTTP Error 503: Service Unavailable"
+  },
+  {
+    "id": "NT19",
+    "url": "https://download.inep.gov.br/enamed/nota_tecnica_n_19_2025.pdf",
+    "status": "BLOQUEADA",
+    "error": "HTTP Error 503: Service Unavailable"
+  },
+  {
+    "id": "NT1PL",
+    "url": "https://download.inep.gov.br/enamed/nota_tecnica_1pl_2025.pdf",
+    "status": "BLOQUEADA",
+    "error": "HTTP Error 503: Service Unavailable"
+  },
+  {
+    "id": "NT42",
+    "url": "https://download.inep.gov.br/enamed/nota_tecnica_n_42_2025.pdf",
+    "status": "BLOQUEADA",
+    "error": "HTTP Error 503: Service Unavailable"
+  },
+  {
+    "id": "MANUAL",
+    "url": "https://download.inep.gov.br/educacao_superior/enade/manuais/manual_do_enamed_para_participantes_e_ies.pdf",
+    "status": "BLOQUEADA",
+    "error": "HTTP Error 503: Service Unavailable"
+  },
+  {
+    "id": "EDITAL71",
+    "url": "https://download.inep.gov.br/enamed/edital_71_de_28_de_maio_de_2026.pdf",
+    "status": "BLOQUEADA",
+    "error": "HTTP Error 503: Service Unavailable"
+  }
+]

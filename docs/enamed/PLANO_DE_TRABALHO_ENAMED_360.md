@@ -382,3 +382,15 @@ RECOMENDAÇÃO PARA A ETAPA SEGUINTE:
 - [ ] Executar os 16 testes reais por perfil em homologação isolada e demonstrar ponte sintética F&O→Vértice→Sapiens.
 - [ ] Aprovar explicitamente o release, revisar PR, fundir/publicar e validar operação publicada somente após os gates.
 **Regra:** sem mais reabertura artificial da auditoria; estado atual terminal da solicitação = BLOQUEADO COM EVIDÊNCIA. Produção intacta.
+
+
+## Execução cumulativa v2.8
+- **CONCLUÍDA:** confronto automatizado de 483 IDs × cinco campos; 414 equivalentes em tokens extraídos, 69 diferenças; 22 variantes e 17 posições da reaplicação com relatórios completos. Sem parecer clínico.
+- **CONCLUÍDA:** 30 ocorrências de imagens inventariadas; vínculos preparados, seis hashes herdados preservados; sem upload nem liberação de direitos.
+- **CONCLUÍDA:** cinco PDFs normativos adicionais recuperados e hashados no Actions 44054849030; revisão por edição em PARECER_DOCUMENTAL_EXECUCAO_20261117.md.
+- **CONCLUÍDA:** atualização da branch com main, conflito/menu duplicado corrigidos, prompt por curso, teste sintético ENAMED na ponte, proteção de médias/deltas com amostra insuficiente. Oito cenários nativos e regressões aprovados; evidência em REGISTRO_EVIDENCIAS_EXECUCAO_20261117.json.
+- **CONCLUÍDA:** dez workflows success no código 92b5f649d805df3f4ab1ecfaa6313777089a77c6, incluindo TS22/24 e contratos. Não é deploy.
+- **BLOQUEADA:** 16 cenários autenticados por ausência de ambiente isolado e contas por perfil/MFA; browser disponível, chegou à tela /entrar. Matriz individual atualizada.
+- **BLOQUEADA:** dual-IA real sem sessão Master AAL2; curador médico e aceite por item ausentes; mídia não pode ser homologada pelo comando textual.
+- **BLOQUEADA:** definitivos previstos em 04/12/2026, retificações e aceites; migração/reindexação/merge/deploy NÃO EXECUTADOS.
+- Histórico preservado; nenhuma operação em dados produtivos. Bíblia v2.8.

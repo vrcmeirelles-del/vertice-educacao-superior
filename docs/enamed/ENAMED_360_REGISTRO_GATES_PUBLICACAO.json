@@ -14,44 +14,115 @@
   },
   "regression_ci": {
     "status": "PASS",
-    "commit": "a34dfcf814cf4680f768213fd6db8f7edfb8a46c",
+    "commit": "92b5f649d805df3f4ab1ecfaa6313777089a77c6",
     "workflow_runs": [
-      44049679829,
-      44049679822,
-      44049680109
+      44054848783,
+      44054849017,
+      44054848825,
+      44054848848
     ],
-    "caveat": "Successful static CI does not prove a live signed-in tenant/session"
+    "caveat": "Ten successful workflows; no live signed-in tenant session or clinical approval."
   },
   "conditions": {
     "final_inep_answer_keys": {
       "approved": false,
-      "evidence": [],
-      "reason": "2026 final answer keys/retifications not authenticated in reviewed corpus"
+      "evidence": [
+        "docs/enamed/INEP_NORMAS_SHA256_20261117.json",
+        "docs/enamed/PARECER_DOCUMENTAL_EXECUCAO_20261117.md"
+      ],
+      "reason": "Catálogo oficial consultado em 17/11/2026 lista quatro gabaritos PRELIMINARES; definitivos previstos 04/12/2026.",
+      "history": [
+        {
+          "date": "2026-11-17",
+          "approved": false,
+          "reason": "2026 final answer keys/retifications not authenticated in reviewed corpus",
+          "evidence": []
+        }
+      ],
+      "status": "BLOQUEADA"
     },
     "full_item_text_media_comparison": {
       "approved": false,
-      "evidence": [],
-      "reason": "Complete per-ID PDF-vs-stem/options/media audit unfinished"
+      "evidence": [
+        "docs/enamed/CONFRONTO_INTEGRAL_483_20261117.json",
+        "docs/enamed/MIDIAS_VINCULOS_PREPARADOS_20261117.json",
+        "docs/enamed/VARIANTES_22_CONFRONTO_COMPLETO_20261117.json",
+        "docs/enamed/REAPLICACAO_17_CONFRONTO_COMPLETO_20261117.json"
+      ],
+      "reason": "483 textos extraídos e quatro alternativas comparados integralmente; revisão visual de tabelas, símbolos e 30 mídias candidatas e direitos ainda sem aceite.",
+      "history": [
+        {
+          "date": "2026-11-17",
+          "approved": false,
+          "reason": "Complete per-ID PDF-vs-stem/options/media audit unfinished",
+          "evidence": []
+        }
+      ],
+      "status": "BLOQUEADA"
     },
     "medical_and_dual_ai_editorial_review": {
       "approved": false,
-      "evidence": [],
-      "reason": "Two independent reviews plus medical final approval not performed"
+      "evidence": [
+        "docs/enamed/MATRIZ_HOMOLOGACAO_EXECUCAO_20261117.json"
+      ],
+      "reason": "Sem sessão Master AAL2 para executar o comando dual-IA existente, sem parecer médico por item; comando textual não homologa mídia.",
+      "history": [
+        {
+          "date": "2026-11-17",
+          "approved": false,
+          "reason": "Two independent reviews plus medical final approval not performed",
+          "evidence": []
+        }
+      ],
+      "status": "BLOQUEADA"
     },
     "authenticated_multi_tenant_qa": {
       "approved": false,
-      "evidence": [],
-      "reason": "No authorized live MFA sessions available in this chat"
+      "evidence": [
+        "docs/enamed/MATRIZ_HOMOLOGACAO_EXECUCAO_20261117.json"
+      ],
+      "reason": "Navegador Work disponível, porém tela /entrar sem sessão; Supabase sem branches e Render sem previews. 16 casos autenticados bloqueados.",
+      "history": [
+        {
+          "date": "2026-11-17",
+          "approved": false,
+          "reason": "No authorized live MFA sessions available in this chat",
+          "evidence": []
+        }
+      ],
+      "status": "BLOQUEADA"
     },
     "fato_ordem_vertice_sapiens_e2e": {
       "approved": false,
-      "evidence": [],
-      "reason": "No verified synthetic E2E sync; target institutional metrics table zero rows"
+      "evidence": [
+        "docs/enamed/REGISTRO_EVIDENCIAS_EXECUCAO_20261117.json"
+      ],
+      "reason": "Oito testes locais da ponte, inclusive ENAMED via HTTP e dois motores PostgreSQL, aprovados; diagnóstico semeado e auth simulada. Falta E2E no ambiente remoto autenticado.",
+      "history": [
+        {
+          "date": "2026-11-17",
+          "approved": false,
+          "reason": "No verified synthetic E2E sync; target institutional metrics table zero rows",
+          "evidence": []
+        }
+      ],
+      "status": "BLOQUEADA"
     },
     "release_approval": {
       "approved": false,
-      "evidence": [],
-      "reason": "Depends on preceding gates, human sign-off, and deployment QA"
+      "evidence": [
+        "docs/enamed/MATRIZ_HOMOLOGACAO_EXECUCAO_20261117.json"
+      ],
+      "reason": "Aceites clínico/documental e autenticado não emitidos; autorização final de publicação pendente deles.",
+      "history": [
+        {
+          "date": "2026-11-17",
+          "approved": false,
+          "reason": "Depends on preceding gates, human sign-off, and deployment QA",
+          "evidence": []
+        }
+      ],
+      "status": "BLOQUEADA"
     }
   },
   "prohibited_until_approval": [
@@ -62,5 +133,20 @@
     "merge_pr_168",
     "deploy_to_production"
   ],
-  "next_action_required": "Provide valid authorized staged sessions / MFA profiles for isolated QA and authenticate final official documents when published. Do not claim automatic completion."
+  "next_action_required": "Disponibilizar ambiente isolado e contas de teste por perfil com MFA/AAL2; designar curador médico. Aguardar definitivos e homologar corpus antes de reindexar/publicar.",
+  "evaluation_history": [
+    {
+      "date": "2026-11-17",
+      "regression_ci": {
+        "status": "PASS",
+        "commit": "a34dfcf814cf4680f768213fd6db8f7edfb8a46c",
+        "workflow_runs": [
+          44049679829,
+          44049679822,
+          44049680109
+        ],
+        "caveat": "Successful static CI does not prove a live signed-in tenant/session"
+      }
+    }
+  ]
 }

@@ -1,0 +1,33 @@
+# Parecer documental de execução — 17/11/2026
+
+**Resultado: PARCIALMENTE CONCLUÍDA; release BLOQUEADO.** Responsável pelo confronto técnico: Codex. Não constitui parecer médico, chancela do Inep ou aceite humano regulatório.
+
+## Confronto por questão
+
+`CONFRONTO_INTEGRAL_483_20261117.json` registra cada ID, edição, aplicação, caderno, URL/hash do PDF, página física, coluna, hash do snapshot, comparação completa de enunciado/comando e quatro alternativas, números e diferenças por intervalo de tokens. São 2.415 campos: **414 registros equivalentes nos tokens extraídos e 69 com diferenças**, dos quais 25 têm sequência numérica do enunciado diferente. Pontuação, sinais, unidades e negação são preservados. Não há limiar de similaridade que aprove conteúdo.
+
+Estado da atividade de comparação: **CONCLUÍDA**. Estado da homologação do conteúdo: **BLOQUEADA**. A extração lê a camada textual do PDF e pode apresentar diferenças de hifenização, sobrescritos, tabelas e ordem de leitura. Não é conferência visual integral. As 22 variantes prioritárias têm relatório completo por versão; as 17 posições ausentes da reaplicação têm comparação completa C1/C2. Não foi escolhido automaticamente um ID canônico.
+
+`MIDIAS_VINCULOS_PREPARADOS_20261117.json` contém **30 ocorrências rasterizadas** nos quatro cadernos, com página, bbox, XREF, bytes, hash e IDs candidatos. Os seis hashes anteriormente verificados continuam iguais. Nenhum arquivo de imagem foi publicado. Associação geométrica é uma proposta; tabelas vetoriais, qualidade do recorte, direito de reprodução e integridade clínica exigem aceite. A consulta de Storage por nomes contendo `enamed` retornou zero objetos; isso não é inventário global de mídias da plataforma. `usage_rights=verificado` é rótulo cadastrado, não nova prova jurídica.
+
+## Corpus normativo recuperado
+
+Origem: [Actions 44054849030](https://github.com/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44054849030), artefato **14315053075**. Manifesto: `INEP_NORMAS_SHA256_20261117.json`. Cinco arquivos recuperados com HTTPS verificado, seus hashes recalculados localmente. NT19 teve reset; a recuperação seguinte reutiliza os cinco arquivos arquivados e tenta somente o pendente. A segunda tentativa (Actions 44055441790, artefato 14314968512) repetiu o reset da NT19; os cinco arquivos já verificados foram reutilizados sem novos downloads.
+
+| Fonte | Localizador | Constatação e limite de uso |
+|---|---|---|
+| [NT40/2025](https://download.inep.gov.br/educacao_superior/enade/notas_tecnicas/2025/nota_tecnica_40_calculo_conceito_enade_medicina.pdf) | pp. 2–3, seções 5–7 | Mínimo de dez concluintes válidos, SC abaixo desse número; filtros TP_INSCRICAO=1, IN_REGULAR=1, TP_INSCRICAO_ADM em 0/2, TP_PRES=555; PCP=NCP/NC. Limiares 0,400/0,600/0,750/0,900 para conceitos 1–5. Agrega proficiência oficial, nunca acerto em simulado. Aplicação depende das regras da edição. |
+| [NT42/2025](https://download.inep.gov.br/enamed/nota_tecnica_n_42_2025.pdf) | pp. 3–5, seções 4–7 | Metodologia **da edição 2025**: anulações 6/8 viram NA, calibração Rasch, exclusões iterativas, EAP e transformação de escala. Constantes 17,544 e 67,018 são da edição descrita; não importar automaticamente para 2026. A seção 7 trata o Enare 2025 por regra distinta do resultado TRI. |
+| [NT1PL/2025](https://download.inep.gov.br/enamed/nota_tecnica_1pl_2025.pdf) | seis páginas | Fundamentação do modelo de um parâmetro, discussão de multidimensionalidade e equalização. Justificativa de escolha do modelo não fornece parâmetros individuais, cortes de 2026 nem validação do acervo F&O. |
+| [Manual Enamed](https://download.inep.gov.br/educacao_superior/enade/manuais/manual_do_enamed_para_participantes_e_ies.pdf) | capítulos 2–3 e 6–8 | Distingue 15 competências de referência e 12 entradas na matriz da prova teórica; suas enumerações não são intercambiáveis. Urgência é contexto transversal. Quarto ano é diagnóstico, sem nível de proficiência nem participação no Conceito. Escala individual 0–100/proficiência 60 é diferente de percentual bruto. A equalização depende da aplicação e dos parâmetros. |
+| [Edital71 republicado](https://download.inep.gov.br/enamed/edital_71_de_28_de_maio_de_2026.pdf) | itens 1.1, 1.3 e 3.1.1 | Publicação de 21/08/2026; 8º/12º semestres, prova de cem itens/quatro alternativas, referência normativa/bibliográfica até 03/07/2026. Cronograma definitivo em 04/12/2026. Exige controle das republicações; a notícia original de maio não deve prevalecer sobre a republicação. |
+
+O [catálogo de provas](https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enamed/provas-e-gabaritos) e as notícias oficiais de [15/09](https://www.gov.br/inep/pt-br/centrais-de-conteudo/noticias/enamed/inep-divulga-gabarito-preliminar-do-enamed-2026-e-da-1a-etapa-do-revalida-2026-2/) e [20/10](https://www.gov.br/inep/pt-br/centrais-de-conteudo/noticias/enamed/enamed-2026-inep-divulga-gabarito-preliminar-da-reaplicacao-da-prova) identificam gabaritos **preliminares**. Não foi localizado definitivo 2026 na consulta. Não se conclui ausência de retificações não recuperadas. Vigência legislativa integral, transcrição literal da Portaria478 e os demais atos ainda exigem validação própria.
+
+## Testes, implantação e decisões
+
+Oito cenários locais da ponte passaram, incluindo ENAMED, HTTP local, dois bancos PostgreSQL descartáveis, restrições de instituição/curso, consentimento, idempotência, falhas e feedback. O diagnóstico foi semeado e a autenticação simulada: não houve geração clínica por IA nem sessão real. Corrigido o handler para não persistir médias de grupos menores que cinco nem deltas declarados insuficientes. Fonte e fixture F&O obtidas da branch oficial; o fixture inicial de Q-matrix foi alinhado à constraint médica observada no banco real, exclusivamente no motor descartável.
+
+Os 16 cenários reais estão individualmente **BLOQUEADOS** na matriz: navegador abriu `/entrar`, não há sessão autorizada nem ambiente remoto isolado identificado. A chamada dual-IA exige Master AAL2; o comando existente é textual e não homologa mídia. Nenhum recibo dual-IA real ou parecer médico foi emitido nesta execução.
+
+**Produção: nenhuma escrita.** Sem reindexação, alteração de gabaritos, deduplicação, importação, upload de imagem, migração de banco, merge da PR ou deploy. IDs, respostas, tentativas e históricos preservados. Os seis gates permanecem sem aprovação. A reversão das mudanças preparatórias é feita na branch; não há migração produtiva a reverter. Qualquer migração futura depende de snapshot atualizado, aceites por ID, comparação antes/depois e rollback conferido.

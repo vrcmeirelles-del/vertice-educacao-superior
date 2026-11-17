@@ -1,0 +1,160 @@
+{
+  "schema_version": "enamed-authenticated-qa-v1",
+  "date": "2026-11-17",
+  "environment_observed": "https://www.verticesuperior.com.br/entrar",
+  "observed_state": "Email/password form, no signed-in session; not an isolated staging deployment",
+  "supabase_development_branches": 0,
+  "render_preview_enabled": false,
+  "responsible": "Codex — registro técnico, não aceite humano",
+  "cases": [
+    {
+      "case": "ACL-01",
+      "profile": "Master AAL2",
+      "status": "BLOQUEADA",
+      "executed": false,
+      "observed": null,
+      "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+      "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+    },
+    {
+      "case": "ACL-02",
+      "profile": "Master sem AAL2",
+      "status": "BLOQUEADA",
+      "executed": false,
+      "observed": null,
+      "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+      "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+    },
+    {
+      "case": "ACL-03",
+      "profile": "Reitoria AAL2",
+      "status": "BLOQUEADA",
+      "executed": false,
+      "observed": null,
+      "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+      "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+    },
+    {
+      "case": "ACL-04",
+      "profile": "Reitoria inter-IES",
+      "status": "BLOQUEADA",
+      "executed": false,
+      "observed": null,
+      "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+      "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+    },
+    {
+      "case": "ACL-05",
+      "profile": "CPA AAL2",
+      "status": "BLOQUEADA",
+      "executed": false,
+      "observed": null,
+      "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+      "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+    },
+    {
+      "case": "ACL-06",
+      "profile": "Coordenação visão institucional",
+      "status": "BLOQUEADA",
+      "executed": false,
+      "observed": null,
+      "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+      "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+    },
+    {
+      "case": "ACL-07",
+      "profile": "Coordenação/NDE por curso",
+      "status": "BLOQUEADA",
+      "executed": false,
+      "observed": null,
+      "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+      "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+    },
+    {
+      "case": "ACL-08",
+      "profile": "NDE mutação",
+      "status": "BLOQUEADA",
+      "executed": false,
+      "observed": null,
+      "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+      "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+    },
+    {
+      "case": "ACL-09",
+      "profile": "Docente por disciplina",
+      "status": "BLOQUEADA",
+      "executed": false,
+      "observed": null,
+      "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+      "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+    },
+    {
+      "case": "ACL-10",
+      "profile": "Docente sem AAL2/escopo",
+      "status": "BLOQUEADA",
+      "executed": false,
+      "observed": null,
+      "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+      "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+    },
+    {
+      "case": "ACL-11",
+      "profile": "Outra IES IDOR",
+      "status": "BLOQUEADA",
+      "executed": false,
+      "observed": null,
+      "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+      "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+    },
+    {
+      "case": "ACL-12",
+      "profile": "Usuário não autorizado",
+      "status": "BLOQUEADA",
+      "executed": false,
+      "observed": null,
+      "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+      "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+    },
+    {
+      "case": "ACL-13",
+      "profile": "Filtros institucionais",
+      "status": "BLOQUEADA",
+      "executed": false,
+      "observed": null,
+      "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+      "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+    },
+    {
+      "case": "ACL-14",
+      "profile": "Desktop/celular autenticados",
+      "status": "BLOQUEADA",
+      "executed": false,
+      "observed": null,
+      "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+      "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+    },
+    {
+      "case": "ACL-15",
+      "profile": "Sessão expirada",
+      "status": "BLOQUEADA",
+      "executed": false,
+      "observed": null,
+      "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+      "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+    },
+    {
+      "case": "ACL-16",
+      "profile": "Estudante não conciliado",
+      "status": "BLOQUEADA",
+      "executed": false,
+      "observed": null,
+      "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+      "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+    }
+  ],
+  "additional_requested_roles": {
+    "Direção": "BLOQUEADA — sem sessão autorizada de teste",
+    "NDE": "BLOQUEADA — sem sessão autorizada de teste"
+  },
+  "synthetic_tests_are_not_live_sessions": true
+}

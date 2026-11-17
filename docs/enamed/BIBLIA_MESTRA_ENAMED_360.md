@@ -1,6 +1,6 @@
 # BÍBLIA-MESTRA DO PROJETO — ENAMED 360° / INEP INTELLIGENCE
 **Projeto:** Vértice Educação Superior × Fato & Ordem × Sapiens 360°  
-**Versão:** 2.7 — auditoria encerrada e gates de homologação/publicação formalizados  
+**Versão:** 2.8 — confronto integral automatizado, mídias preparadas e ponte sintética ENAMED testada
 **Data-base:** 16 de novembro de 2026  
 **Status:** documento-mestre de projeto; NÃO corresponde à implantação ou homologação da solução.  
 **Governança:** evolução cumulativa por etapas, com revisão retrospectiva obrigatória.  
@@ -490,3 +490,31 @@ A auditoria preliminar foi **ENCERRADA** com entrega de `TERMO_ENCERRAMENTO_AUDI
 **Controle técnico acrescentado:** `ENAMED_360_REGISTRO_GATES_PUBLICACAO.json` registra seis gates com `approved=false` e motivos/evidências, a relação de operações proibidas, versão auditada e status `BLOCKED`. `scripts/tests/enamed-release-gates.test.mjs` e `verify-enamed-contracts.yml` impedem que esta declaração evolua silenciosamente para release aprovado em documentos sem revisão específica. O teste é um controle de integridade do registro, **não um bloqueio operacional universal de todas as possibilidades de deploy**.
 
 **ADR-ENAMED-027:** o aceite da auditoria preliminar é terminal e independente de liberação do produto. Reindexação, exclusão/fusão de IDs, alteração de gabaritos, publicação de cálculo oficial ou merge/deploy da PR #168 **não estão autorizados** até evidências e sign-off por responsáveis. Não preencher a ausência de resultados por inferência.
+
+
+## 27. Atualização cumulativa v2.8 — execução independente após a auditoria encerrada (17/11/2026)
+**Resultado:** PARCIALMENTE CONCLUÍDA; release BLOQUEADO. Preservados todo o histórico, ADRs, IDs, tentativas e os seis gates. Não reabre a auditoria preliminar encerrada.
+
+### Ciclo 1 — documentação e mídia
+1. **CONCLUÍDA:** reutilizado artefato oficial 14299257407; oito hashes locais iguais ao manifesto. SELECT dos 483 registros completos gerou snapshot e comparação de 2.415 campos (enunciado/comando + quatro alternativas). `CONFRONTO_INTEGRAL_483_20261117.json`: 414 registros equivalentes em tokens extraídos, 69 com diferenças; 25 com sequência numérica do enunciado diferente. Resultados de extração não são juízo clínico nem equivalência visual. Não se remove pontuação, sinal, unidade ou negação para aprovar uma questão.
+2. **CONCLUÍDA:** 22 variantes cotejadas integralmente no texto extraído por versão; 17 posições da reaplicação cotejadas com correspondentes C2. Inventário de 30 ocorrências rasterizadas nos quatro PDFs, com hashes, páginas, bbox e vínculos preparados. Os seis hashes já identificados foram preservados. Nenhum upload nem associação em produção; tabelas vetoriais, símbolos e direitos exigem revisão visual/humana.
+3. **CONCLUÍDA:** rechecado catálogo oficial com gabaritos preliminares e calendário definitivo 04/12/2026. Recuperação normativa adicional autenticada via Actions 44054849030, artefato 14315053075: NT40, NT1PL, NT42, Manual e Edital71. NT19 sofreu reset; nova recuperação exclui os cinco documentos já verificados. Manifesto `INEP_NORMAS_SHA256_20261117.json` e parecer documental registram escopo por edição.
+
+### Ciclo 2 — código e validação
+1. **CONCLUÍDA:** incorporada main `f0f7e6c75e2dc1662ef5c340838aca483022b5f4` na branch; resolvido conflito de navegação, removida duplicação de Trilhas ENADE. Nenhuma ampliação de autorização por perfil. Prompt do TrailAnalysis utiliza o curso selecionado e separa simulado, inferência e resultado oficial.
+2. **CONCLUÍDA em testes locais:** oito cenários nativos F&O/Vértice/Sapiens, incluindo ENAMED via HTTP local e dois motores PostgreSQL descartáveis; escopo institucional/curso/competência, idempotência, MFA/RLS simuladas, falhas, consentimento e acompanhamento longitudinal. Diagnóstico foi semeado; autenticação foi simulada. Não representa sessão real, inferência médica por IA ou homologação remota.
+3. **CONCLUÍDA na branch:** teste ENAMED detectou persistência de estimativas/deltas com grupo reduzido a quatro após revogação. Handler agora preserva contagens, grava médias como null em grupos menores que cinco e deltas null quando a qualidade é insuficiente. Regressão passou. Não houve alteração de histórico persistido nem deploy dessa correção.
+
+### Ciclo 3 — gates e fronteiras reais
+1. **CONCLUÍDA:** TypeScript completo, build e 419 testes principais, 214 de contratos/UI, 55 médicos, 19 de extensão, 30 do Conecta, replay SQL médico, dez contratos dual-IA e contratos ENAMED aprovados localmente. Dez workflows do commit `92b5f649d805df3f4ab1ecfaa6313777089a77c6` success; CI separado do deploy e da homologação clínica.
+2. **BLOQUEADA:** navegador Work abriu /entrar, sem sessão. Supabase não tem branches de desenvolvimento; Render não tem preview da PR. Os 16 casos têm estado individual BLOQUEADA em `MATRIZ_HOMOLOGACAO_EXECUCAO_20261117.json`; nenhum foi convertido em PASS por causa dos testes sintéticos.
+3. **BLOQUEADA:** sem sessão Master AAL2 para o comando dual-IA existente e sem médico responsável com parecer por item. O comando textual não homologa mídias. Reindexação, aliases efetivos, alterações de gabarito, merge da PR e deploy continuam não executados.
+
+**ADR-ENAMED-025:** comparar o texto inteiro pode identificar diferenças sem resolver sua interpretação clínica ou artefatos de extração; a aprovação documental exige também a inspeção visual e o parecer pertinente.
+**ADR-ENAMED-026:** qualidade insuficiente não autoriza estimativa de evolução; conservar denominadores e ausência explícita, sem transformar em zero ou nota oficial.
+**ADR-ENAMED-027:** a NT42 descreve constantes e regras de 2025; não aplicar automaticamente a 2026. As 15 competências da Portaria478 e as 12 entradas da matriz teórica resumida no Manual têm enumerações distintas, que não podem ser fundidas por número romano.
+
+**Produção:** sem DDL/DML, sem mídia publicada, sem migração pedagógica, sem merge/deploy. Banco de métricas Vértice consultado com zero linhas; Q-matrix F&O com zero vínculos ENAMED. Ausência não prova funcionamento da integração nem nota zero. Para prosseguir operacionalmente: ambiente isolado e contas autorizadas com MFA/AAL2; parecer médico e aceites documentais; versão definitiva do Inep quando publicada; aceite final de release.
+
+### Resultado da recuperação normativa complementar
+- Actions 44055441790 / artefato 14314968512: cinco PDFs reutilizados do arquivo verificado; NT19 novamente bloqueada por reset de conexão. Sem nova transferência dos cinco documentos. Evidência `evidencias/20261117_norms_retry.json`. Nenhum gate regulatório foi aprovado por esse sucesso operacional de workflow.

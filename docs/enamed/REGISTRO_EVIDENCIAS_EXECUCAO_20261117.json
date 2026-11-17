@@ -1,0 +1,209 @@
+{
+  "schema_version": "enamed-execution-evidence-v1",
+  "date": "2026-11-17",
+  "input_bible_version": "2.7",
+  "source_branch_head": "03ccc91442ba52f9f620bbff9febecb72b74ef24",
+  "merged_main": "f0f7e6c75e2dc1662ef5c340838aca483022b5f4",
+  "code_commit": "92b5f649d805df3f4ab1ecfaa6313777089a77c6",
+  "corpus_reused_actions_artifact": 14299257407,
+  "local_hash_checks": [
+    {
+      "id": "REG-C1",
+      "sha256": "194e5ba39f98a0cf191011ab0f92f8d59bcecb64b01dc1deb85d77fa4b271666",
+      "matches_manifest": true
+    },
+    {
+      "id": "REG-C2",
+      "sha256": "46ede6c93bacf3516580aefe49b4b3d71a4a54386942828c021246a9f0cda818",
+      "matches_manifest": true
+    },
+    {
+      "id": "REG-GAB-C1-PREL",
+      "sha256": "81827610cb8974568b94d09d8f2fa905aa4cfb0e1563401dd7ddeea8914e3b88",
+      "matches_manifest": true
+    },
+    {
+      "id": "REG-GAB-C2-PREL",
+      "sha256": "bda457587f287c6b3cfb424e611290ab1cdf98caf153db35a54db31315a176e9",
+      "matches_manifest": true
+    },
+    {
+      "id": "REAP-C1",
+      "sha256": "00adbb762c2b0f6851443eb0615be187ce9a300a0e6648f7571ae10d26fb4409",
+      "matches_manifest": true
+    },
+    {
+      "id": "REAP-C2",
+      "sha256": "fcfeac8b246593ca5f875db648ccac6e4888ca8d88d4a5fcd6401cfa55b4daf7",
+      "matches_manifest": true
+    },
+    {
+      "id": "REAP-GAB-C1-PREL",
+      "sha256": "175f894ae29b52b8ed55eca2b6b0250ce6b23685ec0a38bfbaaf89faed2f5e68",
+      "matches_manifest": true
+    },
+    {
+      "id": "REAP-GAB-C2-PREL",
+      "sha256": "0af4435b6be4ac904f5bdac3044ced19393b65d1b0dc051677d07057ce2bebc4",
+      "matches_manifest": true
+    }
+  ],
+  "full_comparison": {
+    "records": 483,
+    "full_fields_compared": 2415,
+    "token_equivalent": 414,
+    "extraction_complete": 483
+  },
+  "snapshot_sha256": "04d7681f59d4fbf8f3613a42572fc8c526f79c7d67351ff5d99a6147ea734b8e",
+  "local_tests": {
+    "portal": {
+      "status": "CONCLUÍDA",
+      "passed": 419,
+      "log_sha256": "44453aa9bbb5a9e10b9e1031c0737cbbf66ba151d7e94703e1c889073210fcbe",
+      "kind": "SYNTHETIC_OR_STATIC_NOT_LIVE_HOMOLOGATION"
+    },
+    "portal_types": {
+      "status": "CONCLUÍDA",
+      "passed": 214,
+      "log_sha256": "b04e8fa17f23c7522ed77abd1ef04c959edee20f5f925e4e1dfa7c7cc29890ff",
+      "kind": "SYNTHETIC_OR_STATIC_NOT_LIVE_HOMOLOGATION"
+    },
+    "medical": {
+      "status": "CONCLUÍDA",
+      "passed": 55,
+      "log_sha256": "e8908502e686849f7f6438a6c662fc93b1f7cd242c66d268649245620ee7d188",
+      "kind": "SYNTHETIC_OR_STATIC_NOT_LIVE_HOMOLOGATION"
+    },
+    "extension": {
+      "status": "CONCLUÍDA",
+      "passed": 19,
+      "log_sha256": "794cbce93d47947e5f50154890ffeb2f87f31471e5f26d7eeb77e90f2abb7fde",
+      "kind": "SYNTHETIC_OR_STATIC_NOT_LIVE_HOMOLOGATION"
+    },
+    "conecta": {
+      "status": "CONCLUÍDA",
+      "passed": 30,
+      "log_sha256": "e663bd76878986432bb830b8012bf6f56491d65978b40296f2cf6beca675dfc4",
+      "kind": "SYNTHETIC_OR_STATIC_NOT_LIVE_HOMOLOGATION"
+    },
+    "medical_sql": {
+      "status": "CONCLUÍDA",
+      "passed": 1,
+      "log_sha256": "fbf06a12bdbc79b3987f64a1a14ac89fc1372196e3e98ea709468ecbacd8b68e",
+      "kind": "SYNTHETIC_OR_STATIC_NOT_LIVE_HOMOLOGATION"
+    },
+    "sapiens_native": {
+      "status": "CONCLUÍDA",
+      "passed": 8,
+      "log_sha256": "a81c405d0dd2c1e3e608f74032dabc464d6049c4f3e8e3da1ecb452b534bea52",
+      "kind": "SYNTHETIC_OR_STATIC_NOT_LIVE_HOMOLOGATION",
+      "evidence": "evidencias/20261117_sapiens_native_tests.log"
+    },
+    "dual_ai_contract": {
+      "status": "CONCLUÍDA",
+      "passed": 10,
+      "log_sha256": "e75ba7f0c940817281fb2c7c6ede05cdfc407e1ae54e81a6d5a81c9bfb08bd10",
+      "kind": "SYNTHETIC_OR_STATIC_NOT_LIVE_HOMOLOGATION"
+    },
+    "enamed_node_contract": {
+      "status": "CONCLUÍDA",
+      "passed": 15,
+      "log_sha256": "560e3868bce0544707a77524ec7ceeb308f260ad8a42791d04e2275daee42e6f",
+      "kind": "SYNTHETIC_OR_STATIC_NOT_LIVE_HOMOLOGATION"
+    },
+    "enamed_parser_tls_python": {
+      "status": "CONCLUÍDA",
+      "passed": 6,
+      "log_sha256": "46131e54dcd7cc5340795ab5701c4c1d07d58ddc087bd0ca8b8a664277199fd7",
+      "kind": "SYNTHETIC_OR_STATIC_NOT_LIVE_HOMOLOGATION"
+    },
+    "inep_artifact_python": {
+      "status": "CONCLUÍDA",
+      "passed": 4,
+      "log_sha256": "ce636f51dd38ea290ad0faa344ca11b7c31fce8dcc350500464a41db44483a10",
+      "kind": "SYNTHETIC_OR_STATIC_NOT_LIVE_HOMOLOGATION"
+    },
+    "typescript": {
+      "status": "CONCLUÍDA",
+      "log_sha256": "c310add22d320a9829af40bde4fc592d85798e8b858f2e140d0065e6eb66e8fc"
+    },
+    "build": {
+      "status": "CONCLUÍDA",
+      "log_sha256": "b3c9f853cc21015b562a4f1449d68793b14b95f38ce78e7cc68effd49fa799b4"
+    }
+  },
+  "source_synthetic_test_graph": {
+    "fo_ref": "a35615865ce5399f0a78c805482ba912513d417e",
+    "scope": "Published F&O fixture/source files retrieved through GitHub; two disposable PostgreSQL engines; HTTP loopback; auth verification stubbed, no real user sessions. Seeded synthetic diagnosis, not AI generation.",
+    "blob_manifest": "evidencias/20261117_fo_source_blobs.json"
+  },
+  "read_only_observations": {
+    "vertice_learning_course_metrics": 0,
+    "fo_enamed_kc_links": 0,
+    "enamed_named_storage_objects": 0,
+    "storage_scope_limit": "Only names containing enamed; no global claim of absence.",
+    "fo_item_usage_rights": "verificado is a database label, not independent reproduction authorization.",
+    "fo_kind_constraint": "Live schema accepts enamed/residencia; inherited migration 054 test fixture did not. Test-only fixture aligned; no production change."
+  },
+  "production_writes": false,
+  "release_deployed": false,
+  "human_medical_approval": false,
+  "dual_ai_live_calls": 0,
+  "auth_qa": "MATRIZ_HOMOLOGACAO_EXECUCAO_20261117.json",
+  "external_dependencies": [
+    "Official final answer keys, scheduled 2026-12-04; current catalog labels preliminary.",
+    "Outstanding normative binary retrieval/review.",
+    "Isolated staging and authorized test accounts per profile with MFA/AAL2; Master session for existing dual-AI command.",
+    "Designated authorized medical reviewer and per-item approvals, followed by final release sign-off."
+  ],
+  "normative_recovery": {
+    "run": 44054849030,
+    "artifact": 14315053075,
+    "recovered": 5,
+    "pending": [
+      "NT19"
+    ],
+    "manifest": "INEP_NORMAS_SHA256_20261117.json",
+    "retry": {
+      "commit": "322f8ab0658d51020d9ec97d6a02a30eeb3ed02d",
+      "run": 44055441790,
+      "artifact": 14314968512,
+      "result": "NT19 still blocked: connection reset by peer; five previously verified PDFs reused without downloads",
+      "evidence": "evidencias/20261117_norms_retry.json"
+    }
+  },
+  "ci": {
+    "commit": "92b5f649d805df3f4ab1ecfaa6313777089a77c6",
+    "result": "success",
+    "workflow_count": 10,
+    "runs": [
+      44054849017,
+      44054849030,
+      44054848933,
+      44054848844,
+      44054848825,
+      44054848848,
+      44054848887,
+      44054848783,
+      44054848869,
+      44054848857
+    ]
+  },
+  "original_failures_resolved": [
+    {
+      "case": "InstitutionTabs after main integration",
+      "observed": "Duplicate trilhas-enade macro assignment; 418/419 tests initially passed",
+      "resolution": "Kept one original regulatory destination; final 419/419 passed"
+    },
+    {
+      "case": "ENAMED feedback after consent withdrawal",
+      "observed": "Four-person group was insufficient yet retained .4000 delta",
+      "resolution": "Handler suppresses small-cohort averages and insufficient deltas; all eight native tests passed"
+    },
+    {
+      "case": "Inherited synthetic fixture",
+      "observed": "Migration054 fixture lacked medical question kinds and consent_at is NOT NULL",
+      "resolution": "Aligned disposable fixture with observed live kind constraint and used existing revoked_at flow. No hosted schema change."
+    }
+  ]
+}
