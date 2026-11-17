@@ -138,3 +138,10 @@ Antes de cada etapa consultar os três documentos. Concluído só com evidência
 3. **Testes:** autorização sintética passou a exigir MFA aal2, com dois negativos adicionais. CI `44046955001`, commit d339a13dca41fd834a3095b8edaab828ac3f18a0, 242/242 casos aprovados.
 **Ciclo 02 sugerido:** (1) consultar metadados vivos do Supabase em leitura, (2) fechar correspondência papéis-vínculos por curso, (3) preparar testes SQL de RLS em banco isolado. Nenhum deploy implícito.
 Pendências P-SCHEMA-REAL-001, P-ACCESS-001, P-TRACE-001, P-API-001, P-CROSS-001, P-ZIP-001, P-NT-001, P-REF-001 e P-TOL-001 mantidas.
+
+## Adendo v1.6 — Ciclo 02 em três ações (2026-11-17)
+- **Ação 1:** consulta de catálogos reais do projeto Supabase Vértice, somente leitura; tabelas, constraints, funções relevantes e policies identificadas. P-SCHEMA-REAL-001 parcial.
+- **Ação 2:** documentada matriz conceitual de perfis vs `vertice_memberships`, `vertice_impacto_roles` e `vertice_learning_staff_scope`, com necessidade de validar escopo de curso, MFA e mapeamento UUID/bigint. P-ACCESS-001 aberta.
+- **Ação 3:** executada suíte sintética de 24 casos JS em CI, não RLS PostgreSQL. Run 44047694892, commit ad82b1c7d743a5934a93c340ab45ae403878a02d: 266/266 testes sintéticos aprovados. P-RLS-SQL-001 aberta (PostgreSQL descartável).
+- **Ciclo 03 proposto:** (1) reconciliar contratos e tabelas reais de autorização e vínculo e-ORBIT; (2) preparar testes SQL de RLS para ambiente descartável; (3) executar em banco isolado, se disponível, com provas de negação e rollback. Nada aplicar em produção.
+- P-TRACE-001/P-API-001 e pendências científicas preservadas.
