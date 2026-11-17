@@ -174,3 +174,9 @@ Leia em conjunto com `BIBLIA_MESTRA_ENAMED_360.md` e `PLANO_DE_TRABALHO_ENAMED_3
 - **Artefatos:** `ENAMED_2026_MAPA_PERMUTACOES_CADERNOS_DRAFT.json`, `ENAMED_2026_LOCALIZADOR_PAGINAS_400_QUESTOES.json`, `ENAMED_2026_REAPLICACAO_17_POSICOES_EQUIVALENTES.json`, `E1_AUDITORIA_TEXTUAL_483_E_MAPA_CADERNOS_20261117.md`, `scripts/tests/enamed-booklet-maps.test.mjs`; workflow ENAMED atualizado.
 - **QA:** execução anterior de TypeScript/419 testes comprovada em commits anteriores; verificar execução final do novo workflow. Sessões reais autenticadas por perfis continuam não executadas; PR #168 draft, sem deploy.
 - **Estado:** E1 não aceita integralmente; revisão clínica e duas IAs não disparadas; nenhuma questão, gabarito ou tentativa de estudante modificada.
+
+
+### 2026-11-17 — Adendo: divergências normalizadas por campo
+- Consulta somente leitura em `fo_enamed_items`: 200 posições duplicadas; 57 enunciados brutos distintos, 31 após ignorar espaços, 22 após ignorar espaços/pontuação; todas as 22 posições no regular Caderno 2. Alternativas: 2 diferenças brutas e 0 após ignorar espaços.
+- Novos artefatos: `ENAMED_2026_22_DIVERGENCIAS_TEXTUAIS_PERSISTENTES_C2.json` e adendo `E1_AUDITORIA_TEXTUAL_483_E_MAPA_CADERNOS_20261117.md`.
+- Nenhuma alteração em gabaritos, itens, históricos, banco ou RLS. Divergências alfanuméricas não equivalem automaticamente a erro semântico. A análise clínica integral e autenticação por perfil continuam pendentes.
