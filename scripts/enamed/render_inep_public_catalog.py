@@ -55,7 +55,34 @@ def main():
                 entry["filename"]=filename
                 entry["sha256"]=hashlib.sha256(body).hexdigest()
                 entry["status"]="BYTE_HASH_VALID_PROVENANCE_PENDING"
-            except Exception as e: entry["error"]=str(e)[:180]
+            except Exception as e:
+                entry["urllib_error"]=str(e)[:180]
+                # Secondary HTTPS transport: Playwright APIRequestContext with strict certificate
+                # verification. Never pass ignore_https_errors=True or disable certificate checks.
+                try:
+                    with sync_playwright() as p:
+                        request=p.request.new_context(ignore_https_errors=False,timeout=18000)
+                        response=request.get(url,max_redirects=3)
+                        final_url=response.url
+                        if not permitted(final_url):
+                            raise ValueError("redirect outside official allowed hosts")
+                        if not response.ok:
+                            raise ValueError("HTTP response "+str(response.status))
+                        pdf=response.body()
+                        if len(pdf)>30*1024*1024:
+                            raise ValueError("document over 30 MiB")
+                        if not pdf.startswith(b"%PDF-") or b"%%EOF" not in pdf[-2048:]:
+                            raise ValueError("invalid or truncated PDF")
+                        name=f"catalog_pdf_{index+1:02d}.pdf"
+                        (output/name).write_bytes(pdf)
+                        entry.update({"filename":name,"size_bytes":len(pdf),
+                          "sha256":hashlib.sha256(pdf).hexdigest(),
+                          "redirected_url":final_url,
+                          "tls_mode":"validated_playwright_request",
+                          "status":"BYTE_HASH_VALID_PROVENANCE_PENDING"})
+                        request.dispose()
+                except Exception as secondary:
+                    entry["error"]=str(secondary)[:180]
             report["documents"].append(entry)
         report["status"]="complete"
     except Exception as error:report["error"]=str(error)[:350]
