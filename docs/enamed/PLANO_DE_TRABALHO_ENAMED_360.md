@@ -348,3 +348,17 @@ RECOMENDAÇÃO PARA A ETAPA SEGUINTE:
 - [ ] Preparar homologação autenticada dos 16 cenários com massa sintética, AAL2 e duas IES, sem modificar o ambiente produtivo.
 - [ ] Recuperar gabaritos definitivos e notas metodológicas, revisar retificações, e finalizar E1 antes da reindexação no F&O.
 **Status:** triagem documental ampliada; nenhum aceite clínico, E1 ainda aberta.
+
+
+## Rodada de três ações — textos completos entre cópias, imagens e testes (17/11/2026)
+- [x] Consultar apenas em leitura 22 pares de `stem` e `alternatives` completos do F&O; registrar diferenças por ID e página.
+- [x] Identificar **8/22 pares** com diferenças de tokens numéricos (12,42,44,49,74,89,90,99) que exigem conferência de valores/unidades com a prova.
+- [x] Extrair metadados de **6 imagens rasterizadas** das páginas do PDF Caderno 2 regular (12,68,81,82,89,97): `xref`, bbox, bytes, SHA-256 e associação geométrica por questão.
+- [x] Criar `E1_22_VARIANTES_COMPARACAO_INTEGRAL_ENTRE_COPIAS.json`, `E1_ENAMED_22_MIDIAS_PDF_HASH_E_PAGINA.json`, `E1_TRES_ACOES_TEXTOS_MIDIAS_CONTRATOS_20261117.md`.
+- [x] Criar `scripts/tests/enamed-e1-content-media-contract.test.mjs` e integrá-lo à CI da PR.
+- [ ] Conferir resultado CI do último HEAD que inclui os novos arquivos, sem contar execuções canceladas.
+- [ ] Cotejar integralmente cada versão com o PDF oficial (não só F&O vs F&O), incluindo todas as alternativas, números, unidades, figuras e tabelas.
+- [ ] Validar recorte e direito de uso de cada uma das seis imagens antes de qualquer vínculo ao portal.
+- [ ] Recuperar gabaritos definitivos e retificações, homologar notas técnicas e matrizes, somente então iniciar curadoria clínica formal e dupla IA.
+- [ ] Executar os 16 cenários em ambiente autenticado de homologação com massa sintética, MFA/RLS, escopos curso e duas instituições.
+**Gate:** E1 ainda aberta; sem atualização de produção ou publicação da PR.
