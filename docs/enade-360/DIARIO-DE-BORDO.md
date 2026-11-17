@@ -177,3 +177,9 @@ Data/hora; etapa; fonte/URL/versão; ação executada; resultado e evidências; 
 - Confirmada em leitura consulta de 62 pares distintos IES/curso e-ORBIT, configuração de equivalências vazia e nenhum candidato direto pelo critério código exato ou nome normalizado; sem atribuição automática.
 - Mantida evidência run 44048407509 com 266/266 testes sintéticos e RLS/rollback PostgreSQL descartável aprovados; isso não é RLS das sessões reais da Vértice.
 - Nenhum dado de produção alterado; nenhum índice INEP calculado com microdados; documentos cumulativos preservados. Retomada somente mediante ZIP/planilhas oficiais, equivalências validadas ou ambiente clonado de testes.
+
+## Entrada 024 — 2026-11-17 — Auditoria implantada, barreira científica explícita
+- Migração real `20261117084920_enade360_private_audit_history_and_read_gate` aplicada ao Supabase `vertice-educacao-superior`; schema privado, evento baseline em dez registros, captura automática e RPC autenticada para histórico. Verificações SQL: 10 registros auditados, RLS habilitada, privilégios diretos de leitura para anon/authenticated negados, RPC EXECUTE negado a anon; zero divergências de curso/IES na linha base. Segurança com sessões reais de perfil ainda não homologada.
+- PR #171 criada para consultar a trilha no componente ENADE 360; andamento condicionado a CI e merge, não declarar deploy antes da confirmação.
+- INEP: microdados 2023 identificados em portal oficial, tentativa de transferência falhou; Library e Drive sem microdados ZIP localizados. Zero `resultado_oficial` e zero registros validados na tabela ENADE 360. Motor científico não reproduzido; proibido dizer concluído.
+- Documentação cumulativa preservada; fase de integração operacional avançou efetivamente; homologação científica permanece bloqueada por fonte.
