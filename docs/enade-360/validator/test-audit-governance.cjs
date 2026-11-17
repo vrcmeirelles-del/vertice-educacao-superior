@@ -3,7 +3,7 @@ const assert=require("node:assert/strict");
 const {append,verify,canRead,readEvidence}=require("./audit-event-prototype.cjs");
 const entry={event_id:"E1",stream_id:"S1",tenant_id:"T1",institution_id:"I1",course_id:"C1",result_id:"R1",event_type:"SOURCE_CAPTURED",idempotency_key:"K1"};
 const resource={tenant_id:"T1",institution_id:"I1",course_id:"C1",visibility:"COURSE",contains_personal_data:false};
-function subject(role,course="C1",institution="I1",tenant="T1"){return {user_id:"U",role,active:true,grants:[{active:true,role,tenant_id:tenant,institution_id:institution,course_id:course}]};}
+function subject(role,course="C1",institution="I1",tenant="T1"){return {user_id:"U",role,active:true,mfa_level:"aal2",grants:[{active:true,role,tenant_id:tenant,institution_id:institution,course_id:course}]};}
 const tests=[];
 function test(name,fn){tests.push([name,fn]);}
 test("append_first",()=>assert.equal(append([],entry)[0].sequence,1));
@@ -26,6 +26,8 @@ test("cpa_denied_course",()=>assert(!canRead(subject("CPA"),resource)));
 test("cpa_aggregated_allowed",()=>assert(canRead(subject("CPA"),{...resource,visibility:"AGGREGATED"})));
 test("cpa_personal_denied",()=>assert(!canRead(subject("CPA"),{...resource,visibility:"AGGREGATED",contains_personal_data:true})));
 test("anonymous_denied",()=>assert(!canRead(null,resource)));
+test("without_mfa_denied",()=>assert(!canRead({...subject("MASTER"),mfa_level:"aal1"},resource)));
+test("missing_mfa_denied",()=>{const s=subject("REITORIA");delete s.mfa_level;assert(!canRead(s,resource));});
 test("inactive_denied",()=>assert(!canRead({...subject("MASTER"),active:false},resource)));
 test("role_mismatch_denied",()=>assert(!canRead({...subject("MASTER"),role:"NDE"},resource)));
 test("read_authorized",()=>assert.equal(readEvidence(subject("COORDENACAO"),resource,append([],entry)).status,200));
