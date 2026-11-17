@@ -104,3 +104,13 @@ Leia em conjunto com `BIBLIA_MESTRA_ENAMED_360.md` e `PLANO_DE_TRABALHO_ENAMED_3
 - **Engenharia:** arquivo Python offline de verificação de integridade e quatro testes sintéticos, e quatro testes Vitest SSR/visibilidade de perfil. Workflows atualizados em PR; aprovação do pipeline da última edição deve ser inspecionada.
 - **Constatação de navegação:** `enade` disponível para Master/Reitoria/CPA, mas não para coordenador/NDE; estes veem `trilhas-enade`. Não mudar autorização sem validação do escopo.
 - **Status:** E1 parcial, E2/E3 preparatórias, nenhuma alteração em banco, gabarito, aluno, migração ou Render; PR #168 permanece draft.
+
+
+## 2026-11-16 — Passagem de execução: CI validado, fontes pendentes e fila médica #170
+- **Entrada:** Bíblia v1.6, Plano e Diário; PR #168; scripts e testes existentes.
+- **Automação:** GitHub Actions run `43997164508` completo success: 2 testes do dicionário + 4 de integração Node, 4 testes Python de arquivo sintético, todos sem falhas. Teste TypeScript/SSR de interface na execução da última branch ainda depende do workflow `43997164461`.
+- **PDFs INEP:** consulta ao edital oficial republicado 71/2026 e ao catálogo Inep. Tentativa de download binário no ambiente falhou; nenhum SHA-256 real. Os três source URLs cadastrados no F&O foram inventariados com status `não autenticado`, sem alegar identidade documental.
+- **Curadoria:** issue #170 criada com 200 posições duplicadas, duas diferenças de alternativas e as demais divergências estruturais; nenhum revisor médico individual designado e nenhuma revisão paga por duas IAs disparada.
+- **Regressão e perfil:** testes SSR/visibilidade adicionados; coordenador/NDE não têm acesso direto a ENADE institucional na navegação atual, apesar de possuírem Trilhas ENADE. Exige mudança deliberada e RLS por curso, não simples habilitação visual.
+- **Evidências:** `CONFLITOS_DUPLICATAS_ENAMED_2026.csv`, `FONTES_FO_PENDENTES_AUTENTICACAO_20261116.json`, `E1_CADEIA_CUSTODIA_E_REGRAS_20261116.md`, issue #170 e Actions #43997164508.
+- **Estado final:** E1 não homologada; E2/E3 preparatórias; PR #168 draft, sem publicação; bancos e históricos intactos.
