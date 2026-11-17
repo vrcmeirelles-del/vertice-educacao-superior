@@ -134,3 +134,13 @@ Leia em conjunto com `BIBLIA_MESTRA_ENAMED_360.md` e `PLANO_DE_TRABALHO_ENAMED_3
 - **F&O:** duas tabelas ENAMED nomeadas, `fo_enamed_items` registra 83 posições de reaplicação C1 e nenhuma de C2; lacuna candidata, sem modificação.
 - **Artefato:** `E1_COLETA_BINARIOS_E_QA_PERFIS_20261116.md` com URLs, relatórios Actions e aceite pendente.
 - **Estado:** E1 aberta, E2/E3 preparatórias, PR #168 draft, produção preservada; pendências explicitamente mantidas.
+
+
+## 2026-11-16 — E1: 11 URLs oficiais descobertas com browser; certificados de PDF bloqueados
+- **Entrada:** Bíblia v1.9, Plano e Diário; tentou-se primeiro HTML estático, sem URLs.
+- **Browser:** run `43999991024` em Ubuntu 24.04 instalou Chromium, renderizou `www.gov.br/inep` com JavaScript e extraiu 11 URLs de PDFs, 837 âncoras. JSON oficial versionado com metadados de aplicação, caderno, tipo e `sha256:null`.
+- **Transferência:** urllib não concluiu nenhum dos 11 documentos (TLS issuer/reset); `curl` no run `44000426717` tentou oito documentos principais, 0 êxitos, sete `curl 60` e um `curl 35`. Não foi usado bypass de TLS, não houve SHA-256 de PDF.
+- **Acurácia:** URL dos três cadernos já declarados no F&O coincide com URL publicada pelo INEP; Caderno 2 da reaplicação e dois gabaritos da reaplicação agora têm links oficiais identificados. Isso não valida conteúdo nem gabarito definitivo, ainda previsto para 04/12/2026.
+- **Código:** `discover_public_inep_pdfs.py`, `render_inep_public_catalog.py`, `download_verified_links_curl.py`, workflow `enamed-inep-public-corpus.yml` e `INEP_2026_LINKS_OFICIAIS_CONFIRMADOS.json`. Nenhuma migração ou escrita em banco.
+- **Permissões:** testes estáticos / SSR adicionados à suíte; logins reais com MFA e escopo de cursos ainda não executados. A aprovação do TypeScript em commit anterior não é aceite de sessão real.
+- **Próxima barreira:** obter binários com cadeia de certificados verificável ou canal oficial alternativo; após isso homologar provas, 483 itens, duplicatas, competências e gabaritos. E1 aberta, E2/E3 preparatórias, PR #168 draft.
