@@ -1,0 +1,66 @@
+{
+  "schema_version": "enamed360-gates-v1",
+  "evaluated_on": "2026-11-17",
+  "pr": 168,
+  "release_status": "BLOCKED",
+  "preliminary_audit": {
+    "status": "COMPLETE",
+    "evidence": "docs/enamed/TERMO_ENCERRAMENTO_AUDITORIA_PRELIMINAR_20261117.md"
+  },
+  "source_pdf_evidence": {
+    "status": "VERIFIED_PRELIMINARY",
+    "count": 8,
+    "manifest": "docs/enamed/INEP_2026_SHA256_DOCUMENTOS_PRELIMINARES_20261117.json"
+  },
+  "regression_ci": {
+    "status": "PASS",
+    "commit": "a34dfcf814cf4680f768213fd6db8f7edfb8a46c",
+    "workflow_runs": [
+      44049679829,
+      44049679822,
+      44049680109
+    ],
+    "caveat": "Successful static CI does not prove a live signed-in tenant/session"
+  },
+  "conditions": {
+    "final_inep_answer_keys": {
+      "approved": false,
+      "evidence": [],
+      "reason": "2026 final answer keys/retifications not authenticated in reviewed corpus"
+    },
+    "full_item_text_media_comparison": {
+      "approved": false,
+      "evidence": [],
+      "reason": "Complete per-ID PDF-vs-stem/options/media audit unfinished"
+    },
+    "medical_and_dual_ai_editorial_review": {
+      "approved": false,
+      "evidence": [],
+      "reason": "Two independent reviews plus medical final approval not performed"
+    },
+    "authenticated_multi_tenant_qa": {
+      "approved": false,
+      "evidence": [],
+      "reason": "No authorized live MFA sessions available in this chat"
+    },
+    "fato_ordem_vertice_sapiens_e2e": {
+      "approved": false,
+      "evidence": [],
+      "reason": "No verified synthetic E2E sync; target institutional metrics table zero rows"
+    },
+    "release_approval": {
+      "approved": false,
+      "evidence": [],
+      "reason": "Depends on preceding gates, human sign-off, and deployment QA"
+    }
+  },
+  "prohibited_until_approval": [
+    "change_official_answer_status",
+    "bulk_taxonomy_update",
+    "question_merge_or_delete",
+    "publish_enamed_official_metrics",
+    "merge_pr_168",
+    "deploy_to_production"
+  ],
+  "next_action_required": "Provide valid authorized staged sessions / MFA profiles for isolated QA and authenticate final official documents when published. Do not claim automatic completion."
+}
