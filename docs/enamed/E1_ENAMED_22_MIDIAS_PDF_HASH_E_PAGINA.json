@@ -1,0 +1,131 @@
+{
+  "schema_version": "enamed2026-22-media-evidence-v1",
+  "source": "Official REG-C2 2026 PDF, PyMuPDF get_image_info() and extract_image(xref), page/column region and visual PDF rendering",
+  "source_status": "SOURCE_IMAGE_BINARY_HASHED_LOCAL;NOT_LINKED_TO_STUDENT_QUESTION_IN_PRODUCTION",
+  "exam_items_reviewed": 22,
+  "image_dependent_items_found": 6,
+  "records": [
+    {
+      "question_number": 12,
+      "pdf_booklet": "REG-C2",
+      "physical_page": 5,
+      "column": "left",
+      "pdf_image_xref": 18,
+      "source_asset_sha256": "7a2c17919b56eecaf1ceef5f76c0d5227ce5deb97eebe23b722b79b4239226d4",
+      "source_asset_bytes": 213298,
+      "pdf_bbox_pt": [
+        41.5,
+        154.7,
+        287.7,
+        447.3
+      ],
+      "description": "Diagrama de Lund–Browder",
+      "fo_blocks_status": "EMPTY_IN_FO_ENAMED_ITEMS",
+      "source_pdf_sha256_reference": "INEP_2026_SHA256_DOCUMENTOS_PRELIMINARES_20261117.json/REG-C2",
+      "approval": "REQUIRES_SOURCE_CROP_CONTENT_VALIDATION_AND_LICENSE_REVIEW",
+      "binary_embedded_in_repo": false
+    },
+    {
+      "question_number": 68,
+      "pdf_booklet": "REG-C2",
+      "physical_page": 18,
+      "column": "right",
+      "pdf_image_xref": 52,
+      "source_asset_sha256": "7c01a62694b9d88474f27e8018d384c49e6d8c7f031f4489374ab1eb8ddff3be",
+      "source_asset_bytes": 16252,
+      "pdf_bbox_pt": [
+        307.6,
+        261.4,
+        553.6,
+        461.9
+      ],
+      "description": "Radiografia de pelve",
+      "fo_blocks_status": "EMPTY_IN_FO_ENAMED_ITEMS",
+      "source_pdf_sha256_reference": "INEP_2026_SHA256_DOCUMENTOS_PRELIMINARES_20261117.json/REG-C2",
+      "approval": "REQUIRES_SOURCE_CROP_CONTENT_VALIDATION_AND_LICENSE_REVIEW",
+      "binary_embedded_in_repo": false
+    },
+    {
+      "question_number": 81,
+      "pdf_booklet": "REG-C2",
+      "physical_page": 21,
+      "column": "right",
+      "pdf_image_xref": 60,
+      "source_asset_sha256": "1f22133cf4f873e98e0a82eeb475c4f3aa148f713846525f41bff50d73fc0423",
+      "source_asset_bytes": 154365,
+      "pdf_bbox_pt": [
+        307.6,
+        186.2,
+        552.8,
+        352.8
+      ],
+      "description": "Fotografia dermatológica",
+      "fo_blocks_status": "EMPTY_IN_FO_ENAMED_ITEMS",
+      "source_pdf_sha256_reference": "INEP_2026_SHA256_DOCUMENTOS_PRELIMINARES_20261117.json/REG-C2",
+      "approval": "REQUIRES_SOURCE_CROP_CONTENT_VALIDATION_AND_LICENSE_REVIEW",
+      "binary_embedded_in_repo": false
+    },
+    {
+      "question_number": 82,
+      "pdf_booklet": "REG-C2",
+      "physical_page": 22,
+      "column": "left",
+      "pdf_image_xref": 64,
+      "source_asset_sha256": "fdf59c54b1688ce79726976f093ce5d1a78db8da2479071db62ad98ea731e54b",
+      "source_asset_bytes": 14133,
+      "pdf_bbox_pt": [
+        42.5,
+        222.6,
+        289.7,
+        573.7
+      ],
+      "description": "Imagem radiológica contrastada",
+      "fo_blocks_status": "EMPTY_IN_FO_ENAMED_ITEMS",
+      "source_pdf_sha256_reference": "INEP_2026_SHA256_DOCUMENTOS_PRELIMINARES_20261117.json/REG-C2",
+      "approval": "REQUIRES_SOURCE_CROP_CONTENT_VALIDATION_AND_LICENSE_REVIEW",
+      "binary_embedded_in_repo": false
+    },
+    {
+      "question_number": 89,
+      "pdf_booklet": "REG-C2",
+      "physical_page": 24,
+      "column": "left",
+      "pdf_image_xref": 70,
+      "source_asset_sha256": "2d8967f060c9e34b8181ccc69930d75edf64f4917c1f907c74bd075f54ba2739",
+      "source_asset_bytes": 27088,
+      "pdf_bbox_pt": [
+        42.8,
+        376.2,
+        287.7,
+        554.5
+      ],
+      "description": "Tomografia de abdome superior",
+      "fo_blocks_status": "EMPTY_IN_FO_ENAMED_ITEMS",
+      "source_pdf_sha256_reference": "INEP_2026_SHA256_DOCUMENTOS_PRELIMINARES_20261117.json/REG-C2",
+      "approval": "REQUIRES_SOURCE_CROP_CONTENT_VALIDATION_AND_LICENSE_REVIEW",
+      "binary_embedded_in_repo": false
+    },
+    {
+      "question_number": 97,
+      "pdf_booklet": "REG-C2",
+      "physical_page": 25,
+      "column": "right",
+      "pdf_image_xref": 74,
+      "source_asset_sha256": "8a839f6bf3c7234e2c8e2bbb7a79d01347d8ef3e25c02b6a7711df613d839368",
+      "source_asset_bytes": 70512,
+      "pdf_bbox_pt": [
+        307.6,
+        455.6,
+        553.4,
+        553.6
+      ],
+      "description": "Ultrassonografia transvaginal",
+      "fo_blocks_status": "EMPTY_IN_FO_ENAMED_ITEMS",
+      "source_pdf_sha256_reference": "INEP_2026_SHA256_DOCUMENTOS_PRELIMINARES_20261117.json/REG-C2",
+      "approval": "REQUIRES_SOURCE_CROP_CONTENT_VALIDATION_AND_LICENSE_REVIEW",
+      "binary_embedded_in_repo": false
+    }
+  ],
+  "not_a_claim": "Other 16 items may contain vector-drawn tables, figures or images on adjacent pages. Absence of embedded raster image on the anchor page does not prove absence of clinically essential graphical data.",
+  "retention": "Asset bytes remain only in locally available original INEP PDF and temporary audit environment; do not republish pictures in GitHub."
+}
