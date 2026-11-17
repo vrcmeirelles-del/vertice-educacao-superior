@@ -270,3 +270,8 @@ Verificação posterior no banco: um catálogo, 58 objetos e correspondência ex
 A nova conferência do navegador em nuvem abriu /master e recebeu “Entre para acessar sua conta”. O controle da sessão anterior pela extensão não está disponível nesta execução. Nenhuma credencial foi fabricada nem proteção removida: o lote privado permanece em zero processados. A reprodução e conciliação científica de Conceito Enade, IDD, CPC e IGC seguem sem comprovação; publicação de resultados oficiais bloqueada.
 
 Evidências: [catálogo](fontes/iacg2017-reconhecimento-catalog.json), [verificação do PDF](evidencias/20261117-work/reference-catalog-extraction.json), [conferência do banco](evidencias/20261117-work/reference-catalog-database.json). Integração GitHub/CI deste bloco: a confirmar após publicação da branch.
+
+
+### Integração e publicação confirmadas — catálogo IACG 2017
+
+PR [#176](https://github.com/vrcmeirelles-del/vertice-educacao-superior/pull/176) integrada no commit `147dee06c1b405fea9a0d5b21af650ad735f9b4f`, após cinco workflows aprovados no head `55211f5aa6173c1281b31fab34c48d12e5055cb2`. O workflow de evidências executou nove testes e a verificação Deno da função existente. Render institucional `dep-dbu793tckfvc73cc19q0` live às 12:37:31 de 17/11 (Brasília); portal `dep-dbu793tckfvc73cc19u0` live às 12:37:29. Os alertas de segurança mantiveram as contagens anteriores, sem achados para as duas tabelas de catálogo. Esta confirmação resolve a pendência de integração/publicação do registro anterior; mantém pendentes a sessão autenticada, o lote privado e a homologação científica. [Recibo de publicação](evidencias/20261117-work/reference-catalog-publication.json).

@@ -1,0 +1,77 @@
+{
+  "checked_at": "2026-11-17T15:38:03.573Z",
+  "pr": "https://github.com/vrcmeirelles-del/vertice-educacao-superior/pull/176",
+  "head_sha": "55211f5aa6173c1281b31fab34c48d12e5055cb2",
+  "merge_sha": "147dee06c1b405fea9a0d5b21af650ad735f9b4f",
+  "ci": [
+    {
+      "id": 44115770307,
+      "name": "Verificar BI público da Vértice",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 44115770181,
+      "name": "Fonte única da Vértice",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 44115770210,
+      "name": "Evidencias - extracao e busca com escopo",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 44115770169,
+      "name": "ENADE 360 - Contract Tests",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 44115770241,
+      "name": "Captação por IES - preparação isolada",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "deployments": [
+    {
+      "serviceId": "srv-dbbm6q3ncjis7396t7fg",
+      "commit": {
+        "createdAt": "2026-11-17T15:36:44Z",
+        "id": "147dee06c1b405fea9a0d5b21af650ad735f9b4f",
+        "message": "Merge pull request #176 from vrcmeirelles-del/work/enade360-official-catalog\n\nCatálogo IACG 2017 rastreável para classificação de evidências"
+      },
+      "createdAt": "2026-11-17T15:36:47.304852Z",
+      "finishedAt": "2026-11-17T15:37:31.540646Z",
+      "id": "dep-dbu793tckfvc73cc19q0",
+      "startedAt": "2026-11-17T15:36:47.300965Z",
+      "status": "live",
+      "trigger": "new_commit",
+      "updatedAt": "2026-11-17T15:37:31.540835Z"
+    },
+    {
+      "serviceId": "srv-dbm52uhsrm7s73f3ojkg",
+      "commit": {
+        "createdAt": "2026-11-17T15:36:44Z",
+        "id": "147dee06c1b405fea9a0d5b21af650ad735f9b4f",
+        "message": "Merge pull request #176 from vrcmeirelles-del/work/enade360-official-catalog\n\nCatálogo IACG 2017 rastreável para classificação de evidências"
+      },
+      "createdAt": "2026-11-17T15:36:47.347111Z",
+      "finishedAt": "2026-11-17T15:37:29.155894Z",
+      "id": "dep-dbu793tckfvc73cc19u0",
+      "startedAt": "2026-11-17T15:36:47.344432Z",
+      "status": "live",
+      "trigger": "new_commit",
+      "updatedAt": "2026-11-17T15:37:29.156153Z"
+    }
+  ],
+  "security_advisors": {
+    "new_catalog_findings": 0,
+    "counts_unchanged": true
+  },
+  "private_batch_processed": 0,
+  "real_new_role_sessions_tested": 0,
+  "scientific_homologation": false
+}
