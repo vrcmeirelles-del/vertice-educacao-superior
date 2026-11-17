@@ -1,5 +1,8 @@
 // Byte parsers: no URLs, scripts, network resolver, or document instructions.
 export const LIMITS={bytes:30*1024*1024,chars:100000,pages:500,entries:1500,expanded:32*1024*1024,cells:50000};
+export class ExtractionFailure extends Error{
+ constructor(reason,sourceSha256,receivedBytes,method){super(reason);this.name='ExtractionFailure';this.sourceSha256=sourceSha256;this.receivedBytes=receivedBytes;this.method=method;}
+}
 const utf=b=>new TextDecoder('utf-8',{fatal:true}).decode(b);
 const clean=s=>s.normalize('NFC').replace(/\r\n?/g,'\n').replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g,'').trim();
 export function xmlText(s){
@@ -13,9 +16,11 @@ export function keywords(s){
 }
 export async function extractDocument(bytes,name,a){
  if(!(bytes instanceof Uint8Array)||bytes.length>LIMITS.bytes)throw Error('file_too_large');
+ const hash=await crypto.subtle.digest('SHA-256',bytes),sha256=Array.from(new Uint8Array(hash),b=>b.toString(16).padStart(2,'0')).join('');
  const ext=name.toLowerCase().split('.').pop(),sig=new TextDecoder().decode(bytes.subarray(0,8));
  let pages=[],method='',partial=false,pageCount=null,chars=0,pagesWithoutText=[];
  const add=(text,page=null,section=null)=>{text=clean(text);if(text.length>LIMITS.chars-chars){partial=true;text=text.slice(0,LIMITS.chars-chars);}if(text){pages.push({page,section,text});chars+=text.length;}};
+ try{
  if(sig.startsWith('%PDF-')){
   method='pdfjs_text_layer';const d=await a.pdf(bytes.slice());pageCount=d.numPages;
   try{for(let n=1;n<=Math.min(pageCount,LIMITS.pages);n++){const p=await d.getPage(n),c=await p.getTextContent();const pageText=c.items.map(x=>(x.str||'')+(x.hasEOL?'\n':' ')).join('');if(!pageText.trim())pagesWithoutText.push(n);add(pageText,n);if(chars>=LIMITS.chars){partial=partial||n<pageCount;break;}}if(pageCount>LIMITS.pages)partial=true;}finally{await d.destroy();}
@@ -41,8 +46,9 @@ export async function extractDocument(bytes,name,a){
  }else throw Error('unsupported_format');
  if(chars<50)throw Error(method==='pdfjs_text_layer'?'no_embedded_text_ocr_required':'insufficient_text');
  if(pagesWithoutText.length)partial=true;
- const text=pages.map(p=>(p.page?'PÁGINA '+p.page+'\n':'')+p.text).join('\n\n'),hash=await crypto.subtle.digest('SHA-256',bytes);
- return {text,pages,sha256:Array.from(new Uint8Array(hash),b=>b.toString(16).padStart(2,'0')).join(''),method,partial,pageCount,pagesWithoutText,characters:chars,keywords:keywords(text),ocrApplied:false};
+ const text=pages.map(p=>(p.page?'PÁGINA '+p.page+'\n':'')+p.text).join('\n\n');
+ return {text,pages,sha256,method,partial,pageCount,pagesWithoutText,characters:chars,keywords:keywords(text),ocrApplied:false};
+ }catch(error){throw new ExtractionFailure(error instanceof Error?error.message:String(error),sha256,bytes.length,method||null);}
 }
 export function groundedLinks(links,extracted){
  const norm=s=>s.normalize('NFC').replace(/\s+/g,' ').trim();

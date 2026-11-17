@@ -3,7 +3,7 @@
 // sugere espelhamento transversal entre instrumentos regulatórios.
 import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { unzipSync } from "npm:fflate@0.8.2";
-import {extractDocument,groundedLinks} from "./document-text.mjs";
+import {extractDocument,groundedLinks,ExtractionFailure} from "./document-text.mjs";
 import {openTextPdf} from "./pdf-runtime.mjs";
 
 const cors = {
@@ -290,9 +290,11 @@ Deno.serve(async (request) => {
         ai_status: "failed",
         ai_error: `Extração de texto falhou: ${msg}`,
         extraction_status:"failed",
+        ...(e instanceof ExtractionFailure?{source_sha256:e.sourceSha256,extraction_method:e.method,extracted_at:new Date().toISOString(),extraction_metadata:{failure_code:msg.slice(0,200),received_bytes:e.receivedBytes,ocr_applied:false,parser_version:e.method==='pdfjs_text_layer'?'pdfjs-dist@6.5.438':null}}:{}),
         ai_analyzed_at: new Date().toISOString(),
       }).eq("id", pv.id);
-      return respond({ error: "text_extraction_failed", detail: msg }, 500);
+      const expected=/^(?:no_embedded_text_ocr_required|unsupported_format|insufficient_text|file_too_large|zip_entry_limit|zip_expansion_limit|binary_content|xml_entities_not_supported|docx_main_part_missing)$/.test(msg);
+      return respond({ error: "text_extraction_failed", detail: msg,source_sha256:e instanceof ExtractionFailure?e.sourceSha256:null }, expected?422:500);
     }
 
     if (extractedText.trim().length < 50) {
