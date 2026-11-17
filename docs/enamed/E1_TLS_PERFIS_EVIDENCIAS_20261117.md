@@ -45,3 +45,15 @@ Lidos Bíblia-Mestra v2.1, Plano, Diário, registro de 11 URLs oficiais obtidas 
 - [ ] Aceite documental, médico e regulatório antes de qualquer reindexação/apuração oficial.
 
 **Decisão:** manter E1 sem aceite, PR #168 draft, produção Vértice e F&O intacta, sem falsa homologação de documentos ou permissões.
+
+
+## Resultado complementar autenticado por evidência de CI
+**Run GitHub Actions:** [44016278762](https://github.com/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44016278762), job `rendered-catalog` success. Artefato `enamed-e1-browser-rendered-unverified` (`rendered_report.json`) recuperado e inspecionado no ambiente de auditoria:
+- `candidate_count=11`, `status=complete`; o catálogo do Inep foi renderizado, e os 11 links foram encontrados.
+- **0 PDFs** no ZIP, **0 documentos com hash**: tentativas Python HTTPS e Playwright API `ignore_https_errors=False` falharam para todos os 11 links. Resultado Playwright: `unable to verify the first certificate`. Uma tentativa Python sofreu conexão reiniciada; várias acusaram `CERTIFICATE_VERIFY_FAILED`.
+- Job `curl-official-links` do mesmo run: 8 documentos prioritários testados; `curl 35` e `curl 60`; **0 PDFs**.
+- A falha não comprova que o site esteja indisponível para todos os clientes; não extrapolar além dos ambientes e datas testados.
+- **Decisão:** não usar `curl -k`, `verify=False`, `ignore_https_errors=True` ou `NODE_TLS_REJECT_UNAUTHORIZED=0`. Para resolver, revisar cadeia intermediária/CA de confiança e só baixar quando a verificação criptográfica e de hostname passar; alternativamente obter arquivo primário do Inep por outro canal de publicação oficial rastreável.
+- **Gate:** E1 mantém `0 de 11` documentos binários autenticados nesta rodada; não conferir texto/gabarito/483 itens a partir de binários inexistentes.
+
+**Nota sobre homologação por perfil:** a inspeção da RLS e 419 testes da UI não testam sessões autenticadas efetivas. Não houve sessão real; Master/Reitoria/CPA/Coordenação/NDE e duas instituições precisam de homologação autenticada em ambiente próprio. Nenhum acesso foi alterado.
