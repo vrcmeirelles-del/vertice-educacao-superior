@@ -177,3 +177,21 @@ Concluir a estrutura **não significa** validar o modelo preditivo em resultados
 - Issue #167 e PR #168 (GitHub Vértice).
 
 **Próxima revisão:** antes da etapa seguinte, reler todos estes artefatos, validar as fontes primárias e atualizar o diário. 
+
+
+## 12. Atualização cumulativa 1.1 — Etapa E1 (16/11/2026)
+**Estado:** E1 em execução, **não aceita** e **não homologada**. O escopo E0 e as decisões ADR-001–006 permanecem preservados.
+
+### Herança e melhorias verificadas
+- Preservados: arquitetura multi-IES, ENADE 360° legado, F&O como acervo central, Sapiens como diagnóstico propositivo, cálculo oficial separado dos simulados, E9 de validação real futura.
+- Acrescentados: `INEP_CATALOGO_FONTES_E1.md` (catálogo normativo rastreável) e `INEP_MATRIZ_REGRAS_E1.md` (transcrição de regras e testes).
+- Confirmado no texto da NT40/2025: filtro `TP_INSCRICAO=1`, `IN_REGULAR=1`, `TP_INSCRICAO_ADM∈{0,2}`, `TP_PRES=555`; pelo menos 10 concluintes válidos, `PCP=NCP/NC`, cinco faixas; os requisitos dependem de edição.
+- Confirmado no Manual 2026: 100 itens, Rasch/TRI e distinção entre 4º ano diagnóstico e 6º ano para conceito, condicionada a editais e validade da edição.
+- **Correção de numeração normativa:** Portaria Inep 478/2025, art. 6º, competência VI = indicar/realizar procedimentos médicos; competência VII = intervenção coletiva. Qualquer lista simplificada anterior com VI=intervenção coletiva **não é uma reprodução literal e não deve alimentar códigos automáticos**. Cadastro de I–XV pendente de transcrição completa.
+- Portarias/MP/editais em catálogo não equivalem a confirmação exaustiva de vigência. Estado legislativo da MP 1.370/2026 precisa de revisão.
+
+### Porta de qualidade E1 — bloqueios
+Não foi possível recuperar os binários oficiais via ambiente de execução para aferir SHA-256; portanto, **nenhum arquivo foi autenticado por hash**. Estão pendentes download integral, revisão da matriz, notas 19/1PL/42, retificações, gabaritos, dicionários, confrontação de 2025 e validação regulatória. **Não iniciar E2 como implementada nem abrir publicação de dados oficiais com estas lacunas.**
+
+### Próxima ação vinculante
+Continuar E1 conforme catálogo e matriz; atualizar documentação e diário com evidência literal, depois testar cálculo com microdados oficiais 2025 em staging. Referência: [Catálogo E1](INEP_CATALOGO_FONTES_E1.md) e [Matriz de regras E1](INEP_MATRIZ_REGRAS_E1.md).
