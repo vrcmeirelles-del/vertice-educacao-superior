@@ -1,0 +1,74 @@
+{
+  "executed_at": "2026-11-17T18:13:16.643977+00:00",
+  "node": "v24.22.1",
+  "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "tests": 360,
+  "all_suites_passed": true,
+  "suites": [
+    {
+      "suite": "test-audit-governance.cjs",
+      "exit_code": 0,
+      "summary": "{\"suite\":\"audit-governance\",\"tests\":30,\"passed\":30,\"failed\":0,\"node\":\"v24.22.1\"}"
+    },
+    {
+      "suite": "test-audit-integrity.cjs",
+      "exit_code": 0,
+      "summary": "{\"suite\":\"audit-integrity\",\"tests\":47,\"passed\":47,\"failed\":0,\"node\":\"v24.22.1\"}"
+    },
+    {
+      "suite": "test-contracts.cjs",
+      "exit_code": 0,
+      "summary": "{\"tests\":26,\"passed\":26,\"failed\":0,\"node\":\"v24.22.1\"}"
+    },
+    {
+      "suite": "test-cross-report.cjs",
+      "exit_code": 0,
+      "summary": "{\"suite\":\"cross-report\",\"total\":26,\"passed\":26,\"failed\":0,\"node\":\"v24.22.1\"}"
+    },
+    {
+      "suite": "test-edition-controls.cjs",
+      "exit_code": 0,
+      "summary": "{\"suite\":\"edition-controls\",\"tests\":34,\"passed\":34,\"failed\":0,\"node\":\"v24.22.1\"}"
+    },
+    {
+      "suite": "test-r2-r6.cjs",
+      "exit_code": 0,
+      "summary": "{\"suite\":\"r2-r6-controls\",\"tests\":23,\"passed\":23,\"failed\":0,\"node\":\"v24.22.1\"}"
+    },
+    {
+      "suite": "test-result-states.cjs",
+      "exit_code": 0,
+      "summary": "{\"suite\":\"result-states\",\"tests\":29,\"passed\":29,\"failed\":0,\"node\":\"v24.22.1\"}"
+    },
+    {
+      "suite": "test-rls-policy-contract.cjs",
+      "exit_code": 0,
+      "summary": "{\"suite\":\"rls-policy-contract-only\",\"tests\":24,\"passed\":24,\"failed\":0,\"node\":\"v24.22.1\",\"real_postgres_rls\":false}"
+    },
+    {
+      "suite": "test-trace-integration.cjs",
+      "exit_code": 0,
+      "summary": "{\"suite\":\"trace-integration\",\"tests\":6,\"passed\":6,\"failed\":0,\"node\":\"v24.22.1\"}"
+    },
+    {
+      "suite": "test-traceability.cjs",
+      "exit_code": 0,
+      "summary": "{\"suite\":\"traceability\",\"tests\":28,\"passed\":28,\"failed\":0,\"node\":\"v24.22.1\"}"
+    },
+    {
+      "suite": "test-validator.cjs",
+      "exit_code": 0,
+      "summary": "20/20 passing"
+    },
+    {
+      "suite": "test-json-schema.py",
+      "exit_code": 0,
+      "summary": "{\"schema_draft\": \"2020-12\", \"tests\": 40, \"passed\": 40, \"failed\": 0, \"positive\": 8, \"negative\": 32}"
+    },
+    {
+      "suite": "test-audit-schema.py",
+      "exit_code": 0,
+      "summary": "{\"suite\": \"audit-schema-0.4\", \"tests\": 27, \"passed\": 27, \"failed\": 0}"
+    }
+  ]
+}

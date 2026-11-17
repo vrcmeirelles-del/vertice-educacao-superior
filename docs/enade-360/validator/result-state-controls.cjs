@@ -18,6 +18,8 @@ function checkState(state,{edition,indicator}={}){
  if(FORBID_NUMERIC.has(state.kind))for(const f of numericFields)if(has(state,f)&&state[f]!==null)errors.push("NON_NUMERIC_STATE_HAS_VALUE:"+f);
  if(state.kind==="AVAILABLE"){
   if(!Number.isFinite(state.continuous_value)&&!Number.isInteger(state.band))errors.push("AVAILABLE_NO_NUMERIC_VALUE");
+  if(has(state,"continuous_value")&&state.continuous_value!==null&&(!Number.isFinite(state.continuous_value)||state.continuous_value<0||state.continuous_value>5))errors.push("AVAILABLE_VALUE_RANGE");
+  if(has(state,"band")&&state.band!==null&&(!Number.isInteger(state.band)||state.band<1||state.band>5))errors.push("AVAILABLE_BAND_RANGE");
   if(!text(state.source_version))errors.push("AVAILABLE_SOURCE_VERSION");
  }
  if(state.kind==="SC"){

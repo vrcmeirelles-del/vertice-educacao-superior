@@ -1,0 +1,27 @@
+PASS valid_R1
+PASS valid_R2
+PASS valid_R3
+PASS valid_R4
+PASS valid_R5
+PASS valid_R6
+PASS valid_R7
+PASS missing_source_documents
+PASS missing_sample_n
+PASS missing_denominator
+PASS missing_missing_counts
+PASS missing_methodology_id
+PASS missing_payload
+PASS missing_claims
+PASS hash_rejected
+PASS fake_official_claim
+PASS calculation_without_formula
+PASS invalid_population
+PASS missing_type_payload
+PASS false_match
+PASS causality
+PASS incomplete_review
+PASS unapproved_intervention
+PASS personal_data
+PASS methodological_incompatibility
+PASS unverified_publication
+{"tests":26,"passed":26,"failed":0,"node":"v24.22.1"}

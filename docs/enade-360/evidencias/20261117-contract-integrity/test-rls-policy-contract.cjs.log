@@ -1,0 +1,25 @@
+PASS master_granted
+PASS master_other_ies
+PASS reitoria_granted
+PASS reitoria_other_ies
+PASS coord_own_course
+PASS coord_other_course
+PASS nde_own_course
+PASS nde_other_course
+PASS cpa_course_block
+PASS cpa_aggregated
+PASS cpa_other_ies
+PASS cpa_personal_block
+PASS reitoria_personal_block
+PASS master_personal_block
+PASS mfa_aal1_block
+PASS missing_mfa_block
+PASS inactive_block
+PASS missing_user_block
+PASS unrecognized_role_block
+PASS no_grants_block
+PASS expired_course_grant_block
+PASS role_mismatch_course_block
+PASS cross_tenant_institution_block
+PASS without_course_grant_block
+{"suite":"rls-policy-contract-only","tests":24,"passed":24,"failed":0,"node":"v24.22.1","real_postgres_rls":false}

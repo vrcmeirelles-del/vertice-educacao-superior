@@ -13,12 +13,13 @@ function validateTrace(t,scope={}){
  const e=[];
  if(!t||typeof t!=="object"||Array.isArray(t))return ["TRACE_REQUIRED"];
  for(const k of ["trace_id","result_id","indicator","area_code","institution_code","course_code","methodology_id","methodology_reference","methodology_version","engine_version","source_id","source_version","source_url","source_sha256","retrieved_at","state","epistemic_label","evidence_refs","decision","publication_status"]){
-  if(!has(t,k)||t[k]===null)e.push("TRACE_MISSING:"+k);
+  if(!has(t,k)||(t[k]===null&&!(t.indicator==="IGC"&&["course_code","area_code"].includes(k))))e.push("TRACE_MISSING:"+k);
  }
  for(const k of ["trace_id","result_id","indicator","methodology_id","methodology_reference","methodology_version","engine_version","source_id","source_version","source_url","institution_code","course_code","area_code"])
-  if(!isText(t[k]))e.push("TRACE_TEXT:"+k);
+  if(!isText(t[k])&&!(t.indicator==="IGC"&&["course_code","area_code"].includes(k)&&t[k]===null))e.push("TRACE_TEXT:"+k);
+ if(t.indicator==="IGC"&&(t.course_code!==null||t.area_code!==null))e.push("TRACE_IGC_INSTITUTION_SCOPE");
  if(!Number.isInteger(t.edition_year)||t.edition_year<2004)e.push("TRACE_EDITION");
- if(t.academic_degree!=="bacharelado")e.push("TRACE_DEGREE");
+ if(t.academic_degree!=="bacharelado"&&!(t.indicator==="IGC"&&t.academic_degree===null))e.push("TRACE_DEGREE");
  if(!HEX.test(t.source_sha256||""))e.push("TRACE_SOURCE_HASH");
  if(!isIso(t.retrieved_at))e.push("TRACE_RETRIEVAL_TIME");
  if(!STATES.has(t.state?.kind))e.push("TRACE_INVALID_STATE");
@@ -26,7 +27,7 @@ function validateTrace(t,scope={}){
  if(!Array.isArray(t.evidence_refs))e.push("TRACE_EVIDENCE_REFS");
  else if(["OFFICIAL_FACT","REPRODUCED_CALCULATION"].includes(t.epistemic_label)&&t.evidence_refs.length===0)e.push("TRACE_UNSUPPORTED_FACT");
  if(t.epistemic_label==="REPRODUCED_CALCULATION"&&!isText(t.calculation_formula))e.push("TRACE_FORMULA_REQUIRED");
- if(t.state?.kind==="AVAILABLE"&&t.value===null&&t.value!==0)e.push("TRACE_AVAILABLE_VALUE_MISSING");
+ if(t.state?.kind==="AVAILABLE"&&!Number.isFinite(t.value))e.push("TRACE_AVAILABLE_VALUE_MISSING");
  if(t.state?.kind!=="AVAILABLE"&&t.value!==null&&t.value!==undefined)e.push("TRACE_NONNUMERIC_VALUE");
  for(const k of ["indicator","institution_code","course_code","area_code","edition_year","academic_degree","methodology_id"])
   if(has(scope,k)&&scope[k]!==undefined&&String(scope[k])!==String(t[k]))e.push("TRACE_SCOPE_MISMATCH:"+k);
@@ -48,7 +49,7 @@ function validateTrace(t,scope={}){
 function validateReportTraces(r){
  if(!r||typeof r!=="object")return ["TRACE_REPORT_INVALID"];
  // Opt-in envelope until R0-R7 migration; no claim that legacy reports are traced.
- if(r.traceability_version===undefined)return [];
+ if(r.traceability_version===undefined)return r.schema_version==="0.4"&&r.report_type==="R4"&&r.payload?.indicators?.some(v=>v?.status==="OFFICIAL")?["TRACE_OFFICIAL_REQUIRED"]:[];
  if(r.traceability_version!=="0.1")return ["TRACE_VERSION_UNSUPPORTED"];
  if(!Array.isArray(r.result_traces)||r.result_traces.length===0)return ["TRACE_COLLECTION_REQUIRED"];
  const e=[],seen=new Set();

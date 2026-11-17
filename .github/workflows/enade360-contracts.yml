@@ -30,6 +30,10 @@ jobs:
         run: node docs/enade-360/validator/test-cross-report.cjs
       - name: Validate deeper R2-R6 contracts and pedagogical controls
         run: node docs/enade-360/validator/test-r2-r6.cjs
+      - name: Regress nine scientific audit findings and trusted-context guards
+        run: node docs/enade-360/validator/test-audit-integrity.cjs
+      - name: Validate contract 0.4 instances with the integrated gate
+        run: python docs/enade-360/validator/test-audit-schema.py
       - name: Validate result states SC missing NA pending and publication
         run: node docs/enade-360/validator/test-result-states.cjs
       - name: Traceability provenance review and publication safeguards

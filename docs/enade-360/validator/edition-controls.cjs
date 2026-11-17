@@ -18,9 +18,16 @@ const POLICIES=Object.freeze({
 });
 function policy(year,declaredId){const p=POLICIES[year];if(!p)return {status:"POLICY_UNVERIFIED",reason:"Edition not verified"};if(declaredId!==p.id)return {status:"METHODOLOGY_MISMATCH",expected:p.id,received:declaredId};return {status:"MATCH",policy:p};}
 function code(v){if(v===null||v===undefined||v==="")return NaN;return Number(v);}
-function select(rows,year,id){
+function select(rows,year,id,{source_complete=false,scope}={}){
  const p=policy(year,id);if(p.status!=="MATCH")return {status:p.status,reasons:{},valid:[],policy:p};
  if(!Array.isArray(rows))return {status:"INVALID_INPUT",reasons:{},valid:[]};
+ // Explicit row identity is checked before counting. Omitted identity on legacy
+ // synthetic fixtures remains an unverified caller precondition, never a mapping.
+ for(const key of ["institution_code","course_code","area_code","edition_year"]){
+  const ids=new Set(rows.filter(r=>r&&r[key]!==undefined&&r[key]!==null).map(r=>String(r[key])));
+  if(ids.size>1||(scope?.[key]!==undefined&&[...ids].some(v=>v!==String(scope[key]))))return {status:"SCOPE_MISMATCH",reasons:{},valid:[],indicatorStatus:"PENDING"};
+ }
+ if(rows.length===0&&!(source_complete===true&&scope&&["institution_code","course_code","area_code"].every(k=>typeof scope[k]==="string"&&scope[k].trim())&&scope.edition_year===year))return {status:"SOURCE_COMPLETENESS_UNVERIFIED",reasons:{},valid:[],indicatorStatus:"PENDING"};
  const valid=[],reasons={};
  for(const r of rows){
   let reason=null;

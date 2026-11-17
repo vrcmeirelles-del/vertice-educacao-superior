@@ -2,11 +2,16 @@
 // ENADE 360 cross-report guards; no official indicator calculation.
 // Optional identity for R1-R6; R7 rows always demand complete keys.
 const {policy,classifyDifference}=require("./edition-controls.cjs");
+const {isInstitutionReport}=require("./contract-integrity.cjs");
 const identityFields=["institution_code","course_code","area_code","edition_year","academic_degree"];
 function nonempty(v){return typeof v==="string"&&v.trim().length>0;}
 function normalize(v){return v===undefined||v===null?"":String(v);}
 function reportIdentity(r){
  const e=[];
+ if(isInstitutionReport(r)&&!nonempty(r?.course_code)){
+  if(!nonempty(r.institution_code))e.push("IDENTITY_MISSING:institution_code");
+  return e;
+ }
  const hasIdentity=nonempty(r?.course_code)||nonempty(r?.institution_code);
  if(hasIdentity){
    for(const k of ["institution_code","course_code","area_code"])if(!nonempty(r[k]))e.push("IDENTITY_MISSING:"+k);

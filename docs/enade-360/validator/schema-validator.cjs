@@ -3,13 +3,14 @@
 const TYPES={R1:["inscribed","present","valid"],R2:["general_formation","specific_component"],R3:["questionnaire_categories"],R4:["indicators"],R5:["comparisons"],R6:["interventions"],R7:["reconciliations"]};
 const REQUIRED=["report_id","report_type","schema_version","generated_at","edition_year","academic_degree","area_code","area_name","methodology_id","methodology_url","engine_version","dataset_hash","sample_n","denominator","exclusion_counts","missing_counts","comparability_class","caveats","generated_by","review_status","source_documents","claims","payload"];
 const LABELS=["OFFICIAL_FACT","REPRODUCED_CALCULATION","STATISTICAL_INFERENCE","PEDAGOGICAL_HYPOTHESIS","ACTION_PROPOSAL"];
+const {isInstitutionReport}=require("./contract-integrity.cjs");
 function validateReport(r){
 const e=[];
 if(!r||typeof r!=="object"||Array.isArray(r))return {ok:false,errors:["REPORT_OBJECT_REQUIRED"]};
-for(const k of REQUIRED)if(r[k]===undefined||r[k]===null)e.push("REQUIRED:"+k);
+for(const k of REQUIRED)if(r[k]===undefined||(r[k]===null&&!(isInstitutionReport(r)&&["area_code","academic_degree"].includes(k))))e.push("REQUIRED:"+k);
 if(!(r.report_type in TYPES))e.push("REPORT_TYPE");
 if(!Number.isInteger(r.edition_year)||r.edition_year<2004)e.push("EDITION");
-if(r.academic_degree!=="bacharelado")e.push("DEGREE");
+if(r.academic_degree!=="bacharelado"&&!(isInstitutionReport(r)&&r.academic_degree===null))e.push("DEGREE");
 if(!Number.isInteger(r.sample_n)||r.sample_n<0||!Number.isInteger(r.denominator)||r.denominator<=0||r.sample_n>r.denominator)e.push("POPULATION");
 for(const k of ["exclusion_counts","missing_counts"])if(!r[k]||typeof r[k]!=="object"||Array.isArray(r[k])||Object.values(r[k]).some(v=>!Number.isInteger(v)||v<0))e.push("COUNTS:"+k);
 if(!Array.isArray(r.source_documents)||!r.source_documents.length)e.push("SOURCE");else for(const s of r.source_documents){for(const k of ["url","document_title","retrieval_date","file_version"])if(!s[k]||typeof s[k]!=="string")e.push("SOURCE_FIELD:"+k);if(!/^[a-f0-9]{64}$/i.test(s.sha256||""))e.push("SOURCE_HASH");}
