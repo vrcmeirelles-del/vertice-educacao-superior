@@ -117,3 +117,10 @@ Antes de cada etapa consultar os três documentos. Concluído só com evidência
 - P-CROSS-001 parcial, P-TOL-001/P-NT-001/P-REF-001 abertas, P-ZIP-001 aguardando usuário.
 - Próximo passo independente do ZIP: validar metadados de proveniência nos relatórios R1–R7, matriz de aplicabilidade do indicador, e projetar contrato de importação, sem implantar em produção.
 - Núcleo científico e especialização bloqueados até reprodução auditável de indicadores oficiais.
+
+## Adendo v1.3 — Trilha de auditoria sem publicação (2026-11-17)
+- Entregues `CONTRATO-RASTREABILIDADE-RESULTADOS.md`, `validator/traceability-controls.cjs`, suíte de 28 testes e seis testes no gate integrado.
+- GitHub Actions run 44044766932, commit e55e2ac5c60276c63c2d2030e65d7eda03f233d4: 212/212 testes sintéticos aprovados. Prova e limitações em `EVIDENCIAS-RASTREABILIDADE-008.md`.
+- Bloqueada publicação automática; trilha ainda opt-in e não aplicada a dados persistidos. P-TRACE-001 aberta para migração reversível, integridade real de documentos, isolamento por IES/curso, autorização de usuário e testes de ponta a ponta.
+- Próximo marco independente do ZIP: desenho de esquema persistente de eventos imutáveis, contrato de API somente leitura de evidências e matriz de permissões por perfil; nenhuma alteração no banco/produção sem homologação técnica e autorização específica.
+- P-ZIP-001, P-NT-001, P-REF-001 e P-TOL-001 continuam abertos; P-CROSS-001 parcial; especialização bloqueada.
