@@ -189,6 +189,11 @@ export default function PreValidationPanel({
 
       <button type="button" className="er-btn er-small" disabled={analyzing} onClick={()=>void startPrevalidation("index")}>{analyzing?"Processando arquivo…":"Extrair texto e sugerir palavras-chave, sem enviar à IA"}</button>
       {prevalidation?.extracted_at&&<div role="status"><p>Texto: {prevalidation.extraction_status==="partial"?"parcialmente extraído":"extraído"} · {prevalidation.extraction_metadata?.characters??"—"} caracteres. Classificação humana preservada.</p><p>Palavras-chave sugeridas: {prevalidation.keyword_suggestions?.join(", ")||"nenhuma"}</p><small>SHA-256 do original: {prevalidation.source_sha256}</small></div>}
+      {!loading && prevalidation?.ai_status === "pending" && (
+        <button type="button" className="er-btn er-primary er-small" disabled={analyzing} onClick={() => void startPrevalidation("analyze")}>
+          {analyzing ? "Analisando documento…" : "Gerar sugestões de classificação com IA"}
+        </button>
+      )}
       {/* Status atual */}
       {loading && <p style={{ color: "#64748b" }}>Carregando análises anteriores…</p>}
 
