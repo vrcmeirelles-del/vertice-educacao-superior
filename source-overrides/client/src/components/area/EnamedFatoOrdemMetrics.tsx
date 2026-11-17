@@ -51,7 +51,7 @@ export default function EnamedFatoOrdemMetrics({institutionId,courseId}:Props) {
     })();
     return()=>{active=false;};
   },[institutionId,courseId,revision]);
-  const selected=useMemo(()=>rows.filter(r=>r.module===exam),[rows,exam]);
+  const selected=useMemo(()=>rows.filter(r=>r.module===exam&&r.participants>=5),[rows,exam]);
   const totalGraded=selected.reduce((n,r)=>n+Math.max(0,r.graded||0),0);
   const totalCorrect=selected.reduce((n,r)=>n+Math.max(0,r.correct||0),0);
   const canShowRate=totalGraded>0 && selected.every(r=>r.graded>=0&&r.correct>=0&&r.correct<=r.graded);
