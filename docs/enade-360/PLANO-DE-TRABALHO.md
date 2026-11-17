@@ -155,3 +155,8 @@ P-RLS-SQL-001 atendida apenas no modelo. P-RLS-REAL-001 aberta: ensaiar polític
 
 ## Encerramento da fase técnica — 2026-11-17
 Contrato de governança, testes sintéticos e protótipo isolado entregues. Ver `TERMO-ENCERRAMENTO-FASE-TECNICA.md`. Não programar mais ciclos de extensão sem dados ou ambiente que permitam homologação material. Bloqueios específicos: (1) microdados/resultados oficiais para cálculos, (2) equivalência confirmada de 62 pares IES/curso e-ORBIT para integração, (3) ambiente clone para permissões RLS reais e persistência, (4) normas completas de metodologia/tolerância. CI anterior 266/266 testes sintéticos e prova SQL isolada aprovados. O aceite final científico permanece pendente; produção não modificada.
+
+## Atualização de execução (2026-11-17)
+- Migração de auditoria privada aplicada no Supabase Vértice e verificada: 10 baselines, trigger e RPC de leitura protegida. Não restam apenas protótipos para esta função de auditoria.
+- PR #171 para tela ENADE 360 em validação de CI/merge/deploy.
+- Microdados 2023 obtidos? **NÃO**. URL oficial identificada; falha de download; zero resultados oficiais validados no banco. Não há reprodução científica comprovada. Preservar distinção entre integração operacional parcial e homologação científica pendente.
