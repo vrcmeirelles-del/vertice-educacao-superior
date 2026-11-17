@@ -53,3 +53,11 @@ Data/hora; etapa; fonte/URL/versão; ação executada; resultado e evidências; 
 - Entregues especificações `NOTAS-TECNICAS-POR-EDICAO.md`, `CONTRATOS-RELATORIOS-ENADE360.md` e `CASOS-TESTE-MOTOR-GENERICO.md` (18 cenários). Nenhum cenário foi executado contra motor em produção nem usado para homologação.
 - Pendências: P-ZIP-001 (fornecimento ZIP pelo usuário); P-NT-001 (análise completa/itens das NTs por edição, inclusive nota individual 2021/2022); P-REF-001 (planilhas oficiais versionadas por código de curso); validador automático ainda não implementado.
 - Decisão: continuar documentando sem perder adendos anteriores, preservar código e produção, não especializar por curso; próximo marco é implementar um validador e executar testes sintéticos independentes do ZIP, identificando claramente que isso não reproduz indicadores oficiais.
+
+## Entrada 007 — 2026-11-16 — Protótipo e testes sintéticos
+- Consultadas Bíblia, Plano e Diário cumulativos antes da implementação.
+- Código criado: `docs/enade-360/validator/validator.cjs` (validador contratual básico, comparabilidade, elegibilidade sintética, percentuais e conciliação), `docs/enade-360/validator/test-validator.cjs` (20 cenários).
+- Execução efetiva: no runtime JavaScript isolado, M01–M18 e V01–V02 executados com resultado 20 PASS / 0 FAIL; registro em `EVIDENCIAS-TESTES-SINTETICOS-001.md`.
+- Limitação: código não está integrado nem publicado; suite Node/CI do repositório não executada nesta sessão; resultado sintético não é conferência oficial por curso, nem homologação científica.
+- Pendências: P-ZIP-001, P-NT-001, P-REF-001; abertas P-VAL-002 (executar versionados via Node/CI) e P-SCHEMA-001 (JSON Schema integral).
+- Decisão: preservar a PR documental, não alterar sistemas em produção, manter portão de especialização fechado.
