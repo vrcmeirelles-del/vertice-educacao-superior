@@ -243,3 +243,15 @@ RECOMENDAÇÃO PARA A ETAPA SEGUINTE:
 - [ ] Obter pareceres independentes das duas IAs e validação médica, sem aplicar mudanças ao F&O nesta etapa.
 
 **Porta E1:** continua fechada. O sucesso dos testes de contrato não libera cálculo TRI oficial, conceito institucional ou correção automática.
+
+
+## Passagem E1 — conferência da cobertura e dos perfis (16/11/2026)
+- [x] Reconferir páginas oficiais INEP de provas/gabaritos e notas técnicas; documentar indisponibilidade de binários.
+- [x] Confrontar listagem de **regular C1/C2 e reaplicação C1/C2** com as três fontes declaradas no F&O.
+- [x] Documentar lacuna candidata do **Caderno 2 da reaplicação 2026** e revisão separada do ENAMED 2025.
+- [x] Conferir matriz de navegação no código para Master, Reitoria, CPA, Coordenação e NDE; testes SSR existentes, sem login real.
+- [ ] Autenticar binários oficiais com hash e validar cada versão documental.
+- [ ] Executar TypeScript/CI e testes de interface/RLS **na revisão mais recente**, sem inferir que sucesso de commit anterior homologa o HEAD.
+- [ ] Verificar se cadernos da reaplicação e 2025 estão em outras fontes F&O antes de registrar ausência definitiva.
+- [ ] Encerrar o aceite E1 somente após revisão normativa, testes e documentos íntegros.
+**E1 não concluída; E2/E3 só preparação, sem atualização dos itens.**
