@@ -46,3 +46,10 @@ Data/hora; etapa; fonte/URL/versão; ação executada; resultado e evidências; 
 - **Pendência externa P-ZIP-001:** entrega posterior do(s) ZIP(s) oficial(is) pelo usuário; estado AGUARDANDO RECEBIMENTO, prazo não definido. Dependências: ingestão/validação do arquivo, recálculo de indicadores e conciliação contra tabelas INEP.
 - Evidência desta execução: alterações apenas na branch documental da PR #169, sem leitura de registros individuais, sem testes reais e sem modificações de aplicação ou produção.
 - Próxima ação independente: verificação adicional de notas técnicas e contratos de saída dos relatórios, preservando a matriz; retomar processamento quando o ZIP chegar. Núcleo ainda NÃO HOMOLOGADO.
+
+## Entrada 006 — 2026-11-16 — Auditoria documental e contratos interpretativos
+- Consultadas fontes públicas oficiais do INEP: NT nº 7/2022 (2021), NT nº 2/2023 (2022), NT nº 6/2024 (2023), NT nº 12/2024 (cálculo da nota individual de 2023), página de planilhas 2022, documentação geral dos indicadores.
+- Resultado: localizado conjunto de quatro notas técnicas com finalidade distinguida; identificada mudança na composição da prova em 2023 e existência de revisão posterior de planilha de conceitos de 2022. Ressalva: consulta dirigida, NÃO auditoria integral de todos os cálculos e versões.
+- Entregues especificações `NOTAS-TECNICAS-POR-EDICAO.md`, `CONTRATOS-RELATORIOS-ENADE360.md` e `CASOS-TESTE-MOTOR-GENERICO.md` (18 cenários). Nenhum cenário foi executado contra motor em produção nem usado para homologação.
+- Pendências: P-ZIP-001 (fornecimento ZIP pelo usuário); P-NT-001 (análise completa/itens das NTs por edição, inclusive nota individual 2021/2022); P-REF-001 (planilhas oficiais versionadas por código de curso); validador automático ainda não implementado.
+- Decisão: continuar documentando sem perder adendos anteriores, preservar código e produção, não especializar por curso; próximo marco é implementar um validador e executar testes sintéticos independentes do ZIP, identificando claramente que isso não reproduz indicadores oficiais.
