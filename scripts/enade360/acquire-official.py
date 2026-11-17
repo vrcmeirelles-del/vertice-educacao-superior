@@ -58,15 +58,15 @@ except Exception as error:
 (ROOT / 'tls-receipt.json').write_text(json.dumps(tls_receipt, indent=2))
 
 
-def receive(url):
+def receive(url, original_https=None):
     parsed = urllib.parse.urlsplit(url)
-    if parsed.scheme != 'https' or parsed.hostname != 'download.inep.gov.br':
-        raise ValueError('Only the original HTTPS INEP download host is allowed')
+    if parsed.hostname != 'download.inep.gov.br' or parsed.scheme not in (('http',) if original_https else ('https',)):
+        raise ValueError('Only the original INEP download host is allowed')
     name = Path(parsed.path).name
     folder = 'packets' if name.endswith(('.zip', '.rar')) else 'references'
     path = ROOT / folder / name
     path.parent.mkdir(exist_ok=True)
-    r = {'source_url': url, 'original_filename': name, 'retrieved_at': datetime.datetime.now(datetime.timezone.utc).isoformat(), 'received': False}
+    r = {'source_url': url, 'original_filename': name, 'retrieved_at': datetime.datetime.now(datetime.timezone.utc).isoformat(), 'received': False, 'transport_authenticated': parsed.scheme == 'https', 'catalog_https_url': original_https or url}
     start = time.monotonic()
     try:
         h = hashlib.sha256()
@@ -126,6 +126,14 @@ def receive(url):
         r['error'] = str(error)
     if not r['received'] and path.exists():
         path.rename(path.with_suffix(path.suffix + '.incomplete'))
+    if not r['received'] and not original_https:
+        # Explicit separate public HTTP route on the same official host. Never
+        # disable TLS verification or treat this transport as authenticated.
+        alternate = urllib.parse.urlunsplit(('http', parsed.netloc, parsed.path, parsed.query, ''))
+        fallback = receive(alternate, original_https=url)
+        fallback['https_attempt'] = r
+        fallback['requires_source_authenticity_review'] = True
+        return fallback
     r['duration_seconds'] = round(time.monotonic() - start, 2)
     print(json.dumps({k: r.get(k) for k in ('original_filename', 'http_status', 'received', 'bytes', 'error')}, ensure_ascii=False), flush=True)
     return r
@@ -146,6 +154,6 @@ try:
     (ROOT / 'workbook-inventory.json').write_text(json.dumps(inventories, ensure_ascii=False, indent=2, default=str))
 except Exception as error:
     (ROOT / 'workbook-inventory-error.txt').write_text(str(error))
-summary = {'attempted': len(results), 'received': sum(r['received'] for r in results), 'failed': sum(not r['received'] for r in results), 'scientific_reproductions': 0, 'academic_publication_authorized': False}
+summary = {'attempted': len(results), 'received': sum(r['received'] for r in results), 'failed': sum(not r['received'] for r in results), 'authenticated_receipts': sum(r['received'] and r['transport_authenticated'] for r in results), 'scientific_reproductions': 0, 'academic_publication_authorized': False}
 (ROOT / 'summary.json').write_text(json.dumps(summary, indent=2))
 print(json.dumps(summary), flush=True)
