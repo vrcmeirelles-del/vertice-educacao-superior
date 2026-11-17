@@ -1,0 +1,211 @@
+{
+  "date": "2026-11-17",
+  "project": "ENADE 360 / evidências compartilhadas",
+  "pr184": {
+    "head": "bf39c9dfaaae7c00fee89045dc85f50f55e3d667",
+    "merge": "117d2a40c2e0682d89ee79f80cca2e04ca25129f",
+    "workflows": [
+      {
+        "id": 44150315778,
+        "name": "Verificar BI público da Vértice",
+        "status": "completed",
+        "conclusion": "success",
+        "run_number": 391,
+        "jobs_url": "https://api.github.com/repos/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44150315778/jobs",
+        "logs_url": "https://api.github.com/repos/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44150315778/logs",
+        "workflow_id": 410868461
+      },
+      {
+        "id": 44150315634,
+        "name": "Fonte única da Vértice",
+        "status": "completed",
+        "conclusion": "success",
+        "run_number": 357,
+        "jobs_url": "https://api.github.com/repos/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44150315634/jobs",
+        "logs_url": "https://api.github.com/repos/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44150315634/logs",
+        "workflow_id": 419133252
+      },
+      {
+        "id": 44150315746,
+        "name": "Evidencias - extracao e busca com escopo",
+        "status": "completed",
+        "conclusion": "success",
+        "run_number": 7,
+        "jobs_url": "https://api.github.com/repos/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44150315746/jobs",
+        "logs_url": "https://api.github.com/repos/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44150315746/logs",
+        "workflow_id": 421259564
+      },
+      {
+        "id": 44150315690,
+        "name": "Captação por IES - preparação isolada",
+        "status": "completed",
+        "conclusion": "success",
+        "run_number": 151,
+        "jobs_url": "https://api.github.com/repos/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44150315690/jobs",
+        "logs_url": "https://api.github.com/repos/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44150315690/logs",
+        "workflow_id": 413536875
+      }
+    ]
+  },
+  "pr186": {
+    "head": "6c6997790d4913162ec9909705385b52f2c7bc86",
+    "merge": "1853151e467a558a31ed995ba60f2b8b4859f068",
+    "workflows": [
+      {
+        "id": 44154174636,
+        "name": "Verificar BI público da Vértice",
+        "status": "completed",
+        "conclusion": "success",
+        "run_number": 397,
+        "jobs_url": "https://api.github.com/repos/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44154174636/jobs",
+        "logs_url": "https://api.github.com/repos/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44154174636/logs",
+        "workflow_id": 410868461
+      },
+      {
+        "id": 44154174587,
+        "name": "Fonte única da Vértice",
+        "status": "completed",
+        "conclusion": "success",
+        "run_number": 365,
+        "jobs_url": "https://api.github.com/repos/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44154174587/jobs",
+        "logs_url": "https://api.github.com/repos/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44154174587/logs",
+        "workflow_id": 419133252
+      },
+      {
+        "id": 44154174620,
+        "name": "ENADE 360 - Contract Tests",
+        "status": "completed",
+        "conclusion": "success",
+        "run_number": 98,
+        "jobs_url": "https://api.github.com/repos/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44154174620/jobs",
+        "logs_url": "https://api.github.com/repos/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44154174620/logs",
+        "workflow_id": 420792863
+      },
+      {
+        "id": 44154174625,
+        "name": "Evidencias - extracao e busca com escopo",
+        "status": "completed",
+        "conclusion": "success",
+        "run_number": 9,
+        "jobs_url": "https://api.github.com/repos/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44154174625/jobs",
+        "logs_url": "https://api.github.com/repos/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44154174625/logs",
+        "workflow_id": 421259564
+      },
+      {
+        "id": 44154174626,
+        "name": "Captação por IES - preparação isolada",
+        "status": "completed",
+        "conclusion": "success",
+        "run_number": 157,
+        "jobs_url": "https://api.github.com/repos/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44154174626/jobs",
+        "logs_url": "https://api.github.com/repos/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44154174626/logs",
+        "workflow_id": 413536875
+      }
+    ]
+  },
+  "edge": {
+    "version": 7,
+    "verify_jwt": true,
+    "remote_files_equal": true,
+    "bundle_sha256": "82163bae73a59383633f91096170a18f42fcbd92e1d5bf1956af784e4b3cb48c"
+  },
+  "migration": "20261117185832_enade360_ocr_provenance_notice",
+  "render": {
+    "portal": {
+      "deploy_id": "dep-dbuaavvb9u1s73aaajg0",
+      "status": "live"
+    },
+    "institutional": {
+      "deploy_id": "dep-dbuaavvb9u1s73aaajig",
+      "status": "live"
+    }
+  },
+  "live_session": {
+    "role": "Master",
+    "mfa_gate_passed": true,
+    "other_roles_tested": false,
+    "modules_returning_same_ocr_source": [
+      "ENADE 360",
+      "Planejamento Estratégico / Direito",
+      "Sapiens / UNITOP"
+    ],
+    "query": "Kyldes",
+    "source_id": "4de85998-4733-5f75-842e-76bc326a91fa",
+    "sha256": "7a092b001c5afdc4f8c1469c2a05df5c4567d1759109e02de89c58eb22e38c24"
+  },
+  "classification": {
+    "audit": [
+      {
+        "scope": "curso",
+        "nature": "regulamento",
+        "links_created": 1,
+        "source_sha256": "937a25e9b4af580bb88635b4105847647206c7711c25aea16ea294e640d09ad8",
+        "provider_attempts": [
+          {
+            "error": "timeout",
+            "model": "claude-sonnet-4-6",
+            "provider": "anthropic"
+          },
+          {
+            "model": "gpt-4.1-mini",
+            "status": 200,
+            "provider": "openai",
+            "request_id": "req_58326bdd8bb341b4ab22584ef91025cc"
+          }
+        ],
+        "instruments_covered": [
+          "reconhecimento_curso"
+        ]
+      }
+    ],
+    "links": [
+      {
+        "id": "e318e621-a1fc-4b60-8eba-d006d081aeb3",
+        "status": "sugerido",
+        "version": "2017",
+        "excerpts": [
+          {
+            "page": 3,
+            "text": "Este Regulamento rege as atividades do Núcleo de Prática Jurídica – NPJ e das disciplinas de Estágio Supervisionado de Prática Jurídica Real e Simulada do Curso de Graduação em Direito do Centro Universitário ITOP – UNITOP.",
+            "section": "Art. 1º e 2º"
+          }
+        ],
+        "indicator": "3.15",
+        "instrument": "reconhecimento_curso"
+      }
+    ],
+    "analysis": {
+      "id": "5c22767a-ded0-43e2-b7ef-7e26bdbc73ee",
+      "model": "gpt-4.1-mini-2025-04-14",
+      "sha256": "937a25e9b4af580bb88635b4105847647206c7711c25aea16ea294e640d09ad8",
+      "status": "completed",
+      "file_id": "7cf5ebfe-a2f1-50f0-a037-fa7d82bfb70a"
+    }
+  },
+  "quote_verification": [
+    {
+      "id": "e318e621-a1fc-4b60-8eba-d006d081aeb3",
+      "status": "sugerido",
+      "cited_page": 3,
+      "quote_in_source_page": true
+    }
+  ],
+  "scientific": {
+    "link_statuses": [
+      {
+        "count": 1,
+        "status": "sugerido"
+      }
+    ],
+    "official_records": 0,
+    "scientific_hold_enabled": true
+  },
+  "external_source_attempt": {
+    "url": "https://download.inep.gov.br/microdados/microdados_enade_2023.zip",
+    "download_received": false,
+    "timeout_ms": 18000,
+    "inspection": "blocked_by_browser_url_policy",
+    "sha256": null
+  },
+  "proof_library_file_id": "libfile_2768eb85523c8191b8d3eab90b0aeb34"
+}
