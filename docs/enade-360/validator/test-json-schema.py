@@ -9,11 +9,11 @@ Draft202012Validator.check_schema(schema)
 validator=Draft202012Validator(schema,format_checker=FormatChecker())
 payloads={
 "R1":{"inscribed":5,"present":4,"valid":3},
-"R2":{"general_formation":{},"specific_component":{}},
-"R3":{"questionnaire_categories":[]},
-"R4":{"indicators":[]},
-"R5":{"comparisons":[]},
-"R6":{"interventions":[]},
+"R2":{"general_formation":{"methodology_id":"SYNTHETIC-METHOD","unit":"points","n":3},"specific_component":{"methodology_id":"SYNTHETIC-METHOD","unit":"points","n":3}},
+"R3":{"questionnaire_categories":[{"question_id":"SYN-1","respondents":3,"missing":0,"denominator":3}]},
+"R4":{"indicators":[{"indicator":"IDD","methodology_id":"SYN-IDD","source_version":"synthetic","status":"PENDING"}]},
+"R5":{"comparisons":[{"class":"C0","justification":"Same synthetic dataset","claimed_comparable":True}]},
+"R6":{"interventions":[{"hypothesis":"Synthetic hypothesis","action":"Review","evidence_refs":["SYN"],"limitations":["Synthetic fixture"],"status":"DRAFT"}]},
 "R7":{"reconciliations":[]},
 }
 def fixture(kind="R1"):
