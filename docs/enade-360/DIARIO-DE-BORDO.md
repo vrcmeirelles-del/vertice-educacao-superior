@@ -183,3 +183,9 @@ Data/hora; etapa; fonte/URL/versão; ação executada; resultado e evidências; 
 - PR #171 criada para consultar a trilha no componente ENADE 360; andamento condicionado a CI e merge, não declarar deploy antes da confirmação.
 - INEP: microdados 2023 identificados em portal oficial, tentativa de transferência falhou; Library e Drive sem microdados ZIP localizados. Zero `resultado_oficial` e zero registros validados na tabela ENADE 360. Motor científico não reproduzido; proibido dizer concluído.
 - Documentação cumulativa preservada; fase de integração operacional avançou efetivamente; homologação científica permanece bloqueada por fonte.
+
+## Entrada 025 — 2026-11-17 — Integração operacional publicada no Render
+- Banco: migração `20261117084920_enade360_private_audit_history_and_read_gate` aplicada e verificações de RLS/privileges/baseline concluídas (10/10 registros auditados).
+- GitHub: PR #171 integrada, commit `f0f7e6c75e2dc1662ef5c340838aca483022b5f4`; TypeScript Node 22/24 e validação ENADE no CI concluídos com êxito após correções de navegação e tipos.
+- Render: serviço ativo `vertice-portal`, deploy `dep-dbu1er5g1s2s73eoudv0` status live. Não declarar teste de navegação autenticada por todos os perfis (ainda não executado).
+- Ciência: ZIP oficial 2023 não baixado neste ambiente; fontes 2021–2023 localizadas no Inep; base não contém resultados oficiais validados. Homologação científica não ocorreu; bloqueio mantido.
