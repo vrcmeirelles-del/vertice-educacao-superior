@@ -419,3 +419,7 @@ No banco F&O (leitura) só foram encontrados `fo_enamed_items` e `fo_enamed_atte
 - ADR-ENAMED-023: a auditoria de prefixo normalizado é **triagem automatizada de identidade**, nunca um certificado de equivalência integral ou correção médica. Não transformar resultado 483/483 de prefixos em 483 questões homologadas.
 
 **Status da publicação:** PR #168 permanece draft, sem merge/deploy; as áreas em código não representam publicação em produção. A matriz de acessos reais Master/Reitoria/CPA/Coordenação/NDE ainda não foi homologada em sessões autenticadas; o controle RLS permanece sujeito a prova efetiva.
+
+
+### Adendo v2.3 — refinamento da triagem textual (17/11/2026)
+Revisada a comparação entre as duas cópias das 200 posições regulares usando níveis sucessivos de normalização: **57 enunciados brutos diferentes**, **31 após retirar whitespace**, **22 após também retirar pontuação**. As 22 diferenças alfanuméricas persistentes estão no Caderno 2 regular e foram registradas por ID, posição e caderno equivalente em `ENAMED_2026_22_DIVERGENCIAS_TEXTUAIS_PERSISTENTES_C2.json`. Duas divergências brutas de alternativas desapareceram ao retirar whitespace. **Esta triagem não detecta por si só mudança semântica ou efeito clínico, e remoção de pontuação poderia ocultar alterações relevantes em valores/unidades.** Nenhum registro modificado; permanece revisão integral por fonte e curadoria humana.
