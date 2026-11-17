@@ -101,3 +101,12 @@ Data/hora; etapa; fonte/URL/versão; ação executada; resultado e evidências; 
 - Referência do commit efetivamente executado: a9cc729dcef66e34adbe9a0ad2d5011f60d94ecc. As atualizações documentais posteriores não estão implicitamente cobertas por esse CI.
 - Limitações: fontes sintéticas; sem microdados; sem reprodução de conceito por curso/área; privacidade e metodologia do INEP não homologadas em uso real.
 - Gate de especialização continua fechado. P-ZIP-001, P-NT-001, P-REF-001 permanecem.
+
+## Entrada 014 — 2026-11-16 — SC, elegibilidade e tipologia de divergências
+- Leitura dos três documentos preexistentes antes da implementação; histórico mantido sem substituição.
+- Fonte consultada: NT nº 2/2023 (2022) e NT nº 6/2024 (2023) do INEP, para min. dois estudantes regulares válidos e seus filtros, além dos limiares do Conceito 2023.
+- Novos arquivos: `validator/edition-controls.cjs`, `validator/test-edition-controls.cjs`; workflow CI com etapa dedicada, sem deploy.
+- Execução confirmada GitHub Actions run 43997964988, job 133754617740, commit 2ab634f48ade5dbb22ec40e7e8eb295f319c3258, conclusion success. Logs: 34/34 novos, 26/26 semânticos e 32/32 JSON Schema+Node; total 92/92 sintéticos.
+- Diferenciações demonstradas nas fixtures: SC vs zero; elegível vs conceito calculado; divergência numérica vs divergência de metodologia; hipótese pedagógica com revisão humana; limites de arredondamento apenas para exibição aprovada.
+- Ressalvas: nenhum microdado ZIP recebido, nenhum Conceito Enade recalcado de ponta a ponta; ainda não há integração real com R1–R7 e códigos de cursos. P-CROSS-001/P-TOL-001 novas, P-ZIP-001/P-NT-001/P-REF-001 abertas.
+- Decisão: manter portão de especialização bloqueado, preservar PR documental e serviços em produção.
