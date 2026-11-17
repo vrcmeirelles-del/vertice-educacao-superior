@@ -8,7 +8,7 @@
   "chain_diagnostic_run": "44016652354",
   "certificate_issuer": "RNP ICPEdu GR46 OV TLS CA 2025",
   "trusted_root_check": "openssl verify against /etc/ssl/certs/ca-certificates.crt succeeded for retrieved intermediate",
-  "transfers_insecure_tls_disabled": false,
+  "tls_verification_never_disabled": true,
   "review_state": "DOCUMENT_BINARY_INTEGRITY_CONFIRMED;LEGAL_EDITION_AND_PEDAGOGICAL_REVIEW_PENDING",
   "warning": "Gabaritos são preliminares. Não representam decisão definitiva ou prova clínica indexada e não autorizam alteração no F&O.",
   "count": 8,
