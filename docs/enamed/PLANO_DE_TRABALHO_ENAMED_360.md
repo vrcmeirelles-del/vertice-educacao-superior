@@ -371,3 +371,14 @@ RECOMENDAÇÃO PARA A ETAPA SEGUINTE:
 - [ ] Aceite E1: versões DEFINITIVAS/retificações, notas metodológicas, texto integral/mídias e curadoria profissional.
 - [ ] Homologação autenticação: 16 cenários reais de MFA/RLS/isolamento IES e ponte sintética.
 - [ ] Homologação final, merge/deploy somente após os dois aceites. **Não considerar produto concluído.**
+
+
+## Fechamento desta solicitação — 17/11/2026
+- [x] Confirmar os **9 workflows verdes** da revisão técnica de referência `a34dfcf814cf4680f768213fd6db8f7edfb8a46c`.
+- [x] Confirmar ausência de sessões reais autenticadas nesta conversa e ausência de métricas institucionais publicadas no destino.
+- [x] Formalizar `ENAMED_360_REGISTRO_GATES_PUBLICACAO.json`, seis gates `approved=false`, sem confundir auditoria encerrada com homologação regulatória ou release.
+- [x] Adicionar teste de integridade dos gates ao CI da PR.
+- [ ] Obter gabaritos definitivos/retificações e parecer documental-médico.
+- [ ] Executar os 16 testes reais por perfil em homologação isolada e demonstrar ponte sintética F&O→Vértice→Sapiens.
+- [ ] Aprovar explicitamente o release, revisar PR, fundir/publicar e validar operação publicada somente após os gates.
+**Regra:** sem mais reabertura artificial da auditoria; estado atual terminal da solicitação = BLOQUEADO COM EVIDÊNCIA. Produção intacta.
