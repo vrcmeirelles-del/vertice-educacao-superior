@@ -1,6 +1,6 @@
 # BÍBLIA-MESTRA DO PROJETO — ENAMED 360° / INEP INTELLIGENCE
 **Projeto:** Vértice Educação Superior × Fato & Ordem × Sapiens 360°  
-**Versão:** 1.2 — E1 parcial + integração interna read-only em desenvolvimento  
+**Versão:** 1.3 — E1 parcial + QA e integração interna em desenvolvimento  
 **Data-base:** 16 de novembro de 2026  
 **Status:** documento-mestre de projeto; NÃO corresponde à implantação ou homologação da solução.  
 **Governança:** evolução cumulativa por etapas, com revisão retrospectiva obrigatória.  
@@ -212,3 +212,21 @@ Continuar E1 conforme catálogo e matriz; atualizar documentação e diário com
 
 ### Status e guardrails
 Código implementado na **branch da PR #168**; não há merge/deploy comprovado. A E7 permanece parcialmente implementada e bloqueada para aceite, pois depende de E1–E6. E9 continua reservada à IES real.
+
+
+## 14. Revisão cumulativa v1.3 — testes de compilação, RLS, ponte e origem INEP (16/11/2026)
+**E1 permanece aberta, E2 bloqueada, E7 em implementação técnica.** Sem dados reais institucionais nesta rodada.
+
+### Evidências (consultadas diretamente)
+1. GitHub Actions, commit `0a5cf238338e72dabdbdf37c365918521d28bc89`: workflow `ENADE 360 - validar integracao real no Render` #43989469247 concluiu com success e **build:static passou**, porém isso é compilação do artefato da PR, não publicação Render. `Portal - TypeScript completo e contratos da Reitoria` #43989469122 falhou com exatamente dois TS2345 em `Governanca360Auditoria.tsx` nas tabelas `formation_trails` e `trail_question_links`; 17 testes de regressão TypeScript e 20 testes de runtime de planejamento passaram antes da falha. Em commit posterior `bdf79937c581b4386d7484f0c79d5ffb573c6d11`, o tipo `Table` foi estendido para incluir esses nomes, sem criar tabelas; nova verificação TypeScript **em execução**, não considerar aprovada até nova conclusão.
+2. Supabase Vértice (read-only): `vertice_learning_course_metrics` tem **0 registros**; política `learning_metrics_read` existe com RLS habilitada. `vertice_private.can_read_institution` inclui Master por `is_master()`, mas `has_role` usa `member_role`; verificar efetividade de Master em sessão real (possível ausência de associação), docentes precisam `aal2` e escopo ativo por curso/disciplina. Não foi realizado teste autenticado por perfil.
+3. Supabase F&O (read-only): 12 registros `fo_enade_attempts`, 11 `fo_enamed_attempts`, 9 `fo_residencia_attempts`, 3.235 registros de vínculos `fo_vertice_student_links` em duas instituições. NÃO inferir estudantes elegíveis nem tentativas sincronizáveis desses totais; sem diagnósticos agregados publicados na Vértice.
+4. Render: serviço ativo `vertice-portal`, workspace Projetos, vinculado à branch `main` do repositório Vértice; último deploy consultado `23d625c5ae9b2fd7aacaf94371e6fb840eb71106` (status live). A PR #168 não foi integrada nem publicada. Outros serviços Vértice listados como suspensos são distintos; não confundir instâncias.
+5. Fontes INEP: a NT 40/2025 foi aberta em domínio oficial, texto e página 1 inspecionados; identificação SEI 1844476, CRC AD834C1B aparecem no PDF. Trata-se de verificação de origem/documento em PDF oficial, **não de checksum do arquivo** ou validação da assinatura via sistema SEI. A página pública apresenta notas 19/2025, 1PL/2025, 42/2025; downloads dessas três falharam (timeouts/502), por isso leitura integral e SHA-256 permanecem pendentes. A página de microdados 2025 mostra atualização 14/05/2026 no cabeçalho mas rótulo do ZIP informa 14/05/2025; verificar metadados, sem presumir versão.
+
+### Decisões novas
+- ADR-ENAMED-008: não ativar importação/cálculo oficial sem corpus autenticado, validade e hash verificáveis; doc SEI indica autenticidade verificável, mas não equivale a arquivo hashado.
+- ADR-ENAMED-009: zero métricas no destino é estado de ausência **comprovado**, não sucesso da ponte nem taxa zero; implantação necessita vínculos acadêmicos e mapeamentos válidos, com população mínima.
+- ADR-ENAMED-010: teste estático/build não substitui QA navegador, execução por papel e serviço publicado; falhas de TS deixam a PR bloqueada.
+
+Nenhum dado de produção modificado. E9 com documentos reais de IES permanece futura e independente.
