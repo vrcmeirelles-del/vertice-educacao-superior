@@ -1,0 +1,43 @@
+{
+  "schema_version": "enamed-inep-source-reconciliation-v1",
+  "snapshot_date": "2026-11-16",
+  "source_of_records": "Supabase Fato & Ordem public.fo_enamed_items (read-only)",
+  "official_catalog": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enamed/provas-e-gabaritos",
+  "authentication_status": "PENDING_FULL_BINARY_RETRIEVAL_AND_PDF_COMPARISON",
+  "notes": "URLs são metadados fornecidos pelo banco do F&O. Não foram confirmados como links de PDF íntegro pela página oficial; hashes não calculados. Inep publicou em 2026 gabaritos preliminares com resultado definitivo previsto para 2026-12-04.",
+  "records": [
+    {
+      "id": "ENAMED-2026-REGULAR-C1",
+      "url": "https://download.inep.gov.br/enamed/provas_e_gabaritos/2026_caderno_1.pdf",
+      "count_database": 200,
+      "distinct_question_numbers": 100,
+      "sha256": null,
+      "edition": "2026",
+      "kind": "prova",
+      "status": "a_confirmar",
+      "origin": "F&O database"
+    },
+    {
+      "id": "ENAMED-2026-REGULAR-C2",
+      "url": "https://download.inep.gov.br/enamed/provas_e_gabaritos/2026_caderno_2.pdf",
+      "count_database": 200,
+      "distinct_question_numbers": 100,
+      "sha256": null,
+      "edition": "2026",
+      "kind": "prova",
+      "status": "a_confirmar",
+      "origin": "F&O database"
+    },
+    {
+      "id": "ENAMED-2026-REAP-C1",
+      "url": "https://download.inep.gov.br/enamed/provas_e_gabaritos/2026_caderno_1_reaplicacao.pdf",
+      "count_database": 83,
+      "distinct_question_numbers": 83,
+      "sha256": null,
+      "edition": "2026",
+      "kind": "prova",
+      "status": "a_confirmar",
+      "origin": "F&O database"
+    }
+  ]
+}
