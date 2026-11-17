@@ -1,6 +1,6 @@
 # BÍBLIA-MESTRA DO PROJETO — ENAMED 360° / INEP INTELLIGENCE
 **Projeto:** Vértice Educação Superior × Fato & Ordem × Sapiens 360°  
-**Versão:** 1.4 — E1 parcial + dicionário preparatório e auditoria concomitante  
+**Versão:** 1.5 — E1 parcial + comparação documental e CI de contratos  
 **Data-base:** 16 de novembro de 2026  
 **Status:** documento-mestre de projeto; NÃO corresponde à implantação ou homologação da solução.  
 **Governança:** evolução cumulativa por etapas, com revisão retrospectiva obrigatória.  
@@ -248,3 +248,18 @@ Separar **ontologia normativa em versão e códigos oficiais**, **taxonomia edit
 
 ### Gate E1
 Prosseguir conferindo as fontes INEP e originais de cada caderno; E1 não pode ser encerrada sem hash, vigência, retificações e validação. E2/E3 não recebem status de concluídas por existir dicionário rascunho e fila.
+
+
+## 16. Atualização v1.5 — verificações de corpus e divergências internas (16/11/2026)
+**Preservada a continuidade E0–E1:** os artefatos preparatórios E2/E3 não foram homologados; E1 continua aberta. Fonte e cálculos oficiais não foram ativados.
+
+### Achados cumulativos
+- Referência oficial Portaria 478/2025 examinada na reprodução DOU hospedada pela UFBA (4 páginas, página 2 inspecionada visualmente), complementada pelo portal do Inep. Confirma 7 áreas, 15 competências, 6 contextos, 21 conteúdos; não há hash binário autenticado.
+- Consultas de leitura aos 483 registros F&O: **283 posições** únicas por `source_url+question_number`, 200 posições duplicadas. Nas repetidas, diferenças em 57 enunciados, 2 conjuntos de alternativas, 6 temas, 191 subtemas e 192 listas de palavras-chave; zero diferenças de `answer_key` entre cópias. Isso **não comprova** concordância com o gabarito Inep.
+- Novo relatório `docs/enamed/E1_CONFRONTO_DOCUMENTAL_483_20261116.md` documenta método SQL e limites. Não remover duplicatas nem substituir versões sem proteger tentativas históricas.
+- **Falha de autenticação documental:** downloads `download.inep.gov.br` falharam no ambiente por DNS/502, e screenshot do manual oficial não pôde ser recuperado. Nenhum SHA-256 oficial foi produzido; E1 não ultrapassa o gate.
+- **QA PR #168:** workflow de 415 testes no commit de documentação v1.4 falhou 1 teste em `InstitutionTabs.test.tsx` por duas abas `construcao-curricular` e `trilhas-enade` ausentes de `MACRO_TABS`; alinhadas ao macro acadêmico na branch, commit `7b3f5064d3c79b24716b21bb83c5d75317856317`. Reexecução de TypeScript/UI completa ainda exige resultado final comprovado.
+- Novo workflow `verify-enamed-contracts.yml` executou **6 testes Node (2 do dicionário + 4 de integração)** com sucesso no run `43994963032` (commit `e9f2bbf46ca2d32ca5a54839342829ae132ce769`). Esses são testes de contratos e integridade da fila, não de semântica médica nem end-to-end.
+- ADR-ENAMED-012: manter E1 bloqueada quando PDF não autenticável; usar evidência web apenas para inventário e interpretação preliminar. RLS, sincronização e dados reais por IES mantêm aceite separado.
+
+**Dependências:** E2/E3 não são encerradas; produção F&O e Vértice intocada; a PR #168 permanece em rascunho.
