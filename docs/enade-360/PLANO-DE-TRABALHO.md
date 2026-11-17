@@ -88,3 +88,9 @@ Antes de cada etapa consultar os três documentos. Concluído só com evidência
 - Evidência: 26/26 cenários semânticos Node, 32/32 validações combinadas Draft 2020-12 + Node (7 aceites positivos e 25 rejeições negativas); testes documentados e logs preservados em `EVIDENCIAS-SCHEMA-003.md`.
 - Próximo marco independente: estender cobertura de regras intercampos, identificação de metodologia por edição, controle de SC e tolerâncias, preparar integração controlada sem publicação. Nenhuma especialização até prova oficial.
 - P-ZIP-001/P-NT-001/P-REF-001 continuam abertos; homologação do núcleo ainda bloqueada.
+
+## Adendo v0.9 — Aceite do protótipo de controles por edição (2026-11-16)
+- Implementados e testados isoladamente filtros/SC para 2022 e 2023, limiares da faixa do Conceito somente em 2023, comparação decimal textual sem tolerância implícita e rótulos distintos para diferença numérica, metodologia incompatível e hipótese pedagógica.
+- CI run 43997964988 (commit 2ab634f48ade5dbb22ec40e7e8eb295f319c3258) comprovou 34 novos testes aprovados; ao todo 92/92 nas três suítes sintéticas. Evidência EVIDENCIAS-EDICAO-004.md.
+- Próxima tarefa independente P-CROSS-001: vincular códigos e edições aos relatórios R1–R7 e ao gate integrado, impedindo mescla de cursos; P-TOL-001: conferir fonte e tolerâncias específicas antes de admitir aproximações oficiais.
+- P-ZIP-001, P-NT-001 e P-REF-001 permanecem. Gate de especialização bloqueado; sem deploy.
