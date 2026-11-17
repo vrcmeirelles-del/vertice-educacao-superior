@@ -124,3 +124,10 @@ Antes de cada etapa consultar os três documentos. Concluído só com evidência
 - Bloqueada publicação automática; trilha ainda opt-in e não aplicada a dados persistidos. P-TRACE-001 aberta para migração reversível, integridade real de documentos, isolamento por IES/curso, autorização de usuário e testes de ponta a ponta.
 - Próximo marco independente do ZIP: desenho de esquema persistente de eventos imutáveis, contrato de API somente leitura de evidências e matriz de permissões por perfil; nenhuma alteração no banco/produção sem homologação técnica e autorização específica.
 - P-ZIP-001, P-NT-001, P-REF-001 e P-TOL-001 continuam abertos; P-CROSS-001 parcial; especialização bloqueada.
+
+## Adendo v1.4 — Projeto de persistência auditável e perfil de acesso (2026-11-17)
+- Produzidos `ARQUITETURA-AUDITORIA-PERSISTENTE.md`, `validator/audit-event-prototype.cjs` e `validator/test-audit-governance.cjs`.
+- GitHub Actions run 44046339541, commit f09ad17a49c1f1d1f2a94222928d56973d829bfb: 240/240 testes sintéticos aprovados, evidência `EVIDENCIAS-GOVERNANCA-009.md`.
+- Próxima prioridade técnica: conferir o schema e as permissões reais da Vértice para desenhar migração reversível, seguida de testes de RLS em ambiente isolado; modelar API autenticada GET de eventos, evidências e decisões com logs de acesso, sem endpoint de publicação.
+- P-TRACE-001, P-ACCESS-001 e P-API-001 abertas: documentação e simulações não equivalem a aplicação real. Manter P-ZIP-001, P-NT-001, P-REF-001, P-TOL-001 abertas e P-CROSS-001 parcial.
+- Nenhum banco ou produção alterado; núcleo genérico e especialização bloqueados.
