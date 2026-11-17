@@ -28,7 +28,7 @@ function verify(history){
  return true;
 }
 function canRead(subject,resource){
- if(!subject||!resource||!subject.user_id||!ROLES.has(subject.role)||!subject.active)return false;
+ if(!subject||!resource||!subject.user_id||!ROLES.has(subject.role)||!subject.active||subject.mfa_level!=="aal2")return false;
  if(!Array.isArray(subject.grants))return false;
  return subject.grants.some(g=>{
   if(!g.active||g.tenant_id!==resource.tenant_id||g.institution_id!==resource.institution_id)return false;
