@@ -330,3 +330,7 @@ RECOMENDAÇÃO PARA A ETAPA SEGUINTE:
 - [ ] Conferir 22 divergências persistentes com PDF e alternativas, classificando como mudança material, ortográfica ou de extração por revisor competente.
 - [ ] Conferir demais 35 divergências brutas, mídias e perguntas não incluídas na triagem curta, com revisão humana.
 - [ ] Confirmar todos os gates E1 e a homologação por perfil antes de publicação.
+
+
+- [x] Preparar `ENAMED_2026_ROTEIRO_HOMOLOGACAO_PERFIS.md` com 16 casos e massa sintética multi-IES; nenhuma sessão real foi executada.
+- [ ] Executar os 16 casos em ambiente autenticado de homologação e registrar respostas positivas/negativas RLS, MFA e evidências de tela; publicação permanece bloqueada.
