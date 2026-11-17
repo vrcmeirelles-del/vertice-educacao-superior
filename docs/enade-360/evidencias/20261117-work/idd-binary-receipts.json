@@ -1,0 +1,23 @@
+[
+  {
+    "url": "https://download.inep.gov.br/microdados/microdados_IDD_2023.zip",
+    "obtained_at": "2026-11-17T10:21:55.133140+00:00",
+    "received": false,
+    "http_status": 503,
+    "error": "HTTP Error 503: Service Unavailable"
+  },
+  {
+    "url": "https://download.inep.gov.br/microdados/microdados_IDD_2022.zip",
+    "obtained_at": "2026-11-17T10:21:55.133594+00:00",
+    "received": false,
+    "http_status": 503,
+    "error": "HTTP Error 503: Service Unavailable"
+  },
+  {
+    "url": "https://download.inep.gov.br/microdados/microdados_IDD_2021.zip",
+    "obtained_at": "2026-11-17T10:21:55.133885+00:00",
+    "received": false,
+    "http_status": 503,
+    "error": "HTTP Error 503: Service Unavailable"
+  }
+]

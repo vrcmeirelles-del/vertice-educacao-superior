@@ -43,3 +43,8 @@ P-TOL-001 — determinar a precisão de apresentação e tolerâncias oficiais p
 P-REF-001 — obter planilhas originais, versões e SHA-256.
 P-ZIP-001 — microdados fornecidos posteriormente pelo usuário.
 Qualquer valor ainda não encontrado é marcado **NÃO VERIFICADO**, nunca inferido.
+
+
+## Referências de edição confirmadas no catálogo — 17/11/2026
+
+O HTML oficial de outros-documentos/2022 identifica expressamente a NT 29/2023 em substituição à NT 3/2023 (IDD 2022), e a NT 5/2024 para a definição/transição do IGC 2022. Os catálogos 2021/2023 também foram preservados no inventário. Não foram atribuídas fórmulas, tolerâncias ou equivalência às notas cujo PDF retornou 503. A referência ao pacote público de IDD não comprova o recebimento dos insumos. Ver evidencias/20261117-work/methodology-catalog-receipts.json e idd-binary-receipts.json.

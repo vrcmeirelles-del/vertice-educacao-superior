@@ -214,3 +214,18 @@ Foi confirmado um defeito de atualização: o histórico aberto não refletia im
 Foi acrescentada execução no GitHub Actions para receber diretamente os 18 binários oficiais anteriormente indisponíveis, registrar SHA-256 e verificar estrutura/CRC. Neste registro a execução ainda não está concluída; não contar arquivos, reproduções ou conciliações sem recibo real. A homologação científica continua bloqueada.
 
 Evidência: [sessão Master](evidencias/20261117-work/master-real-session.json). O comprovante anterior de testes transacionais permanece intacto, como histórico.
+
+
+## Adendo 2.5 — Encerramento da execução conectada — 17/11/2026
+
+PR [#173](https://github.com/vrcmeirelles-del/vertice-educacao-superior/pull/173) integrada pelo commit `f116cddc83766be5a79f5c16ccc2ae8f39b5fcde`. Seis workflows técnicos concluíram com sucesso, incluindo TypeScript Node 22/24, regressão UI do histórico e builds. Deploys live: portal `dep-dbu2k6lbedkc73eutlfg` (07:19:44, Brasília) e institucional `dep-dbu2k6lbedkc73eutlk0` (07:19:47). `version.json` e chunks efetivamente servidos confirmam o commit, a invalidação do histórico após escrita e a mensagem de homologação pendente.
+
+Teste HTTP real adicional, sem token de usuário: leitura retornou HTTP 200/lista vazia e RPC de auditoria retornou HTTP 401/permission denied. Nos logs reais da sessão Master: criação 201, rejeição 204 e RPC 200. Esses resultados não comprovam os perfis Reitoria/Coordenação/NDE/CPA nem um novo desafio MFA.
+
+A execução de aquisição no GitHub [44063161236](https://github.com/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44063161236) terminou: 18 alvos, zero recebidos. HTTPS apresentou falha TLS; o diagnóstico direto não recebeu certificado do par e registrou reset de conexão. A tentativa alternativa HTTP no mesmo host oficial terminou em timeout para os 18 alvos. A verificação TLS não foi desativada. Sucesso da execução do workflow significa geração dos recibos, NÃO recuperação ou validação dos dados.
+
+Os catálogos oficiais de IDD/CPC/IGC e de notas 2021–2023 foram recebidos e preservados com SHA-256. Quinze notas técnicas e os três pacotes públicos de microdados IDD foram tentados diretamente e retornaram HTTP 503. O catálogo oficial confirma que a NT 29/2023 substitui a NT 3/2023 do IDD 2022 e referencia a NT 5/2024 para a transição do IGC 2022. Foram localizadas referências, não lidos integralmente os PDFs indisponíveis. Não se deve afirmar que o IDD é genericamente impossível por ausência de ligação pública: existe pacote IDD oficial; seus bytes ainda não foram recebidos nesta execução.
+
+Contagem reconfirmada: espelho 289/241/48, 62 pares IES/curso, cadastro 196, equivalências 0. Nenhum vínculo por nome ou código de namespace incompatível foi gravado. Núcleo científico: zero indicadores reproduzidos, zero conciliações com planilhas oficiais, zero aprovações científicas humanas. Homologação e publicação acadêmica continuam bloqueadas; a integração técnica não autoriza especialização por bacharelado.
+
+Evidências adicionais: [sessão Master](evidencias/20261117-work/master-real-session.json), [negação HTTP real](evidencias/20261117-work/anonymous-http-access.json), [artefatos publicados](evidencias/20261117-work/published-audit-refresh.json), [recibos GitHub](evidencias/20261117-work/github-official-receipts.json), [catálogos metodológicos](evidencias/20261117-work/methodology-catalog-receipts.json). Permanecem intactas as entradas anteriores, inclusive tentativas de login e testes transacionais anteriores.

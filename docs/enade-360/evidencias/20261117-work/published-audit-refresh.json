@@ -1,0 +1,34 @@
+[
+  {
+    "base": "https://www.verticesuperior.com.br",
+    "obtained_at": "2026-11-17T10:21:11.088506+00:00",
+    "version": {
+      "sha": "f116cddc83766be5a79f5c16ccc2ae8f39b5fcde",
+      "built": "2026-11-17T10:19:43.772Z"
+    },
+    "js_url": "https://www.verticesuperior.com.br/assets/index-ryzhJ5nl.js",
+    "js_sha256": "a9625c956a5d05b58ed2e3a79ecedbe36fb6909caae72ca9d7bc04c41b5a6bb6",
+    "dashboard_asset": {
+      "url": "https://www.verticesuperior.com.br/assets/OwnerDashboard-D4G46Qvc.js",
+      "sha256": "9317b71b06ebbf409679c5133e49e19fb483ddab8c8d28a5ccaa574831c6050f",
+      "scientific_hold_marker": true,
+      "audit_refresh_excerpt": ".eq(\"id\",$.id).eq(\"institution_id\",a);if(le)throw le;N(X?\"Evidência validada.\":\"Evidência rejeitada.\"),F(null),I([]),await k()}catch(Z){N(Z instanceof Error?Z.message:\"Não foi possível validar.\")}finally{B(!1)}}}}async function D($){if(R===$){F(null),I([]);return}S(!0),F($),I([]),N(\"\");try{const{dat"
+    }
+  },
+  {
+    "base": "https://vertice-portal.onrender.com",
+    "obtained_at": "2026-11-17T10:21:11.088898+00:00",
+    "version": {
+      "sha": "f116cddc83766be5a79f5c16ccc2ae8f39b5fcde",
+      "built": "2026-11-17T10:19:42.651Z"
+    },
+    "js_url": "https://vertice-portal.onrender.com/assets/index-D55n7-Z9.js",
+    "js_sha256": "e6d919e3accd7a024835c1510326b29e88a6cff1cfd4a1c2e7bce5928f0fb15d",
+    "dashboard_asset": {
+      "url": "https://vertice-portal.onrender.com/assets/OwnerDashboard-DRcFkjMH.js",
+      "sha256": "c645912c72e8dd8582876d978e7b049d2e3809e729ecc2e4196853794d142aca",
+      "scientific_hold_marker": true,
+      "audit_refresh_excerpt": ".eq(\"id\",$.id).eq(\"institution_id\",a);if(le)throw le;N(X?\"Evidência validada.\":\"Evidência rejeitada.\"),F(null),I([]),await k()}catch(Z){N(Z instanceof Error?Z.message:\"Não foi possível validar.\")}finally{B(!1)}}}}async function D($){if(R===$){F(null),I([]);return}S(!0),F($),I([]),N(\"\");try{const{dat"
+    }
+  }
+]

@@ -37,5 +37,15 @@
   "typescript_check": "PASS",
   "other_real_profiles_tested": [],
   "mfa_challenge_tested": false,
-  "scientific_homologation": false
+  "scientific_homologation": false,
+  "api_log_confirmation": {
+    "window_utc": [
+      "2026-11-17T09:50:00Z",
+      "2026-11-17T10:01:00Z"
+    ],
+    "matching_edge_entries": 11,
+    "record_creation_http": 201,
+    "record_rejection_http": 204,
+    "audit_rpc_http": 200
+  }
 }
