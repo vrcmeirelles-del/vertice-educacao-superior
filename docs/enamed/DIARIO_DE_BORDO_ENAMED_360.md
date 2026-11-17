@@ -151,3 +151,15 @@ Leia em conjunto com `BIBLIA_MESTRA_ENAMED_360.md` e `PLANO_DE_TRABALHO_ENAMED_3
 - **Limite da evidência:** simulação SSR/visibilidade não substitui testes RLS autenticados por perfil ou dispositivo, que permanecem em aberto.
 - **E1:** 11 URLs PDF diretamente publicadas no DOM Inep (run `43999991024`), mas 0 PDF obtido com confiança TLS: 8 transferências `curl` em `44000426717` falharam por erro de certificado/reset. Não declarar documentos autenticados.
 - **Decisão:** documentação cumulativa v2.1; E1 não homologada, E2/E3 somente preparatórias; PR #168 draft, sem merge ou deploy; F&O, gabaritos e históricos preservados.
+
+
+## 2026-11-17 — E1: oito PDFs recuperados sob TLS validado, 483 gabaritos preliminares conciliados
+- **Entrada:** Bíblia v2.1, Plano, Diário; issue #167, issue #170 e PR #168.
+- **Cadeia TLS:** diagnóstico `download.inep.gov.br` detectou intermediária ausente no handshake, emissor `RNP ICPEdu GR46 OV TLS CA 2025`. Nova ferramenta `download_inep_verified_chain.py` baixou a intermediária e a verificou criptograficamente até raiz do sistema antes de fazer HTTPS com verificação ativa. Sem `curl -k` ou desligamento TLS.
+- **Fonte/artefato:** run `44017133303` (success), artefato `14299257407`, **8 PDFs recuperados**; todos SHA-256 recomputados do ZIP e iguais aos metadados da execução. URLs, hashes, tamanhos e páginas preservados no novo JSON; PDFs de prova: 28 páginas cada, gabaritos preliminares: 2 páginas cada.
+- **Confronto SQL somente leitura:** quatro gabaritos preliminares com 100 chaves cada. Regular C1: 200/200 registros F&O coincidentes; regular C2: 200/200; reaplicação C1: 83/83; **483/483 coincidências**, nenhuma divergência de letra. O status `definitivo` do banco segue sem validação pela publicação preliminar e não foi alterado.
+- **Cobertura:** reaplicação C1 tem 17 posições sem registro na tabela; reaplicação C2 tem 100 posições oficiais com zero registros encontrados em `fo_enamed_items`; sem comprovar inventário global ou aprovar importação.
+- **Duplicatas:** q19 e q28 regular C1, duas diferenças em alternativas, exibem variação de pontuação/whitespace, não troca de resposta; demais 57 variações de enunciado, 191 subtema e 192 keywords não homologadas.
+- **CI e portal:** recuperação, contratos ENAMED e TS completo concluíram success no commit `ccda5e4...`. Sem sessão autenticada por perfil (Master/Reitoria/CPA/Coordenação/NDE/outra IES) e sem deploy Render desta PR.
+- **Documentos criados:** `INEP_2026_SHA256_DOCUMENTOS_PRELIMINARES_20261117.json` e `E1_CONFRONTO_GABARITOS_PRELIMINARES_483_20261117.md`; registro cumulativo v2.2.
+- **Decisão:** E1 **ainda aberta** até validade das versões definitivas, notas metodológicas, identidade textual dos itens e aceite regulatório; E2/E3 preparatórias, E9 institucional futura. **Nenhum registro de questões, gabaritos ou estudante foi alterado.**
