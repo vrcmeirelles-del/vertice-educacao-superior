@@ -57,3 +57,18 @@ export function groundedLinks(links,extracted){
  return (Array.isArray(links)?links:[]).map(l=>({...l,evidence_excerpts:(Array.isArray(l.evidence_excerpts)?l.evidence_excerpts:[]).filter(e=>typeof e.text==='string'&&e.text.length>=20&&extracted.pages.some(p=>(e.page==null||e.page===p.page)&&norm(p.text).includes(norm(e.text))))})).filter(l=>l.evidence_excerpts.length>0);
 }
 
+// Preserve the exact prefix actually sent, including a partially transmitted page.
+// Previously a DOCX main part over 30k characters excluded every valid quotation.
+export function transmittedEvidence(extracted,limit=30000){
+ let cursor=0;const pages=[];
+ for(const page of extracted.pages){
+  const start=extracted.text.indexOf(page.text,cursor);
+  if(start<0)throw Error('extraction_page_text_mismatch');
+  cursor=start+page.text.length;
+  if(start>=limit)break;
+  const text=page.text.slice(0,Math.max(0,limit-start));
+  if(text)pages.push({...page,text});
+ }
+ return {...extracted,text:extracted.text.slice(0,limit),pages};
+}
+

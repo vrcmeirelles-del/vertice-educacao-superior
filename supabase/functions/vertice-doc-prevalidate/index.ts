@@ -3,7 +3,7 @@
 // sugere espelhamento transversal entre instrumentos regulatórios.
 import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { unzipSync } from "npm:fflate@0.8.2";
-import {extractDocument,groundedLinks,ExtractionFailure} from "./document-text.mjs";
+import {extractDocument,groundedLinks,transmittedEvidence,ExtractionFailure} from "./document-text.mjs";
 import {openTextPdf} from "./pdf-runtime.mjs";
 import {analyzeEvidence} from "./ai-provider.mjs";
 
@@ -314,7 +314,7 @@ Deno.serve(async (request) => {
     }).eq("id", pv.id);
 
     // 6. Create indicator links
-    const transmitted={...extraction,pages:extraction.pages.filter((p:any)=>extractedText.slice(0,30000).includes(p.text))};
+    const transmitted=transmittedEvidence(extraction);
     const links = groundedLinks(result.indicator_links,transmitted)
       .filter((link:IndicatorLink) =>
         approvedCodes.has(`${link.instrument_code}/${link.instrument_version}/${link.object_code}`) &&

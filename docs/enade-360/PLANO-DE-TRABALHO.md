@@ -291,3 +291,16 @@ O hash e o tamanho recebido passam a ser persistidos antes do parser, com identi
 Validação local: 15 testes de contrato/parser/provedor/banco passaram, incluindo falha 404 com alternativa, resposta inválida recusada e ordenação da persistência antes do parser. São testes técnicos com provedores simulados, não comprovação de chamadas externas ou reprodução científica. CI, publicação e sessão real serão registrados somente após observados.
 
 Fontes oficiais de ciclo de vida: https://platform.claude.com/docs/en/about-claude/model-deprecations e https://platform.claude.com/docs/en/models/overview (consulta 17/11/2026). Não há indicador Conceito Enade, IDD, CPC ou IGC reproduzido/conciliado nesta execução; publicação científica continua bloqueada. OCR dos 67 arquivos, tratamento do arquivo pendente, sessões dos demais perfis e conciliação oficial continuam pendências explícitas.
+
+
+## Adendo cumulativo — 17/11/2026 — OCR real e citações transmitidas
+
+PR #184 integrada em `117d2a40c2e0682d89ee79f80cca2e04ca25129f`, com quatro workflows aprovados. Função `vertice-doc-prevalidate` v6 publicada com JWT obrigatório; os cinco arquivos recuperados do serviço conferiram byte a byte com o pacote enviado. Portal Render `dep-dbua0bdg1s2s73aos8p0` e site institucional `dep-dbua0blg1s2s73aos8rg` ficaram live nesse commit.
+
+Na sessão Master real, o regulamento de NPJ foi analisado: Anthropic atingiu timeout e o OpenAI retornou HTTP 200, modelo `gpt-4.1-mini-2025-04-14`, request ID `req_44e2326910a9481cb6e72e5e85f25e16`. O resumo foi persistido, sem aprovação humana e sem vínculo aproveitado. Encontrado defeito adicional: o filtro de citações descartava uma parte DOCX inteira quando ela excedia os 30.000 caracteres enviados. Corrigido para validar citações apenas na interseção efetivamente transmitida, mantendo a rejeição do restante não enviado.
+
+Foram recebidos os 68 originais restantes pelo acervo autenticado. Os 68 SHA-256 conferiram com versões já registradas, incluindo o arquivo que interrompia o runtime Edge. OCR executado localmente com Tesseract 5.5.0 e dados oficiais de português `tesseract-ocr/tessdata_fast`, SHA-256 `c4932b937207a9514b7514d518b931a99938c02a28a5a5a553f8599ed58b7deb`, sem transmissão desses arquivos a provedores de IA. No registro deste adendo, 64 reconheceram texto e quatro estão em nova leitura por orientação; a importação no banco ainda não foi declarada concluída.
+
+O script operacional `scripts/enade360-local-ocr.py` preserva hash, páginas, confiança por página, idioma, ferramenta e eventuais limites; não acessa rede/banco, não altera originais e não aprova evidências. Texto OCR recebe estado parcial e revisão de fidelidade obrigatória. A migração de busca acrescenta aviso explícito de OCR no trecho apresentado, sem indexar esse aviso como conteúdo e sem alterar assinatura, grants, RLS ou MFA.
+
+Os 16 testes locais passaram, incluindo corte de DOCX, citação não transmitida recusada, aviso OCR fora do conteúdo pesquisável e leitura negada sem MFA. Não são homologação científica. Publicação da correção e importação OCR serão registradas somente após os respectivos recibos reais. Nenhum indicador oficial ENADE/IDD/CPC/IGC foi reproduzido ou publicado como homologado.
