@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - "scripts/enamed/discover_public_inep_pdfs.py"
+      - "scripts/enamed/render_inep_public_catalog.py"
       - ".github/workflows/enamed-inep-public-corpus.yml"
   workflow_dispatch:
 permissions:
@@ -29,5 +30,26 @@ jobs:
         with:
           name: enamed-e1-oficial-pdfs-unverified
           path: evidence/enamed-inep/
+          retention-days: 14
+          if-no-files-found: error
+  rendered-catalog:
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Instalar navegador de leitura pública
+        run: |
+          python -m pip install --disable-pip-version-check playwright==1.56.0
+          python -m playwright install --with-deps chromium
+      - name: Renderizar página oficial e descobrir documentos vinculados
+        run: python scripts/enamed/render_inep_public_catalog.py
+      - name: Arquivar relatório de procedência pendente e binários públicos
+        uses: actions/upload-artifact@v4
+        with:
+          name: enamed-e1-browser-rendered-unverified
+          path: evidence/enamed-inep-rendered/
           retention-days: 14
           if-no-files-found: error
