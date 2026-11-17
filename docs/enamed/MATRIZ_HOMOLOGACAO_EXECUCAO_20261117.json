@@ -1,9 +1,9 @@
 {
   "schema_version": "enamed-authenticated-qa-v1",
   "date": "2026-11-17",
-  "environment_observed": "https://www.verticesuperior.com.br/entrar",
-  "observed_state": "Email/password form, no signed-in session; not an isolated staging deployment",
-  "supabase_development_branches": 0,
+  "environment_observed": "https://vertice-enamed-homologacao.onrender.com/entrar",
+  "observed_state": "Isolated frontend live; no Auth users; DB replay incomplete; pending provider confirmation. No authenticated session.",
+  "supabase_development_branches": 1,
   "render_preview_enabled": false,
   "responsible": "Codex — registro técnico, não aceite humano",
   "cases": [
@@ -13,8 +13,16 @@
       "status": "BLOQUEADA",
       "executed": false,
       "observed": null,
-      "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
-      "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+      "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+      "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json",
+      "history": [
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+          "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        }
+      ]
     },
     {
       "case": "ACL-02",
@@ -22,8 +30,16 @@
       "status": "BLOQUEADA",
       "executed": false,
       "observed": null,
-      "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
-      "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+      "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+      "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json",
+      "history": [
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+          "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        }
+      ]
     },
     {
       "case": "ACL-03",
@@ -31,8 +47,16 @@
       "status": "BLOQUEADA",
       "executed": false,
       "observed": null,
-      "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
-      "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+      "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+      "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json",
+      "history": [
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+          "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        }
+      ]
     },
     {
       "case": "ACL-04",
@@ -40,8 +64,16 @@
       "status": "BLOQUEADA",
       "executed": false,
       "observed": null,
-      "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
-      "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+      "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+      "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json",
+      "history": [
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+          "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        }
+      ]
     },
     {
       "case": "ACL-05",
@@ -49,8 +81,16 @@
       "status": "BLOQUEADA",
       "executed": false,
       "observed": null,
-      "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
-      "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+      "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+      "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json",
+      "history": [
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+          "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        }
+      ]
     },
     {
       "case": "ACL-06",
@@ -58,8 +98,16 @@
       "status": "BLOQUEADA",
       "executed": false,
       "observed": null,
-      "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
-      "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+      "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+      "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json",
+      "history": [
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+          "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        }
+      ]
     },
     {
       "case": "ACL-07",
@@ -67,8 +115,16 @@
       "status": "BLOQUEADA",
       "executed": false,
       "observed": null,
-      "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
-      "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+      "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+      "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json",
+      "history": [
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+          "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        }
+      ]
     },
     {
       "case": "ACL-08",
@@ -76,8 +132,16 @@
       "status": "BLOQUEADA",
       "executed": false,
       "observed": null,
-      "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
-      "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+      "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+      "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json",
+      "history": [
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+          "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        }
+      ]
     },
     {
       "case": "ACL-09",
@@ -85,8 +149,16 @@
       "status": "BLOQUEADA",
       "executed": false,
       "observed": null,
-      "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
-      "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+      "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+      "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json",
+      "history": [
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+          "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        }
+      ]
     },
     {
       "case": "ACL-10",
@@ -94,8 +166,16 @@
       "status": "BLOQUEADA",
       "executed": false,
       "observed": null,
-      "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
-      "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+      "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+      "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json",
+      "history": [
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+          "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        }
+      ]
     },
     {
       "case": "ACL-11",
@@ -103,8 +183,16 @@
       "status": "BLOQUEADA",
       "executed": false,
       "observed": null,
-      "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
-      "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+      "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+      "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json",
+      "history": [
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+          "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        }
+      ]
     },
     {
       "case": "ACL-12",
@@ -112,8 +200,16 @@
       "status": "BLOQUEADA",
       "executed": false,
       "observed": null,
-      "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
-      "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+      "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+      "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json",
+      "history": [
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+          "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        }
+      ]
     },
     {
       "case": "ACL-13",
@@ -121,8 +217,16 @@
       "status": "BLOQUEADA",
       "executed": false,
       "observed": null,
-      "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
-      "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+      "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+      "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json",
+      "history": [
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+          "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        }
+      ]
     },
     {
       "case": "ACL-14",
@@ -130,8 +234,16 @@
       "status": "BLOQUEADA",
       "executed": false,
       "observed": null,
-      "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
-      "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+      "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+      "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json",
+      "history": [
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+          "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        }
+      ]
     },
     {
       "case": "ACL-15",
@@ -139,8 +251,16 @@
       "status": "BLOQUEADA",
       "executed": false,
       "observed": null,
-      "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
-      "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+      "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+      "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json",
+      "history": [
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+          "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        }
+      ]
     },
     {
       "case": "ACL-16",
@@ -148,13 +268,52 @@
       "status": "BLOQUEADA",
       "executed": false,
       "observed": null,
-      "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
-      "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+      "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+      "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json",
+      "history": [
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+          "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        }
+      ]
     }
   ],
   "additional_requested_roles": {
     "Direção": "BLOQUEADA — sem sessão autorizada de teste",
     "NDE": "BLOQUEADA — sem sessão autorizada de teste"
   },
-  "synthetic_tests_are_not_live_sessions": true
+  "synthetic_tests_are_not_live_sessions": true,
+  "supplemental_live_checks": [
+    {
+      "action": "live_anonymous_master_guard",
+      "status": "CONCLUÍDA",
+      "url": "https://www.verticesuperior.com.br/master",
+      "observed": "Painel de gestão; Entre para acessar sua conta.",
+      "scope": "Sessão anônima no portal publicado; não é ACL-12 com usuário autenticado sem autorização.",
+      "credential_request": "Secure request did not return a confirmed authentication; original tab was unavailable; fresh target tab showed no signed-in access."
+    }
+  ],
+  "isolated_environment_attempt": {
+    "action": "staging_replay_progress",
+    "status": "CONCLUÍDA",
+    "migration_count": 85,
+    "public_tables": 103,
+    "public_rls_tables": 103,
+    "auth_users": 0,
+    "institution_rows": 0,
+    "course_rows": 0,
+    "storage_objects": 0,
+    "notes": "Historical replay remains incomplete; do not label as full production-schema parity. Cost seed omitted only in the staging variant; original production migration remains unchanged. Metadata/history in staging stores actual variant SQL. No Supabase branch merge to production allowed."
+  },
+  "environment_history": [
+    {
+      "date": "2026-11-17",
+      "environment_observed": "https://www.verticesuperior.com.br/entrar",
+      "observed_state": "Email/password form, no signed-in session; not an isolated staging deployment",
+      "supabase_development_branches": 0
+    }
+  ],
+  "render_homologation_service": "srv-dbu771mc6qcc73fbog0g"
 }

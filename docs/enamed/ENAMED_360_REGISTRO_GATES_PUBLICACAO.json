@@ -14,14 +14,11 @@
   },
   "regression_ci": {
     "status": "PASS",
-    "commit": "92b5f649d805df3f4ab1ecfaa6313777089a77c6",
+    "commit": "dcd8a1ebab5636c88c6cba07b57fcd4be4d36813",
     "workflow_runs": [
-      44054848783,
-      44054849017,
-      44054848825,
-      44054848848
+      44116468460
     ],
-    "caveat": "Ten successful workflows; no live signed-in tenant session or clinical approval."
+    "caveat": "TypeScript/build Node22/24; local 427 tests. Isolated frontend deploy is not authenticated QA or production release."
   },
   "conditions": {
     "final_inep_answer_keys": {
@@ -79,15 +76,24 @@
     "authenticated_multi_tenant_qa": {
       "approved": false,
       "evidence": [
-        "docs/enamed/MATRIZ_HOMOLOGACAO_EXECUCAO_20261117.json"
+        "docs/enamed/MATRIZ_HOMOLOGACAO_EXECUCAO_20261117.json",
+        "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json"
       ],
-      "reason": "Navegador Work disponível, porém tela /entrar sem sessão; Supabase sem branches e Render sem previews. 16 casos autenticados bloqueados.",
+      "reason": "Frontend isolado live; restauração do banco pendente de confirmação Supabase; zero contas Auth de teste. Dezesseis cenários reais não executados.",
       "history": [
         {
           "date": "2026-11-17",
           "approved": false,
           "reason": "No authorized live MFA sessions available in this chat",
           "evidence": []
+        },
+        {
+          "date": "2026-11-17",
+          "approved": false,
+          "reason": "Anonymous Master guard observed; isolated Supabase branch exists but full replay failed on historical institution FK. Zero Auth test users. Sixteen authenticated cases not executed.",
+          "evidence": [
+            "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json"
+          ]
         }
       ],
       "status": "BLOQUEADA"
@@ -133,7 +139,7 @@
     "merge_pr_168",
     "deploy_to_production"
   ],
-  "next_action_required": "Disponibilizar ambiente isolado e contas de teste por perfil com MFA/AAL2; designar curador médico. Aguardar definitivos e homologar corpus antes de reindexar/publicar.",
+  "next_action_required": "Confirmar a migração isolada pendente no Supabase e disponibilizar contas de teste com MFA/AAL2. Homologar a integração/perfis; obter parecer médico e definitivos antes de reindexar ou liberar produção.",
   "evaluation_history": [
     {
       "date": "2026-11-17",
@@ -147,6 +153,27 @@
         ],
         "caveat": "Successful static CI does not prove a live signed-in tenant/session"
       }
+    },
+    {
+      "date": "2026-11-17",
+      "event": "Live anonymous guard + isolated staging setup",
+      "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json",
+      "all_six_gates_remain_unapproved": true
+    },
+    {
+      "date": "2026-11-17",
+      "regression_ci": {
+        "status": "PASS",
+        "commit": "92b5f649d805df3f4ab1ecfaa6313777089a77c6",
+        "workflow_runs": [
+          44054848783,
+          44054849017,
+          44054848825,
+          44054848848
+        ],
+        "caveat": "Ten successful workflows; no live signed-in tenant session or clinical approval."
+      },
+      "event": "Previous CI preserved before homologation isolation update"
     }
   ]
 }

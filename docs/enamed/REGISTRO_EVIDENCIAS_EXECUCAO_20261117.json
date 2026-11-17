@@ -205,5 +205,8 @@
       "observed": "Migration054 fixture lacked medical question kinds and consent_at is NOT NULL",
       "resolution": "Aligned disposable fixture with observed live kind constraint and used existing revoked_at flow. No hosted schema change."
     }
+  ],
+  "subsequent_execution_records": [
+    "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json"
   ]
 }
