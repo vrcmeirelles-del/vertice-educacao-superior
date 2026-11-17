@@ -201,3 +201,13 @@ Leia em conjunto com `BIBLIA_MESTRA_ENAMED_360.md` e `PLANO_DE_TRABALHO_ENAMED_3
 ### 2026-11-17 — Evidência de CI da triagem de 22 variantes
 - Workflow GitHub Actions `ENAMED 360 - validar contratos e dicionário`, run **44047302738**, referente ao commit `ae76798f2f6a242e51c39c7ca7ab9d85010303a9`: **success**. Log confirmou 2 testes Node do dicionário, 4 de integração, 2 de mapas, 2 dos 22 itens/páginas e 4+3 testes Python, sem falhas. A finalidade é integridade/contrato, **não homologação clínica**.
 - Workflows de build ENADE e cruzamentos do mesmo commit concluíram `success`; TypeScript completo ainda estava em execução na consulta realizada, portanto **não declarar o HEAD integralmente homologado**.
+
+
+## 2026-11-17 — Três ações em sequência: 22 pares integrais de base, seis imagens PDF e testes
+- **Entrada:** Bíblia v2.4, Plano, Diário e oito PDFs oficiais com hashes verificados; preservados ADRs e fila da Issue #170.
+- **1 — Banco somente leitura:** recuperados `stem` completos e JSON de alternativas dos dois IDs das 22 posições REG-C2. Oito pares apresentaram diferenças de tokens numéricos: Q12,42,44,49,74,89,90,99. As 22 duplas mantiveram alternativas idênticas após normalizar whitespace. **Sem comparação integral automatizada PDF×cada versão; sem juízo médico**.
+- **2 — Mídia:** inspeção de layout PDF PyMuPDF e renderização de páginas C2 REG. Seis imagens com XREF/posicionamento dentro de questões Q12 (Lund–Browder), 68 (radiografia de pelve), 81 (foto dermatológica), 82 (contraste radiológico), 89 (tomografia abdominal), 97 (USG transvaginal); bytes e SHA-256 registrados em manifesto, sem publicar imagens no GitHub ou Storage.
+- **3 — Contratos:** novo teste Node cobrindo os 22 registros, 8 diferenças numéricas e 6 fontes rasterizadas, com bloqueio de `approval`; integração ao workflow `verify-enamed-contracts.yml`.
+- **Governança:** relatório `E1_TRES_ACOES_TEXTOS_MIDIAS_CONTRATOS_20261117.md`, manifestos de comparação e mídia, Biblia-Mestra v2.5, Plano atualizado; evidências geradas exclusivamente em branch draft. Nenhum UPDATE/DELETE/importação, nenhuma tentativa/histórico/gabarito alterado.
+- **Acesso:** 16 cenários autenticados por Master/Reitoria/CPA/Coordenação/NDE/multi-IES continuam **não executados**; CI não equivale a sessão real.
+- **Estado:** E1 parcial sem aceite integral; E2/E3 apenas preparação; PR #168 draft, não publicada.
