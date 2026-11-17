@@ -1,0 +1,21 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {pathToFileURL} from 'node:url';import {resolve} from 'node:path';
+import {fixture} from './fixture.mjs';import {runAction} from '../../../supabase/functions/vertice-discursiva/handler.ts';import {foQrToken,validateFoSnapshot} from '../../../supabase/functions/vertice-discursiva/fo-exchange.ts';
+const id=n=>'00000000-0000-4000-8000-'+String(n).padStart(12,'0');
+test('F&O QR accepts only exact tokens and allowed scan URLs',()=>{const qr='a'.repeat(64);assert.equal(foQrToken(qr),qr);assert.equal(foQrToken('https://www.fatoeordem.com.br/scan/'+qr),qr);for(const u of ['https://evil.example/scan/'+qr,'http://www.fatoeordem.com.br/scan/'+qr,'https://www.fatoeordem.com.br@evil.example/scan/'+qr,'https://www.fatoeordem.com.br/scan/'+qr+'?other=x',qr+'more'])assert.throws(()=>foQrToken(u));});
+test('exchange refuses remote calls before Auth/MFA course authorization',async()=>{let called=false;await assert.rejects(runAction({action:'fo_preview',token:'a'.repeat(64)},{authorize:async()=>{throw Error('denied');},bridge:async()=>{called=true;}}));assert.equal(called,false);});
+test('direct browser cannot forge service-only F&O imports',async t=>{const f=await fixture(t);await assert.rejects(f.db.query("select public.vertice_discursiva_fo_store($1,$2,$3,'import','{}')",[id(11),id(21),id(1)]),/permission denied/);});
+test('two PostgreSQL engines: share, import idempotently, approve, bind student, confirm text, grade, return receipt and retry', {skip:!process.env.FATO_ORDEM_REPO},async t=>{
+ const {fixture:foFixture}=await import(pathToFileURL(resolve(process.env.FATO_ORDEM_REPO,'test/helpers/vertice-manuscript-fixture.mjs')));const fo=await foFixture(t),v=await fixture(t);await fo.service.share(id(1),fo.payload);
+ const body={action:'fo_import',institutionId:id(11),courseId:id(21),token:'https://www.fatoeordem.com.br/scan/'+fo.payload.qrToken};
+ const foStore=async(action,payload)=>{await v.db.exec('set role service_role');try{return(await v.db.query('select public.vertice_discursiva_fo_store($1,$2,$3,$4,$5) result',[id(11),id(21),id(1),action,payload])).rows[0].result;}finally{await v.db.exec('set role authenticated');}};
+ const foContext=async sub=>(await v.db.query('select public.vertice_discursiva_fo_context($1,$2,$3) result',[id(11),id(21),sub??null])).rows[0].result;
+ const deps={authorize:async()=>{await v.rpc('list');},bridge:async(path,p)=>path==='export'?fo.service.export(p):fo.service.review(p),foStore,foContext};
+ const imported=await runAction(body,deps),again=await runAction(body,deps);assert.equal(again.id,imported.id);assert.equal(again.alreadyImported,true);const preview=await fo.service.export(fo.payload);assert.throws(()=>validateFoSnapshot({...preview,courseId:id(99)},id(11),id(21)));
+ await v.rpc('approve_question',{id:imported.id});const ex=await v.rpc('create_exam',{title:'Prova de integração sintética',student_ref:'wrong-student',question_ids:[imported.id]});const snapshot=await v.rpc('get_exam',{id:ex.id});assert.equal(snapshot.student_ref,'fo:'+'c'.repeat(64));assert.deepEqual(snapshot.snapshot[0].content.rubric.map(r=>r.points),[6,4]);
+ await assert.rejects(v.rpc('submit',{exam_id:ex.id,question_id:imported.id,answer:preview.ocrText}),/Confira/);
+ const sub=await v.rpc('submit',{exam_id:ex.id,question_id:imported.id,answer:preview.ocrText,transcription_confirmed:true});await assert.rejects(runAction({...body,action:'fo_publish',submissionId:sub.id},deps),/homologada/);
+ await v.rpc('finalize',{id:sub.id,version:1,score:8,feedback:'Devolutiva sintética homologada pelo docente.'});
+ assert.equal((await runAction({...body,action:'fo_publish',submissionId:sub.id},deps)).status,'review_received');await runAction({...body,action:'fo_publish',submissionId:sub.id},deps);
+ assert.equal(Number((await fo.service.status(id(1),fo.payload.qrToken)).source_score),4);assert.deepEqual((await foContext()).receipts,[sub.id]);
+ await fo.service.revoke(id(1),fo.payload);await assert.rejects(runAction({...body,action:'fo_publish',submissionId:sub.id},deps));
+});
