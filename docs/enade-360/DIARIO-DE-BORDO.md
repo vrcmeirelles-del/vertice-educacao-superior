@@ -171,3 +171,9 @@ Data/hora; etapa; fonte/URL/versão; ação executada; resultado e evidências; 
 - GitHub Actions run 44048407509, commit 7a3672384565bd078b30e137e06248d7a5582b96: completed/success em dois jobs. 266/266 testes sintéticos, além do ensaio SQL `PASS: disposable PostgreSQL RLS cases and transaction rollback`.
 - Alcance: RLS testada no PostgreSQL temporário com policy do projeto de testes, não as policies reais da Vértice. Persistem P-RLS-REAL-001 e P-MAP-001. P-RLS-SQL-001 atendida em escopo sintético, e as demais pendências anteriores continuam abertas.
 - Nenhum deploy, migração ou edição do banco de produção; núcleo científico não homologado, especialização bloqueada. Registro cumulativo preservado.
+
+## Entrada 023 — 2026-11-17 — Encerramento deliberado de prototipação
+- Por solicitação do responsável, encerrada a sequência de novos ciclos. Entregue o termo final, com uma única distinção de status: protótipo técnico/contratos/CI concluídos versus homologação científica e integração de produção bloqueadas por evidências materiais.
+- Confirmada em leitura consulta de 62 pares distintos IES/curso e-ORBIT, configuração de equivalências vazia e nenhum candidato direto pelo critério código exato ou nome normalizado; sem atribuição automática.
+- Mantida evidência run 44048407509 com 266/266 testes sintéticos e RLS/rollback PostgreSQL descartável aprovados; isso não é RLS das sessões reais da Vértice.
+- Nenhum dado de produção alterado; nenhum índice INEP calculado com microdados; documentos cumulativos preservados. Retomada somente mediante ZIP/planilhas oficiais, equivalências validadas ou ambiente clonado de testes.
