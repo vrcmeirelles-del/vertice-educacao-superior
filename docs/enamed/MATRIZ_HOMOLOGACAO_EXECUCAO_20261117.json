@@ -2,7 +2,7 @@
   "schema_version": "enamed-authenticated-qa-v1",
   "date": "2026-11-17",
   "environment_observed": "https://vertice-enamed-homologacao.onrender.com/entrar",
-  "observed_state": "Isolated schema restored; Sapiens v5, Learning v26 and prevalidation v4 ACTIVE/JWT required. Automatic historical FUNCTIONS_FAILED/413 compensated by exact-source manual deploy, not relabeled success. Zero authorized Auth test users; no live authenticated QA.",
+  "observed_state": "Isolated Render deploy dep-dbua65dckfvc73cpmjng LIVE, code 139f3a0 verified in browser; exact staging CSP/noindex and login form. Zero authorized Auth users. No real profile session executed.",
   "supabase_development_branches": 1,
   "render_preview_enabled": false,
   "responsible": "Codex — registro técnico, não aceite humano",
@@ -14,7 +14,7 @@
       "executed": false,
       "observed": null,
       "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
-      "evidence": "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json",
+      "evidence": "docs/enamed/evidencias/20261117_ENCERRAMENTO_EXECUCAO_ISOLADA.json",
       "history": [
         {
           "status": "BLOQUEADA",
@@ -37,7 +37,7 @@
       "executed": false,
       "observed": null,
       "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
-      "evidence": "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json",
+      "evidence": "docs/enamed/evidencias/20261117_ENCERRAMENTO_EXECUCAO_ISOLADA.json",
       "history": [
         {
           "status": "BLOQUEADA",
@@ -60,7 +60,7 @@
       "executed": false,
       "observed": null,
       "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
-      "evidence": "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json",
+      "evidence": "docs/enamed/evidencias/20261117_ENCERRAMENTO_EXECUCAO_ISOLADA.json",
       "history": [
         {
           "status": "BLOQUEADA",
@@ -83,7 +83,7 @@
       "executed": false,
       "observed": null,
       "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
-      "evidence": "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json",
+      "evidence": "docs/enamed/evidencias/20261117_ENCERRAMENTO_EXECUCAO_ISOLADA.json",
       "history": [
         {
           "status": "BLOQUEADA",
@@ -106,7 +106,7 @@
       "executed": false,
       "observed": null,
       "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
-      "evidence": "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json",
+      "evidence": "docs/enamed/evidencias/20261117_ENCERRAMENTO_EXECUCAO_ISOLADA.json",
       "history": [
         {
           "status": "BLOQUEADA",
@@ -129,7 +129,7 @@
       "executed": false,
       "observed": null,
       "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
-      "evidence": "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json",
+      "evidence": "docs/enamed/evidencias/20261117_ENCERRAMENTO_EXECUCAO_ISOLADA.json",
       "history": [
         {
           "status": "BLOQUEADA",
@@ -152,7 +152,7 @@
       "executed": false,
       "observed": null,
       "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
-      "evidence": "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json",
+      "evidence": "docs/enamed/evidencias/20261117_ENCERRAMENTO_EXECUCAO_ISOLADA.json",
       "history": [
         {
           "status": "BLOQUEADA",
@@ -175,7 +175,7 @@
       "executed": false,
       "observed": null,
       "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
-      "evidence": "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json",
+      "evidence": "docs/enamed/evidencias/20261117_ENCERRAMENTO_EXECUCAO_ISOLADA.json",
       "history": [
         {
           "status": "BLOQUEADA",
@@ -198,7 +198,7 @@
       "executed": false,
       "observed": null,
       "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
-      "evidence": "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json",
+      "evidence": "docs/enamed/evidencias/20261117_ENCERRAMENTO_EXECUCAO_ISOLADA.json",
       "history": [
         {
           "status": "BLOQUEADA",
@@ -221,7 +221,7 @@
       "executed": false,
       "observed": null,
       "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
-      "evidence": "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json",
+      "evidence": "docs/enamed/evidencias/20261117_ENCERRAMENTO_EXECUCAO_ISOLADA.json",
       "history": [
         {
           "status": "BLOQUEADA",
@@ -244,7 +244,7 @@
       "executed": false,
       "observed": null,
       "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
-      "evidence": "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json",
+      "evidence": "docs/enamed/evidencias/20261117_ENCERRAMENTO_EXECUCAO_ISOLADA.json",
       "history": [
         {
           "status": "BLOQUEADA",
@@ -267,7 +267,7 @@
       "executed": false,
       "observed": null,
       "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
-      "evidence": "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json",
+      "evidence": "docs/enamed/evidencias/20261117_ENCERRAMENTO_EXECUCAO_ISOLADA.json",
       "history": [
         {
           "status": "BLOQUEADA",
@@ -290,7 +290,7 @@
       "executed": false,
       "observed": null,
       "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
-      "evidence": "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json",
+      "evidence": "docs/enamed/evidencias/20261117_ENCERRAMENTO_EXECUCAO_ISOLADA.json",
       "history": [
         {
           "status": "BLOQUEADA",
@@ -313,7 +313,7 @@
       "executed": false,
       "observed": null,
       "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
-      "evidence": "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json",
+      "evidence": "docs/enamed/evidencias/20261117_ENCERRAMENTO_EXECUCAO_ISOLADA.json",
       "history": [
         {
           "status": "BLOQUEADA",
@@ -336,7 +336,7 @@
       "executed": false,
       "observed": null,
       "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
-      "evidence": "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json",
+      "evidence": "docs/enamed/evidencias/20261117_ENCERRAMENTO_EXECUCAO_ISOLADA.json",
       "history": [
         {
           "status": "BLOQUEADA",
@@ -359,7 +359,7 @@
       "executed": false,
       "observed": null,
       "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
-      "evidence": "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json",
+      "evidence": "docs/enamed/evidencias/20261117_ENCERRAMENTO_EXECUCAO_ISOLADA.json",
       "history": [
         {
           "status": "BLOQUEADA",
@@ -476,5 +476,17 @@
     }
   ],
   "render_homologation_service": "srv-dbu771mc6qcc73fbog0g",
-  "manual_function_recovery_evidence": "docs/enamed/evidencias/20261117_CONCILIACAO_MAIN_E_FUNCOES.json"
+  "manual_function_recovery_evidence": "docs/enamed/evidencias/20261117_CONCILIACAO_MAIN_E_FUNCOES.json",
+  "terminal_execution_evidence": "docs/enamed/evidencias/20261117_ENCERRAMENTO_EXECUCAO_ISOLADA.json",
+  "render_homologation_deploy": "dep-dbua65dckfvc73cpmjng",
+  "terminal_staging_snapshot": {
+    "courses": 0,
+    "students": 0,
+    "auth_users": 0,
+    "checked_at": "2026-11-17T18:58:41.043063+00:00",
+    "institutions": 0,
+    "public_tables": 325,
+    "storage_objects": 0,
+    "public_rls_tables": 325
+  }
 }

@@ -1,0 +1,229 @@
+{
+  "schema_version": "enamed-execution-terminal-v1",
+  "date": "2026-11-17",
+  "code_commit": "139f3a01c209d4bb0c32b986c430fffc260e6ce6",
+  "supabase_project": "rnmkmnrfhvjihsuqziwf",
+  "staging_snapshot": {
+    "courses": 0,
+    "students": 0,
+    "auth_users": 0,
+    "checked_at": "2026-11-17T18:58:41.043063+00:00",
+    "institutions": 0,
+    "public_tables": 325,
+    "storage_objects": 0,
+    "public_rls_tables": 325
+  },
+  "ci": {
+    "status": "PASS",
+    "workflow_count": 14,
+    "runs": [
+      {
+        "id": 44152480338,
+        "name": "Verificar BI público da Vértice",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "139f3a01c209d4bb0c32b986c430fffc260e6ce6",
+        "url": "https://github.com/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44152480338",
+        "event": "pull_request"
+      },
+      {
+        "id": 44152480090,
+        "name": "Fonte única da Vértice",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "139f3a01c209d4bb0c32b986c430fffc260e6ce6",
+        "url": "https://github.com/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44152480090",
+        "event": "pull_request"
+      },
+      {
+        "id": 44152480139,
+        "name": "ENAMED 360 - validar contratos e dicionário",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "139f3a01c209d4bb0c32b986c430fffc260e6ce6",
+        "url": "https://github.com/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44152480139",
+        "event": "pull_request"
+      },
+      {
+        "id": 44152480347,
+        "name": "ENAMED - recuperar seis documentos normativos pendentes",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "139f3a01c209d4bb0c32b986c430fffc260e6ce6",
+        "url": "https://github.com/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44152480347",
+        "event": "pull_request"
+      },
+      {
+        "id": 44152480219,
+        "name": "ENAMED E1 - recuperar documentos públicos do INEP",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "139f3a01c209d4bb0c32b986c430fffc260e6ce6",
+        "url": "https://github.com/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44152480219",
+        "event": "pull_request"
+      },
+      {
+        "id": 44152480159,
+        "name": "Vértice · build Aprendizagem Conectada",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "139f3a01c209d4bb0c32b986c430fffc260e6ce6",
+        "url": "https://github.com/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44152480159",
+        "event": "pull_request"
+      },
+      {
+        "id": 44152480526,
+        "name": "ENADE 360 - validar cruzamentos no build publicado",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "139f3a01c209d4bb0c32b986c430fffc260e6ce6",
+        "url": "https://github.com/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44152480526",
+        "event": "pull_request"
+      },
+      {
+        "id": 44152480313,
+        "name": "ENADE 360 - validar integracao real no Render",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "139f3a01c209d4bb0c32b986c430fffc260e6ce6",
+        "url": "https://github.com/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44152480313",
+        "event": "pull_request"
+      },
+      {
+        "id": 44152480079,
+        "name": "Validate medical and school learning bridge",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "139f3a01c209d4bb0c32b986c430fffc260e6ce6",
+        "url": "https://github.com/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44152480079",
+        "event": "pull_request"
+      },
+      {
+        "id": 44152480520,
+        "name": "Validar BI permanência e reprovações",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "139f3a01c209d4bb0c32b986c430fffc260e6ce6",
+        "url": "https://github.com/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44152480520",
+        "event": "pull_request"
+      },
+      {
+        "id": 44152480452,
+        "name": "Portal - TypeScript completo e contratos da Reitoria",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "139f3a01c209d4bb0c32b986c430fffc260e6ce6",
+        "url": "https://github.com/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44152480452",
+        "event": "pull_request"
+      },
+      {
+        "id": 44152480147,
+        "name": "Captação por IES - preparação isolada",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "139f3a01c209d4bb0c32b986c430fffc260e6ce6",
+        "url": "https://github.com/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44152480147",
+        "event": "pull_request"
+      },
+      {
+        "id": 44152480089,
+        "name": "Vértice Mobile — build de homologação",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "139f3a01c209d4bb0c32b986c430fffc260e6ce6",
+        "url": "https://github.com/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44152480089",
+        "event": "pull_request"
+      },
+      {
+        "id": 44152470279,
+        "name": "Portal - TypeScript completo e contratos da Reitoria",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "139f3a01c209d4bb0c32b986c430fffc260e6ce6",
+        "url": "https://github.com/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44152470279",
+        "event": "push"
+      }
+    ]
+  },
+  "local_checks": {
+    "typescript": "PASS",
+    "static_build": "PASS after npm ci refreshed dependencies from merged lockfile",
+    "medical_specs": 55,
+    "enamed_contracts": 15,
+    "native_runner_executions": 23,
+    "native_unique_cases": 15,
+    "editorial_summary": "PASS"
+  },
+  "resolved_failures": [
+    {
+      "failure": "CI medical VM: exports is not defined",
+      "run": 44151209376,
+      "resolution_commit": "139f3a01c209d4bb0c32b986c430fffc260e6ce6",
+      "resolution": "Load actual shared security module and strip all import declarations in isolated VM. All existing assertions retained; 55 medical specs passed locally and remote workflow 44152480079 passed."
+    },
+    {
+      "failure": "Local build: qrcode missing from stale dependency directory",
+      "resolution": "npm ci with merged package-lock.json; build:static then passed."
+    },
+    {
+      "failure": "Provider automatic branch copy HTTP 413 for 38.48MB prevalidation",
+      "resolution": "Direct redeploy of exact retrieved source; all three source files and compiled bundle SHA unchanged; prevalidation v4 ACTIVE. Historical automatic pipeline remains FUNCTIONS_FAILED."
+    }
+  ],
+  "render": {
+    "commit": {
+      "createdAt": "2026-11-17T18:52:12Z",
+      "id": "139f3a01c209d4bb0c32b986c430fffc260e6ce6",
+      "message": "test(bridge): carregar guardas compartilhadas nos cenarios medicos [skip render]"
+    },
+    "createdAt": "2026-11-17T18:55:17.956667Z",
+    "finishedAt": "2026-11-17T18:56:05.729191Z",
+    "id": "dep-dbua65dckfvc73cpmjng",
+    "startedAt": "2026-11-17T18:55:17.949273Z",
+    "status": "live",
+    "trigger": "api",
+    "updatedAt": "2026-11-17T18:56:05.729437Z",
+    "service_id": "srv-dbu771mc6qcc73fbog0g",
+    "workspace_id": "tea-d925voi8qa3s73csvir0",
+    "url": "https://vertice-enamed-homologacao.onrender.com/entrar",
+    "auto_deploy": "no"
+  },
+  "live_browser": {
+    "version_json_sha": "139f3a01c209d4bb0c32b986c430fffc260e6ce6",
+    "built": "2026-11-17T18:56:02.312Z",
+    "login_form": "Observed E-mail, Senha, privacy acknowledgment, disabled Entrar until consent; no login attempted.",
+    "supabase_csp_origin": "https://rnmkmnrfhvjihsuqziwf.supabase.co",
+    "production_supabase_in_connect_src": false,
+    "production_fato_ordem_in_connect_src": false,
+    "robots": "noindex,nofollow",
+    "surface": "Work cloud browser fallback; connected extension lost originating context during final verification."
+  },
+  "functions": {
+    "sapiens": {
+      "version": 5,
+      "status": "ACTIVE",
+      "verify_jwt": true,
+      "readback": "exact"
+    },
+    "learning": {
+      "version": 26,
+      "status": "ACTIVE",
+      "verify_jwt": true,
+      "readback": "exact"
+    },
+    "prevalidation": {
+      "version": 4,
+      "status": "ACTIVE",
+      "verify_jwt": true,
+      "readback": "exact same source/bundle as prior v3"
+    }
+  },
+  "authenticated_cases_executed": 0,
+  "dual_ai_live_calls": 0,
+  "human_medical_approval": false,
+  "reindex_executed": false,
+  "production_modified": false,
+  "release_status": "BLOCKED",
+  "immediate_external_resource": "Authorized test accounts by profile with MFA/AAL2 in isolated project rnmkmnrfhvjihsuqziwf. Current Auth users = 0.",
+  "mandatory_release_acceptances": "Two actual AI reviews, medical/visual approval and applicable final Inep documents remain required."
+}

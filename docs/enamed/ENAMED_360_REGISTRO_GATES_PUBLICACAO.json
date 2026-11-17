@@ -14,12 +14,24 @@
   },
   "regression_ci": {
     "status": "PASS",
-    "commit": "0855054b170130572c1c7b3d309d146fcb9c942b",
+    "commit": "139f3a01c209d4bb0c32b986c430fffc260e6ce6",
     "workflow_runs": [
-      44149342910
+      44152480338,
+      44152480090,
+      44152480139,
+      44152480347,
+      44152480219,
+      44152480159,
+      44152480526,
+      44152480313,
+      44152480079,
+      44152480520,
+      44152480452,
+      44152480147,
+      44152480089,
+      44152470279
     ],
-    "workflow_url": "https://github.com/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44149342910",
-    "scope": "Complete TypeScript, existing portal suite and static build Node22/24; four new origin/destination checks on Node24. Local 15 ENAMED contracts + 12 bridge/origin tests passed. Not authenticated QA or medical approval."
+    "caveat": "14 workflows success for code 139f3a0, including TypeScript/full suite/build Node22/24. Final documentation-only commit does not claim a new code test or approve authenticated/medical gates."
   },
   "conditions": {
     "final_inep_answer_keys": {
@@ -82,9 +94,10 @@
         "docs/enamed/evidencias/20261117_LOCKDOWN_APLICADO_APOS_CONFIRMACAO.json",
         "docs/enamed/evidencias/20261117_RESTAURACAO_DEFINICOES_APLICADAS.json",
         "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json",
-        "docs/enamed/evidencias/20261117_CONCILIACAO_MAIN_E_FUNCOES.json"
+        "docs/enamed/evidencias/20261117_CONCILIACAO_MAIN_E_FUNCOES.json",
+        "docs/enamed/evidencias/20261117_ENCERRAMENTO_EXECUCAO_ISOLADA.json"
       ],
-      "reason": "Esquema restaurado; Sapiens v5, Learning v26 e pré-validação v4 ACTIVE/JWT obrigatório. Falha automática 413 compensada com fonte idêntica, sem aprovar a pipeline. Zero contas autorizadas/MFA; 16 casos reais não executados.",
+      "reason": "Render isolado LIVE e fontes das três funções verificadas; zero contas Auth autorizadas com MFA/AAL2. Os 16 cenários reais não foram executados; CI e teste anônimo não aprovam este gate.",
       "history": [
         {
           "date": "2026-11-17",
@@ -230,6 +243,24 @@
       "event": "Main conflicts reconciled; exact-source prevalidation redeploy compensated HTTP 413",
       "evidence": "docs/enamed/evidencias/20261117_CONCILIACAO_MAIN_E_FUNCOES.json",
       "all_six_gates_remain_unapproved": true
+    },
+    {
+      "date": "2026-11-17",
+      "event": "Previous CI preserved before main reconciliation",
+      "regression_ci": {
+        "status": "PASS",
+        "commit": "0855054b170130572c1c7b3d309d146fcb9c942b",
+        "workflow_runs": [
+          44149342910
+        ],
+        "workflow_url": "https://github.com/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44149342910",
+        "scope": "Complete TypeScript, existing portal suite and static build Node22/24; four new origin/destination checks on Node24. Local 15 ENAMED contracts + 12 bridge/origin tests passed. Not authenticated QA or medical approval."
+      }
+    },
+    {
+      "date": "2026-11-17",
+      "event": "Fourteen code workflows PASS; isolated Render LIVE verified in browser; six release gates remain unapproved",
+      "evidence": "docs/enamed/evidencias/20261117_ENCERRAMENTO_EXECUCAO_ISOLADA.json"
     }
   ]
 }

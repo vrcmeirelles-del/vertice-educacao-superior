@@ -64,5 +64,7 @@
   "production_modified": false,
   "authenticated_qa_executed": false,
   "release_status": "BLOCKED",
-  "ci": "PENDING for this merge; previous success 44149342910 belongs to code 0855054."
+  "ci": "PASS on subsequent test-adapter code 139f3a0: 14 workflows; see terminal evidence",
+  "terminal_evidence": "docs/enamed/evidencias/20261117_ENCERRAMENTO_EXECUCAO_ISOLADA.json",
+  "sapiens_source_readback": "Exact source after v5 deployment"
 }

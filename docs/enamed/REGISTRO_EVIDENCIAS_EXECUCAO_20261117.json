@@ -244,6 +244,34 @@
       "evidence": "docs/enamed/evidencias/20261117_CONCILIACAO_MAIN_E_FUNCOES.json",
       "production_modified": false,
       "authenticated_qa_executed": false
+    },
+    {
+      "date": "2026-11-17",
+      "event": "Terminal verified staging deploy + CI, no production modifications",
+      "evidence": "docs/enamed/evidencias/20261117_ENCERRAMENTO_EXECUCAO_ISOLADA.json",
+      "ci": {
+        "status": "PASS",
+        "commit": "139f3a01c209d4bb0c32b986c430fffc260e6ce6",
+        "workflow_runs": [
+          44152480338,
+          44152480090,
+          44152480139,
+          44152480347,
+          44152480219,
+          44152480159,
+          44152480526,
+          44152480313,
+          44152480079,
+          44152480520,
+          44152480452,
+          44152480147,
+          44152480089,
+          44152470279
+        ],
+        "caveat": "14 workflows success for code 139f3a0, including TypeScript/full suite/build Node22/24. Final documentation-only commit does not claim a new code test or approve authenticated/medical gates."
+      },
+      "authenticated_qa_executed": false,
+      "production_modified": false
     }
   ]
 }
