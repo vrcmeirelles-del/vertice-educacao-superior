@@ -1,6 +1,6 @@
 # BÍBLIA-MESTRA DO PROJETO — ENAMED 360° / INEP INTELLIGENCE
 **Projeto:** Vértice Educação Superior × Fato & Ordem × Sapiens 360°  
-**Versão:** 2.6 — encerramento da auditoria preliminar; aceites E1 e acesso autenticado pendentes  
+**Versão:** 2.7 — auditoria encerrada e gates de homologação/publicação formalizados  
 **Data-base:** 16 de novembro de 2026  
 **Status:** documento-mestre de projeto; NÃO corresponde à implantação ou homologação da solução.  
 **Governança:** evolução cumulativa por etapas, com revisão retrospectiva obrigatória.  
@@ -478,3 +478,15 @@ A auditoria preliminar foi **ENCERRADA** com entrega de `TERMO_ENCERRAMENTO_AUDI
 - Conclusão desta rodada: **oito diferenças numéricas cotejadas com tokens observados no PDF oficial REG-C2**. Cópia `ENAMED-2026-REG-C2-QXXX` preserva os números observados para Q12,42,44,49,74,99; `enamed-2026-c2-qXX` para Q89,90. Isso identifica **candidato documental** somente; não determina a versão clinicamente aprovada.
 - Permanecem efetivamente **BLOQUEADOS**, sem novas rodadas de triagem como substituto do aceite: cotejo integral de cada enunciado/alternativa/mídia com PDF, parecer médico/duas IAs, gabaritos DEFINITIVOS e notas metodológicas, sessões autorizadas reais de Master/Reitoria/CPA/Coordenação/NDE com MFA/RLS e isolamento multi-IES, ponte Sapiens e publicação.
 **ADR-ENAMED-026:** quando o escopo auditável termina, registrar terminalmente CONCLUÍDO/PENDENTE/BLOQUEADO. Não chamar de concluído o produto, não inventar validações clínicas ou sessões reais, não abrir ciclos repetitivos. PR draft, nenhum banco de produção alterado.
+
+
+## 26. Decisão operacional v2.7 — auditoria encerrada, publicação e reindexação formalmente bloqueadas (17/11/2026)
+**Escopo encerrado:** a auditoria técnica preliminar permanece concluída, documentada no `TERMO_ENCERRAMENTO_AUDITORIA_PRELIMINAR_20261117.md`. Não reiniciar ciclos de triagem nem confundir seu encerramento com homologação do produto.
+
+**Evidência de CI:** na revisão `a34dfcf814cf4680f768213fd6db8f7edfb8a46c`, **9 workflows success**, incluindo TypeScript completo, contratos ENAMED, recuperação de documentos e build estático. Este resultado é de software e **não comprova sessões MFA, RLS real ou avaliação médica**.
+
+**Aceites NÃO obtidos:** (i) documentos definitivos do Inep e retificações, metodologia e cotejo integral F&O×PDF; (ii) revisão independente de duas IAs e decisão médico-pedagógica; (iii) sessões reais de homologação em Master/Reitoria/CPA/Coordenação/NDE e teste negativo inter-IES; (iv) sincronização ponta a ponta em homologação com dados sintéticos; (v) aprovação explícita de release. O acesso de navegador conectado não esteve disponível neste chat, e `vertice_learning_course_metrics` permanece com **0 linhas**.
+
+**Controle técnico acrescentado:** `ENAMED_360_REGISTRO_GATES_PUBLICACAO.json` registra seis gates com `approved=false` e motivos/evidências, a relação de operações proibidas, versão auditada e status `BLOCKED`. `scripts/tests/enamed-release-gates.test.mjs` e `verify-enamed-contracts.yml` impedem que esta declaração evolua silenciosamente para release aprovado em documentos sem revisão específica. O teste é um controle de integridade do registro, **não um bloqueio operacional universal de todas as possibilidades de deploy**.
+
+**ADR-ENAMED-027:** o aceite da auditoria preliminar é terminal e independente de liberação do produto. Reindexação, exclusão/fusão de IDs, alteração de gabaritos, publicação de cálculo oficial ou merge/deploy da PR #168 **não estão autorizados** até evidências e sign-off por responsáveis. Não preencher a ausência de resultados por inferência.
