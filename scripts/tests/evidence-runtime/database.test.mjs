@@ -7,7 +7,7 @@ test('production migration: scoped search, existing metadata, no false content a
  create function vertice_private.can_read_institution(uuid) returns boolean language sql stable as $$select $1::text=current_setting('app.institution',true)$$;
  create function vertice_private.is_master() returns boolean language sql stable as $$select current_setting('app.master',true)='true'$$;
  create function vertice_private.has_role(uuid,text[]) returns boolean language sql stable as $$select false$$;
- create table vertice_doc_prevalidation(id uuid default gen_random_uuid(),institution_id uuid,repository_file_id uuid,document_id uuid);
+ create table vertice_doc_prevalidation(id uuid default gen_random_uuid(),institution_id uuid,repository_file_id uuid,document_id uuid,created_at timestamptz default now());
  create table vertice_doc_indicator_links(prevalidation_id uuid,institution_id uuid,status text,instrument_code text,instrument_version text,object_code text,evidence_excerpts jsonb);
  create table vertice_repository_requests(id uuid,institution_id uuid,course_id uuid,goal_id uuid);
  create table vertice_repository_files(id uuid,institution_id uuid,request_id uuid,file_name text,document_category text,instrument_indicators text[]);
@@ -27,5 +27,14 @@ test('production migration: scoped search, existing metadata, no false content a
  await db.exec("select set_config('app.aal','aal2',false),set_config('app.master','false',false)");assert.equal((await search()).length,0);
  await db.exec(`reset role;insert into vertice_doc_prevalidation(institution_id,repository_file_id,extraction_status,source_sha256,extracted_text,extracted_at,keyword_suggestions) values('${I}','${C}','ready',repeat('a',64),'Evidência textual de extensão e atividades curriculares de formação com registro de competências e acompanhamento.',now(),array['extensão']);set role authenticated;select set_config('app.master','true',false);`);
  rows=await search(I,C,false,'extensão');assert.equal(rows.length,1);assert.equal(rows[0].source_sha256,'a'.repeat(64));assert.equal(rows[0].text_status,'ready');assert.deepEqual(rows[0].keyword_suggestions,['extensão']);
- await db.exec("select set_config('app.uid','',false)");assert.equal((await search()).length,0);await db.close();
+ await db.exec("select set_config('app.uid','',false)");assert.equal((await search()).length,0);
+ await db.exec('reset role');
+ await db.exec(readFileSync(new URL('../../../supabase/migrations/'+readdirSync(new URL('../../../supabase/migrations/',import.meta.url)).find(n=>n.endsWith('_enade360_repository_index_queue.sql')),import.meta.url),'utf8'));
+ await db.exec(`set role authenticated;select set_config('app.uid','${C}',false),set_config('app.aal','aal2',false)`);
+ const queue=async(inst=I,course=null,after=null,retry=false)=>(await db.query('select * from vertice_evidence_index_queue($1,$2,$3,30,$4)',[inst,course,after,retry])).rows;
+ let pending=await queue();assert.deepEqual(pending.map(r=>r.source_id),[D]);assert.equal((await queue(I,C)).length,0);assert.equal((await queue(J)).length,0);assert.equal((await queue(I,null,D)).length,0);
+ await db.exec(`reset role;insert into vertice_doc_prevalidation(institution_id,repository_file_id,extraction_status) values('${I}','${D}','failed');set role authenticated;`);
+ assert.equal((await queue()).length,0);assert.equal((await queue(I,null,null,true)).length,1);
+ await db.exec("select set_config('app.aal','aal1',false)");assert.equal((await queue(I,null,null,true)).length,0);
+ await db.close();
 });

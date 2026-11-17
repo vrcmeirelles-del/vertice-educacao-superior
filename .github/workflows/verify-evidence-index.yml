@@ -5,6 +5,7 @@ on:
       - 'supabase/functions/vertice-doc-prevalidate/**'
       - 'supabase/migrations/*evidence_text_index.sql'
       - 'supabase/migrations/*official_reference_catalog.sql'
+      - 'supabase/migrations/*repository_index_queue.sql'
       - 'docs/enade-360/fontes/iacg2017-reconhecimento-catalog.json'
       - 'scripts/tests/evidence-runtime/**'
       - '.github/workflows/verify-evidence-index.yml'
@@ -26,3 +27,5 @@ jobs:
           deno-version: v2.x
       - name: Verificar funcao existente e dependencias reais
         run: deno check --no-config supabase/functions/vertice-doc-prevalidate/index.ts
+      - name: Executar parser PDF real em Deno sem bibliotecas nativas
+        run: deno test --no-config --allow-read --allow-env --allow-sys --deny-ffi scripts/tests/evidence-runtime/pdf-edge.test.ts
