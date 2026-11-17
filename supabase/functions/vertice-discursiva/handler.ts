@@ -1,9 +1,25 @@
+import {foQrToken,validateFoSnapshot} from './fo-exchange.ts';
 import {clinicalMetadata,clinicalProfile,CLINICAL_DIMENSIONS,validateClinicalContent,CLINICAL_GENERATION,CLINICAL_GRADING} from '../../../source-overrides/shared/discursiva-clinical.ts';
 import {fail,parse,validateQuestion,validateGrade,signQR,verifyQR,GENERATE_PROMPT,GRADE_PROMPT,OCR_PROMPT,type Obj} from './core.ts';
 type Completion={content:string;provider:string;model:string};
-export type Deps={authorize:()=>Promise<void>;rpc:(action:string,payload?:Obj)=>Promise<Obj>;sources:(query:string)=>Promise<Obj[]>;image:(path:string)=>Promise<{base64:string;mime:string}>;call:(provider:'openai'|'anthropic',system:string,input:Obj,image?:{base64:string;mime:string})=>Promise<Completion>;secret:string};
+export type Deps={authorize:()=>Promise<void>;rpc:(action:string,payload?:Obj)=>Promise<Obj>;sources:(query:string)=>Promise<Obj[]>;image:(path:string)=>Promise<{base64:string;mime:string}>;call:(provider:'openai'|'anthropic',system:string,input:Obj,image?:{base64:string;mime:string})=>Promise<Completion>;secret:string;bridge?:(path:string,payload:Obj)=>Promise<Obj>;foContext?:(submissionId?:string)=>Promise<Obj>;foStore?:(action:string,payload:Obj)=>Promise<Obj>};
 export async function runAction(body:Obj,deps:Deps):Promise<Obj>{
  await deps.authorize();
+ if(['fo_preview','fo_import','fo_publish'].includes(body.action)){
+  if(!deps.bridge||!deps.foStore||!deps.foContext)throw fail('fo_bridge_unavailable',503);
+  const scope={institutionId:body.institutionId,courseId:body.courseId};
+  if(body.action==='fo_publish'){
+   const context=await deps.foContext(body.submissionId);
+   const ack=await deps.bridge('review',{...context,...scope});
+   if(ack.contractVersion!=='manuscript-v1'||ack.institutionId!==scope.institutionId||ack.courseId!==scope.courseId||ack.sheetId!==context.sheetId||ack.reviewId!==context.reviewId||ack.status!=='review_received')throw fail('invalid_fo_ack',502);
+   await deps.foStore('receipt',{submissionId:context.reviewId});return{status:'review_received'};
+  }
+  const qrToken=foQrToken(body.token);
+  const result=validateFoSnapshot(await deps.bridge('export',{...scope,qrToken}),scope.institutionId,scope.courseId);
+  if(body.action==='fo_preview')return result;
+  const saved=await deps.foStore('import',{...result,qrToken});return{...saved,notice:'Folha importada em rascunho. Revise a rubrica antes de homologar.'};
+ }
+
  if(body.action==='generate'){
   let metadata:Obj;try{metadata=clinicalMetadata(body);}catch(e){throw fail((e as Error).message);}
   if(typeof body.discipline!=='string'||body.discipline.trim().length<2||body.discipline.length>200||typeof body.query!=='string'||body.query.length>300||!['easy','medium','hard'].includes(body.difficulty)||!Array.isArray(body.sourceIds)||!body.sourceIds.length||body.sourceIds.length>5)throw fail('invalid_generation_request');

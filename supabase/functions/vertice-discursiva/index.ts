@@ -27,7 +27,16 @@ Deno.serve(async(req:Request)=>{
    if(!response.ok)throw fail('provider_failed_'+provider+'_'+response.status,502);const d=await response.json();
    return {content:open?d.choices?.[0]?.message?.content:d.content?.filter((x:Obj)=>x.type==='text').map((x:Obj)=>x.text).join(''),provider,model:d.model||model};
   };
-  const result=await runAction(body,{secret,call,rpc,authorize:async()=>{await rpc('list');},sources:async query=>(await rpc('sources',{query})).sources,image:async path=>{
+  const admin=createClient(env('SUPABASE_URL'),secret,{auth:{persistSession:false}});
+  const bridge=async(path:string,payload:Obj)=>{
+   const base=new URL(env('FATO_ORDEM_BRIDGE_URL')||'https://www.fatoeordem.com.br');const key=env('VERTICE_BRIDGE_API_KEY');
+   if(base.protocol!=='https:'||!['www.fatoeordem.com.br','fatoeordem.com.br'].includes(base.hostname)||base.port||base.username||base.password||key.length<32)throw fail('fo_bridge_unavailable',503);
+   const r=await fetch(new URL('/api/internal/vertice/manuscript/'+path,base),{method:'POST',redirect:'error',headers:{'content-type':'application/json','x-vertice-bridge-key':key,'x-requested-with':'fato-e-ordem'},body:JSON.stringify(payload),signal:AbortSignal.timeout(20000)});
+   if(!r.ok)throw fail('fo_bridge_http_'+r.status,r.status===403?403:502);const data=await r.json();if(!data?.result)throw fail('invalid_fo_response',502);return data.result;
+  };
+  const foContext=async(submissionId?:string)=>{const {data,error}=await client.rpc('vertice_discursiva_fo_context',{p_institution_id:body.institutionId,p_course_id:body.courseId,p_submission_id:submissionId??null});if(error)throw fail(error.message,403);return data;};
+  const foStore=async(action:string,payload:Obj)=>{const {data,error}=await admin.rpc('vertice_discursiva_fo_store',{p_institution_id:body.institutionId,p_course_id:body.courseId,p_actor:user.data.user.id,p_action:action,p_payload:payload});if(error)throw fail(error.message);return data;};
+  const result=await runAction(body,{secret,call,rpc,bridge,foContext,foStore,authorize:async()=>{await rpc('list');},sources:async query=>(await rpc('sources',{query})).sources,image:async path=>{
    if(!path.startsWith(`${body.institutionId}/${body.courseId}/${user.data.user.id}/`))throw fail('image_scope_denied',403);
    const {data,error}=await client.storage.from('discursiva-responses').download(path);if(error||!data)throw fail('image_not_found');
    if(data.size>6291456||!['image/jpeg','image/png','image/webp'].includes(data.type))throw fail('invalid_image');
