@@ -141,3 +141,10 @@ Data/hora; etapa; fonte/URL/versão; ação executada; resultado e evidências; 
 - GitHub Actions run 44044766932, job 133907618976, commit e55e2ac5c60276c63c2d2030e65d7eda03f233d4, completed/success. Logs: 26+34+26+23+29+28+6+40=212 testes sintéticos aprovados.
 - Resultado: bloqueios de fonte/método sem metadados, inconsistência de curso/IES, aprovação sem revisor, fonte substituída e publicação antecipada. Contrato ainda opt-in, sem autenticação de documento/hashes, assinatura, persistência de eventos nem segregação real.
 - Pendências P-TRACE-001 nova, P-CROSS-001 parcial, P-ZIP-001 aguardando usuário; P-NT-001/P-REF-001/P-TOL-001 abertas. Nenhum indicador oficial reproduzido, nenhum serviço em produção alterado. Gate científico e especialização fechados.
+
+## Entrada 019 — 2026-11-17 — Marco de governança e leitura segregada
+- Lidos Bíblia, Plano e Diário anteriores, além do contrato de rastreabilidade. Consultadas referências oficiais atuais de RLS e changelog Supabase.
+- Projeto documentado em `ARQUITETURA-AUDITORIA-PERSISTENTE.md`: streams, eventos append-only, fontes, decisões, grants, contrato GET-only e matriz de permissões por perfil. Código isolado `audit-event-prototype.cjs` e 28 testes sintéticos adicionais, sem alterações no banco.
+- Execução CI confirmada: GitHub Actions run 44046339541, commit f09ad17a49c1f1d1f2a94222928d56973d829bfb, completed/success; 240/240 testes sintéticos totais, zero falhas.
+- Limites: hash chain em memória não equivale a imutabilidade persistente; nenhuma RLS real, sessão autenticada, migração, API implantada ou assinatura validada. Proposta de papéis sujeita ao cadastro real.
+- Novas pendências P-ACCESS-001 e P-API-001, P-TRACE-001 aberta; P-CROSS-001 parcial, P-ZIP-001 aguardando o usuário, P-NT-001/P-REF-001/P-TOL-001 abertas. Nenhuma publicação antecipada e nenhum indicador INEP reproduzido.
