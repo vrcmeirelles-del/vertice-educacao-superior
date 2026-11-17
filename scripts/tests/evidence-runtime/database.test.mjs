@@ -7,7 +7,7 @@ test('production migration: scoped search, existing metadata, no false content a
  create function vertice_private.can_read_institution(uuid) returns boolean language sql stable as $$select $1::text=current_setting('app.institution',true)$$;
  create function vertice_private.is_master() returns boolean language sql stable as $$select current_setting('app.master',true)='true'$$;
  create function vertice_private.has_role(uuid,text[]) returns boolean language sql stable as $$select false$$;
- create table vertice_doc_prevalidation(id uuid default gen_random_uuid(),institution_id uuid,repository_file_id uuid,document_id uuid,created_at timestamptz default now());
+ create table vertice_doc_prevalidation(id uuid default gen_random_uuid(),institution_id uuid,repository_file_id uuid,document_id uuid,created_at timestamptz default now(),ai_error text);
  create table vertice_doc_indicator_links(prevalidation_id uuid,institution_id uuid,status text,instrument_code text,instrument_version text,object_code text,evidence_excerpts jsonb);
  create table vertice_repository_requests(id uuid,institution_id uuid,course_id uuid,goal_id uuid);
  create table vertice_repository_files(id uuid,institution_id uuid,request_id uuid,file_name text,document_category text,instrument_indicators text[]);
@@ -36,5 +36,9 @@ test('production migration: scoped search, existing metadata, no false content a
  await db.exec(`reset role;insert into vertice_doc_prevalidation(institution_id,repository_file_id,extraction_status) values('${I}','${D}','failed');set role authenticated;`);
  assert.equal((await queue()).length,0);assert.equal((await queue(I,null,null,true)).length,1);
  await db.exec("select set_config('app.aal','aal1',false)");assert.equal((await queue(I,null,null,true)).length,0);
+ await db.exec('reset role');
+ await db.exec(readFileSync(new URL('../../../supabase/migrations/'+readdirSync(new URL('../../../supabase/migrations/',import.meta.url)).find(n=>n.endsWith('_enade360_extraction_failure_trace.sql')),import.meta.url),'utf8'));
+ await db.exec(`update vertice_doc_prevalidation set ai_error='Extração de texto falhou: no_embedded_text_ocr_required',source_sha256=repeat('b',64) where repository_file_id='${D}';set role authenticated;select set_config('app.aal','aal2',false);`);
+ const failed=(await search(I,D,false,''))[0];assert.equal(failed.text_status,'failed');assert.equal(failed.source_sha256,'b'.repeat(64));assert.match(failed.excerpt,/OCR necessário/);assert.deepEqual(failed.keyword_suggestions,[]);
  await db.close();
 });

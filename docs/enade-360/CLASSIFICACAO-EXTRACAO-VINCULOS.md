@@ -56,3 +56,12 @@ A função existente vertice-doc-prevalidate foi atualizada à versão 4, verify
 Aplicada a migração `20261117161032_enade360_repository_index_queue`: fila por identificador, escopo institucional/curso, mesma autorização e MFA, sem reprocessar extrações bem-sucedidas. A interface foi ampliada para percorrer o acervo com até três requisições simultâneas, interrupção entre grupos e inclusão explícita de falhas anteriores. Não há envio à IA nessa ação.
 
 Validação local: nove testes de extração/banco, três testes de interface, TypeScript sem erros e um teste do parser real em Deno sem bibliotecas nativas. O PDF de regressão é sintético e foi identificado como tal; separadamente, a versão nova leu 54 páginas do documento IACG recebido da UFAL. Nenhum desses testes reproduz conceito ENADE. CI, publicação da nova interface e varredura completa ainda pendentes neste registro.
+
+
+## Rastreabilidade também nas falhas de extração — 17/11/2026
+
+A varredura autenticada iniciada na interface da PR #177 confirmou arquivos sem camada textual utilizável. A função existente foi atualizada à versão 5 para calcular SHA-256 dos bytes aceitos antes do parser e preservar hash, tamanho recebido, método e motivo quando a extração falha. Limitações conhecidas retornam HTTP 422; erros inesperados continuam 500. Não se produz texto substituto nem se aprova evidência.
+
+Aplicada a migração `20261117162448_enade360_extraction_failure_trace`: a busca mantém assinatura e autorização, mas passa a distinguir falha de pendência, exibir a limitação e recuperar o hash da última tentativa quando não existe texto indexado. O motivo da falha não integra o texto pesquisável do documento. As versões anteriores e tentativas falhas permanecem no histórico.
+
+Dez testes locais de extração/banco passaram, incluindo hash de bytes reais em falha e isolamento/MFA da busca e fila; o teste do parser real em Deno passou e TypeScript terminou sem erros. Durante a varredura, o banco já confirmou novas falhas com SHA-256 preenchido. A contagem de cobertura será consolidada somente ao término da fila; nenhuma homologação científica decorre desta correção.
