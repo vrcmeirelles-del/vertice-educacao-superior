@@ -89,3 +89,10 @@ Concluído `ENADE 360 - Contract Tests`, run `43996319804`, commit `3ee01fd808e1
 
 ## Adendo 0.8 — Validação de instâncias JSON Schema 2020-12 (2026-11-16)
 Entregue contrato versionado `validator/report-schema-0.3.json`, preservando o 0.2, e suíte `validator/test-json-schema.py` com 7 relatórios sintéticos válidos (R1–R7) e 21 entradas negativas (ausências, formatos, evidências, fórmula, aprovação, privacidade, publicação e metadados). O workflow `.github/workflows/enade360-contracts.yml` foi ampliado para Python 3.12, jsonschema 4.23.0, execução real de Draft202012Validator com FormatChecker e gate semântico Node. Fonte de evidências `EVIDENCIAS-SCHEMA-003.md`. Nesta versão, não confundir arquivo gravado com CI aprovado; resultado GitHub deve ser consultado e registrado separadamente. EN-030: instâncias positivas e negativas devem ser validadas na versão contratual correspondente, não apenas JSON.parse. EN-031: exigir testes semânticos além do JSON Schema, que não prova coerência de todos os campos cruzados. EN-032: preservar compatibilidade/versionamento e sinalizar ruptura entre esquemas v0.2 e v0.3. P-ZIP-001/P-NT-001/P-REF-001 continuam; nenhum Conceito Enade foi reproduzido. Especialização bloqueada.
+
+## Adendo 0.8.1 — Correção após falha de CI (2026-11-16)
+## Evidência de falha e correção — 2026-11-16
+- CI inicial do novo gate: GitHub run `43996758502`, conclusão `failure` no passo `Validate positive and negative Draft 2020-12 instances`; gate semântico Node passou (26/26). No Python, 26/28 passaram, 2 falhas: `bad_datetime` e `bad_method_url` foram erroneamente aceitos.
+- Causa provável tecnicamente fundamentada: instalação `jsonschema==4.23.0` sem extras de verificadores de formato opcional; isso pode impedir validação de `date-time` e `uri` mesmo quando o `FormatChecker` está presente. Não remover os testes.
+- Correção versionada no workflow: `python -m pip install "jsonschema[format]==4.23.0"`, commit `1f62c2163db65309e40957553abc7272d6b603a2`. Resultado final da repetição ainda sujeito a confirmação do CI.
+- Esta falha faz parte do histórico auditável e não deve ser apagada. Não representa prova com microdados INEP.
