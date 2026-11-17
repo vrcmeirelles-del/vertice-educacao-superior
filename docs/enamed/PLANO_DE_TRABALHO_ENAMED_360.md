@@ -173,3 +173,19 @@ RECOMENDAÇÃO PARA A ETAPA SEGUINTE:
 - [ ] Comprovar CI, merge, deploy, funcionalidade ponta a ponta e homologação.
 
 **Regra:** este avanço é de código paralelo que não depende da classificação oficial para consulta de **dados internos**; não altera o estado de E1 nem autoriza passar para E2.
+
+
+## Rodada de verificação adicional — 16/11/2026
+- [x] Localizar logs GitHub Actions da PR #168, identificar build:static aprovado e TS2345 de trilhas no workflow completo.
+- [x] Corrigir tipagem `Table` na branch sem DDL nem alteração de dados.
+- [ ] Aguardar e inspecionar o novo workflow TypeScript completo do commit `bdf79937c581b4386d7484f0c79d5ffb573c6d11`. Não marcar como aprovado antes da conclusão.
+- [ ] Executar testes de interface navegáveis (seleção do curso, abas, estados vazio/erro, acessibilidade, mobile) autenticados. Nenhuma sessão de browser com perfil foi realizada.
+- [x] Inspecionar texto da política RLS da tabela de métricas, `can_read_institution` e `has_role`.
+- [ ] Ensaiar acesso Master, Reitoria, Coordenação, docente vinculado/não vinculado e usuário de outra IES em sessões reais autorizadas; testar MFA e vazamento cruzado.
+- [x] Comparar contagens somente-leitura nas origens F&O e no destino da Vértice: 12/11/9 tentativas, 3.235 vínculos F&O, **0 métricas Vértice**.
+- [ ] Validar conciliação legítima de matrículas, consentimento, mapeamento por competência e sincronização de eventos ponta a ponta com perfil autorizado e dados sintéticos; **não copiar produção** por conta própria.
+- [x] Localizar portal Render ativo e verificar que faz deploy somente da `main`; PR não publicada.
+- [x] Inspecionar PDF oficial NT40/2025 e identificação SEI da página 1.
+- [ ] Obter arquivos íntegros das demais NTs, matrizes, bases, gabaritos e hashes; não encerrar E1.
+
+**Bloqueios de saída:** PR não homologada/publicada, testes de perfis e UI ausentes, métricas de destino inexistentes, fontes INEP não autenticadas integralmente.
