@@ -306,3 +306,16 @@ Validacao local: 360/360 testes sinteticos, incluindo 47 de integridade e 27 de 
 Evidencia e criterios: [Evidencia 010](EVIDENCIAS-INTEGRIDADE-CONTRATUAL-010.md). CI, merge e publicacao nao sao presumidos por este registro. Nenhuma mudanca de aplicacao, migracao, indicador ou ambiente de producao foi executada nesta proposta. Reversao: fechar a PR antes de merge; apos eventual integracao autorizada, revert do commit especifico, sem apagar evidencias anteriores.
 
 Os 141 testes historicos continuam validos apenas para seu checkout sintetico. Esta correcao nao reproduz indicadores oficiais, nao resolve tolerancias por analogia e nao obtem parecer cientifico humano. P-ZIP-001/P-REF-001/P-NT-001/P-TOL-001 permanecem no escopo pendente. Nucleo generico NAO HOMOLOGADO.
+
+
+## Adendo cumulativo — 17/11/2026 — classificação IA e recebimento antes do parser
+
+A inspeção direta do Supabase confirmou 771 arquivos UNITOP com tentativas de extração: 670 completos, 33 parciais, 67 com falha e 1 pendente no registro mais recente por arquivo. As 67 falhas se dividem em 61 PDFs sem camada textual e 6 imagens não suportadas. Há três tentativas antigas ainda em processamento; não representam três arquivos adicionais. Os 703 arquivos com texto não foram reclassificados como homologação científica. Nenhum vínculo de IA foi persistido até esta inspeção.
+
+Três análises reais registraram `Análise IA falhou: Anthropic API: 404`. A função v5 ainda usava `claude-sonnet-4-20250514`; a documentação oficial informa retirada em 15/06/2026. Corrigido no código para `claude-sonnet-4-6`, ativo em 17/11/2026, com configuração opcional de modelo e uma tentativa alternativa pelo OpenAI já configurado. Registrar modelo efetivamente retornado, códigos HTTP e identificadores de requisição; não registrar chaves nem conteúdo em erros. Isso não equivale a dupla checagem entre duas IAs: são alternativas de disponibilidade, e a validação humana permanece obrigatória.
+
+O hash e o tamanho recebido passam a ser persistidos antes do parser, com identificador de execução. Essa correção registra o recebimento mesmo se o parser for encerrado pelo runtime; não amplia o limite de CPU nem implementa OCR. Se a persistência do hash falhar, o parser não começa. Nenhum original, classificação manual, política RLS ou permissão foi alterado.
+
+Validação local: 15 testes de contrato/parser/provedor/banco passaram, incluindo falha 404 com alternativa, resposta inválida recusada e ordenação da persistência antes do parser. São testes técnicos com provedores simulados, não comprovação de chamadas externas ou reprodução científica. CI, publicação e sessão real serão registrados somente após observados.
+
+Fontes oficiais de ciclo de vida: https://platform.claude.com/docs/en/about-claude/model-deprecations e https://platform.claude.com/docs/en/models/overview (consulta 17/11/2026). Não há indicador Conceito Enade, IDD, CPC ou IGC reproduzido/conciliado nesta execução; publicação científica continua bloqueada. OCR dos 67 arquivos, tratamento do arquivo pendente, sessões dos demais perfis e conciliação oficial continuam pendências explícitas.

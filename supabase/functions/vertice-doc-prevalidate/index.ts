@@ -5,6 +5,7 @@ import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { unzipSync } from "npm:fflate@0.8.2";
 import {extractDocument,groundedLinks,ExtractionFailure} from "./document-text.mjs";
 import {openTextPdf} from "./pdf-runtime.mjs";
+import {analyzeEvidence} from "./ai-provider.mjs";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -41,12 +42,12 @@ interface PrevalidationResult {
   indicator_links: IndicatorLink[];
 }
 
-async function extractTextFromStorage(client: SupabaseClient<any>, bucket:string,path:string,fileName:string) {
+async function extractTextFromStorage(client: SupabaseClient<any>, bucket:string,path:string,fileName:string,onFingerprint:(fingerprint:any)=>Promise<void>) {
  const {data,error}=await client.storage.from(bucket).download(path);
  if(error||!data)throw Error("original_unavailable");
  if(data.size>30*1024*1024)throw Error("file_too_large");
  const bytes=new Uint8Array(await data.arrayBuffer());
- return extractDocument(bytes,fileName,{unzip:unzipSync,pdf:async(b:Uint8Array)=>{
+ return extractDocument(bytes,fileName,{onFingerprint,unzip:unzipSync,pdf:async(b:Uint8Array)=>{
   // Upstream fix #21721 initializes DOMMatrix only when rendering a canvas.
   // Text extraction in the Edge runtime does not provide a graphics DOM.
   const pdfjs=await import("npm:pdfjs-dist@6.5.438/legacy/build/pdf.mjs");
@@ -60,10 +61,7 @@ async function analyzeWithAI(
   existingCategory: string,
   existingIndicators: string[],
   instrumentsSummary:string,
-): Promise<PrevalidationResult> {
-  const apiKey = Deno.env.get("ANTHROPIC_API_KEY") || Deno.env.get("OPENAI_API_KEY") || "";
-  if (!apiKey) throw new Error("Nenhuma chave de IA configurada (ANTHROPIC_API_KEY ou OPENAI_API_KEY)");
-
+): Promise<any> {
   const systemPrompt = `Você é um analista regulatório de educação superior brasileira (MEC/INEP).
 Analise o CONTEÚDO do documento e identifique TODOS os indicadores regulatórios relacionados em TODOS os instrumentos aplicáveis.
 
@@ -110,53 +108,7 @@ Indicadores manuais: ${existingIndicators.join(", ") || "nenhum"}
 CONTEÚDO DO DOCUMENTO (extraído):
 ${text.slice(0, 30000)}`;
 
-  // Try Anthropic first, fallback to OpenAI
-  const isAnthropic = apiKey.startsWith("sk-ant-");
-
-  if (isAnthropic) {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "x-api-key": apiKey,
-        "content-type": "application/json",
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 4096,
-        temperature: 0,
-        system: systemPrompt,
-        messages: [{ role: "user", content: userPrompt }],
-      }),
-      signal: AbortSignal.timeout(60000),
-    });
-    if (!res.ok) throw new Error(`Anthropic API: ${res.status}`);
-    const body = await res.json();
-    const content = body.content?.[0]?.text || "";
-    // Extract JSON from response (may be wrapped in ```json blocks)
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error("Resposta da IA não contém JSON válido");
-    return JSON.parse(jsonMatch[0]) as PrevalidationResult;
-  }
-
-  // OpenAI path
-  const res = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: { authorization: "Bearer " + apiKey, "content-type": "application/json" },
-    body: JSON.stringify({
-      model: "gpt-4.1-mini",
-      temperature: 0,
-      response_format: { type: "json_object" },
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
-    }),
-    signal: AbortSignal.timeout(60000),
-  });
-  if (!res.ok) throw new Error(`OpenAI API: ${res.status}`);
-  const body = await res.json();
-  return JSON.parse(body.choices?.[0]?.message?.content || "{}") as PrevalidationResult;
+  return analyzeEvidence({systemPrompt,userPrompt,anthropicKey:Deno.env.get("ANTHROPIC_API_KEY")??"",openaiKey:Deno.env.get("OPENAI_API_KEY")??"",anthropicModel:Deno.env.get("VERTICE_EVIDENCE_ANTHROPIC_MODEL")??"claude-sonnet-4-6"});
 }
 
 Deno.serve(async (request) => {
@@ -270,7 +222,11 @@ Deno.serve(async (request) => {
     let extractedText: string;
     let extraction:any;
     try {
-      extraction = await extractTextFromStorage(userClient, bucket, storagePath,fileName);
+      extraction = await extractTextFromStorage(userClient, bucket, storagePath,fileName,async(fingerprint:any)=>{
+       if(expectedHash&&expectedHash!==fingerprint.sha256)throw Error("source_hash_mismatch");
+       const {error}=await admin.from("vertice_doc_prevalidation").update({source_sha256:fingerprint.sha256,extraction_metadata:{received_bytes:fingerprint.receivedBytes,execution_id:Deno.env.get("SB_EXECUTION_ID")??null,stage:"fingerprint_persisted_before_parser",fingerprinted_at:new Date().toISOString(),ocr_applied:false}}).eq("id",pv.id).eq("institution_id",institutionId);
+       if(error)throw Error("fingerprint_persistence_failed");
+      });
       if(expectedHash&&expectedHash!==extraction.sha256)throw Error("source_hash_mismatch");
       extractedText=extraction.text;
       const {error:persistError}=await admin.from("vertice_doc_prevalidation").update({
@@ -326,12 +282,15 @@ Deno.serve(async (request) => {
     // 4. AI analysis
     let result: PrevalidationResult;
     let modelVersion = "unknown";
+    let providerAttempts:any[]=[];
     try {
-      const apiKey = Deno.env.get("ANTHROPIC_API_KEY") || Deno.env.get("OPENAI_API_KEY") || "";
-      modelVersion = apiKey.startsWith("sk-ant-") ? "claude-sonnet-4" : "gpt-4.1-mini";
-      result = await analyzeWithAI(extractedText, fileName, category, indicators,instrumentsSummary);
+      const analysis=await analyzeWithAI(extractedText,fileName,category,indicators,instrumentsSummary);
+      result=analysis.result;modelVersion=analysis.model;providerAttempts=analysis.attempts;
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
+      providerAttempts=Array.isArray((e as any)?.attempts)?(e as any).attempts:[];
+      modelVersion=providerAttempts.map(a=>a.model).join(" -> ")||"unknown";
+      await admin.from("vertice_mirror_audit_log").insert({institution_id:institutionId,action:"prevalidation_ai_failed",entity_type:"prevalidation",entity_id:pv.id,actor_type:"ai",ai_model:modelVersion,details:{provider_attempts:providerAttempts,source_sha256:extraction.sha256}});
       await admin.from("vertice_doc_prevalidation").update({
         ai_status: "failed",
         ai_error: `Análise IA falhou: ${msg}`,
@@ -403,6 +362,8 @@ Deno.serve(async (request) => {
       actor_type: "ai",
       ai_model: modelVersion,
       details: {
+        provider_attempts:providerAttempts,
+        source_sha256:extraction.sha256,
         links_created: createdLinks,
         instruments_covered: [...new Set(links.map((l) => l.instrument_code))],
         nature: result.nature,
