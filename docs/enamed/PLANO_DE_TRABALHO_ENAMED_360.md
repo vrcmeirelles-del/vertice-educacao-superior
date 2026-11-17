@@ -230,3 +230,16 @@ RECOMENDAÇÃO PARA A ETAPA SEGUINTE:
 - [ ] Conferir notas técnicas e todo o acervo E1; completar parecer regulatório.
 - [ ] Enviar 483 propostas à dupla-IA e revisão clínica apenas depois de documentação verificável; **sem escrita na produção**.
 **Aceite E1 não alcançado.**
+
+
+## Atualização da E1 e testes automáticos — 16/11/2026
+- [x] Confirmar no GitHub Actions run `43997164508` 6/6 contratos Node e 4/4 testes sintéticos Python do verificador local.
+- [x] Manter fila de 200 posições duplicadas com divergências de campos e sem alterações de registro.
+- [x] Criar Issue #170 de revisão clínica/editorial com critérios e bloqueio por fonte oficial.
+- [x] Ler edital republicado 71/2026 (texto) e registrar marco normativo 03/07/2026 e gabarito final previsto 04/12/2026.
+- [ ] Confirmar resultado final do workflow TypeScript completo `43997164461` com os quatro testes SSR/visibilidade incluídos.
+- [ ] Executar testes reais de interface em browser autenticado, incluindo perfil coordenador/NDE e isolamento RLS por curso; sem ampliar permissão com base apenas no menu.
+- [ ] Recuperar e autenticar PDFs/gabaritos originais com hash, provedor e versão; depois conferir 483 registros por caderno/questão.
+- [ ] Obter pareceres independentes das duas IAs e validação médica, sem aplicar mudanças ao F&O nesta etapa.
+
+**Porta E1:** continua fechada. O sucesso dos testes de contrato não libera cálculo TRI oficial, conceito institucional ou correção automática.
