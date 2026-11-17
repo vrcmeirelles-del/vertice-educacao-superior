@@ -1,6 +1,6 @@
 # Sapiens 360 ↔ Fato & Ordem: implementação e revisão
 
-Status: código e testes locais concluídos; NÃO implantado; migrações NÃO aplicadas aos bancos hospedados. PRs em rascunho, sem merge. A leitura de produção foi restrita a metadados de estrutura, histórico de migrações e configuração de serviços.
+Registro histórico da revisão anterior à publicação. A integração foi posteriormente publicada pelas PRs [Vértice #131](https://github.com/vrcmeirelles-del/vertice-educacao-superior/pull/131) e [F&O #254](https://github.com/vrcmeirelles-del/fato-e-ordem/pull/254). As operações propostas abaixo descrevem aquele momento; não devem ser reaplicadas como pendências atuais. Correção de privacidade e validações em [SAPIENS_FEEDBACK_PRIVACY_20261117.md](SAPIENS_FEEDBACK_PRIVACY_20261117.md). A publicação não equivale à homologação de intervenções com dados reais.
 
 ## Comportamento implementado
 
