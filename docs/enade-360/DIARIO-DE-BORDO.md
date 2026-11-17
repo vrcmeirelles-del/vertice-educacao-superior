@@ -164,3 +164,10 @@ Data/hora; etapa; fonte/URL/versão; ação executada; resultado e evidências; 
 - Ação 3: `rls-policy-contract.cjs` e 24 testes novos no CI. GitHub run 44047694892, commit ad82b1c7d743a5934a93c340ab45ae403878a02d, success; 266/266 testes sintéticos em todas as suítes.
 - Ressalva: não executado RLS em PostgreSQL descartável; nenhum schema, policy, função ou dado de produção modificado. P-RLS-SQL-001 e P-ACCESS-001 permanecem abertos. P-SCHEMA-REAL-001 parcial; P-TRACE-001/P-API-001/P-CROSS-001 e P-ZIP-001/P-NT-001/P-REF-001/P-TOL-001 preservados.
 - Gate científico, especialização e publicação antecipada bloqueados.
+
+## Entrada 022 — 2026-11-17 — Ciclo 03, consulta real e ensaio SQL descartável
+- Em leitura ao banco Supabase Vértice: `vertice_eorbit_enade` 289 linhas (241 curso_id bigint, 48 sem), 62 pares IES/curso distintos, `vertice_enade_course_config` 0, `vertice_courses` 196, `vertice_enade360_records` 10. Não foram acessados dados pessoais de estudantes e não foi feita conciliação automática.
+- Preparado arquivo `validator/test-rls-postgres-disposable.sql`, com RLS sintética de inst/curso/perfil/MFA e teste de rollback; adicionado serviço PostgreSQL 17 descartável ao CI. Nenhum SQL aplicado ao Supabase.
+- GitHub Actions run 44048407509, commit 7a3672384565bd078b30e137e06248d7a5582b96: completed/success em dois jobs. 266/266 testes sintéticos, além do ensaio SQL `PASS: disposable PostgreSQL RLS cases and transaction rollback`.
+- Alcance: RLS testada no PostgreSQL temporário com policy do projeto de testes, não as policies reais da Vértice. Persistem P-RLS-REAL-001 e P-MAP-001. P-RLS-SQL-001 atendida em escopo sintético, e as demais pendências anteriores continuam abertas.
+- Nenhum deploy, migração ou edição do banco de produção; núcleo científico não homologado, especialização bloqueada. Registro cumulativo preservado.
