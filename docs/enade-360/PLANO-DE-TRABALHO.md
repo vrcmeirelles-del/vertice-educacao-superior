@@ -160,3 +160,8 @@ Contrato de governança, testes sintéticos e protótipo isolado entregues. Ver 
 - Migração de auditoria privada aplicada no Supabase Vértice e verificada: 10 baselines, trigger e RPC de leitura protegida. Não restam apenas protótipos para esta função de auditoria.
 - PR #171 para tela ENADE 360 em validação de CI/merge/deploy.
 - Microdados 2023 obtidos? **NÃO**. URL oficial identificada; falha de download; zero resultados oficiais validados no banco. Não há reprodução científica comprovada. Preservar distinção entre integração operacional parcial e homologação científica pendente.
+
+## Fechamento de integração operacional (2026-11-17)
+- Migração privada de auditoria instalada/confirmada no Supabase com dez eventos baseline, trigger e função RPC restrita.
+- PR #171 integrada na main; deploy Render `vertice-portal` `dep-dbu1er5g1s2s73eoudv0` com status live. Módulo de auditoria operacional publicado na interface.
+- Homologação científica oficial NÃO atendida: ZIP e planilhas não processados, zero reprodução oficial; não promover resultados por inferência.
