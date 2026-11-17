@@ -13,7 +13,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Run synthetic contract cases
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install JSON Schema validator
+        run: python -m pip install "jsonschema==4.23.0"
+      - name: Run synthetic semantic contract tests
         run: node docs/enade-360/validator/test-contracts.cjs
-      - name: JSON Schema syntax check
-        run: node -e 'JSON.parse(require("node:fs").readFileSync("docs/enade-360/validator/report-schema-0.2.json","utf8")); console.log("JSON syntax OK")'
+      - name: Validate positive and negative Draft 2020-12 instances
+        run: python docs/enade-360/validator/test-json-schema.py
