@@ -157,3 +157,10 @@ Data/hora; etapa; fonte/URL/versão; ação executada; resultado e evidências; 
 - CI verificado: run 44046955001, commit d339a13dca41fd834a3095b8edaab828ac3f18a0, completed/success; 242/242 testes sintéticos, zero falhas.
 - Limites: autorização e log testados em memória, não RLS/SQL/autenticação em produção. Schema vivo, correspondência de perfis e segregação real continuam pendentes.
 - P-SCHEMA-REAL-001 aberta, demais P-TRACE-001/P-ACCESS-001/P-API-001/P-CROSS-001/P-ZIP-001/P-NT-001/P-REF-001/P-TOL-001 preservadas. Sem publicação, homologação ou especialização.
+
+## Entrada 021 — 2026-11-17 — Ciclo 02 concluído nos limites de leitura/simulação
+- Ação 1: queries SELECT em catálogos PostgreSQL do Supabase `vertice-educacao-superior`, sem registros de usuários e sem writes. Confirmado RLS ligado em tabelas ENADE, cursos, memberships, config, impacto roles e learning staff scope; RLS ENADE vista não tem predicado específico por curso.
+- Ação 2: confrontadas estruturas reais de papéis e chaves; papéis de negócio não coincidem automaticamente com membership básico; existem vínculos adicionais por curso. Documento `CICLO-02-TRES-ACOES.md` e evidências `EVIDENCIAS-CICLO-02.md`.
+- Ação 3: `rls-policy-contract.cjs` e 24 testes novos no CI. GitHub run 44047694892, commit ad82b1c7d743a5934a93c340ab45ae403878a02d, success; 266/266 testes sintéticos em todas as suítes.
+- Ressalva: não executado RLS em PostgreSQL descartável; nenhum schema, policy, função ou dado de produção modificado. P-RLS-SQL-001 e P-ACCESS-001 permanecem abertos. P-SCHEMA-REAL-001 parcial; P-TRACE-001/P-API-001/P-CROSS-001 e P-ZIP-001/P-NT-001/P-REF-001/P-TOL-001 preservados.
+- Gate científico, especialização e publicação antecipada bloqueados.
