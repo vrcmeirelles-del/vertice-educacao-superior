@@ -1,7 +1,7 @@
 // Vértice · Pré-validação inteligente de documentos
 // Lê o documento do storage, extrai texto, identifica indicadores via IA,
 // sugere espelhamento transversal entre instrumentos regulatórios.
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { unzipSync } from "npm:fflate@0.8.2";
 import {extractDocument,groundedLinks} from "./document-text.mjs";
 
@@ -40,7 +40,7 @@ interface PrevalidationResult {
   indicator_links: IndicatorLink[];
 }
 
-async function extractTextFromStorage(client: ReturnType<typeof createClient>, bucket:string,path:string,fileName:string) {
+async function extractTextFromStorage(client: SupabaseClient<any>, bucket:string,path:string,fileName:string) {
  const {data,error}=await client.storage.from(bucket).download(path);
  if(error||!data)throw Error("original_unavailable");
  if(data.size>30*1024*1024)throw Error("file_too_large");
@@ -203,9 +203,8 @@ Deno.serve(async (request) => {
       source_table: sourceTable,
       ai_status: "processing",
       requested_by: user.id,
-      ...(sourceTable === "vertice_documents"
-        ? { document_id: fileId }
-        : { repository_file_id: fileId }),
+      document_id: sourceTable === "vertice_documents" ? fileId : null,
+      repository_file_id: sourceTable === "vertice_repository_files" ? fileId : null,
     };
 
     const { data: pv, error: pvErr } = await admin
