@@ -46,3 +46,14 @@ Não atribuir SHA inventado. Onde não existe arquivo íntegro, `sha256 = NULL` 
 - [ ] Ter validação regulatória e médica antes de declarar regras normativas homologadas.
 
 **Falha operacional registrada:** tentativa de recuperar arquivo NT40 por conexão direta do ambiente de execução falhou por indisponibilidade de resolução de nome; leitura textual/web foi possível, mas não dá suporte a hash local do binário. Não falsear a prova de integridade.
+
+
+## Revisão de procedência em 16/11/2026 — links confirmados no portal, bytes ainda não
+Uma renderização real com JavaScript da página oficial INEP `provas-e-gabaritos` no GitHub Actions run [43999991024](https://github.com/vrcmeirelles-del/vertice-educacao-superior/actions/runs/43999991024) identificou **11 URLs de PDFs** em âncoras publicadas pela fonte oficial. Catálogo verificável em `INEP_2026_LINKS_OFICIAIS_CONFIRMADOS.json`:
+- regular: cadernos 1/2, versões acessíveis do caderno 1 (ledor, ampliada, superampliada), gabaritos preliminares cadernos 1/2;
+- reaplicação: cadernos 1/2 e respectivos gabaritos preliminares.
+Os três links de cadernos previamente anotados no F&O estão entre as URLs efetivamente publicadas. Isso **eleva a confiança na procedência dos endereços**, mas **não comprova a integridade dos PDFs** nem o conteúdo dos gabaritos.
+
+**Barreira de transferência reproduzida:** nenhum dos 11 PDFs foi baixado pelo navegador/script Python (erro SSL issuer, conexão reset). A segunda rota `curl`, com TLS verificado, tentou os 8 documentos principais na execução [44000426717](https://github.com/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44000426717): **0/8 arquivos**, respostas `curl 60` (cadeia certificadora não validada) em sete e `curl 35` (conexão reset) em um. Por segurança, **não usar bypass `-k` / `verify=False` para declarar documento autenticado**.
+
+Status: **LINKS_OFICIAIS_CONFIRMADOS, BINÁRIOS NÃO RECUPERADOS, SHA256 NULL, HOMOLOGAÇÃO E1 BLOQUEADA**. A autenticação futura requer arquivo integral e verificação da edição, caderno, tipo de gabarito e validade.
