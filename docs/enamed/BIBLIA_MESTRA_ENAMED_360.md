@@ -1,6 +1,6 @@
 # BÍBLIA-MESTRA DO PROJETO — ENAMED 360° / INEP INTELLIGENCE
 **Projeto:** Vértice Educação Superior × Fato & Ordem × Sapiens 360°  
-**Versão:** 2.1 — E1 parcial + URLs oficiais e 419 testes do portal  
+**Versão:** 2.2 — E1 parcial + oito PDFs com SHA256 e 483 gabaritos preliminares reconciliados  
 **Data-base:** 16 de novembro de 2026  
 **Status:** documento-mestre de projeto; NÃO corresponde à implantação ou homologação da solução.  
 **Governança:** evolução cumulativa por etapas, com revisão retrospectiva obrigatória.  
@@ -371,3 +371,33 @@ No banco F&O (leitura) só foram encontrados `fo_enamed_items` e `fo_enamed_atte
 - [Run portal TypeScript/SSR 44000644637](https://github.com/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44000644637)
 - [Run de recuperação oficial 44000426717](https://github.com/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44000426717) — 11 URLs oficiais identificadas na coleta original `43999991024`, mas sem PDF íntegro por falhas TLS.
 - ADR-ENAMED-019: **distinguir regressão automatizada 419/419 de homologação autenticada e funcional do portal**. A E1 e a revisão pedagógica continuam bloqueadas sem PDFs oficiais verificados.
+
+
+## 21. Atualização cumulativa v2.2 — corpus 2026 recuperado e 483 gabaritos preliminares reconciliados (17/11/2026)
+**E1 avançou substancialmente, mas continua SEM ACEITE integral.** E2/E3 preparatórias; nenhum resultado do Inep foi apresentado como definitivo e nenhum registro do Fato & Ordem foi editado.
+
+### Fontes e autenticação dos binários
+- O certificado apresentado por `download.inep.gov.br` não continha o intermediário. A cadeia foi diagnosticada via OpenSSL: `RNP ICPEdu GR46 OV TLS CA 2025`, AIA GlobalSign.
+- Ferramenta `scripts/enamed/download_inep_verified_chain.py`, sem `verify=False` ou `curl -k`, recuperou a intermediária e **verificou a assinatura até raízes do sistema** antes de formar a cadeia de confiança e realizar transferências HTTPS com validação de domínio.
+- GitHub Actions run **[44017133303](https://github.com/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44017133303)**, artefato `enamed-e1-verified-chain-pdfs` ID `14299257407`: **oito PDFs oficiais** (quatro cadernos e quatro gabaritos preliminares) obtidos sem ignorar TLS. Os oito hashes SHA-256 foram recalculados a partir dos bytes arquivados e coincidiram com o relatório.
+- `docs/enamed/INEP_2026_SHA256_DOCUMENTOS_PRELIMINARES_20261117.json` guarda os oito hashes, tamanhos, páginas, URLs, origem e estado. `docs/enamed/E1_CONFRONTO_GABARITOS_PRELIMINARES_483_20261117.md` guarda o método e as contagens.
+- **Gabaritos de 2026 são PRELIMINARES;** autoria/regra oficial e versão definitiva exigem revisão da data de divulgação e de retificações futuras. A cadeia TLS e o hash não substituem a homologação pedagógica.
+
+### Auditoria ao vivo, somente leitura
+- Cada um dos quatro PDFs preliminares contém as 100 chaves A–D numeradas 1–100; o confronto via `SELECT` em `fo_enamed_items` verificou **483/483 registros concordantes, zero divergências de resposta**: regular C1 200/200; regular C2 200/200; reaplicação C1 83/83.
+- As **483 linhas ainda ostentam `official_answer_status=definitivo`**, o que permanece sem respaldo no gabarito preliminar. Nenhum UPDATE foi aplicado. Não confundir igualdade de letras com autenticação de enunciado/alternativas.
+- Reaplicação C1: caderno oficial de 100 questões, banco com 83 posições; **17 números faltantes na tabela**: `1,11,20,22,24,27,31,36,42,49,53,57,59,74,88,91,98`.
+- Reaplicação C2: caderno oficial com 100 questões e gabarito preliminar de 100 respostas, **zero posições da origem na tabela F&O `fo_enamed_items`**. Falta em outras fontes ainda não comprovada.
+- Nas duas posições com alternativas diferentes entre IDs duplicados (`REG-C1-Q019` e `Q028`), as diferenças observadas são de espaçamento/pontuação, sem alteração de letra/alternativa escolhida. As outras divergências de texto, temas e subtemas seguem à revisão.
+- **Não foi concluída a revisão textual 483/483**, nem a classificação por competências, e não foi executado parecer de duas IAs ou médico.
+
+### Engenharia, CI e segurança
+- Execuções GitHub Actions no commit `ccda5e4c2af06382be46cb7c25db34b289aa525e`: `ENAMED E1 - recuperar documentos`, `ENAMED 360 - contratos` e `Portal - TypeScript completo` **concluíram success**. Os quatro testes de renderização ENAMED passaram na suíte principal em execução anterior (419 testes), sem equivaler à homologação por usuário real.
+- Tabela `vertice_learning_course_metrics`: nenhum indicador publicado na consulta desta passagem, RLS com escopo por IES/papel e MFA/permissão docente. Sessões reais de Master/Reitoria/CPA/Coordenação/NDE e controle de outra IES **não executados** por indisponibilidade de sessão autorizada; NÃO afirmar homologação do portal.
+- Render continua sem publicação da PR #168; nenhum banco/gabarito/estudante foi modificado.
+
+### Decisões vinculantes
+**ADR-ENAMED-020:** a conclusão de um gate deve ser granular: (a) origem por portal oficial, (b) integridade TLS/SHA, (c) versão de caderno, (d) gabarito preliminar ou definitivo, (e) equivalência textual de cada questão, (f) competência/taxonomia homologada e (g) acesso/autorização comprovados. Nesta passagem (a), (b) e a correspondência das **letras preliminares** foram demonstradas; (d definitivo), (e), (f), (g) permanecem pendentes.
+**ADR-ENAMED-021:** lacunas de reaplicação são catalogadas para importação futura apenas após curadoria e rastreio por ID, sem supor que ausência em `fo_enamed_items` signifique ausência em todo o F&O.
+
+**Próximo compromisso:** verificar enunciados e alternativas contra os cadernos autenticados, priorizando 57 diferenças de enunciado, os 17 números da reaplicação e as 100 posições de reaplicação C2 sem registro; aguardar documento definitivo e manter as revisões clínicas sob gate regulatório E1. Segurança multi-IES deve ser provada em sessões reais antes de merge/deploy.
