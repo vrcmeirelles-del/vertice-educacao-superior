@@ -1,0 +1,120 @@
+{
+  "schema_version": "enamed-2026-official-dom-urls-v1",
+  "catalog_url": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enamed/provas-e-gabaritos",
+  "verified_url_provenance": "browser-rendered HTML anchors from official Inep catalog; verification run 43999991024",
+  "verification_time_utc": "2026-11-17T02:03:38Z",
+  "document_validation": "PENDING_BINARY_RETRIEVAL_CHECKSUM_AND_HUMAN_EDITION_REVIEW",
+  "warning": "Public catalog hyperlink confirms official publication reference, not PDF integrity, correct answer key or final version.",
+  "documents": [
+    {
+      "id": "REG-C1",
+      "application": "regular",
+      "booklet": "caderno_1",
+      "kind": "prova",
+      "answer_status": null,
+      "official_url": "https://download.inep.gov.br/enamed/provas_e_gabaritos/2026_caderno_1.pdf",
+      "sha256": null,
+      "binary_status": "NOT_RECOVERED"
+    },
+    {
+      "id": "REG-C1-LEDOR",
+      "application": "regular",
+      "booklet": "caderno_1_ledor",
+      "kind": "prova_acessivel",
+      "answer_status": null,
+      "official_url": "https://download.inep.gov.br/enamed/provas_e_gabaritos/2026_caderno_1_ledor.pdf",
+      "sha256": null,
+      "binary_status": "NOT_RECOVERED"
+    },
+    {
+      "id": "REG-C1-AMPLIADA",
+      "application": "regular",
+      "booklet": "caderno_1_ampliado",
+      "kind": "prova_acessivel",
+      "answer_status": null,
+      "official_url": "https://download.inep.gov.br/enamed/provas_e_gabaritos/2026_caderno_1_ampliado.pdf",
+      "sha256": null,
+      "binary_status": "NOT_RECOVERED"
+    },
+    {
+      "id": "REG-C1-SUPERAMPLIADA",
+      "application": "regular",
+      "booklet": "caderno_1_superampliado",
+      "kind": "prova_acessivel",
+      "answer_status": null,
+      "official_url": "https://download.inep.gov.br/enamed/provas_e_gabaritos/2026_caderno_1_superampliado.pdf",
+      "sha256": null,
+      "binary_status": "NOT_RECOVERED"
+    },
+    {
+      "id": "REG-C2",
+      "application": "regular",
+      "booklet": "caderno_2",
+      "kind": "prova",
+      "answer_status": null,
+      "official_url": "https://download.inep.gov.br/enamed/provas_e_gabaritos/2026_caderno_2.pdf",
+      "sha256": null,
+      "binary_status": "NOT_RECOVERED"
+    },
+    {
+      "id": "REG-GAB-C1-PREL",
+      "application": "regular",
+      "booklet": "caderno_1",
+      "kind": "gabarito",
+      "answer_status": "preliminar",
+      "official_url": "https://download.inep.gov.br/enamed/provas_e_gabaritos/2026_gabarito_caderno_1_preliminar.pdf",
+      "sha256": null,
+      "binary_status": "NOT_RECOVERED"
+    },
+    {
+      "id": "REG-GAB-C2-PREL",
+      "application": "regular",
+      "booklet": "caderno_2",
+      "kind": "gabarito",
+      "answer_status": "preliminar",
+      "official_url": "https://download.inep.gov.br/enamed/provas_e_gabaritos/2026_gabarito_caderno_2_preliminar.pdf",
+      "sha256": null,
+      "binary_status": "NOT_RECOVERED"
+    },
+    {
+      "id": "REAP-C1",
+      "application": "reaplicacao",
+      "booklet": "caderno_1",
+      "kind": "prova",
+      "answer_status": null,
+      "official_url": "https://download.inep.gov.br/enamed/provas_e_gabaritos/2026_caderno_1_reaplicacao.pdf",
+      "sha256": null,
+      "binary_status": "NOT_RECOVERED"
+    },
+    {
+      "id": "REAP-C2",
+      "application": "reaplicacao",
+      "booklet": "caderno_2",
+      "kind": "prova",
+      "answer_status": null,
+      "official_url": "https://download.inep.gov.br/enamed/provas_e_gabaritos/2026_caderno_2_reaplicacao.pdf",
+      "sha256": null,
+      "binary_status": "NOT_RECOVERED"
+    },
+    {
+      "id": "REAP-GAB-C1-PREL",
+      "application": "reaplicacao",
+      "booklet": "caderno_1",
+      "kind": "gabarito",
+      "answer_status": "preliminar",
+      "official_url": "https://download.inep.gov.br/enamed/provas_e_gabaritos/2026_gabarito_1_reaplicacao_preliminar.pdf",
+      "sha256": null,
+      "binary_status": "NOT_RECOVERED"
+    },
+    {
+      "id": "REAP-GAB-C2-PREL",
+      "application": "reaplicacao",
+      "booklet": "caderno_2",
+      "kind": "gabarito",
+      "answer_status": "preliminar",
+      "official_url": "https://download.inep.gov.br/enamed/provas_e_gabaritos/2026_gabarito_2_reaplicacao_preliminar.pdf",
+      "sha256": null,
+      "binary_status": "NOT_RECOVERED"
+    }
+  ]
+}
