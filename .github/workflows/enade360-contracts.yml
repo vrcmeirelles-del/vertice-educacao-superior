@@ -32,5 +32,7 @@ jobs:
         run: node docs/enade-360/validator/test-traceability.cjs
       - name: Validate traceability through the integrated report gate
         run: node docs/enade-360/validator/test-trace-integration.cjs
+      - name: Test audit event-chain and read authorization prototype
+        run: node docs/enade-360/validator/test-audit-governance.cjs
       - name: Validate positive and negative Draft 2020-12 instances
         run: python docs/enade-360/validator/test-json-schema.py
