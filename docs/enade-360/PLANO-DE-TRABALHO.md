@@ -82,3 +82,9 @@ Antes de cada etapa consultar os três documentos. Concluído só com evidência
 - Implementado `integrated-gate.cjs` e estendida suíte Python para que as mesmas fixtures percorram JSON Schema e validações semânticas/pedagógicas, adicionando 4 negativos: hipóteses e inferências sem ressalvas, ação sem aprovação, contagens ilógicas.
 - Total esperado na nova suíte: 32, ainda sujeito a confirmação de execução CI própria. Próximo passo: obter conclusão final, corrigir eventuais falhas e registrar log, SHA e aceites reais.
 - Dependências oficiais P-ZIP-001, P-REF-001, P-NT-001 abertas; sem especialização.
+
+## Adendo v0.8.3 — aceite sintético do gate integrado (2026-11-16)
+- CI `ENADE 360 - Contract Tests` concluído success no run `43997052017`, commit `a9cc729dcef66e34adbe9a0ad2d5011f60d94ecc`.
+- Evidência: 26/26 cenários semânticos Node, 32/32 validações combinadas Draft 2020-12 + Node (7 aceites positivos e 25 rejeições negativas); testes documentados e logs preservados em `EVIDENCIAS-SCHEMA-003.md`.
+- Próximo marco independente: estender cobertura de regras intercampos, identificação de metodologia por edição, controle de SC e tolerâncias, preparar integração controlada sem publicação. Nenhuma especialização até prova oficial.
+- P-ZIP-001/P-NT-001/P-REF-001 continuam abertos; homologação do núcleo ainda bloqueada.
