@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
 import type { Row } from "@/lib/area";
 import EnamedFatoOrdemMetrics from "./EnamedFatoOrdemMetrics";
+import EnamedEditorialEvidence, { EnamedVerifiedSources } from "./EnamedEditorialEvidence";
 
 type Props = { institutionId: string; courses: Row[]; onPlan: () => void };
-type Section = "fontes" | "curriculo" | "integracao" | "auditoria";
+type Section = "fontes" | "curriculo" | "integracao" | "auditoria" | "documentos";
 const SOURCES = [
   { label:"Provas e gabaritos", url:"https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enamed/provas-e-gabaritos", purpose:"Cadernos, edições e gabaritos. Conferir sempre se preliminar ou definitivo." },
   { label:"Resultados", url:"https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enamed/resultados", purpose:"Resultados oficiais da formação médica e documentação disponível." },
@@ -26,7 +27,7 @@ export default function EnamedEnvironment({ institutionId, courses, onPlan }:Pro
       <span style={{background:"#fef3c7",border:"1px solid #f59e0b",padding:"7px 10px",borderRadius:8,fontSize:12}}>Integração de dados oficiais em homologação</span>
     </header>
     <div style={{display:"flex",gap:8,flexWrap:"wrap",margin:"16px 0"}}>
-      {([["fontes","Fontes e relatórios INEP"],["curriculo","Currículo e intervenções"],["integracao","Fato & Ordem · dados por curso"],["auditoria","Auditoria Fato & Ordem"]] as const).map(([k,v])=>
+      {([["fontes","Fontes e relatórios INEP"],["curriculo","Currículo e intervenções"],["integracao","Fato & Ordem · dados por curso"],["auditoria","Acervo e incorporações"],["documentos","Documentos verificados"]] as const).map(([k,v])=>
         <button key={k} type="button" aria-pressed={section===k} onClick={()=>setSection(k)} style={{border:"1px solid #94a3b8",borderRadius:8,padding:"9px 12px",background:section===k?"#174c78":"#fff",color:section===k?"#fff":"#174c78",cursor:"pointer"}}>{v}</button>)}
     </div>
     <label style={{display:"grid",gap:5,fontSize:13,maxWidth:480,fontWeight:600}}>Curso de Medicina vinculado à IES
@@ -44,7 +45,7 @@ export default function EnamedEnvironment({ institutionId, courses, onPlan }:Pro
           <a href={s.url} target="_blank" rel="noopener noreferrer">Consultar fonte oficial ↗</a>
         </article>)}
       </div>
-      <p style={{fontSize:12,marginTop:12}}>Status: catálogo de fontes disponível; importação, hash e validação dos arquivos ainda não comprovados. Dados de 2026 não devem ser tratados como definitivos antes da publicação oficial correspondente.</p>
+      <p style={{fontSize:12,marginTop:12}}>Corpus documental de 17/11/2026: oito PDFs de provas/gabaritos preliminares e cinco documentos normativos recuperados com SHA-256. Consulte Documentos verificados para origem e identificação dos arquivos. Integridade do arquivo não equivale à homologação clínica; gabaritos preliminares não são definitivos.</p>
     </div>:null}
     {section==="curriculo"?<div>
       <h4>Integração curricular e pedagógica</h4>
@@ -59,14 +60,8 @@ export default function EnamedEnvironment({ institutionId, courses, onPlan }:Pro
       <button type="button" onClick={onPlan} style={{padding:"10px 14px",borderRadius:8,background:"#174c78",color:"white",border:0,cursor:"pointer"}}>Abrir planejamento estratégico</button>
     </div>:null}
     {section==="integracao"?<EnamedFatoOrdemMetrics institutionId={institutionId} courseId={courseId}/>:null}
-    {section==="auditoria"?<div>
-      <h4>Fotografia de auditoria de 16/11/2026 — não é monitoramento em tempo real</h4>
-      <p>Consulta somente de leitura ao banco do Fato & Ordem (Supabase), módulo ENAMED. Contagem de registros, não de questões únicas.</p>
-      <table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
-        <tbody>{[["Itens ENAMED","483"],["Registros regulares 2026","400; 200 posições distintas de caderno/número"],["Reaplicação 2026","83 registros"],["Sem hash documental","483"],["Sem palavras-chave","0"],["Com palavras-chave genéricas de edição/área","483"],["Gabarito 2026 registrado como definitivo","483; status requer confronto com o cronograma oficial"]].map(([a,b])=><tr key={a}><th scope="row" style={{textAlign:"left",padding:9,borderBottom:"1px solid #cbd5e1"}}>{a}</th><td style={{padding:9,borderBottom:"1px solid #cbd5e1"}}>{b}</td></tr>)}</tbody>
-      </table>
-      <p style={{fontSize:12}}>Tema e subtema estão preenchidos nos 483 registros. Isso não comprova aderência semântica: ainda é necessária conferência por comando, alternativas, gabarito e matriz de referência do Inep. Não se realiza alteração de questões nesta área.</p>
-    </div>:null}
+    {section==="auditoria"?<EnamedEditorialEvidence/>:null}
+    {section==="documentos"?<EnamedVerifiedSources/>:null}
     <footer style={{fontSize:12,marginTop:14,borderTop:"1px solid #ccd9e6",paddingTop:10}}>Escopo institucional: {institutionId ? "ambiente da IES selecionada" : "IES não definida"} · Separar indicador oficial, dado interno e proposta Sapiens · Respeitar RLS/LGPD.</footer>
   </section>;
 }

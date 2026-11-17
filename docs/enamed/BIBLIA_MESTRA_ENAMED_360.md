@@ -1,6 +1,6 @@
 # BÍBLIA-MESTRA DO PROJETO — ENAMED 360° / INEP INTELLIGENCE
 **Projeto:** Vértice Educação Superior × Fato & Ordem × Sapiens 360°  
-**Versão:** 2.8 — confronto integral automatizado, mídias preparadas e ponte sintética ENAMED testada
+**Versão:** 2.9 — frente de implementação editorial e incorporações na interface ENAMED
 **Data-base:** 16 de novembro de 2026  
 **Status:** documento-mestre de projeto; NÃO corresponde à implantação ou homologação da solução.  
 **Governança:** evolução cumulativa por etapas, com revisão retrospectiva obrigatória.  
@@ -518,3 +518,17 @@ A auditoria preliminar foi **ENCERRADA** com entrega de `TERMO_ENCERRAMENTO_AUDI
 
 ### Resultado da recuperação normativa complementar
 - Actions 44055441790 / artefato 14314968512: cinco PDFs reutilizados do arquivo verificado; NT19 novamente bloqueada por reset de conexão. Sem nova transferência dos cinco documentos. Evidência `evidencias/20261117_norms_retry.json`. Nenhum gate regulatório foi aprovado por esse sucesso operacional de workflow.
+
+
+## 28. Atualização cumulativa v2.9 — nova frente de implementação editorial (17/11/2026)
+**Base preservada:** commit 7962db84420fe131c83aa31547c70f37b7bfe4ed da PR168. Branch `feat/enamed-incorporacoes-20261117`, com PR dependente direcionada à branch da PR168. Não é outro portal, serviço, login ou banco.
+
+### Três ações executadas
+1. **CONCLUÍDA:** nova frente GitHub criada a partir do último estado documental e técnico da PR168. Mantidos seis gates não aprovados, critérios clínicos e segregação institucional existentes.
+2. **CONCLUÍDA NO CÓDIGO:** interface ENAMED incorpora o acervo auditado: 483 registros, 414 equivalências de tokens, 69 diferenças filtráveis por ID/caderno e por sequência numérica, 17 posições candidatas da reaplicação com correspondência C2 e páginas oficiais, 30 ocorrências de mídia. A área Documentos verificados contém oito PDFs de prova/gabarito e seis referências normativas: treze arquivos hashados e NT19 pendente. Corrigido o aviso obsoleto de que os arquivos não tinham sido recuperados. Nenhum caso clínico integral ou dado de estudante incluído no resumo de interface.
+3. **CONCLUÍDA LOCALMENTE:** TypeScript completo, 423 testes (quatro novos testes DOM) e build estático passaram. Os testes verificam navegação real no DOM sintético, filtros de 69/25/zero registros, tabela de 17 pendências, proveniência documental e ausência de ações de aprovação/importação. Não substituem sessão autenticada nem inspeção visual em dispositivo.
+
+**Rastreabilidade:** `scripts/enamed/build_editorial_summary.py --check` compara o resumo compilado com as evidências versionadas e falha se ele estiver desatualizado. O resumo é uma fotografia de 17/11/2026, explicitamente sem consulta em tempo real. Os workflows de contratos ENAMED e TypeScript passam a validar também PRs cujo destino é a branch da PR168, permitindo testar esta frente antes de sua integração.
+
+**ADR-ENAMED-028:** incorporar evidências e uma fila de revisão à interface não significa importar questões no banco nem homologar enunciados, mídias, gabaritos ou competências. Interface sem ações de publicação/aprovação; dados e perfis produtivos não alterados.
+**Estado:** nova frente implementada e testada localmente, revisão/CI remoto registrados na PR correspondente; não integrada nem publicada. PR168 e seis gates permanecem independentes. Produção preservada.

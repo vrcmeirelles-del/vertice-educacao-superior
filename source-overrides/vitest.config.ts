@@ -4,5 +4,5 @@ import path from "node:path";
 export default defineConfig({
   resolve: { alias: { "@shared": path.resolve(import.meta.dirname, "shared"), "@": path.resolve(import.meta.dirname, "client/src") } },
   esbuild: { jsx: "automatic" },
-  test: { environment: "node", include: ["server/**/*.test.ts", "client/src/components/area/InstitutionTabs.test.tsx", "client/src/components/area/EnamedEnvironment.test.tsx"] },
+  test: { environment: "node", include: ["server/**/*.test.ts", "client/src/components/area/InstitutionTabs.test.tsx", "client/src/components/area/EnamedEnvironment.test.tsx", "client/src/components/area/EnamedEditorialEvidence.ui.test.tsx"] },
 });

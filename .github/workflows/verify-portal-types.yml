@@ -1,7 +1,7 @@
 name: Portal - TypeScript completo e contratos da Reitoria
 on:
   pull_request:
-    branches: [main]
+    branches: [main, feat/enamed-inep-environment-20261116]
     paths:
       - 'source-overrides/client/**'
       - 'source-overrides/server/**'
