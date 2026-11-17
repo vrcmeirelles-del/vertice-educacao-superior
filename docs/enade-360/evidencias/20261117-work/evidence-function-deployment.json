@@ -1,0 +1,19 @@
+{
+  "version": 3,
+  "bundle_sha256": "176d814865ac3d34abae9871628949ac8a534dc3bca1bd5e29ec157d451c20d9",
+  "verify_jwt": true,
+  "files": [
+    {
+      "name": "index.ts",
+      "exactMatch": true
+    },
+    {
+      "name": "document-text.mjs",
+      "exactMatch": true
+    },
+    {
+      "name": "deno.json",
+      "exactMatch": true
+    }
+  ]
+}
