@@ -532,3 +532,6 @@ A auditoria preliminar foi **ENCERRADA** com entrega de `TERMO_ENCERRAMENTO_AUDI
 
 **ADR-ENAMED-028:** incorporar evidências e uma fila de revisão à interface não significa importar questões no banco nem homologar enunciados, mídias, gabaritos ou competências. Interface sem ações de publicação/aprovação; dados e perfis produtivos não alterados.
 **Estado:** nova frente implementada e testada localmente, revisão/CI remoto registrados na PR correspondente; não integrada nem publicada. PR168 e seis gates permanecem independentes. Produção preservada.
+
+### Correção do CI desta frente
+O workflow BI acadêmico falhou ao carregar os quatro testes DOM por ausência de jsdom, enquanto o workflow completo do portal passou em Node22/24. Corrigido o preparo do runtime de testes nos workflows BI acadêmico e mobile com o lockfile já existente em scripts/tests/types-runtime e o mesmo vínculo de jsdom usado no workflow do portal. Nenhuma dependência produtiva adicionada e nenhum teste desabilitado. Ver reexecução e evidências da PR172.
