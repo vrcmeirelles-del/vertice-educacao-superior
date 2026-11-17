@@ -1,6 +1,6 @@
 # BÍBLIA-MESTRA DO PROJETO — ENAMED 360° / INEP INTELLIGENCE
 **Projeto:** Vértice Educação Superior × Fato & Ordem × Sapiens 360°  
-**Versão:** 2.5 — E1 parcial + 22 comparações integrais entre cópias, seis mídias e CI  
+**Versão:** 2.6 — encerramento da auditoria preliminar; aceites E1 e acesso autenticado pendentes  
 **Data-base:** 16 de novembro de 2026  
 **Status:** documento-mestre de projeto; NÃO corresponde à implantação ou homologação da solução.  
 **Governança:** evolução cumulativa por etapas, com revisão retrospectiva obrigatória.  
@@ -470,3 +470,11 @@ Quando a questão utiliza imagem/tabela para fornecer informação necessária �
 - **Acesso por perfil:** matriz autenticada de 16 testes continua preparada, mas **não executada com sessões reais autorizadas**. Não confundir RLS inspecionada e testes SSR com garantia de isolamento.
 
 **Status:** E1 parcialmente demonstrada, sem aceite integral, E2/E3 preparatórias, PR #168 draft, sem merge ou deploy. Nenhum DML, gabarito, aluno ou competência modificado em produção.
+
+
+## 25. Encerramento objetivo v2.6 — auditoria técnica preliminar (17/11/2026)
+A auditoria preliminar foi **ENCERRADA** com entrega de `TERMO_ENCERRAMENTO_AUDITORIA_PRELIMINAR_20261117.md` e `ENCERRAMENTO_8_DIVERGENCIAS_NUMERICAS_VERIFICADAS_20261117.json`. **Isso NÃO conclui E1, não homologa as questões nem publica PR #168**.
+- Evidências encerradas: oito PDFs oficiais preliminares autenticados/hashados; 483/483 letras de gabarito PRELIMINAR concordantes; 200 posições regulares duplicadas; 17 questões candidatas a lacuna na reaplicação; 22 variantes textuais catalogadas, seis imagens hashadas.
+- Conclusão desta rodada: **oito diferenças numéricas cotejadas com tokens observados no PDF oficial REG-C2**. Cópia `ENAMED-2026-REG-C2-QXXX` preserva os números observados para Q12,42,44,49,74,99; `enamed-2026-c2-qXX` para Q89,90. Isso identifica **candidato documental** somente; não determina a versão clinicamente aprovada.
+- Permanecem efetivamente **BLOQUEADOS**, sem novas rodadas de triagem como substituto do aceite: cotejo integral de cada enunciado/alternativa/mídia com PDF, parecer médico/duas IAs, gabaritos DEFINITIVOS e notas metodológicas, sessões autorizadas reais de Master/Reitoria/CPA/Coordenação/NDE com MFA/RLS e isolamento multi-IES, ponte Sapiens e publicação.
+**ADR-ENAMED-026:** quando o escopo auditável termina, registrar terminalmente CONCLUÍDO/PENDENTE/BLOQUEADO. Não chamar de concluído o produto, não inventar validações clínicas ou sessões reais, não abrir ciclos repetitivos. PR draft, nenhum banco de produção alterado.
