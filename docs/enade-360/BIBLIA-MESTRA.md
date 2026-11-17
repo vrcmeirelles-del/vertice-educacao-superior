@@ -201,3 +201,16 @@ Teste adicional no banco real rejeitou validação de oficial com ENADE360_SCIEN
 Catálogos recebidos registram revisão das planilhas de 2021 em 08/07/2025; 2022 Conceito/IDD/CPC em 08/07/2025 e IGC em 17/09/2025; 2023 Conceito/IDD em 08/07/2025, CPC em 04/09/2025 e IGC em 17/10/2025. São metadados de catálogo, não atestado de integridade de planilhas que não chegaram. Consulta à legislação oficial também encontrou retificação do IGC 2023 relativa à IES 20682; binário não recuperado, sem conciliação.
 
 **Resultado final:** correções operacionais A/B/C comprovadas nos limites registrados; D não comprovado por sessão; E/F/G/H não atendidos. Relatório único em `RELATORIO-EXECUTIVO-WORK-20261117.md`. Não há homologação científica, liberação de especialização nem autorização para publicar resultados acadêmicos. Permanecem as dependências materiais de fontes, metodologias/insumos completos, equivalências documentais e sessões/perfis legítimos. Encerrada esta execução no limite efetivo das ferramentas/fontes, sem novos pilotos nem declarações de trabalho futuro como concluído.
+
+
+## Adendo 2.4 — Sessão real Master e recuperação adicional — 17/11/2026
+
+A sessão autenticada Master no Chrome conectado foi utilizada efetivamente. Na instituição FV-DEMO, curso Direito, criou-se uma evidência explicitamente operacional, sem resultado acadêmico, e rejeitou-se o registro pelo portal. A RPC exibiu os eventos INSERT e UPDATE; os dois hashes canônicos v2 foram recalculados no Supabase e coincidem. Registro: `52df267f-1067-4f8d-bf06-8d4db969b7cd`. Os dez baselines anteriores permanecem preservados; após o teste existem 11 registros e 12 eventos. Não houve concessão de privilégios nem publicação de indicador.
+
+A afirmação anterior de ausência de sessão real fica superada para Master. Reitoria, Coordenação, NDE e CPA continuam sem teste de sessão real; não houve novo desafio MFA. O Master é global: sua leitura de UNITOP e FV-DEMO não comprova isolamento dos perfis restritos.
+
+Foi confirmado um defeito de atualização: o histórico aberto não refletia imediatamente a rejeição. A correção invalida o painel após escrita; teste de regressão UI aprovado (1/1) e TypeScript aprovado. Sua integração/publicação deve ser comprovada pela PR e deploy, sem presumir sucesso antecipado.
+
+Foi acrescentada execução no GitHub Actions para receber diretamente os 18 binários oficiais anteriormente indisponíveis, registrar SHA-256 e verificar estrutura/CRC. Neste registro a execução ainda não está concluída; não contar arquivos, reproduções ou conciliações sem recibo real. A homologação científica continua bloqueada.
+
+Evidência: [sessão Master](evidencias/20261117-work/master-real-session.json). O comprovante anterior de testes transacionais permanece intacto, como histórico.

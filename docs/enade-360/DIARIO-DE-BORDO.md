@@ -216,3 +216,16 @@ Data/hora; etapa; fonte/URL/versão; ação executada; resultado e evidências; 
 - Merge PR #169: ff0963dcfd2fd356a82ff29ae3a5c74cc479076c. Portal live dep-dbu1um0ae00c73a5fd4g (09:33:52 UTC); institucional live dep-dbu1um0ae00c73a5fd10 (09:33:54 UTC). Marcadores novos confirmados nos JS servidos nos dois domínios; SHA-256 registrado.
 - Banco real: rejeição do aceite oficial testada e revertida; teste de captura/cadeia também revertido. Estado final preservado: dez registros/dez BASELINE; zero oficiais/validados/equivalências; hashes de linhas sem divergência. RLS privada e negação anon mantidas.
 - Relatório executivo único emitido com estados A–H e limites. Indicadores oficiais reproduzidos=0; conciliações INEP=0; sessões reais não homologadas. Nenhuma aprovação humana científica inventada. Especialização e publicação de resultados permanecem bloqueadas.
+
+
+## Entrada 030 — Sessão real Master e recuperação adicional — 17/11/2026
+
+A sessão autenticada Master no Chrome conectado foi utilizada efetivamente. Na instituição FV-DEMO, curso Direito, criou-se uma evidência explicitamente operacional, sem resultado acadêmico, e rejeitou-se o registro pelo portal. A RPC exibiu os eventos INSERT e UPDATE; os dois hashes canônicos v2 foram recalculados no Supabase e coincidem. Registro: `52df267f-1067-4f8d-bf06-8d4db969b7cd`. Os dez baselines anteriores permanecem preservados; após o teste existem 11 registros e 12 eventos. Não houve concessão de privilégios nem publicação de indicador.
+
+A afirmação anterior de ausência de sessão real fica superada para Master. Reitoria, Coordenação, NDE e CPA continuam sem teste de sessão real; não houve novo desafio MFA. O Master é global: sua leitura de UNITOP e FV-DEMO não comprova isolamento dos perfis restritos.
+
+Foi confirmado um defeito de atualização: o histórico aberto não refletia imediatamente a rejeição. A correção invalida o painel após escrita; teste de regressão UI aprovado (1/1) e TypeScript aprovado. Sua integração/publicação deve ser comprovada pela PR e deploy, sem presumir sucesso antecipado.
+
+Foi acrescentada execução no GitHub Actions para receber diretamente os 18 binários oficiais anteriormente indisponíveis, registrar SHA-256 e verificar estrutura/CRC. Neste registro a execução ainda não está concluída; não contar arquivos, reproduções ou conciliações sem recibo real. A homologação científica continua bloqueada.
+
+Evidência: [sessão Master](evidencias/20261117-work/master-real-session.json). O comprovante anterior de testes transacionais permanece intacto, como histórico.

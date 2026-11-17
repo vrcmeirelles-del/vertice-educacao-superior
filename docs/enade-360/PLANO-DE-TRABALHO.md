@@ -184,3 +184,16 @@ Migração efetiva 20261117092634 aplicada. Trigger v2 ensaiado no banco real e 
 
 ## Fechamento efetivo Work — 2026-11-17
 PR #169 merged em ff0963d após sete workflows success. Migração 20261117092634 aplicada, trigger e bloqueio testados no banco real com rollback. Deploys live: portal dep-dbu1um0ae00c73a5fd4g e institucional dep-dbu1um0ae00c73a5fd10; artefatos HTTP conferidos com hashes e mensagens da correção. Documentação e evidências preservadas no relatório executivo único. Correções operacionais entregues; sessões reais, equivalências, reprodução e homologação científica não receberam aceite. Nenhum novo ciclo de prototipação aberto. Publicação e especialização bloqueadas.
+
+
+## Atualização cumulativa — Sessão real Master e recuperação adicional — 17/11/2026
+
+A sessão autenticada Master no Chrome conectado foi utilizada efetivamente. Na instituição FV-DEMO, curso Direito, criou-se uma evidência explicitamente operacional, sem resultado acadêmico, e rejeitou-se o registro pelo portal. A RPC exibiu os eventos INSERT e UPDATE; os dois hashes canônicos v2 foram recalculados no Supabase e coincidem. Registro: `52df267f-1067-4f8d-bf06-8d4db969b7cd`. Os dez baselines anteriores permanecem preservados; após o teste existem 11 registros e 12 eventos. Não houve concessão de privilégios nem publicação de indicador.
+
+A afirmação anterior de ausência de sessão real fica superada para Master. Reitoria, Coordenação, NDE e CPA continuam sem teste de sessão real; não houve novo desafio MFA. O Master é global: sua leitura de UNITOP e FV-DEMO não comprova isolamento dos perfis restritos.
+
+Foi confirmado um defeito de atualização: o histórico aberto não refletia imediatamente a rejeição. A correção invalida o painel após escrita; teste de regressão UI aprovado (1/1) e TypeScript aprovado. Sua integração/publicação deve ser comprovada pela PR e deploy, sem presumir sucesso antecipado.
+
+Foi acrescentada execução no GitHub Actions para receber diretamente os 18 binários oficiais anteriormente indisponíveis, registrar SHA-256 e verificar estrutura/CRC. Neste registro a execução ainda não está concluída; não contar arquivos, reproduções ou conciliações sem recibo real. A homologação científica continua bloqueada.
+
+Evidência: [sessão Master](evidencias/20261117-work/master-real-session.json). O comprovante anterior de testes transacionais permanece intacto, como histórico.
