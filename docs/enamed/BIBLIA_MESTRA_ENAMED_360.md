@@ -1,6 +1,6 @@
 # BÍBLIA-MESTRA DO PROJETO — ENAMED 360° / INEP INTELLIGENCE
 **Projeto:** Vértice Educação Superior × Fato & Ordem × Sapiens 360°  
-**Versão:** 1.8 — E1 parcial + cobertura dos cadernos e matriz de perfis  
+**Versão:** 1.9 — E1 parcial + coleta binária via CI e QA por perfil  
 **Data-base:** 16 de novembro de 2026  
 **Status:** documento-mestre de projeto; NÃO corresponde à implantação ou homologação da solução.  
 **Governança:** evolução cumulativa por etapas, com revisão retrospectiva obrigatória.  
@@ -311,3 +311,27 @@ Pode-se **encaminhar a fila de revisão** antes da autenticação da fonte (issu
 **QA:** matriz de navegação `visibleTabs` e testes SSR identificam que coordenador/NDE têm Trilhas ENADE, mas não aba `enade` institucional; ainda sem testes reais autenticados/RLS por perfil. CI específico ENAMED anterior 10/10; workflow completo no HEAD de documentação anterior foi cancelado por commits concorrentes, então a última versão não é homologada. **PR #168 segue em rascunho, sem merge/deploy.**
 
 **ADR-ENAMED-016:** cobertura documental é aferida por **edição, aplicação/reaplicação, caderno e versão de gabarito**; não inferir equivalência de questões por numeração nem declarar ausência global a partir de uma tabela apenas. A E2/E3 seguem com preparativos e E9 de dados reais IES permanece futura.
+
+
+## 20. Atualização cumulativa v1.9 — E1: tentativa de recuperação real de PDFs e QA por perfil (16/11/2026)
+**E1 continua sem aceite. E2/E3 preparatórias; E9 futura.** Relatório de evidências: `docs/enamed/E1_COLETA_BINARIOS_E_QA_PERFIS_20261116.md`.
+
+### Realizado em código e testes
+- GitHub Actions run `43998145208` e demais 7 workflows associados ao commit `ae19a8847c9ea4b0fe2935634be24ac7d34523e9`: **8/8 concluídos success**, TypeScript Node 22/24, build estático e contratos. Em log de `portal (22)`, `tsc --noEmit` passou e 415 testes do grupo principal passaram.
+- A auditoria revelou que `EnamedEnvironment.test.tsx` não estava incluído no `vitest.config.ts`; foi adicionado explicitamente (commit `ce99687268ebb4440e7e5c3393306c8c1e5438c7`). Esses 4 testes SSR/visibilidade de navegação devem ser comprovados pelo CI **após** esse commit; não equiparar SSR à autenticação real.
+- SQL read-only confirmou política `learning_metrics_read` com RLS e escopo IES/papel ou MFA+vínculo de curso/disciplinas. `vertice_private.member_role` exige `aal2`, inclusive Master. Navegação coordenador/NDE mantém acesso a Trilhas ENADE, não ENADE institucional; sem ampliação automática.
+- O navegador conectado não estava disponível no contexto desta conversa, então **nenhum login real por perfil nem teste mobile autenticado ocorreu**.
+
+### Recuperação de PDFs oficiais — evidência negativa verificável
+- Tentativa direta `requests` no container: DNS indisponível para `gov.br` e `download.inep.gov.br`.
+- GitHub Actions `43999397676`: HTML público do catálogo INEP recuperado, **zero links PDF diretos** e **zero PDFs binários**; pacote de evidências do Actions contendo diagnóstico, sem arquivo de prova.
+- Segunda rodada `43999518665`: confirmação de HTML sem a expressão esperada `Prova Objetiva` no material entregue ao coletor estático; zero URLs e zero arquivos.
+- Adicionado `scripts/enamed/discover_public_inep_pdfs.py` e workflow `enamed-inep-public-corpus.yml` para coleta isolada de documentos públicos e hashes, sem gravações no banco. Adicionado `scripts/enamed/render_inep_public_catalog.py` para tentar resolver carregamento por JavaScript.
+- Primeira tentativa Playwright (run `43999660361`) falhou no setup: Ubuntu 26.04 não suportado pela versão do Chromium. Workflow corrigido para Ubuntu 24.04 (commit `4feb641631a0e0ea27042c66b4e1ee465180519f`). A nova execução browser foi cancelada durante commits posteriores; **não afirmar recuperação ou falha documental com base nesse cancelamento**, verificar execução da revisão final.
+- Nenhuma fonte documentada com PDF integral obtido e comparado a original nesta passagem. **Todos os hashes de documentos oficiais no registro E1 seguem nulos**, sem autenticação ou homologação.
+
+### Aprofundamento da cobertura
+No banco F&O (leitura) só foram encontrados `fo_enamed_items` e `fo_enamed_attempts` com esse nome; na `fo_enamed_items`, reaplicação Caderno 1 = 83 posições, reaplicação Caderno 2 = 0, comparados à listagem oficial de ambos os cadernos. Não inferir ausência em arquivos/storage/outros nomes sem varredura autorizada.
+
+### ADR-ENAMED-017
+**Critérios de aceite devem provar cada elo**: fonte oficial autenticada e vigente, binário integral + hash, reconciliação da prova/gabarito, competência revisada por duas IAs independentes + médico, UI e RLS por sessão autenticada, e finalmente deploy comprovado. Um CI verde para TypeScript não autoriza liberar índices oficiais nem modificar dados de estudante. Não fundir a PR #168 antes dessas verificações.
