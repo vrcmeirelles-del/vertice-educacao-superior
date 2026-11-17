@@ -62,3 +62,14 @@ Leia em conjunto com `BIBLIA_MESTRA_ENAMED_360.md` e `PLANO_DE_TRABALHO_ENAMED_3
 - **Testes:** 10 verificações de contrato feitas sobre código recuperado do GitHub, todas passaram (arquivos, legado, aba, filtros de IES e curso, limite de grupos, leitura apenas, segregação de módulos, rótulo de origem e teste criado). Foi criado `scripts/tests/enamed-integration-contract.test.mjs`, mas **não foi executado em checkout Node**. Ainda pendentes build/TS, testes de navegação, contrato autenticado, RLS por papel e CI.
 - **Estado de produção:** nenhum banco modificado, nenhuma PR integrada, nenhum deploy constatado. Status: `IMPLEMENTADO NO CÓDIGO` para aba/consulta, `NÃO HOMOLOGADO` para integração.
 - **Recomendação:** continuar o corpus E1 e fazer CI/QA do incremento em ambiente seguro; só ativar índices INEP após autenticação dos documentos.
+
+
+## 2026-11-16 — Verificação de compilação, acesso, sincronização e fontes INEP
+- **Entrada:** Bíblia 1.2; E1 aberta; E7 UI com consultas agregadas na PR #168.
+- **Build:** Actions #43989469247 (ENADE 360 integração no Render) concluiu success para compilação estática; não prova deploy. Workflow #43989469122 falhou no TypeScript completo por 2 TS2345 nas tabelas da Governança, embora 17 testes TS e 20 de planejamento tenham passado. Ajuste do tipo `Table` commit `bdf79937c581b4386d7484f0c79d5ffb573c6d11`, reexecução CI em andamento; resultado ainda pendente. Nenhum teste de interface autenticada/browser realizado.
+- **Acesso:** política RLS `learning_metrics_read` encontrada. Leitura institucionais com papel ou MFA+escopo docente; `can_read_institution` e `has_role` examinadas em leitura; Master necessita teste autenticado para verificar correspondência das funções. Testes efetivos por papéis pendentes.
+- **Ponte:** no F&O 12 ENADE, 11 ENAMED, 9 Residência (registros de tentativas), 3235 vínculos/2 instituições; no destino `vertice_learning_course_metrics` = 0 grupos. Falha de alimentação não atribuída a causa única; pode haver requisitos acadêmicos de conciliação e mapeamento não satisfeitos.
+- **Portal:** Render `vertice-portal` ativo, deploy `23d625c5ae9b2fd7aacaf94371e6fb840eb71106` status live. A PR #168 ainda não está na main nem publicada.
+- **INEP:** PDF NT40/2025 visto em domínio oficial, página 1 conferida com SEI nº 1844476 e CRC AD834C1B; demais NTs 19, 1PL, 42 não baixadas por timeout/502; microdados 2025 têm metadado de atualização textual divergente. Hash integral pendente.
+- **Preservado:** não houve escrita em bancos, ativação de sincronização, importação institucional, merge, deploy ou modificações de gabaritos.
+- **Status:** E1 aberta; E2 bloqueada; E7 código em evolução, testes/homologação pendentes; E9 futura.
