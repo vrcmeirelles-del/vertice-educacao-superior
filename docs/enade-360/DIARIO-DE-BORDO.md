@@ -38,3 +38,11 @@ Data/hora; etapa; fonte/URL/versão; ação executada; resultado e evidências; 
 - Limite: uso de estatísticas agregadas publicadas, não de registros individuais ZIP. Acesso aos downloads brutos não se concretizou nesta sessão. Sem reprodução de Conceito Enade nem diagnóstico por IES. Área 2023 validada como 22 bacharelados no relatório institucional. Nomes e códigos finais precisam de dicionários e anexos.
 - Decisão: EN-017, validação aritmética e relatório de divergências sem alterar a fonte. Portão para especialização fechado.
 - Próximo passo: baixar e verificar ZIPs e planilhas oficiais, processar filtros e notas para primeira reconciliação por código de curso.
+
+## Entrada 005 — 2026-11-16 — Autorização para prosseguir e registro da dependência
+- Solicitação do responsável: 'Prossiga para próxima depois te mando o zíp anote na Bíblia a pendências'. Interpretação operacional: desenvolver documentação independente, sem declarar testes de microdados concluídos.
+- Consulta anterior aos três documentos realizada antes da mudança. Histórico 0.1 a 0.3 preservado.
+- Criados `MATRIZ-COMPARABILIDADE-HISTORICA.md` e `PROTOCOLO-INGESTAO-E-ACEITE.md` com classes de comparabilidade, schema mínimo, doze testes especificados e critérios de aceite.
+- **Pendência externa P-ZIP-001:** entrega posterior do(s) ZIP(s) oficial(is) pelo usuário; estado AGUARDANDO RECEBIMENTO, prazo não definido. Dependências: ingestão/validação do arquivo, recálculo de indicadores e conciliação contra tabelas INEP.
+- Evidência desta execução: alterações apenas na branch documental da PR #169, sem leitura de registros individuais, sem testes reais e sem modificações de aplicação ou produção.
+- Próxima ação independente: verificação adicional de notas técnicas e contratos de saída dos relatórios, preservando a matriz; retomar processamento quando o ZIP chegar. Núcleo ainda NÃO HOMOLOGADO.
