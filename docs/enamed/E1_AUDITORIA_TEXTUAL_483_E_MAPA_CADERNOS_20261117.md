@@ -45,3 +45,20 @@ Método: comparação das aberturas de enunciado (110 primeiros caracteres norma
 - [ ] Aceite E1 com metodologia oficial completa e validação regulatória.
 
 **Decisão:** E1 segue aberta; E2/E3 somente preparação; issue #170 encaminhada à curadoria mas sem pareceres executados; PR #168 draft, sem merge/deploy. Não gravar alterações em dados de questões, gabaritos ou estudantes.
+
+
+## Adendo de triagem comparativa entre IDs duplicados (17/11/2026)
+**Amostra:** 200 posições regulares com duas versões do item no banco, comparação `SELECT` da própria tabela `fo_enamed_items`, sempre dentro da mesma fonte e número. A normalização é heurística; remover pontuação pode ocultar alteração clínica importante em valores e unidades.
+
+| Comparação entre as duas cópias | Divergências remanescentes |
+|---|---:|
+| Enunciado bruto | 57 |
+| Enunciado após remover somente whitespace | 31 |
+| Enunciado após remover whitespace e pontuação | **22** |
+| Alternativas brutas | 2 |
+| Alternativas após remover whitespace | **0** |
+| Alternativas após remover whitespace e pontuação | **0** |
+
+As **22 posições com diferenças de caracteres alfanuméricos persistentes** estão todas no Caderno 2 regular, identificadas em `ENAMED_2026_22_DIVERGENCIAS_TEXTUAIS_PERSISTENTES_C2.json`, com IDs dos dois registros e o número equivalente no Caderno 1. **Não se pode concluir que sejam 22 erros clínicos**, pois divergências podem envolver acentuação, codificação, abreviação, números e grafias; exige confronto frase a frase com o PDF autenticado.
+As duas divergências em JSON de alternativas (C1 regular, questões 19 e 28) desapareceram ao remover apenas espaços; os dados não indicaram troca de letras ou palavras, mas essas versões continuam preservadas para inspeção.
+**Prioridade de curadoria:** 22 diferenças persistentes > 35 diferenças explicáveis pela normalização alfanumérica > 191 subtemas/192 keywords divergentes. Não publicar tema/competência sem aprovação e preservar os identificadores e tentativas.
