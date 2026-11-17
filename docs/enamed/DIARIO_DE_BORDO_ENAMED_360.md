@@ -93,3 +93,14 @@ Leia em conjunto com `BIBLIA_MESTRA_ENAMED_360.md` e `PLANO_DE_TRABALHO_ENAMED_3
 - **CI:** no commit anterior a PR teve 414 de 415 testes passando, com falha na lista de `InstitutionTabs`. A branch passou a incluir `construcao-curricular` e `trilhas-enade` no macro acadêmico, sem alterar permissões RLS. Workflow `verify-enamed-contracts.yml` criado e passou **6 de 6 testes Node** no run `43994963032`; não equivale a testes de navegador nem homologação médica.
 - **Preservação:** nenhuma escrita em produção, nenhuma modificação de questão ou resposta, e nenhuma alteração de gabarito. PR permanece draft. E1 aberta; E2/E3 preparatórias.
 - **Próxima decisão:** recuperar fontes oficiais binárias, confrontar matrizes e PDFs, efetuar regressão de navegação e iniciar curadoria médica independente quando documentos autenticados estiverem disponíveis.
+
+
+## 2026-11-16 — Passagem E1: origem, hashes futuros e testes de interface
+- **Entrada conferida:** Bíblia v1.5, Plano, Diário, Catálogo, Matriz de Regras e PR #168.
+- **Fonte verificada:** Edital 71/2026 republicado (texto PDF do DOU em domínio Inep, publicação 21/08/2026, seção 3 p.53). 8º e 12º semestres, prova 100×4, corte bibliográfico 03/07/2026, gabarito definitivo previsto em 04/12/2026. Screenshot do PDF não disponível, binário não materializado/hashada.
+- **Fronteira de origem:** página Inep lista cadernos e gabaritos preliminares, mas não expôs URLs nos resultados HTML; os três URLs já armazenados em F&O foram catalogados como **não autenticados** no novo JSON.
+- **Erro técnico de recuperação:** `download.inep.gov.br` por container retornou NameResolutionError; consulta web de PDFs retornou 502/timeout. Nenhum SHA-256 de PDF real.
+- **Revisão F&O:** CSV individual de 200 posições duplicadas e divergências de campo; metadados somente, sem apagar IDs.
+- **Engenharia:** arquivo Python offline de verificação de integridade e quatro testes sintéticos, e quatro testes Vitest SSR/visibilidade de perfil. Workflows atualizados em PR; aprovação do pipeline da última edição deve ser inspecionada.
+- **Constatação de navegação:** `enade` disponível para Master/Reitoria/CPA, mas não para coordenador/NDE; estes veem `trilhas-enade`. Não mudar autorização sem validação do escopo.
+- **Status:** E1 parcial, E2/E3 preparatórias, nenhuma alteração em banco, gabarito, aluno, migração ou Render; PR #168 permanece draft.
