@@ -38,3 +38,16 @@ Leia em conjunto com `BIBLIA_MESTRA_ENAMED_360.md` e `PLANO_DE_TRABALHO_ENAMED_3
 - Versão atualizada da Bíblia:
 - Entrada necessária para E{N+1}:
 ```
+
+
+## 2026-11-16 — E1: primeira rodada do corpus INEP (não encerrada)
+- **Versão de entrada:** Bíblia 1.0, Plano 1.0 e Diário E0; Issue #167 e PR #168 consultadas.
+- **Preservado:** todos os contratos e decisões E0, sem edição de perguntas, gabaritos, estudantes, instituições ou migrações de produção.
+- **Documentos gerados:** `INEP_CATALOGO_FONTES_E1.md`; `INEP_MATRIZ_REGRAS_E1.md`; complementos em Bíblia, Plano e este Diário.
+- **Evidências oficiais consultadas:** página normativa ENAMED 2025/2026; Portaria 478/2025 (texto DOU arquivado em domínio acadêmico); Nota Técnica 40/2025 (texto do Inep); Manual ENAMED 2026 (texto do Inep); página de gabaritos 2025/2026; microdados 2025 e planilha Conceito Enade Medicina 2025.
+- **Descoberta/correção ADR-ENAMED-007:** não extrapolar a enumeração abreviada de 12 competências para a enumeração literal I–XV da Portaria 478/2025. O art. 6º VI trata de procedimentos; VII, de intervenções coletivas. A ontologia ainda não está importada.
+- **Cálculo verificado:** NT40: `PCP=NCP/NC`, ao menos 10 válidos, critérios por TP_INSCRICAO/IN_REGULAR/TP_INSCRICAO_ADM/TP_PRES e faixas 1–5. 11 testes **sintéticos locais** dos limiares PCP/SC passaram. Não foram executados testes no Vértice, banco nem comparação com dado oficial por curso.
+- **Limitação documental:** conexão direta do ambiente não resolveu `download.inep.gov.br`; PDFs disponíveis para leitura textual pela ferramenta de consulta, mas arquivos binários oficiais não foram materializados nem hash calculado; leitura integral e vigência pendentes. Status do conjunto **não é ARQUIVO_AUTENTICADO**.
+- **Retificações:** 2026 possui editais republicados e publicação de gabaritos preliminares. Pendentes documentos integrais, verificação de cronologia e posição normativa atual.
+- **Status real:** documentação E1 registrada na branch da PR #168; nenhum merge, deploy, alteração de produção ou homologação desta etapa comprovado.
+- **Próxima entrada necessária:** recuperar corpus íntegro, hashes e regras de todas as notas/retificações e validar contagens oficiais antes de encerrar E1. **E2 não iniciada.**
