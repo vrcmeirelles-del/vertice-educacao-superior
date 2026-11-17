@@ -62,6 +62,9 @@ def run():
         data,final,ctype=fetch(CATALOG)
         report["catalog_status"]="retrieved"
         page=data.decode("utf-8","replace")
+        position=page.lower().find("prova objetiva")
+        report["html_excerpt_around_prova_objetiva"]=page[max(0,position-150):position+1900] if position>=0 else ""
+        report["html_has_2026"]=("2026" in page)
         parser=LinkCollector();parser.feed(page)
         links={}
         for href,label in parser.refs:
@@ -95,6 +98,7 @@ def run():
         report["catalog_status"]="retrieval_error"
         report["catalog_error"]=str(e)[:300]
     (output/"discovery_report.json").write_text(json.dumps(report,indent=2,ensure_ascii=False)+"\n",encoding="utf8")
+    print(json.dumps({"catalog_excerpt":report.get("html_excerpt_around_prova_objetiva","")[:1100]},ensure_ascii=False))
     print(json.dumps({"status":report["catalog_status"],"candidates":report.get("catalog_candidates",0),
       "pdfs_integrity_checked":sum(x["download_status"]=="byte_integrity_checked" for x in report["documents"])},ensure_ascii=False))
 if __name__=="__main__":run()
