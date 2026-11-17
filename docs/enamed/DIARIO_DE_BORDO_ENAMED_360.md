@@ -123,3 +123,14 @@ Leia em conjunto com `BIBLIA_MESTRA_ENAMED_360.md` e `PLANO_DE_TRABALHO_ENAMED_3
 - **Perfis:** nav `enade` a Master/Reitoria/CPA, não a Coordenador/NDE; sem teste de sessão autenticada nem escopo de RLS. Os quatro testes SSR adicionados anteriormente ainda não comprovam essas sessões.
 - **Código/documentação:** `E1_COBERTURA_OFICIAL_E_PERFIS_20261116.md` criado; nenhuma migração, merge, deploy ou alteração de questão/estudante executada.
 - **Aceite:** E1 bloqueada por PDFs/arquivos integrais e hashes; E2/E3 preparatórias; PR #168 draft. Próximo foco: origem oficial íntegra e perfis em homologação controlada.
+
+
+## 2026-11-16 — E1: recuperação pela rede CI, bloqueio de URLs e QA de perfis
+- **Leituras herdadas:** Bíblia v1.8, Plano, Diário, catálogo de fontes, PR #168 e trilha de auditoria 483/283/200.
+- **CI confirmado:** em commit `ae19a884...`, 8 workflows aprovados, TypeScript completo Node 22/24 e 415 testes principais aprovados. Os 4 testes SSR ENAMED estavam ausentes do `vitest.config`; inclusão realizada no commit `ce996872...`; aguarda execução da revisão final.
+- **Recuperação:** container sem DNS, web 502/timeout para URLs declaradas no F&O. Run `43999397676` do GitHub acessou HTML do catálogo do INEP e encontrou 0 links diretos / 0 PDFs. Segunda execução `43999518665` também zerou candidatos, HTML sem marcador esperado. Sem SHA-256 oficial.
+- **Tentativa JS:** criado script com Playwright para renderização. Run `43999660361` falhou no preparo do navegador por incompatibilidade de SO. Corrigido runner Ubuntu 24.04; execução subsequente foi cancelada por commits novos; resultado final ainda pendente.
+- **RLS:** examinada a política `learning_metrics_read`, com condições de IES/papel, MFA `aal2` e escopo staff. Ausência de navegador conectado impede testar sessões reais. Não proclamar homologação por perfil.
+- **F&O:** duas tabelas ENAMED nomeadas, `fo_enamed_items` registra 83 posições de reaplicação C1 e nenhuma de C2; lacuna candidata, sem modificação.
+- **Artefato:** `E1_COLETA_BINARIOS_E_QA_PERFIS_20261116.md` com URLs, relatórios Actions e aceite pendente.
+- **Estado:** E1 aberta, E2/E3 preparatórias, PR #168 draft, produção preservada; pendências explicitamente mantidas.
