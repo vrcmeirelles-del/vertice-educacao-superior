@@ -51,3 +51,14 @@ Leia em conjunto com `BIBLIA_MESTRA_ENAMED_360.md` e `PLANO_DE_TRABALHO_ENAMED_3
 - **Retificações:** 2026 possui editais republicados e publicação de gabaritos preliminares. Pendentes documentos integrais, verificação de cronologia e posição normativa atual.
 - **Status real:** documentação E1 registrada na branch da PR #168; nenhum merge, deploy, alteração de produção ou homologação desta etapa comprovado.
 - **Próxima entrada necessária:** recuperar corpus íntegro, hashes e regras de todas as notas/retificações e validar contagens oficiais antes de encerrar E1. **E2 não iniciada.**
+
+
+## 2026-11-16 — E1 ainda aberta; incremento de interface E7 sem efeitos em produção
+- **Leitura prévia:** Bíblia 1.1, Plano, Diário e código de `LearningConnected.tsx`, `EnamedEnvironment.tsx`, `Enade360.tsx` na branch da PR #168.
+- **Preservado:** contrato E1 e bloqueios; ENADE 360°; F&O como repositório; resultados INEP nunca simulados; isolamento de IES; E9 com dados reais reservada à fase futura.
+- **Novo código:** `source-overrides/client/src/components/area/EnamedFatoOrdemMetrics.tsx`; aba correspondente em `EnamedEnvironment.tsx`.
+- **Ponte aproveitada:** tabela real da Vértice `public.vertice_learning_course_metrics` com colunas `institution_id, course_id, semester, subject_code, module, competency, participants, attempts, graded, correct, paired_students, external_accuracy, curricular_average, updated_at`.
+- **Read-only DB:** estrutura da tabela verificada, RLS habilitada (1 política detectada). Consulta `group by module` para os módulos enade/enamed/residencia retornou **nenhuma linha**, não se inferindo dados ou falha de sincronização por essa ausência.
+- **Testes:** 10 verificações de contrato feitas sobre código recuperado do GitHub, todas passaram (arquivos, legado, aba, filtros de IES e curso, limite de grupos, leitura apenas, segregação de módulos, rótulo de origem e teste criado). Foi criado `scripts/tests/enamed-integration-contract.test.mjs`, mas **não foi executado em checkout Node**. Ainda pendentes build/TS, testes de navegação, contrato autenticado, RLS por papel e CI.
+- **Estado de produção:** nenhum banco modificado, nenhuma PR integrada, nenhum deploy constatado. Status: `IMPLEMENTADO NO CÓDIGO` para aba/consulta, `NÃO HOMOLOGADO` para integração.
+- **Recomendação:** continuar o corpus E1 e fazer CI/QA do incremento em ambiente seguro; só ativar índices INEP após autenticação dos documentos.
