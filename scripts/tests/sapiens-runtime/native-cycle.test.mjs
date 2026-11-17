@@ -5,12 +5,13 @@ const fo=process.env.FATO_ORDEM_REPO;if(!fo)throw Error('Set FATO_ORDEM_REPO to 
 const {fixture:foFixture,id,token,secret}=await import(pathToFileURL(resolve(fo,'test/helpers/sapiens-fixture.mjs')));
 const {handleVerticeBridgeApi}=await import(pathToFileURL(resolve(fo,'src/vertice-learning-bridge.mjs')));
 const jwt=(n=1,aal='aal2')=>'synthetic.'+Buffer.from(JSON.stringify({sub:id(n),aal})).toString('base64url')+'.synthetic';
-async function fixture(t){
+export async function fixture(t){
  const f=await foFixture();t.after(()=>f.db.close());
  const db=new PGlite();await db.waitReady;t.after(()=>db.close());
  await db.exec(await readFile(new URL('./fixture.sql',import.meta.url),'utf8'));
  await db.exec(await readFile(new URL('../../../source-overrides/migrations/20261115000000_sapiens_core_tables.sql',import.meta.url),'utf8'));
  await db.exec(await readFile(new URL('../../../supabase/migrations/20261114221711_sapiens_native_bridge.sql',import.meta.url),'utf8'));
+ await db.exec(await readFile(new URL('../../../supabase/migrations/20261117111205_sapiens_feedback_privacy.sql',import.meta.url),'utf8'));
  await db.query('insert into vertice_institutions values($1,$2),($3,$4)',[id(11),'Synthetic A',id(12),'Synthetic B']);
  await db.query('insert into vertice_courses values($1,$2,$3),($4,$2,$5),($6,$7,$8)',[id(21),id(11),'Law',id(22),'Other',id(23),id(12),'Other IES']);
  await db.query('insert into vertice_admins values($1)',[id(1)]);
