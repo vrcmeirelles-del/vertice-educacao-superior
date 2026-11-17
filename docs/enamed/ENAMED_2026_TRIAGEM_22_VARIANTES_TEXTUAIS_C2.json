@@ -1,0 +1,367 @@
+{
+  "schema_version": "enamed2026-c2-22-variations-editorial-triage-v1",
+  "as_of": "2026-11-17",
+  "sources": [
+    "Official 2026 REG C2 PDF SHA-256 registry",
+    "F&O public.fo_enamed_items select-only first-difference inspection"
+  ],
+  "counts": {
+    "total": 22,
+    "requires_media_verification": 3
+  },
+  "warning": "Editorial triage only. Differences may change clinical decision even when preliminary key matches. The full text, tables, images and answers must be reviewed by qualified medical curator; do not modify production.",
+  "records": [
+    {
+      "source_url": "https://download.inep.gov.br/enamed/provas_e_gabaritos/2026_caderno_2.pdf",
+      "question_number": 12,
+      "existing_ids": [
+        "enamed-2026-c2-q12",
+        "ENAMED-2026-REG-C2-Q012"
+      ],
+      "equivalent_regular_caderno_1_number": 37,
+      "official_caderno_2_pdf_page": 5,
+      "category": "FIGURE_AND_TABLE",
+      "observed_difference": "A versão resumida não incorpora referência ao diagrama de Lund–Browder; PDF contém diagrama e tabela de áreas variáveis",
+      "review_priority": "EVIDENCE_MISSING_OR_RESTRUCTURED",
+      "official_text_comparison_status": "PRELIMINARY_PAGE_INSPECTION_NOT_FULL_ITEM_HOMOLOGATION",
+      "clinical_judgment_status": "NOT_PERFORMED",
+      "database_update_allowed": false
+    },
+    {
+      "source_url": "https://download.inep.gov.br/enamed/provas_e_gabaritos/2026_caderno_2.pdf",
+      "question_number": 18,
+      "existing_ids": [
+        "enamed-2026-c2-q18",
+        "ENAMED-2026-REG-C2-Q018"
+      ],
+      "equivalent_regular_caderno_1_number": 17,
+      "official_caderno_2_pdf_page": 6,
+      "category": "UNIT_NOTATION",
+      "observed_difference": "Diferença de sobrescrito mm³ vs mm3; comparar unidades em contexto clínico",
+      "review_priority": "TYPOGRAPHIC_UNIT_CHECK",
+      "official_text_comparison_status": "PRELIMINARY_PAGE_INSPECTION_NOT_FULL_ITEM_HOMOLOGATION",
+      "clinical_judgment_status": "NOT_PERFORMED",
+      "database_update_allowed": false
+    },
+    {
+      "source_url": "https://download.inep.gov.br/enamed/provas_e_gabaritos/2026_caderno_2.pdf",
+      "question_number": 29,
+      "existing_ids": [
+        "enamed-2026-c2-q29",
+        "ENAMED-2026-REG-C2-Q029"
+      ],
+      "equivalent_regular_caderno_1_number": 14,
+      "official_caderno_2_pdf_page": 9,
+      "category": "QUOTE_STYLE",
+      "observed_difference": "Aspas curvas vs retas no relato clínico",
+      "review_priority": "TYPOGRAPHIC_CHECK",
+      "official_text_comparison_status": "PRELIMINARY_PAGE_INSPECTION_NOT_FULL_ITEM_HOMOLOGATION",
+      "clinical_judgment_status": "NOT_PERFORMED",
+      "database_update_allowed": false
+    },
+    {
+      "source_url": "https://download.inep.gov.br/enamed/provas_e_gabaritos/2026_caderno_2.pdf",
+      "question_number": 40,
+      "existing_ids": [
+        "enamed-2026-c2-q40",
+        "ENAMED-2026-REG-C2-Q040"
+      ],
+      "equivalent_regular_caderno_1_number": 32,
+      "official_caderno_2_pdf_page": 11,
+      "category": "LAB_TABLE_INLINE",
+      "observed_difference": "Tabela do TOTG convertida para narrativa com números",
+      "review_priority": "CLINICAL_VALUES_AND_TABLE_CHECK",
+      "official_text_comparison_status": "PRELIMINARY_PAGE_INSPECTION_NOT_FULL_ITEM_HOMOLOGATION",
+      "clinical_judgment_status": "NOT_PERFORMED",
+      "database_update_allowed": false
+    },
+    {
+      "source_url": "https://download.inep.gov.br/enamed/provas_e_gabaritos/2026_caderno_2.pdf",
+      "question_number": 42,
+      "existing_ids": [
+        "enamed-2026-c2-q42",
+        "ENAMED-2026-REG-C2-Q042"
+      ],
+      "equivalent_regular_caderno_1_number": 34,
+      "official_caderno_2_pdf_page": 12,
+      "category": "EPIDEMIOLOGY_TABLE",
+      "observed_difference": "Tabela de indicadores HIV 2019–2023 suprimida/reduzida em versão resumida",
+      "review_priority": "EPIDEMIOLOGICAL_TABLE_CHECK",
+      "official_text_comparison_status": "PRELIMINARY_PAGE_INSPECTION_NOT_FULL_ITEM_HOMOLOGATION",
+      "clinical_judgment_status": "NOT_PERFORMED",
+      "database_update_allowed": false
+    },
+    {
+      "source_url": "https://download.inep.gov.br/enamed/provas_e_gabaritos/2026_caderno_2.pdf",
+      "question_number": 44,
+      "existing_ids": [
+        "enamed-2026-c2-q44",
+        "ENAMED-2026-REG-C2-Q044"
+      ],
+      "equivalent_regular_caderno_1_number": 22,
+      "official_caderno_2_pdf_page": 12,
+      "category": "METABOLIC_LAB_TABLE",
+      "observed_difference": "Painel laboratorial de emergência apresentado de forma distinta",
+      "review_priority": "CLINICAL_VALUES_AND_TABLE_CHECK",
+      "official_text_comparison_status": "PRELIMINARY_PAGE_INSPECTION_NOT_FULL_ITEM_HOMOLOGATION",
+      "clinical_judgment_status": "NOT_PERFORMED",
+      "database_update_allowed": false
+    },
+    {
+      "source_url": "https://download.inep.gov.br/enamed/provas_e_gabaritos/2026_caderno_2.pdf",
+      "question_number": 45,
+      "existing_ids": [
+        "enamed-2026-c2-q45",
+        "ENAMED-2026-REG-C2-Q045"
+      ],
+      "equivalent_regular_caderno_1_number": 23,
+      "official_caderno_2_pdf_page": 13,
+      "category": "HEMOGRAM_TABLE",
+      "observed_difference": "Hemograma infantil e valores de referência reformatados",
+      "review_priority": "CLINICAL_VALUES_AND_TABLE_CHECK",
+      "official_text_comparison_status": "PRELIMINARY_PAGE_INSPECTION_NOT_FULL_ITEM_HOMOLOGATION",
+      "clinical_judgment_status": "NOT_PERFORMED",
+      "database_update_allowed": false
+    },
+    {
+      "source_url": "https://download.inep.gov.br/enamed/provas_e_gabaritos/2026_caderno_2.pdf",
+      "question_number": 48,
+      "existing_ids": [
+        "enamed-2026-c2-q48",
+        "ENAMED-2026-REG-C2-Q048"
+      ],
+      "equivalent_regular_caderno_1_number": 26,
+      "official_caderno_2_pdf_page": 13,
+      "category": "TERMINOLOGY_EXPANSION",
+      "observed_difference": "Sigla IST expandida e contexto clínico acrescido",
+      "review_priority": "CLINICAL_CONTEXT_CHECK",
+      "official_text_comparison_status": "PRELIMINARY_PAGE_INSPECTION_NOT_FULL_ITEM_HOMOLOGATION",
+      "clinical_judgment_status": "NOT_PERFORMED",
+      "database_update_allowed": false
+    },
+    {
+      "source_url": "https://download.inep.gov.br/enamed/provas_e_gabaritos/2026_caderno_2.pdf",
+      "question_number": 49,
+      "existing_ids": [
+        "enamed-2026-c2-q49",
+        "ENAMED-2026-REG-C2-Q049"
+      ],
+      "equivalent_regular_caderno_1_number": 27,
+      "official_caderno_2_pdf_page": 14,
+      "category": "DIAGNOSTIC_TEST_PARAMETERS",
+      "observed_difference": "Contexto de teste diagnóstico/risco populacional diferente entre versões",
+      "review_priority": "CLINICAL_NUMERIC_AND_CONTEXT_CHECK",
+      "official_text_comparison_status": "PRELIMINARY_PAGE_INSPECTION_NOT_FULL_ITEM_HOMOLOGATION",
+      "clinical_judgment_status": "NOT_PERFORMED",
+      "database_update_allowed": false
+    },
+    {
+      "source_url": "https://download.inep.gov.br/enamed/provas_e_gabaritos/2026_caderno_2.pdf",
+      "question_number": 51,
+      "existing_ids": [
+        "enamed-2026-c2-q51",
+        "ENAMED-2026-REG-C2-Q051"
+      ],
+      "equivalent_regular_caderno_1_number": 96,
+      "official_caderno_2_pdf_page": 14,
+      "category": "THYROID_LAB_TABLE",
+      "observed_difference": "Tabela de TSH/T4 livre reduzida a narrativa",
+      "review_priority": "CLINICAL_VALUES_AND_TABLE_CHECK",
+      "official_text_comparison_status": "PRELIMINARY_PAGE_INSPECTION_NOT_FULL_ITEM_HOMOLOGATION",
+      "clinical_judgment_status": "NOT_PERFORMED",
+      "database_update_allowed": false
+    },
+    {
+      "source_url": "https://download.inep.gov.br/enamed/provas_e_gabaritos/2026_caderno_2.pdf",
+      "question_number": 55,
+      "existing_ids": [
+        "enamed-2026-c2-q55",
+        "ENAMED-2026-REG-C2-Q055"
+      ],
+      "equivalent_regular_caderno_1_number": 100,
+      "official_caderno_2_pdf_page": 15,
+      "category": "COLLECTIVE_CONTEXT",
+      "observed_difference": "Menção a outros moradores vulneráveis acrescentada em uma versão",
+      "review_priority": "POPULATION_CONTEXT_CHECK",
+      "official_text_comparison_status": "PRELIMINARY_PAGE_INSPECTION_NOT_FULL_ITEM_HOMOLOGATION",
+      "clinical_judgment_status": "NOT_PERFORMED",
+      "database_update_allowed": false
+    },
+    {
+      "source_url": "https://download.inep.gov.br/enamed/provas_e_gabaritos/2026_caderno_2.pdf",
+      "question_number": 63,
+      "existing_ids": [
+        "enamed-2026-c2-q63",
+        "ENAMED-2026-REG-C2-Q063"
+      ],
+      "equivalent_regular_caderno_1_number": 88,
+      "official_caderno_2_pdf_page": 17,
+      "category": "CONFIDENTIALITY_DETAILS",
+      "observed_difference": "Detalhes de familiares/companheiro e pedido de sigilo diferentes",
+      "review_priority": "ETHICAL_DECISION_CONTEXT_CHECK",
+      "official_text_comparison_status": "PRELIMINARY_PAGE_INSPECTION_NOT_FULL_ITEM_HOMOLOGATION",
+      "clinical_judgment_status": "NOT_PERFORMED",
+      "database_update_allowed": false
+    },
+    {
+      "source_url": "https://download.inep.gov.br/enamed/provas_e_gabaritos/2026_caderno_2.pdf",
+      "question_number": 68,
+      "existing_ids": [
+        "enamed-2026-c2-q68",
+        "ENAMED-2026-REG-C2-Q068"
+      ],
+      "equivalent_regular_caderno_1_number": 67,
+      "official_caderno_2_pdf_page": 18,
+      "category": "TRAUMA_CONTEXT",
+      "observed_difference": "Chegada em prancha rígida/colar e detalhes do trauma diferem",
+      "review_priority": "EMERGENCY_CONTEXT_CHECK",
+      "official_text_comparison_status": "PRELIMINARY_PAGE_INSPECTION_NOT_FULL_ITEM_HOMOLOGATION",
+      "clinical_judgment_status": "NOT_PERFORMED",
+      "database_update_allowed": false
+    },
+    {
+      "source_url": "https://download.inep.gov.br/enamed/provas_e_gabaritos/2026_caderno_2.pdf",
+      "question_number": 74,
+      "existing_ids": [
+        "enamed-2026-c2-q74",
+        "ENAMED-2026-REG-C2-Q074"
+      ],
+      "equivalent_regular_caderno_1_number": 59,
+      "official_caderno_2_pdf_page": 20,
+      "category": "HEMOGRAM_TABLE",
+      "observed_difference": "Dados laboratoriais pediátricos e valores de referência em formato diferente",
+      "review_priority": "CLINICAL_VALUES_AND_TABLE_CHECK",
+      "official_text_comparison_status": "PRELIMINARY_PAGE_INSPECTION_NOT_FULL_ITEM_HOMOLOGATION",
+      "clinical_judgment_status": "NOT_PERFORMED",
+      "database_update_allowed": false
+    },
+    {
+      "source_url": "https://download.inep.gov.br/enamed/provas_e_gabaritos/2026_caderno_2.pdf",
+      "question_number": 80,
+      "existing_ids": [
+        "enamed-2026-c2-q80",
+        "ENAMED-2026-REG-C2-Q080"
+      ],
+      "equivalent_regular_caderno_1_number": 51,
+      "official_caderno_2_pdf_page": 21,
+      "category": "CARE_DETAILS",
+      "observed_difference": "Descrição de diurese/sondagem vesical e conduta parcial diferente",
+      "review_priority": "CLINICAL_CONTEXT_CHECK",
+      "official_text_comparison_status": "PRELIMINARY_PAGE_INSPECTION_NOT_FULL_ITEM_HOMOLOGATION",
+      "clinical_judgment_status": "NOT_PERFORMED",
+      "database_update_allowed": false
+    },
+    {
+      "source_url": "https://download.inep.gov.br/enamed/provas_e_gabaritos/2026_caderno_2.pdf",
+      "question_number": 81,
+      "existing_ids": [
+        "enamed-2026-c2-q81",
+        "ENAMED-2026-REG-C2-Q081"
+      ],
+      "equivalent_regular_caderno_1_number": 52,
+      "official_caderno_2_pdf_page": 21,
+      "category": "CLINICAL_IMAGE",
+      "observed_difference": "PDF oficial menciona imagem dermatológica; vínculo de mídia precisa ser auditado",
+      "review_priority": "IMAGE_REQUIRED_CHECK",
+      "official_text_comparison_status": "PRELIMINARY_PAGE_INSPECTION_NOT_FULL_ITEM_HOMOLOGATION",
+      "clinical_judgment_status": "NOT_PERFORMED",
+      "database_update_allowed": false
+    },
+    {
+      "source_url": "https://download.inep.gov.br/enamed/provas_e_gabaritos/2026_caderno_2.pdf",
+      "question_number": 82,
+      "existing_ids": [
+        "enamed-2026-c2-q82",
+        "ENAMED-2026-REG-C2-Q082"
+      ],
+      "equivalent_regular_caderno_1_number": 53,
+      "official_caderno_2_pdf_page": 22,
+      "category": "RADIOLOGY_IMAGE",
+      "observed_difference": "PDF oficial menciona radiografia contrastada; vínculo de mídia precisa ser auditado",
+      "review_priority": "IMAGE_REQUIRED_CHECK",
+      "official_text_comparison_status": "PRELIMINARY_PAGE_INSPECTION_NOT_FULL_ITEM_HOMOLOGATION",
+      "clinical_judgment_status": "NOT_PERFORMED",
+      "database_update_allowed": false
+    },
+    {
+      "source_url": "https://download.inep.gov.br/enamed/provas_e_gabaritos/2026_caderno_2.pdf",
+      "question_number": 84,
+      "existing_ids": [
+        "enamed-2026-c2-q84",
+        "ENAMED-2026-REG-C2-Q084"
+      ],
+      "equivalent_regular_caderno_1_number": 55,
+      "official_caderno_2_pdf_page": 22,
+      "category": "MEDICATION_AND_COMORBIDITY",
+      "observed_difference": "Uso de metformina/NPH e descrição cardiológica ampliados em uma versão",
+      "review_priority": "THERAPY_CONTEXT_CHECK",
+      "official_text_comparison_status": "PRELIMINARY_PAGE_INSPECTION_NOT_FULL_ITEM_HOMOLOGATION",
+      "clinical_judgment_status": "NOT_PERFORMED",
+      "database_update_allowed": false
+    },
+    {
+      "source_url": "https://download.inep.gov.br/enamed/provas_e_gabaritos/2026_caderno_2.pdf",
+      "question_number": 89,
+      "existing_ids": [
+        "enamed-2026-c2-q89",
+        "ENAMED-2026-REG-C2-Q089"
+      ],
+      "equivalent_regular_caderno_1_number": 81,
+      "official_caderno_2_pdf_page": 24,
+      "category": "LABORATORY_DETAILS",
+      "observed_difference": "Leucócitos/bastonetes presentes em uma versão e ausentes em outra",
+      "review_priority": "CLINICAL_VALUES_CHECK",
+      "official_text_comparison_status": "PRELIMINARY_PAGE_INSPECTION_NOT_FULL_ITEM_HOMOLOGATION",
+      "clinical_judgment_status": "NOT_PERFORMED",
+      "database_update_allowed": false
+    },
+    {
+      "source_url": "https://download.inep.gov.br/enamed/provas_e_gabaritos/2026_caderno_2.pdf",
+      "question_number": 90,
+      "existing_ids": [
+        "enamed-2026-c2-q90",
+        "ENAMED-2026-REG-C2-Q090"
+      ],
+      "equivalent_regular_caderno_1_number": 82,
+      "official_caderno_2_pdf_page": 24,
+      "category": "LABORATORY_REFERENCE_VALUES",
+      "observed_difference": "Valores de referência da anemia na gestante reformatados/omitidos",
+      "review_priority": "CLINICAL_VALUES_AND_TABLE_CHECK",
+      "official_text_comparison_status": "PRELIMINARY_PAGE_INSPECTION_NOT_FULL_ITEM_HOMOLOGATION",
+      "clinical_judgment_status": "NOT_PERFORMED",
+      "database_update_allowed": false
+    },
+    {
+      "source_url": "https://download.inep.gov.br/enamed/provas_e_gabaritos/2026_caderno_2.pdf",
+      "question_number": 97,
+      "existing_ids": [
+        "enamed-2026-c2-q97",
+        "ENAMED-2026-REG-C2-Q097"
+      ],
+      "equivalent_regular_caderno_1_number": 75,
+      "official_caderno_2_pdf_page": 25,
+      "category": "IMAGING_DESCRIPTION",
+      "observed_difference": "Descrição de ultrassonografia ginecológica com diferenças narrativas",
+      "review_priority": "IMAGING_AND_CONTEXT_CHECK",
+      "official_text_comparison_status": "PRELIMINARY_PAGE_INSPECTION_NOT_FULL_ITEM_HOMOLOGATION",
+      "clinical_judgment_status": "NOT_PERFORMED",
+      "database_update_allowed": false
+    },
+    {
+      "source_url": "https://download.inep.gov.br/enamed/provas_e_gabaritos/2026_caderno_2.pdf",
+      "question_number": 99,
+      "existing_ids": [
+        "enamed-2026-c2-q99",
+        "ENAMED-2026-REG-C2-Q099"
+      ],
+      "equivalent_regular_caderno_1_number": 77,
+      "official_caderno_2_pdf_page": 26,
+      "category": "EPIDEMIOLOGY_SOURCE_CONTEXT",
+      "observed_difference": "Referência à fonte e data de dados da Defesa Civil aparece em uma versão",
+      "review_priority": "EVIDENCE_DATE_CHECK",
+      "official_text_comparison_status": "PRELIMINARY_PAGE_INSPECTION_NOT_FULL_ITEM_HOMOLOGATION",
+      "clinical_judgment_status": "NOT_PERFORMED",
+      "database_update_allowed": false
+    }
+  ]
+}
