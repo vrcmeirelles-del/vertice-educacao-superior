@@ -126,3 +126,11 @@ Data/hora; etapa; fonte/URL/versão; ação executada; resultado e evidências; 
 - Resultado GitHub Actions: run 43999596607, job 133760060627, commit 265afdf8fed2a80d06eee3d12ae14dad7c106c57, success. Suítes: 26/26, 34/34, 26/26, 23/23, 32/32. Total 141/141 sintéticos, zero falhas.
 - Conclusão limitada: estrutura/verificações simuladas passaram; matriz metodológica parcialmente concluída; **nenhum** indicador oficial reproduzido com microdados. Ainda não há dados de IES reais, nem validação de segurança/permissões em produção.
 - Pendências mantidas: P-CROSS-001 parcial; P-TOL-001, P-NT-001, P-REF-001 abertas; P-ZIP-001 aguardando fornecimento pelo usuário. Portão científico e especialização bloqueados.
+
+## Entrada 017 — 2026-11-17 — Taxonomia de estados e novos testes
+- Consultados Bíblia, Plano, Diário e código previamente versionado antes da execução; nenhuma entrada anterior foi suprimida.
+- Arquivos implementados: `validator/result-state-controls.cjs` e `validator/test-result-states.cjs`; adaptados `validator/integrated-gate.cjs`, `validator/test-json-schema.py` e workflow CI.
+- Execução verificada GitHub Actions run 44016416528, commit 94c42399989dd181a37cf459b4ab48c9a8ca4f45: completed/success; logs registram 26/26, 34/34, 26/26, 23/23, 29/29 e 40/40, total **178/178 sintéticos**.
+- Resultado verificável: rejeição de SC numérico, classificação de valor zero legítimo como AVAILABLE, falta de justificativa para NOT_APPLICABLE, origem ausente em MISSING, dependência não acompanhada em PENDING, publicação sem comprovação de consulta em NOT_PUBLISHED.
+- Regra editorial: os seis estados são proposta de contrato da Vértice, não taxonomia universal oficial INEP; política de SC comprovada no protótipo apenas para Conceito Enade 2022–2023.
+- Sem microdados reais, planilhas oficiais ou deploy. Pendências P-ZIP-001/P-NT-001/P-REF-001/P-TOL-001 abertas, P-CROSS-001 parcial; criada P-STATE-001. Homologação científica e especialização bloqueadas.
