@@ -21,6 +21,8 @@ export async function extractDocument(bytes,name,a){
  let pages=[],method='',partial=false,pageCount=null,chars=0,pagesWithoutText=[];
  const add=(text,page=null,section=null)=>{text=clean(text);if(text.length>LIMITS.chars-chars){partial=true;text=text.slice(0,LIMITS.chars-chars);}if(text){pages.push({page,section,text});chars+=text.length;}};
  try{
+ // Await durable receipt before any parser can hit a hard runtime limit.
+ if(a.onFingerprint)await a.onFingerprint({sha256,receivedBytes:bytes.length});
  if(sig.startsWith('%PDF-')){
   method='pdfjs_text_layer';const d=await a.pdf(bytes.slice());pageCount=d.numPages;
   try{for(let n=1;n<=Math.min(pageCount,LIMITS.pages);n++){const p=await d.getPage(n),c=await p.getTextContent();const pageText=c.items.map(x=>(x.str||'')+(x.hasEOL?'\n':' ')).join('');if(!pageText.trim())pagesWithoutText.push(n);add(pageText,n);if(chars>=LIMITS.chars){partial=partial||n<pageCount;break;}}if(pageCount>LIMITS.pages)partial=true;}finally{await d.destroy();}
