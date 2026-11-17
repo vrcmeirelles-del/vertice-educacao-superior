@@ -25,3 +25,9 @@ Antes de cada etapa consultar os três documentos. Concluído só com evidência
 - Etapa 4: pipeline reprodutível deve (1) obter dicionário da edição; (2) aplicar filtros explícitos de concluintes válidos; (3) agregar por código curso e área; (4) excluir cursos SC; (5) obter média/desvio de cursos por área e aplicar extremos e padronização; (6) calcular conceito contínuo/faixa; (7) conciliar com valores publicados e explicar divergências; (8) gerar trilha de exclusões. **Pendente de implementação e execução em microdados reais.**
 - Prova de 2026 para bacharelados: 29/11/2026 prevista; microdados/conceitos previstos a partir de 30/08/2027. Não simular como dados publicados.
 - Portão de especialização: permanece bloqueado. Atualizações apenas documentais na branch da PR; nenhuma operação em produção.
+
+## Adendo v0.3 — execução da prova 001 (2026-11-16)
+- Catalogação 2021–2023 inicial executada e documentada em `CATALOGO-BACHARELADOS-2021-2023.md`: 45 combinações área-edição (10/13/22); catalogação integral desde 2004 pendente.
+- Recalcular taxas de 2022 usando 13 áreas: prova quantitativa agregada executada em `PROVA-QUANTITATIVA-001.md`. Resultado 25/26 confrontos consistentes, 1 divergência no percentual de presença de Psicologia; hipótese causal não determinada.
+- Próximo critério de aceite: ingestão íntegra dos microdados ZIP e dicionário oficial, SHA-256 dos arquivos, filtros específicos por edição, processamento por área/código e confronto com planilhas dos conceitos contínuos e em faixa.
+- Não marcar 'reprodução do Conceito Enade' como concluída com base na prova agregada. Não homologado. Nenhuma mudança de produção.
