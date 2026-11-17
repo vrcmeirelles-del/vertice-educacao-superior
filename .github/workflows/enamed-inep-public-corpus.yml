@@ -1,0 +1,33 @@
+name: ENAMED E1 - recuperar documentos públicos do INEP
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "scripts/enamed/discover_public_inep_pdfs.py"
+      - ".github/workflows/enamed-inep-public-corpus.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: enamed-e1-public-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  public-documents:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validar sintaxe do coletor oficial
+        run: python -m py_compile scripts/enamed/discover_public_inep_pdfs.py
+      - name: Consultar fonte primária e recuperar PDFs expostos, sem gravar no banco
+        run: python scripts/enamed/discover_public_inep_pdfs.py
+      - name: Guardar relatório e binários recuperados para curadoria documental
+        uses: actions/upload-artifact@v4
+        with:
+          name: enamed-e1-oficial-pdfs-unverified
+          path: evidence/enamed-inep/
+          retention-days: 14
+          if-no-files-found: error
