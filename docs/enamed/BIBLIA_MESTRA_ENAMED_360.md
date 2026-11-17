@@ -1,6 +1,6 @@
 # BÍBLIA-MESTRA DO PROJETO — ENAMED 360° / INEP INTELLIGENCE
 **Projeto:** Vértice Educação Superior × Fato & Ordem × Sapiens 360°  
-**Versão:** 1.3 — E1 parcial + QA e integração interna em desenvolvimento  
+**Versão:** 1.4 — E1 parcial + dicionário preparatório e auditoria concomitante  
 **Data-base:** 16 de novembro de 2026  
 **Status:** documento-mestre de projeto; NÃO corresponde à implantação ou homologação da solução.  
 **Governança:** evolução cumulativa por etapas, com revisão retrospectiva obrigatória.  
@@ -230,3 +230,21 @@ Código implementado na **branch da PR #168**; não há merge/deploy comprovado.
 - ADR-ENAMED-010: teste estático/build não substitui QA navegador, execução por papel e serviço publicado; falhas de TS deixam a PR bloqueada.
 
 Nenhum dado de produção modificado. E9 com documentos reais de IES permanece futura e independente.
+
+## 15. Atualização cumulativa 1.4 — dicionário preliminar e auditoria concomitante (16/11/2026)
+**Status:** E1 permanece em andamento, sem aceite formal; E2 e E3 receberam somente *artefatos preparatórios em branch*, não aprovação nem execução formal dependente.
+
+### Herança e entregas
+- Relidas a Bíblia, Plano e Diário. Mantidas ADRs anteriores, matriz INEP como fonte normativa, ENADE 360 legado, segregação multi-IES e piloto futuro E9.
+- Portaria Inep nº 478/2025 conferida em reprodução da publicação do DOU (4 páginas; art. 3º, art. 6º, art. 7º e art. 8º; páginas visuais 3 e 4 inspecionadas); não há autenticação de hash binário nem validação de todas as alterações legais.
+- Criado `docs/enamed/DICIONARIO_COMPETENCIAS_478_2025_DRAFT.json`: 7 áreas, 15 competências I–XV, 6 contextos e 21 conteúdos. Resumos são editoriais, não redação integral; referência literal à Portaria. A numeração VI (procedimentos) e VII (intervenções coletivas) foi confirmada.
+- Criada `docs/enamed/FILA_REVISAO_483_ENAMED_2026.csv`, contendo os 483 IDs atuais do F&O, audit flags e candidatos de área baseados apenas em disciplina editorial — **343 candidatos preenchidos e 140 não inferidos**. Qualquer candidatura exige revisão do comando e do PDF. Não são classificações aplicadas.
+- Criado `docs/enamed/AUDITORIA_CONCOMITANTE_483_20261116.md` com baseline e critérios de curadoria, preservando `AUDITORIA_TAXONOMIA_20261116.md`.
+- Script `scripts/tests/enamed-dictionary-contract.test.mjs` versionado; 11 verificações de invariantes executadas sobre arquivos recuperados do GitHub, 11 aprovadas. **Execução do script Node/CI ainda não comprovada**.
+- Confirmado em SQL somente leitura: 483/483 sem competências, hash e área oficial específica; 483 com keyword de edição `enamed 2026`; 433 com keyword exatamente `medicina`; 200 posições duplicadas por fonte/número. 27 especialidades editoriais distintas. Gabaritos declarados definitivos requerem fonte documental válida.
+
+### ADR-ENAMED-011
+Separar **ontologia normativa em versão e códigos oficiais**, **taxonomia editorial**, **fila de propostas**, **histórico imutável de origem** e **aplicação homologada futura**. Proibido aplicar automaticamente candidatos de área apenas pela disciplina, converter palavras-chave de edição em competência, ou suprimir duplicatas com histórico associado.
+
+### Gate E1
+Prosseguir conferindo as fontes INEP e originais de cada caderno; E1 não pode ser encerrada sem hash, vigência, retificações e validação. E2/E3 não recebem status de concluídas por existir dicionário rascunho e fila.
