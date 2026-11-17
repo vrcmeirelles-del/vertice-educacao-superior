@@ -73,15 +73,24 @@
     "medical_and_dual_ai_editorial_review": {
       "approved": false,
       "evidence": [
-        "docs/enamed/MATRIZ_HOMOLOGACAO_EXECUCAO_20261117.json"
+        "docs/enamed/MATRIZ_HOMOLOGACAO_EXECUCAO_20261117.json",
+        "docs/enamed/evidencias/20261117_CONTAS_MFA_API_VERIFICADAS.json"
       ],
-      "reason": "Sem sessão Master AAL2 para executar o comando dual-IA existente, sem parecer médico por item; comando textual não homologa mídia.",
+      "reason": "Conta Master criada e AAL2 verificado; as duas avaliações independentes ainda não foram executadas sobre o acervo no ambiente isolado, e os pareceres médico e visual por item continuam sem aceite.",
       "history": [
         {
           "date": "2026-11-17",
           "approved": false,
           "reason": "Two independent reviews plus medical final approval not performed",
           "evidence": []
+        },
+        {
+          "date": "2026-11-17",
+          "approved": false,
+          "reason": "Sem sessão Master AAL2 para executar o comando dual-IA existente, sem parecer médico por item; comando textual não homologa mídia.",
+          "evidence": [
+            "docs/enamed/MATRIZ_HOMOLOGACAO_EXECUCAO_20261117.json"
+          ]
         }
       ],
       "status": "BLOQUEADA"
@@ -95,9 +104,10 @@
         "docs/enamed/evidencias/20261117_RESTAURACAO_DEFINICOES_APLICADAS.json",
         "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json",
         "docs/enamed/evidencias/20261117_CONCILIACAO_MAIN_E_FUNCOES.json",
-        "docs/enamed/evidencias/20261117_ENCERRAMENTO_EXECUCAO_ISOLADA.json"
+        "docs/enamed/evidencias/20261117_ENCERRAMENTO_EXECUCAO_ISOLADA.json",
+        "docs/enamed/evidencias/20261117_CONTAS_MFA_API_VERIFICADAS.json"
       ],
-      "reason": "Render isolado LIVE e fontes das três funções verificadas; zero contas Auth autorizadas com MFA/AAL2. Os 16 cenários reais não foram executados; CI e teste anônimo não aprovam este gate.",
+      "reason": "Nove contas por perfil criadas, TOTP e AAL2 reais verificados; Auth/Data API de metadados passou após correção de escopo isolada. Ainda não são os 16 cenários completos no navegador nem homologação integral de módulos/RLS.",
       "history": [
         {
           "date": "2026-11-17",
@@ -133,9 +143,23 @@
             "docs/enamed/evidencias/20261117_RESTAURACAO_DEFINICOES_APLICADAS.json",
             "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json"
           ]
+        },
+        {
+          "date": "2026-11-17",
+          "approved": false,
+          "reason": "Render isolado LIVE e fontes das três funções verificadas; zero contas Auth autorizadas com MFA/AAL2. Os 16 cenários reais não foram executados; CI e teste anônimo não aprovam este gate.",
+          "evidence": [
+            "docs/enamed/MATRIZ_HOMOLOGACAO_EXECUCAO_20261117.json",
+            "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json",
+            "docs/enamed/evidencias/20261117_LOCKDOWN_APLICADO_APOS_CONFIRMACAO.json",
+            "docs/enamed/evidencias/20261117_RESTAURACAO_DEFINICOES_APLICADAS.json",
+            "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json",
+            "docs/enamed/evidencias/20261117_CONCILIACAO_MAIN_E_FUNCOES.json",
+            "docs/enamed/evidencias/20261117_ENCERRAMENTO_EXECUCAO_ISOLADA.json"
+          ]
         }
       ],
-      "status": "BLOQUEADA"
+      "status": "NÃO EXECUTADA"
     },
     "fato_ordem_vertice_sapiens_e2e": {
       "approved": false,
@@ -178,7 +202,7 @@
     "merge_pr_168",
     "deploy_to_production"
   ],
-  "next_action_required": "Disponibilizar contas autorizadas de teste no projeto isolado rnmkmnrfhvjihsuqziwf, com perfis e MFA/AAL2, para executar os 16 casos e E2E. Parecer médico, dupla IA real e gabaritos definitivos continuam necessários para o release.",
+  "next_action_required": "Executar os 16 cenários completos com as contas já criadas, realizar E2E remoto e dupla IA real; obter aceite médico/visual e documentos definitivos INEP. Não repetir provisionamento/MFA concluídos. Não integrar a branch de banco de teste à produção.",
   "evaluation_history": [
     {
       "date": "2026-11-17",
@@ -261,6 +285,12 @@
       "date": "2026-11-17",
       "event": "Fourteen code workflows PASS; isolated Render LIVE verified in browser; six release gates remain unapproved",
       "evidence": "docs/enamed/evidencias/20261117_ENCERRAMENTO_EXECUCAO_ISOLADA.json"
+    },
+    {
+      "date": "2026-11-17",
+      "event": "Nine authorized accounts + real MFA/AAL2 and metadata RLS checks; observed course-scope failure corrected only in staging",
+      "evidence": "docs/enamed/evidencias/20261117_CONTAS_MFA_API_VERIFICADAS.json",
+      "all_six_gates_remain_unapproved": true
     }
   ]
 }

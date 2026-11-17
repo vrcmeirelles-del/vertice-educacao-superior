@@ -5,6 +5,7 @@ on:
     paths:
       - "docs/enamed/**"
       - "scripts/tests/enamed-*.test.mjs"
+      - "supabase/functions/enamed-homologation-fixtures/**"
       - "scripts/tests/test_verify_inep_artifacts.py"
       - "scripts/tests/test_enamed_verified_chain.py"
       - "scripts/enamed/verify_inep_artifacts.py"
@@ -51,6 +52,8 @@ jobs:
         run: python scripts/enamed/build_editorial_summary.py --check
       - name: Exigir aceite explícito antes de reindexar ou publicar
         run: node --test scripts/tests/enamed-release-gates.test.mjs
+      - name: Verificar TOTP das contas sintéticas com vetores públicos RFC 6238
+        run: node --test scripts/tests/enamed-fixture-totp.test.mjs
       - name: Não declarar fontes do Inep homologadas
         run: |
           grep -q 'review_required' docs/enamed/DICIONARIO_COMPETENCIAS_478_2025_DRAFT.json

@@ -8,3 +8,7 @@ verify_jwt = false
 # Master-only Sapiens approval/dispatch and aggregate feedback; handler also verifies JWT + AAL2.
 [functions.vertice-sapiens-bridge]
 verify_jwt = true
+
+# Isolated QA operator helper. Runtime refuses production; one-time capability revoked after use.
+[functions.enamed-homologation-fixtures]
+verify_jwt = true

@@ -272,6 +272,14 @@
       },
       "authenticated_qa_executed": false,
       "production_modified": false
+    },
+    {
+      "date": "2026-11-17",
+      "event": "Authorized synthetic accounts provisioned and actual Auth/MFA/Data API metadata verified",
+      "evidence": "docs/enamed/evidencias/20261117_CONTAS_MFA_API_VERIFICADAS.json",
+      "real_auth_api_executed": true,
+      "full_browser_qa_executed": false,
+      "production_modified": false
     }
   ]
 }
