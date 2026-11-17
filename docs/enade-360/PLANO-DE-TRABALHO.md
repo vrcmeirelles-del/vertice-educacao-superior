@@ -94,3 +94,10 @@ Antes de cada etapa consultar os três documentos. Concluído só com evidência
 - CI run 43997964988 (commit 2ab634f48ade5dbb22ec40e7e8eb295f319c3258) comprovou 34 novos testes aprovados; ao todo 92/92 nas três suítes sintéticas. Evidência EVIDENCIAS-EDICAO-004.md.
 - Próxima tarefa independente P-CROSS-001: vincular códigos e edições aos relatórios R1–R7 e ao gate integrado, impedindo mescla de cursos; P-TOL-001: conferir fonte e tolerâncias específicas antes de admitir aproximações oficiais.
 - P-ZIP-001, P-NT-001 e P-REF-001 permanecem. Gate de especialização bloqueado; sem deploy.
+
+## Adendo v1.0 — Integração intercampos e políticas de conciliação (2026-11-16)
+- Implementados `cross-report-controls.cjs` e 26 testes de identidade institucional/curso/edição/área/grau, referências versionadas, SC e divergências R7, ligados ao gate interpretativo.
+- GitHub Actions run 43999088145, commit 7cad9ec20abc0405d30221d42bf585e233aa31de: 118/118 testes sintéticos aprovados, evidenciados em `EVIDENCIAS-INTEGRACAO-005.md`.
+- P-CROSS-001 parcial: completar payloads R2–R6 com schema rico, IDs reais e conciliações agregadas; não confundir teste de campos com integração de banco de dados.
+- P-TOL-001 aberta: buscar comprovação documental do tratamento de arredondamentos e tolerâncias no Conceito, IDD, CPC e IGC por edição; não inventar epsilon nem aceitar diferenças automaticamente.
+- P-ZIP-001 aguardando arquivos do usuário; P-NT-001/P-REF-001 continuam abertos. Homologação e especialização bloqueadas.
