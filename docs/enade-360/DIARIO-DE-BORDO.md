@@ -74,3 +74,10 @@ Data/hora; etapa; fonte/URL/versão; ação executada; resultado e evidências; 
 - Resultado final: workflow `ENADE 360 - Contract Tests` `completed/success`; passo de execução sintética Node 22 `success`; passo de sintaxe JSON `success`.
 - Escopo do resultado: arquivos efetivamente versionados executados no checkout GitHub e parse do JSON; NÃO prova validação das instâncias contra todos os requisitos do Schema, nem reprodução de nota ou conceito oficiais.
 - Evolução das pendências: P-VAL-002 e P-CI-001 atendidas nesse commit; P-SCHEMA-001 parcial; P-ZIP-001/P-NT-001/P-REF-001 permanecem. Não houve alteração de produção; portão de homologação permanece fechado.
+
+## Entrada 010 — 2026-11-16 — CI com validação real de instâncias Draft 2020-12
+- Prévia: consultados documentos cumulativos e código versionado anterior; não reescrever histórico.
+- Criados `validator/report-schema-0.3.json`, `validator/test-json-schema.py`, `EVIDENCIAS-SCHEMA-003.md`; workflow atualizado com Python 3.12/jsonschema 4.23.0 para validar instâncias válidas e inválidas, mantendo gate semântico Node.
+- Cobertura desenhada: 7 positivas R1–R7 e 21 negativas. O número demonstra o conteúdo da suíte, não sua aprovação até a confirmação do CI.
+- Registro do estado técnico: nenhum ZIP oficial recebido; nenhum indicador INEP recalculado; não houve alteração em aplicação/bancos/produção; aguardando resultado final do CI do novo workflow.
+- Pendências: P-CI-002 (novo workflow), P-SCHEMA-001 (consistência e aprofundamento), P-ZIP-001, P-NT-001, P-REF-001. Homologação bloqueada.
