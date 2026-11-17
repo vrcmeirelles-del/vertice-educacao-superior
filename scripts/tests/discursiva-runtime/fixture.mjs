@@ -18,7 +18,7 @@ export async function fixture(t){
  await db.exec(await readFile(new URL('../../../supabase/migrations/20261117171929_discursiva360.sql',import.meta.url),'utf8'));
  await db.exec(await readFile(new URL('../../../supabase/migrations/20261117175935_discursiva_clinical_profiles.sql',import.meta.url),'utf8'));
  await db.exec(await readFile(new URL('../../../supabase/migrations/20261117183540_discursiva_fo_exchange.sql',import.meta.url),'utf8'));
- await db.exec(await readFile(new URL('../../../supabase/migrations/20261117184010_discursiva_fo_refresh.sql',import.meta.url),'utf8')); 
+ await db.exec(await readFile(new URL('../../../supabase/migrations/20261117184010_discursiva_fo_refresh.sql',import.meta.url),'utf8'));
  await db.query('insert into vertice_courses values($1,$2),($3,$2),($4,$5)',[id(21),id(11),id(22),id(23),id(12)]);
  await db.exec(`set role authenticated;set "request.jwt.claim.sub"='${id(1)}';set "request.jwt.claim.aal"='aal2';set "test.role"='master'`);
  const rpc=async(action,payload={},inst=id(11),course=id(21))=>(await db.query('select public.vertice_discursiva($1,$2,$3,$4) result',[inst,course,action,payload])).rows[0].result;
