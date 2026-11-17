@@ -321,3 +321,12 @@ RECOMENDAÇÃO PARA A ETAPA SEGUINTE:
 - [ ] Homologar aliases sob curadoria médica, mantendo histórico; preparar correções como propostas, sem SQL de produção.
 - [ ] Conferir gabaritos DEFINITIVOS e notas técnicas para fechar E1, após publicação, e sessões reais de Master/Reitoria/CPA/Coordenação/NDE com MFA e isolamento.
 **Porta E1: ainda sem aceite.**
+
+
+### Priorização da curadoria após normalização de duplicatas (17/11/2026)
+- [x] Apurar por SQL de leitura 57 divergências brutas de enunciado, 31 após remoção de whitespace, 22 alfanuméricas persistentes.
+- [x] Catalogar as 22 posições do Caderno 2 regular por ID e correspondente Caderno 1, sem avaliar automaticamente efeito clínico.
+- [x] Constatar que as 2 diferenças brutas de alternativas desaparecem após normalização de whitespace.
+- [ ] Conferir 22 divergências persistentes com PDF e alternativas, classificando como mudança material, ortográfica ou de extração por revisor competente.
+- [ ] Conferir demais 35 divergências brutas, mídias e perguntas não incluídas na triagem curta, com revisão humana.
+- [ ] Confirmar todos os gates E1 e a homologação por perfil antes de publicação.
