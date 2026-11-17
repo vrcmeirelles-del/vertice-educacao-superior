@@ -4,6 +4,7 @@
 import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { unzipSync } from "npm:fflate@0.8.2";
 import {extractDocument,groundedLinks} from "./document-text.mjs";
+import {openTextPdf} from "./pdf-runtime.mjs";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -46,8 +47,10 @@ async function extractTextFromStorage(client: SupabaseClient<any>, bucket:string
  if(data.size>30*1024*1024)throw Error("file_too_large");
  const bytes=new Uint8Array(await data.arrayBuffer());
  return extractDocument(bytes,fileName,{unzip:unzipSync,pdf:async(b:Uint8Array)=>{
-  const pdfjs=await import("npm:pdfjs-dist@5.4.624/legacy/build/pdf.mjs");
-  return pdfjs.getDocument({data:b,useSystemFonts:false,disableFontFace:true,isEvalSupported:false,useWorkerFetch:false,stopAtErrors:true}).promise;
+  // Upstream fix #21721 initializes DOMMatrix only when rendering a canvas.
+  // Text extraction in the Edge runtime does not provide a graphics DOM.
+  const pdfjs=await import("npm:pdfjs-dist@6.5.438/legacy/build/pdf.mjs");
+  return openTextPdf(b,pdfjs.getDocument);
  }});
 }
 
@@ -274,7 +277,7 @@ Deno.serve(async (request) => {
        extracted_text:extraction.text,extracted_pages:extraction.pages,source_sha256:extraction.sha256,
        extraction_method:extraction.method,extraction_status:extraction.partial?"partial":"ready",
        extracted_at:new Date().toISOString(),keyword_suggestions:extraction.keywords,
-       extraction_metadata:{page_count:extraction.pageCount,characters:extraction.characters,partial:extraction.partial,pages_without_text:extraction.pagesWithoutText,ocr_applied:false}
+       extraction_metadata:{page_count:extraction.pageCount,characters:extraction.characters,partial:extraction.partial,pages_without_text:extraction.pagesWithoutText,ocr_applied:false,parser_version:extraction.method==='pdfjs_text_layer'?'pdfjs-dist@6.5.438':extraction.method==='utf8_text'?'TextDecoder UTF-8':'fflate@0.8.2'}
       }).eq("id",pv.id).eq("institution_id",institutionId);
       if(persistError)throw Error("index_persistence_failed");
       if(sourceTable==="vertice_documents"){

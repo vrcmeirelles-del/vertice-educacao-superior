@@ -1,0 +1,32 @@
+{
+  "checked_at": "2026-11-17T16:13:14.237579+00:00",
+  "real_master_session": true,
+  "institution": "UNITOP",
+  "initial_batch": {
+    "indexed_docx": 28,
+    "failed_pdf_dom_matrix": 2
+  },
+  "reprocessing_function_v4": {
+    "pdf_indexed": 1,
+    "pdf_requires_ocr": 1
+  },
+  "indexed_distinct_before_full_queue": 29,
+  "historical_failed_attempts": 3,
+  "ai_completed": 0,
+  "new_indicator_links": 0,
+  "function": {
+    "version": 4,
+    "verify_jwt": true,
+    "ezbr_sha256": "70ec55b603e3422751254eaae8b754523bff95f43cb5755b6479ff160ee29975",
+    "source_readback_exact_match": true,
+    "pdfjs_version": "6.5.438"
+  },
+  "queue_migration": "20261117161032_enade360_repository_index_queue",
+  "tests": {
+    "runtime_and_db": 9,
+    "ui": 3,
+    "deno_real_parser_synthetic_fixture": 1,
+    "typescript": "passed"
+  },
+  "scientific_homologation": false
+}

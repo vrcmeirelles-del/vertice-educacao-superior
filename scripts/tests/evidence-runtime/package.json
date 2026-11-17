@@ -1,1 +1,1 @@
-{"name":"vertice-evidence-runtime","private":true,"type":"module","dependencies":{"fflate":"0.8.2","pdfjs-dist":"5.4.624","@electric-sql/pglite":"0.5.16"}}
+{"name":"vertice-evidence-runtime","private":true,"type":"module","dependencies":{"@electric-sql/pglite":"0.5.16","fflate":"0.8.2","pdfjs-dist":"6.5.438"}}
