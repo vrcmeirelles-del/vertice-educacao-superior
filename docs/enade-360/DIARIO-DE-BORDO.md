@@ -81,3 +81,10 @@ Data/hora; etapa; fonte/URL/versão; ação executada; resultado e evidências; 
 - Cobertura desenhada: 7 positivas R1–R7 e 21 negativas. O número demonstra o conteúdo da suíte, não sua aprovação até a confirmação do CI.
 - Registro do estado técnico: nenhum ZIP oficial recebido; nenhum indicador INEP recalculado; não houve alteração em aplicação/bancos/produção; aguardando resultado final do CI do novo workflow.
 - Pendências: P-CI-002 (novo workflow), P-SCHEMA-001 (consistência e aprofundamento), P-ZIP-001, P-NT-001, P-REF-001. Homologação bloqueada.
+
+## Entrada 011 — 2026-11-16 — Falha do novo gate e correção
+## Evidência de falha e correção — 2026-11-16
+- CI inicial do novo gate: GitHub run `43996758502`, conclusão `failure` no passo `Validate positive and negative Draft 2020-12 instances`; gate semântico Node passou (26/26). No Python, 26/28 passaram, 2 falhas: `bad_datetime` e `bad_method_url` foram erroneamente aceitos.
+- Causa provável tecnicamente fundamentada: instalação `jsonschema==4.23.0` sem extras de verificadores de formato opcional; isso pode impedir validação de `date-time` e `uri` mesmo quando o `FormatChecker` está presente. Não remover os testes.
+- Correção versionada no workflow: `python -m pip install "jsonschema[format]==4.23.0"`, commit `1f62c2163db65309e40957553abc7272d6b603a2`. Resultado final da repetição ainda sujeito a confirmação do CI.
+- Esta falha faz parte do histórico auditável e não deve ser apagada. Não representa prova com microdados INEP.
