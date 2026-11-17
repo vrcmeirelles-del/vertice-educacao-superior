@@ -57,8 +57,16 @@ def run():
             report['issuer_recovery_error'] = str(error)[:250]
             # The original OS context still validates every HTTPS connection.
 
+        archive_path=pathlib.Path('docs/enamed/INEP_NORMAS_SHA256_20261117.json')
+        archive=json.loads(archive_path.read_text()) if archive_path.exists() else {}
+        verified={d['id']:d for d in archive.get('documents',[]) if d.get('byte_hash_rechecked_locally') and d.get('sha256')}
+
         def download(entry):
             name, url = entry
+            if name in verified:
+                return {**verified[name], 'status':'REUSED_VERIFIED_ACTIONS_ARTIFACT',
+                        'original_actions_artifact':archive['actions_artifact'],
+                        'downloaded_in_this_run':False}
             row = {'id': name, 'official_url': url, 'status': 'BLOQUEADA'}
             try:
                 opener = urllib.request.build_opener(urllib.request.HTTPSHandler(context=context),OfficialRedirect())
