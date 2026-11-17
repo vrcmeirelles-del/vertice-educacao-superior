@@ -26,5 +26,7 @@ jobs:
         run: node docs/enade-360/validator/test-cross-report.cjs
       - name: Validate deeper R2-R6 contracts and pedagogical controls
         run: node docs/enade-360/validator/test-r2-r6.cjs
+      - name: Validate result states SC missing NA pending and publication
+        run: node docs/enade-360/validator/test-result-states.cjs
       - name: Validate positive and negative Draft 2020-12 instances
         run: python docs/enade-360/validator/test-json-schema.py
