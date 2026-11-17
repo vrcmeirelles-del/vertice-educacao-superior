@@ -33,3 +33,5 @@ O módulo original do F&O guarda scan_ocr_text, mas não persiste a imagem envia
 - Testes não usam alunos reais nem comprovam precisão OCR/IA em manuscritos reais. O teste pareado é executado com FATO_ORDEM_REPO apontando para o checkout oficial correspondente; sem esse checkout ele fica explicitamente skipped.
 
 Migração Vértice: 20261117183540. F&O: db/migrations/956_vertice_manuscript_exchange.sql. Backend Vértice: vertice-discursiva v4. O destino de publicação permanece nos serviços existentes do workspace Virgílio Meirelles | Projetos.
+
+A reimportação da mesma folha atualiza somente o texto de origem que passou a estar disponível após o scan. Não duplica a questão nem altera respostas e notas históricas. Migração complementar: 20261117184010.
