@@ -4,6 +4,8 @@ on:
     paths:
       - 'supabase/functions/vertice-doc-prevalidate/**'
       - 'supabase/migrations/*evidence_text_index.sql'
+      - 'supabase/migrations/*official_reference_catalog.sql'
+      - 'docs/enade-360/fontes/iacg2017-reconhecimento-catalog.json'
       - 'scripts/tests/evidence-runtime/**'
       - '.github/workflows/verify-evidence-index.yml'
 permissions:
