@@ -28,5 +28,7 @@ jobs:
         run: node docs/enade-360/validator/test-r2-r6.cjs
       - name: Validate result states SC missing NA pending and publication
         run: node docs/enade-360/validator/test-result-states.cjs
+      - name: Traceability provenance review and publication safeguards
+        run: node docs/enade-360/validator/test-traceability.cjs
       - name: Validate positive and negative Draft 2020-12 instances
         run: python docs/enade-360/validator/test-json-schema.py
