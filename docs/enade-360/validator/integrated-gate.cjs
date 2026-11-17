@@ -7,6 +7,7 @@ const {inspect}=require("./r2-r6-controls.cjs");
 const {checkReportStates}=require("./result-state-controls.cjs");
 const {validateReportTraces}=require("./traceability-controls.cjs");
 const {validateReport}=require("./schema-validator.cjs");
+const {integrity}=require("./contract-integrity.cjs");
 function validateInterpretation(r){
  const problems=[];
  if(!r||typeof r!=="object")return ["REPORT_OBJECT"];
@@ -25,7 +26,7 @@ function validateInterpretation(r){
  }
  return problems;
 }
-function run(r){const basic=validateReport(r);const pedagogical=validateInterpretation(r);const cross=validateCrossReport(r);const moduleIssues=["R2","R3","R4","R5","R6"].includes(r?.report_type)?inspect(r):[];const states=checkReportStates(r);const trace=validateReportTraces(r);return {ok:basic.ok&&pedagogical.length===0&&cross.length===0&&moduleIssues.length===0&&states.length===0&&trace.length===0,errors:[...basic.errors,...pedagogical,...cross,...moduleIssues,...states,...trace]};}
+function run(r,context={}){const basic=validateReport(r);const pedagogical=validateInterpretation(r);const cross=validateCrossReport(r);const moduleIssues=["R2","R3","R4","R5","R6"].includes(r?.report_type)?inspect(r):[];const states=checkReportStates(r);const trace=validateReportTraces(r);const contract=integrity(r,context);return {ok:basic.ok&&pedagogical.length===0&&cross.length===0&&moduleIssues.length===0&&states.length===0&&trace.length===0&&contract.length===0,errors:[...basic.errors,...pedagogical,...cross,...moduleIssues,...states,...trace,...contract]};}
 if(require.main===module){
  try{const data=JSON.parse(fs.readFileSync(0,"utf8"));process.stdout.write(JSON.stringify(run(data))+"\n");}catch(e){process.stderr.write(String(e)+"\n");process.exit(2);}
 }

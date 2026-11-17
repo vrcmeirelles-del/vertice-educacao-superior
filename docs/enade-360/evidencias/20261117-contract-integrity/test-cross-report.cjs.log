@@ -1,0 +1,27 @@
+PASS valid_r1_identity
+PASS missing_institution
+PASS missing_course
+PASS different_institution
+PASS different_course
+PASS different_area
+PASS different_edition
+PASS different_degree
+PASS bad_records_container
+PASS valid_R7_match
+PASS R7_without_reference
+PASS R7_mixed_course
+PASS R7_mixed_edition
+PASS R7_wrong_methodology
+PASS R7_wrong_calculation_method
+PASS R7_false_match
+PASS R7_SC_null
+PASS R7_SC_zero_rejected
+PASS R7_rounding_without_rule
+PASS R7_rounding_review
+PASS R7_wrong_degree
+PASS R7_unverified_indicator_match
+PASS stale_approved_reference
+PASS valid_pending_stale_reference
+PASS global_wrong_methodology
+PASS valid_global_policy
+{"suite":"cross-report","total":26,"passed":26,"failed":0,"node":"v24.22.1"}

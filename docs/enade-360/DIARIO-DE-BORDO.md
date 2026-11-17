@@ -310,3 +310,10 @@ A varredura autenticada iniciada na interface da PR #177 confirmou arquivos sem 
 Aplicada a migração `20261117162448_enade360_extraction_failure_trace`: a busca mantém assinatura e autorização, mas passa a distinguir falha de pendência, exibir a limitação e recuperar o hash da última tentativa quando não existe texto indexado. O motivo da falha não integra o texto pesquisável do documento. As versões anteriores e tentativas falhas permanecem no histórico.
 
 Dez testes locais de extração/banco passaram, incluindo hash de bytes reais em falha e isolamento/MFA da busca e fila; o teste do parser real em Deno passou e TypeScript terminou sem erros. Durante a varredura, o banco já confirmou novas falhas com SHA-256 preenchido. A contagem de cobertura será consolidada somente ao término da fila; nenhuma homologação científica decorre desta correção.
+
+
+## Integridade dos contratos R2-R6 - 17/11/2026
+
+Executada a correcao dos nove casos da auditoria cientifica, com fixtures originais preservadas, schema 0.4 aditivo e 360 testes sinteticos locais aprovados. [Evidencia 010](EVIDENCIAS-INTEGRIDADE-CONTRATUAL-010.md) documenta as operacoes, os impactos, a compatibilidade, a reversao e os limites. Fonte vazia incompleta passou de SC presumido a PENDING; mistura explicita de identidades e rejeitada.
+
+Aprovacao e fonte oficial dependem de contexto externo vinculado ao hash do relatorio. Os adaptadores positivos do ensaio sao sinteticos: nao se declarou autenticacao real, documento original autenticado ou homologacao cientifica. Alteracoes restritas aos validadores, testes, workflow especifico e documentacao cumulativa; sem SQL, dados, aplicacao ou producao. CI remoto, merge e deploy devem ser comprovados em registros posteriores.

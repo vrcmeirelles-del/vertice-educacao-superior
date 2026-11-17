@@ -1,0 +1,60 @@
+{
+  "report_id": "SYNTHETIC-001",
+  "report_type": "R4",
+  "schema_version": "0.3",
+  "generated_at": "2026-11-16T12:00:00Z",
+  "edition_year": 2023,
+  "academic_degree": "bacharelado",
+  "area_code": "SYNTH",
+  "area_name": "Somente teste",
+  "methodology_id": "SYNTHETIC-METHOD",
+  "methodology_url": "https://www.gov.br/inep/",
+  "engine_version": "0.3",
+  "dataset_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+  "sample_n": 3,
+  "denominator": 5,
+  "exclusion_counts": {},
+  "missing_counts": {},
+  "comparability_class": "C0",
+  "caveats": [
+    "Dado fict\u00edcio"
+  ],
+  "generated_by": "CI",
+  "review_status": "PENDING",
+  "source_documents": [
+    {
+      "url": "https://www.gov.br/inep/",
+      "document_title": "Fonte fict\u00edcia",
+      "retrieval_date": "2026-11-16",
+      "file_version": "SYNTHETIC",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  ],
+  "claims": [
+    {
+      "claim_id": "C1",
+      "text": "Hip\u00f3tese de teste",
+      "epistemic_label": "PEDAGOGICAL_HYPOTHESIS",
+      "validation_status": "PENDING",
+      "evidence_refs": []
+    }
+  ],
+  "payload": {
+    "indicators": [
+      {
+        "indicator": "CONCEITO_ENADE",
+        "methodology_id": "ENADE-CONCEITO-2023-NT6-2024",
+        "source_version": "s1",
+        "status": "OFFICIAL",
+        "continuous_value": 2,
+        "band": 3,
+        "value_state": {
+          "kind": "AVAILABLE",
+          "continuous_value": 4,
+          "band": 5,
+          "source_version": "different-source"
+        }
+      }
+    ]
+  }
+}

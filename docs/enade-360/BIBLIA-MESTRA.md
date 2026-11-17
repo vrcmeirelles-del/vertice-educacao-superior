@@ -295,3 +295,14 @@ A varredura autenticada iniciada na interface da PR #177 confirmou arquivos sem 
 Aplicada a migração `20261117162448_enade360_extraction_failure_trace`: a busca mantém assinatura e autorização, mas passa a distinguir falha de pendência, exibir a limitação e recuperar o hash da última tentativa quando não existe texto indexado. O motivo da falha não integra o texto pesquisável do documento. As versões anteriores e tentativas falhas permanecem no histórico.
 
 Dez testes locais de extração/banco passaram, incluindo hash de bytes reais em falha e isolamento/MFA da busca e fila; o teste do parser real em Deno passou e TypeScript terminou sem erros. Durante a varredura, o banco já confirmou novas falhas com SHA-256 preenchido. A contagem de cobertura será consolidada somente ao término da fila; nenhuma homologação científica decorre desta correção.
+
+
+## Adendo 2.6 - Correcao verificavel dos contratos R2-R6 (2026-11-17)
+
+Preparada em branch isolada a correcao das nove entradas aceitas indevidamente na auditoria A-CIENT-20261117-01. Registros anteriores preservados integralmente. O schema 0.4 foi adicionado sem substituir 0.2/0.3; o gate passou a conferir medidas e contagens R2, fechamento R3, valores/fontes/traces R4, classes e equivalencia R5 e coerencia/aprovacao R6. O IGC admite escopo institucional sem curso artificial. Fonte vazia sem completude comprovada permanece pendente e mistura explicita de cursos e bloqueada.
+
+Validacao local: 360/360 testes sinteticos, incluindo 47 de integridade e 27 de schema 0.4/gate. As nove fixtures originais foram preservadas e sao rejeitadas. Os verificadores externos positivos usados nos testes sao sinteticos, nao sessoes autenticadas. Nenhum adaptador real de decisao, fonte oficial ou equivalencia foi conectado: a ausencia de verificador bloqueia o aceite correspondente.
+
+Evidencia e criterios: [Evidencia 010](EVIDENCIAS-INTEGRIDADE-CONTRATUAL-010.md). CI, merge e publicacao nao sao presumidos por este registro. Nenhuma mudanca de aplicacao, migracao, indicador ou ambiente de producao foi executada nesta proposta. Reversao: fechar a PR antes de merge; apos eventual integracao autorizada, revert do commit especifico, sem apagar evidencias anteriores.
+
+Os 141 testes historicos continuam validos apenas para seu checkout sintetico. Esta correcao nao reproduz indicadores oficiais, nao resolve tolerancias por analogia e nao obtem parecer cientifico humano. P-ZIP-001/P-REF-001/P-NT-001/P-TOL-001 permanecem no escopo pendente. Nucleo generico NAO HOMOLOGADO.

@@ -7,7 +7,7 @@ const tests=[
 ["unknown_edition_blocks",()=>assert.equal(policy(2021,"anything").status,"POLICY_UNVERIFIED")],
 ["wrong_policy_blocks",()=>assert.equal(policy(2023,id22).status,"METHODOLOGY_MISMATCH")],
 ["one_valid_SC",()=>assert.equal(select([good],2023,id23).indicatorStatus,"SC")],
-["zero_valid_SC",()=>assert.equal(select([],2023,id23).indicatorStatus,"SC")],
+["empty_unverified_source_pending",()=>assert.equal(select([],2023,id23).indicatorStatus,"PENDING")],
 ["two_valid_eligible_not_concept",()=>{const x=select([good,{...good,TP_INSCRICAO_ADM:2}],2023,id23);assert.equal(x.indicatorStatus,"ELIGIBLE_PENDING_CALCULATION");assert.equal(x.concept,undefined)}],
 ["missing_field_excluded",()=>assert.equal(select([{...good,TP_PRES:undefined}],2023,id23).reasons.MISSING_REQUIRED_FIELD,1)],
 ["invalid_student_type",()=>assert.equal(select([{...good,TP_INSCRICAO:0}],2023,id23).reasons.NOT_CONCLUDING,1)],
