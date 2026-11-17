@@ -1,6 +1,6 @@
 # BÍBLIA-MESTRA DO PROJETO — ENAMED 360° / INEP INTELLIGENCE
 **Projeto:** Vértice Educação Superior × Fato & Ordem × Sapiens 360°  
-**Versão:** 1.1 — Fundação arquitetural + E1 parcial  
+**Versão:** 1.2 — E1 parcial + integração interna read-only em desenvolvimento  
 **Data-base:** 16 de novembro de 2026  
 **Status:** documento-mestre de projeto; NÃO corresponde à implantação ou homologação da solução.  
 **Governança:** evolução cumulativa por etapas, com revisão retrospectiva obrigatória.  
@@ -195,3 +195,20 @@ Não foi possível recuperar os binários oficiais via ambiente de execução pa
 
 ### Próxima ação vinculante
 Continuar E1 conforme catálogo e matriz; atualizar documentação e diário com evidência literal, depois testar cálculo com microdados oficiais 2025 em staging. Referência: [Catálogo E1](INEP_CATALOGO_FONTES_E1.md) e [Matriz de regras E1](INEP_MATRIZ_REGRAS_E1.md).
+
+
+## 13. Atualização cumulativa 1.2 — implementação paralela segura (16/11/2026)
+**E1 permanece bloqueada:** não mudou o gate normativo ou a necessidade de arquivos INEP íntegros. Uma atividade incremental independente criou **somente uma consulta institucional de resultados internos do Fato & Ordem** no ambiente ENAMED, sem publicar qualquer resultado oficial.
+
+### Implementação incremental na PR #168
+- Novo `EnamedFatoOrdemMetrics.tsx`: usa `vertice_learning_course_metrics` já existente, por Supabase autenticado, filtrado por `institution_id` + `course_id` + módulos `enade/enamed/residencia`. Não conecta diretamente ao banco F&O ou usa segredos no frontend.
+- `EnamedEnvironment.tsx`: aba de indicadores do F&O com escolha de curso de Medicina. Não altera o ENADE legado, apenas acresce a visualização.
+- Grupos de menos de 5 estudantes são excluídos da visualização e da agregação no cliente; este mecanismo complementa, **não substitui**, políticas RLS/privacidade no banco.
+- Respostas avaliadas e percentuais são contagens de **vínculos acadêmicos**, não de tentativas únicas ou notas TRI. Dados oficiais INEP permanecem pendentes de E1/E4.
+- Tratamento de carregamento, erro, desatualização de requisição, estados vazios, limite de 1.000 linhas e fontes separadas.
+- O esquema real da tabela `vertice_learning_course_metrics` foi conferido em leitura no Supabase Vértice; RLS habilitada, uma política detectada; verificação de efetividade por perfil ainda pendente.
+- Consulta agregada do banco não retornou grupos ENAMED/ENADE/Residência nesta inspeção; não criar amostra fictícia nem afirmar sincronização ponta a ponta.
+- `scripts/tests/enamed-integration-contract.test.mjs` criado. Dez verificações estáticas do código feitas nesta execução; **não equivalem à execução do script por Node, ao TypeScript completo ou a testes de browser**.
+
+### Status e guardrails
+Código implementado na **branch da PR #168**; não há merge/deploy comprovado. A E7 permanece parcialmente implementada e bloqueada para aceite, pois depende de E1–E6. E9 continua reservada à IES real.
