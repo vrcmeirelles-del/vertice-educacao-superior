@@ -5,6 +5,8 @@ on:
     paths:
       - "scripts/enamed/discover_public_inep_pdfs.py"
       - "scripts/enamed/render_inep_public_catalog.py"
+      - "scripts/enamed/download_verified_links_curl.py"
+      - "docs/enamed/INEP_2026_LINKS_OFICIAIS_CONFIRMADOS.json"
       - ".github/workflows/enamed-inep-public-corpus.yml"
   workflow_dispatch:
 permissions:
@@ -51,5 +53,22 @@ jobs:
         with:
           name: enamed-e1-browser-rendered-unverified
           path: evidence/enamed-inep-rendered/
+          retention-days: 14
+          if-no-files-found: error
+  curl-official-links:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Transferir PDFs publicados no catálogo oficial mantendo TLS ativo
+        run: python scripts/enamed/download_verified_links_curl.py
+      - name: Arquivar relatório de tentativas e PDFs íntegros caso recuperados
+        uses: actions/upload-artifact@v4
+        with:
+          name: enamed-e1-curl-tls-evidence
+          path: evidence/enamed-inep-curl/
           retention-days: 14
           if-no-files-found: error
