@@ -26,3 +26,9 @@ P-ZIP-001 aberto; P-NT-001 aberto; P-REF-001 aberto; P-SCHEMA-001 em execução;
 - Causa provável tecnicamente fundamentada: instalação `jsonschema==4.23.0` sem extras de verificadores de formato opcional; isso pode impedir validação de `date-time` e `uri` mesmo quando o `FormatChecker` está presente. Não remover os testes.
 - Correção versionada no workflow: `python -m pip install "jsonschema[format]==4.23.0"`, commit `1f62c2163db65309e40957553abc7272d6b603a2`. Resultado final da repetição ainda sujeito a confirmação do CI.
 - Esta falha faz parte do histórico auditável e não deve ser apagada. Não representa prova com microdados INEP.
+
+## Etapa de integração — instância única, dois validadores (2026-11-16)
+- **Confirmado** no GitHub Actions após correção dos validadores de formato: run `43996910743`, commit `1f62c2163db65309e40957553abc7272d6b603a2`, `completed/success`; gate Node e gate Python passaram. Evidência de correção do run `43996758502` (26/28, duas falhas de formato) permanece registrada acima.
+- Criado `validator/integrated-gate.cjs`: agrega o antigo gate semântico e novos bloqueios para hipóteses/inferências validadas sem pressupostos/limitações, propostas aprovadas sem revisão e contagens impossíveis de participantes.
+- Atualizado `validator/test-json-schema.py`: cada instância da suíte passa pelo **JSON Schema Draft 2020-12** e pelo **gate semântico Node**, combinando as respostas; foram adicionadas quatro fixtures negativas, totalizando 32 casos (7 positivos, 25 negativos).
+- Estado de prova desta integração: arquivos versionados, aguardando conclusão do GitHub Actions correspondente ao novo código; não afirmar 32/32 aprovados antes do run. Sem bases reais do INEP.
