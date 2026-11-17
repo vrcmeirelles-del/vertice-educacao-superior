@@ -33,7 +33,7 @@ def verify_record(record: dict, base: pathlib.Path) -> dict:
     suffix=p.suffix.lower()
     if suffix==".pdf" and (not b.startswith(b"%PDF-") or b"%%EOF" not in b[-2048:]):
         raise ValueError("assinatura/encerramento PDF inválidos")
-    if suffix==".zip" and not b.startswith(b"PK\\x03\\x04"):
+    if suffix==".zip" and b[:4] != bytes((80,75,3,4)):
         raise ValueError("assinatura ZIP inválida")
     if suffix not in (".pdf",".zip",".xlsx",".ods",".csv",".txt"):
         raise ValueError("formato não permitido")
@@ -63,7 +63,7 @@ def main():
         report={"schema_version":"enamed-inep-byte-manifest-v1",
                 "count":len(verified),"records":verified,
                 "warning":"Hash comprova integridade dos bytes lidos, não autoria, versão definitiva ou validade jurídica."}
-        pathlib.Path(args.output).write_text(json.dumps(report,ensure_ascii=False,indent=2)+"\\n",encoding="utf-8")
+        pathlib.Path(args.output).write_text(json.dumps(report,ensure_ascii=False,indent=2)+chr(10),encoding="utf-8")
         print(json.dumps({"count":len(verified),"status":"BYTE_HASHES_CREATED_ONLY"},ensure_ascii=False))
         return 0
     except (ValueError,OSError,KeyError,TypeError,json.JSONDecodeError) as err:
