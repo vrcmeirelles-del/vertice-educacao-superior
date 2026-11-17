@@ -57,3 +57,15 @@ Os três links de cadernos previamente anotados no F&O estão entre as URLs efet
 **Barreira de transferência reproduzida:** nenhum dos 11 PDFs foi baixado pelo navegador/script Python (erro SSL issuer, conexão reset). A segunda rota `curl`, com TLS verificado, tentou os 8 documentos principais na execução [44000426717](https://github.com/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44000426717): **0/8 arquivos**, respostas `curl 60` (cadeia certificadora não validada) em sete e `curl 35` (conexão reset) em um. Por segurança, **não usar bypass `-k` / `verify=False` para declarar documento autenticado**.
 
 Status: **LINKS_OFICIAIS_CONFIRMADOS, BINÁRIOS NÃO RECUPERADOS, SHA256 NULL, HOMOLOGAÇÃO E1 BLOQUEADA**. A autenticação futura requer arquivo integral e verificação da edição, caderno, tipo de gabarito e validade.
+
+
+## Adendo verificável de 17/11/2026 — recuperação positiva do corpus 2026
+**Este adendo supera apenas o bloqueio de acesso aos oito arquivos de prova e gabaritos preliminares; as limitações históricas descritas acima permanecem como registro da coleta anterior.**
+
+- **E1-010 (parcial):** oito binários PDF (regular 1/2, reaplicação 1/2, quatro gabaritos PRELIMINARES) obtidos por HTTPS com cadeia de confiança reparada e validada; tamanho, 28/2 páginas e hashes SHA-256 conferidos em `INEP_2026_SHA256_DOCUMENTOS_PRELIMINARES_20261117.json`.
+- Cadeia de custódia: DOM do catálogo oficial Inep (run `43999991024`) → validação da intermediária GlobalSign/RNP até raiz do SO → download `44017133303` → recálculo SHA-256 do ZIP. Isso prova a integridade desses binários sem homologar edital/gabarito definitivo ou temas.
+- **E1-010 (ainda pendente):** versões DEFINITIVAS de gabarito e possíveis retificações/anulações; confirmar publicação, hashes, versão e vigência.
+- **E1-005/E1-009/E1-011/E1-012:** notas técnicas integrais, atos posteriores e bases públicas ainda exigem verificação documental e testes da metodologia.
+- Resultado correlato: 483 registros F&O com gabarito coincidente com a chave **preliminar**, conforme `E1_CONFRONTO_GABARITOS_PRELIMINARES_483_20261117.md`; não é aceite clínico ou confirmação da versão definitiva.
+
+**Porta E1:** **ABERTA, não aceita**. Não editar questões ou publicar indicadores oficiais.
