@@ -28,6 +28,7 @@ interface Prevalidation {
   ai_model_version: string;
   ai_analyzed_at: string;
   ai_error: string;
+  extraction_status?:string; extracted_at?:string; source_sha256?:string; keyword_suggestions?:string[]; extraction_metadata?:{characters?:number;partial?:boolean};
 }
 
 const COMPAT_COLORS: Record<string, { bg: string; border: string; label: string }> = {
@@ -79,7 +80,7 @@ export default function PreValidationPanel({
     setLoading(true);
     try {
       const col = sourceTable === "vertice_documents" ? "document_id" : "repository_file_id";
-      const { data: pvs } = await supabase
+      const { data: pvs,error: pvError } = await supabase
         .from("vertice_doc_prevalidation")
         .select("*")
         .eq(col, fileId)
@@ -87,6 +88,8 @@ export default function PreValidationPanel({
         .order("created_at", { ascending: false })
         .limit(1);
 
+      if(pvError)throw pvError;
+      setPrevalidation(null);setLinks([]);
       if (pvs?.length) {
         setPrevalidation(pvs[0] as Prevalidation);
         const { data: linkData } = await supabase
@@ -106,12 +109,12 @@ export default function PreValidationPanel({
 
   useEffect(() => { void loadExisting(); }, [loadExisting]);
 
-  async function startPrevalidation() {
+  async function startPrevalidation(action:"index"|"analyze"="analyze") {
     setAnalyzing(true);
     setError("");
     try {
       const { data, error: fnErr } = await supabase.functions.invoke("vertice-doc-prevalidate", {
-        body: { institution_id: institutionId, source_table: sourceTable, file_id: fileId },
+        body: { institution_id: institutionId, source_table: sourceTable, file_id: fileId, action },
       });
       if (fnErr) throw new Error(fnErr.message);
       if (data?.error) throw new Error(data.detail || data.error);
@@ -125,7 +128,10 @@ export default function PreValidationPanel({
 
   async function updateLinkStatus(linkId: string, status: string, reason?: string) {
     try {
+      const {data:actor,error:actorError}=await supabase.auth.getUser();
+      if(actorError||!actor.user)throw Error("Sessão necessária para revisar o vínculo.");
       const update: Record<string, unknown> = {
+        reviewed_by:actor.user.id,
         status,
         reviewed_at: new Date().toISOString(),
       };
@@ -133,7 +139,7 @@ export default function PreValidationPanel({
       const { error: err } = await supabase
         .from("vertice_doc_indicator_links")
         .update(update)
-        .eq("id", linkId);
+        .eq("id", linkId).eq("institution_id",institutionId);
       if (err) throw err;
       setLinks((prev) => prev.map((l) => l.id === linkId ? { ...l, status, ...(reason ? { rejection_reason: reason } : {}) } : l));
       setRejectingId(null);
@@ -181,6 +187,8 @@ export default function PreValidationPanel({
 
       {error && <p role="alert" className="er-alert error" style={{ marginBottom: 12 }}>{error}</p>}
 
+      <button type="button" className="er-btn er-small" disabled={analyzing} onClick={()=>void startPrevalidation("index")}>{analyzing?"Processando arquivo…":"Extrair texto e sugerir palavras-chave, sem enviar à IA"}</button>
+      {prevalidation?.extracted_at&&<div role="status"><p>Texto: {prevalidation.extraction_status==="partial"?"parcialmente extraído":"extraído"} · {prevalidation.extraction_metadata?.characters??"—"} caracteres. Classificação humana preservada.</p><p>Palavras-chave sugeridas: {prevalidation.keyword_suggestions?.join(", ")||"nenhuma"}</p><small>SHA-256 do original: {prevalidation.source_sha256}</small></div>}
       {/* Status atual */}
       {loading && <p style={{ color: "#64748b" }}>Carregando análises anteriores…</p>}
 
@@ -194,7 +202,7 @@ export default function PreValidationPanel({
             e sugerir onde esta evidência pode ser aproveitada.
           </p>
           <button
-            onClick={startPrevalidation}
+            onClick={()=>void startPrevalidation()}
             disabled={analyzing}
             className="er-btn er-primary"
             style={{ fontSize: 16, padding: "12px 32px", fontWeight: 700 }}
@@ -215,7 +223,7 @@ export default function PreValidationPanel({
         <div style={{ padding: 16, background: "#fef2f2", borderRadius: 8, marginBottom: 16 }}>
           <p style={{ fontWeight: 600, color: "#dc2626" }}>❌ Análise falhou</p>
           <p style={{ fontSize: 13 }}>{prevalidation.ai_error}</p>
-          <button onClick={startPrevalidation} disabled={analyzing} className="er-btn er-small" style={{ marginTop: 8 }}>
+          <button onClick={()=>void startPrevalidation()} disabled={analyzing} className="er-btn er-small" style={{ marginTop: 8 }}>
             {analyzing ? "Reprocessando…" : "Tentar novamente"}
           </button>
         </div>
@@ -269,7 +277,7 @@ export default function PreValidationPanel({
               <button className="er-btn er-small" onClick={() => { setBulkMode(!bulkMode); setSelectedLinks(new Set()); }}>
                 {bulkMode ? "Cancelar seleção" : "Selecionar individualmente"}
               </button>
-              <button onClick={startPrevalidation} disabled={analyzing} className="er-btn er-small">
+              <button onClick={()=>void startPrevalidation()} disabled={analyzing} className="er-btn er-small">
                 🔄 Reanalisar
               </button>
             </div>

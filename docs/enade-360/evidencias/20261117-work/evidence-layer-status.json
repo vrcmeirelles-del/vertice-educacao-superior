@@ -1,0 +1,50 @@
+{
+  "date": "2026-11-17",
+  "project": "qvetbbmviatxxatzzuzc",
+  "migration": "20261117113047_enade360_evidence_text_index",
+  "source_commit_before": "a2cdc1e434368db37dae3d02ab2ca178c6350011",
+  "inventory": {
+    "repository_files": 776,
+    "unitop_files": 771,
+    "existing_classified_all": 515,
+    "existing_classified_unitop": 511,
+    "unitop_originals_present": 771,
+    "generic_documents": 11,
+    "generic_documents_institution": "Escola Vértice — Demonstração",
+    "generic_originals_present": 0
+  },
+  "before_after": {
+    "repository_files": [
+      776,
+      776
+    ],
+    "existing_classified": [
+      515,
+      515
+    ],
+    "scoped_policies": [
+      14,
+      14
+    ],
+    "prevalidations": [
+      0,
+      0
+    ]
+  },
+  "migration_applied": true,
+  "unauthenticated_manage_allowed": false,
+  "unauthenticated_search_rows": 0,
+  "engine_tests": 8,
+  "ui_tests": 2,
+  "typescript": "PASS",
+  "edge_source_download": "Connector returned ProtocolError twice; deployed source not retrieved",
+  "edge_deployment": "PENDING",
+  "render_deployment": "PENDING",
+  "real_private_backlog_indexed": 0,
+  "blockers": [
+    "Cloud browser currently at Supabase sign-in; no authenticated Vértice session in this browser",
+    "No active institutional instrument catalogs; no official code/version inferred",
+    "Private repository files require existing authenticated authorization; no service token or permission expansion introduced"
+  ],
+  "scientific_homologation": false
+}

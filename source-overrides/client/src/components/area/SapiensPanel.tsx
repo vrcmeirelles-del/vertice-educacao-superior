@@ -1,3 +1,4 @@
+import EvidenceSearch from "./EvidenceSearch";
 import ModuleSourceStatus from '../bi/ModuleSourceStatus';
 import SapiensPlanning from './SapiensPlanning';
 import { useCallback, useEffect, useState } from "react";
@@ -180,6 +181,7 @@ export default function SapiensPanel({ institutionId, role }: Props) {
       {success && <p role="status" style={{ color: "#059669", fontSize: 13 }}>{success}</p>}
 
       <ModuleSourceStatus institutionId={institutionId} revision={readingRevision}/>
+      <EvidenceSearch institutionId={institutionId}/>
       {/* Tabs */}
       <nav style={{ display: "flex", flexWrap:"wrap", gap: 4, borderBottom: "2px solid #e2e8f0", marginBottom: 16 }}>
         {tabs.map(t => (

@@ -1,3 +1,4 @@
+import EvidenceSearch from "./EvidenceSearch";
 import SapiensPlanning from './SapiensPlanning';
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
@@ -169,6 +170,7 @@ function PlanningEditor({institutionId,courseId,canWrite,canAnalyze,onDirty,kind
     </>}
     {visibleTabs.length>1&&<div className="planning-step-controls"><button type="button" disabled={visibleTabs[0].key===tab} onClick={()=>setTab(visibleTabs[visibleTabs.findIndex(t=>t.key===tab)-1].key)}>← Etapa anterior</button><span>{visibleTabs.findIndex(t=>t.key===tab)+1} / {visibleTabs.length}</span><button type="button" disabled={visibleTabs[visibleTabs.length-1].key===tab} onClick={()=>setTab(visibleTabs[visibleTabs.findIndex(t=>t.key===tab)+1].key)}>Próxima etapa →</button></div>}
     {!isSemester&&canAnalyze&&<details className="planning-history" onToggle={e=>setCompetitiveOpen(e.currentTarget.open)}><summary>Inteligência competitiva · mercado e ações do curso</summary>{competitiveOpen&&(draft.id?<CompetitiveIntelligence key={`${institutionId}:${courseId}:${draft.id}`} institutionId={institutionId} courseId={courseId} planId={draft.id} dirty={dirtyKinds.strategic} canWrite={canWrite}/>:<p>Salve uma versão do planejamento para vincular os achados aos objetivos.</p>)}</details>}
+    <EvidenceSearch institutionId={institutionId} courseId={courseId}/>
     {canAnalyze&&<><button type="button" onClick={()=>setSapiensOpen(v=>!v)} aria-expanded={sapiensOpen}>Análise interpretativa · Sapiens</button>{sapiensOpen&&<SapiensPlanning institutionId={institutionId} courseId={courseId} semester={isSemester?semDraft.semester:undefined}/>}</>}
     <details className="planning-history"><summary>Histórico {isSemester?'semestral':'estratégico'} · {records.length} versão(ões)</summary>
     {!records.length?<p>Nenhuma versão registrada para este curso.</p>:<div className="planning-scroll"><table><thead><tr>{isSemester&&<th>Semestre</th>}<th>Versão</th><th>Situação</th><th>Atualização</th><th>Acesso</th></tr></thead><tbody>{records.map(row=><tr key={row.id}>{isSemester&&<td>{row.semester}</td>}<td>{row.version}</td><td>{statusNames[row.status]}</td><td>{new Date(row.updated_at).toLocaleString('pt-BR')}</td><td><button type="button" onClick={()=>{if(!dirty||window.confirm('Deseja trocar a versão sem salvar as alterações?')){loadRecord(row,planKind);setDirty(false);setNotice('');}}}>Abrir versão</button></td></tr>)}</tbody></table></div>}
