@@ -69,6 +69,21 @@ mutation("validated_hypothesis_no_limits",lambda x:x["claims"][0].update(validat
 mutation("validated_inference_no_assumptions",lambda x:x["claims"][0].update(epistemic_label="STATISTICAL_INFERENCE",validation_status="VALIDATED"))
 mutation("validated_action_without_approval",lambda x:x["claims"][0].update(epistemic_label="ACTION_PROPOSAL",validation_status="VALIDATED"))
 mutation("impossible_participation",lambda x:x["payload"].update(inscribed=5,present=7,valid=6))
+def r4_state(kind="SC"):
+ r=fixture("R4")
+ r["edition_year"]=2023
+ v=r["payload"]["indicators"][0]
+ v.update(indicator="CONCEITO_ENADE",methodology_id="ENADE-CONCEITO-2023-NT6-2024",status=kind,continuous_value=None,band=None)
+ v["value_state"]=dict(kind="SC",continuous_value=None,band=None,valid_participants=1,reason="Less than two",methodology_id="ENADE-CONCEITO-2023-NT6-2024") if kind=="SC" else dict(kind=kind)
+ return r
+tests.append(("positive_SC_documented_r4",r4_state(),True))
+r=r4_state();r["payload"]["indicators"][0].pop("value_state");tests.append(("negative_SC_missing_state",r,False))
+r=r4_state();r["payload"]["indicators"][0]["value_state"]["continuous_value"]=0;tests.append(("negative_SC_as_zero",r,False))
+r=r4_state();r["payload"]["indicators"][0]["value_state"]["valid_participants"]=2;tests.append(("negative_SC_ineligible_count",r,False))
+r=r4_state();r["payload"]["indicators"][0]["value_state"]={"kind":"NOT_APPLICABLE","reason":"Out of scope"};tests.append(("negative_NA_without_rule",r,False))
+r=r4_state();r["payload"]["indicators"][0]["value_state"]={"kind":"MISSING","missing_reason":"Unknown"};tests.append(("negative_missing_without_source",r,False))
+r=r4_state();r["payload"]["indicators"][0]["value_state"]={"kind":"PENDING","pending_dependency":"ZIP"};tests.append(("negative_pending_without_next_verification",r,False))
+r=r4_state();r["payload"]["indicators"][0]["value_state"]={"kind":"NOT_PUBLISHED","publication_source":"INEP"};tests.append(("negative_publication_without_check_date",r,False))
 passes=sum(check(name,r,expected) for name,r,expected in tests)
-print(json.dumps({"schema_draft":"2020-12","tests":len(tests),"passed":passes,"failed":len(tests)-passes,"positive":7,"negative":len(tests)-7},ensure_ascii=False))
+print(json.dumps({"schema_draft":"2020-12","tests":len(tests),"passed":passes,"failed":len(tests)-passes,"positive":8,"negative":len(tests)-8},ensure_ascii=False))
 sys.exit(0 if passes==len(tests) else 1)
