@@ -180,3 +180,8 @@ Leia em conjunto com `BIBLIA_MESTRA_ENAMED_360.md` e `PLANO_DE_TRABALHO_ENAMED_3
 - Consulta somente leitura em `fo_enamed_items`: 200 posições duplicadas; 57 enunciados brutos distintos, 31 após ignorar espaços, 22 após ignorar espaços/pontuação; todas as 22 posições no regular Caderno 2. Alternativas: 2 diferenças brutas e 0 após ignorar espaços.
 - Novos artefatos: `ENAMED_2026_22_DIVERGENCIAS_TEXTUAIS_PERSISTENTES_C2.json` e adendo `E1_AUDITORIA_TEXTUAL_483_E_MAPA_CADERNOS_20261117.md`.
 - Nenhuma alteração em gabaritos, itens, históricos, banco ou RLS. Divergências alfanuméricas não equivalem automaticamente a erro semântico. A análise clínica integral e autenticação por perfil continuam pendentes.
+
+
+### 2026-11-17 — Roteiro de QA institucional
+- Novo artefato `ENAMED_2026_ROTEIRO_HOMOLOGACAO_PERFIS.md`: 16 cenários sintéticos de login/MFA/RLS por perfil, instituições e cursos, e responsividade; execução não realizada por falta de navegador autenticado contextual.
+- Nenhuma permissão, token, dado real ou tabela foi alterado. E1 sem aceite integral; homologação de perfis ainda bloqueia merge/deploy.
