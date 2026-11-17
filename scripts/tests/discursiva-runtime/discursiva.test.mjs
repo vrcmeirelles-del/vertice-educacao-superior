@@ -49,6 +49,7 @@ async function fixture(t){
  create function storage.foldername(text) returns text[] language sql immutable as $$select string_to_array($1,'/')$$;
  grant usage on schema auth,public to authenticated;grant execute on function auth.uid(),auth.jwt() to authenticated;`);
  await db.exec(await readFile(new URL('../../../supabase/migrations/20261117171929_discursiva360.sql',import.meta.url),'utf8'));
+ await db.exec(await readFile(new URL('../../../supabase/migrations/20261117175935_discursiva_clinical_profiles.sql',import.meta.url),'utf8'));
  await db.query('insert into vertice_courses values($1,$2),($3,$2),($4,$5)',[id(21),id(11),id(22),id(23),id(12)]);
  await db.exec(`set role authenticated;set "request.jwt.claim.sub"='${id(1)}';set "request.jwt.claim.aal"='aal2';set "test.role"='master'`);
  const rpc=async(action,payload={},inst=id(11),course=id(21))=>(await db.query('select public.vertice_discursiva($1,$2,$3,$4) result',[inst,course,action,payload])).rows[0].result;
@@ -96,4 +97,31 @@ test('metadata-only sources are refused before generation',async()=>{
 test('all 24 original cases have complete practical commands and ten-point rubrics',async()=>{
  const {templates,templateContent}=await import('../../../source-overrides/client/src/lib/discursiva/templates.ts');assert.equal(templates.length,24);
  for(const t of templates){const c=templateContent(t);assert(c.case.length>=30);assert(c.command.length>=10);assert(c.expectedAnswer.length>=20);assert.equal(c.rubric.reduce((n,r)=>n+r.points,0),10);assert.equal(c.origin,'original_educational_draft');assert(c.validation.includes('Revisão docente'));}
+});
+
+const clinicalModule=await import('../../../source-overrides/shared/discursiva-clinical.ts');
+const clinicalQ=()=>({...structuredClone(q),profile:'enamed',medicalArea:'Clínica Médica',referenceVersion:'Referência sintética de teste v1',clinicalExpected:Object.fromEntries(clinicalModule.CLINICAL_DIMENSIONS.map(d=>[d.key,'Resposta clínica específica e fundamentada no caso de teste.'])),rubric:clinicalModule.CLINICAL_DIMENSIONS.map(d=>({key:d.key,criterion:'Descritor clínico observável e específico deste caso: '+d.label,points:d.points})),sources:[{id:'source:1',excerpt:'Trecho sintético de referência usado apenas em teste de contrato.'}]});
+test('medical profiles require four distinct clinical dimensions, reference version and residency program',()=>{
+ const c=clinicalQ();assert.equal(clinicalModule.validateClinicalContent(c).profile,'enamed');
+ for(const change of [c=>delete c.clinicalExpected.management,c=>c.rubric[1].key=c.rubric[0].key,c=>c.referenceVersion='',c=>c.medicalArea='genérica',c=>c.profile='official']){const c=clinicalQ();change(c);assert.throws(()=>clinicalModule.validateClinicalContent(c));}
+ assert.throws(()=>clinicalModule.validateClinicalContent({...c,profile:'residencia'}),/program/);
+ assert.equal(clinicalModule.validateClinicalContent({...c,profile:'residencia',residencyProgram:'Programa sintético 2026'}).profile,'residencia');
+});
+test('clinical generation propagates versioned profile and case-specific rubric to independent review and storage',async()=>{
+ const saved=[],calls=[],c=clinicalQ();
+ const deps={authorize:async()=>{},sources:async()=>[{source_table:'source',source_id:'1',excerpt:c.sources[0].excerpt,text_status:'ready'}],rpc:async(a,p)=>{saved.push([a,p]);return{id:id(300)};},call:async(provider,prompt,input)=>{calls.push({provider,prompt,input});return{content:JSON.stringify(provider==='openai'?c:{approve:true,issues:[],reason:'Verificação sintética.'}),provider,model:'synthetic'};}};
+ const r=await runAction({action:'generate',discipline:'Clínica Médica',query:'',difficulty:'medium',sourceIds:['source:1'],profile:'enamed',medicalArea:c.medicalArea,referenceVersion:c.referenceVersion},deps);
+ assert.equal(r.content.origin,'authorial_preparation');assert.equal(r.content.clinicalExpected.management,c.clinicalExpected.management);assert.equal(r.content.rubric.length,4);assert(calls[0].prompt.includes('CLÍNICO')||calls[0].prompt.includes('clínico'));assert.equal(calls[1].input.question.profile,'enamed');assert.equal(saved[0][1].content.referenceVersion,c.referenceVersion);assert.equal(r.status,'draft');
+});
+test('PostgreSQL validates clinical RPC submissions, blocks ungrounded approval and freezes medical metadata in exams',async t=>{
+ const {db,rpc}=await fixture(t);const c=clinicalQ();
+ await assert.rejects(rpc('save_question',{discipline:'Clínica Médica',content:{...c,clinicalExpected:{}}}),/clínica específica/);
+ const noSources=await rpc('save_question',{discipline:'Clínica Médica',content:{...c,sources:[]}});await assert.rejects(rpc('approve_question',{id:noSources.id}),/fontes/);
+ const saved=await rpc('save_question',{discipline:'Clínica Médica',content:{...c,origin:'official'}});await rpc('approve_question',{id:saved.id});
+ const ex=await rpc('create_exam',{title:'Caso de preparação autoral',student_ref:'Aplicação sintética',question_ids:[saved.id]});const snap=(await rpc('get_exam',{id:ex.id})).snapshot[0].content;
+ assert.equal(snap.profile,'enamed');assert.equal(snap.origin,'authorial_preparation');assert.equal(snap.rubric.length,4);assert.equal(snap.referenceVersion,c.referenceVersion);
+});
+test('clinical grading uses frozen case-specific clinical criteria and preserves mandatory review',async()=>{
+ const c=clinicalQ();let prompt;const deps={authorize:async()=>{},rpc:async a=>a==='get_submission'?{submission:{id:id(10),answer:'Resposta fundamentada',version:1},question:{content:c}}:{},call:async(provider,p,input)=>{prompt=p;assert.deepEqual(input.question.clinicalExpected,c.clinicalExpected);return {provider,model:'synthetic',content:JSON.stringify({criteria:c.rubric.map((r,index)=>({index,score:r.points,reason:'Critério atendido no texto.',evidence:['Resposta']})),feedback:'Devolutiva clínica de teste.'})};}};
+ const result=await runAction({action:'grade',submissionId:id(10)},deps);assert(prompt.includes('Avaliação clínica educacional'));assert.equal(result.suggestedScore,10);assert.equal(result.requiresHumanReview,true);
 });

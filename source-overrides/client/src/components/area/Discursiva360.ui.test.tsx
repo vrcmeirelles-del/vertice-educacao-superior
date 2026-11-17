@@ -13,3 +13,13 @@ it('requires course selection and scopes every request to the selected instituti
 it('drafts cannot be selected for exams and manual identification is required',async()=>{await render();await selectCourse('c1');await click('Provas personalizadas');expect(el.querySelectorAll('input[type=checkbox]')).toHaveLength(0);const b=[...el.querySelectorAll('button')].find(b=>b.textContent==='Criar prova personalizada')!;expect(b.disabled).toBe(true);});
 it('exposes authorization failure and does not present data as successfully loaded',async()=>{mock.fail=true;await render();await selectCourse('c1');expect(el.querySelector('[role=alert]')?.textContent).toContain('MFA pendente');expect(el.textContent).not.toContain('Caso de teste pedagógico.');});
 it('initial cases load as editable drafts without saving or approving automatically',async()=>{await render();await selectCourse('c1');await click('Usar caso como rascunho');expect((el.querySelector('textarea') as HTMLTextAreaElement).value).toContain('refrigerador');expect(mock.calls.map(c=>c.p_action)).toEqual(['list']);});
+
+it('offers ENAMED and residency profiles with four clinical dimensions and authorial labels',async()=>{
+ await render();await selectCourse('c1');const s=el.querySelector<HTMLSelectElement>('[aria-label="Modalidade de avaliação"]')!;
+ for(const profile of ['enamed','residencia']){await act(async()=>{s.value=profile;s.dispatchEvent(new Event('change',{bubbles:true}));});await click('Usar caso como rascunho');expect(el.textContent).toContain('Preparação autoral');expect(el.textContent).toContain('Hipóteses diagnósticas');expect(el.textContent).toContain('Investigação');expect(el.textContent).toContain('Conduta e segurança');expect(el.textContent).toContain('7 casos clínicos autorais');}
+ expect(el.textContent).toContain('Programa, edital ou preparação geral');expect(mock.calls.map(c=>c.p_action)).toEqual(['list']);
+});
+it('provides 14 medical authorial drafts with four case-specific rubric criteria',async()=>{
+ const {clinicalTemplates}=await import('@/lib/discursiva/clinical-templates');const {validateClinicalContent}=await import('@shared/discursiva-clinical');
+ for(const profile of ['enamed','residencia'] as const){const bank=clinicalTemplates(profile);expect(bank).toHaveLength(7);for(const item of bank){expect(validateClinicalContent(item.content).profile).toBe(profile);expect(item.content.origin).toBe('authorial_preparation');expect(item.content.rubric.reduce((n,r)=>n+r.points,0)).toBe(10);expect(item.content.sources).toEqual([]);}}
+});
