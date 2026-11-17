@@ -1,6 +1,6 @@
 # BÍBLIA-MESTRA DO PROJETO — ENAMED 360° / INEP INTELLIGENCE
 **Projeto:** Vértice Educação Superior × Fato & Ordem × Sapiens 360°  
-**Versão:** 2.4 — E1 parcial + revisão de 22 variantes e rastreabilidade de mídias  
+**Versão:** 2.5 — E1 parcial + 22 comparações integrais entre cópias, seis mídias e CI  
 **Data-base:** 16 de novembro de 2026  
 **Status:** documento-mestre de projeto; NÃO corresponde à implantação ou homologação da solução.  
 **Governança:** evolução cumulativa por etapas, com revisão retrospectiva obrigatória.  
@@ -447,3 +447,26 @@ O roteiro `docs/enamed/ENAMED_2026_ROTEIRO_HOMOLOGACAO_PERFIS.md` enumera **16 c
 Quando a questão utiliza imagem/tabela para fornecer informação necessária à resolução, a equivalência das letras preliminares e do prefixo não basta para publicá-la como íntegra. A indexação longitudinal do Sapiens só pode usar uma versão do item com mídia, evidência, gabarito e competência aprovados por curadoria e rastreados. Preservar simultaneamente IDs e tentativas de versões históricas.
 
 **Porta E1:** seguem pendentes cotejo integral 483/483, gabaritos definitivos e retificações, notas metodológicas e aceite normativo; E2/E3 não homologadas.
+
+
+## 24. Atualização cumulativa v2.5 — rodada de três ações: 22 textos, 6 imagens e contratos (17/11/2026)
+**Continuidade:** mantidas decisões E0/E1 e ADR-001 a ADR-024, a fila de curadoria da Issue #170, o corpus oficial dos oito PDFs 2026 e o bloqueio de gabarito definitivo. E1 segue sem homologação integral; E2/E3 preparatórias; E9 institucional futura.
+
+### Ação 1 — Texto inteiro das cópias F&O e números
+- SQL `SELECT` buscou `stem` e `alternatives` inteiros dos dois IDs para cada uma das **22 posições** divergentes do Caderno 2 regular. Relatório de dados individuais em `E1_22_VARIANTES_COMPARACAO_INTEGRAL_ENTRE_COPIAS.json`.
+- **22/22 pares** preservam divergência no texto; **8/22** apresentam tokens numéricos presentes em uma cópia e ausentes na outra (**Q12, Q42, Q44, Q49, Q74, Q89, Q90 e Q99**). As alternativas das 22 duplas coincidem depois de normalização de espaços.
+- A comparação integral é **entre duas versões cadastradas no F&O**; não foi realizado cotejo integral automatizado de cada versão com o PDF oficial nem julgamento da validade clínica dos números. A coincidência de gabaritos preliminares permanece uma verificação separada, não torna os itens homologados.
+
+### Ação 2 — Identificação de mídias no PDF original
+- Examinado PDF oficial REG-C2 (cópia SHA-256 já verificada) em páginas renderizadas. Para as 22 posições prioritárias, seis objetos de imagem rasterizada foram associados a regiões de questão, com página, coordenadas, `xref`, bytes e SHA-256 no arquivo `E1_ENAMED_22_MIDIAS_PDF_HASH_E_PAGINA.json`.
+- **Q12** (Lund–Browder), **Q68** (radiografia de pelve), **Q81** (fotografia dermatológica), **Q82** (radiografia contrastada), **Q89** (tomografia abdominal) e **Q97** (ultrassonografia transvaginal). Estas seis exigem conferência e vinculação de imagem à questão antes de eventual uso pedagógico.
+- Não concluímos que outras questões prescindem de mídias: tabelas vetoriais, desenhos, continuação em outras páginas e materiais de apoio não são detectados só por `xref`.
+- Todas as 483 linhas F&O continuam com `blocks=[]`; isso não comprova ausência de mídia em outros storages do portal. Não houve importação de imagem ou alteração de Storage.
+
+### Ação 3 — Novos testes e proteção operacional
+- Novo `scripts/tests/enamed-e1-content-media-contract.test.mjs`, integrado ao workflow `verify-enamed-contracts.yml`, verifica 22 pares, 8 diferenças numéricas, seis mídias com hash/página e a manutenção do bloqueio de aprovação.
+- Relatório integrador `E1_TRES_ACOES_TEXTOS_MIDIAS_CONTRATOS_20261117.md` acrescentado. Execução/resultado de CI deve ser verificada pelo SHA exato do commit; passar em contratos não significa homologar texto ou perfis.
+- **ADR-ENAMED-025:** vinculação de mídia, grafia de números, unidades e intervalos é requisito documental por item para diagnóstico longitudinal. Mesmo quando alternativas/gabarito coincidem entre versões, um enunciado truncado ou uma imagem não vinculada impede a homologação de competência clínica. IDs, versões, histórico de tentativas e dados pessoais permanecem intocados.
+- **Acesso por perfil:** matriz autenticada de 16 testes continua preparada, mas **não executada com sessões reais autorizadas**. Não confundir RLS inspecionada e testes SSR com garantia de isolamento.
+
+**Status:** E1 parcialmente demonstrada, sem aceite integral, E2/E3 preparatórias, PR #168 draft, sem merge ou deploy. Nenhum DML, gabarito, aluno ou competência modificado em produção.
