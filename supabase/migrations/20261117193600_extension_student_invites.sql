@@ -22,6 +22,9 @@ create table vertice_private.extension_student_invites (
  unique(project_id,email)
 );
 
+alter table vertice_private.extension_student_invites enable row level security;
+revoke all on table vertice_private.extension_student_invites from public,anon,authenticated;
+
 create function vertice_private.extension_student_fields(p_execution boolean)
 returns text[] language sql immutable set search_path='' as $$
  select array['introduction','area_characterization','justification','general_objective','specific_objectives',
