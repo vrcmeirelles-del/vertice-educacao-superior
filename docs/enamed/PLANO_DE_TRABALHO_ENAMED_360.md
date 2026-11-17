@@ -394,3 +394,14 @@ RECOMENDAÇÃO PARA A ETAPA SEGUINTE:
 - **BLOQUEADA:** dual-IA real sem sessão Master AAL2; curador médico e aceite por item ausentes; mídia não pode ser homologada pelo comando textual.
 - **BLOQUEADA:** definitivos previstos em 04/12/2026, retificações e aceites; migração/reindexação/merge/deploy NÃO EXECUTADOS.
 - Histórico preservado; nenhuma operação em dados produtivos. Bíblia v2.8.
+
+
+## 17/11/2026 — frente de incorporações ENAMED, Bíblia v2.9
+- **CONCLUÍDA:** branch `feat/enamed-incorporacoes-20261117` baseada na PR168, sem novo serviço/banco/login.
+- **CONCLUÍDA NO CÓDIGO:** acervo e incorporações com 69 diferenças filtráveis, 17 candidatas com páginas e correspondência C2 e documentação verificada; correção dos avisos obsoletos de recuperação documental.
+- **CONCLUÍDA LOCALMENTE:** TypeScript, 423 testes (quatro novos DOM), build e contratos ENAMED. Resumo de interface conferido contra fontes versionadas por comando --check.
+- **NÃO EXECUTADA:** importação, alteração de gabaritos, classificação clínica, aprovação médica/dual-IA, merge e deploy. Nenhuma operação produtiva. CI remoto e link da PR registrados no GitHub da nova frente.
+- Permanecem os seis gates não aprovados e as dependências de sessão real, médico e fontes definitivas.
+
+### Correção do CI desta frente
+O workflow BI acadêmico falhou ao carregar os quatro testes DOM por ausência de jsdom, enquanto o workflow completo do portal passou em Node22/24. Corrigido o preparo do runtime de testes nos workflows BI acadêmico e mobile com o lockfile já existente em scripts/tests/types-runtime e o mesmo vínculo de jsdom usado no workflow do portal. Nenhuma dependência produtiva adicionada e nenhum teste desabilitado. Ver reexecução e evidências da PR172.

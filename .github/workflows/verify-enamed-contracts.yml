@@ -1,7 +1,7 @@
 name: ENAMED 360 - validar contratos e dicionário
 on:
   pull_request:
-    branches: [main]
+    branches: [main, feat/enamed-inep-environment-20261116]
     paths:
       - "docs/enamed/**"
       - "scripts/tests/enamed-*.test.mjs"
@@ -9,6 +9,8 @@ on:
       - "scripts/tests/test_enamed_verified_chain.py"
       - "scripts/enamed/verify_inep_artifacts.py"
       - "scripts/enamed/compare_full_items.py"
+      - "scripts/enamed/build_editorial_summary.py"
+      - "source-overrides/client/src/data/enamed-editorial-evidence.json"
       - "scripts/tests/test_enamed_full_items.py"
       - "source-overrides/client/src/components/area/Enamed*.tsx"
       - "source-overrides/client/src/components/area/Enade360.tsx"
@@ -45,6 +47,8 @@ jobs:
         run: python -m unittest discover -s scripts/tests -p "test_enamed_verified_chain.py" -v
       - name: Conferir números, unidades, negação e comando completo no comparador
         run: python -m unittest discover -s scripts/tests -p "test_enamed_full_items.py" -v
+      - name: Conferir resumo editorial do portal contra as evidências versionadas
+        run: python scripts/enamed/build_editorial_summary.py --check
       - name: Exigir aceite explícito antes de reindexar ou publicar
         run: node --test scripts/tests/enamed-release-gates.test.mjs
       - name: Não declarar fontes do Inep homologadas
