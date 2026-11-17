@@ -189,3 +189,16 @@ RECOMENDAÇÃO PARA A ETAPA SEGUINTE:
 - [ ] Obter arquivos íntegros das demais NTs, matrizes, bases, gabaritos e hashes; não encerrar E1.
 
 **Bloqueios de saída:** PR não homologada/publicada, testes de perfis e UI ausentes, métricas de destino inexistentes, fontes INEP não autenticadas integralmente.
+
+## E1 e preparação não dependente de E2/E3 — rodada 16/11/2026
+- [x] Consultar artigos 3º a 8º da Portaria 478/2025 e criar versão preliminar do dicionário (7 áreas, 15 competências, 6 contextos, 21 conteúdos) sem aplicação no banco.
+- [x] Catalogar 483 registros do F&O via SQL somente leitura, cada ID e flags de auditoria, 200 posições de prova duplicadas.
+- [x] Criar fila de curadoria `FILA_REVISAO_483_ENAMED_2026.csv` com 343 candidatos de área **não homologados** e 140 sem área sugerida.
+- [x] Consolidar `AUDITORIA_CONCOMITANTE_483_20261116.md` e script de invariantes.
+- [x] Executar 11 verificações de integridade sobre artefatos GitHub; 11 aprovações, sem alteração de produção.
+- [ ] Rodar script Node pelo pipeline oficial e testar na interface/compilação.
+- [ ] Completar autenticação de provas, gabaritos, arquivos, SHA-256 e vigência E1.
+- [ ] Conferir 483/483 enunciados/comandos/alternativas/gabaritos, e homologar com dupla IA e revisão médica.
+- [ ] Resolver duplicidades e correções com preservação de IDs, tentativas e histórico, após aceite técnico.
+
+**Porta de qualidade:** E1 continua aberta; início formal da E2/E3 permanece dependente da homologação E1. Os arquivos desta rodada são preparação reversível e sem DDL/DML.
