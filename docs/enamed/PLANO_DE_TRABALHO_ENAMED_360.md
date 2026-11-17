@@ -159,3 +159,17 @@ RECOMENDAÇÃO PARA A ETAPA SEGUINTE:
 - [ ] Homologação regulatória/pedagógica e aceite E1.
 
 **Passagem E1→E2:** proibida até comprovar o conjunto documental e requisitos verificáveis; a PR #168 continua de rascunho e sem publicação validada.
+
+
+## Atualização transversal E7 (sem encerrar E1) — 16/11/2026
+- [x] Adicionar aba Fato & Ordem ao protótipo ENAMED da PR #168, preservando o ENADE 360°.
+- [x] Consulta read-only dos indicadores institucionais na tabela já existente `vertice_learning_course_metrics`; exames segregados, escopo por IES/curso, estados vazios e privacidade por grupo.
+- [x] Conferir colunas existentes e RLS habilitada no banco Vértice, em leitura; nenhuma migração executada.
+- [x] Criar script estático de contrato e realizar 10 verificações estáticas do código.
+- [ ] Executar script via Node no checkout do repositório e efetuar compilação TypeScript completa.
+- [ ] Testar permissões efetivas por perfil, RLS e UI/mobile em ambiente de homologação.
+- [ ] Confirmar que a ponte F&O alimenta dados de uma IES autorizada; no momento zero grupos desses três módulos foram encontrados na tabela de métricas.
+- [ ] Integrar os relatórios oficiais somente após os gates E1/E4; não confundir simulados com conceito.
+- [ ] Comprovar CI, merge, deploy, funcionalidade ponta a ponta e homologação.
+
+**Regra:** este avanço é de código paralelo que não depende da classificação oficial para consulta de **dados internos**; não altera o estado de E1 nem autoriza passar para E2.
