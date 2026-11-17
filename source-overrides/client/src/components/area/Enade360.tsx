@@ -17,6 +17,7 @@ type EnadeRecord = {
   evidence: string | null; notes: string | null; validation_status: Status;
   created_at: string; validated_at: string | null;
 };
+type AuditEvent = {event_id:number;event_type:string;validation_status:string;row_sha256:string;previous_event_sha256:string|null;event_sha256:string;recorded_at:string};
 type MirrorEnade = { id: number; semestre: string; curso_nome: string; habilitados: number | null };
 type CourseSummary = {
   id: string; name: string; code: string; degree: string; modality: string; status: string;
@@ -75,6 +76,9 @@ export default function Enade360({institutionId,courses,actions,goals,role,onPla
   const [draft,setDraft]=useState<Draft>(INITIAL);
   const [newRecord,setNewRecord]=useState(false);
   const [busy,setBusy]=useState(false);
+  const [auditFor,setAuditFor]=useState<string|null>(null);
+  const [auditRows,setAuditRows]=useState<AuditEvent[]>([]);
+  const [auditBusy,setAuditBusy]=useState(false);
   const [message,setMessage]=useState("");
   const canCreate=Boolean(role && AUTHORS.includes(role));
   const canValidate=Boolean(role && MANAGERS.includes(role));
@@ -167,6 +171,18 @@ export default function Enade360({institutionId,courses,actions,goals,role,onPla
     }catch(error){setMessage(error instanceof Error?error.message:"Não foi possível validar.");}
     finally{setBusy(false);}
   }
+  async function inspectAudit(recordId:string) {
+    if(auditFor===recordId){setAuditFor(null);setAuditRows([]);return;}
+    setAuditBusy(true);setAuditFor(recordId);setAuditRows([]);setMessage("");
+    try {
+      const {data,error}=await supabase.rpc("vertice_enade360_audit_history",{target_record:recordId});
+      if(error)throw error;
+      setAuditRows((data??[]) as AuditEvent[]);
+    }catch(error){
+      setMessage(error instanceof Error?error.message:"Não foi possível consultar a trilha de auditoria.");
+      setAuditFor(null);
+    }finally{setAuditBusy(false);}
+  }
   async function createAction(record?:EnadeRecord){
     if(!current||!canValidate)return;
     if(!window.confirm("Criar ação 5W2H para este curso, vinculada ao ENADE 360°?"))return;
@@ -224,7 +240,7 @@ export default function Enade360({institutionId,courses,actions,goals,role,onPla
               <td>{course.records.length}</td>
               <td><span className={"enade360-state "+state.color}>{state.label}</span></td>
               <td>{course.actions}</td>
-              <td><button type="button" className="corp-login-text-button" onClick={()=>{setCourseId(course.id);setNewRecord(false);setMessage("");}}>Examinar curso</button></td>
+              <td><button type="button" className="corp-login-text-button" onClick={()=>{setCourseId(course.id);setAuditFor(null);setAuditRows([]);setNewRecord(false);setMessage("");}}>Examinar curso</button></td>
             </tr>;
           })}
           {!filtered.length?<tr><td colSpan={5}>Nenhum curso corresponde à busca.</td></tr>:null}
@@ -275,8 +291,18 @@ export default function Enade360({institutionId,courses,actions,goals,role,onPla
               <button type="button" disabled={busy} onClick={()=>void validate(record,true)}>Validar</button>
               <button type="button" disabled={busy} onClick={()=>void validate(record,false)}>Rejeitar</button>
             </>:null}
+            <button type="button" disabled={auditBusy} onClick={()=>void inspectAudit(record.id)}>{auditFor===record.id?"Ocultar auditoria":"Consultar auditoria"}</button>
             {canValidate?<button type="button" disabled={busy} onClick={()=>void createAction(record)}>Gerar ação 5W2H</button>:null}
           </div>
+          {auditFor===record.id?<div className="enade360-audit-trace">
+            <strong>Trilha técnica de auditoria · somente leitura</strong>
+            <p>Eventos registrados: {auditRows.length}. A trilha não representa homologação oficial nem publicação.</p>
+            {auditBusy?<p role="status">Consultando registros…</p>:null}
+            {!auditBusy&&!auditRows.length?<p>Nenhum evento acessível para este perfil ou registro.</p>:null}
+            {auditRows.map(item=><p key={item.event_id}>
+              <b>{item.event_type}</b> · {new Date(item.recorded_at).toLocaleString("pt-BR")} · {item.validation_status} · SHA-256 {item.event_sha256.slice(0,16)}…
+            </p>)}
+          </div>:null}
         </article>)}
       </div>}
       {canValidate?<p><button type="button" className="corp-button secondary small" disabled={busy} onClick={()=>void createAction()}>Criar ação geral 5W2H para este curso</button></p>:null}

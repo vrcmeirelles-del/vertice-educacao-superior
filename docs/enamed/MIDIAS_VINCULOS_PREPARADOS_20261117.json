@@ -1,0 +1,776 @@
+{
+  "schema_version": "enamed-media-links-draft-v1",
+  "status": "CONCLUÍDA",
+  "scope": "Inventory and prepared links; no storage upload, production update or rights approval",
+  "records": [
+    {
+      "page": 9,
+      "bbox": [
+        44.55516052246094,
+        297.18585205078125,
+        550.4494018554688,
+        565.79052734375
+      ],
+      "xref": 3810,
+      "candidate_questions": [
+        29
+      ],
+      "image_sha256": "8f9f4524be503e5f7528f97a7e24ad10638e6636487bd3b19c71d2ae1a79cec6",
+      "image_bytes": 1144519,
+      "extension": "jpeg",
+      "association_status": "GEOMETRIC_PROPOSAL_REQUIRES_VISUAL_REVIEW",
+      "booklet": "REG-C1",
+      "fo_ids": [
+        "enamed-2026-c1-q29",
+        "ENAMED-2026-REG-C1-Q029"
+      ],
+      "prepared_only": true,
+      "uploaded": false,
+      "publication_allowed": false,
+      "rights_status": "PENDING_INDEPENDENT_DOCUMENTARY_REVIEW",
+      "description_previously_verified": null
+    },
+    {
+      "page": 12,
+      "bbox": [
+        41.45669174194336,
+        154.724609375,
+        287.7165222167969,
+        447.349853515625
+      ],
+      "xref": 3792,
+      "candidate_questions": [
+        37
+      ],
+      "image_sha256": "6d7231e0c1b83c77ea8335010e1d2b323dd1411ee3b8b26534d90e0fee906a3f",
+      "image_bytes": 273322,
+      "extension": "jpeg",
+      "association_status": "GEOMETRIC_PROPOSAL_REQUIRES_VISUAL_REVIEW",
+      "booklet": "REG-C1",
+      "fo_ids": [
+        "enamed-2026-c1-q37",
+        "ENAMED-2026-REG-C1-Q037"
+      ],
+      "prepared_only": true,
+      "uploaded": false,
+      "publication_allowed": false,
+      "rights_status": "PENDING_INDEPENDENT_DOCUMENTARY_REVIEW",
+      "description_previously_verified": null
+    },
+    {
+      "page": 15,
+      "bbox": [
+        307.55908203125,
+        186.1778106689453,
+        552.7559204101562,
+        352.79229736328125
+      ],
+      "xref": 44,
+      "candidate_questions": [
+        52
+      ],
+      "image_sha256": "1f22133cf4f873e98e0a82eeb475c4f3aa148f713846525f41bff50d73fc0423",
+      "image_bytes": 154365,
+      "extension": "jpeg",
+      "association_status": "GEOMETRIC_PROPOSAL_REQUIRES_VISUAL_REVIEW",
+      "booklet": "REG-C1",
+      "fo_ids": [
+        "enamed-2026-c1-q52",
+        "ENAMED-2026-REG-C1-Q052"
+      ],
+      "prepared_only": true,
+      "uploaded": false,
+      "publication_allowed": false,
+      "rights_status": "PENDING_INDEPENDENT_DOCUMENTARY_REVIEW",
+      "description_previously_verified": null
+    },
+    {
+      "page": 16,
+      "bbox": [
+        42.51968002319336,
+        222.57778930664062,
+        289.7489929199219,
+        573.715087890625
+      ],
+      "xref": 3805,
+      "candidate_questions": [
+        53
+      ],
+      "image_sha256": "cd97a1918279c6275b20d749a66192e3302a8144b3acf26e750b28a1039141ba",
+      "image_bytes": 53920,
+      "extension": "jpeg",
+      "association_status": "GEOMETRIC_PROPOSAL_REQUIRES_VISUAL_REVIEW",
+      "booklet": "REG-C1",
+      "fo_ids": [
+        "enamed-2026-c1-q53",
+        "ENAMED-2026-REG-C1-Q053"
+      ],
+      "prepared_only": true,
+      "uploaded": false,
+      "publication_allowed": false,
+      "rights_status": "PENDING_INDEPENDENT_DOCUMENTARY_REVIEW",
+      "description_previously_verified": null
+    },
+    {
+      "page": 19,
+      "bbox": [
+        42.51966857910156,
+        261.41241455078125,
+        288.55718994140625,
+        461.8874206542969
+      ],
+      "xref": 3799,
+      "candidate_questions": [
+        67
+      ],
+      "image_sha256": "ae3f2bcbab9df35ca58166c8a6001216eeb15fff323009e98848540a4f5f18c3",
+      "image_bytes": 63824,
+      "extension": "jpeg",
+      "association_status": "GEOMETRIC_PROPOSAL_REQUIRES_VISUAL_REVIEW",
+      "booklet": "REG-C1",
+      "fo_ids": [
+        "enamed-2026-c1-q67",
+        "ENAMED-2026-REG-C1-Q067"
+      ],
+      "prepared_only": true,
+      "uploaded": false,
+      "publication_allowed": false,
+      "rights_status": "PENDING_INDEPENDENT_DOCUMENTARY_REVIEW",
+      "description_previously_verified": null
+    },
+    {
+      "page": 21,
+      "bbox": [
+        42.51966094970703,
+        263.8470764160156,
+        288.36767578125,
+        361.80706787109375
+      ],
+      "xref": 62,
+      "candidate_questions": [
+        75
+      ],
+      "image_sha256": "8a839f6bf3c7234e2c8e2bbb7a79d01347d8ef3e25c02b6a7711df613d839368",
+      "image_bytes": 70512,
+      "extension": "jpeg",
+      "association_status": "GEOMETRIC_PROPOSAL_REQUIRES_VISUAL_REVIEW",
+      "booklet": "REG-C1",
+      "fo_ids": [
+        "enamed-2026-c1-q75",
+        "ENAMED-2026-REG-C1-Q075"
+      ],
+      "prepared_only": true,
+      "uploaded": false,
+      "publication_allowed": false,
+      "rights_status": "PENDING_INDEPENDENT_DOCUMENTARY_REVIEW",
+      "description_previously_verified": null
+    },
+    {
+      "page": 22,
+      "bbox": [
+        307.8621826171875,
+        376.18572998046875,
+        552.7559204101562,
+        554.4794921875
+      ],
+      "xref": 3785,
+      "candidate_questions": [
+        81
+      ],
+      "image_sha256": "4c13a1c1336b8781cb29ea7f44ae6b51760f6d0f7c5679d89a86cd2feb0fdee7",
+      "image_bytes": 106297,
+      "extension": "jpeg",
+      "association_status": "GEOMETRIC_PROPOSAL_REQUIRES_VISUAL_REVIEW",
+      "booklet": "REG-C1",
+      "fo_ids": [
+        "enamed-2026-c1-q81",
+        "ENAMED-2026-REG-C1-Q081"
+      ],
+      "prepared_only": true,
+      "uploaded": false,
+      "publication_allowed": false,
+      "rights_status": "PENDING_INDEPENDENT_DOCUMENTARY_REVIEW",
+      "description_previously_verified": null
+    },
+    {
+      "page": 24,
+      "bbox": [
+        307.55908203125,
+        189.01248168945312,
+        552.7681884765625,
+        517.4110107421875
+      ],
+      "xref": 72,
+      "candidate_questions": [
+        89
+      ],
+      "image_sha256": "75c40824b22087ee404749dd83dadaaf1f6ab8665beda5756fe5a2909ee40aff",
+      "image_bytes": 814837,
+      "extension": "jpeg",
+      "association_status": "GEOMETRIC_PROPOSAL_REQUIRES_VISUAL_REVIEW",
+      "booklet": "REG-C1",
+      "fo_ids": [
+        "enamed-2026-c1-q89",
+        "ENAMED-2026-REG-C1-Q089"
+      ],
+      "prepared_only": true,
+      "uploaded": false,
+      "publication_allowed": false,
+      "rights_status": "PENDING_INDEPENDENT_DOCUMENTARY_REVIEW",
+      "description_previously_verified": null
+    },
+    {
+      "page": 5,
+      "bbox": [
+        41.45669174194336,
+        154.724609375,
+        287.7165222167969,
+        447.349853515625
+      ],
+      "xref": 18,
+      "candidate_questions": [
+        12
+      ],
+      "image_sha256": "7a2c17919b56eecaf1ceef5f76c0d5227ce5deb97eebe23b722b79b4239226d4",
+      "image_bytes": 213298,
+      "extension": "jpeg",
+      "association_status": "GEOMETRIC_PROPOSAL_REQUIRES_VISUAL_REVIEW",
+      "booklet": "REG-C2",
+      "fo_ids": [
+        "enamed-2026-c2-q12",
+        "ENAMED-2026-REG-C2-Q012"
+      ],
+      "prepared_only": true,
+      "uploaded": false,
+      "publication_allowed": false,
+      "rights_status": "PENDING_INDEPENDENT_DOCUMENTARY_REVIEW",
+      "description_previously_verified": "Diagrama de Lund–Browder"
+    },
+    {
+      "page": 10,
+      "bbox": [
+        44.69068908691406,
+        428.9588623046875,
+        550.5848999023438,
+        697.5635375976562
+      ],
+      "xref": 31,
+      "candidate_questions": [
+        37
+      ],
+      "image_sha256": "0b5b3946664563ab17a59c616e7e653585520b2f5fc5e7a6d80ef39e6d766745",
+      "image_bytes": 285151,
+      "extension": "jpeg",
+      "association_status": "GEOMETRIC_PROPOSAL_REQUIRES_VISUAL_REVIEW",
+      "booklet": "REG-C2",
+      "fo_ids": [
+        "enamed-2026-c2-q37",
+        "ENAMED-2026-REG-C2-Q037"
+      ],
+      "prepared_only": true,
+      "uploaded": false,
+      "publication_allowed": false,
+      "rights_status": "PENDING_INDEPENDENT_DOCUMENTARY_REVIEW",
+      "description_previously_verified": null
+    },
+    {
+      "page": 17,
+      "bbox": [
+        307.55908203125,
+        189.01248168945312,
+        552.7681884765625,
+        517.4110107421875
+      ],
+      "xref": 48,
+      "candidate_questions": [
+        64
+      ],
+      "image_sha256": "75c40824b22087ee404749dd83dadaaf1f6ab8665beda5756fe5a2909ee40aff",
+      "image_bytes": 814837,
+      "extension": "jpeg",
+      "association_status": "GEOMETRIC_PROPOSAL_REQUIRES_VISUAL_REVIEW",
+      "booklet": "REG-C2",
+      "fo_ids": [
+        "enamed-2026-c2-q64",
+        "ENAMED-2026-REG-C2-Q064"
+      ],
+      "prepared_only": true,
+      "uploaded": false,
+      "publication_allowed": false,
+      "rights_status": "PENDING_INDEPENDENT_DOCUMENTARY_REVIEW",
+      "description_previously_verified": null
+    },
+    {
+      "page": 18,
+      "bbox": [
+        307.55908203125,
+        261.41241455078125,
+        553.5965576171875,
+        461.8874206542969
+      ],
+      "xref": 52,
+      "candidate_questions": [
+        68
+      ],
+      "image_sha256": "7c01a62694b9d88474f27e8018d384c49e6d8c7f031f4489374ab1eb8ddff3be",
+      "image_bytes": 16252,
+      "extension": "jpeg",
+      "association_status": "GEOMETRIC_PROPOSAL_REQUIRES_VISUAL_REVIEW",
+      "booklet": "REG-C2",
+      "fo_ids": [
+        "enamed-2026-c2-q68",
+        "ENAMED-2026-REG-C2-Q068"
+      ],
+      "prepared_only": true,
+      "uploaded": false,
+      "publication_allowed": false,
+      "rights_status": "PENDING_INDEPENDENT_DOCUMENTARY_REVIEW",
+      "description_previously_verified": "Radiografia de pelve"
+    },
+    {
+      "page": 21,
+      "bbox": [
+        307.55908203125,
+        186.17787170410156,
+        552.7559204101562,
+        352.7923583984375
+      ],
+      "xref": 60,
+      "candidate_questions": [
+        81
+      ],
+      "image_sha256": "1f22133cf4f873e98e0a82eeb475c4f3aa148f713846525f41bff50d73fc0423",
+      "image_bytes": 154365,
+      "extension": "jpeg",
+      "association_status": "GEOMETRIC_PROPOSAL_REQUIRES_VISUAL_REVIEW",
+      "booklet": "REG-C2",
+      "fo_ids": [
+        "enamed-2026-c2-q81",
+        "ENAMED-2026-REG-C2-Q081"
+      ],
+      "prepared_only": true,
+      "uploaded": false,
+      "publication_allowed": false,
+      "rights_status": "PENDING_INDEPENDENT_DOCUMENTARY_REVIEW",
+      "description_previously_verified": "Fotografia dermatológica"
+    },
+    {
+      "page": 22,
+      "bbox": [
+        42.51968002319336,
+        222.57778930664062,
+        289.7489929199219,
+        573.715087890625
+      ],
+      "xref": 64,
+      "candidate_questions": [
+        82
+      ],
+      "image_sha256": "fdf59c54b1688ce79726976f093ce5d1a78db8da2479071db62ad98ea731e54b",
+      "image_bytes": 14133,
+      "extension": "jpeg",
+      "association_status": "GEOMETRIC_PROPOSAL_REQUIRES_VISUAL_REVIEW",
+      "booklet": "REG-C2",
+      "fo_ids": [
+        "enamed-2026-c2-q82",
+        "ENAMED-2026-REG-C2-Q082"
+      ],
+      "prepared_only": true,
+      "uploaded": false,
+      "publication_allowed": false,
+      "rights_status": "PENDING_INDEPENDENT_DOCUMENTARY_REVIEW",
+      "description_previously_verified": "Imagem radiológica contrastada"
+    },
+    {
+      "page": 24,
+      "bbox": [
+        42.82280349731445,
+        376.18572998046875,
+        287.716552734375,
+        554.4794921875
+      ],
+      "xref": 70,
+      "candidate_questions": [
+        89
+      ],
+      "image_sha256": "2d8967f060c9e34b8181ccc69930d75edf64f4917c1f907c74bd075f54ba2739",
+      "image_bytes": 27088,
+      "extension": "jpeg",
+      "association_status": "GEOMETRIC_PROPOSAL_REQUIRES_VISUAL_REVIEW",
+      "booklet": "REG-C2",
+      "fo_ids": [
+        "enamed-2026-c2-q89",
+        "ENAMED-2026-REG-C2-Q089"
+      ],
+      "prepared_only": true,
+      "uploaded": false,
+      "publication_allowed": false,
+      "rights_status": "PENDING_INDEPENDENT_DOCUMENTARY_REVIEW",
+      "description_previously_verified": "Tomografia de abdome superior"
+    },
+    {
+      "page": 25,
+      "bbox": [
+        307.55908203125,
+        455.6202697753906,
+        553.4071044921875,
+        553.5802612304688
+      ],
+      "xref": 74,
+      "candidate_questions": [
+        97
+      ],
+      "image_sha256": "8a839f6bf3c7234e2c8e2bbb7a79d01347d8ef3e25c02b6a7711df613d839368",
+      "image_bytes": 70512,
+      "extension": "jpeg",
+      "association_status": "GEOMETRIC_PROPOSAL_REQUIRES_VISUAL_REVIEW",
+      "booklet": "REG-C2",
+      "fo_ids": [
+        "enamed-2026-c2-q97",
+        "ENAMED-2026-REG-C2-Q097"
+      ],
+      "prepared_only": true,
+      "uploaded": false,
+      "publication_allowed": false,
+      "rights_status": "PENDING_INDEPENDENT_DOCUMENTARY_REVIEW",
+      "description_previously_verified": "Ultrassonografia transvaginal"
+    },
+    {
+      "page": 3,
+      "bbox": [
+        42.5196533203125,
+        127.333740234375,
+        553.1841430664062,
+        406.7229919433594
+      ],
+      "xref": 5,
+      "candidate_questions": [
+        1
+      ],
+      "image_sha256": "326376b5db0e5b16ee91229cf113fb42322f13b3799a6d7bc63239193caa9c81",
+      "image_bytes": 186223,
+      "extension": "jpeg",
+      "association_status": "GEOMETRIC_PROPOSAL_REQUIRES_VISUAL_REVIEW",
+      "booklet": "REAP-C1",
+      "fo_ids": [],
+      "prepared_only": true,
+      "uploaded": false,
+      "publication_allowed": false,
+      "rights_status": "PENDING_INDEPENDENT_DOCUMENTARY_REVIEW",
+      "description_previously_verified": null
+    },
+    {
+      "page": 8,
+      "bbox": [
+        42.5196533203125,
+        284.78564453125,
+        552.012939453125,
+        494.12969970703125
+      ],
+      "xref": 17,
+      "candidate_questions": [
+        24
+      ],
+      "image_sha256": "62b0584f6c63e85bae6116508e1a386d801111e32c5cc038f111b5faf960a309",
+      "image_bytes": 49358,
+      "extension": "jpeg",
+      "association_status": "GEOMETRIC_PROPOSAL_REQUIRES_VISUAL_REVIEW",
+      "booklet": "REAP-C1",
+      "fo_ids": [],
+      "prepared_only": true,
+      "uploaded": false,
+      "publication_allowed": false,
+      "rights_status": "PENDING_INDEPENDENT_DOCUMENTARY_REVIEW",
+      "description_previously_verified": null
+    },
+    {
+      "page": 10,
+      "bbox": [
+        41.1552848815918,
+        425.0711669921875,
+        289.1064758300781,
+        698.171142578125
+      ],
+      "xref": 23,
+      "candidate_questions": [
+        31
+      ],
+      "image_sha256": "f8c0101d8982d0d9cecf2e6a1149fac221f0550577130b078b016695c51d7a96",
+      "image_bytes": 75806,
+      "extension": "jpeg",
+      "association_status": "GEOMETRIC_PROPOSAL_REQUIRES_VISUAL_REVIEW",
+      "booklet": "REAP-C1",
+      "fo_ids": [],
+      "prepared_only": true,
+      "uploaded": false,
+      "publication_allowed": false,
+      "rights_status": "PENDING_INDEPENDENT_DOCUMENTARY_REVIEW",
+      "description_previously_verified": null
+    },
+    {
+      "page": 16,
+      "bbox": [
+        42.5196533203125,
+        126.57777404785156,
+        552.755859375,
+        353.9107360839844
+      ],
+      "xref": 37,
+      "candidate_questions": [
+        53
+      ],
+      "image_sha256": "8f9eda9cbc2513d7aa9887d3748f59825acf9447c13df9e23ef290e12de590ca",
+      "image_bytes": 43584,
+      "extension": "jpeg",
+      "association_status": "GEOMETRIC_PROPOSAL_REQUIRES_VISUAL_REVIEW",
+      "booklet": "REAP-C1",
+      "fo_ids": [],
+      "prepared_only": true,
+      "uploaded": false,
+      "publication_allowed": false,
+      "rights_status": "PENDING_INDEPENDENT_DOCUMENTARY_REVIEW",
+      "description_previously_verified": null
+    },
+    {
+      "page": 17,
+      "bbox": [
+        307.55908203125,
+        438.35101318359375,
+        552.7559204101562,
+        622.2486572265625
+      ],
+      "xref": 41,
+      "candidate_questions": [
+        59
+      ],
+      "image_sha256": "bd704f2d66dd54eb7f8faf96d6e934613b4ebc244f500974a9606e23fb6bf5a1",
+      "image_bytes": 46431,
+      "extension": "jpeg",
+      "association_status": "GEOMETRIC_PROPOSAL_REQUIRES_VISUAL_REVIEW",
+      "booklet": "REAP-C1",
+      "fo_ids": [],
+      "prepared_only": true,
+      "uploaded": false,
+      "publication_allowed": false,
+      "rights_status": "PENDING_INDEPENDENT_DOCUMENTARY_REVIEW",
+      "description_previously_verified": null
+    },
+    {
+      "page": 20,
+      "bbox": [
+        307.55908203125,
+        402.35101318359375,
+        552.7559204101562,
+        626.5946655273438
+      ],
+      "xref": 49,
+      "candidate_questions": [
+        74
+      ],
+      "image_sha256": "a21f8c71515de38a9f812bc2b806f628b277536801f3392934c27c294b3691b5",
+      "image_bytes": 49670,
+      "extension": "jpeg",
+      "association_status": "GEOMETRIC_PROPOSAL_REQUIRES_VISUAL_REVIEW",
+      "booklet": "REAP-C1",
+      "fo_ids": [],
+      "prepared_only": true,
+      "uploaded": false,
+      "publication_allowed": false,
+      "rights_status": "PENDING_INDEPENDENT_DOCUMENTARY_REVIEW",
+      "description_previously_verified": null
+    },
+    {
+      "page": 24,
+      "bbox": [
+        42.5196533203125,
+        281.95111083984375,
+        552.755859375,
+        495.0081481933594
+      ],
+      "xref": 59,
+      "candidate_questions": [
+        91
+      ],
+      "image_sha256": "83c0481f358e638f2411ab2e2d32179cd8efdfe98edc8f73eb957789d43ce17b",
+      "image_bytes": 207569,
+      "extension": "jpeg",
+      "association_status": "GEOMETRIC_PROPOSAL_REQUIRES_VISUAL_REVIEW",
+      "booklet": "REAP-C1",
+      "fo_ids": [],
+      "prepared_only": true,
+      "uploaded": false,
+      "publication_allowed": false,
+      "rights_status": "PENDING_INDEPENDENT_DOCUMENTARY_REVIEW",
+      "description_previously_verified": null
+    },
+    {
+      "page": 3,
+      "bbox": [
+        42.5196533203125,
+        462.12445068359375,
+        552.755859375,
+        689.4573974609375
+      ],
+      "xref": 6,
+      "candidate_questions": [
+        3
+      ],
+      "image_sha256": "8f9eda9cbc2513d7aa9887d3748f59825acf9447c13df9e23ef290e12de590ca",
+      "image_bytes": 43584,
+      "extension": "jpeg",
+      "association_status": "GEOMETRIC_PROPOSAL_REQUIRES_VISUAL_REVIEW",
+      "booklet": "REAP-C2",
+      "fo_ids": [],
+      "prepared_only": true,
+      "uploaded": false,
+      "publication_allowed": false,
+      "rights_status": "PENDING_INDEPENDENT_DOCUMENTARY_REVIEW",
+      "description_previously_verified": null
+    },
+    {
+      "page": 5,
+      "bbox": [
+        306.1946716308594,
+        197.29794311523438,
+        554.1458740234375,
+        470.3979187011719
+      ],
+      "xref": 12,
+      "candidate_questions": [
+        10
+      ],
+      "image_sha256": "f8c0101d8982d0d9cecf2e6a1149fac221f0550577130b078b016695c51d7a96",
+      "image_bytes": 75806,
+      "extension": "jpeg",
+      "association_status": "GEOMETRIC_PROPOSAL_REQUIRES_VISUAL_REVIEW",
+      "booklet": "REAP-C2",
+      "fo_ids": [],
+      "prepared_only": true,
+      "uploaded": false,
+      "publication_allowed": false,
+      "rights_status": "PENDING_INDEPENDENT_DOCUMENTARY_REVIEW",
+      "description_previously_verified": null
+    },
+    {
+      "page": 9,
+      "bbox": [
+        42.248626708984375,
+        462.1300964355469,
+        552.9130859375,
+        741.5193481445312
+      ],
+      "xref": 21,
+      "candidate_questions": [
+        27
+      ],
+      "image_sha256": "326376b5db0e5b16ee91229cf113fb42322f13b3799a6d7bc63239193caa9c81",
+      "image_bytes": 186223,
+      "extension": "jpeg",
+      "association_status": "GEOMETRIC_PROPOSAL_REQUIRES_VISUAL_REVIEW",
+      "booklet": "REAP-C2",
+      "fo_ids": [],
+      "prepared_only": true,
+      "uploaded": false,
+      "publication_allowed": false,
+      "rights_status": "PENDING_INDEPENDENT_DOCUMENTARY_REVIEW",
+      "description_previously_verified": null
+    },
+    {
+      "page": 11,
+      "bbox": [
+        307.55908203125,
+        438.35101318359375,
+        552.7559204101562,
+        622.2486572265625
+      ],
+      "xref": 27,
+      "candidate_questions": [
+        35
+      ],
+      "image_sha256": "bd704f2d66dd54eb7f8faf96d6e934613b4ebc244f500974a9606e23fb6bf5a1",
+      "image_bytes": 46431,
+      "extension": "jpeg",
+      "association_status": "GEOMETRIC_PROPOSAL_REQUIRES_VISUAL_REVIEW",
+      "booklet": "REAP-C2",
+      "fo_ids": [],
+      "prepared_only": true,
+      "uploaded": false,
+      "publication_allowed": false,
+      "rights_status": "PENDING_INDEPENDENT_DOCUMENTARY_REVIEW",
+      "description_previously_verified": null
+    },
+    {
+      "page": 14,
+      "bbox": [
+        42.519676208496094,
+        402.35101318359375,
+        287.7165222167969,
+        626.5946655273438
+      ],
+      "xref": 35,
+      "candidate_questions": [
+        48
+      ],
+      "image_sha256": "a21f8c71515de38a9f812bc2b806f628b277536801f3392934c27c294b3691b5",
+      "image_bytes": 49670,
+      "extension": "jpeg",
+      "association_status": "GEOMETRIC_PROPOSAL_REQUIRES_VISUAL_REVIEW",
+      "booklet": "REAP-C2",
+      "fo_ids": [],
+      "prepared_only": true,
+      "uploaded": false,
+      "publication_allowed": false,
+      "rights_status": "PENDING_INDEPENDENT_DOCUMENTARY_REVIEW",
+      "description_previously_verified": null
+    },
+    {
+      "page": 21,
+      "bbox": [
+        42.5196533203125,
+        126.17779541015625,
+        552.755859375,
+        339.2348327636719
+      ],
+      "xref": 51,
+      "candidate_questions": [
+        82
+      ],
+      "image_sha256": "83c0481f358e638f2411ab2e2d32179cd8efdfe98edc8f73eb957789d43ce17b",
+      "image_bytes": 207569,
+      "extension": "jpeg",
+      "association_status": "GEOMETRIC_PROPOSAL_REQUIRES_VISUAL_REVIEW",
+      "booklet": "REAP-C2",
+      "fo_ids": [],
+      "prepared_only": true,
+      "uploaded": false,
+      "publication_allowed": false,
+      "rights_status": "PENDING_INDEPENDENT_DOCUMENTARY_REVIEW",
+      "description_previously_verified": null
+    },
+    {
+      "page": 23,
+      "bbox": [
+        42.51971435546875,
+        284.7857666015625,
+        552.0130004882812,
+        494.12982177734375
+      ],
+      "xref": 64,
+      "candidate_questions": [
+        89
+      ],
+      "image_sha256": "62b0584f6c63e85bae6116508e1a386d801111e32c5cc038f111b5faf960a309",
+      "image_bytes": 49358,
+      "extension": "jpeg",
+      "association_status": "GEOMETRIC_PROPOSAL_REQUIRES_VISUAL_REVIEW",
+      "booklet": "REAP-C2",
+      "fo_ids": [],
+      "prepared_only": true,
+      "uploaded": false,
+      "publication_allowed": false,
+      "rights_status": "PENDING_INDEPENDENT_DOCUMENTARY_REVIEW",
+      "description_previously_verified": null
+    }
+  ],
+  "previous_six_verified_hashes_preserved": true
+}

@@ -51,11 +51,16 @@ export function createSapiensHandler(deps:Dependencies){return async(req:Request
   if(body.action==='feedback'){
    const payload=await call('feedback_request');
    const result=await remote('/api/internal/vertice/feedback',payload);validateRemote(result,payload,true);
+   const sufficient=result.quality.sufficient;
+   const baselineVisible=result.baseline.sampleSize>=5;
+   const currentVisible=result.current.sampleSize>=5;
    // Store only whitelisted aggregates, never arbitrary remote fields or tokens.
+   // Preserve cohort counts, but do not persist estimates for tiny groups or
+   // comparative deltas that the source explicitly marks as insufficient.
    const clean={contractVersion:'v1',institutionId:result.institutionId,courseId:result.courseId,module:result.module,interventionId:result.interventionId,measurementId:result.measurementId,
-    baseline:{measuredAt:result.baseline.measuredAt,avgPKnow:result.baseline.avgPKnow,avgEloRating:result.baseline.avgEloRating,sampleSize:result.baseline.sampleSize},
-    current:{measuredAt:result.current.measuredAt,avgPKnow:result.current.avgPKnow,avgEloRating:result.current.avgEloRating,sampleSize:result.current.sampleSize,attemptsSinceBaseline:result.current.attemptsSinceBaseline},
-    delta:{pKnowChange:result.delta.pKnowChange,eloChange:result.delta.eloChange,sampleOverlap:result.delta.sampleOverlap},
+    baseline:{measuredAt:result.baseline.measuredAt,avgPKnow:baselineVisible?result.baseline.avgPKnow:null,avgEloRating:baselineVisible?result.baseline.avgEloRating:null,sampleSize:result.baseline.sampleSize},
+    current:{measuredAt:result.current.measuredAt,avgPKnow:currentVisible?result.current.avgPKnow:null,avgEloRating:currentVisible?result.current.avgEloRating:null,sampleSize:result.current.sampleSize,attemptsSinceBaseline:result.current.attemptsSinceBaseline},
+    delta:{pKnowChange:sufficient?result.delta.pKnowChange:null,eloChange:sufficient?result.delta.eloChange:null,sampleOverlap:result.delta.sampleOverlap},
     quality:{eligibleStudents:result.quality.eligibleStudents,counterResets:result.quality.counterResets,sufficient:result.quality.sufficient}};
    return send(await call('feedback_save',clean));
   }

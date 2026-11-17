@@ -1,0 +1,1565 @@
+{
+  "status": "CONCLUÍDA",
+  "scope": "Complete extracted text/options C1 versus C2; not clinical approval",
+  "records": [
+    {
+      "reap_caderno_1_question": 1,
+      "reap_caderno_2_equivalent_question": 27,
+      "fo_item_status": "NOT_FOUND_IN_fo_enamed_items",
+      "approval": "PENDING",
+      "c1_physical_page": 3,
+      "c2_physical_page": 9,
+      "c1_extracted_content_sha256": "20b70a96ac8719924e547242c0a2426cec37de2bcd52e8bceecfc88947d480ee",
+      "c2_extracted_content_sha256": "20b70a96ac8719924e547242c0a2426cec37de2bcd52e8bceecfc88947d480ee",
+      "full_stem_comparison": {
+        "official_text_sha256": "c9a78538bddf7c1d6dce55d748950b473747ce844ea6bcdfafb517c1be23a8fa",
+        "stored_text_sha256": "c9a78538bddf7c1d6dce55d748950b473747ce844ea6bcdfafb517c1be23a8fa",
+        "official_chars": 338,
+        "stored_chars": 338,
+        "whitespace_equivalent": true,
+        "token_equivalent": true,
+        "numeric_sequence_equal": true,
+        "official_numbers": [
+          "66",
+          "2",
+          "128",
+          "78",
+          "135",
+          "98%"
+        ],
+        "stored_numbers": [
+          "66",
+          "2",
+          "128",
+          "78",
+          "135",
+          "98%"
+        ],
+        "differences": []
+      },
+      "all_four_options_compared": {
+        "A": {
+          "official_text_sha256": "ce9f206162eb14007c21c99f0effb0ecdb6b9ca64c76c3cdfb5e39e1e655c539",
+          "stored_text_sha256": "ce9f206162eb14007c21c99f0effb0ecdb6b9ca64c76c3cdfb5e39e1e655c539",
+          "official_chars": 33,
+          "stored_chars": 33,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "B": {
+          "official_text_sha256": "bba50dff3df73b4f847564d7d69e1dfb966b10f7c73f33e780b859a81d96aebd",
+          "stored_text_sha256": "bba50dff3df73b4f847564d7d69e1dfb966b10f7c73f33e780b859a81d96aebd",
+          "official_chars": 33,
+          "stored_chars": 33,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "C": {
+          "official_text_sha256": "4b7b04e22c66a3c945a73d9b231511ba98bb71a8f6170d098d16bd16674343cf",
+          "stored_text_sha256": "4b7b04e22c66a3c945a73d9b231511ba98bb71a8f6170d098d16bd16674343cf",
+          "official_chars": 39,
+          "stored_chars": 39,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "D": {
+          "official_text_sha256": "c60c5de38091bd99c01dda92ff248498f651ab31ba6098b7a28828f80e954e86",
+          "stored_text_sha256": "c60c5de38091bd99c01dda92ff248498f651ab31ba6098b7a28828f80e954e86",
+          "official_chars": 29,
+          "stored_chars": 29,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        }
+      },
+      "source_binaries": "INEP_2026_SHA256_DOCUMENTOS_PRELIMINARES_20261117.json",
+      "import_executed": false,
+      "clinical_approval": false
+    },
+    {
+      "reap_caderno_1_question": 11,
+      "reap_caderno_2_equivalent_question": 78,
+      "fo_item_status": "NOT_FOUND_IN_fo_enamed_items",
+      "approval": "PENDING",
+      "c1_physical_page": 5,
+      "c2_physical_page": 20,
+      "c1_extracted_content_sha256": "1184e2bb499fc38a9c95bc7360dc15eaba317c479b6877a54311f2a4cf486636",
+      "c2_extracted_content_sha256": "c6241ceb4e2733ff0eb299dac0b5dafd0b403fba59e1f7ff87409ad2a34ba191",
+      "full_stem_comparison": {
+        "official_text_sha256": "2646e90ba31829ae9a405fd4e3e1372a1237538d084c279ca44820019448c842",
+        "stored_text_sha256": "f3ceb0897c76e3f886311d33bef4332ab1701151bb2dee3f44e255057f3724b2",
+        "official_chars": 883,
+        "stored_chars": 881,
+        "whitespace_equivalent": false,
+        "token_equivalent": false,
+        "numeric_sequence_equal": true,
+        "official_numbers": [
+          "32",
+          "6",
+          "90",
+          "84",
+          "110",
+          "70",
+          "2.500",
+          "8",
+          "2,5"
+        ],
+        "stored_numbers": [
+          "32",
+          "6",
+          "90",
+          "84",
+          "110",
+          "70",
+          "2.500",
+          "8",
+          "2,5"
+        ],
+        "differences": [
+          {
+            "operation": "delete",
+            "official_range": [
+              0,
+              1
+            ],
+            "stored_range": [
+              0,
+              0
+            ],
+            "official_excerpt": "I",
+            "stored_excerpt": "",
+            "official_token_count": 1,
+            "stored_token_count": 0
+          }
+        ]
+      },
+      "all_four_options_compared": {
+        "A": {
+          "official_text_sha256": "9b64f6ae8402441b822456fc6fbdf7fcb58f399c7e3dce4eb231cf02bcd960bb",
+          "stored_text_sha256": "9b64f6ae8402441b822456fc6fbdf7fcb58f399c7e3dce4eb231cf02bcd960bb",
+          "official_chars": 17,
+          "stored_chars": 17,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "B": {
+          "official_text_sha256": "337c120257be0cf1a2151bf0355b15bea1f3062a02e801126ae91231070b998a",
+          "stored_text_sha256": "337c120257be0cf1a2151bf0355b15bea1f3062a02e801126ae91231070b998a",
+          "official_chars": 18,
+          "stored_chars": 18,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "C": {
+          "official_text_sha256": "dbfdbada67acf037adc48bdc24b1ce7fa285773962c1cd90228f1715cae45f61",
+          "stored_text_sha256": "dbfdbada67acf037adc48bdc24b1ce7fa285773962c1cd90228f1715cae45f61",
+          "official_chars": 22,
+          "stored_chars": 22,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "D": {
+          "official_text_sha256": "2dc8a615be6f6ebbe324c5c234d84d1bb8c99a28eb2b43e64165464cc184cafa",
+          "stored_text_sha256": "2dc8a615be6f6ebbe324c5c234d84d1bb8c99a28eb2b43e64165464cc184cafa",
+          "official_chars": 18,
+          "stored_chars": 18,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        }
+      },
+      "source_binaries": "INEP_2026_SHA256_DOCUMENTOS_PRELIMINARES_20261117.json",
+      "import_executed": false,
+      "clinical_approval": false
+    },
+    {
+      "reap_caderno_1_question": 20,
+      "reap_caderno_2_equivalent_question": 25,
+      "fo_item_status": "NOT_FOUND_IN_fo_enamed_items",
+      "approval": "PENDING",
+      "c1_physical_page": 7,
+      "c2_physical_page": 9,
+      "c1_extracted_content_sha256": "dedb520a6c5563282d464e7ebe1a76da160c85a8f95ef76b0d56ad50b6b7db07",
+      "c2_extracted_content_sha256": "5643cb03af1c849c8b4767acec5582928e42f54df49aa46d4fd3adbbb473e21f",
+      "full_stem_comparison": {
+        "official_text_sha256": "6bb1945c903e9c1623bc14df63e264bb7eb4a415e8a4f446830c1af4135c10e2",
+        "stored_text_sha256": "0d06d019a63938232e38ac66c50b74c91eac2e3a0a840aefc233e2893a317758",
+        "official_chars": 405,
+        "stored_chars": 405,
+        "whitespace_equivalent": true,
+        "token_equivalent": true,
+        "numeric_sequence_equal": true,
+        "official_numbers": [
+          "2025",
+          "2020",
+          "2020",
+          "2025",
+          "2020",
+          "130",
+          "139",
+          "85",
+          "89",
+          "2025",
+          "120",
+          "139",
+          "80",
+          "89"
+        ],
+        "stored_numbers": [
+          "2025",
+          "2020",
+          "2020",
+          "2025",
+          "2020",
+          "130",
+          "139",
+          "85",
+          "89",
+          "2025",
+          "120",
+          "139",
+          "80",
+          "89"
+        ],
+        "differences": []
+      },
+      "all_four_options_compared": {
+        "A": {
+          "official_text_sha256": "19c4b412289970880e96e08c812254cab65509a68c511575e15e5c19a87abd9a",
+          "stored_text_sha256": "19c4b412289970880e96e08c812254cab65509a68c511575e15e5c19a87abd9a",
+          "official_chars": 14,
+          "stored_chars": 14,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "B": {
+          "official_text_sha256": "df9b7ee7d11c85eaab83601e629791bb0e1353fd3739c75beef1153583613986",
+          "stored_text_sha256": "df9b7ee7d11c85eaab83601e629791bb0e1353fd3739c75beef1153583613986",
+          "official_chars": 15,
+          "stored_chars": 15,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "C": {
+          "official_text_sha256": "cd7decc0f36d674c959e9effc20fa36833c36b893dc74af34e0eb6d7ea659529",
+          "stored_text_sha256": "cd7decc0f36d674c959e9effc20fa36833c36b893dc74af34e0eb6d7ea659529",
+          "official_chars": 15,
+          "stored_chars": 15,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "D": {
+          "official_text_sha256": "25ea99bd662bcb926bd43d1294ff40d5806e69c5be37dc8ac0fa4ab371428645",
+          "stored_text_sha256": "25ea99bd662bcb926bd43d1294ff40d5806e69c5be37dc8ac0fa4ab371428645",
+          "official_chars": 25,
+          "stored_chars": 25,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        }
+      },
+      "source_binaries": "INEP_2026_SHA256_DOCUMENTOS_PRELIMINARES_20261117.json",
+      "import_executed": false,
+      "clinical_approval": false
+    },
+    {
+      "reap_caderno_1_question": 22,
+      "reap_caderno_2_equivalent_question": 87,
+      "fo_item_status": "NOT_FOUND_IN_fo_enamed_items",
+      "approval": "PENDING",
+      "c1_physical_page": 7,
+      "c2_physical_page": 22,
+      "c1_extracted_content_sha256": "e906c0db3f355d0993c4a40656f86e8b4c28ca0a533dce7f86e9528d12b33954",
+      "c2_extracted_content_sha256": "e906c0db3f355d0993c4a40656f86e8b4c28ca0a533dce7f86e9528d12b33954",
+      "full_stem_comparison": {
+        "official_text_sha256": "5697551e7d8298874e0e3a16ffef63c0134701156270d54d7568b1bdb82ca0b0",
+        "stored_text_sha256": "5697551e7d8298874e0e3a16ffef63c0134701156270d54d7568b1bdb82ca0b0",
+        "official_chars": 549,
+        "stored_chars": 549,
+        "whitespace_equivalent": true,
+        "token_equivalent": true,
+        "numeric_sequence_equal": true,
+        "official_numbers": [
+          "62",
+          "50",
+          "12",
+          "12",
+          "25",
+          "20",
+          "150",
+          "90",
+          "190"
+        ],
+        "stored_numbers": [
+          "62",
+          "50",
+          "12",
+          "12",
+          "25",
+          "20",
+          "150",
+          "90",
+          "190"
+        ],
+        "differences": []
+      },
+      "all_four_options_compared": {
+        "A": {
+          "official_text_sha256": "ca3bbb6fc6128f136c4da68b7af501e4cface24a57f18575658feffc48bc02e6",
+          "stored_text_sha256": "ca3bbb6fc6128f136c4da68b7af501e4cface24a57f18575658feffc48bc02e6",
+          "official_chars": 18,
+          "stored_chars": 18,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "B": {
+          "official_text_sha256": "633804bf96baac9fda6eed7c6b60d48d5e881666b5f79b229d5a6aafcfaccfa3",
+          "stored_text_sha256": "633804bf96baac9fda6eed7c6b60d48d5e881666b5f79b229d5a6aafcfaccfa3",
+          "official_chars": 25,
+          "stored_chars": 25,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "C": {
+          "official_text_sha256": "7fb4eda1a5f85c4f12c973c4c91f1cef6fee83dfb3ef7ef7d8a90786ce93d712",
+          "stored_text_sha256": "7fb4eda1a5f85c4f12c973c4c91f1cef6fee83dfb3ef7ef7d8a90786ce93d712",
+          "official_chars": 37,
+          "stored_chars": 37,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "D": {
+          "official_text_sha256": "7626b63843384734e4070106d25b60801aca91d66111e89773fdc880404bf2d0",
+          "stored_text_sha256": "7626b63843384734e4070106d25b60801aca91d66111e89773fdc880404bf2d0",
+          "official_chars": 29,
+          "stored_chars": 29,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        }
+      },
+      "source_binaries": "INEP_2026_SHA256_DOCUMENTOS_PRELIMINARES_20261117.json",
+      "import_executed": false,
+      "clinical_approval": false
+    },
+    {
+      "reap_caderno_1_question": 24,
+      "reap_caderno_2_equivalent_question": 89,
+      "fo_item_status": "NOT_FOUND_IN_fo_enamed_items",
+      "approval": "PENDING",
+      "c1_physical_page": 8,
+      "c2_physical_page": 23,
+      "c1_extracted_content_sha256": "0da8b0118ca257ee5a799c907dc9b863a435ea22e887b8386185e1de8a8ed1c8",
+      "c2_extracted_content_sha256": "0da8b0118ca257ee5a799c907dc9b863a435ea22e887b8386185e1de8a8ed1c8",
+      "full_stem_comparison": {
+        "official_text_sha256": "7353a8b7af059330c14e3b0650450d6b35633d47b2d92e64019f6b160b43711b",
+        "stored_text_sha256": "7353a8b7af059330c14e3b0650450d6b35633d47b2d92e64019f6b160b43711b",
+        "official_chars": 613,
+        "stored_chars": 613,
+        "whitespace_equivalent": true,
+        "token_equivalent": true,
+        "numeric_sequence_equal": true,
+        "official_numbers": [
+          "6",
+          "6"
+        ],
+        "stored_numbers": [
+          "6",
+          "6"
+        ],
+        "differences": []
+      },
+      "all_four_options_compared": {
+        "A": {
+          "official_text_sha256": "e94eb43d2776fcd4392f4ca9130c7dd7d566d1c91b55f67d99b094d7cc1063eb",
+          "stored_text_sha256": "e94eb43d2776fcd4392f4ca9130c7dd7d566d1c91b55f67d99b094d7cc1063eb",
+          "official_chars": 52,
+          "stored_chars": 52,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "B": {
+          "official_text_sha256": "c8cd0386ff6b84b2bfc8f50ea0631559aa04b9542adb262e92372ed3a20cf455",
+          "stored_text_sha256": "c8cd0386ff6b84b2bfc8f50ea0631559aa04b9542adb262e92372ed3a20cf455",
+          "official_chars": 52,
+          "stored_chars": 52,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "C": {
+          "official_text_sha256": "d552b9580d8dc97b318d6d874f6091f52d5e2bf8b8993d84fef6ab7c07452ca4",
+          "stored_text_sha256": "d552b9580d8dc97b318d6d874f6091f52d5e2bf8b8993d84fef6ab7c07452ca4",
+          "official_chars": 51,
+          "stored_chars": 51,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "D": {
+          "official_text_sha256": "17ebabd6418edbbe9e83ea04838f5dd13a45d696f0e35e0d8356a342f794da91",
+          "stored_text_sha256": "17ebabd6418edbbe9e83ea04838f5dd13a45d696f0e35e0d8356a342f794da91",
+          "official_chars": 56,
+          "stored_chars": 56,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        }
+      },
+      "source_binaries": "INEP_2026_SHA256_DOCUMENTOS_PRELIMINARES_20261117.json",
+      "import_executed": false,
+      "clinical_approval": false
+    },
+    {
+      "reap_caderno_1_question": 27,
+      "reap_caderno_2_equivalent_question": 92,
+      "fo_item_status": "NOT_FOUND_IN_fo_enamed_items",
+      "approval": "PENDING",
+      "c1_physical_page": 9,
+      "c2_physical_page": 24,
+      "c1_extracted_content_sha256": "03f094feb20761eeac57f4fdf892318e9f8b9f32e5a7b627ae8815862c067bb5",
+      "c2_extracted_content_sha256": "03f094feb20761eeac57f4fdf892318e9f8b9f32e5a7b627ae8815862c067bb5",
+      "full_stem_comparison": {
+        "official_text_sha256": "d2665904969e5b64060fbf6db702d6396b55f5691183ffcf65585d7982af4258",
+        "stored_text_sha256": "d2665904969e5b64060fbf6db702d6396b55f5691183ffcf65585d7982af4258",
+        "official_chars": 596,
+        "stored_chars": 596,
+        "whitespace_equivalent": true,
+        "token_equivalent": true,
+        "numeric_sequence_equal": true,
+        "official_numbers": [
+          "4",
+          "1",
+          "1.500",
+          "3,0",
+          "50.000",
+          "2",
+          "900",
+          "2,0",
+          "45.000",
+          "3",
+          "1.625",
+          "2,5",
+          "65.000",
+          "4",
+          "864",
+          "1,8",
+          "48.000"
+        ],
+        "stored_numbers": [
+          "4",
+          "1",
+          "1.500",
+          "3,0",
+          "50.000",
+          "2",
+          "900",
+          "2,0",
+          "45.000",
+          "3",
+          "1.625",
+          "2,5",
+          "65.000",
+          "4",
+          "864",
+          "1,8",
+          "48.000"
+        ],
+        "differences": []
+      },
+      "all_four_options_compared": {
+        "A": {
+          "official_text_sha256": "d833f9d6921d80e7e7ae113d75a837a1b53fa5eb7bee258401902c3b976cb53e",
+          "stored_text_sha256": "d833f9d6921d80e7e7ae113d75a837a1b53fa5eb7bee258401902c3b976cb53e",
+          "official_chars": 2,
+          "stored_chars": 2,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [
+            "1"
+          ],
+          "stored_numbers": [
+            "1"
+          ],
+          "differences": []
+        },
+        "B": {
+          "official_text_sha256": "b9a6a44fcae14f36beb8916f16dde2ab627b63703f3e1fce8c404499decea03b",
+          "stored_text_sha256": "b9a6a44fcae14f36beb8916f16dde2ab627b63703f3e1fce8c404499decea03b",
+          "official_chars": 2,
+          "stored_chars": 2,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [
+            "2"
+          ],
+          "stored_numbers": [
+            "2"
+          ],
+          "differences": []
+        },
+        "C": {
+          "official_text_sha256": "7a911c8109e3108abb6238806cc9e82f0475c840d5ff5e4294d2176f1dd5e3b1",
+          "stored_text_sha256": "7a911c8109e3108abb6238806cc9e82f0475c840d5ff5e4294d2176f1dd5e3b1",
+          "official_chars": 2,
+          "stored_chars": 2,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [
+            "3"
+          ],
+          "stored_numbers": [
+            "3"
+          ],
+          "differences": []
+        },
+        "D": {
+          "official_text_sha256": "3454daee28b6416471adc227d4ec23822e675ce2298183aa420c3a0d1d7a5003",
+          "stored_text_sha256": "3454daee28b6416471adc227d4ec23822e675ce2298183aa420c3a0d1d7a5003",
+          "official_chars": 2,
+          "stored_chars": 2,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [
+            "4"
+          ],
+          "stored_numbers": [
+            "4"
+          ],
+          "differences": []
+        }
+      },
+      "source_binaries": "INEP_2026_SHA256_DOCUMENTOS_PRELIMINARES_20261117.json",
+      "import_executed": false,
+      "clinical_approval": false
+    },
+    {
+      "reap_caderno_1_question": 31,
+      "reap_caderno_2_equivalent_question": 10,
+      "fo_item_status": "NOT_FOUND_IN_fo_enamed_items",
+      "approval": "PENDING",
+      "c1_physical_page": 10,
+      "c2_physical_page": 5,
+      "c1_extracted_content_sha256": "853c7d5735cc2e29719fd77ced6d1ef5bf4d90dbcd45ba093196069f41f31464",
+      "c2_extracted_content_sha256": "853c7d5735cc2e29719fd77ced6d1ef5bf4d90dbcd45ba093196069f41f31464",
+      "full_stem_comparison": {
+        "official_text_sha256": "f36546a9d2cddb032c67d56c6b9b314fa1f9d7ef091b0a4ad6128506faa2c493",
+        "stored_text_sha256": "f36546a9d2cddb032c67d56c6b9b314fa1f9d7ef091b0a4ad6128506faa2c493",
+        "official_chars": 616,
+        "stored_chars": 616,
+        "whitespace_equivalent": true,
+        "token_equivalent": true,
+        "numeric_sequence_equal": true,
+        "official_numbers": [
+          "19",
+          "13"
+        ],
+        "stored_numbers": [
+          "19",
+          "13"
+        ],
+        "differences": []
+      },
+      "all_four_options_compared": {
+        "A": {
+          "official_text_sha256": "f273e75e9ce254fbfc18668696b781b5b2e8b2d65022a0be92dc720c0ef20f32",
+          "stored_text_sha256": "f273e75e9ce254fbfc18668696b781b5b2e8b2d65022a0be92dc720c0ef20f32",
+          "official_chars": 37,
+          "stored_chars": 37,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "B": {
+          "official_text_sha256": "b2f72172732ee13a3bb471a666d746043bd242ea2161b6d40b7931f37beac2c8",
+          "stored_text_sha256": "b2f72172732ee13a3bb471a666d746043bd242ea2161b6d40b7931f37beac2c8",
+          "official_chars": 32,
+          "stored_chars": 32,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "C": {
+          "official_text_sha256": "b27e7822407ba9a9fd125d175a5d6a83c4b0657d440e0fbcd14267db3558672f",
+          "stored_text_sha256": "b27e7822407ba9a9fd125d175a5d6a83c4b0657d440e0fbcd14267db3558672f",
+          "official_chars": 36,
+          "stored_chars": 36,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "D": {
+          "official_text_sha256": "4539de3d2b1cd68f6f32bc4188c9215c02817d15afa7ee315b55be3b3a056c18",
+          "stored_text_sha256": "4539de3d2b1cd68f6f32bc4188c9215c02817d15afa7ee315b55be3b3a056c18",
+          "official_chars": 48,
+          "stored_chars": 48,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        }
+      },
+      "source_binaries": "INEP_2026_SHA256_DOCUMENTOS_PRELIMINARES_20261117.json",
+      "import_executed": false,
+      "clinical_approval": false
+    },
+    {
+      "reap_caderno_1_question": 36,
+      "reap_caderno_2_equivalent_question": 63,
+      "fo_item_status": "NOT_FOUND_IN_fo_enamed_items",
+      "approval": "PENDING",
+      "c1_physical_page": 11,
+      "c2_physical_page": 17,
+      "c1_extracted_content_sha256": "d658645e436c725c3fa683704f9352d659d73dc01c979559dfcb3f531327df0a",
+      "c2_extracted_content_sha256": "d658645e436c725c3fa683704f9352d659d73dc01c979559dfcb3f531327df0a",
+      "full_stem_comparison": {
+        "official_text_sha256": "17c0f41a7495e14110e08973338b26b3435c252b01de9e3cd1eb1b32e37744f1",
+        "stored_text_sha256": "17c0f41a7495e14110e08973338b26b3435c252b01de9e3cd1eb1b32e37744f1",
+        "official_chars": 858,
+        "stored_chars": 858,
+        "whitespace_equivalent": true,
+        "token_equivalent": true,
+        "numeric_sequence_equal": true,
+        "official_numbers": [
+          "27",
+          "1",
+          "180",
+          "110",
+          "15",
+          "3"
+        ],
+        "stored_numbers": [
+          "27",
+          "1",
+          "180",
+          "110",
+          "15",
+          "3"
+        ],
+        "differences": []
+      },
+      "all_four_options_compared": {
+        "A": {
+          "official_text_sha256": "5d6dc649a2c9ffd8fb43e1ff4df08527b6b37b86a9607a621938fbbc2073eceb",
+          "stored_text_sha256": "5d6dc649a2c9ffd8fb43e1ff4df08527b6b37b86a9607a621938fbbc2073eceb",
+          "official_chars": 19,
+          "stored_chars": 19,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "B": {
+          "official_text_sha256": "80987e703e6bb841c00e54b774e66656d080184f15e06831686c865413fa42b3",
+          "stored_text_sha256": "80987e703e6bb841c00e54b774e66656d080184f15e06831686c865413fa42b3",
+          "official_chars": 19,
+          "stored_chars": 19,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "C": {
+          "official_text_sha256": "79e132ce2da993bb16c0fd4bca87a2a814eef676eac96fc8448736df815fa21c",
+          "stored_text_sha256": "79e132ce2da993bb16c0fd4bca87a2a814eef676eac96fc8448736df815fa21c",
+          "official_chars": 36,
+          "stored_chars": 36,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "D": {
+          "official_text_sha256": "d31ffc18ff3554ee7e0c291f85a02647a0d0f9e52ef0c06354800a0ee4341a87",
+          "stored_text_sha256": "d31ffc18ff3554ee7e0c291f85a02647a0d0f9e52ef0c06354800a0ee4341a87",
+          "official_chars": 22,
+          "stored_chars": 22,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        }
+      },
+      "source_binaries": "INEP_2026_SHA256_DOCUMENTOS_PRELIMINARES_20261117.json",
+      "import_executed": false,
+      "clinical_approval": false
+    },
+    {
+      "reap_caderno_1_question": 42,
+      "reap_caderno_2_equivalent_question": 16,
+      "fo_item_status": "NOT_FOUND_IN_fo_enamed_items",
+      "approval": "PENDING",
+      "c1_physical_page": 13,
+      "c2_physical_page": 7,
+      "c1_extracted_content_sha256": "542e9f88aa0e8f3c4d6b79cb64c1386ef4540148d175b2a0ec0b6c39a1eb622d",
+      "c2_extracted_content_sha256": "542e9f88aa0e8f3c4d6b79cb64c1386ef4540148d175b2a0ec0b6c39a1eb622d",
+      "full_stem_comparison": {
+        "official_text_sha256": "68a719e13636c08d8e0e8d499b3999c307d5650e7f8eb929d921b79e29561e73",
+        "stored_text_sha256": "68a719e13636c08d8e0e8d499b3999c307d5650e7f8eb929d921b79e29561e73",
+        "official_chars": 662,
+        "stored_chars": 662,
+        "whitespace_equivalent": true,
+        "token_equivalent": true,
+        "numeric_sequence_equal": true,
+        "official_numbers": [
+          "15",
+          "4",
+          "8,1",
+          "10,5",
+          "14,2",
+          "66",
+          "75",
+          "87",
+          "29",
+          "30",
+          "33",
+          "18,5%",
+          "11,5",
+          "15%",
+          "150.000",
+          "402.000",
+          "450.00",
+          "9",
+          "40",
+          "300",
+          "3,0%",
+          "3,5%"
+        ],
+        "stored_numbers": [
+          "15",
+          "4",
+          "8,1",
+          "10,5",
+          "14,2",
+          "66",
+          "75",
+          "87",
+          "29",
+          "30",
+          "33",
+          "18,5%",
+          "11,5",
+          "15%",
+          "150.000",
+          "402.000",
+          "450.00",
+          "9",
+          "40",
+          "300",
+          "3,0%",
+          "3,5%"
+        ],
+        "differences": []
+      },
+      "all_four_options_compared": {
+        "A": {
+          "official_text_sha256": "9ec45ceb514a5da2ea0b946458b74aefbc9d5f05c8ffc09a3e629ab376a52dbf",
+          "stored_text_sha256": "9ec45ceb514a5da2ea0b946458b74aefbc9d5f05c8ffc09a3e629ab376a52dbf",
+          "official_chars": 66,
+          "stored_chars": 66,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "B": {
+          "official_text_sha256": "23d60f71ca75496c102614bcb10491373fa8ebf0551890041b5c43b51b035626",
+          "stored_text_sha256": "23d60f71ca75496c102614bcb10491373fa8ebf0551890041b5c43b51b035626",
+          "official_chars": 64,
+          "stored_chars": 64,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "C": {
+          "official_text_sha256": "0caaee1a757106d82c11d01560350e9e66909d57f1199936ce556fa9d3ef6c74",
+          "stored_text_sha256": "0caaee1a757106d82c11d01560350e9e66909d57f1199936ce556fa9d3ef6c74",
+          "official_chars": 58,
+          "stored_chars": 58,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "D": {
+          "official_text_sha256": "c598afbe4b1ec4398eb2f432d1a45d857be11069abcd836fa525967452ae0d30",
+          "stored_text_sha256": "c598afbe4b1ec4398eb2f432d1a45d857be11069abcd836fa525967452ae0d30",
+          "official_chars": 62,
+          "stored_chars": 62,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        }
+      },
+      "source_binaries": "INEP_2026_SHA256_DOCUMENTOS_PRELIMINARES_20261117.json",
+      "import_executed": false,
+      "clinical_approval": false
+    },
+    {
+      "reap_caderno_1_question": 49,
+      "reap_caderno_2_equivalent_question": 61,
+      "fo_item_status": "NOT_FOUND_IN_fo_enamed_items",
+      "approval": "PENDING",
+      "c1_physical_page": 15,
+      "c2_physical_page": 17,
+      "c1_extracted_content_sha256": "7ccb7ae6b7a1a5744126b4d39f7b08daf4f8643e79e6f67a2f67a82a26b817f3",
+      "c2_extracted_content_sha256": "7ccb7ae6b7a1a5744126b4d39f7b08daf4f8643e79e6f67a2f67a82a26b817f3",
+      "full_stem_comparison": {
+        "official_text_sha256": "324c8502c1bd3e6cb443ba8c667c2f56a1c14ab33b79f8cb8610c54cbcdad3dc",
+        "stored_text_sha256": "324c8502c1bd3e6cb443ba8c667c2f56a1c14ab33b79f8cb8610c54cbcdad3dc",
+        "official_chars": 776,
+        "stored_chars": 776,
+        "whitespace_equivalent": true,
+        "token_equivalent": true,
+        "numeric_sequence_equal": true,
+        "official_numbers": [
+          "24",
+          "7",
+          "1",
+          "20",
+          "36,8"
+        ],
+        "stored_numbers": [
+          "24",
+          "7",
+          "1",
+          "20",
+          "36,8"
+        ],
+        "differences": []
+      },
+      "all_four_options_compared": {
+        "A": {
+          "official_text_sha256": "bc7954941edcc8a253a0ca2f824f1edb1c69b5fb3019d63b7c309bffbb000817",
+          "stored_text_sha256": "bc7954941edcc8a253a0ca2f824f1edb1c69b5fb3019d63b7c309bffbb000817",
+          "official_chars": 45,
+          "stored_chars": 45,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "B": {
+          "official_text_sha256": "bb636258678701a198a56fad523799fb92c784d6fe5bb7aaa9e26f290544d666",
+          "stored_text_sha256": "bb636258678701a198a56fad523799fb92c784d6fe5bb7aaa9e26f290544d666",
+          "official_chars": 57,
+          "stored_chars": 57,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "C": {
+          "official_text_sha256": "3475080b3ce203b712aeb238c7c84ece107bde7cfe638ecacced08e74c897e84",
+          "stored_text_sha256": "3475080b3ce203b712aeb238c7c84ece107bde7cfe638ecacced08e74c897e84",
+          "official_chars": 43,
+          "stored_chars": 43,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "D": {
+          "official_text_sha256": "6f6517a9a7f7507d0d49956e24d7d6994569e3a4ba0052341b1739d497175c72",
+          "stored_text_sha256": "6f6517a9a7f7507d0d49956e24d7d6994569e3a4ba0052341b1739d497175c72",
+          "official_chars": 33,
+          "stored_chars": 33,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        }
+      },
+      "source_binaries": "INEP_2026_SHA256_DOCUMENTOS_PRELIMINARES_20261117.json",
+      "import_executed": false,
+      "clinical_approval": false
+    },
+    {
+      "reap_caderno_1_question": 53,
+      "reap_caderno_2_equivalent_question": 3,
+      "fo_item_status": "NOT_FOUND_IN_fo_enamed_items",
+      "approval": "PENDING",
+      "c1_physical_page": 16,
+      "c2_physical_page": 3,
+      "c1_extracted_content_sha256": "05079b50b76b712315778429dd84943dd0ee92964fd268305e3c68dca83f19c4",
+      "c2_extracted_content_sha256": "05079b50b76b712315778429dd84943dd0ee92964fd268305e3c68dca83f19c4",
+      "full_stem_comparison": {
+        "official_text_sha256": "4239f1cad7770348aee07727fc6b367e9e3dd4211aa0ea15adfb2e3a143a03a0",
+        "stored_text_sha256": "4239f1cad7770348aee07727fc6b367e9e3dd4211aa0ea15adfb2e3a143a03a0",
+        "official_chars": 518,
+        "stored_chars": 518,
+        "whitespace_equivalent": true,
+        "token_equivalent": true,
+        "numeric_sequence_equal": true,
+        "official_numbers": [
+          "50",
+          "4",
+          "2",
+          "4",
+          "24"
+        ],
+        "stored_numbers": [
+          "50",
+          "4",
+          "2",
+          "4",
+          "24"
+        ],
+        "differences": []
+      },
+      "all_four_options_compared": {
+        "A": {
+          "official_text_sha256": "db0842f831bb999d450862dad86569af6958767dcdd26a7be25ca5b1d1271f2c",
+          "stored_text_sha256": "db0842f831bb999d450862dad86569af6958767dcdd26a7be25ca5b1d1271f2c",
+          "official_chars": 25,
+          "stored_chars": 25,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "B": {
+          "official_text_sha256": "2e995a0bb768f91a77ba5e791d34933d12c8defafc988d682265159686158709",
+          "stored_text_sha256": "2e995a0bb768f91a77ba5e791d34933d12c8defafc988d682265159686158709",
+          "official_chars": 32,
+          "stored_chars": 32,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "C": {
+          "official_text_sha256": "e1e4139f98824fd851b3178ed6d61165b5b2c43849dfb2ad9b74fe14601d481a",
+          "stored_text_sha256": "e1e4139f98824fd851b3178ed6d61165b5b2c43849dfb2ad9b74fe14601d481a",
+          "official_chars": 18,
+          "stored_chars": 18,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "D": {
+          "official_text_sha256": "b8c461ae81486b0fa5bd5086f42cb5a824194c2368986187d48c3a925597ef27",
+          "stored_text_sha256": "b8c461ae81486b0fa5bd5086f42cb5a824194c2368986187d48c3a925597ef27",
+          "official_chars": 27,
+          "stored_chars": 27,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        }
+      },
+      "source_binaries": "INEP_2026_SHA256_DOCUMENTOS_PRELIMINARES_20261117.json",
+      "import_executed": false,
+      "clinical_approval": false
+    },
+    {
+      "reap_caderno_1_question": 57,
+      "reap_caderno_2_equivalent_question": 7,
+      "fo_item_status": "NOT_FOUND_IN_fo_enamed_items",
+      "approval": "PENDING",
+      "c1_physical_page": 17,
+      "c2_physical_page": 4,
+      "c1_extracted_content_sha256": "325389ce608a2363466b285f6e6951c90d5a5afa404b75842263b1cc8b69a678",
+      "c2_extracted_content_sha256": "325389ce608a2363466b285f6e6951c90d5a5afa404b75842263b1cc8b69a678",
+      "full_stem_comparison": {
+        "official_text_sha256": "1a50e559b6983f94e88338b32fedd28d48b1ecd389ac6748147f6f055128605b",
+        "stored_text_sha256": "1a50e559b6983f94e88338b32fedd28d48b1ecd389ac6748147f6f055128605b",
+        "official_chars": 825,
+        "stored_chars": 825,
+        "whitespace_equivalent": true,
+        "token_equivalent": true,
+        "numeric_sequence_equal": true,
+        "official_numbers": [
+          "4"
+        ],
+        "stored_numbers": [
+          "4"
+        ],
+        "differences": []
+      },
+      "all_four_options_compared": {
+        "A": {
+          "official_text_sha256": "abbcc0c5606ab2b6121deb4e88a5f266be51020d6c42d6befc914fd86f05b5f3",
+          "stored_text_sha256": "abbcc0c5606ab2b6121deb4e88a5f266be51020d6c42d6befc914fd86f05b5f3",
+          "official_chars": 33,
+          "stored_chars": 33,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "B": {
+          "official_text_sha256": "dfdd4077c253b0c768a0dec2ed91c84993d47543d0e86f1cb39e75fbfa68f92f",
+          "stored_text_sha256": "dfdd4077c253b0c768a0dec2ed91c84993d47543d0e86f1cb39e75fbfa68f92f",
+          "official_chars": 36,
+          "stored_chars": 36,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "C": {
+          "official_text_sha256": "56263f194a800b76c1c85ac0b6deed6514d3c59c621d0576f198a7c53122b6ba",
+          "stored_text_sha256": "56263f194a800b76c1c85ac0b6deed6514d3c59c621d0576f198a7c53122b6ba",
+          "official_chars": 36,
+          "stored_chars": 36,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "D": {
+          "official_text_sha256": "2f334750434aa993222a19f1b2fee58b492ab3ff911da925e2d9bb7686ef3bc0",
+          "stored_text_sha256": "2f334750434aa993222a19f1b2fee58b492ab3ff911da925e2d9bb7686ef3bc0",
+          "official_chars": 24,
+          "stored_chars": 24,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        }
+      },
+      "source_binaries": "INEP_2026_SHA256_DOCUMENTOS_PRELIMINARES_20261117.json",
+      "import_executed": false,
+      "clinical_approval": false
+    },
+    {
+      "reap_caderno_1_question": 59,
+      "reap_caderno_2_equivalent_question": 35,
+      "fo_item_status": "NOT_FOUND_IN_fo_enamed_items",
+      "approval": "PENDING",
+      "c1_physical_page": 17,
+      "c2_physical_page": 11,
+      "c1_extracted_content_sha256": "37700e39f7f5654b0339814d9ea0b5f4ca7ea84694ca59785b36f8c8e0e3ce9f",
+      "c2_extracted_content_sha256": "37700e39f7f5654b0339814d9ea0b5f4ca7ea84694ca59785b36f8c8e0e3ce9f",
+      "full_stem_comparison": {
+        "official_text_sha256": "643cdbe990caf613e6819c0f9d22643b3b982686c529bc0f7aa4e2b071ce201c",
+        "stored_text_sha256": "643cdbe990caf613e6819c0f9d22643b3b982686c529bc0f7aa4e2b071ce201c",
+        "official_chars": 272,
+        "stored_chars": 272,
+        "whitespace_equivalent": true,
+        "token_equivalent": true,
+        "numeric_sequence_equal": true,
+        "official_numbers": [],
+        "stored_numbers": [],
+        "differences": []
+      },
+      "all_four_options_compared": {
+        "A": {
+          "official_text_sha256": "c49d754ce4a748ecff1954f22dc4ed4a921414de29e1f3e948e8bbf4dad69278",
+          "stored_text_sha256": "c49d754ce4a748ecff1954f22dc4ed4a921414de29e1f3e948e8bbf4dad69278",
+          "official_chars": 57,
+          "stored_chars": 57,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "B": {
+          "official_text_sha256": "d297cf1cec8d619e5a926ecbb9f7f5afebb5fe8e69e94268de2d285fdd35c5fe",
+          "stored_text_sha256": "d297cf1cec8d619e5a926ecbb9f7f5afebb5fe8e69e94268de2d285fdd35c5fe",
+          "official_chars": 77,
+          "stored_chars": 77,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "C": {
+          "official_text_sha256": "909a4abffd68cece5934471a30a72de23e3a2d09ed0db58a9802ed467aba437e",
+          "stored_text_sha256": "909a4abffd68cece5934471a30a72de23e3a2d09ed0db58a9802ed467aba437e",
+          "official_chars": 65,
+          "stored_chars": 65,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "D": {
+          "official_text_sha256": "0706814bd7124756b7323825d2e02724698f472ea2d569d5cd0ea90718feb0e6",
+          "stored_text_sha256": "0706814bd7124756b7323825d2e02724698f472ea2d569d5cd0ea90718feb0e6",
+          "official_chars": 84,
+          "stored_chars": 84,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        }
+      },
+      "source_binaries": "INEP_2026_SHA256_DOCUMENTOS_PRELIMINARES_20261117.json",
+      "import_executed": false,
+      "clinical_approval": false
+    },
+    {
+      "reap_caderno_1_question": 74,
+      "reap_caderno_2_equivalent_question": 48,
+      "fo_item_status": "NOT_FOUND_IN_fo_enamed_items",
+      "approval": "PENDING",
+      "c1_physical_page": 20,
+      "c2_physical_page": 14,
+      "c1_extracted_content_sha256": "495dd184be20ffa44bb9c7a33fca5abfcb80945091ae15d80abdce7b5a827ba3",
+      "c2_extracted_content_sha256": "495dd184be20ffa44bb9c7a33fca5abfcb80945091ae15d80abdce7b5a827ba3",
+      "full_stem_comparison": {
+        "official_text_sha256": "858a94a9e85cd92194f6227af1e02b5c79e460bf4aa50c71bcf5bb2109f5eb01",
+        "stored_text_sha256": "858a94a9e85cd92194f6227af1e02b5c79e460bf4aa50c71bcf5bb2109f5eb01",
+        "official_chars": 601,
+        "stored_chars": 601,
+        "whitespace_equivalent": true,
+        "token_equivalent": true,
+        "numeric_sequence_equal": true,
+        "official_numbers": [
+          "72",
+          "4",
+          "37,9",
+          "135",
+          "85",
+          "122"
+        ],
+        "stored_numbers": [
+          "72",
+          "4",
+          "37,9",
+          "135",
+          "85",
+          "122"
+        ],
+        "differences": []
+      },
+      "all_four_options_compared": {
+        "A": {
+          "official_text_sha256": "b9ddc47bf2e1237106c62e34950589bbb16d9cfbc56345c116e141cc6640ca72",
+          "stored_text_sha256": "b9ddc47bf2e1237106c62e34950589bbb16d9cfbc56345c116e141cc6640ca72",
+          "official_chars": 24,
+          "stored_chars": 24,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "B": {
+          "official_text_sha256": "fdc737ddadd05d240620ead5d81ada081940ecfbae5d6f1eefc35e6330c4816b",
+          "stored_text_sha256": "fdc737ddadd05d240620ead5d81ada081940ecfbae5d6f1eefc35e6330c4816b",
+          "official_chars": 26,
+          "stored_chars": 26,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "C": {
+          "official_text_sha256": "2162ab5bc7e6e68cb09409cf8cc35464c8356526b12e413bdf9fb1d61b378f71",
+          "stored_text_sha256": "2162ab5bc7e6e68cb09409cf8cc35464c8356526b12e413bdf9fb1d61b378f71",
+          "official_chars": 23,
+          "stored_chars": 23,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "D": {
+          "official_text_sha256": "dc7e92927154d61b27b699dc5766e69f495140180a43338d0df34acfb5073467",
+          "stored_text_sha256": "dc7e92927154d61b27b699dc5766e69f495140180a43338d0df34acfb5073467",
+          "official_chars": 27,
+          "stored_chars": 27,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        }
+      },
+      "source_binaries": "INEP_2026_SHA256_DOCUMENTOS_PRELIMINARES_20261117.json",
+      "import_executed": false,
+      "clinical_approval": false
+    },
+    {
+      "reap_caderno_1_question": 88,
+      "reap_caderno_2_equivalent_question": 43,
+      "fo_item_status": "NOT_FOUND_IN_fo_enamed_items",
+      "approval": "PENDING",
+      "c1_physical_page": 23,
+      "c2_physical_page": 13,
+      "c1_extracted_content_sha256": "6dd14bbfde641106a46e73be53474cedf516122c50a6c21797300c6ef7e42183",
+      "c2_extracted_content_sha256": "6dd14bbfde641106a46e73be53474cedf516122c50a6c21797300c6ef7e42183",
+      "full_stem_comparison": {
+        "official_text_sha256": "92edbfbdb54e7400dc3717f6df09e1c372216cef01beb7c86a9b9f2310f1e1ec",
+        "stored_text_sha256": "92edbfbdb54e7400dc3717f6df09e1c372216cef01beb7c86a9b9f2310f1e1ec",
+        "official_chars": 546,
+        "stored_chars": 546,
+        "whitespace_equivalent": true,
+        "token_equivalent": true,
+        "numeric_sequence_equal": true,
+        "official_numbers": [
+          "18",
+          "90",
+          "15"
+        ],
+        "stored_numbers": [
+          "18",
+          "90",
+          "15"
+        ],
+        "differences": []
+      },
+      "all_four_options_compared": {
+        "A": {
+          "official_text_sha256": "6966f4e44cc8e74531f8439a600be7aa0062189bad72eb3bd4183b3f67b5fad2",
+          "stored_text_sha256": "6966f4e44cc8e74531f8439a600be7aa0062189bad72eb3bd4183b3f67b5fad2",
+          "official_chars": 21,
+          "stored_chars": 21,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "B": {
+          "official_text_sha256": "33e50d54dc54d4679ac1c54d02730991f2890a01ecdc67b79c46fbe0cd0cfd97",
+          "stored_text_sha256": "33e50d54dc54d4679ac1c54d02730991f2890a01ecdc67b79c46fbe0cd0cfd97",
+          "official_chars": 23,
+          "stored_chars": 23,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "C": {
+          "official_text_sha256": "9037200c257670eb036c30da894a497003162801ac0a0072332bc57115c1724a",
+          "stored_text_sha256": "9037200c257670eb036c30da894a497003162801ac0a0072332bc57115c1724a",
+          "official_chars": 15,
+          "stored_chars": 15,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "D": {
+          "official_text_sha256": "355b661eeb27400a45d21a94afe026843bb770e11a587e4cd5529f30838ff6af",
+          "stored_text_sha256": "355b661eeb27400a45d21a94afe026843bb770e11a587e4cd5529f30838ff6af",
+          "official_chars": 18,
+          "stored_chars": 18,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        }
+      },
+      "source_binaries": "INEP_2026_SHA256_DOCUMENTOS_PRELIMINARES_20261117.json",
+      "import_executed": false,
+      "clinical_approval": false
+    },
+    {
+      "reap_caderno_1_question": 91,
+      "reap_caderno_2_equivalent_question": 82,
+      "fo_item_status": "NOT_FOUND_IN_fo_enamed_items",
+      "approval": "PENDING",
+      "c1_physical_page": 24,
+      "c2_physical_page": 21,
+      "c1_extracted_content_sha256": "e54b5128c8ece4cd87d81014aec290c96452dd6c2422280516324f767a919400",
+      "c2_extracted_content_sha256": "e54b5128c8ece4cd87d81014aec290c96452dd6c2422280516324f767a919400",
+      "full_stem_comparison": {
+        "official_text_sha256": "d41f8e74e81090d149184310660827bc64491339566f2297c920c5c88160c0b9",
+        "stored_text_sha256": "d41f8e74e81090d149184310660827bc64491339566f2297c920c5c88160c0b9",
+        "official_chars": 532,
+        "stored_chars": 532,
+        "whitespace_equivalent": true,
+        "token_equivalent": true,
+        "numeric_sequence_equal": true,
+        "official_numbers": [
+          "55",
+          "160"
+        ],
+        "stored_numbers": [
+          "55",
+          "160"
+        ],
+        "differences": []
+      },
+      "all_four_options_compared": {
+        "A": {
+          "official_text_sha256": "7d3f5031ec7bdac060fcc4b39c6f1fa0062bf7ec730d1c4eb9c535b630d9d788",
+          "stored_text_sha256": "7d3f5031ec7bdac060fcc4b39c6f1fa0062bf7ec730d1c4eb9c535b630d9d788",
+          "official_chars": 35,
+          "stored_chars": 35,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "B": {
+          "official_text_sha256": "8ca4aaef5c763d21f5d6fd2f386cc2d4223807eb4b33924c0765039f9356c51a",
+          "stored_text_sha256": "8ca4aaef5c763d21f5d6fd2f386cc2d4223807eb4b33924c0765039f9356c51a",
+          "official_chars": 41,
+          "stored_chars": 41,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "C": {
+          "official_text_sha256": "97a2ada46ff352a5317c19ff2107c6ab4e3feaaee8c7f97c05eb917985fbe1ad",
+          "stored_text_sha256": "97a2ada46ff352a5317c19ff2107c6ab4e3feaaee8c7f97c05eb917985fbe1ad",
+          "official_chars": 33,
+          "stored_chars": 33,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "D": {
+          "official_text_sha256": "f851a4db1be40c306d703a7b21a092a79bb45fed238c3417538b6bc93f2671a8",
+          "stored_text_sha256": "f851a4db1be40c306d703a7b21a092a79bb45fed238c3417538b6bc93f2671a8",
+          "official_chars": 30,
+          "stored_chars": 30,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        }
+      },
+      "source_binaries": "INEP_2026_SHA256_DOCUMENTOS_PRELIMINARES_20261117.json",
+      "import_executed": false,
+      "clinical_approval": false
+    },
+    {
+      "reap_caderno_1_question": 98,
+      "reap_caderno_2_equivalent_question": 55,
+      "fo_item_status": "NOT_FOUND_IN_fo_enamed_items",
+      "approval": "PENDING",
+      "c1_physical_page": 26,
+      "c2_physical_page": 15,
+      "c1_extracted_content_sha256": "4f162066f917146b898a625b8cf7e9617470f270c3110b09c0f61e0bffb34191",
+      "c2_extracted_content_sha256": "4f162066f917146b898a625b8cf7e9617470f270c3110b09c0f61e0bffb34191",
+      "full_stem_comparison": {
+        "official_text_sha256": "b70baab64224148beacf20a01e40e527df9c672c9f49ec46d87790ed0bc6b78f",
+        "stored_text_sha256": "b70baab64224148beacf20a01e40e527df9c672c9f49ec46d87790ed0bc6b78f",
+        "official_chars": 968,
+        "stored_chars": 968,
+        "whitespace_equivalent": true,
+        "token_equivalent": true,
+        "numeric_sequence_equal": true,
+        "official_numbers": [
+          "20"
+        ],
+        "stored_numbers": [
+          "20"
+        ],
+        "differences": []
+      },
+      "all_four_options_compared": {
+        "A": {
+          "official_text_sha256": "7918c12572a18a361f3089bf46f7d15d64620b99da50fc6a5d63214bd0dea6ab",
+          "stored_text_sha256": "7918c12572a18a361f3089bf46f7d15d64620b99da50fc6a5d63214bd0dea6ab",
+          "official_chars": 10,
+          "stored_chars": 10,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "B": {
+          "official_text_sha256": "34550d57c1bf6f8f33df6548d1e4cf306f44c37e525b26d7e9108f6320dc4440",
+          "stored_text_sha256": "34550d57c1bf6f8f33df6548d1e4cf306f44c37e525b26d7e9108f6320dc4440",
+          "official_chars": 15,
+          "stored_chars": 15,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "C": {
+          "official_text_sha256": "fb667bbbfc8c789babdfd5c54f4f912a2c642f50c4593e921fefcb8fd18dc9d6",
+          "stored_text_sha256": "fb667bbbfc8c789babdfd5c54f4f912a2c642f50c4593e921fefcb8fd18dc9d6",
+          "official_chars": 26,
+          "stored_chars": 26,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        },
+        "D": {
+          "official_text_sha256": "438aa274d20877665b23ff2622455abb878b33c23e6767bb1f00904ac5f4dd2e",
+          "stored_text_sha256": "438aa274d20877665b23ff2622455abb878b33c23e6767bb1f00904ac5f4dd2e",
+          "official_chars": 12,
+          "stored_chars": 12,
+          "whitespace_equivalent": true,
+          "token_equivalent": true,
+          "numeric_sequence_equal": true,
+          "official_numbers": [],
+          "stored_numbers": [],
+          "differences": []
+        }
+      },
+      "source_binaries": "INEP_2026_SHA256_DOCUMENTOS_PRELIMINARES_20261117.json",
+      "import_executed": false,
+      "clinical_approval": false
+    }
+  ]
+}

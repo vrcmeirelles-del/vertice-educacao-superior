@@ -185,7 +185,7 @@ export default function TrailAnalysis({ institutionId, courses, role }: { instit
           discrepancy: d.avg_discrepancy,
           status: d.status,
         })),
-        prompt: `Analise as trilhas de formação ENADE deste curso de Direito. Para cada trilha em estado crítico ou de atenção, identifique:
+        prompt: `Analise as trilhas de formação do curso ${courses.find(c => c.id === courseId)?.name || 'selecionado'}, a partir das evidências ENADE/ENAMED fornecidas. Diferencie resultado oficial, simulado e inferência. Ausência de dados não equivale a zero; percentuais de acerto internos não são notas ou conceitos oficiais do Inep. Para cada trilha em estado crítico ou de atenção, identifique:
 1. Possíveis causas da discrepância
 2. Fragilidades curriculares prováveis
 3. Recomendações pedagógicas concretas (ementa, metodologia, avaliação)

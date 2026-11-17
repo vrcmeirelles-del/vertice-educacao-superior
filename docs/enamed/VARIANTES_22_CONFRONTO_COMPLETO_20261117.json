@@ -1,0 +1,688 @@
+{
+  "status": "CONCLUÍDA",
+  "scope": "Full text-layer comparison; no medical approval",
+  "records": [
+    {
+      "caderno": "regular-2",
+      "number": 12,
+      "equivalent_regular_caderno_1_number": 37,
+      "two_existing_ids": [
+        "enamed-2026-c2-q12",
+        "ENAMED-2026-REG-C2-Q012"
+      ],
+      "review_status": "FULL_EXTRACTED_TEXT_COMPARED_HUMAN_DECISION_PENDING",
+      "no_change_to_record": true,
+      "comparisons": [
+        {
+          "id": "enamed-2026-c2-q12",
+          "physical_page": 5,
+          "stem_difference_groups": 1,
+          "stem_numeric_sequence_equal": false,
+          "options_token_equivalent": true,
+          "full_detail": "CONFRONTO_INTEGRAL_483_20261117.json#enamed-2026-c2-q12"
+        },
+        {
+          "id": "ENAMED-2026-REG-C2-Q012",
+          "physical_page": 5,
+          "stem_difference_groups": 0,
+          "stem_numeric_sequence_equal": true,
+          "options_token_equivalent": true,
+          "full_detail": "CONFRONTO_INTEGRAL_483_20261117.json#ENAMED-2026-REG-C2-Q012"
+        }
+      ],
+      "decision": "BLOQUEADA — equivalência clínica e tabelas/imagens exigem curador médico; não escolher versão automaticamente",
+      "changed_in_production": false
+    },
+    {
+      "caderno": "regular-2",
+      "number": 18,
+      "equivalent_regular_caderno_1_number": 17,
+      "two_existing_ids": [
+        "enamed-2026-c2-q18",
+        "ENAMED-2026-REG-C2-Q018"
+      ],
+      "review_status": "FULL_EXTRACTED_TEXT_COMPARED_HUMAN_DECISION_PENDING",
+      "no_change_to_record": true,
+      "comparisons": [
+        {
+          "id": "enamed-2026-c2-q18",
+          "physical_page": 6,
+          "stem_difference_groups": 0,
+          "stem_numeric_sequence_equal": true,
+          "options_token_equivalent": true,
+          "full_detail": "CONFRONTO_INTEGRAL_483_20261117.json#enamed-2026-c2-q18"
+        },
+        {
+          "id": "ENAMED-2026-REG-C2-Q018",
+          "physical_page": 6,
+          "stem_difference_groups": 0,
+          "stem_numeric_sequence_equal": true,
+          "options_token_equivalent": true,
+          "full_detail": "CONFRONTO_INTEGRAL_483_20261117.json#ENAMED-2026-REG-C2-Q018"
+        }
+      ],
+      "decision": "BLOQUEADA — equivalência clínica e tabelas/imagens exigem curador médico; não escolher versão automaticamente",
+      "changed_in_production": false
+    },
+    {
+      "caderno": "regular-2",
+      "number": 29,
+      "equivalent_regular_caderno_1_number": 14,
+      "two_existing_ids": [
+        "enamed-2026-c2-q29",
+        "ENAMED-2026-REG-C2-Q029"
+      ],
+      "review_status": "FULL_EXTRACTED_TEXT_COMPARED_HUMAN_DECISION_PENDING",
+      "no_change_to_record": true,
+      "comparisons": [
+        {
+          "id": "enamed-2026-c2-q29",
+          "physical_page": 9,
+          "stem_difference_groups": 2,
+          "stem_numeric_sequence_equal": true,
+          "options_token_equivalent": true,
+          "full_detail": "CONFRONTO_INTEGRAL_483_20261117.json#enamed-2026-c2-q29"
+        },
+        {
+          "id": "ENAMED-2026-REG-C2-Q029",
+          "physical_page": 9,
+          "stem_difference_groups": 0,
+          "stem_numeric_sequence_equal": true,
+          "options_token_equivalent": true,
+          "full_detail": "CONFRONTO_INTEGRAL_483_20261117.json#ENAMED-2026-REG-C2-Q029"
+        }
+      ],
+      "decision": "BLOQUEADA — equivalência clínica e tabelas/imagens exigem curador médico; não escolher versão automaticamente",
+      "changed_in_production": false
+    },
+    {
+      "caderno": "regular-2",
+      "number": 40,
+      "equivalent_regular_caderno_1_number": 32,
+      "two_existing_ids": [
+        "enamed-2026-c2-q40",
+        "ENAMED-2026-REG-C2-Q040"
+      ],
+      "review_status": "FULL_EXTRACTED_TEXT_COMPARED_HUMAN_DECISION_PENDING",
+      "no_change_to_record": true,
+      "comparisons": [
+        {
+          "id": "enamed-2026-c2-q40",
+          "physical_page": 11,
+          "stem_difference_groups": 11,
+          "stem_numeric_sequence_equal": true,
+          "options_token_equivalent": true,
+          "full_detail": "CONFRONTO_INTEGRAL_483_20261117.json#enamed-2026-c2-q40"
+        },
+        {
+          "id": "ENAMED-2026-REG-C2-Q040",
+          "physical_page": 11,
+          "stem_difference_groups": 0,
+          "stem_numeric_sequence_equal": true,
+          "options_token_equivalent": true,
+          "full_detail": "CONFRONTO_INTEGRAL_483_20261117.json#ENAMED-2026-REG-C2-Q040"
+        }
+      ],
+      "decision": "BLOQUEADA — equivalência clínica e tabelas/imagens exigem curador médico; não escolher versão automaticamente",
+      "changed_in_production": false
+    },
+    {
+      "caderno": "regular-2",
+      "number": 42,
+      "equivalent_regular_caderno_1_number": 34,
+      "two_existing_ids": [
+        "enamed-2026-c2-q42",
+        "ENAMED-2026-REG-C2-Q042"
+      ],
+      "review_status": "FULL_EXTRACTED_TEXT_COMPARED_HUMAN_DECISION_PENDING",
+      "no_change_to_record": true,
+      "comparisons": [
+        {
+          "id": "enamed-2026-c2-q42",
+          "physical_page": 12,
+          "stem_difference_groups": 1,
+          "stem_numeric_sequence_equal": false,
+          "options_token_equivalent": true,
+          "full_detail": "CONFRONTO_INTEGRAL_483_20261117.json#enamed-2026-c2-q42"
+        },
+        {
+          "id": "ENAMED-2026-REG-C2-Q042",
+          "physical_page": 12,
+          "stem_difference_groups": 5,
+          "stem_numeric_sequence_equal": true,
+          "options_token_equivalent": true,
+          "full_detail": "CONFRONTO_INTEGRAL_483_20261117.json#ENAMED-2026-REG-C2-Q042"
+        }
+      ],
+      "decision": "BLOQUEADA — equivalência clínica e tabelas/imagens exigem curador médico; não escolher versão automaticamente",
+      "changed_in_production": false
+    },
+    {
+      "caderno": "regular-2",
+      "number": 44,
+      "equivalent_regular_caderno_1_number": 22,
+      "two_existing_ids": [
+        "enamed-2026-c2-q44",
+        "ENAMED-2026-REG-C2-Q044"
+      ],
+      "review_status": "FULL_EXTRACTED_TEXT_COMPARED_HUMAN_DECISION_PENDING",
+      "no_change_to_record": true,
+      "comparisons": [
+        {
+          "id": "enamed-2026-c2-q44",
+          "physical_page": 12,
+          "stem_difference_groups": 11,
+          "stem_numeric_sequence_equal": false,
+          "options_token_equivalent": true,
+          "full_detail": "CONFRONTO_INTEGRAL_483_20261117.json#enamed-2026-c2-q44"
+        },
+        {
+          "id": "ENAMED-2026-REG-C2-Q044",
+          "physical_page": 12,
+          "stem_difference_groups": 2,
+          "stem_numeric_sequence_equal": true,
+          "options_token_equivalent": true,
+          "full_detail": "CONFRONTO_INTEGRAL_483_20261117.json#ENAMED-2026-REG-C2-Q044"
+        }
+      ],
+      "decision": "BLOQUEADA — equivalência clínica e tabelas/imagens exigem curador médico; não escolher versão automaticamente",
+      "changed_in_production": false
+    },
+    {
+      "caderno": "regular-2",
+      "number": 45,
+      "equivalent_regular_caderno_1_number": 23,
+      "two_existing_ids": [
+        "enamed-2026-c2-q45",
+        "ENAMED-2026-REG-C2-Q045"
+      ],
+      "review_status": "FULL_EXTRACTED_TEXT_COMPARED_HUMAN_DECISION_PENDING",
+      "no_change_to_record": true,
+      "comparisons": [
+        {
+          "id": "enamed-2026-c2-q45",
+          "physical_page": 13,
+          "stem_difference_groups": 6,
+          "stem_numeric_sequence_equal": true,
+          "options_token_equivalent": true,
+          "full_detail": "CONFRONTO_INTEGRAL_483_20261117.json#enamed-2026-c2-q45"
+        },
+        {
+          "id": "ENAMED-2026-REG-C2-Q045",
+          "physical_page": 13,
+          "stem_difference_groups": 0,
+          "stem_numeric_sequence_equal": true,
+          "options_token_equivalent": true,
+          "full_detail": "CONFRONTO_INTEGRAL_483_20261117.json#ENAMED-2026-REG-C2-Q045"
+        }
+      ],
+      "decision": "BLOQUEADA — equivalência clínica e tabelas/imagens exigem curador médico; não escolher versão automaticamente",
+      "changed_in_production": false
+    },
+    {
+      "caderno": "regular-2",
+      "number": 48,
+      "equivalent_regular_caderno_1_number": 26,
+      "two_existing_ids": [
+        "enamed-2026-c2-q48",
+        "ENAMED-2026-REG-C2-Q048"
+      ],
+      "review_status": "FULL_EXTRACTED_TEXT_COMPARED_HUMAN_DECISION_PENDING",
+      "no_change_to_record": true,
+      "comparisons": [
+        {
+          "id": "enamed-2026-c2-q48",
+          "physical_page": 13,
+          "stem_difference_groups": 1,
+          "stem_numeric_sequence_equal": true,
+          "options_token_equivalent": true,
+          "full_detail": "CONFRONTO_INTEGRAL_483_20261117.json#enamed-2026-c2-q48"
+        },
+        {
+          "id": "ENAMED-2026-REG-C2-Q048",
+          "physical_page": 13,
+          "stem_difference_groups": 0,
+          "stem_numeric_sequence_equal": true,
+          "options_token_equivalent": true,
+          "full_detail": "CONFRONTO_INTEGRAL_483_20261117.json#ENAMED-2026-REG-C2-Q048"
+        }
+      ],
+      "decision": "BLOQUEADA — equivalência clínica e tabelas/imagens exigem curador médico; não escolher versão automaticamente",
+      "changed_in_production": false
+    },
+    {
+      "caderno": "regular-2",
+      "number": 49,
+      "equivalent_regular_caderno_1_number": 27,
+      "two_existing_ids": [
+        "enamed-2026-c2-q49",
+        "ENAMED-2026-REG-C2-Q049"
+      ],
+      "review_status": "FULL_EXTRACTED_TEXT_COMPARED_HUMAN_DECISION_PENDING",
+      "no_change_to_record": true,
+      "comparisons": [
+        {
+          "id": "enamed-2026-c2-q49",
+          "physical_page": 14,
+          "stem_difference_groups": 8,
+          "stem_numeric_sequence_equal": false,
+          "options_token_equivalent": true,
+          "full_detail": "CONFRONTO_INTEGRAL_483_20261117.json#enamed-2026-c2-q49"
+        },
+        {
+          "id": "ENAMED-2026-REG-C2-Q049",
+          "physical_page": 14,
+          "stem_difference_groups": 3,
+          "stem_numeric_sequence_equal": true,
+          "options_token_equivalent": true,
+          "full_detail": "CONFRONTO_INTEGRAL_483_20261117.json#ENAMED-2026-REG-C2-Q049"
+        }
+      ],
+      "decision": "BLOQUEADA — equivalência clínica e tabelas/imagens exigem curador médico; não escolher versão automaticamente",
+      "changed_in_production": false
+    },
+    {
+      "caderno": "regular-2",
+      "number": 51,
+      "equivalent_regular_caderno_1_number": 96,
+      "two_existing_ids": [
+        "enamed-2026-c2-q51",
+        "ENAMED-2026-REG-C2-Q051"
+      ],
+      "review_status": "FULL_EXTRACTED_TEXT_COMPARED_HUMAN_DECISION_PENDING",
+      "no_change_to_record": true,
+      "comparisons": [
+        {
+          "id": "enamed-2026-c2-q51",
+          "physical_page": 14,
+          "stem_difference_groups": 5,
+          "stem_numeric_sequence_equal": true,
+          "options_token_equivalent": true,
+          "full_detail": "CONFRONTO_INTEGRAL_483_20261117.json#enamed-2026-c2-q51"
+        },
+        {
+          "id": "ENAMED-2026-REG-C2-Q051",
+          "physical_page": 14,
+          "stem_difference_groups": 0,
+          "stem_numeric_sequence_equal": true,
+          "options_token_equivalent": true,
+          "full_detail": "CONFRONTO_INTEGRAL_483_20261117.json#ENAMED-2026-REG-C2-Q051"
+        }
+      ],
+      "decision": "BLOQUEADA — equivalência clínica e tabelas/imagens exigem curador médico; não escolher versão automaticamente",
+      "changed_in_production": false
+    },
+    {
+      "caderno": "regular-2",
+      "number": 55,
+      "equivalent_regular_caderno_1_number": 100,
+      "two_existing_ids": [
+        "enamed-2026-c2-q55",
+        "ENAMED-2026-REG-C2-Q055"
+      ],
+      "review_status": "FULL_EXTRACTED_TEXT_COMPARED_HUMAN_DECISION_PENDING",
+      "no_change_to_record": true,
+      "comparisons": [
+        {
+          "id": "enamed-2026-c2-q55",
+          "physical_page": 15,
+          "stem_difference_groups": 1,
+          "stem_numeric_sequence_equal": true,
+          "options_token_equivalent": true,
+          "full_detail": "CONFRONTO_INTEGRAL_483_20261117.json#enamed-2026-c2-q55"
+        },
+        {
+          "id": "ENAMED-2026-REG-C2-Q055",
+          "physical_page": 15,
+          "stem_difference_groups": 0,
+          "stem_numeric_sequence_equal": true,
+          "options_token_equivalent": true,
+          "full_detail": "CONFRONTO_INTEGRAL_483_20261117.json#ENAMED-2026-REG-C2-Q055"
+        }
+      ],
+      "decision": "BLOQUEADA — equivalência clínica e tabelas/imagens exigem curador médico; não escolher versão automaticamente",
+      "changed_in_production": false
+    },
+    {
+      "caderno": "regular-2",
+      "number": 63,
+      "equivalent_regular_caderno_1_number": 88,
+      "two_existing_ids": [
+        "enamed-2026-c2-q63",
+        "ENAMED-2026-REG-C2-Q063"
+      ],
+      "review_status": "FULL_EXTRACTED_TEXT_COMPARED_HUMAN_DECISION_PENDING",
+      "no_change_to_record": true,
+      "comparisons": [
+        {
+          "id": "enamed-2026-c2-q63",
+          "physical_page": 17,
+          "stem_difference_groups": 2,
+          "stem_numeric_sequence_equal": true,
+          "options_token_equivalent": true,
+          "full_detail": "CONFRONTO_INTEGRAL_483_20261117.json#enamed-2026-c2-q63"
+        },
+        {
+          "id": "ENAMED-2026-REG-C2-Q063",
+          "physical_page": 17,
+          "stem_difference_groups": 0,
+          "stem_numeric_sequence_equal": true,
+          "options_token_equivalent": true,
+          "full_detail": "CONFRONTO_INTEGRAL_483_20261117.json#ENAMED-2026-REG-C2-Q063"
+        }
+      ],
+      "decision": "BLOQUEADA — equivalência clínica e tabelas/imagens exigem curador médico; não escolher versão automaticamente",
+      "changed_in_production": false
+    },
+    {
+      "caderno": "regular-2",
+      "number": 68,
+      "equivalent_regular_caderno_1_number": 67,
+      "two_existing_ids": [
+        "enamed-2026-c2-q68",
+        "ENAMED-2026-REG-C2-Q068"
+      ],
+      "review_status": "FULL_EXTRACTED_TEXT_COMPARED_HUMAN_DECISION_PENDING",
+      "no_change_to_record": true,
+      "comparisons": [
+        {
+          "id": "enamed-2026-c2-q68",
+          "physical_page": 18,
+          "stem_difference_groups": 9,
+          "stem_numeric_sequence_equal": true,
+          "options_token_equivalent": true,
+          "full_detail": "CONFRONTO_INTEGRAL_483_20261117.json#enamed-2026-c2-q68"
+        },
+        {
+          "id": "ENAMED-2026-REG-C2-Q068",
+          "physical_page": 18,
+          "stem_difference_groups": 0,
+          "stem_numeric_sequence_equal": true,
+          "options_token_equivalent": true,
+          "full_detail": "CONFRONTO_INTEGRAL_483_20261117.json#ENAMED-2026-REG-C2-Q068"
+        }
+      ],
+      "decision": "BLOQUEADA — equivalência clínica e tabelas/imagens exigem curador médico; não escolher versão automaticamente",
+      "changed_in_production": false
+    },
+    {
+      "caderno": "regular-2",
+      "number": 74,
+      "equivalent_regular_caderno_1_number": 59,
+      "two_existing_ids": [
+        "enamed-2026-c2-q74",
+        "ENAMED-2026-REG-C2-Q074"
+      ],
+      "review_status": "FULL_EXTRACTED_TEXT_COMPARED_HUMAN_DECISION_PENDING",
+      "no_change_to_record": true,
+      "comparisons": [
+        {
+          "id": "enamed-2026-c2-q74",
+          "physical_page": 20,
+          "stem_difference_groups": 7,
+          "stem_numeric_sequence_equal": false,
+          "options_token_equivalent": true,
+          "full_detail": "CONFRONTO_INTEGRAL_483_20261117.json#enamed-2026-c2-q74"
+        },
+        {
+          "id": "ENAMED-2026-REG-C2-Q074",
+          "physical_page": 20,
+          "stem_difference_groups": 0,
+          "stem_numeric_sequence_equal": true,
+          "options_token_equivalent": true,
+          "full_detail": "CONFRONTO_INTEGRAL_483_20261117.json#ENAMED-2026-REG-C2-Q074"
+        }
+      ],
+      "decision": "BLOQUEADA — equivalência clínica e tabelas/imagens exigem curador médico; não escolher versão automaticamente",
+      "changed_in_production": false
+    },
+    {
+      "caderno": "regular-2",
+      "number": 80,
+      "equivalent_regular_caderno_1_number": 51,
+      "two_existing_ids": [
+        "enamed-2026-c2-q80",
+        "ENAMED-2026-REG-C2-Q080"
+      ],
+      "review_status": "FULL_EXTRACTED_TEXT_COMPARED_HUMAN_DECISION_PENDING",
+      "no_change_to_record": true,
+      "comparisons": [
+        {
+          "id": "enamed-2026-c2-q80",
+          "physical_page": 21,
+          "stem_difference_groups": 1,
+          "stem_numeric_sequence_equal": true,
+          "options_token_equivalent": true,
+          "full_detail": "CONFRONTO_INTEGRAL_483_20261117.json#enamed-2026-c2-q80"
+        },
+        {
+          "id": "ENAMED-2026-REG-C2-Q080",
+          "physical_page": 21,
+          "stem_difference_groups": 0,
+          "stem_numeric_sequence_equal": true,
+          "options_token_equivalent": true,
+          "full_detail": "CONFRONTO_INTEGRAL_483_20261117.json#ENAMED-2026-REG-C2-Q080"
+        }
+      ],
+      "decision": "BLOQUEADA — equivalência clínica e tabelas/imagens exigem curador médico; não escolher versão automaticamente",
+      "changed_in_production": false
+    },
+    {
+      "caderno": "regular-2",
+      "number": 81,
+      "equivalent_regular_caderno_1_number": 52,
+      "two_existing_ids": [
+        "enamed-2026-c2-q81",
+        "ENAMED-2026-REG-C2-Q081"
+      ],
+      "review_status": "FULL_EXTRACTED_TEXT_COMPARED_HUMAN_DECISION_PENDING",
+      "no_change_to_record": true,
+      "comparisons": [
+        {
+          "id": "enamed-2026-c2-q81",
+          "physical_page": 21,
+          "stem_difference_groups": 1,
+          "stem_numeric_sequence_equal": true,
+          "options_token_equivalent": true,
+          "full_detail": "CONFRONTO_INTEGRAL_483_20261117.json#enamed-2026-c2-q81"
+        },
+        {
+          "id": "ENAMED-2026-REG-C2-Q081",
+          "physical_page": 21,
+          "stem_difference_groups": 1,
+          "stem_numeric_sequence_equal": true,
+          "options_token_equivalent": true,
+          "full_detail": "CONFRONTO_INTEGRAL_483_20261117.json#ENAMED-2026-REG-C2-Q081"
+        }
+      ],
+      "decision": "BLOQUEADA — equivalência clínica e tabelas/imagens exigem curador médico; não escolher versão automaticamente",
+      "changed_in_production": false
+    },
+    {
+      "caderno": "regular-2",
+      "number": 82,
+      "equivalent_regular_caderno_1_number": 53,
+      "two_existing_ids": [
+        "enamed-2026-c2-q82",
+        "ENAMED-2026-REG-C2-Q082"
+      ],
+      "review_status": "FULL_EXTRACTED_TEXT_COMPARED_HUMAN_DECISION_PENDING",
+      "no_change_to_record": true,
+      "comparisons": [
+        {
+          "id": "enamed-2026-c2-q82",
+          "physical_page": 22,
+          "stem_difference_groups": 1,
+          "stem_numeric_sequence_equal": true,
+          "options_token_equivalent": true,
+          "full_detail": "CONFRONTO_INTEGRAL_483_20261117.json#enamed-2026-c2-q82"
+        },
+        {
+          "id": "ENAMED-2026-REG-C2-Q082",
+          "physical_page": 22,
+          "stem_difference_groups": 1,
+          "stem_numeric_sequence_equal": true,
+          "options_token_equivalent": true,
+          "full_detail": "CONFRONTO_INTEGRAL_483_20261117.json#ENAMED-2026-REG-C2-Q082"
+        }
+      ],
+      "decision": "BLOQUEADA — equivalência clínica e tabelas/imagens exigem curador médico; não escolher versão automaticamente",
+      "changed_in_production": false
+    },
+    {
+      "caderno": "regular-2",
+      "number": 84,
+      "equivalent_regular_caderno_1_number": 55,
+      "two_existing_ids": [
+        "enamed-2026-c2-q84",
+        "ENAMED-2026-REG-C2-Q084"
+      ],
+      "review_status": "FULL_EXTRACTED_TEXT_COMPARED_HUMAN_DECISION_PENDING",
+      "no_change_to_record": true,
+      "comparisons": [
+        {
+          "id": "enamed-2026-c2-q84",
+          "physical_page": 22,
+          "stem_difference_groups": 10,
+          "stem_numeric_sequence_equal": true,
+          "options_token_equivalent": true,
+          "full_detail": "CONFRONTO_INTEGRAL_483_20261117.json#enamed-2026-c2-q84"
+        },
+        {
+          "id": "ENAMED-2026-REG-C2-Q084",
+          "physical_page": 22,
+          "stem_difference_groups": 4,
+          "stem_numeric_sequence_equal": true,
+          "options_token_equivalent": true,
+          "full_detail": "CONFRONTO_INTEGRAL_483_20261117.json#ENAMED-2026-REG-C2-Q084"
+        }
+      ],
+      "decision": "BLOQUEADA — equivalência clínica e tabelas/imagens exigem curador médico; não escolher versão automaticamente",
+      "changed_in_production": false
+    },
+    {
+      "caderno": "regular-2",
+      "number": 89,
+      "equivalent_regular_caderno_1_number": 81,
+      "two_existing_ids": [
+        "enamed-2026-c2-q89",
+        "ENAMED-2026-REG-C2-Q089"
+      ],
+      "review_status": "FULL_EXTRACTED_TEXT_COMPARED_HUMAN_DECISION_PENDING",
+      "no_change_to_record": true,
+      "comparisons": [
+        {
+          "id": "enamed-2026-c2-q89",
+          "physical_page": 24,
+          "stem_difference_groups": 4,
+          "stem_numeric_sequence_equal": false,
+          "options_token_equivalent": true,
+          "full_detail": "CONFRONTO_INTEGRAL_483_20261117.json#enamed-2026-c2-q89"
+        },
+        {
+          "id": "ENAMED-2026-REG-C2-Q089",
+          "physical_page": 24,
+          "stem_difference_groups": 1,
+          "stem_numeric_sequence_equal": false,
+          "options_token_equivalent": true,
+          "full_detail": "CONFRONTO_INTEGRAL_483_20261117.json#ENAMED-2026-REG-C2-Q089"
+        }
+      ],
+      "decision": "BLOQUEADA — equivalência clínica e tabelas/imagens exigem curador médico; não escolher versão automaticamente",
+      "changed_in_production": false
+    },
+    {
+      "caderno": "regular-2",
+      "number": 90,
+      "equivalent_regular_caderno_1_number": 82,
+      "two_existing_ids": [
+        "enamed-2026-c2-q90",
+        "ENAMED-2026-REG-C2-Q090"
+      ],
+      "review_status": "FULL_EXTRACTED_TEXT_COMPARED_HUMAN_DECISION_PENDING",
+      "no_change_to_record": true,
+      "comparisons": [
+        {
+          "id": "enamed-2026-c2-q90",
+          "physical_page": 24,
+          "stem_difference_groups": 7,
+          "stem_numeric_sequence_equal": true,
+          "options_token_equivalent": true,
+          "full_detail": "CONFRONTO_INTEGRAL_483_20261117.json#enamed-2026-c2-q90"
+        },
+        {
+          "id": "ENAMED-2026-REG-C2-Q090",
+          "physical_page": 24,
+          "stem_difference_groups": 4,
+          "stem_numeric_sequence_equal": false,
+          "options_token_equivalent": true,
+          "full_detail": "CONFRONTO_INTEGRAL_483_20261117.json#ENAMED-2026-REG-C2-Q090"
+        }
+      ],
+      "decision": "BLOQUEADA — equivalência clínica e tabelas/imagens exigem curador médico; não escolher versão automaticamente",
+      "changed_in_production": false
+    },
+    {
+      "caderno": "regular-2",
+      "number": 97,
+      "equivalent_regular_caderno_1_number": 75,
+      "two_existing_ids": [
+        "enamed-2026-c2-q97",
+        "ENAMED-2026-REG-C2-Q097"
+      ],
+      "review_status": "FULL_EXTRACTED_TEXT_COMPARED_HUMAN_DECISION_PENDING",
+      "no_change_to_record": true,
+      "comparisons": [
+        {
+          "id": "enamed-2026-c2-q97",
+          "physical_page": 25,
+          "stem_difference_groups": 5,
+          "stem_numeric_sequence_equal": true,
+          "options_token_equivalent": true,
+          "full_detail": "CONFRONTO_INTEGRAL_483_20261117.json#enamed-2026-c2-q97"
+        },
+        {
+          "id": "ENAMED-2026-REG-C2-Q097",
+          "physical_page": 25,
+          "stem_difference_groups": 2,
+          "stem_numeric_sequence_equal": true,
+          "options_token_equivalent": true,
+          "full_detail": "CONFRONTO_INTEGRAL_483_20261117.json#ENAMED-2026-REG-C2-Q097"
+        }
+      ],
+      "decision": "BLOQUEADA — equivalência clínica e tabelas/imagens exigem curador médico; não escolher versão automaticamente",
+      "changed_in_production": false
+    },
+    {
+      "caderno": "regular-2",
+      "number": 99,
+      "equivalent_regular_caderno_1_number": 77,
+      "two_existing_ids": [
+        "enamed-2026-c2-q99",
+        "ENAMED-2026-REG-C2-Q099"
+      ],
+      "review_status": "FULL_EXTRACTED_TEXT_COMPARED_HUMAN_DECISION_PENDING",
+      "no_change_to_record": true,
+      "comparisons": [
+        {
+          "id": "enamed-2026-c2-q99",
+          "physical_page": 26,
+          "stem_difference_groups": 1,
+          "stem_numeric_sequence_equal": false,
+          "options_token_equivalent": true,
+          "full_detail": "CONFRONTO_INTEGRAL_483_20261117.json#enamed-2026-c2-q99"
+        },
+        {
+          "id": "ENAMED-2026-REG-C2-Q099",
+          "physical_page": 26,
+          "stem_difference_groups": 0,
+          "stem_numeric_sequence_equal": true,
+          "options_token_equivalent": true,
+          "full_detail": "CONFRONTO_INTEGRAL_483_20261117.json#ENAMED-2026-REG-C2-Q099"
+        }
+      ],
+      "decision": "BLOQUEADA — equivalência clínica e tabelas/imagens exigem curador médico; não escolher versão automaticamente",
+      "changed_in_production": false
+    }
+  ]
+}
