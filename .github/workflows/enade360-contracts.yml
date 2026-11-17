@@ -20,5 +20,7 @@ jobs:
         run: python -m pip install "jsonschema[format]==4.23.0"
       - name: Run synthetic semantic contract tests
         run: node docs/enade-360/validator/test-contracts.cjs
+      - name: Test edition eligibility SC bands and difference classification
+        run: node docs/enade-360/validator/test-edition-controls.cjs
       - name: Validate positive and negative Draft 2020-12 instances
         run: python docs/enade-360/validator/test-json-schema.py
