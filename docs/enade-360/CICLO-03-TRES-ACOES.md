@@ -21,3 +21,9 @@ O CI monta um Postgres descartável, executa a fixture e termina sem persistênc
 ## Limites e próximo ciclo
 A segurança demonstrada na fixture é uma validação do **modelo proposto**, não das políticas reais da Vértice. RLS existente continuará somente em leitura até aceitação da matriz de papéis, vinculação de cursos, autorização dos responsáveis e testes reais em ambiente clonado.
 Pendências P-MAP-001 (62 pares a mapear com evidência), P-ACCESS-001 (papéis reais), P-TRACE-001 (persistência), P-API-001, P-RLS-REAL-001 (testes na réplica isolada da estrutura real), P-ZIP-001, P-REF-001, P-NT-001, P-TOL-001. Nenhum indicador oficial reproduzido, núcleo científico NÃO HOMOLOGADO.
+
+## Confirmação da Ação 3 — PostgreSQL descartável, CI concluído
+GitHub Actions `ENADE 360 - Contract Tests`, run **44048407509**, commit **7a3672384565bd078b30e137e06248d7a5582b96**, `completed/success` nos dois jobs:
+- `contract-tests`: suíte JS/Python previamente versionada, **266/266 testes sintéticos**, sem falhas.
+- `disposable-postgres-rls`: PostgreSQL 17 temporário. Log `PASS: disposable PostgreSQL RLS cases and transaction rollback`. Foram executados sete cenários de identidades (Master, Reitoria, Coordenação, NDE, CPA, sem permissão e sem MFA na fixture), verificação de ausência de INSERT para Master e rollback de uma gravação temporária.
+O teste SQL mede comportamento real de RLS em **fixture isolada**, não uma cópia da política Supabase. O valor da MFA foi representado em concessão controlada de teste, não sessão Supabase `auth.jwt()`; resultado não autoriza implantação. P-RLS-SQL-001 foi atendida **para o modelo sintético**. Abre-se P-RLS-REAL-001 para executar as regras efetivas com sessão autenticada em banco clonado/descartável e comprovar regressões, após preparar ambiente seguro.
