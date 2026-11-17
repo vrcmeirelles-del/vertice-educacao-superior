@@ -36,7 +36,7 @@ insert into public.vertice_enade360_records(id,institution_id,course_id,kind,tit
  ('10000000-0000-4000-8000-000000000022','10000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000012','evidencia','Evidence two'),
  ('20000000-0000-4000-8000-000000000021','20000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000011','evidencia','Other institution');
 \i supabase/migrations/20261117084920_enade360_private_audit_history_and_read_gate.sql
-\i supabase/migrations/20261117091542_enade360_verifiable_audit_and_scientific_hold.sql
+\i supabase/migrations/20261117092634_enade360_verifiable_audit_and_scientific_hold.sql
 create function public.enade_test_assert(ok boolean,label text) returns void language plpgsql as $$
  begin if ok is distinct from true then raise exception 'FAIL: %',label; end if; raise notice 'PASS: %',label; end $$;
 select public.enade_test_assert((select count(*)=3 from vertice_enade_audit.record_events),'existing baselines preserved');

@@ -204,3 +204,9 @@ Data/hora; etapa; fonte/URL/versão; ação executada; resultado e evidências; 
 - GitHub Actions 44054965128, commit 8e9166e1b166d0396ecdc27b5591b37e3d52eb9a: contract-tests e disposable-postgres-rls completed/success. Produção SQL de auditoria ensaiada em PostgreSQL 17/pgcrypto, com identidades sintéticas.
 - Antes de aplicar ao banco, incluída correção para serialização de linha sempre em UTC na função de captura, sem alterar timezone global; novo ensaio local 25/25 asserts passou. Nova revisão requer CI próprio.
 - Inventário pendente de 62 pares salvo. Snapshot e-MEC UNITOP revisão 3 não é evidência de cursos: partial, um registro institucional com texto de modelo. Não há fundamento para vincular cursos por ele.
+
+## Entrada 028 — 2026-11-17 — Migração aplicada e teste real revertido
+- Supabase confirmou migração enade360_verifiable_audit_and_scientific_hold, versão 20261117092634. Nome do arquivo Git alinhado ao registro remoto para evitar duplicação futura. Nunca reaplicar a migração inicial de 20261117084920.
+- Teste no banco real em transação: UPDATE sem mudança de conteúdo gerou evento v2 temporário; event_hash_match, row_hash_match e chain_match=true, inclusive após escritor em America/Sao_Paulo. Rollback confirmado: dez registros, dez BASELINE, zero eventos novos persistidos/oficiais.
+- Disponibilidade de perfis: impacto roles ativos=0, learning staff scope=0, fatores MFA verificados=2. Não são sessões autenticadas dos cinco perfis. Nenhum grant ampliado.
+- Recuperados dois PDFs do Drive intitulados Curso/IES; bytes e SHA-256 idênticos. Ambos contêm relatório de curso Direito/Faculdade de Olímpia/2022, código impresso 5000876, 25 concluintes. Origem imediata Drive, sem confronto do binário no INEP. Não importar nem vincular à UNITOP, não declarar reprodução científica.

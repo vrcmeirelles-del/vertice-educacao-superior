@@ -178,3 +178,6 @@ Contrato de governança, testes sintéticos e protótipo isolado entregues. Ver 
 ### Precisão dos achados Work
 - Acrescentado caso de fuso horário: 25 asserts SQL locais aprovados. Run 44054965128 comprovou em PostgreSQL 17 a revisão anterior de 24 asserts. Os registros históricos continuam intactos.
 - Exportados os 62 pares para decisão humana: 49 candidatos textuais únicos, 11 múltiplos, 2 sem candidato. Nenhum candidato foi promovido a equivalência. Snapshot e-MEC existente é parcial e contém instrução de modelo, sem evidência oficial dos códigos de curso.
+
+## Aceite da correção de banco (2026-11-17)
+Migração efetiva 20261117092634 aplicada. Trigger v2 ensaiado no banco real e revertido: hashes e cadeia conferidos, 10/10 registros/eventos originais preservados. Código SQL da revisão final passou CI 44055417849 (PostgreSQL 17); renomeação do arquivo sincroniza o repositório com o histórico aplicado e é verificada novamente em CI. Zero grants de curso/papéis ativos nos mecanismos consultados; não ampliar acesso para simular sessões. Dois PDFs disponíveis foram recuperados, mas são duplicatas do relatório Direito/Faculdade de Olímpia 2022, não bases nacionais nem relatórios UNITOP. Ciência e conciliação continuam sem aceite.

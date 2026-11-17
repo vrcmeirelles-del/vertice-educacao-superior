@@ -112,11 +112,11 @@
   {
     "url": "https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/microdados/enade",
     "filename": "enade-microdados-index.html",
-    "retrieved_at": "2026-11-17T09:05:00Z",
-    "retrieved_at_precision": "approximate; exact acquisition timestamp was not recorded",
+    "retrieved_at": "2026-11-17T09:07:01.270358+00:00",
     "status": 200,
     "bytes": 227982,
-    "sha256": "5ad0c79f789eb367837bdee4a00e706309a836ed92e6498cc949b5714fba4922"
+    "sha256": "5ad0c79f789eb367837bdee4a00e706309a836ed92e6498cc949b5714fba4922",
+    "retrieved_at_basis": "observed local write timestamp of the original received HTML"
   },
   {
     "url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2022/idd_2022.xlsx",
