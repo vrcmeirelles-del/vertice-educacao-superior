@@ -58,3 +58,8 @@ Antes de cada etapa consultar os três documentos. Concluído só com evidência
 - Aprovados 26/26 testes sintéticos no Node local; JSON Schema conferido estruturalmente na cópia de desenvolvimento. Não há prova de execução dos arquivos baixados do commit versionado, nem de GitHub Actions verde.
 - P-VAL-002 passa a parcial: concluir checkout SHA + execução Node/CI; P-SCHEMA-001 parcial: aprofundar tipos/cross-field, fixture por classe e validação Schema independente; P-CI-001 aberta: registrar job GitHub, SHA, logs e evidência.
 - P-ZIP-001 (ZIP), P-NT-001 (notas) e P-REF-001 (fontes de resultados) continuam abertos; núcleo genérico não homologado.
+
+## Adendo v0.7.1 — aceite do CI específico (2026-11-16)
+- GitHub Actions `ENADE 360 - Contract Tests` confirmado com conclusão success: run 43996319804 para commit 3ee01fd808e10fc2a62dd3b749cad528cf4b3e66. Os passos de Node e sintaxe JSON concluíram success.
+- Marcar P-VAL-002 e P-CI-001 como atendidos apenas para esse commit. **Próximo gate:** validação real do JSON Schema 2020-12 contra fixtures (positivas e negativas) em CI, mais verificações cruzadas; P-SCHEMA-001 permanece parcial.
+- P-ZIP-001/P-NT-001/P-REF-001 abertos; sem processamento real e sem homologação.
