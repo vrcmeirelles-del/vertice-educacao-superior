@@ -14,11 +14,12 @@
   },
   "regression_ci": {
     "status": "PASS",
-    "commit": "dcd8a1ebab5636c88c6cba07b57fcd4be4d36813",
+    "commit": "0855054b170130572c1c7b3d309d146fcb9c942b",
     "workflow_runs": [
-      44116468460
+      44149342910
     ],
-    "caveat": "TypeScript/build Node22/24; local 427 tests. Isolated frontend deploy is not authenticated QA or production release."
+    "workflow_url": "https://github.com/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44149342910",
+    "scope": "Complete TypeScript, existing portal suite and static build Node22/24; four new origin/destination checks on Node24. Local 15 ENAMED contracts + 12 bridge/origin tests passed. Not authenticated QA or medical approval."
   },
   "conditions": {
     "final_inep_answer_keys": {
@@ -198,6 +199,18 @@
       "event": "Schema replay restored; two isolated bridges ACTIVE; local native/origin tests passed",
       "evidence": "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json",
       "all_six_gates_remain_unapproved": true
+    },
+    {
+      "date": "2026-11-17",
+      "event": "Prior successful CI preserved before verified isolated bridge update",
+      "regression_ci": {
+        "status": "PASS",
+        "commit": "dcd8a1ebab5636c88c6cba07b57fcd4be4d36813",
+        "workflow_runs": [
+          44116468460
+        ],
+        "caveat": "TypeScript/build Node22/24; local 427 tests. Isolated frontend deploy is not authenticated QA or production release."
+      }
     }
   ]
 }

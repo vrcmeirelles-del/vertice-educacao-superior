@@ -2375,5 +2375,14 @@
     "message": "request entity too large",
     "url": "https://supabase.com/dashboard/project/rnmkmnrfhvjihsuqziwf/branches",
     "no_older_function_substitution": "Local 18.9KB source uses basic PDF extraction; equivalence with current deployed bundle not established. Current prevalidation function preserved."
+  },
+  "ci": {
+    "status": "PASS",
+    "commit": "0855054b170130572c1c7b3d309d146fcb9c942b",
+    "workflow_runs": [
+      44149342910
+    ],
+    "workflow_url": "https://github.com/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44149342910",
+    "scope": "Complete TypeScript, existing portal suite and static build Node22/24; four new origin/destination checks on Node24. Local 15 ENAMED contracts + 12 bridge/origin tests passed. Not authenticated QA or medical approval."
   }
 }
