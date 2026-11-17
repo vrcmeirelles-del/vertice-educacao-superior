@@ -38,3 +38,10 @@ Antes de cada etapa consultar os três documentos. Concluído só com evidência
 - Próximas tarefas independentes: conferir notas técnicas de cada edição; preencher mapeamento dos códigos de áreas, graus, instrumentos e versões; especificar formatos de relatório e de registro de divergências; desenhar testes sintéticos e casos-limite sem alegar validação oficial.
 - Tarefas condicionadas a P-ZIP-001: hashes dos arquivos efetivos; parsing real; filtros por edição; recálculo individual de indicadores; conciliação por código; homologação com bases reais.
 - Porta de qualidade: mesmo que atividades documentais estejam concluídas, **não avançar à especialização** antes da homologação completa e auditável.
+
+## Adendo v0.5 — entrega independente de ZIP (2026-11-16)
+- Criados e verificados três artefatos em `docs/enade-360`: `NOTAS-TECNICAS-POR-EDICAO.md`, `CONTRATOS-RELATORIOS-ENADE360.md` e `CASOS-TESTE-MOTOR-GENERICO.md`.
+- Pesquisa: identificadas e registradas NT 7/2022 (Conceito 2021), NT 2/2023 (Conceito 2022), NT 6/2024 (Conceito 2023) e NT 12/2024 (nota individual 2023). Mudança da composição da prova 2023 identificada; sem transcrever fórmulas ainda não auditadas integralmente.
+- Contratos propostos R0–R7 definidos, com versões, fonte, população, evidência por afirmação e revisão. Implementação de validador JSON Schema ainda pendente.
+- 18 cenários M01–M18 propostos, não executados nem homologados. Próxima tarefa independente: construir fixtures/validador e executar testes sintéticos, depois confrontar todas as normas de edições anteriores. A execução real da reprodução de Conceito Enade depende de P-ZIP-001 e P-REF-001.
+- Não há promoção de estágio: porta de qualidade para especialização permanece fechada.
