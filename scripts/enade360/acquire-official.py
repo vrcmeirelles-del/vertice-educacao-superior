@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import re
 import shutil
+import ssl
 import subprocess
 import time
 import urllib.error
@@ -18,6 +19,43 @@ ROOT.mkdir(exist_ok=True)
 CATALOG = 'https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/'
 receipts = json.loads(Path('docs/enade-360/evidencias/20261117-work/official-source-receipts.json').read_text())
 urls = list(dict.fromkeys(r['url'] for r in receipts if r['filename'].endswith(('.zip', '.rar', '.xlsx', '.pdf'))))
+
+
+# Inspect the presented public chain; this does not accept it for data transfer.
+# Only issuer intermediates chaining to existing system roots may supplement TLS.
+tls_context = ssl.create_default_context()
+tls_receipt = {'verification_disabled': False, 'root_store_changed': False}
+try:
+    probe = subprocess.run(['openssl', 's_client', '-connect', 'download.inep.gov.br:443', '-servername', 'download.inep.gov.br', '-showcerts'], input='', capture_output=True, text=True, timeout=20)
+    (ROOT / 'tls-chain-diagnostic.txt').write_text(probe.stdout + probe.stderr)
+    certs = re.findall(r'-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----', probe.stdout, re.S)
+    if certs:
+        leaf = subprocess.run(['openssl', 'x509', '-noout', '-subject', '-issuer', '-dates', '-ext', 'authorityInfoAccess'], input=certs[0], capture_output=True, text=True, timeout=10).stdout
+        tls_receipt['leaf'] = leaf
+        print(leaf, flush=True)
+        issuers = re.findall(r'CA Issuers - URI:(\S+)', leaf)
+        for index, issuer in enumerate(issuers[:2]):
+            parsed = urllib.parse.urlsplit(issuer)
+            host = parsed.hostname or ''
+            if not (host == 'globalsign.com' or host.endswith('.globalsign.com') or host == 'rnp.br' or host.endswith('.rnp.br')):
+                continue
+            secure_url = urllib.parse.urlunsplit(('https', parsed.netloc, parsed.path, parsed.query, ''))
+            with urllib.request.urlopen(secure_url, timeout=30) as response:
+                raw = response.read(2_000_001)
+                if len(raw) > 2_000_000:
+                    raise ValueError('Issuer certificate exceeds limit')
+            cert = subprocess.run(['openssl', 'x509', '-inform', 'DER', '-outform', 'PEM'], input=raw, capture_output=True, timeout=10)
+            if cert.returncode:
+                raise ValueError('Issuer is not DER X509')
+            info = subprocess.run(['openssl', 'x509', '-noout', '-subject', '-issuer', '-ext', 'basicConstraints'], input=cert.stdout, capture_output=True, timeout=10).stdout.decode()
+            if 'CA:TRUE' not in info:
+                raise ValueError('Issuer is not a CA')
+            # No PARTIAL_CHAIN option: an intermediate cannot replace a trusted root.
+            tls_context.load_verify_locations(cadata=cert.stdout.decode())
+            tls_receipt.setdefault('supplemental_intermediates', []).append({'url': secure_url, 'sha256': hashlib.sha256(raw).hexdigest(), 'certificate': info})
+except Exception as error:
+    tls_receipt['diagnostic_error'] = str(error)
+(ROOT / 'tls-receipt.json').write_text(json.dumps(tls_receipt, indent=2))
 
 
 def receive(url):
@@ -33,7 +71,7 @@ def receive(url):
     try:
         h = hashlib.sha256()
         size = 0
-        with urllib.request.urlopen(url, timeout=45) as response, path.open('wb') as out:
+        with urllib.request.urlopen(url, timeout=45, context=tls_context) as response, path.open('wb') as out:
             r.update(http_status=response.status, final_url=response.url, content_type=response.headers.get('Content-Type'))
             while block := response.read(1024 * 1024):
                 out.write(block)
