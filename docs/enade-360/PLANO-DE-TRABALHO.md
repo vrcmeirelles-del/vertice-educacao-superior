@@ -131,3 +131,10 @@ Antes de cada etapa consultar os três documentos. Concluído só com evidência
 - Próxima prioridade técnica: conferir o schema e as permissões reais da Vértice para desenhar migração reversível, seguida de testes de RLS em ambiente isolado; modelar API autenticada GET de eventos, evidências e decisões com logs de acesso, sem endpoint de publicação.
 - P-TRACE-001, P-ACCESS-001 e P-API-001 abertas: documentação e simulações não equivalem a aplicação real. Manter P-ZIP-001, P-NT-001, P-REF-001, P-TOL-001 abertas e P-CROSS-001 parcial.
 - Nenhum banco ou produção alterado; núcleo genérico e especialização bloqueados.
+
+## Adendo v1.5 — Ciclo 01 em três ações (2026-11-17)
+1. **Confronto do repositório:** examinadas as migrations ENADE 360, espelho e área real; identificado acesso por IES, FK composta e lacuna de permissão por curso. Concluído como inspeção de código, não banco vivo.
+2. **Plano reversível:** produzido `CICLO-01-TRES-ACOES.md` com contrato de estrutura aditiva e critérios de pré-migração, sem SQL aplicado ou criado para produção.
+3. **Testes:** autorização sintética passou a exigir MFA aal2, com dois negativos adicionais. CI `44046955001`, commit d339a13dca41fd834a3095b8edaab828ac3f18a0, 242/242 casos aprovados.
+**Ciclo 02 sugerido:** (1) consultar metadados vivos do Supabase em leitura, (2) fechar correspondência papéis-vínculos por curso, (3) preparar testes SQL de RLS em banco isolado. Nenhum deploy implícito.
+Pendências P-SCHEMA-REAL-001, P-ACCESS-001, P-TRACE-001, P-API-001, P-CROSS-001, P-ZIP-001, P-NT-001, P-REF-001 e P-TOL-001 mantidas.
