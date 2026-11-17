@@ -7,7 +7,7 @@
     "url": "https://www.in.gov.br/en/web/dou/-/portaria-n-478-de-18-de-julho-de-2025-643085112",
     "verification": "text_examined_official_publication_reproduction;binary_hash_pending"
   },
-  "general_warning": "Descrições curtas são paráfrases editoriais para busca; não são transcrição integral dos dispositivos. Usar texto oficial para homologação.",
+  "general_warning": "Descrições curtas são paráfrases editoriais para busca; não são transcrição integral dos dispositivos. Usar texto oficial para homologação. Conteúdos do art. 8º são sínteses editoriais conferidas na reprodução da publicação oficial, ainda sem hash do PDF.",
   "areas": [
     {
       "code": "A01",
@@ -179,129 +179,129 @@
   "content_codes": [
     {
       "code": "01",
-      "label": null,
+      "label": "Bases moleculares, celulares e anatomofuncionais",
       "normative_reference": "art. 8º",
-      "status": "pending_verified_transcription"
+      "status": "pending_clinical_approval"
     },
     {
       "code": "02",
-      "label": null,
+      "label": "Fisiologia e ciclo de vida",
       "normative_reference": "art. 8º",
-      "status": "pending_verified_transcription"
+      "status": "pending_clinical_approval"
     },
     {
       "code": "03",
-      "label": null,
+      "label": "Determinantes do processo saúde-doença-cuidado",
       "normative_reference": "art. 8º",
-      "status": "pending_verified_transcription"
+      "status": "pending_clinical_approval"
     },
     {
       "code": "04",
-      "label": null,
+      "label": "Ética, bioética, relação médico-paciente e segurança de dados",
       "normative_reference": "art. 8º",
-      "status": "pending_verified_transcription"
+      "status": "pending_clinical_approval"
     },
     {
       "code": "05",
-      "label": null,
+      "label": "Direitos humanos, inclusão e princípios do SUS",
       "normative_reference": "art. 8º",
-      "status": "pending_verified_transcription"
+      "status": "pending_clinical_approval"
     },
     {
       "code": "06",
-      "label": null,
+      "label": "Semiologia, anamnese e exame físico",
       "normative_reference": "art. 8º",
-      "status": "pending_verified_transcription"
+      "status": "pending_clinical_approval"
     },
     {
       "code": "07",
-      "label": null,
+      "label": "Comunicação com paciente, família e equipes",
       "normative_reference": "art. 8º",
-      "status": "pending_verified_transcription"
+      "status": "pending_clinical_approval"
     },
     {
       "code": "08",
-      "label": null,
+      "label": "Registro e documentação médica",
       "normative_reference": "art. 8º",
-      "status": "pending_verified_transcription"
+      "status": "pending_clinical_approval"
     },
     {
       "code": "09",
-      "label": null,
+      "label": "Propedêutica e diagnóstico clínico",
       "normative_reference": "art. 8º",
-      "status": "pending_verified_transcription"
+      "status": "pending_clinical_approval"
     },
     {
       "code": "10",
-      "label": null,
+      "label": "Terapêutica de doenças e agravos",
       "normative_reference": "art. 8º",
-      "status": "pending_verified_transcription"
+      "status": "pending_clinical_approval"
     },
     {
       "code": "11",
-      "label": null,
+      "label": "Prognóstico e prevenção",
       "normative_reference": "art. 8º",
-      "status": "pending_verified_transcription"
+      "status": "pending_clinical_approval"
     },
     {
       "code": "12",
-      "label": null,
+      "label": "Reabilitação física e psicossocial",
       "normative_reference": "art. 8º",
-      "status": "pending_verified_transcription"
+      "status": "pending_clinical_approval"
     },
     {
       "code": "13",
-      "label": null,
+      "label": "Promoção e educação em saúde",
       "normative_reference": "art. 8º",
-      "status": "pending_verified_transcription"
+      "status": "pending_clinical_approval"
     },
     {
       "code": "14",
-      "label": null,
+      "label": "Políticas de saúde e SUS",
       "normative_reference": "art. 8º",
-      "status": "pending_verified_transcription"
+      "status": "pending_clinical_approval"
     },
     {
       "code": "15",
-      "label": null,
+      "label": "Planejamento e gestão de serviços de saúde",
       "normative_reference": "art. 8º",
-      "status": "pending_verified_transcription"
+      "status": "pending_clinical_approval"
     },
     {
       "code": "16",
-      "label": null,
+      "label": "Epidemiologia, indicadores e sistemas de informação",
       "normative_reference": "art. 8º",
-      "status": "pending_verified_transcription"
+      "status": "pending_clinical_approval"
     },
     {
       "code": "17",
-      "label": null,
+      "label": "Vigilância e controle de agravos",
       "normative_reference": "art. 8º",
-      "status": "pending_verified_transcription"
+      "status": "pending_clinical_approval"
     },
     {
       "code": "18",
-      "label": null,
+      "label": "Saúde ambiental e ocupacional",
       "normative_reference": "art. 8º",
-      "status": "pending_verified_transcription"
+      "status": "pending_clinical_approval"
     },
     {
       "code": "19",
-      "label": null,
+      "label": "Liderança colaborativa e equipe interprofissional",
       "normative_reference": "art. 8º",
-      "status": "pending_verified_transcription"
+      "status": "pending_clinical_approval"
     },
     {
       "code": "20",
-      "label": null,
+      "label": "Metodologia científica e medicina baseada em evidências",
       "normative_reference": "art. 8º",
-      "status": "pending_verified_transcription"
+      "status": "pending_clinical_approval"
     },
     {
       "code": "21",
-      "label": null,
+      "label": "Tecnologias de comunicação e informação em saúde",
       "normative_reference": "art. 8º",
-      "status": "pending_verified_transcription"
+      "status": "pending_clinical_approval"
     }
   ],
   "mapping_rules": {
