@@ -1,6 +1,6 @@
 # BÍBLIA-MESTRA DO PROJETO — ENAMED 360° / INEP INTELLIGENCE
 **Projeto:** Vértice Educação Superior × Fato & Ordem × Sapiens 360°  
-**Versão:** 1.0 — Fundação arquitetural  
+**Versão:** 1.1 — Fundação arquitetural + E1 parcial  
 **Data-base:** 16 de novembro de 2026  
 **Status:** documento-mestre de projeto; NÃO corresponde à implantação ou homologação da solução.  
 **Governança:** evolução cumulativa por etapas, com revisão retrospectiva obrigatória.  
