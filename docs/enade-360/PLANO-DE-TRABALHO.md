@@ -101,3 +101,10 @@ Antes de cada etapa consultar os três documentos. Concluído só com evidência
 - P-CROSS-001 parcial: completar payloads R2–R6 com schema rico, IDs reais e conciliações agregadas; não confundir teste de campos com integração de banco de dados.
 - P-TOL-001 aberta: buscar comprovação documental do tratamento de arredondamentos e tolerâncias no Conceito, IDD, CPC e IGC por edição; não inventar epsilon nem aceitar diferenças automaticamente.
 - P-ZIP-001 aguardando arquivos do usuário; P-NT-001/P-REF-001 continuam abertos. Homologação e especialização bloqueadas.
+
+## Adendo v1.1 — Contratos R2–R6 e matriz metodológica (2026-11-16)
+- Implementação isolada dos controles R2, R3, R4, R5 e R6, integrada ao gate de relatórios; 23 cenários novos positivos/negativos em `test-r2-r6.cjs`, fixtures adaptadas no Python.
+- CI GitHub `43999596607` para commit `265afdf8fed2a80d06eee3d12ae14dad7c106c57`: 141/141 testes sintéticos verdes, conforme `EVIDENCIAS-R2-R6-006.md`.
+- Documentada `MATRIZ-METODOLOGIAS-E-TOLERANCIAS.md` com identificação de fontes e lacunas das metodologias de Conceito, IDD, CPC e IGC 2021–2023. Ainda NÃO se concluiu auditoria integral das fórmulas, exceções, precisão, arredondamentos ou tolerâncias.
+- Próxima frente independente: aprofundar os contratos R2–R6 com modelos de itens/variáveis por prova, condições de ausência e em especial distinção de SC de indicador não aplicável; parametrizar fontes por edição sem valores presumidos. Executar novos casos de borda e revisão humana.
+- P-ZIP-001, P-NT-001, P-REF-001, P-TOL-001 permanecem abertas; P-CROSS-001 parcial até dados reais e integração autorizada. Gate de especialização permanece fechado.
