@@ -63,3 +63,9 @@ Antes de cada etapa consultar os três documentos. Concluído só com evidência
 - GitHub Actions `ENADE 360 - Contract Tests` confirmado com conclusão success: run 43996319804 para commit 3ee01fd808e10fc2a62dd3b749cad528cf4b3e66. Os passos de Node e sintaxe JSON concluíram success.
 - Marcar P-VAL-002 e P-CI-001 como atendidos apenas para esse commit. **Próximo gate:** validação real do JSON Schema 2020-12 contra fixtures (positivas e negativas) em CI, mais verificações cruzadas; P-SCHEMA-001 permanece parcial.
 - P-ZIP-001/P-NT-001/P-REF-001 abertos; sem processamento real e sem homologação.
+
+## Adendo v0.8 — Novo portão de qualidade do CI (2026-11-16)
+- Novo Schema 0.3 e bateria com 7 instâncias positivas R1–R7 e 21 negativas, usando Python Draft202012Validator e FormatChecker. Revisão da workflow GitHub Actions para executar efetivamente a validação de instâncias mais testes semânticos Node.
+- Entrega de arquivos não equivale a execução comprovada: P-CI-002 exige verificar run final, SHA do commit, logs e resultados. P-SCHEMA-001 exige validar instâncias, consistência entre engines e ampliar asserts cruzados; permanece em andamento.
+- Seguintes trabalhos independentes: confrontar exceções do JSON Schema com gate semântico; testar populações e reconciliações contraditórias e rótulos epistêmicos falsos; preparar relatório de equivalência entre R0/R1–R7.
+- Dependências preservadas P-ZIP-001, P-NT-001 e P-REF-001. Não avançar a especialização sem reprodução oficial.
