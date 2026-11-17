@@ -1,0 +1,114 @@
+{
+  "schema_version": "enamed-2026-eight-numeric-source-verdict-v1",
+  "date": "2026-11-17",
+  "scope": "8 official REG-C2 PDF numeric markers matched against two F&O item versions by read-only SQL",
+  "status": "TEXTUAL_EVIDENCE_VERIFIED_NOT_CLINICALLY_HOMOLOGATED",
+  "pdf_source": "docs/enamed/INEP_2026_SHA256_DOCUMENTOS_PRELIMINARES_20261117.json/REG-C2",
+  "method": "Digits/relevant reference tokens observed in extracted official REG-C2 PDF and compared by literal case-insensitive SQL substring to each stored stem",
+  "limits": "A matching marker is not a complete textual/medical equivalence verdict. Candidate preferred ID indicates only this copy retains cited source tokens; other clinical values and media remain to review.",
+  "count": 8,
+  "records": [
+    {
+      "question": 12,
+      "preferred": "ENAMED-2026-REG-C2-Q012",
+      "other": "enamed-2026-c2-q12",
+      "anchors": [
+        "6,5",
+        "2,75"
+      ],
+      "reason": "Lund-Browder percentage values",
+      "preferred_is_provisional": true,
+      "production_update_allowed": false,
+      "review": "REQUIRED_HUMAN_FULL_TEXT_MEDIA"
+    },
+    {
+      "question": 42,
+      "preferred": "ENAMED-2026-REG-C2-Q042",
+      "other": "enamed-2026-c2-q42",
+      "anchors": [
+        "1.005"
+      ],
+      "reason": "HIV epidemiological time series",
+      "preferred_is_provisional": true,
+      "production_update_allowed": false,
+      "review": "REQUIRED_HUMAN_FULL_TEXT_MEDIA"
+    },
+    {
+      "question": 44,
+      "preferred": "ENAMED-2026-REG-C2-Q044",
+      "other": "enamed-2026-c2-q44",
+      "anchors": [
+        "7,45",
+        "285"
+      ],
+      "reason": "laboratory reference intervals",
+      "preferred_is_provisional": true,
+      "production_update_allowed": false,
+      "review": "REQUIRED_HUMAN_FULL_TEXT_MEDIA"
+    },
+    {
+      "question": 49,
+      "preferred": "ENAMED-2026-REG-C2-Q049",
+      "other": "enamed-2026-c2-q49",
+      "anchors": [
+        "40 a 69",
+        "300"
+      ],
+      "reason": "diagnostic screening population and contingency counts",
+      "preferred_is_provisional": true,
+      "production_update_allowed": false,
+      "review": "REQUIRED_HUMAN_FULL_TEXT_MEDIA"
+    },
+    {
+      "question": 74,
+      "preferred": "ENAMED-2026-REG-C2-Q074",
+      "other": "enamed-2026-c2-q74",
+      "anchors": [
+        "150.000",
+        "450.000"
+      ],
+      "reason": "hematology reference intervals",
+      "preferred_is_provisional": true,
+      "production_update_allowed": false,
+      "review": "REQUIRED_HUMAN_FULL_TEXT_MEDIA"
+    },
+    {
+      "question": 89,
+      "preferred": "enamed-2026-c2-q89",
+      "other": "ENAMED-2026-REG-C2-Q089",
+      "anchors": [
+        "18.000",
+        "12%"
+      ],
+      "reason": "leucocyte and band cell counts",
+      "preferred_is_provisional": true,
+      "production_update_allowed": false,
+      "review": "REQUIRED_HUMAN_FULL_TEXT_MEDIA"
+    },
+    {
+      "question": 90,
+      "preferred": "enamed-2026-c2-q90",
+      "other": "ENAMED-2026-REG-C2-Q090",
+      "anchors": [
+        "12,0",
+        "15,1"
+      ],
+      "reason": "hemoglobin reference range",
+      "preferred_is_provisional": true,
+      "production_update_allowed": false,
+      "review": "REQUIRED_HUMAN_FULL_TEXT_MEDIA"
+    },
+    {
+      "question": 99,
+      "preferred": "ENAMED-2026-REG-C2-Q099",
+      "other": "enamed-2026-c2-q99",
+      "anchors": [
+        "2025"
+      ],
+      "reason": "year of epidemiological/source reference",
+      "preferred_is_provisional": true,
+      "production_update_allowed": false,
+      "review": "REQUIRED_HUMAN_FULL_TEXT_MEDIA"
+    }
+  ]
+}
