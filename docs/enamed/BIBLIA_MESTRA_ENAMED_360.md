@@ -1,6 +1,6 @@
 # BÍBLIA-MESTRA DO PROJETO — ENAMED 360° / INEP INTELLIGENCE
 **Projeto:** Vértice Educação Superior × Fato & Ordem × Sapiens 360°  
-**Versão:** 2.0 — E1 parcial + 11 links oficiais e auditoria de TLS  
+**Versão:** 2.1 — E1 parcial + URLs oficiais e 419 testes do portal  
 **Data-base:** 16 de novembro de 2026  
 **Status:** documento-mestre de projeto; NÃO corresponde à implantação ou homologação da solução.  
 **Governança:** evolução cumulativa por etapas, com revisão retrospectiva obrigatória.  
@@ -356,3 +356,18 @@ No banco F&O (leitura) só foram encontrados `fo_enamed_items` e `fo_enamed_atte
 - Browser e relatório: https://github.com/vrcmeirelles-del/vertice-educacao-superior/actions/runs/43999991024
 - `curl` TLS: https://github.com/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44000426717
 - `docs/enamed/E1_COLETA_BINARIOS_E_QA_PERFIS_20261116.md` (limitações e protocolo).
+
+
+## 22. Atualização cumulativa v2.1 — regressão do portal comprovada (16/11/2026)
+**E1 permanece aberta** porque os arquivos PDF e gabaritos oficiais ainda não foram recuperados com TLS válido e SHA-256. E2/E3 não homologadas; nenhuma atualização F&O.
+
+### Evidência de qualidade da PR #168
+- GitHub Actions `Portal - TypeScript completo e contratos da Reitoria`, run **44000644637**, no commit `fba170085e5a4038455e188d16207725dc5581ae`: jobs **portal (22) e portal (24) concluídos com sucesso**.
+- Log job `133763568309` (Node 22): `tsc --noEmit` executado sem erro; a suíte principal passou de 415 para **419 testes** com **52 arquivos de teste aprovados**, incluindo `client/src/components/area/EnamedEnvironment.test.tsx` com **quatro testes aprovados**. Suítes complementares: 214, 19 e 30 testes aprovados; build Vite concluído.
+- A execução automatizada demonstra renderização SSR e contrato de visibilidade por perfil simulado, **não sessão autenticada por usuário real**. Testes de login Master, Reitoria, CPA, Coordenador, NDE e outro tenant, políticas RLS efetivas e navegabilidade mobile continuam pendentes.
+- O pipeline de contratos do ENAMED `44000644528` concluiu success. Sucesso de CI não significa aprovação da curadoria médica nem deploy.
+
+### Fontes de prova
+- [Run portal TypeScript/SSR 44000644637](https://github.com/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44000644637)
+- [Run de recuperação oficial 44000426717](https://github.com/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44000426717) — 11 URLs oficiais identificadas na coleta original `43999991024`, mas sem PDF íntegro por falhas TLS.
+- ADR-ENAMED-019: **distinguir regressão automatizada 419/419 de homologação autenticada e funcional do portal**. A E1 e a revisão pedagógica continuam bloqueadas sem PDFs oficiais verificados.
