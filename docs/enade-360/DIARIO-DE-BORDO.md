@@ -68,3 +68,9 @@ Data/hora; etapa; fonte/URL/versão; ação executada; resultado e evidências; 
 - Execução observada: Node.js v22.16.0 no ambiente local de desenvolvimento, 26 testes, 26 PASS, 0 FAIL. JSON Schema verificado com Python Draft202012Validator.check_schema em cópia local.
 - Limites expressos: acesso HTTP direto à branch GitHub indisponível; código local não conferido byte a byte com o versionado. Nenhum GitHub Actions confirmado verde, nenhuma reprodução de indicador com microdados reais.
 - Evidência principal: `EVIDENCIAS-CONTRATOS-002.md`; pendências P-VAL-002 (parcial), P-SCHEMA-001 (parcial), P-CI-001 (aberta), P-ZIP-001/P-NT-001/P-REF-001 (abertas). Homologação bloqueada.
+
+## Entrada 009 — 2026-11-16 — Confirmação GitHub CI
+- Consulta dos workflow runs do commit `3ee01fd808e10fc2a62dd3b749cad528cf4b3e66` e dos jobs do run `43996319804`.
+- Resultado final: workflow `ENADE 360 - Contract Tests` `completed/success`; passo de execução sintética Node 22 `success`; passo de sintaxe JSON `success`.
+- Escopo do resultado: arquivos efetivamente versionados executados no checkout GitHub e parse do JSON; NÃO prova validação das instâncias contra todos os requisitos do Schema, nem reprodução de nota ou conceito oficiais.
+- Evolução das pendências: P-VAL-002 e P-CI-001 atendidas nesse commit; P-SCHEMA-001 parcial; P-ZIP-001/P-NT-001/P-REF-001 permanecem. Não houve alteração de produção; portão de homologação permanece fechado.
