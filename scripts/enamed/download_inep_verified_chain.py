@@ -19,6 +19,9 @@ HOST="download.inep.gov.br"
 MANIFEST=pathlib.Path("docs/enamed/INEP_2026_LINKS_OFICIAIS_CONFIRMADOS.json")
 OUTPUT=pathlib.Path("evidence/enamed-verified-chain")
 ROOTS=pathlib.Path("/etc/ssl/certs/ca-certificates.crt")
+# AIA observed in public server leaf metadata, GitHub diagnostic run 44016652354.
+# This is not a trust anchor; the intermediate must validate to OS roots before use.
+KNOWN_AIA="http://secure.globalsign.com/cacert/rnpicpedugr46ovtlsca2025.crt"
 MAX_PDF=30*1024*1024
 MAX_CERT=128*1024
 PRIORITY={"REG-C1","REG-C2","REG-GAB-C1-PREL","REG-GAB-C2-PREL",
@@ -88,28 +91,38 @@ def run():
         hs=command(["openssl","s_client","-connect",HOST+":443","-servername",HOST,"-showcerts"],timeout=20,input_data=b"")
         chain=re.findall(rb"-----BEGIN CERTIFICATE-----[\s\S]*?-----END CERTIFICATE-----",hs.stdout+hs.stderr)
         report["presented_certs"]=len(chain)
-        if not chain:raise ValueError("server did not present a leaf certificate")
+        report["leaf_unavailable_on_this_handshake"]=not bool(chain)
         with tempfile.TemporaryDirectory() as tmp:
             d=pathlib.Path(tmp)
-            leaf=d/"leaf.pem";leaf.write_bytes(chain[0]+b"\n")
-            details=command(["openssl","x509","-in",str(leaf),"-noout","-issuer","-subject","-dates","-ext","authorityInfoAccess"])
-            if details.returncode!=0:raise ValueError("could not inspect leaf cert")
-            metadata=details.stdout.decode("utf-8","replace")
-            report["leaf_certificate_metadata"]=metadata[:1800]
-            aia=re.search(r"CA Issuers\s*-\s*URI:(https?://\S+)",metadata)
-            if not aia or not safe_issuer(aia.group(1)):raise ValueError("issuer URL not allowed or absent")
-            issuer_der,attempts=retrieve_issuer(aia.group(1))
+            leaf=d/"leaf.pem"
+            issuer_url=KNOWN_AIA
+            if chain:
+                leaf.write_bytes(chain[0]+bytes((10,)))
+                details=command(["openssl","x509","-in",str(leaf),"-noout","-issuer","-subject","-dates","-ext","authorityInfoAccess"])
+                if details.returncode!=0:raise ValueError("could not inspect leaf cert")
+                metadata=details.stdout.decode("utf-8","replace")
+                report["leaf_certificate_metadata"]=metadata[:1800]
+                aia=re.search(r"CA Issuers\\s*-\\s*URI:(https?://\\S+)",metadata)
+                if not aia or not safe_issuer(aia.group(1)):raise ValueError("issuer URL not allowed or absent")
+                issuer_url=aia.group(1)
+            else:
+                report["issuer_aia_provenance"]="public leaf certificate from earlier signed-chain diagnostic"
+            issuer_der,attempts=retrieve_issuer(issuer_url)
             report["issuer_transfer"]=attempts
             raw=d/"intermediate.crt";raw.write_bytes(issuer_der)
             untrusted=d/"intermediate.pem"
             inform="PEM" if issuer_der.startswith(b"-----BEGIN") else "DER"
             convert=command(["openssl","x509","-inform",inform,"-in",str(raw),"-outform","PEM","-out",str(untrusted)])
             if convert.returncode:raise ValueError("issuer certificate parsing failed")
-            verify=command(["openssl","verify","-purpose","sslserver","-verify_hostname",HOST,
-                         "-CAfile",str(ROOTS),"-untrusted",str(untrusted),str(leaf)])
-            report["openssl_chain_verification"]=verify.stdout.decode("utf8","replace")[:500]+verify.stderr.decode("utf8","replace")[:500]
-            if verify.returncode:raise ValueError("issuer does not validate leaf to trusted system root/hostname")
-            report["chain_verified"]=True
+            issuer_check=command(["openssl","verify","-purpose","any","-CAfile",str(ROOTS),str(untrusted)])
+            report["issuer_root_verification"]=issuer_check.stdout.decode("utf8","replace")[:450]+issuer_check.stderr.decode("utf8","replace")[:450]
+            if issuer_check.returncode:raise ValueError("intermediate cannot be verified to system-trusted root")
+            report["issuer_anchored_to_system_root"]=True
+            if chain:
+                verify=command(["openssl","verify","-purpose","sslserver","-verify_hostname",HOST,
+                             "-CAfile",str(ROOTS),"-untrusted",str(untrusted),str(leaf)])
+                report["openssl_chain_verification"]=verify.stdout.decode("utf8","replace")[:500]+verify.stderr.decode("utf8","replace")[:500]
+                if verify.returncode:raise ValueError("issuer fails leaf hostname/root verification")
             report["issuer_sha256"]=hashlib.sha256(issuer_der).hexdigest()
             # Only after cryptographic validation, append missing issuer to system trust roots
             bundle=d/"trusted-chain.pem";bundle.write_bytes(ROOTS.read_bytes()+b"\n"+untrusted.read_bytes())
@@ -129,6 +142,8 @@ def run():
                        "pedagogical_review":"PENDING_ITEM_AND_GABARITO_VERIFICATION"})
                 except Exception as e:entry["error"]=str(e)[:220]
                 report["documents"].append(entry)
+            # Current live host is authenticated only by a successful strict-TLS transfer.
+            report["chain_verified"]=any(x["status"]=="TLS_AND_BYTE_INTEGRITY_CONFIRMED" for x in report["documents"])
     except Exception as e:
         report["error"]=str(e)[:350]
     (OUTPUT/"verified_chain_report.json").write_text(json.dumps(report,ensure_ascii=False,indent=2)+"\n",encoding="utf8")
