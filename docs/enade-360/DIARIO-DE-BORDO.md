@@ -118,3 +118,11 @@ Data/hora; etapa; fonte/URL/versão; ação executada; resultado e evidências; 
 - Resultado: bloqueios sintéticos de mistura de identidades, SC com valor, falso MATCH, política incompatível e referência substituída; diferença de arredondamento apenas para revisão, não homologação.
 - Limites: não foi obtido ZIP nem planilhas oficiais por curso; políticas integrais de tolerância INEP não comprovadas; códigos testados são sintéticos. P-CROSS-001 parcial, P-TOL-001/P-NT-001/P-REF-001 abertas, P-ZIP-001 aguardando usuário.
 - Decisão: continuar com estrutura transversal, sem alteração de produção, sem especialização por curso e sem homologar indicadores oficiais.
+
+## Entrada 016 — 2026-11-16 — Contratos R2–R6 e matriz documental aprofundados
+- Leitura prévia da Bíblia, Plano, Diário e código de validação; preservado histórico 001–015 e adendos anteriores.
+- Fontes oficiais conferidas: notas do Conceito 2021–2023; páginas INEP do IDD, CPC, IGC e indicadores em geral; portaria 500/2024; nota IGC 2022 e portal de planilhas revisadas de 2022.
+- Artefatos criados: `validator/r2-r6-controls.cjs`, `validator/test-r2-r6.cjs`, `MATRIZ-METODOLOGIAS-E-TOLERANCIAS.md`, `EVIDENCIAS-R2-R6-006.md`; `integrated-gate.cjs` e workflow CI atualizados.
+- Resultado GitHub Actions: run 43999596607, job 133760060627, commit 265afdf8fed2a80d06eee3d12ae14dad7c106c57, success. Suítes: 26/26, 34/34, 26/26, 23/23, 32/32. Total 141/141 sintéticos, zero falhas.
+- Conclusão limitada: estrutura/verificações simuladas passaram; matriz metodológica parcialmente concluída; **nenhum** indicador oficial reproduzido com microdados. Ainda não há dados de IES reais, nem validação de segurança/permissões em produção.
+- Pendências mantidas: P-CROSS-001 parcial; P-TOL-001, P-NT-001, P-REF-001 abertas; P-ZIP-001 aguardando fornecimento pelo usuário. Portão científico e especialização bloqueados.
