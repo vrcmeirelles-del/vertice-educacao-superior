@@ -84,3 +84,12 @@ Leia em conjunto com `BIBLIA_MESTRA_ENAMED_360.md` e `PLANO_DE_TRABALHO_ENAMED_3
 - **Evidência:** dados SQL do Supabase F&O nesta sessão e SHAs/links da branch PR #168; nenhuma questão, gabarito, resposta ou vínculo de estudante modificado.
 - **Decisão ADR-011:** separar sugestão editorial/área, norma versionada e classificação aprovada; duas IAs independentes e médico revisor antes de publicar.
 - **Status real:** E1 não encerrada, E2/E3 com preparativos somente, sem homologação nem aplicação no banco. E9 institucional permanece futura.
+
+
+## 2026-11-16 — Retomada da E1, auditoria interna aprofundada e CI
+- **Leitura inicial:** Bíblia-Mestra, Plano e Diário na PR #168, junto com Catálogo E1 e Matriz de Regras.
+- **Fonte INEP:** página de provas e gabaritos (marcadores de 2026 e 2025), notas técnicas 40/19/1PL/42; Portaria 478/2025 em reprodução do DOU de 4 páginas, visualmente inspecionada. Tentativas de download dos binários INEP falharam por resolução DNS/HTTP 502; manual PDF também sem screenshot. Não há hash SHA-256 oficial.
+- **SQL F&O somente leitura:** 483 registros, 283 posições distintas, 200 duplicadas; 57 enunciados, 2 alternativas, 6 temas, 191 subtemas, 192 keywords diferentes entre cópias; zero divergência interna de gabarito. Método e ressalvas no relatório `E1_CONFRONTO_DOCUMENTAL_483_20261116.md`.
+- **CI:** no commit anterior a PR teve 414 de 415 testes passando, com falha na lista de `InstitutionTabs`. A branch passou a incluir `construcao-curricular` e `trilhas-enade` no macro acadêmico, sem alterar permissões RLS. Workflow `verify-enamed-contracts.yml` criado e passou **6 de 6 testes Node** no run `43994963032`; não equivale a testes de navegador nem homologação médica.
+- **Preservação:** nenhuma escrita em produção, nenhuma modificação de questão ou resposta, e nenhuma alteração de gabarito. PR permanece draft. E1 aberta; E2/E3 preparatórias.
+- **Próxima decisão:** recuperar fontes oficiais binárias, confrontar matrizes e PDFs, efetuar regressão de navegação e iniciar curadoria médica independente quando documentos autenticados estiverem disponíveis.
