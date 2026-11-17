@@ -144,3 +144,10 @@ Leia em conjunto com `BIBLIA_MESTRA_ENAMED_360.md` e `PLANO_DE_TRABALHO_ENAMED_3
 - **Código:** `discover_public_inep_pdfs.py`, `render_inep_public_catalog.py`, `download_verified_links_curl.py`, workflow `enamed-inep-public-corpus.yml` e `INEP_2026_LINKS_OFICIAIS_CONFIRMADOS.json`. Nenhuma migração ou escrita em banco.
 - **Permissões:** testes estáticos / SSR adicionados à suíte; logins reais com MFA e escopo de cursos ainda não executados. A aprovação do TypeScript em commit anterior não é aceite de sessão real.
 - **Próxima barreira:** obter binários com cadeia de certificados verificável ou canal oficial alternativo; após isso homologar provas, 483 itens, duplicatas, competências e gabaritos. E1 aberta, E2/E3 preparatórias, PR #168 draft.
+
+
+## 2026-11-16 — Resultado final do CI: 419 testes principais aprovados
+- **GitHub Actions:** run `44000644637` terminou success em Node 22/24. Em Node 22, `tsc --noEmit` passou; 52 arquivos e **419 testes principais** aprovados, entre eles os **4 testes EnamedEnvironment.test.tsx** recentemente incluídos. Grupos complementares 214+19+30 aprovações; Vite `built in 9.74s`.
+- **Limite da evidência:** simulação SSR/visibilidade não substitui testes RLS autenticados por perfil ou dispositivo, que permanecem em aberto.
+- **E1:** 11 URLs PDF diretamente publicadas no DOM Inep (run `43999991024`), mas 0 PDF obtido com confiança TLS: 8 transferências `curl` em `44000426717` falharam por erro de certificado/reset. Não declarar documentos autenticados.
+- **Decisão:** documentação cumulativa v2.1; E1 não homologada, E2/E3 somente preparatórias; PR #168 draft, sem merge ou deploy; F&O, gabaritos e históricos preservados.
