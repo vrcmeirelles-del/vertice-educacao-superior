@@ -45,3 +45,10 @@ Antes de cada etapa consultar os três documentos. Concluído só com evidência
 - Contratos propostos R0–R7 definidos, com versões, fonte, população, evidência por afirmação e revisão. Implementação de validador JSON Schema ainda pendente.
 - 18 cenários M01–M18 propostos, não executados nem homologados. Próxima tarefa independente: construir fixtures/validador e executar testes sintéticos, depois confrontar todas as normas de edições anteriores. A execução real da reprodução de Conceito Enade depende de P-ZIP-001 e P-REF-001.
 - Não há promoção de estágio: porta de qualidade para especialização permanece fechada.
+
+## Adendo v0.6 — primeira implementação do validador (2026-11-16)
+- Entregues `validator/validator.cjs` e `validator/test-validator.cjs` como protótipo independente em branch documental. Não integrados ao runtime Vértice.
+- Testes sintéticos M01–M18 + V01–V02 executados no JavaScript isolado: 20/20 aprovados; fonte e limitações em `EVIDENCIAS-TESTES-SINTETICOS-001.md`. A suíte salva no GitHub ainda precisa ser executada no Node/CI e anexar logs da mesma versão.
+- P-VAL-002: executar Node/CI em artefatos commitados, registrar hash do commit/ambiente, corrigir eventuais falhas.
+- P-SCHEMA-001: criar schemas formais R0–R7 e testar validadores profundos, campo a campo, incluindo números, versão, fontes, estado de revisão e status de SC.
+- P-ZIP-001/P-NT-001/P-REF-001 permanecem; reprodução de indicadores e homologação não concluídas.
