@@ -136,3 +136,26 @@ STATUS DE HOMOLOGAÇÃO:
 VERSÃO DE SAÍDA:
 RECOMENDAÇÃO PARA A ETAPA SEGUINTE:
 ```
+
+
+## Status cumulativo da E1 — atualização em 16/11/2026
+**Estado de saída:** `EM IMPLEMENTAÇÃO (PARCIAL)`; não superar critérios de aceite de E1. E2 continua bloqueada como etapa dependente.
+
+### Executado
+- [x] Releitura de Bíblia, Plano e Diário da E0.
+- [x] Catálogo inicial de atos 2025/2026, resultados, provas e microdados, com estado de evidência por fonte — `INEP_CATALOGO_FONTES_E1.md`.
+- [x] Conferência textual da NT40/2025 e regras PCP, SC e filtro de participantes por edição.
+- [x] Conferência textual da Portaria 478/2025 e correção da numeração das competências VI e VII frente ao resumo anterior.
+- [x] Matriz de rastreabilidade regra → implementação → teste — `INEP_MATRIZ_REGRAS_E1.md`.
+- [x] 11 testes sintéticos locais da conversão PCP→Conceito, passando; sem conexão com produção.
+
+### Bloqueado / não executado
+- [ ] Obter binários e SHA-256 e catalogar retificações de cada documento essencial.
+- [ ] Confirmar vigência integral e classificação dos atos normativos, inclusive situação atual da MP 1.370/2026.
+- [ ] Transcrever e revisar literalmente as 15 competências, 7 atributos, 6 contextos e 21 conteúdos da matriz.
+- [ ] Ler integralmente NTs 19/2025, 1PL/2025 e 42/2025.
+- [ ] Conferir provas/gabaritos e status de reaplicação 2026 em PDFs integrais.
+- [ ] Rodar reconciliação de microdados 2025 e planilha pública com resultados oficiais.
+- [ ] Homologação regulatória/pedagógica e aceite E1.
+
+**Passagem E1→E2:** proibida até comprovar o conjunto documental e requisitos verificáveis; a PR #168 continua de rascunho e sem publicação validada.
