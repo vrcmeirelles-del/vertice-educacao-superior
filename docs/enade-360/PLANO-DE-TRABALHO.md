@@ -181,3 +181,6 @@ Contrato de governança, testes sintéticos e protótipo isolado entregues. Ver 
 
 ## Aceite da correção de banco (2026-11-17)
 Migração efetiva 20261117092634 aplicada. Trigger v2 ensaiado no banco real e revertido: hashes e cadeia conferidos, 10/10 registros/eventos originais preservados. Código SQL da revisão final passou CI 44055417849 (PostgreSQL 17); renomeação do arquivo sincroniza o repositório com o histórico aplicado e é verificada novamente em CI. Zero grants de curso/papéis ativos nos mecanismos consultados; não ampliar acesso para simular sessões. Dois PDFs disponíveis foram recuperados, mas são duplicatas do relatório Direito/Faculdade de Olímpia 2022, não bases nacionais nem relatórios UNITOP. Ciência e conciliação continuam sem aceite.
+
+## Fechamento efetivo Work — 2026-11-17
+PR #169 merged em ff0963d após sete workflows success. Migração 20261117092634 aplicada, trigger e bloqueio testados no banco real com rollback. Deploys live: portal dep-dbu1um0ae00c73a5fd4g e institucional dep-dbu1um0ae00c73a5fd10; artefatos HTTP conferidos com hashes e mensagens da correção. Documentação e evidências preservadas no relatório executivo único. Correções operacionais entregues; sessões reais, equivalências, reprodução e homologação científica não receberam aceite. Nenhum novo ciclo de prototipação aberto. Publicação e especialização bloqueadas.

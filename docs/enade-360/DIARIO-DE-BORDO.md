@@ -210,3 +210,9 @@ Data/hora; etapa; fonte/URL/versão; ação executada; resultado e evidências; 
 - Teste no banco real em transação: UPDATE sem mudança de conteúdo gerou evento v2 temporário; event_hash_match, row_hash_match e chain_match=true, inclusive após escritor em America/Sao_Paulo. Rollback confirmado: dez registros, dez BASELINE, zero eventos novos persistidos/oficiais.
 - Disponibilidade de perfis: impacto roles ativos=0, learning staff scope=0, fatores MFA verificados=2. Não são sessões autenticadas dos cinco perfis. Nenhum grant ampliado.
 - Recuperados dois PDFs do Drive intitulados Curso/IES; bytes e SHA-256 idênticos. Ambos contêm relatório de curso Direito/Faculdade de Olímpia/2022, código impresso 5000876, 25 concluintes. Origem imediata Drive, sem confronto do binário no INEP. Não importar nem vincular à UNITOP, não declarar reprodução científica.
+
+## Entrada 029 — 2026-11-17 — Publicação comprovada e encerramento da execução
+- CI revisão d504c454: sete workflows success; contratos/PostgreSQL run 44056013177 e portal TypeScript Node 22/24 run 44056012516. 25 asserts SQL e seis testes do espelho aprovados além dos 266 contratuais preservados.
+- Merge PR #169: ff0963dcfd2fd356a82ff29ae3a5c74cc479076c. Portal live dep-dbu1um0ae00c73a5fd4g (09:33:52 UTC); institucional live dep-dbu1um0ae00c73a5fd10 (09:33:54 UTC). Marcadores novos confirmados nos JS servidos nos dois domínios; SHA-256 registrado.
+- Banco real: rejeição do aceite oficial testada e revertida; teste de captura/cadeia também revertido. Estado final preservado: dez registros/dez BASELINE; zero oficiais/validados/equivalências; hashes de linhas sem divergência. RLS privada e negação anon mantidas.
+- Relatório executivo único emitido com estados A–H e limites. Indicadores oficiais reproduzidos=0; conciliações INEP=0; sessões reais não homologadas. Nenhuma aprovação humana científica inventada. Especialização e publicação de resultados permanecem bloqueadas.

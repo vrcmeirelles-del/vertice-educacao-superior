@@ -1,0 +1,47 @@
+{
+  "date": "2026-11-17",
+  "project": "qvetbbmviatxxatzzuzc",
+  "migration": "20261117092634_enade360_verifiable_audit_and_scientific_hold",
+  "preexisting_records": 10,
+  "preexisting_baselines": 10,
+  "baseline_hash_mismatches": 0,
+  "current_row_hash_mismatches": 0,
+  "live_trigger_test": {
+    "transaction": "rolled back",
+    "temporary_event_count": 11,
+    "hash_version": 2,
+    "row_hash_match": true,
+    "event_hash_match": true,
+    "chain_match": true
+  },
+  "live_scientific_hold_test": {
+    "transaction": "rolled back",
+    "expected_rejection": true,
+    "official_records": 0,
+    "events": 10
+  },
+  "final_persisted_records": 10,
+  "final_persisted_baselines": 10,
+  "new_events_persisted": 0,
+  "unauthenticated_context_test": {
+    "db_role": "authenticated",
+    "auth_uid": null,
+    "records_returned": 0,
+    "audit_events_returned": 0
+  },
+  "browser_session_test": "Credentials rejected; no authenticated profile sessions tested",
+  "new_privileges_granted": false,
+  "synthetic_auth_tests": {
+    "engine": "PostgreSQL 17/pgcrypto in GitHub Actions",
+    "assertions": 25,
+    "status": "PASS",
+    "run": "https://github.com/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44056013177"
+  },
+  "source_reader_tests": {
+    "tests": 6,
+    "status": "PASS"
+  },
+  "scientific_reproductions": 0,
+  "inep_reconciliations": 0,
+  "scientifically_homologated": false
+}

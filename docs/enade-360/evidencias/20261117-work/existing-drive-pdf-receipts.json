@@ -1,0 +1,24 @@
+{
+  "files": [
+    {
+      "filename": "enade2022-ies-drive.pdf",
+      "provider_id": "1gf4-x0IQmmexXAK_0-xypXkgIb0EWuFg",
+      "provider_url": "https://drive.google.com/file/d/1gf4-x0IQmmexXAK_0-xypXkgIb0EWuFg/view?usp=drivesdk",
+      "retrieved_at": "2026-11-17T09:28:03.109612+00:00",
+      "bytes": 3972799,
+      "sha256": "8ac0753e25be12d34349ee6d26a9b97e53bdcdd387963b538cfd619c04812c9a",
+      "route": "existing Google Drive copy; original INEP retrieval not established"
+    },
+    {
+      "filename": "enade2022-course-drive.pdf",
+      "provider_id": "1x2voRh1ieDgk6adXEDAAQI14NnG7-7bB",
+      "provider_url": "https://drive.google.com/file/d/1x2voRh1ieDgk6adXEDAAQI14NnG7-7bB/view?usp=drivesdk",
+      "retrieved_at": "2026-11-17T09:28:02.871682+00:00",
+      "bytes": 3972799,
+      "sha256": "8ac0753e25be12d34349ee6d26a9b97e53bdcdd387963b538cfd619c04812c9a",
+      "route": "existing Google Drive copy; original INEP retrieval not established"
+    }
+  ],
+  "identity_check": "Both files have identical bytes; content is Course Report, Law, Faculdade de Olimpia, Enade 2022; not a distinct institution report and not UNITOP.",
+  "imported": false
+}
