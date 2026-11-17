@@ -134,3 +134,10 @@ Data/hora; etapa; fonte/URL/versão; ação executada; resultado e evidências; 
 - Resultado verificável: rejeição de SC numérico, classificação de valor zero legítimo como AVAILABLE, falta de justificativa para NOT_APPLICABLE, origem ausente em MISSING, dependência não acompanhada em PENDING, publicação sem comprovação de consulta em NOT_PUBLISHED.
 - Regra editorial: os seis estados são proposta de contrato da Vértice, não taxonomia universal oficial INEP; política de SC comprovada no protótipo apenas para Conceito Enade 2022–2023.
 - Sem microdados reais, planilhas oficiais ou deploy. Pendências P-ZIP-001/P-NT-001/P-REF-001/P-TOL-001 abertas, P-CROSS-001 parcial; criada P-STATE-001. Homologação científica e especialização bloqueadas.
+
+## Entrada 018 — 2026-11-17 — Contrato de rastreabilidade e prova sintética
+- Consultados Bíblia, Plano, Diário e motor integrado na branch `docs/enade360-biblia-mestra-20261116`, preservadas entradas 001–017.
+- Criados módulo `traceability-controls.cjs`, testes `test-traceability.cjs` e `test-trace-integration.cjs`, além do contrato `CONTRATO-RASTREABILIDADE-RESULTADOS.md`. Módulo registrado no gate de relatórios, sem deploy.
+- GitHub Actions run 44044766932, job 133907618976, commit e55e2ac5c60276c63c2d2030e65d7eda03f233d4, completed/success. Logs: 26+34+26+23+29+28+6+40=212 testes sintéticos aprovados.
+- Resultado: bloqueios de fonte/método sem metadados, inconsistência de curso/IES, aprovação sem revisor, fonte substituída e publicação antecipada. Contrato ainda opt-in, sem autenticação de documento/hashes, assinatura, persistência de eventos nem segregação real.
+- Pendências P-TRACE-001 nova, P-CROSS-001 parcial, P-ZIP-001 aguardando usuário; P-NT-001/P-REF-001/P-TOL-001 abertas. Nenhum indicador oficial reproduzido, nenhum serviço em produção alterado. Gate científico e especialização fechados.
