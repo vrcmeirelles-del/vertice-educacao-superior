@@ -110,3 +110,11 @@ Data/hora; etapa; fonte/URL/versão; ação executada; resultado e evidências; 
 - Diferenciações demonstradas nas fixtures: SC vs zero; elegível vs conceito calculado; divergência numérica vs divergência de metodologia; hipótese pedagógica com revisão humana; limites de arredondamento apenas para exibição aprovada.
 - Ressalvas: nenhum microdado ZIP recebido, nenhum Conceito Enade recalcado de ponta a ponta; ainda não há integração real com R1–R7 e códigos de cursos. P-CROSS-001/P-TOL-001 novas, P-ZIP-001/P-NT-001/P-REF-001 abertas.
 - Decisão: manter portão de especialização bloqueado, preservar PR documental e serviços em produção.
+
+## Entrada 015 — 2026-11-16 — Execução das pendências intercampos sem ZIP
+- Leitura prévia de Bíblia-Mestra, Plano, Diário e código CI; preservação de todas as entradas anteriores.
+- Novos arquivos: `validator/cross-report-controls.cjs`, `validator/test-cross-report.cjs`; integração em `validator/integrated-gate.cjs` e atualização do workflow de testes.
+- GitHub Actions run 43999088145, job 133758363398, commit 7cad9ec20abc0405d30221d42bf585e233aa31de: completed/success. 26/26 básicos, 34/34 edição, 26/26 intercampos, 32/32 schema+interpretação; total 118/118 testes sintéticos, zero falhas.
+- Resultado: bloqueios sintéticos de mistura de identidades, SC com valor, falso MATCH, política incompatível e referência substituída; diferença de arredondamento apenas para revisão, não homologação.
+- Limites: não foi obtido ZIP nem planilhas oficiais por curso; políticas integrais de tolerância INEP não comprovadas; códigos testados são sintéticos. P-CROSS-001 parcial, P-TOL-001/P-NT-001/P-REF-001 abertas, P-ZIP-001 aguardando usuário.
+- Decisão: continuar com estrutura transversal, sem alteração de produção, sem especialização por curso e sem homologar indicadores oficiais.
