@@ -1,0 +1,41 @@
+{
+  "date": "2026-11-17",
+  "environment": "www.verticesuperior.com.br",
+  "profile": "Master",
+  "institution": "FV-DEMO",
+  "record_id": "52df267f-1067-4f8d-bf06-8d4db969b7cd",
+  "kind": "evidencia",
+  "final_status": "rejeitado",
+  "real_browser_create": true,
+  "real_browser_reject": true,
+  "real_rpc_history": true,
+  "audit_events": [
+    {
+      "event": "INSERT",
+      "at": "2026-11-17T09:53:57.713530Z",
+      "sha256": "8eacf841aaacf8378a6b62f9688cfac9ca5cacfb93dff3c088ff409e5e5bc84d",
+      "canonical_hash_match": true
+    },
+    {
+      "event": "UPDATE",
+      "at": "2026-11-17T09:58:26.101794Z",
+      "sha256": "cc88faeafeb3d05592ae111be6da14f3628e1a2299c0fe2be0d9729bd8b3c51c",
+      "canonical_hash_match": true
+    }
+  ],
+  "preexisting_baselines_preserved": 10,
+  "record_count_after_test": 11,
+  "audit_event_count_after_test": 12,
+  "official_records": 0,
+  "ui_bug": "Opened audit history remained stale after status mutation; closing/reopening fetched new event",
+  "correction": "Invalidate selected audit and rows after successful mutation",
+  "regression_test": {
+    "tests": 1,
+    "passed": 1,
+    "synthetic_fixture": true
+  },
+  "typescript_check": "PASS",
+  "other_real_profiles_tested": [],
+  "mfa_challenge_tested": false,
+  "scientific_homologation": false
+}

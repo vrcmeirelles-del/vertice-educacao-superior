@@ -1,0 +1,63 @@
+name: ENADE 360 - recuperar originais INEP
+on:
+  pull_request:
+    paths:
+      - 'scripts/enade360/acquire-official.py'
+      - '.github/workflows/enade360-official-acquisition.yml'
+permissions:
+  contents: read
+jobs:
+  official-originals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Ferramentas de integridade e leitura
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y 7zip poppler-utils
+          python -m pip install openpyxl==3.1.5
+      - name: Obter originais diretamente do INEP e verificar estrutura
+        run: python -u scripts/enade360/acquire-official.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: enade360-acquisition-receipts
+          path: |
+            official-acquisition/*.json
+            official-acquisition/*.txt
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: enade360-official-references
+          path: official-acquisition/references/
+          if-no-files-found: ignore
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: enade360-original-microdata-2021
+          path: official-acquisition/packets/microdados_enade_2021.zip
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: enade360-original-microdata-2022
+          path: official-acquisition/packets/microdados_enade_2022_LGPD.rar
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: enade360-original-microdata-2023
+          path: official-acquisition/packets/microdados_enade_2023.zip
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 30

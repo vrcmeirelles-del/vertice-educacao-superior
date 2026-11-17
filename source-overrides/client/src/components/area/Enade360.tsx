@@ -169,6 +169,7 @@ export default function Enade360({institutionId,courses,actions,goals,role,onPla
       }).eq("id",record.id).eq("institution_id",institutionId);
       if(error)throw error;
       setMessage(accept?"Evidência validada.":"Evidência rejeitada.");
+      setAuditFor(null);setAuditRows([]);
       await load();
     }catch(error){setMessage(error instanceof Error?error.message:"Não foi possível validar.");}
     finally{setBusy(false);}
