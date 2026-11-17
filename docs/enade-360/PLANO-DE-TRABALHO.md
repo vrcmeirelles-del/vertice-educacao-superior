@@ -31,3 +31,10 @@ Antes de cada etapa consultar os três documentos. Concluído só com evidência
 - Recalcular taxas de 2022 usando 13 áreas: prova quantitativa agregada executada em `PROVA-QUANTITATIVA-001.md`. Resultado 25/26 confrontos consistentes, 1 divergência no percentual de presença de Psicologia; hipótese causal não determinada.
 - Próximo critério de aceite: ingestão íntegra dos microdados ZIP e dicionário oficial, SHA-256 dos arquivos, filtros específicos por edição, processamento por área/código e confronto com planilhas dos conceitos contínuos e em faixa.
 - Não marcar 'reprodução do Conceito Enade' como concluída com base na prova agregada. Não homologado. Nenhuma mudança de produção.
+
+## Adendo v0.4 — replanejamento sem dependência indevida (2026-11-16)
+- **P-ZIP-001 — ABERTA:** aguardando ZIP(s) oficial(is) de microdados enviados pelo usuário, sem prazo definido. Preferir, quando disponíveis, dicionário da edição, nota técnica e tabela oficial de Conceito Enade para conciliação. Não tratar arquivo como recebido nem concluir ingestão.
+- Realizado independentemente do ZIP: `MATRIZ-COMPARABILIDADE-HISTORICA.md` (classes C0–CX, exemplos e bloqueios) e `PROTOCOLO-INGESTAO-E-ACEITE.md` (sequência de controle, testes T01–T12 e aceite); arquivos apenas documentais.
+- Próximas tarefas independentes: conferir notas técnicas de cada edição; preencher mapeamento dos códigos de áreas, graus, instrumentos e versões; especificar formatos de relatório e de registro de divergências; desenhar testes sintéticos e casos-limite sem alegar validação oficial.
+- Tarefas condicionadas a P-ZIP-001: hashes dos arquivos efetivos; parsing real; filtros por edição; recálculo individual de indicadores; conciliação por código; homologação com bases reais.
+- Porta de qualidade: mesmo que atividades documentais estejam concluídas, **não avançar à especialização** antes da homologação completa e auditável.
