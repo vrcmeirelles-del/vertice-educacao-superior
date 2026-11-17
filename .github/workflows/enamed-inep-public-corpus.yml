@@ -5,6 +5,7 @@ on:
     paths:
       - "scripts/enamed/discover_public_inep_pdfs.py"
       - "scripts/enamed/render_inep_public_catalog.py"
+      - "scripts/enamed/inspect_inep_tls_chain.py"
       - "scripts/enamed/download_verified_links_curl.py"
       - "docs/enamed/INEP_2026_LINKS_OFICIAIS_CONFIRMADOS.json"
       - ".github/workflows/enamed-inep-public-corpus.yml"
@@ -70,5 +71,22 @@ jobs:
         with:
           name: enamed-e1-curl-tls-evidence
           path: evidence/enamed-inep-curl/
+          retention-days: 14
+          if-no-files-found: error
+  tls-chain-diagnostic:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Diagnosticar cadeia pública sem desabilitar verificação do certificado
+        run: python scripts/enamed/inspect_inep_tls_chain.py
+      - name: Registrar evidência pública para verificar cadeia intermediária
+        uses: actions/upload-artifact@v4
+        with:
+          name: enamed-e1-tls-chain-diagnostic
+          path: evidence/enamed-tls/tls_chain_report.json
           retention-days: 14
           if-no-files-found: error
