@@ -40,5 +40,11 @@ test('production migration: scoped search, existing metadata, no false content a
  await db.exec(readFileSync(new URL('../../../supabase/migrations/'+readdirSync(new URL('../../../supabase/migrations/',import.meta.url)).find(n=>n.endsWith('_enade360_extraction_failure_trace.sql')),import.meta.url),'utf8'));
  await db.exec(`update vertice_doc_prevalidation set ai_error='Extração de texto falhou: no_embedded_text_ocr_required',source_sha256=repeat('b',64) where repository_file_id='${D}';set role authenticated;select set_config('app.aal','aal2',false);`);
  const failed=(await search(I,D,false,''))[0];assert.equal(failed.text_status,'failed');assert.equal(failed.source_sha256,'b'.repeat(64));assert.match(failed.excerpt,/OCR necessário/);assert.deepEqual(failed.keyword_suggestions,[]);
+ await db.exec('reset role');
+ await db.exec(readFileSync(new URL('../../../supabase/migrations/'+readdirSync(new URL('../../../supabase/migrations/',import.meta.url)).find(n=>n.endsWith('_enade360_ocr_provenance_notice.sql')),import.meta.url),'utf8'));
+ await db.exec(`update vertice_doc_prevalidation set extraction_status='partial',extraction_metadata='{"ocr_applied":true}',extracted_text='Texto reconhecido sobre extensão, formação e acompanhamento institucional.' where repository_file_id='${D}';set role authenticated;`);
+ const ocr=(await search(I,D,false,'extensão'))[0];assert.equal(ocr.text_status,'partial');assert.match(ocr.excerpt,/OCR local:.*conferência no original/);assert.deepEqual(ocr.approved_links,[]);
+ assert.equal((await search(I,D,false,'acentos')).length,0); // notice is not evidence
+ await db.exec("select set_config('app.aal','aal1',false)");assert.equal((await search(I,D,false,'extensão')).length,0);
  await db.close();
 });

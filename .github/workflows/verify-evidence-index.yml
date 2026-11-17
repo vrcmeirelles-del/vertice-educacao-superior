@@ -7,6 +7,7 @@ on:
       - 'supabase/migrations/*official_reference_catalog.sql'
       - 'supabase/migrations/*repository_index_queue.sql'
       - 'supabase/migrations/*extraction_failure_trace.sql'
+      - 'supabase/migrations/*ocr_provenance_notice.sql'
       - 'docs/enade-360/fontes/iacg2017-reconhecimento-catalog.json'
       - 'scripts/tests/evidence-runtime/**'
       - '.github/workflows/verify-evidence-index.yml'
