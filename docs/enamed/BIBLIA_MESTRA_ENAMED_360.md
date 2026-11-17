@@ -423,3 +423,7 @@ No banco F&O (leitura) só foram encontrados `fo_enamed_items` e `fo_enamed_atte
 
 ### Adendo v2.3 — refinamento da triagem textual (17/11/2026)
 Revisada a comparação entre as duas cópias das 200 posições regulares usando níveis sucessivos de normalização: **57 enunciados brutos diferentes**, **31 após retirar whitespace**, **22 após também retirar pontuação**. As 22 diferenças alfanuméricas persistentes estão no Caderno 2 regular e foram registradas por ID, posição e caderno equivalente em `ENAMED_2026_22_DIVERGENCIAS_TEXTUAIS_PERSISTENTES_C2.json`. Duas divergências brutas de alternativas desapareceram ao retirar whitespace. **Esta triagem não detecta por si só mudança semântica ou efeito clínico, e remoção de pontuação poderia ocultar alterações relevantes em valores/unidades.** Nenhum registro modificado; permanece revisão integral por fonte e curadoria humana.
+
+
+### Adendo v2.3 — homologação por perfil preparada, não executada
+O roteiro `docs/enamed/ENAMED_2026_ROTEIRO_HOMOLOGACAO_PERFIS.md` enumera **16 cenários verificáveis**, positivos e negativos, com duas IES sintéticas, Master/Reitoria/CPA/Coordenação/NDE/docentes, MFA AAL2, RLS por instituição/curso/disciplina, prevenção de exposição cruzada, responsividade e sessão expirada. **Nenhuma sessão autenticada real foi executada nesta conversa**, e zero linhas em métricas não prova isolamento. Não habilitar a aba ENADE institucional para coordenadores apenas por menu; preservar o escopo de curso e a decisão formal sobre permissões.
