@@ -61,3 +61,10 @@ Data/hora; etapa; fonte/URL/versão; ação executada; resultado e evidências; 
 - Limitação: código não está integrado nem publicado; suite Node/CI do repositório não executada nesta sessão; resultado sintético não é conferência oficial por curso, nem homologação científica.
 - Pendências: P-ZIP-001, P-NT-001, P-REF-001; abertas P-VAL-002 (executar versionados via Node/CI) e P-SCHEMA-001 (JSON Schema integral).
 - Decisão: preservar a PR documental, não alterar sistemas em produção, manter portão de especialização fechado.
+
+## Entrada 008 — 2026-11-16 — Contratos JSON Schema e execução sintética Node
+- Consultados os três documentos de governança, preservadas entradas 001–007.
+- Criados na branch documental arquivos `validator/report-schema-0.2.json`, `validator/schema-validator.cjs`, `validator/test-contracts.cjs` e `.github/workflows/enade360-contracts.yml`. Nenhuma integração de aplicação ou banco.
+- Execução observada: Node.js v22.16.0 no ambiente local de desenvolvimento, 26 testes, 26 PASS, 0 FAIL. JSON Schema verificado com Python Draft202012Validator.check_schema em cópia local.
+- Limites expressos: acesso HTTP direto à branch GitHub indisponível; código local não conferido byte a byte com o versionado. Nenhum GitHub Actions confirmado verde, nenhuma reprodução de indicador com microdados reais.
+- Evidência principal: `EVIDENCIAS-CONTRATOS-002.md`; pendências P-VAL-002 (parcial), P-SCHEMA-001 (parcial), P-CI-001 (aberta), P-ZIP-001/P-NT-001/P-REF-001 (abertas). Homologação bloqueada.
