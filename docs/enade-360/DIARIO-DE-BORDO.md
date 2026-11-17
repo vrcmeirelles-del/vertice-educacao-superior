@@ -88,3 +88,9 @@ Data/hora; etapa; fonte/URL/versão; ação executada; resultado e evidências; 
 - Causa provável tecnicamente fundamentada: instalação `jsonschema==4.23.0` sem extras de verificadores de formato opcional; isso pode impedir validação de `date-time` e `uri` mesmo quando o `FormatChecker` está presente. Não remover os testes.
 - Correção versionada no workflow: `python -m pip install "jsonschema[format]==4.23.0"`, commit `1f62c2163db65309e40957553abc7272d6b603a2`. Resultado final da repetição ainda sujeito a confirmação do CI.
 - Esta falha faz parte do histórico auditável e não deve ser apagada. Não representa prova com microdados INEP.
+
+## Entrada 012 — 2026-11-16 — Correção validada e integração interpretativa
+- Consulta ao GitHub Actions confirmou run `43996910743` concluído com success, corrigindo as duas rejeições indevidas de formato identificadas no run anterior. Passos Node e Python tiveram conclusão success.
+- Criado `validator/integrated-gate.cjs` e atualizada suíte `test-json-schema.py`; o mesmo relatório passa por validação Draft 2020-12 e consistência/pedagogia em Node. Adicionados 4 casos negativos, 32 ao todo.
+- Limite: resultado CI das 32 fixtures ainda requer consulta; não confundir prova sintética, execução CI, uso de dados reais e homologação institucional.
+- Pendências P-ZIP-001/P-NT-001/P-REF-001 abertas e núcleo genérico bloqueado para especialização.
