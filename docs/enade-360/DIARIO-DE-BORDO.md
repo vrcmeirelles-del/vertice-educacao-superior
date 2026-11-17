@@ -94,3 +94,10 @@ Data/hora; etapa; fonte/URL/versão; ação executada; resultado e evidências; 
 - Criado `validator/integrated-gate.cjs` e atualizada suíte `test-json-schema.py`; o mesmo relatório passa por validação Draft 2020-12 e consistência/pedagogia em Node. Adicionados 4 casos negativos, 32 ao todo.
 - Limite: resultado CI das 32 fixtures ainda requer consulta; não confundir prova sintética, execução CI, uso de dados reais e homologação institucional.
 - Pendências P-ZIP-001/P-NT-001/P-REF-001 abertas e núcleo genérico bloqueado para especialização.
+
+## Entrada 013 — 2026-11-16 — Gate combinado homologado apenas quanto aos testes sintéticos
+- GitHub run 43997052017 e job 133751571394: `completed/success`, após correção de formatos registrada na entrada 011.
+- Logs: 26/26 testes semânticos Node 22, 32/32 instâncias Draft 2020-12 + Node (7 positivas aceitas, 25 negativas rejeitadas), nenhuma falha.
+- Referência do commit efetivamente executado: a9cc729dcef66e34adbe9a0ad2d5011f60d94ecc. As atualizações documentais posteriores não estão implicitamente cobertas por esse CI.
+- Limitações: fontes sintéticas; sem microdados; sem reprodução de conceito por curso/área; privacidade e metodologia do INEP não homologadas em uso real.
+- Gate de especialização continua fechado. P-ZIP-001, P-NT-001, P-REF-001 permanecem.
