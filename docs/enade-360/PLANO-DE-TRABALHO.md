@@ -145,3 +145,10 @@ Pendências P-SCHEMA-REAL-001, P-ACCESS-001, P-TRACE-001, P-API-001, P-CROSS-001
 - **Ação 3:** executada suíte sintética de 24 casos JS em CI, não RLS PostgreSQL. Run 44047694892, commit ad82b1c7d743a5934a93c340ab45ae403878a02d: 266/266 testes sintéticos aprovados. P-RLS-SQL-001 aberta (PostgreSQL descartável).
 - **Ciclo 03 proposto:** (1) reconciliar contratos e tabelas reais de autorização e vínculo e-ORBIT; (2) preparar testes SQL de RLS para ambiente descartável; (3) executar em banco isolado, se disponível, com provas de negação e rollback. Nada aplicar em produção.
 - P-TRACE-001/P-API-001 e pendências científicas preservadas.
+
+## Adendo v1.7 — Ciclo 03, três ações executadas (2026-11-17)
+1. Consulta agregada da fonte real: 289 linhas de espelho, 241 com ID, 48 sem, 62 pares distintos, zero linhas em `vertice_enade_course_config`. Criada P-MAP-001 para conciliar por IES/código com evidência, não por aproximação textual.
+2. Teste SQL RLS estruturado em `validator/test-rls-postgres-disposable.sql` com PostgreSQL 17 exclusivo do GitHub Actions e sem rede com produção.
+3. CI run 44048407509, commit 7a3672384565bd078b30e137e06248d7a5582b96: jobs `contract-tests` e `disposable-postgres-rls` success, 266 testes sintéticos anteriores verdes e teste SQL de isolamento/rollback aprovado.
+P-RLS-SQL-001 atendida apenas no modelo. P-RLS-REAL-001 aberta: ensaiar políticas e autenticação efetivas em ambiente isolado com esquema clonado. P-MAP-001 aberta. P-ACCESS-001, P-TRACE-001, P-API-001, P-CROSS-001 e pendências científicas/ZIP preservadas.
+**Ciclo 04 em três ações sugerido:** (1) levantar ligações e-ORBIT→Vértice com regras exatas e candidatos não presumidos; (2) projetar clonagem sem PII do schema e políticas RLS atuais; (3) executar teste de regressão em clone descartável, sem alterar produção. Nenhuma especialização antes da homologação com INEP.
