@@ -5,6 +5,8 @@ on:
     paths:
       - "docs/enamed/**"
       - "scripts/tests/enamed-*.test.mjs"
+      - "scripts/tests/test_verify_inep_artifacts.py"
+      - "scripts/enamed/verify_inep_artifacts.py"
       - "source-overrides/client/src/components/area/Enamed*.tsx"
       - "source-overrides/client/src/components/area/Enade360.tsx"
       - "source-overrides/client/src/components/area/InstitutionTabs.tsx"
@@ -28,6 +30,8 @@ jobs:
         run: node --test scripts/tests/enamed-dictionary-contract.test.mjs
       - name: Validar integração sem escrita e escopo por instituição
         run: node --test scripts/tests/enamed-integration-contract.test.mjs
+      - name: Verificar integridade documental com fixtures sintéticas
+        run: python -m unittest discover -s scripts/tests -p "test_verify_inep_artifacts.py" -v
       - name: Não declarar fontes do Inep homologadas
         run: |
           grep -q 'review_required' docs/enamed/DICIONARIO_COMPETENCIAS_478_2025_DRAFT.json
