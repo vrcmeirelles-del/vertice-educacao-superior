@@ -1,6 +1,6 @@
 # BÍBLIA-MESTRA DO PROJETO — ENAMED 360° / INEP INTELLIGENCE
 **Projeto:** Vértice Educação Superior × Fato & Ordem × Sapiens 360°  
-**Versão:** 1.5 — E1 parcial + comparação documental e CI de contratos  
+**Versão:** 1.6 — E1 parcial + cadeia de custódia e QA por perfil  
 **Data-base:** 16 de novembro de 2026  
 **Status:** documento-mestre de projeto; NÃO corresponde à implantação ou homologação da solução.  
 **Governança:** evolução cumulativa por etapas, com revisão retrospectiva obrigatória.  
@@ -263,3 +263,23 @@ Prosseguir conferindo as fontes INEP e originais de cada caderno; E1 não pode s
 - ADR-ENAMED-012: manter E1 bloqueada quando PDF não autenticável; usar evidência web apenas para inventário e interpretação preliminar. RLS, sincronização e dados reais por IES mantêm aceite separado.
 
 **Dependências:** E2/E3 não são encerradas; produção F&O e Vértice intocada; a PR #168 permanece em rascunho.
+
+
+## 17. Atualização cumulativa v1.6 — autenticação, regressão e perfil (16/11/2026)
+**Situação:** E1 EM ABERTO. E2 e E3 continuam somente com artefatos preparatórios, sem homologação clínica ou gravação F&O. Código ENAMED permanece em PR #168 draft.
+
+### Regras confirmadas e procedência
+- Catálogo `E1_CADEIA_CUSTODIA_E_REGRAS_20261116.md`: texto do Edital nº 71/2026 republicado no DOU (21/08/2026, seção 3, p.53), domínio `download.inep.gov.br`. Distingue 8º semestre/4º ano e 12º semestre/concluinte (itens 1.1.1 e 1.1.2); 100 itens com 4 alternativas (3.1.1.1); marco temporal normativo/bibliográfico **03/07/2026** (3.1.1.2.1); gabarito definitivo previsto para 04/12/2026 (1.3).
+- O HTML da página do Inep de provas/gabaritos não revelou links de PDF; a recuperação por HTTP dos arquivos do F&O e NT 40 falhou (502/timeout/DNS). Nenhum hash de documento oficial foi registrado. A conferência textual do edital não equivale à autenticação do binário.
+- Manifesto `FONTES_FO_PENDENTES_AUTENTICACAO_20261116.json` diferencia três URLs de PDFs declaradas no banco F&O de documentos efetivamente autenticados. **Nenhuma dessas URLs foi homologada**.
+- CSV `CONFLITOS_DUPLICATAS_ENAMED_2026.csv` discrimina as **200 posições duplicadas por fonte/número**, preserva seus IDs e flags para 57 divergências de enunciado, 2 de alternativas, 6 de tema, 191 de subtema e 192 de keywords. Dados internos, não veredicto clínico.
+
+### Implementação de verificação e QA
+- `scripts/enamed/verify_inep_artifacts.py`: verificador offline e fechado por padrão para PDFs/ZIP já recuperados, URL de domínio permitido, caminho seguro, integridade binária e SHA-256. **Não atesta autenticidade ou validade oficial sozinho.**
+- `scripts/tests/test_verify_inep_artifacts.py`: 4 testes com fixture sintética: hash, rejeição de domínio indevido, caminho inseguro e PDF inválido.
+- `source-overrides/client/src/components/area/EnamedEnvironment.test.tsx`: 4 testes de renderização e matriz de navegação de perfis, ainda sem sessões reais. Constatação: coordenação e NDE recebem Trilhas ENADE, mas não `enade` institucional, ao contrário de Master, Reitoria e CPA. **Não ampliar automaticamente** porque é necessária validação de escopo curso/IES e RLS.
+- Workflow `verify-enamed-contracts.yml` atualizado para executar contratos Node e testes offline Python; teste de TypeScript completo já havia passado no commit `2591fcc59fc4f268d43d8f06ad34773ac6306484`, mas novas mudanças exigem regressão atualizada.
+- ADR-ENAMED-013: hash local ≠ autenticação de autoria/edição; exigir cadeia de fonte oficial e inspeção humana.
+- ADR-ENAMED-014: perfil de coordenação exige uma visualização institucional restrita por curso antes de ser habilitado no ENAMED/ENADE 360; não presumir autorização somente pelo menu.
+
+**Porta E1:** fechada até haver arquivos oficiais integrais, versões, hashes e revisão normativa. Futura validação por IES continua E9.
