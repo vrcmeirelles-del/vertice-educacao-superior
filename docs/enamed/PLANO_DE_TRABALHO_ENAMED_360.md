@@ -290,3 +290,19 @@ RECOMENDAÇÃO PARA A ETAPA SEGUINTE:
 - [ ] Baixar todos os PDFs de fontes e gabaritos por TLS válido, verificar SHA-256 e revisão de documentos; oito transferências curl falharam.
 - [ ] Homologar 483 questões por fonte e gabarito antes de qualquer reindexação e diagnóstico Sapiens.
 **Status:** código passou pela regressão automatizada; E1 ainda sem aceite e PR #168 ainda não pronta para merge/deploy.
+
+
+## Passagem com autenticidade de binários e reconciliação preliminar — 17/11/2026
+- [x] Diagnosticar cadeia TLS incompleta no endpoint download.inep.gov.br e recuperar intermediária validada pela raiz confiável, sem desabilitar TLS.
+- [x] Baixar **8 documentos PDF oficiais 2026** (regular C1/C2, reaplicação C1/C2, quatro gabaritos preliminares), conferir 8 SHA-256 com os bytes do artefato Actions `14299257407`.
+- [x] Persistir manifesto de hashes `INEP_2026_SHA256_DOCUMENTOS_PRELIMINARES_20261117.json` e documento de confronto `E1_CONFRONTO_GABARITOS_PRELIMINARES_483_20261117.md`.
+- [x] Extrair **100 chaves preliminares por caderno** e confrontar `fo_enamed_items` em leitura: 483 concordantes, 0 divergentes.
+- [x] Listar **17 números de reaplicação C1** sem representação em `fo_enamed_items` e confirmar zero posições da reaplicação C2 nessa tabela.
+- [x] Identificar q19 e q28 da aplicação regular C1 como duas divergências de alternativas por espaçamento/pontuação entre cópias, sem efetuar UPDATE.
+- [x] Verificar CI do commit `ccda5e4...`: contrato, recuperação de documentos e TypeScript completos com `success`.
+- [ ] Confrontar os **483 enunciados, comandos, alternativas e mídias**, incluindo diferenças não triviais; não atribuir equivalência textual apenas por acerto do gabarito.
+- [ ] Recuperar e autenticar edição **definitiva** dos quatro gabaritos e retificações assim que publicada, incluindo anulações; diferenciar versionamento por data.
+- [ ] Concluir leitura das demais notas técnicas e regras metodológicas e obter aprovação regulatória.
+- [ ] Executar testes navegáveis/autenticados de Master, Reitoria, CPA, Coordenação, NDE e outra IES com MFA/RLS; testar privacidade por curso/IES.
+- [ ] Homologar ponte e diagnóstico Sapiens apenas com dados sintéticos, curadoria médica e dual-IA após gates documentais.
+**Status:** E1 ainda sem aceite integral, apesar de comprovação positiva de oito binários e 483 gabaritos preliminares. PR #168 permanece draft; preservar produção.
