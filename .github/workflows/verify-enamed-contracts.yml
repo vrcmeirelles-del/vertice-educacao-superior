@@ -31,6 +31,8 @@ jobs:
         run: node --test scripts/tests/enamed-dictionary-contract.test.mjs
       - name: Validar integração sem escrita e escopo por instituição
         run: node --test scripts/tests/enamed-integration-contract.test.mjs
+      - name: Validar permutações de 200 questões e 400 localizadores de página
+        run: node --test scripts/tests/enamed-booklet-maps.test.mjs
       - name: Verificar integridade documental com fixtures sintéticas
         run: python -m unittest discover -s scripts/tests -p "test_verify_inep_artifacts.py" -v
       - name: Rejeitar rotas TLS inseguras e intermediárias não validadas
