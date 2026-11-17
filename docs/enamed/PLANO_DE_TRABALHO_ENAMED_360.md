@@ -306,3 +306,18 @@ RECOMENDAÇÃO PARA A ETAPA SEGUINTE:
 - [ ] Executar testes navegáveis/autenticados de Master, Reitoria, CPA, Coordenação, NDE e outra IES com MFA/RLS; testar privacidade por curso/IES.
 - [ ] Homologar ponte e diagnóstico Sapiens apenas com dados sintéticos, curadoria médica e dual-IA após gates documentais.
 **Status:** E1 ainda sem aceite integral, apesar de comprovação positiva de oito binários e 483 gabaritos preliminares. PR #168 permanece draft; preservar produção.
+
+
+## E1 — triagem textual por item e cadernos equivalentes, 17/11/2026
+- [x] Extrair os quatro cadernos PDF por PyMuPDF e localizar as **400 posições oficiais** nas páginas físicas, sem inferir mídias.
+- [x] Reconhecer e registrar as duas permutações C2→C1 (regular e reaplicação), 100/100 correspondências em cada caso por abertura de enunciado e gabarito preliminar.
+- [x] Triar via SQL somente leitura 483 registros F&O contra os **24 primeiros caracteres normalizados** da abertura correspondente: 483 compatíveis, 0 divergências de prefixo. **Não tratar como conferência integral.**
+- [x] Mapear 17 posições C1 de reaplicação não presentes na tabela para seus números equivalentes no C2.
+- [x] Corrigir a hipótese anterior de '117 questões inéditas ausentes': são 17 conteúdos candidatos e 100 referências de outra ordenação do mesmo caderno.
+- [x] Criar `ENAMED_2026_MAPA_PERMUTACOES_CADERNOS_DRAFT.json`, `ENAMED_2026_LOCALIZADOR_PAGINAS_400_QUESTOES.json`, `ENAMED_2026_REAPLICACAO_17_POSICOES_EQUIVALENTES.json`, `E1_AUDITORIA_TEXTUAL_483_E_MAPA_CADERNOS_20261117.md`.
+- [x] Criar contrato de teste para mapas e localizadores e adicioná-lo ao workflow `verify-enamed-contracts.yml`.
+- [ ] Confirmar execução verde do workflow após o último commit que altera os novos contratos.
+- [ ] Confrontar 483/483 **enunciados completos, comandos e alternativas**, especialmente 57 versões divergentes; revisar imagens/tabelas manualmente.
+- [ ] Homologar aliases sob curadoria médica, mantendo histórico; preparar correções como propostas, sem SQL de produção.
+- [ ] Conferir gabaritos DEFINITIVOS e notas técnicas para fechar E1, após publicação, e sessões reais de Master/Reitoria/CPA/Coordenação/NDE com MFA e isolamento.
+**Porta E1: ainda sem aceite.**
