@@ -73,3 +73,14 @@ Leia em conjunto com `BIBLIA_MESTRA_ENAMED_360.md` e `PLANO_DE_TRABALHO_ENAMED_3
 - **INEP:** PDF NT40/2025 visto em domínio oficial, página 1 conferida com SEI nº 1844476 e CRC AD834C1B; demais NTs 19, 1PL, 42 não baixadas por timeout/502; microdados 2025 têm metadado de atualização textual divergente. Hash integral pendente.
 - **Preservado:** não houve escrita em bancos, ativação de sincronização, importação institucional, merge, deploy ou modificações de gabaritos.
 - **Status:** E1 aberta; E2 bloqueada; E7 código em evolução, testes/homologação pendentes; E9 futura.
+
+## 2026-11-16 — Dicionário oficial preliminar e auditoria concomitante (sem produção)
+- **Leitura de entrada:** Bíblia v1.3, Plano e Diário; sem reinício de projeto.
+- **Fonte examinada:** Portaria Inep 478 de 18/07/2025, reprodução DOU de quatro páginas; artigos 3º, 6º, 7º e 8º. PDF foi inspecionado visualmente via ferramenta de consulta; hash binário e validade completa ainda pendentes.
+- **SQL read-only F&O:** 483 registros ENAMED; 483 competências vazias; 483 hashes ausentes; 483 áreas genéricas; 483 com palavra-chave de edição; 433 com keyword exata `medicina`; 200 pares fonte/número repetidos.
+- **Artefatos criados:** `DICIONARIO_COMPETENCIAS_478_2025_DRAFT.json`, `FILA_REVISAO_483_ENAMED_2026.csv`, `AUDITORIA_CONCOMITANTE_483_20261116.md`, `scripts/tests/enamed-dictionary-contract.test.mjs`.
+- **Resultados da fila:** todos os 483 IDs preservados; 343 áreas candidatas por disciplina e 140 ausentes, sem inferência clínica nem aprovação.
+- **Testes executados:** 11 invariantes sobre os quatro arquivos obtidos do GitHub, todas aprovadas. Script Node versionado, mas execução Node/CI ainda não verificada.
+- **Evidência:** dados SQL do Supabase F&O nesta sessão e SHAs/links da branch PR #168; nenhuma questão, gabarito, resposta ou vínculo de estudante modificado.
+- **Decisão ADR-011:** separar sugestão editorial/área, norma versionada e classificação aprovada; duas IAs independentes e médico revisor antes de publicar.
+- **Status real:** E1 não encerrada, E2/E3 com preparativos somente, sem homologação nem aplicação no banco. E9 institucional permanece futura.
