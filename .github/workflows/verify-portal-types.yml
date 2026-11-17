@@ -6,6 +6,7 @@ on:
       - 'supabase/functions/vertice-discursiva/**'
       - 'supabase/migrations/*discursiva*.sql'
       - 'scripts/tests/discursiva-runtime/**'
+      - 'source-overrides/shared/**'
       - 'source-overrides/client/**'
       - 'source-overrides/server/**'
       - 'source-overrides/tsconfig.json'
