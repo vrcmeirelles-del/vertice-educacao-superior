@@ -1,0 +1,34 @@
+name: ENAMED 360 - validar contratos e dicionário
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "docs/enamed/**"
+      - "scripts/tests/enamed-*.test.mjs"
+      - "source-overrides/client/src/components/area/Enamed*.tsx"
+      - "source-overrides/client/src/components/area/Enade360.tsx"
+      - "source-overrides/client/src/components/area/InstitutionTabs.tsx"
+      - ".github/workflows/verify-enamed-contracts.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: enamed-contracts-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Validar 483 IDs e dicionário normativo em rascunho
+        run: node --test scripts/tests/enamed-dictionary-contract.test.mjs
+      - name: Validar integração sem escrita e escopo por instituição
+        run: node --test scripts/tests/enamed-integration-contract.test.mjs
+      - name: Não declarar fontes do Inep homologadas
+        run: |
+          grep -q 'review_required' docs/enamed/DICIONARIO_COMPETENCIAS_478_2025_DRAFT.json
+          grep -q 'E1' docs/enamed/PLANO_DE_TRABALHO_ENAMED_360.md
