@@ -185,3 +185,14 @@ Leia em conjunto com `BIBLIA_MESTRA_ENAMED_360.md` e `PLANO_DE_TRABALHO_ENAMED_3
 ### 2026-11-17 — Roteiro de QA institucional
 - Novo artefato `ENAMED_2026_ROTEIRO_HOMOLOGACAO_PERFIS.md`: 16 cenários sintéticos de login/MFA/RLS por perfil, instituições e cursos, e responsividade; execução não realizada por falta de navegador autenticado contextual.
 - Nenhuma permissão, token, dado real ou tabela foi alterado. E1 sem aceite integral; homologação de perfis ainda bloqueia merge/deploy.
+
+
+## 2026-11-17 — Triagem direta de 22 variantes do Caderno 2 e mídias
+- **Leituras herdadas:** Bíblia v2.3, Plano, Diário, PDF oficial regular C2 com SHA-256, 22 conflitos identificados e mapa de permutações/páginas.
+- **SQL read-only:** 22 pares de versões: primeira região textual divergente inspecionada; campos `blocks`, `source_page`, `source_hash`, `competencies` inventariados. 483/483 `blocks=[]`, 223 `source_page=NULL`, 483 `source_hash=NULL`, 483 `competencies=[]`.
+- **Achados PDF:** Q12 C2 utiliza diagrama e tabela Lund–Browder; Q81 C2, imagem dermatológica; Q82 C2, radiografia. Os campos `blocks` dessas questões estão vazios; outras fontes possíveis de mídia no portal não foram inspecionadas.
+- **Classificação de triagem (não clínica):** variações em tabelas laboratoriais e valores (Q40,42,44,45,49,51,74,90), contextos de paciente/ética/urgência e grafia técnica; a equivalência integral das questões não foi atestada.
+- **Criado:** `ENAMED_2026_TRIAGEM_22_VARIANTES_TEXTUAIS_C2.json`; `E1_AUDITORIA_22_VARIANTES_E_MIDIAS_20261117.md`; `scripts/tests/enamed-text-variants.test.mjs` incluído no workflow da PR #168.
+- **QA:** CI da revisão anterior aprovado; reexecução nova pendente de conclusão. Nenhuma sessão autenticada Master/Reitoria/CPA/Coordenação/NDE ou teste RLS com dados sintéticos executado.
+- **Preservação:** nenhum UPDATE, DELETE ou importação de questões/gabaritos/imagens, nenhuma mudança de notas, respostas ou vínculos estudantis, PR #168 draft, sem deploy Render.
+- **Status:** E1 aberta até cotejo integral e gabaritos definitivos; E2/E3 apenas preparação, E9 futura.
