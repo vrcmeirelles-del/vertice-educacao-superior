@@ -52,3 +52,9 @@ Antes de cada etapa consultar os três documentos. Concluído só com evidência
 - P-VAL-002: executar Node/CI em artefatos commitados, registrar hash do commit/ambiente, corrigir eventuais falhas.
 - P-SCHEMA-001: criar schemas formais R0–R7 e testar validadores profundos, campo a campo, incluindo números, versão, fontes, estado de revisão e status de SC.
 - P-ZIP-001/P-NT-001/P-REF-001 permanecem; reprodução de indicadores e homologação não concluídas.
+
+## Adendo v0.7 — contrato estruturado e Node local (2026-11-16)
+- Entregues: JSON Schema 0.2, gate semântico prototípico, suíte Node 26 casos, workflow CI isolado, evidência `EVIDENCIAS-CONTRATOS-002.md`.
+- Aprovados 26/26 testes sintéticos no Node local; JSON Schema conferido estruturalmente na cópia de desenvolvimento. Não há prova de execução dos arquivos baixados do commit versionado, nem de GitHub Actions verde.
+- P-VAL-002 passa a parcial: concluir checkout SHA + execução Node/CI; P-SCHEMA-001 parcial: aprofundar tipos/cross-field, fixture por classe e validação Schema independente; P-CI-001 aberta: registrar job GitHub, SHA, logs e evidência.
+- P-ZIP-001 (ZIP), P-NT-001 (notas) e P-REF-001 (fontes de resultados) continuam abertos; núcleo genérico não homologado.
