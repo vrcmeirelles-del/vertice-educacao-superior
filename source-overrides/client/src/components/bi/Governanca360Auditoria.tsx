@@ -27,7 +27,7 @@ const MODULE_BY_FINDING:Record<string,string>={
 };
 
 const fmt=(v:number|null)=>v===null?"Indisponível":new Intl.NumberFormat("pt-BR").format(v);
-type Table="vertice_courses"|"vertice_enrollment_snapshots"|"vertice_offering_outcomes"|"vertice_goals"|"vertice_goal_measurements"|"vertice_actions"|"vertice_diagnosis_items"|"vertice_repository_requests"|"vertice_repository_files"|"vertice_captacao_leads"|"vertice_captacao_custos"|"vertice_enade360_records"|"vertice_eorbit_quantitativo"|"vertice_memberships"|"vertice_invites"|"vertice_source_uploads"|"vertice_source_analyses"|"vertice_learning_course_metrics"|"vertice_instrumento_correspondencias"|"vertice_emec_snapshots"|"vertice_ebitda_calculations"|"vertice_cost_parameters"|"vertice_inep_library";
+type Table="vertice_courses"|"vertice_enrollment_snapshots"|"vertice_offering_outcomes"|"vertice_goals"|"vertice_goal_measurements"|"vertice_actions"|"vertice_diagnosis_items"|"vertice_repository_requests"|"vertice_repository_files"|"vertice_captacao_leads"|"vertice_captacao_custos"|"vertice_enade360_records"|"vertice_eorbit_quantitativo"|"vertice_memberships"|"vertice_invites"|"vertice_source_uploads"|"vertice_source_analyses"|"vertice_learning_course_metrics"|"vertice_instrumento_correspondencias"|"vertice_emec_snapshots"|"vertice_ebitda_calculations"|"vertice_cost_parameters"|"vertice_inep_library"|"formation_trails"|"trail_question_links";
 export default function Governanca360Auditoria({institutionId}:{institutionId:string}){
  const [audit,setAudit]=useState<Audit|null>(null);
  const [loading,setLoading]=useState(true);

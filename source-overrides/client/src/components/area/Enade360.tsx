@@ -3,6 +3,7 @@ import { HelpLabel } from '@/components/ContextHelp';
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { supabase } from "@/lib/supabase";
 import EnadeCross from "./EnadeCross";
+import { loadEnadeMirror } from "./enade-mirror";
 import type { Role, Row } from "@/lib/area";
 import "./enade-360.css";
 
@@ -16,6 +17,7 @@ type EnadeRecord = {
   evidence: string | null; notes: string | null; validation_status: Status;
   created_at: string; validated_at: string | null;
 };
+type AuditEvent = {event_id:number;event_type:string;validation_status:string;row_sha256:string;previous_event_sha256:string|null;event_sha256:string;recorded_at:string};
 type MirrorEnade = { id: number; semestre: string; curso_nome: string; habilitados: number | null };
 type CourseSummary = {
   id: string; name: string; code: string; degree: string; modality: string; status: string;
@@ -66,6 +68,7 @@ export default function Enade360({institutionId,courses,actions,goals,role,onPla
 }) {
   const [records,setRecords]=useState<EnadeRecord[]>([]);
   const [mirror,setMirror]=useState<MirrorEnade[]>([]);
+  const [mirrorNotice,setMirrorNotice]=useState("");
   const [loading,setLoading]=useState(true);
   const [failure,setFailure]=useState("");
   const [courseId,setCourseId]=useState("");
@@ -73,6 +76,9 @@ export default function Enade360({institutionId,courses,actions,goals,role,onPla
   const [draft,setDraft]=useState<Draft>(INITIAL);
   const [newRecord,setNewRecord]=useState(false);
   const [busy,setBusy]=useState(false);
+  const [auditFor,setAuditFor]=useState<string|null>(null);
+  const [auditRows,setAuditRows]=useState<AuditEvent[]>([]);
+  const [auditBusy,setAuditBusy]=useState(false);
   const [message,setMessage]=useState("");
   const canCreate=Boolean(role && AUTHORS.includes(role));
   const canValidate=Boolean(role && MANAGERS.includes(role));
@@ -82,10 +88,11 @@ export default function Enade360({institutionId,courses,actions,goals,role,onPla
     try {
       const [items,eorbit]=await Promise.all([
         readPages<EnadeRecord>("vertice_enade360_records",institutionId,"institution_id","*"),
-        readPages<MirrorEnade>("vertice_eorbit_enade",institutionId,"instituicao_id","id,semestre,curso_nome,habilitados"),
+        loadEnadeMirror(supabase,institutionId),
       ]);
       setRecords(items);
-      setMirror(eorbit);
+      setMirror(eorbit.rows as MirrorEnade[]);
+      setMirrorNotice(eorbit.notice);
     } catch(error){
       setFailure(error instanceof Error?error.message:"Não foi possível carregar as informações do ENADE 360°.");
     } finally {setLoading(false);}
@@ -148,6 +155,7 @@ export default function Enade360({institutionId,courses,actions,goals,role,onPla
   }
   async function validate(record:EnadeRecord,accept:boolean) {
     if(!canValidate)return;
+    if(accept&&record.kind==="resultado_oficial"){setMessage("Homologação científica pendente. A validação de resultados oficiais está bloqueada.");return;}
     if(!window.confirm(accept?"Validar esta evidência institucional?":"Rejeitar esta evidência?"))return;
     setBusy(true);setMessage("");
     try {
@@ -164,6 +172,18 @@ export default function Enade360({institutionId,courses,actions,goals,role,onPla
       await load();
     }catch(error){setMessage(error instanceof Error?error.message:"Não foi possível validar.");}
     finally{setBusy(false);}
+  }
+  async function inspectAudit(recordId:string) {
+    if(auditFor===recordId){setAuditFor(null);setAuditRows([]);return;}
+    setAuditBusy(true);setAuditFor(recordId);setAuditRows([]);setMessage("");
+    try {
+      const {data,error}=await supabase.rpc("vertice_enade360_audit_history",{target_record:recordId});
+      if(error)throw error;
+      setAuditRows((data??[]) as AuditEvent[]);
+    }catch(error){
+      setMessage(error instanceof Error?error.message:"Não foi possível consultar a trilha de auditoria.");
+      setAuditFor(null);
+    }finally{setAuditBusy(false);}
   }
   async function createAction(record?:EnadeRecord){
     if(!current||!canValidate)return;
@@ -201,6 +221,7 @@ export default function Enade360({institutionId,courses,actions,goals,role,onPla
       <article><span>Ações ENADE 5W2H</span><strong>{fmt.format(counts.actions)}</strong><small>Vinculadas ao plano institucional</small></article>
     </div>
     <p className="enade360-note">As notas e categorias apresentadas abaixo são diagnósticos internos. Não são Conceito ENADE, CPC, IDD ou previsão de resultado oficial. Edição, modalidade e elegibilidade devem ser confirmadas pelas fontes INEP/MEC aplicáveis a cada curso.</p>
+    <p role="status">Resultados oficiais: homologação científica pendente. {mirrorNotice}</p>
     <EnadeCross institutionId={institutionId} courses={courses} goals={goals} actions={actions} role={role} selectedCourseId={courseId} onPlan={onPlan}/>
     {loading?<p role="status">Carregando o conjunto de cursos e evidências…</p>:null}
     {failure?<p role="alert" className="enade360-error">Falha de carregamento: {failure}. Nenhum indicador ausente foi tratado como zero.</p>:null}
@@ -218,7 +239,7 @@ export default function Enade360({institutionId,courses,actions,goals,role,onPla
               <td>{course.records.length}</td>
               <td><span className={"enade360-state "+state.color}>{state.label}</span></td>
               <td>{course.actions}</td>
-              <td><button type="button" className="corp-login-text-button" onClick={()=>{setCourseId(course.id);setNewRecord(false);setMessage("");}}>Examinar curso</button></td>
+              <td><button type="button" className="corp-login-text-button" onClick={()=>{setCourseId(course.id);setAuditFor(null);setAuditRows([]);setNewRecord(false);setMessage("");}}>Examinar curso</button></td>
             </tr>;
           })}
           {!filtered.length?<tr><td colSpan={5}>Nenhum curso corresponde à busca.</td></tr>:null}
@@ -266,11 +287,21 @@ export default function Enade360({institutionId,courses,actions,goals,role,onPla
           </div>
           <div className="enade360-record-actions">
             {canValidate&&record.validation_status==="pendente"?<>
-              <button type="button" disabled={busy} onClick={()=>void validate(record,true)}>Validar</button>
+              <button type="button" disabled={busy||record.kind==="resultado_oficial"} title={record.kind==="resultado_oficial"?"Aguardando homologação científica":undefined} onClick={()=>void validate(record,true)}>Validar</button>
               <button type="button" disabled={busy} onClick={()=>void validate(record,false)}>Rejeitar</button>
             </>:null}
+            <button type="button" disabled={auditBusy} onClick={()=>void inspectAudit(record.id)}>{auditFor===record.id?"Ocultar auditoria":"Consultar auditoria"}</button>
             {canValidate?<button type="button" disabled={busy} onClick={()=>void createAction(record)}>Gerar ação 5W2H</button>:null}
           </div>
+          {auditFor===record.id?<div className="enade360-audit-trace">
+            <strong>Trilha técnica de auditoria · somente leitura</strong>
+            <p>Eventos registrados: {auditRows.length}. A trilha não representa homologação oficial nem publicação.</p>
+            {auditBusy?<p role="status">Consultando registros…</p>:null}
+            {!auditBusy&&!auditRows.length?<p>Nenhum evento acessível para este perfil ou registro.</p>:null}
+            {auditRows.map(item=><p key={item.event_id}>
+              <b>{item.event_type}</b> · {new Date(item.recorded_at).toLocaleString("pt-BR")} · {item.validation_status} · SHA-256 {item.event_sha256.slice(0,16)}…
+            </p>)}
+          </div>:null}
         </article>)}
       </div>}
       {canValidate?<p><button type="button" className="corp-button secondary small" disabled={busy} onClick={()=>void createAction()}>Criar ação geral 5W2H para este curso</button></p>:null}
@@ -278,7 +309,7 @@ export default function Enade360({institutionId,courses,actions,goals,role,onPla
     {message?<p role="status" className="enade360-feedback">{message}</p>:null}
     <section className="enade360-panel enade360-mirror">
       <h4>Espelho acadêmico existente · e-ORBIT</h4>
-      <p>Registros extraídos para esta instituição: <strong>{fmt.format(mirror.length)}</strong>. Períodos presentes: {mirrorSemesters.length?mirrorSemesters.join(", "):"nenhum"}. Esses registros não comprovam, isoladamente, comparecimento, conceito oficial ou equivalência com o cadastro de cursos da Vértice.</p>
+      <p>{mirror.length?<>Registros visíveis para esta sessão: <strong>{fmt.format(mirror.length)}</strong>. Períodos presentes: {mirrorSemesters.join(", ")}.</>:<>Contagem indisponível. {mirrorNotice}</>} Esses registros não comprovam, isoladamente, comparecimento, conceito oficial ou equivalência com o cadastro de cursos da Vértice.</p>
       <p>O espelho é exibido como fonte pendente de reconciliação, sem transferência automática de notas ou elegibilidade para os cursos acima.</p>
     </section>
   </section>;

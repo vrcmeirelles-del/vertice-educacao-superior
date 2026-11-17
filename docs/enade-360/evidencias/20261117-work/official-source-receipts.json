@@ -1,0 +1,188 @@
+[
+  {
+    "url": "https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/indicadores-educacionais/indicadores-de-qualidade-da-educacao-superior/2021",
+    "filename": "2021.html",
+    "retrieved_at": "2026-11-17T09:09:08.499246+00:00",
+    "status": 200,
+    "final_url": "https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/indicadores-educacionais/indicadores-de-qualidade-da-educacao-superior/2021",
+    "content_type": "text/html;charset=utf-8",
+    "bytes": 225697,
+    "sha256": "0cb16e55e589c40b4ca01b3362575e09c374a181a0fb66cf6d251b1fd4899c1b"
+  },
+  {
+    "url": "https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/indicadores-educacionais/indicadores-de-qualidade-da-educacao-superior/2022",
+    "filename": "2022.html",
+    "retrieved_at": "2026-11-17T09:09:08.499639+00:00",
+    "status": 200,
+    "final_url": "https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/indicadores-educacionais/indicadores-de-qualidade-da-educacao-superior/2022",
+    "content_type": "text/html;charset=utf-8",
+    "bytes": 225692,
+    "sha256": "acaef275fe93f050b428955bf478278f92c6fe9ae19b4be7b5ca9aaa9336b34d"
+  },
+  {
+    "url": "https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/indicadores-educacionais/indicadores-de-qualidade-da-educacao-superior/2023",
+    "filename": "2023.html",
+    "retrieved_at": "2026-11-17T09:09:08.499995+00:00",
+    "status": 200,
+    "final_url": "https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/indicadores-educacionais/indicadores-de-qualidade-da-educacao-superior/2023",
+    "content_type": "text/html;charset=utf-8",
+    "bytes": 225690,
+    "sha256": "62dd065f0c959313fba61c81c4f6ae19f19a89b2cfcb763ff537e4e553cd4ee8"
+  },
+  {
+    "url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2021/CPC_2021.xlsx",
+    "filename": "CPC_2021.xlsx",
+    "retrieved_at": "2026-11-17T09:10:03.637229+00:00",
+    "status": 503,
+    "error": "HTTP Error 503: Service Unavailable",
+    "response_excerpt": "upstream connect error or disconnect/reset before headers. reset reason: remote connection failure"
+  },
+  {
+    "url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2023/CPC_2023.xlsx",
+    "filename": "CPC_2023.xlsx",
+    "retrieved_at": "2026-11-17T09:10:11.897637+00:00",
+    "status": 503,
+    "error": "HTTP Error 503: Service Unavailable",
+    "response_excerpt": "upstream connect error or disconnect/reset before headers. reset reason: remote connection failure"
+  },
+  {
+    "url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2021/IDD_2021.xlsx",
+    "filename": "IDD_2021.xlsx",
+    "retrieved_at": "2026-11-17T09:10:03.636830+00:00",
+    "status": 503,
+    "error": "HTTP Error 503: Service Unavailable",
+    "response_excerpt": "upstream connect error or disconnect/reset before headers. reset reason: remote connection failure"
+  },
+  {
+    "url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2023/IDD_2023.xlsx",
+    "filename": "IDD_2023.xlsx",
+    "retrieved_at": "2026-11-17T09:10:11.897434+00:00",
+    "status": 503,
+    "error": "HTTP Error 503: Service Unavailable",
+    "response_excerpt": "upstream connect error or disconnect/reset before headers. reset reason: remote connection failure"
+  },
+  {
+    "url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2021/IGC_2021.xlsx",
+    "filename": "IGC_2021.xlsx",
+    "retrieved_at": "2026-11-17T09:10:03.637577+00:00",
+    "status": 503,
+    "error": "HTTP Error 503: Service Unavailable",
+    "response_excerpt": "upstream connect error or disconnect/reset before headers. reset reason: remote connection failure"
+  },
+  {
+    "url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2023/IGC_2023.xlsx",
+    "filename": "IGC_2023.xlsx",
+    "retrieved_at": "2026-11-17T09:10:11.898138+00:00",
+    "status": 503,
+    "error": "HTTP Error 503: Service Unavailable",
+    "response_excerpt": "upstream connect error or disconnect/reset before headers. reset reason: remote connection failure"
+  },
+  {
+    "url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2021/conceito_enade_2021.xlsx",
+    "filename": "conceito_enade_2021.xlsx",
+    "retrieved_at": "2026-11-17T09:10:03.636193+00:00",
+    "status": 503,
+    "error": "HTTP Error 503: Service Unavailable",
+    "response_excerpt": "upstream connect error or disconnect/reset before headers. reset reason: remote connection failure"
+  },
+  {
+    "url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2022/conceito_enade_2022.xlsx",
+    "filename": "conceito_enade_2022.xlsx",
+    "retrieved_at": "2026-11-17T09:10:03.638329+00:00",
+    "status": 503,
+    "error": "HTTP Error 503: Service Unavailable",
+    "response_excerpt": "upstream connect error or disconnect/reset before headers. reset reason: remote connection failure"
+  },
+  {
+    "url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2023/conceito_enade_2023.xlsx",
+    "filename": "conceito_enade_2023.xlsx",
+    "retrieved_at": "2026-11-17T09:10:11.890513+00:00",
+    "status": 503,
+    "error": "HTTP Error 503: Service Unavailable",
+    "response_excerpt": "upstream connect error or disconnect/reset before headers. reset reason: remote connection failure"
+  },
+  {
+    "url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2022/cpc_2022.xlsx",
+    "filename": "cpc_2022.xlsx",
+    "retrieved_at": "2026-11-17T09:10:11.890087+00:00",
+    "status": 503,
+    "error": "HTTP Error 503: Service Unavailable",
+    "response_excerpt": "upstream connect error or disconnect/reset before headers. reset reason: remote connection failure"
+  },
+  {
+    "url": "https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/microdados/enade",
+    "filename": "enade-microdados-index.html",
+    "retrieved_at": "2026-11-17T09:05:00Z",
+    "retrieved_at_precision": "approximate; exact acquisition timestamp was not recorded",
+    "status": 200,
+    "bytes": 227982,
+    "sha256": "5ad0c79f789eb367837bdee4a00e706309a836ed92e6498cc949b5714fba4922"
+  },
+  {
+    "url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2022/idd_2022.xlsx",
+    "filename": "idd_2022.xlsx",
+    "retrieved_at": "2026-11-17T09:10:03.638878+00:00",
+    "status": 503,
+    "error": "HTTP Error 503: Service Unavailable",
+    "response_excerpt": "upstream connect error or disconnect/reset before headers. reset reason: remote connection failure"
+  },
+  {
+    "url": "https://download.inep.gov.br/educacao_superior/indicadores/resultados/2022/igc_2022.xlsx",
+    "filename": "igc_2022.xlsx",
+    "retrieved_at": "2026-11-17T09:10:11.890366+00:00",
+    "status": 503,
+    "error": "HTTP Error 503: Service Unavailable",
+    "response_excerpt": "upstream connect error or disconnect/reset before headers. reset reason: remote connection failure"
+  },
+  {
+    "url": "https://download.inep.gov.br/microdados/microdados_enade_2021.zip",
+    "filename": "microdados_enade_2021.zip",
+    "retrieved_at": "2026-11-17T09:09:08.498866+00:00",
+    "error": "HTTP Error 503: Service Unavailable",
+    "catalog_version": "publicado 12/09/2022",
+    "sha256": null,
+    "original_received": false
+  },
+  {
+    "url": "https://download.inep.gov.br/microdados/microdados_enade_2022_LGPD.rar",
+    "filename": "microdados_enade_2022_LGPD.rar",
+    "retrieved_at": "2026-11-17T09:09:08.498473+00:00",
+    "error": "HTTP Error 503: Service Unavailable",
+    "catalog_version": "atualizado 20/08/2024",
+    "sha256": null,
+    "original_received": false
+  },
+  {
+    "url": "https://download.inep.gov.br/microdados/microdados_enade_2023.zip",
+    "filename": "microdados_enade_2023.zip",
+    "retrieved_at": "2026-11-17T09:09:08.497963+00:00",
+    "error": "HTTP Error 503: Service Unavailable",
+    "catalog_version": "atualizado 24/04/2025",
+    "sha256": null,
+    "original_received": false
+  },
+  {
+    "url": "https://download.inep.gov.br/educacao_superior/enade/notas_tecnicas/2024/nota_tecnica_6_metodologia_calculo_conceito_enade_2023.pdf",
+    "filename": "nota_tecnica_6_metodologia_calculo_conceito_enade_2023.pdf",
+    "retrieved_at": "2026-11-17T09:10:18.128537+00:00",
+    "status": 503,
+    "error": "HTTP Error 503: Service Unavailable",
+    "response_excerpt": "upstream connect error or disconnect/reset before headers. reset reason: remote connection failure"
+  },
+  {
+    "url": "https://download.inep.gov.br/educacao_superior/enade/notas_tecnicas/2023/nota_tecnica_n_2_2023_cei_cggi_daes_descricao_da_metodologia_de_calculo_do_conceito_enade.pdf",
+    "filename": "nota_tecnica_n_2_2023_cei_cggi_daes_descricao_da_metodologia_de_calculo_do_conceito_enade.pdf",
+    "retrieved_at": "2026-11-17T09:10:18.128874+00:00",
+    "status": 503,
+    "error": "HTTP Error 503: Service Unavailable",
+    "response_excerpt": "upstream connect error or disconnect/reset before headers. reset reason: remote connection failure"
+  },
+  {
+    "url": "https://download.inep.gov.br/educacao_superior/enade/notas_tecnicas/2019/nota_tecnica_n_7_2022_CGCQES_DAES_metodologia_calculo_conceito_enade_2021.pdf",
+    "filename": "nota_tecnica_n_7_2022_CGCQES_DAES_metodologia_calculo_conceito_enade_2021.pdf",
+    "retrieved_at": "2026-11-17T09:10:18.129031+00:00",
+    "status": 503,
+    "error": "HTTP Error 503: Service Unavailable",
+    "response_excerpt": "upstream connect error or disconnect/reset before headers. reset reason: remote connection failure"
+  }
+]

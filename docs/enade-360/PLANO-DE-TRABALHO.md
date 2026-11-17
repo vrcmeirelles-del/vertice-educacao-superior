@@ -165,3 +165,12 @@ Contrato de governança, testes sintéticos e protótipo isolado entregues. Ver 
 - Migração privada de auditoria instalada/confirmada no Supabase com dez eventos baseline, trigger e função RPC restrita.
 - PR #171 integrada na main; deploy Render `vertice-portal` `dep-dbu1er5g1s2s73eoudv0` com status live. Módulo de auditoria operacional publicado na interface.
 - Homologação científica oficial NÃO atendida: ZIP e planilhas não processados, zero reprodução oficial; não promover resultados por inferência.
+
+## Execução Work — 2026-11-17 (acumulativa)
+- Repositório, PRs #169/#171, deploy live e estrutura Supabase verificados; treze documentos obrigatórios lidos integralmente. Recuperada a migração aplicada que ainda não estava versionada.
+- Executada conferência de integridade de 10/10 eventos BASELINE e 10/10 linhas atuais, sem divergência; negação SQL read-only sem identidade confirmada, zero registros/eventos.
+- Obtenção oficial executada: 4 HTML com hashes, 18 binários não recebidos por HTTP 503. Recibos arquivo a arquivo preservados. Reprodução e conciliação de Conceito Enade/IDD/CPC/IGC não executáveis sem as bases/documentos. Nenhum valor foi estimado.
+- Reconciliado o namespace institucional em leitura; 62 pares de cursos permanecem sem equivalência comprovada. Identificados 49 candidatos apenas textuais e 43 colisões numéricas incompatíveis; nenhum vínculo automático gravado.
+- Correções preparadas/testadas: hash v2 verificável, bloqueio científico em trigger e UI, resolução segura do espelho, build de CI igual ao overlay atual. 24 asserts SQL de regressão e 6 testes do leitor passaram; TypeScript/build locais passaram. Não repetir prototipação encerrada.
+- Credenciais recusadas pelo portal impedem homologação de sessões reais; não substituir por SQL com claims sintéticos. Permissões de negócio não serão ampliadas automaticamente. Manter P-ACCESS-001/P-RLS-REAL-001 e pendências científicas abertas.
+- Confirmar CI da revisão, aplicar somente a migração aditiva testada, integrar e conferir ambos os serviços Render existentes. Registrar o resultado efetivo no próximo adendo de conclusão; esta linha não declara execução futura.
