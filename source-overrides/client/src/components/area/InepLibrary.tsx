@@ -1,6 +1,7 @@
 import { HelpLabel } from '@/components/ContextHelp';
 import React, { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { SUPABASE_URL } from '@/lib/supabase-config';
 import { LIBRARY_DIMENSIONS, filterLibrary, type LibraryDocument } from '@/lib/inep-library';
 import structure from '@/lib/inep-library-structure.json';
 import './inep-library.css';
@@ -49,7 +50,7 @@ export default function InepLibrary({ institutionId }: { institutionId: string }
         const json = data instanceof Blob ? JSON.parse(await data.text()) : data;
         if (!json?.url) throw new Error('download');
         const signed = new URL(json.url);
-        if (signed.origin !== 'https://qvetbbmviatxxatzzuzc.supabase.co' || signed.protocol !== 'https:') throw new Error('origin');
+        if (signed.origin !== SUPABASE_URL || signed.protocol !== 'https:') throw new Error('origin');
         const response = await fetch(signed.toString(), { cache: 'no-store', credentials: 'omit' });
         if (!response.ok) throw new Error('arquivo');
         blob = await response.blob();

@@ -1,0 +1,80 @@
+{
+  "checked_at": "2026-11-17T09:25:43.217634+00:00",
+  "tls_validation_disabled": false,
+  "documents": [
+    {
+      "id": "NT40",
+      "official_url": "https://download.inep.gov.br/educacao_superior/enade/notas_tecnicas/2025/nota_tecnica_40_calculo_conceito_enade_medicina.pdf",
+      "status": "REUSED_VERIFIED_ACTIONS_ARTIFACT",
+      "sha256": "82d95089f6daabacdd58c4c85382a00dfde10cf3b35983dcffb58bb4b70967bb",
+      "bytes": 99055,
+      "file": "NT40.pdf",
+      "scope": "BINARY_RECOVERY_ONLY_REVIEW_REQUIRED",
+      "physical_pages": 4,
+      "byte_hash_rechecked_locally": true,
+      "original_actions_artifact": 14315053075,
+      "downloaded_in_this_run": false
+    },
+    {
+      "id": "NT19",
+      "official_url": "https://download.inep.gov.br/enamed/nota_tecnica_n_19_2025.pdf",
+      "status": "BLOQUEADA",
+      "error": "<urlopen error [Errno 104] Connection reset by peer>"
+    },
+    {
+      "id": "NT1PL",
+      "official_url": "https://download.inep.gov.br/enamed/nota_tecnica_1pl_2025.pdf",
+      "status": "REUSED_VERIFIED_ACTIONS_ARTIFACT",
+      "sha256": "e11093fd4f638da4cc395f1452def588a9650e6b5861587a83ab05e68f22a0dc",
+      "bytes": 119972,
+      "file": "NT1PL.pdf",
+      "scope": "BINARY_RECOVERY_ONLY_REVIEW_REQUIRED",
+      "physical_pages": 6,
+      "byte_hash_rechecked_locally": true,
+      "original_actions_artifact": 14315053075,
+      "downloaded_in_this_run": false
+    },
+    {
+      "id": "NT42",
+      "official_url": "https://download.inep.gov.br/enamed/nota_tecnica_n_42_2025.pdf",
+      "status": "REUSED_VERIFIED_ACTIONS_ARTIFACT",
+      "sha256": "6ff2eae51bec590786cf1f5165e08053275af62c30a9acb8413a2dcd63907d68",
+      "bytes": 125964,
+      "file": "NT42.pdf",
+      "scope": "BINARY_RECOVERY_ONLY_REVIEW_REQUIRED",
+      "physical_pages": 7,
+      "byte_hash_rechecked_locally": true,
+      "original_actions_artifact": 14315053075,
+      "downloaded_in_this_run": false
+    },
+    {
+      "id": "MANUAL",
+      "official_url": "https://download.inep.gov.br/educacao_superior/enade/manuais/manual_do_enamed_para_participantes_e_ies.pdf",
+      "status": "REUSED_VERIFIED_ACTIONS_ARTIFACT",
+      "sha256": "2ac882261fed4c211259696a9049f307d8c61691b69172cce5039d3feeac6f54",
+      "bytes": 507847,
+      "file": "MANUAL.pdf",
+      "scope": "BINARY_RECOVERY_ONLY_REVIEW_REQUIRED",
+      "physical_pages": 17,
+      "byte_hash_rechecked_locally": true,
+      "original_actions_artifact": 14315053075,
+      "downloaded_in_this_run": false
+    },
+    {
+      "id": "EDITAL71",
+      "official_url": "https://download.inep.gov.br/enamed/edital_71_de_28_de_maio_de_2026.pdf",
+      "status": "REUSED_VERIFIED_ACTIONS_ARTIFACT",
+      "sha256": "718444c284565b9946b727e58c0c418aacb26c4d3c987c83f407410d234b0057",
+      "bytes": 546163,
+      "file": "EDITAL71.pdf",
+      "scope": "BINARY_RECOVERY_ONLY_REVIEW_REQUIRED",
+      "physical_pages": 21,
+      "byte_hash_rechecked_locally": true,
+      "original_actions_artifact": 14315053075,
+      "downloaded_in_this_run": false
+    }
+  ],
+  "legal_and_medical_approval": false,
+  "issuer_verified_to_os_roots": true,
+  "issuer_sha256": "e10747d4da7bab09cba9952f019d3534cb9fba070bf13d8791b1699cd2ff59dd"
+}

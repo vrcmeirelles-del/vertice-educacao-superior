@@ -1,0 +1,24 @@
+name: ENAMED - recuperar seis documentos normativos pendentes
+on:
+  pull_request:
+    paths:
+      - 'scripts/enamed/download_normative_corpus.py'
+      - '.github/workflows/enamed-normative-corpus.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  recover:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python scripts/enamed/download_normative_corpus.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: enamed-normative-corpus
+          path: evidence/enamed-normative
+          retention-days: 90

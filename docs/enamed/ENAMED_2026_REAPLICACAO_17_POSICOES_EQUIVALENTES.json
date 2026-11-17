@@ -1,0 +1,110 @@
+{
+  "schema_version": "enamed2026-reap-coverage-v1",
+  "basis": "Official INEP C1/C2 100/100 question permutation; F&O fo_enamed_items read-only inspection; 17 C1 positions absent",
+  "scope": "C1 missing positions in table mapped to matching official C2 question numbers; not an instruction to import or deduplicate",
+  "status": "PENDING_HUMAN_FULL_TEXT_AND_MEDIA_REVIEW",
+  "records": [
+    {
+      "reap_caderno_1_question": 1,
+      "reap_caderno_2_equivalent_question": 27,
+      "fo_item_status": "NOT_FOUND_IN_fo_enamed_items",
+      "approval": "PENDING"
+    },
+    {
+      "reap_caderno_1_question": 11,
+      "reap_caderno_2_equivalent_question": 78,
+      "fo_item_status": "NOT_FOUND_IN_fo_enamed_items",
+      "approval": "PENDING"
+    },
+    {
+      "reap_caderno_1_question": 20,
+      "reap_caderno_2_equivalent_question": 25,
+      "fo_item_status": "NOT_FOUND_IN_fo_enamed_items",
+      "approval": "PENDING"
+    },
+    {
+      "reap_caderno_1_question": 22,
+      "reap_caderno_2_equivalent_question": 87,
+      "fo_item_status": "NOT_FOUND_IN_fo_enamed_items",
+      "approval": "PENDING"
+    },
+    {
+      "reap_caderno_1_question": 24,
+      "reap_caderno_2_equivalent_question": 89,
+      "fo_item_status": "NOT_FOUND_IN_fo_enamed_items",
+      "approval": "PENDING"
+    },
+    {
+      "reap_caderno_1_question": 27,
+      "reap_caderno_2_equivalent_question": 92,
+      "fo_item_status": "NOT_FOUND_IN_fo_enamed_items",
+      "approval": "PENDING"
+    },
+    {
+      "reap_caderno_1_question": 31,
+      "reap_caderno_2_equivalent_question": 10,
+      "fo_item_status": "NOT_FOUND_IN_fo_enamed_items",
+      "approval": "PENDING"
+    },
+    {
+      "reap_caderno_1_question": 36,
+      "reap_caderno_2_equivalent_question": 63,
+      "fo_item_status": "NOT_FOUND_IN_fo_enamed_items",
+      "approval": "PENDING"
+    },
+    {
+      "reap_caderno_1_question": 42,
+      "reap_caderno_2_equivalent_question": 16,
+      "fo_item_status": "NOT_FOUND_IN_fo_enamed_items",
+      "approval": "PENDING"
+    },
+    {
+      "reap_caderno_1_question": 49,
+      "reap_caderno_2_equivalent_question": 61,
+      "fo_item_status": "NOT_FOUND_IN_fo_enamed_items",
+      "approval": "PENDING"
+    },
+    {
+      "reap_caderno_1_question": 53,
+      "reap_caderno_2_equivalent_question": 3,
+      "fo_item_status": "NOT_FOUND_IN_fo_enamed_items",
+      "approval": "PENDING"
+    },
+    {
+      "reap_caderno_1_question": 57,
+      "reap_caderno_2_equivalent_question": 7,
+      "fo_item_status": "NOT_FOUND_IN_fo_enamed_items",
+      "approval": "PENDING"
+    },
+    {
+      "reap_caderno_1_question": 59,
+      "reap_caderno_2_equivalent_question": 35,
+      "fo_item_status": "NOT_FOUND_IN_fo_enamed_items",
+      "approval": "PENDING"
+    },
+    {
+      "reap_caderno_1_question": 74,
+      "reap_caderno_2_equivalent_question": 48,
+      "fo_item_status": "NOT_FOUND_IN_fo_enamed_items",
+      "approval": "PENDING"
+    },
+    {
+      "reap_caderno_1_question": 88,
+      "reap_caderno_2_equivalent_question": 43,
+      "fo_item_status": "NOT_FOUND_IN_fo_enamed_items",
+      "approval": "PENDING"
+    },
+    {
+      "reap_caderno_1_question": 91,
+      "reap_caderno_2_equivalent_question": 82,
+      "fo_item_status": "NOT_FOUND_IN_fo_enamed_items",
+      "approval": "PENDING"
+    },
+    {
+      "reap_caderno_1_question": 98,
+      "reap_caderno_2_equivalent_question": 55,
+      "fo_item_status": "NOT_FOUND_IN_fo_enamed_items",
+      "approval": "PENDING"
+    }
+  ]
+}

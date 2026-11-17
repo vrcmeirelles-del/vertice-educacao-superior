@@ -1,3 +1,4 @@
+import {bridgeOrigins,bridgeRemoteAllowed} from '../_shared/bridge-origins.ts';
 type RecordValue = Record<string, any>;
 type Dependencies = {
  getUser: (token: string) => Promise<{id: string} | null>;
@@ -6,9 +7,8 @@ type Dependencies = {
  fetch: typeof fetch;
  baseUrl: string;
  bridgeKey: string;
+ supabaseUrl?: string;
 };
-const origins=new Set(['https://www.verticesuperior.com.br','https://verticesuperior.com.br','https://vertice-portal.onrender.com','https://vertice-educacao-superior.onrender.com','https://vertice-educacao-superior-site.onrender.com']);
-const hosts=new Set(['www.fatoeordem.com.br','fatoeordem.com.br','fato-e-ordem-lab.onrender.com']);
 const fail=(message:string,status=400)=>Object.assign(new Error(message),{status});
 const uuid=(v:unknown)=>typeof v==='string'&&/^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(v);
 const finite=(v:unknown)=>typeof v==='number'&&Number.isFinite(v);
@@ -35,7 +35,7 @@ export function sanitizeFeedback(result:RecordValue){
  clean.quality.sufficient=sufficient;
  return clean;
 }
-export function createSapiensHandler(deps:Dependencies){return async(req:Request)=>{
+export function createSapiensHandler(deps:Dependencies){const origins=bridgeOrigins(deps.supabaseUrl);return async(req:Request)=>{
  const origin=req.headers.get('origin')||'';
  const send=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status,headers:{'content-type':'application/json','cache-control':'no-store',...(origins.has(origin)?{'access-control-allow-origin':origin}:{}),'access-control-allow-headers':'authorization, content-type, apikey, x-client-info','access-control-allow-methods':'POST, OPTIONS','vary':'Origin'}});
  if(origin&&!origins.has(origin))return send({error:'origin_denied'},403);
@@ -54,7 +54,7 @@ export function createSapiensHandler(deps:Dependencies){return async(req:Request
   const call=(action:string,payload:unknown={})=>deps.rpc({...args,p_action:action,p_payload:payload});
   const remote=async(path:string,payload:RecordValue)=>{
    const url=new URL(path,deps.baseUrl);
-   if(url.protocol!=='https:'||!hosts.has(url.hostname)||url.port||url.username||url.password||deps.bridgeKey.length<32)throw fail('bridge_not_configured',503);
+   if(!bridgeRemoteAllowed(url,deps.supabaseUrl)||deps.bridgeKey.length<32)throw fail('bridge_not_configured',503);
    const response=await deps.fetch(url,{method:'POST',redirect:'error',headers:{'content-type':'application/json','x-vertice-bridge-key':deps.bridgeKey,'x-requested-with':'fato-e-ordem'},body:JSON.stringify(payload),signal:AbortSignal.timeout(20000)});
    if(!response.ok)throw fail('remote_http_'+response.status,502);
    const result=await response.json().catch(()=>null);if(!result?.result)throw fail('invalid_remote_response',502);return result.result;
@@ -64,11 +64,16 @@ export function createSapiensHandler(deps:Dependencies){return async(req:Request
    const payload=await call('feedback_request');
    const remoteResult=await remote('/api/internal/vertice/feedback',payload);validateRemote(remoteResult,payload,true);
    const result=sanitizeFeedback(remoteResult);
+   const sufficient=result.quality.sufficient;
+   const baselineVisible=result.baseline.sampleSize>=5;
+   const currentVisible=result.current.sampleSize>=5;
    // Store only whitelisted aggregates, never arbitrary remote fields or tokens.
+   // Preserve cohort counts, but do not persist estimates for tiny groups or
+   // comparative deltas that the source explicitly marks as insufficient.
    const clean={contractVersion:'v1',institutionId:result.institutionId,courseId:result.courseId,module:result.module,interventionId:result.interventionId,measurementId:result.measurementId,
-    baseline:{measuredAt:result.baseline.measuredAt,avgPKnow:result.baseline.avgPKnow,avgEloRating:result.baseline.avgEloRating,sampleSize:result.baseline.sampleSize},
-    current:{measuredAt:result.current.measuredAt,avgPKnow:result.current.avgPKnow,avgEloRating:result.current.avgEloRating,sampleSize:result.current.sampleSize,attemptsSinceBaseline:result.current.attemptsSinceBaseline},
-    delta:{pKnowChange:result.delta.pKnowChange,eloChange:result.delta.eloChange,sampleOverlap:result.delta.sampleOverlap},
+    baseline:{measuredAt:result.baseline.measuredAt,avgPKnow:baselineVisible?result.baseline.avgPKnow:null,avgEloRating:baselineVisible?result.baseline.avgEloRating:null,sampleSize:result.baseline.sampleSize},
+    current:{measuredAt:result.current.measuredAt,avgPKnow:currentVisible?result.current.avgPKnow:null,avgEloRating:currentVisible?result.current.avgEloRating:null,sampleSize:result.current.sampleSize,attemptsSinceBaseline:result.current.attemptsSinceBaseline},
+    delta:{pKnowChange:sufficient?result.delta.pKnowChange:null,eloChange:sufficient?result.delta.eloChange:null,sampleOverlap:result.delta.sampleOverlap},
     quality:{eligibleStudents:result.quality.eligibleStudents,counterResets:result.quality.counterResets,sufficient:result.quality.sufficient}};
    return send(await call('feedback_save',clean));
   }

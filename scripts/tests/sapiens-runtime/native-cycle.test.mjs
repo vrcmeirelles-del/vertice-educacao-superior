@@ -5,20 +5,30 @@ const fo=process.env.FATO_ORDEM_REPO;if(!fo)throw Error('Set FATO_ORDEM_REPO to 
 const {fixture:foFixture,id,token,secret}=await import(pathToFileURL(resolve(fo,'test/helpers/sapiens-fixture.mjs')));
 const {handleVerticeBridgeApi}=await import(pathToFileURL(resolve(fo,'src/vertice-learning-bridge.mjs')));
 const jwt=(n=1,aal='aal2')=>'synthetic.'+Buffer.from(JSON.stringify({sub:id(n),aal})).toString('base64url')+'.synthetic';
-export async function fixture(t){
+export async function fixture(t,module='oab'){
  const f=await foFixture();t.after(()=>f.db.close());
+ const medical=module==='enamed',competency=medical?'SYNTHETIC medical competency':'Civil',kc=medical?'synthetic.medical.case':'civil.case';
+ if(medical){
+  // Captured read-only from the live F&O schema on 2026-11-17. Migration
+  // 054 in the inherited fixture predates these supported medical kinds.
+  // This changes only the disposable test engine, never the source database.
+  await f.db.exec("alter table question_kc_map drop constraint question_kc_map_question_kind_check; alter table question_kc_map add constraint question_kc_map_question_kind_check check(question_kind in ('oab1','oab2','carreiras','cfc','enade','enamed','residencia'))");
+  await f.db.query('insert into knowledge_components(id,discipline,verb) values($1,$2,$3)',[kc,competency,'Interpretar']);
+  await f.db.query("insert into question_kc_map(question_id,question_kind,kc_id) values('synthetic-enamed-question','enamed',$1)",[kc]);
+  for(let n=1;n<=7;n++)await f.db.query('insert into student_mastery(student_id,kc_id,bkt_p_know,elo_rating,attempt_count) values($1,$2,.25,1000,10)',[id(100+n),kc]);
+ }
  const db=new PGlite();await db.waitReady;t.after(()=>db.close());
  await db.exec(await readFile(new URL('./fixture.sql',import.meta.url),'utf8'));
  await db.exec(await readFile(new URL('../../../source-overrides/migrations/20261115000000_sapiens_core_tables.sql',import.meta.url),'utf8'));
  await db.exec(await readFile(new URL('../../../supabase/migrations/20261114221711_sapiens_native_bridge.sql',import.meta.url),'utf8'));
  await db.exec(await readFile(new URL('../../../supabase/migrations/20261117111205_sapiens_feedback_privacy.sql',import.meta.url),'utf8'));
  await db.query('insert into vertice_institutions values($1,$2),($3,$4)',[id(11),'Synthetic A',id(12),'Synthetic B']);
- await db.query('insert into vertice_courses values($1,$2,$3),($4,$2,$5),($6,$7,$8)',[id(21),id(11),'Law',id(22),'Other',id(23),id(12),'Other IES']);
+ await db.query('insert into vertice_courses values($1,$2,$3),($4,$2,$5),($6,$7,$8)',[id(21),id(11),medical?'Synthetic Medicine':'Law',id(22),'Other',id(23),id(12),'Other IES']);
  await db.query('insert into vertice_admins values($1)',[id(1)]);
  await db.query('insert into vertice_memberships values($1,$2,$3)',[id(2),id(11),'gestor']);
  for(let n=1;n<=5;n++)await db.query('insert into vertice_private.learning_students values($1,$2,$3,true)',[id(11),id(21),token(n)]);
- await db.query(`insert into vertice_sapiens_diagnoses(id,institution_id,course_id,module,semester,sample_size,severity,summary,llm_model,data_snapshot_at) values($1,$2,$3,'oab','2026/2',5,'warning','SYNTHETIC diagnosis','synthetic',now())`,[id(41),id(11),id(21)]);
- for(const n of [31,32])await db.query(`insert into vertice_sapiens_interventions(id,institution_id,diagnosis_id,course_id,module,competency,intervention_type,title,description,suggested_kc_ids,llm_model) values($1,$2,$3,$4,'oab','Civil','remedial_practice','SYNTHETIC intervention','SYNTHETIC intervention description',ARRAY['civil.case'],'synthetic')`,[id(n),id(11),id(41),id(21)]);
+ await db.query(`insert into vertice_sapiens_diagnoses(id,institution_id,course_id,module,semester,sample_size,severity,summary,llm_model,data_snapshot_at) values($1,$2,$3,$4,'2026/2',5,'warning','SYNTHETIC diagnosis','synthetic',now())`,[id(41),id(11),id(21),module]);
+ for(const n of [31,32])await db.query(`insert into vertice_sapiens_interventions(id,institution_id,diagnosis_id,course_id,module,competency,intervention_type,title,description,suggested_kc_ids,llm_model) values($1,$2,$3,$4,$5,$6,'remedial_practice','SYNTHETIC intervention','SYNTHETIC intervention description',ARRAY[$7]::text[],'synthetic')`,[id(n),id(11),id(41),id(21),module,competency,kc]);
  const server=createServer(async(req,res)=>{try{
   await handleVerticeBridgeApi({request:req,response:res,url:new URL(req.url,'http://local'),service:f.bridge,requireRole:()=>{throw Error('unexpected')},
    verifyMutationRequest:r=>{assert.equal(r.headers['x-requested-with'],'fato-e-ordem');},readJsonBody:async r=>{let s='';for await(const c of r)s+=c;return JSON.parse(s);},sendJson:(r,status,body)=>{r.writeHead(status,{'content-type':'application/json'});r.end(JSON.stringify(body));}});
@@ -96,4 +106,25 @@ test('database ACL/RLS: browser cannot decide, read outbox or forge audit; reads
  await assert.rejects(f.db.exec("insert into vertice_sapiens_audit_trail(institution_id) values(null)"),/permission denied/);
  await f.db.exec('reset role');await f.db.query("select set_config('request.jwt.claim.sub',$1,false),set_config('request.jwt.claim.aal','aal2',false)",[id(2)]);await f.db.exec('set role authenticated');assert.equal((await f.db.query('select count(*)::int n from vertice_sapiens_interventions')).rows[0].n,2);
  await f.db.exec('reset role');await f.db.query("select set_config('request.jwt.claim.sub',$1,false)",[id(99)]);await f.db.exec('set role authenticated');assert.equal((await f.db.query('select count(*)::int n from vertice_sapiens_interventions')).rows[0].n,0);await f.db.exec('reset role');
+});
+
+test('ENAMED synthetic intervention: native HTTP registration, scoped competency, longitudinal feedback and consent withdrawal',async t=>{
+ const f=await fixture(t,'enamed');
+ assert.equal((await f.request('approve')).status,200);
+ const row=await f.row();assert.equal(row.module,'enamed');assert.equal(row.fo_registered_students,5);
+ const registration=(await f.foDb.query('select module,competency from fo_vertice_interventions')).rows;
+ assert.deepEqual(registration,[{module:'enamed',competency:'SYNTHETIC medical competency'}]);
+ await f.foDb.query("update student_mastery set bkt_p_know=.65,attempt_count=14 where kc_id='synthetic.medical.case'");
+ assert.equal((await f.request('feedback')).status,200);
+ const first=(await f.db.query('select * from vertice_sapiens_effectiveness')).rows[0];
+ assert.equal(Number(first.p_know_change),.4);assert.equal(first.current_sample_size,5);
+ assert.ok((await f.request('feedback',{inst:id(12)})).status>=400,'other institution rejected');
+ await f.foDb.query('update fo_vertice_student_links set revoked_at=now() where student_id=$1 and institution_id=$2',[id(101),id(11)]);
+ assert.equal((await f.request('feedback')).status,200);
+ const measurements=(await f.db.query('select * from vertice_sapiens_effectiveness order by created_at')).rows;
+ const latest=measurements.at(-1);assert.equal(latest.current_sample_size,4);assert.equal(latest.p_know_change,null);
+ assert.equal(latest.current_avg_p_know,null);assert.equal(latest.effectiveness,'insufficient_data');
+ assert.equal(latest.detail_snapshot.baseline.avgPKnow,null);
+ const serialized=JSON.stringify(measurements);assert.equal(serialized.includes(token(1)),false);
+ assert.equal(serialized.includes('inep_score'),false);
 });

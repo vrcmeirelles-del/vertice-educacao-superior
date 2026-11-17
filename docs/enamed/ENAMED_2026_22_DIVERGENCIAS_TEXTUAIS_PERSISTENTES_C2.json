@@ -1,0 +1,251 @@
+{
+  "schema_version": "enamed2026-persistent-text-discrepancies-v1",
+  "source": "SELECT-only SQL on fo_enamed_items, group by source_url/question_number; md5 of lower-case alphanumeric characters after punctuation/space removal",
+  "state": "REQUIRES_INDIVIDUAL_OFFICIAL_PDF_FULL_TEXT_REVIEW",
+  "limit": "Any difference may reflect case/diacritics, typography or substantive missing/additional words. This test does not distinguish clinical impact.",
+  "count": 22,
+  "records": [
+    {
+      "caderno": "regular-2",
+      "number": 12,
+      "equivalent_regular_caderno_1_number": 37,
+      "two_existing_ids": [
+        "enamed-2026-c2-q12",
+        "ENAMED-2026-REG-C2-Q012"
+      ],
+      "review_status": "PENDING",
+      "no_change_to_record": true
+    },
+    {
+      "caderno": "regular-2",
+      "number": 18,
+      "equivalent_regular_caderno_1_number": 17,
+      "two_existing_ids": [
+        "enamed-2026-c2-q18",
+        "ENAMED-2026-REG-C2-Q018"
+      ],
+      "review_status": "PENDING",
+      "no_change_to_record": true
+    },
+    {
+      "caderno": "regular-2",
+      "number": 29,
+      "equivalent_regular_caderno_1_number": 14,
+      "two_existing_ids": [
+        "enamed-2026-c2-q29",
+        "ENAMED-2026-REG-C2-Q029"
+      ],
+      "review_status": "PENDING",
+      "no_change_to_record": true
+    },
+    {
+      "caderno": "regular-2",
+      "number": 40,
+      "equivalent_regular_caderno_1_number": 32,
+      "two_existing_ids": [
+        "enamed-2026-c2-q40",
+        "ENAMED-2026-REG-C2-Q040"
+      ],
+      "review_status": "PENDING",
+      "no_change_to_record": true
+    },
+    {
+      "caderno": "regular-2",
+      "number": 42,
+      "equivalent_regular_caderno_1_number": 34,
+      "two_existing_ids": [
+        "enamed-2026-c2-q42",
+        "ENAMED-2026-REG-C2-Q042"
+      ],
+      "review_status": "PENDING",
+      "no_change_to_record": true
+    },
+    {
+      "caderno": "regular-2",
+      "number": 44,
+      "equivalent_regular_caderno_1_number": 22,
+      "two_existing_ids": [
+        "enamed-2026-c2-q44",
+        "ENAMED-2026-REG-C2-Q044"
+      ],
+      "review_status": "PENDING",
+      "no_change_to_record": true
+    },
+    {
+      "caderno": "regular-2",
+      "number": 45,
+      "equivalent_regular_caderno_1_number": 23,
+      "two_existing_ids": [
+        "enamed-2026-c2-q45",
+        "ENAMED-2026-REG-C2-Q045"
+      ],
+      "review_status": "PENDING",
+      "no_change_to_record": true
+    },
+    {
+      "caderno": "regular-2",
+      "number": 48,
+      "equivalent_regular_caderno_1_number": 26,
+      "two_existing_ids": [
+        "enamed-2026-c2-q48",
+        "ENAMED-2026-REG-C2-Q048"
+      ],
+      "review_status": "PENDING",
+      "no_change_to_record": true
+    },
+    {
+      "caderno": "regular-2",
+      "number": 49,
+      "equivalent_regular_caderno_1_number": 27,
+      "two_existing_ids": [
+        "enamed-2026-c2-q49",
+        "ENAMED-2026-REG-C2-Q049"
+      ],
+      "review_status": "PENDING",
+      "no_change_to_record": true
+    },
+    {
+      "caderno": "regular-2",
+      "number": 51,
+      "equivalent_regular_caderno_1_number": 96,
+      "two_existing_ids": [
+        "enamed-2026-c2-q51",
+        "ENAMED-2026-REG-C2-Q051"
+      ],
+      "review_status": "PENDING",
+      "no_change_to_record": true
+    },
+    {
+      "caderno": "regular-2",
+      "number": 55,
+      "equivalent_regular_caderno_1_number": 100,
+      "two_existing_ids": [
+        "enamed-2026-c2-q55",
+        "ENAMED-2026-REG-C2-Q055"
+      ],
+      "review_status": "PENDING",
+      "no_change_to_record": true
+    },
+    {
+      "caderno": "regular-2",
+      "number": 63,
+      "equivalent_regular_caderno_1_number": 88,
+      "two_existing_ids": [
+        "enamed-2026-c2-q63",
+        "ENAMED-2026-REG-C2-Q063"
+      ],
+      "review_status": "PENDING",
+      "no_change_to_record": true
+    },
+    {
+      "caderno": "regular-2",
+      "number": 68,
+      "equivalent_regular_caderno_1_number": 67,
+      "two_existing_ids": [
+        "enamed-2026-c2-q68",
+        "ENAMED-2026-REG-C2-Q068"
+      ],
+      "review_status": "PENDING",
+      "no_change_to_record": true
+    },
+    {
+      "caderno": "regular-2",
+      "number": 74,
+      "equivalent_regular_caderno_1_number": 59,
+      "two_existing_ids": [
+        "enamed-2026-c2-q74",
+        "ENAMED-2026-REG-C2-Q074"
+      ],
+      "review_status": "PENDING",
+      "no_change_to_record": true
+    },
+    {
+      "caderno": "regular-2",
+      "number": 80,
+      "equivalent_regular_caderno_1_number": 51,
+      "two_existing_ids": [
+        "enamed-2026-c2-q80",
+        "ENAMED-2026-REG-C2-Q080"
+      ],
+      "review_status": "PENDING",
+      "no_change_to_record": true
+    },
+    {
+      "caderno": "regular-2",
+      "number": 81,
+      "equivalent_regular_caderno_1_number": 52,
+      "two_existing_ids": [
+        "enamed-2026-c2-q81",
+        "ENAMED-2026-REG-C2-Q081"
+      ],
+      "review_status": "PENDING",
+      "no_change_to_record": true
+    },
+    {
+      "caderno": "regular-2",
+      "number": 82,
+      "equivalent_regular_caderno_1_number": 53,
+      "two_existing_ids": [
+        "enamed-2026-c2-q82",
+        "ENAMED-2026-REG-C2-Q082"
+      ],
+      "review_status": "PENDING",
+      "no_change_to_record": true
+    },
+    {
+      "caderno": "regular-2",
+      "number": 84,
+      "equivalent_regular_caderno_1_number": 55,
+      "two_existing_ids": [
+        "enamed-2026-c2-q84",
+        "ENAMED-2026-REG-C2-Q084"
+      ],
+      "review_status": "PENDING",
+      "no_change_to_record": true
+    },
+    {
+      "caderno": "regular-2",
+      "number": 89,
+      "equivalent_regular_caderno_1_number": 81,
+      "two_existing_ids": [
+        "enamed-2026-c2-q89",
+        "ENAMED-2026-REG-C2-Q089"
+      ],
+      "review_status": "PENDING",
+      "no_change_to_record": true
+    },
+    {
+      "caderno": "regular-2",
+      "number": 90,
+      "equivalent_regular_caderno_1_number": 82,
+      "two_existing_ids": [
+        "enamed-2026-c2-q90",
+        "ENAMED-2026-REG-C2-Q090"
+      ],
+      "review_status": "PENDING",
+      "no_change_to_record": true
+    },
+    {
+      "caderno": "regular-2",
+      "number": 97,
+      "equivalent_regular_caderno_1_number": 75,
+      "two_existing_ids": [
+        "enamed-2026-c2-q97",
+        "ENAMED-2026-REG-C2-Q097"
+      ],
+      "review_status": "PENDING",
+      "no_change_to_record": true
+    },
+    {
+      "caderno": "regular-2",
+      "number": 99,
+      "equivalent_regular_caderno_1_number": 77,
+      "two_existing_ids": [
+        "enamed-2026-c2-q99",
+        "ENAMED-2026-REG-C2-Q099"
+      ],
+      "review_status": "PENDING",
+      "no_change_to_record": true
+    }
+  ]
+}

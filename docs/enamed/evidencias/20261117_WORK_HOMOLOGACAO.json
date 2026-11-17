@@ -1,0 +1,129 @@
+{
+  "schema_version": "enamed-work-staging-v1",
+  "date": "2026-11-17",
+  "source_commit": "782257d116b5db0fe2fd8bb4e42c106f8a7b8fcf",
+  "actions": [
+    {
+      "action": "live_anonymous_master_guard",
+      "status": "CONCLUÍDA",
+      "url": "https://www.verticesuperior.com.br/master",
+      "observed": "Painel de gestão; Entre para acessar sua conta.",
+      "scope": "Sessão anônima no portal publicado; não é ACL-12 com usuário autenticado sem autorização.",
+      "credential_request": "Secure request did not return a confirmed authentication; original tab was unavailable; fresh target tab showed no signed-in access."
+    },
+    {
+      "action": "isolated_supabase_branch",
+      "status": "CONCLUÍDA",
+      "branch_id": "8f1f075d-a2ca-4198-98ef-a5d00eb2be0a",
+      "project_ref": "rnmkmnrfhvjihsuqziwf",
+      "parent": "qvetbbmviatxxatzzuzc",
+      "with_data": false,
+      "name": "enamed360-homologacao-20261117"
+    },
+    {
+      "action": "complete_branch_replay",
+      "status": "REPROVADA",
+      "observed_state": "MIGRATIONS_FAILED",
+      "migrations_applied": 66,
+      "public_tables": 70,
+      "auth_users": 0,
+      "institution_rows": 0,
+      "course_rows": 0,
+      "failure": "Historical migration inserts cost parameters for an institution absent in the data-less branch; FK vertice_cost_parameters_institution_id_fkey. No fake production institution or FK bypass created.",
+      "scope": "A criação do recurso e as correções de baseline não significam ambiente completo pronto."
+    },
+    {
+      "action": "branch_baseline_repairs",
+      "status": "CONCLUÍDA",
+      "source_files": [
+        "supabase/migrations/202610260001_access_foundation.sql",
+        "supabase/bootstrap/vertice_app.sql",
+        "supabase/migrations/202610300001_area_real.sql",
+        "supabase/migrations/20261029220000_unitop_area.sql"
+      ],
+      "security_guards": "Original preflight left intact. Three original function bodies restored with CRLF, matching original expected digests; 52 table grants and 3 function EXECUTE grants to service_role restored exactly to the migration expected set. No anon/authenticated widening."
+    },
+    {
+      "action": "configurable_isolated_frontend",
+      "status": "CONCLUÍDA",
+      "checks": [
+        "TypeScript completo",
+        "427 testes principais",
+        "build estático padrão",
+        "build com destino homologacao",
+        "72 páginas HTML com CSP sem destinos produtivos Supabase/F&O e noindex"
+      ],
+      "scope": "Build local verificado; ainda não é deploy ou homologação autenticada."
+    }
+  ],
+  "release_status": "BLOCKED",
+  "six_gates_approved": false,
+  "production_changes": [],
+  "rollback": "As alterações locais estão em commit de desenvolvimento. Reverter esse commit restaura a configuração anterior. A branch Supabase é separada, vazia de usuários/IES/cursos; não fazer merge para produção. Nenhum deploy produtivo ou alteração de dados acadêmicos realizado.",
+  "subsequent_results": [
+    {
+      "action": "staging_replay_progress",
+      "status": "CONCLUÍDA",
+      "migration_count": 85,
+      "public_tables": 103,
+      "public_rls_tables": 103,
+      "auth_users": 0,
+      "institution_rows": 0,
+      "course_rows": 0,
+      "storage_objects": 0,
+      "notes": "Historical replay remains incomplete; do not label as full production-schema parity. Cost seed omitted only in the staging variant; original production migration remains unchanged. Metadata/history in staging stores actual variant SQL. No Supabase branch merge to production allowed."
+    },
+    {
+      "action": "pending_security_migration",
+      "status": "BLOQUEADA",
+      "provider_result": "Supabase confirmation expired after 10 minutes; pending migration was not applied. No execute_sql fallback used.",
+      "file": "docs/enamed/evidencias/20261117_HOMOLOGACAO_LOCKDOWN_PENDENTE.sql",
+      "original_failure": "Legacy lockdown expects instituicao_id on a newer institution-map helper. Prepared staging variant preserves original drift checks, keeps helper inaccessible to public client roles and retains RLS. Added staging-only preflight and data-less comment; not executed/tested as an applied migration."
+    },
+    {
+      "action": "remote_ci",
+      "status": "CONCLUÍDA",
+      "commit": "dcd8a1ebab5636c88c6cba07b57fcd4be4d36813",
+      "run": 44116468460,
+      "url": "https://github.com/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44116468460",
+      "result": "success",
+      "local_tests": 427,
+      "scope": "TypeScript/build and regression CI; no real authenticated tenant or medical approval."
+    },
+    {
+      "action": "render_homologation",
+      "status": "CONCLUÍDA",
+      "service_id": "srv-dbu771mc6qcc73fbog0g",
+      "deploy_id": "dep-dbu771uc6qcc73fbogf0",
+      "commit": "36842091e00aed8eced8e2f056bf0b902c054aad",
+      "state": "live",
+      "auto_deploy": "no",
+      "url": "https://vertice-enamed-homologacao.onrender.com/entrar",
+      "browser_observation": "Login form rendered. CSP connect-src includes only self, isolated Supabase HTTPS/WSS and api.github.com. No authenticated session.",
+      "production_release": false
+    },
+    {
+      "action": "staging_security_advisors",
+      "status": "CONCLUÍDA",
+      "results": [
+        {
+          "name": "rls_enabled_no_policy",
+          "level": "INFO",
+          "count": 81,
+          "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy"
+        },
+        {
+          "name": "authenticated_security_definer_function_executable",
+          "level": "WARN",
+          "count": 49,
+          "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable"
+        }
+      ],
+      "interpretation": "Not a security approval. Several tables intentionally remain inaccessible while restoration is incomplete; definer functions require their authorization checks and real-session QA."
+    }
+  ],
+  "code_commit": "36842091e00aed8eced8e2f056bf0b902c054aad",
+  "ci_commit": "dcd8a1ebab5636c88c6cba07b57fcd4be4d36813",
+  "result": "PARCIALMENTE CONCLUÍDA",
+  "next_external_action": "Confirm the pending staging-only migration in Supabase; provide authorized test accounts with MFA/AAL2. Human medical approval and definitive Inep documents still required before reindex/release."
+}

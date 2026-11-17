@@ -1,0 +1,880 @@
+{
+  "schema_version": "enamed-authorized-accounts-v1",
+  "date": "2026-11-17",
+  "project_ref": "rnmkmnrfhvjihsuqziwf",
+  "status": "CONCLUÍDA",
+  "scope": "Nine synthetic accounts. Actual Supabase Auth Admin APIs, password sign-in, TOTP enrollment/challenge/verify, getUser, AAL2 and authenticated Data API. No JWT forging, auth.users INSERT, production credentials or student results.",
+  "initial_provision": {
+    "status": "done",
+    "fixture": {
+      "courseA": "a9ab7e6c-93cb-4e2f-bd67-c2e770407456",
+      "courseB": "55c8ae28-bd1d-4c65-889a-55497c33035c",
+      "institutionA": "5c1c0173-92ad-4668-b701-d5945f407389",
+      "institutionB": "db0f8de7-78ee-40fb-9e6e-9dab8f69b4ae",
+      "otherCourseA": "08241706-482e-465b-bc4a-54b7e550662a"
+    },
+    "accounts": {
+      "cpa": {
+        "role": "cpa",
+        "email": "enamed.qa.cpa.20261117@example.com",
+        "userId": "528b51f6-4faa-41c8-8df3-9d2f1c23c1f5",
+        "verifiedAt": "2026-11-17T19:27:19.918524+00:00",
+        "aalVerified": true,
+        "mfaVerified": true
+      },
+      "nde": {
+        "role": "nde",
+        "email": "enamed.qa.nde.20261117@example.com",
+        "userId": "51373fd3-2650-4fdf-8ad1-8170aa76ae11",
+        "verifiedAt": "2026-11-17T19:27:21.006445+00:00",
+        "aalVerified": true,
+        "mfaVerified": true
+      },
+      "master": {
+        "role": "master",
+        "email": "enamed.qa.master.20261117@example.com",
+        "userId": "388a7c6b-28e4-4b37-b6bc-41a719f7cf88",
+        "verifiedAt": "2026-11-17T19:27:18.118863+00:00",
+        "aalVerified": true,
+        "mfaVerified": true
+      },
+      "direcao": {
+        "role": "diretor_geral",
+        "email": "enamed.qa.direcao.20261117@example.com",
+        "userId": "6de35508-6a3d-489e-b798-f6025c5831d3",
+        "verifiedAt": "2026-11-17T19:27:19.349011+00:00",
+        "aalVerified": true,
+        "mfaVerified": true
+      },
+      "docente": {
+        "role": "equipe",
+        "email": "enamed.qa.docente.20261117@example.com",
+        "userId": "a9126e32-1fcb-4cd8-afc4-f6ab9d483c2f",
+        "verifiedAt": "2026-11-17T19:27:21.514769+00:00",
+        "aalVerified": true,
+        "mfaVerified": true
+      },
+      "reitoria": {
+        "role": "reitor",
+        "email": "enamed.qa.reitoria.20261117@example.com",
+        "userId": "13144541-8d46-4859-9c2c-1b8a4feee3f5",
+        "verifiedAt": "2026-11-17T19:27:18.759627+00:00",
+        "aalVerified": true,
+        "mfaVerified": true
+      },
+      "outra_ies": {
+        "role": "reitor",
+        "email": "enamed.qa.outra_ies.20261117@example.com",
+        "userId": "d3d6c741-bf06-4327-9ccb-9db70ab535fa",
+        "verifiedAt": "2026-11-17T19:27:22.508108+00:00",
+        "aalVerified": true,
+        "mfaVerified": true
+      },
+      "coordenacao": {
+        "role": "coordenador",
+        "email": "enamed.qa.coordenacao.20261117@example.com",
+        "userId": "a9f6e6fe-bc40-4dd6-ab3c-d1c3b4703144",
+        "verifiedAt": "2026-11-17T19:27:20.508274+00:00",
+        "aalVerified": true,
+        "mfaVerified": true
+      },
+      "sem_autorizacao": {
+        "role": "none",
+        "email": "enamed.qa.sem_autorizacao.20261117@example.com",
+        "userId": "15a76b1c-f350-4251-a604-42845aa9ae4d",
+        "verifiedAt": "2026-11-17T19:27:22.024547+00:00",
+        "aalVerified": true,
+        "mfaVerified": true
+      }
+    },
+    "attempts": 1,
+    "auth_users": 9,
+    "finished_at": "2026-11-17T19:27:22.555321+00:00",
+    "verified_totp": 9,
+    "active_sessions": 0,
+    "capability_revoked": true
+  },
+  "metadata_rls_before": {
+    "error": null,
+    "status": "done",
+    "fixture": {
+      "courseA": "a9ab7e6c-93cb-4e2f-bd67-c2e770407456",
+      "courseB": "55c8ae28-bd1d-4c65-889a-55497c33035c",
+      "institutionA": "5c1c0173-92ad-4668-b701-d5945f407389",
+      "institutionB": "db0f8de7-78ee-40fb-9e6e-9dab8f69b4ae",
+      "otherCourseA": "08241706-482e-465b-bc4a-54b7e550662a"
+    },
+    "accounts": {
+      "cpa": {
+        "role": "cpa",
+        "email": "enamed.qa.cpa.20261117@example.com",
+        "userId": "528b51f6-4faa-41c8-8df3-9d2f1c23c1f5",
+        "verifiedAt": "2026-11-17T19:30:34.0734+00:00",
+        "aalVerified": true,
+        "mfaVerified": true,
+        "observations": {
+          "aal1": {
+            "courses": {
+              "ids": [],
+              "error": null
+            },
+            "institutions": {
+              "ids": [],
+              "error": null
+            }
+          },
+          "aal2": {
+            "courses": {
+              "ids": [
+                "08241706-482e-465b-bc4a-54b7e550662a",
+                "a9ab7e6c-93cb-4e2f-bd67-c2e770407456"
+              ],
+              "error": null
+            },
+            "institutions": {
+              "ids": [
+                "5c1c0173-92ad-4668-b701-d5945f407389"
+              ],
+              "error": null
+            }
+          },
+          "source": "real Supabase Auth password/TOTP and Data API"
+        }
+      },
+      "nde": {
+        "role": "nde",
+        "email": "enamed.qa.nde.20261117@example.com",
+        "userId": "51373fd3-2650-4fdf-8ad1-8170aa76ae11",
+        "verifiedAt": "2026-11-17T19:30:34.884034+00:00",
+        "aalVerified": true,
+        "mfaVerified": true,
+        "observations": {
+          "aal1": {
+            "courses": {
+              "ids": [],
+              "error": null
+            },
+            "institutions": {
+              "ids": [],
+              "error": null
+            }
+          },
+          "aal2": {
+            "courses": {
+              "ids": [
+                "08241706-482e-465b-bc4a-54b7e550662a",
+                "a9ab7e6c-93cb-4e2f-bd67-c2e770407456"
+              ],
+              "error": null
+            },
+            "institutions": {
+              "ids": [
+                "5c1c0173-92ad-4668-b701-d5945f407389"
+              ],
+              "error": null
+            }
+          },
+          "source": "real Supabase Auth password/TOTP and Data API"
+        }
+      },
+      "master": {
+        "role": "master",
+        "email": "enamed.qa.master.20261117@example.com",
+        "userId": "388a7c6b-28e4-4b37-b6bc-41a719f7cf88",
+        "verifiedAt": "2026-11-17T19:30:32.663783+00:00",
+        "aalVerified": true,
+        "mfaVerified": true,
+        "observations": {
+          "aal1": {
+            "courses": {
+              "ids": [],
+              "error": null
+            },
+            "institutions": {
+              "ids": [],
+              "error": null
+            }
+          },
+          "aal2": {
+            "courses": {
+              "ids": [
+                "08241706-482e-465b-bc4a-54b7e550662a",
+                "55c8ae28-bd1d-4c65-889a-55497c33035c",
+                "a9ab7e6c-93cb-4e2f-bd67-c2e770407456"
+              ],
+              "error": null
+            },
+            "institutions": {
+              "ids": [
+                "5c1c0173-92ad-4668-b701-d5945f407389",
+                "db0f8de7-78ee-40fb-9e6e-9dab8f69b4ae"
+              ],
+              "error": null
+            }
+          },
+          "source": "real Supabase Auth password/TOTP and Data API"
+        }
+      },
+      "direcao": {
+        "role": "diretor_geral",
+        "email": "enamed.qa.direcao.20261117@example.com",
+        "userId": "6de35508-6a3d-489e-b798-f6025c5831d3",
+        "verifiedAt": "2026-11-17T19:30:33.592755+00:00",
+        "aalVerified": true,
+        "mfaVerified": true,
+        "observations": {
+          "aal1": {
+            "courses": {
+              "ids": [],
+              "error": null
+            },
+            "institutions": {
+              "ids": [],
+              "error": null
+            }
+          },
+          "aal2": {
+            "courses": {
+              "ids": [
+                "08241706-482e-465b-bc4a-54b7e550662a",
+                "a9ab7e6c-93cb-4e2f-bd67-c2e770407456"
+              ],
+              "error": null
+            },
+            "institutions": {
+              "ids": [
+                "5c1c0173-92ad-4668-b701-d5945f407389"
+              ],
+              "error": null
+            }
+          },
+          "source": "real Supabase Auth password/TOTP and Data API"
+        }
+      },
+      "docente": {
+        "role": "equipe",
+        "email": "enamed.qa.docente.20261117@example.com",
+        "userId": "a9126e32-1fcb-4cd8-afc4-f6ab9d483c2f",
+        "verifiedAt": "2026-11-17T19:30:35.28551+00:00",
+        "aalVerified": true,
+        "mfaVerified": true,
+        "observations": {
+          "aal1": {
+            "courses": {
+              "ids": [],
+              "error": null
+            },
+            "institutions": {
+              "ids": [],
+              "error": null
+            }
+          },
+          "aal2": {
+            "courses": {
+              "ids": [
+                "08241706-482e-465b-bc4a-54b7e550662a",
+                "a9ab7e6c-93cb-4e2f-bd67-c2e770407456"
+              ],
+              "error": null
+            },
+            "institutions": {
+              "ids": [
+                "5c1c0173-92ad-4668-b701-d5945f407389"
+              ],
+              "error": null
+            }
+          },
+          "source": "real Supabase Auth password/TOTP and Data API"
+        }
+      },
+      "reitoria": {
+        "role": "reitor",
+        "email": "enamed.qa.reitoria.20261117@example.com",
+        "userId": "13144541-8d46-4859-9c2c-1b8a4feee3f5",
+        "verifiedAt": "2026-11-17T19:30:33.129626+00:00",
+        "aalVerified": true,
+        "mfaVerified": true,
+        "observations": {
+          "aal1": {
+            "courses": {
+              "ids": [],
+              "error": null
+            },
+            "institutions": {
+              "ids": [],
+              "error": null
+            }
+          },
+          "aal2": {
+            "courses": {
+              "ids": [
+                "08241706-482e-465b-bc4a-54b7e550662a",
+                "a9ab7e6c-93cb-4e2f-bd67-c2e770407456"
+              ],
+              "error": null
+            },
+            "institutions": {
+              "ids": [
+                "5c1c0173-92ad-4668-b701-d5945f407389"
+              ],
+              "error": null
+            }
+          },
+          "source": "real Supabase Auth password/TOTP and Data API"
+        }
+      },
+      "outra_ies": {
+        "role": "reitor",
+        "email": "enamed.qa.outra_ies.20261117@example.com",
+        "userId": "d3d6c741-bf06-4327-9ccb-9db70ab535fa",
+        "verifiedAt": "2026-11-17T19:30:36.119547+00:00",
+        "aalVerified": true,
+        "mfaVerified": true,
+        "observations": {
+          "aal1": {
+            "courses": {
+              "ids": [],
+              "error": null
+            },
+            "institutions": {
+              "ids": [],
+              "error": null
+            }
+          },
+          "aal2": {
+            "courses": {
+              "ids": [
+                "55c8ae28-bd1d-4c65-889a-55497c33035c"
+              ],
+              "error": null
+            },
+            "institutions": {
+              "ids": [
+                "db0f8de7-78ee-40fb-9e6e-9dab8f69b4ae"
+              ],
+              "error": null
+            }
+          },
+          "source": "real Supabase Auth password/TOTP and Data API"
+        }
+      },
+      "coordenacao": {
+        "role": "coordenador",
+        "email": "enamed.qa.coordenacao.20261117@example.com",
+        "userId": "a9f6e6fe-bc40-4dd6-ab3c-d1c3b4703144",
+        "verifiedAt": "2026-11-17T19:30:34.499116+00:00",
+        "aalVerified": true,
+        "mfaVerified": true,
+        "observations": {
+          "aal1": {
+            "courses": {
+              "ids": [],
+              "error": null
+            },
+            "institutions": {
+              "ids": [],
+              "error": null
+            }
+          },
+          "aal2": {
+            "courses": {
+              "ids": [
+                "08241706-482e-465b-bc4a-54b7e550662a",
+                "a9ab7e6c-93cb-4e2f-bd67-c2e770407456"
+              ],
+              "error": null
+            },
+            "institutions": {
+              "ids": [
+                "5c1c0173-92ad-4668-b701-d5945f407389"
+              ],
+              "error": null
+            }
+          },
+          "source": "real Supabase Auth password/TOTP and Data API"
+        }
+      },
+      "sem_autorizacao": {
+        "role": "none",
+        "email": "enamed.qa.sem_autorizacao.20261117@example.com",
+        "userId": "15a76b1c-f350-4251-a604-42845aa9ae4d",
+        "verifiedAt": "2026-11-17T19:30:35.654511+00:00",
+        "aalVerified": true,
+        "mfaVerified": true,
+        "observations": {
+          "aal1": {
+            "courses": {
+              "ids": [],
+              "error": null
+            },
+            "institutions": {
+              "ids": [],
+              "error": null
+            }
+          },
+          "aal2": {
+            "courses": {
+              "ids": [],
+              "error": null
+            },
+            "institutions": {
+              "ids": [],
+              "error": null
+            }
+          },
+          "source": "real Supabase Auth password/TOTP and Data API"
+        }
+      }
+    },
+    "capability_revoked": true
+  },
+  "metadata_rls_after": {
+    "error": null,
+    "status": "done",
+    "fixture": {
+      "courseA": "a9ab7e6c-93cb-4e2f-bd67-c2e770407456",
+      "courseB": "55c8ae28-bd1d-4c65-889a-55497c33035c",
+      "institutionA": "5c1c0173-92ad-4668-b701-d5945f407389",
+      "institutionB": "db0f8de7-78ee-40fb-9e6e-9dab8f69b4ae",
+      "otherCourseA": "08241706-482e-465b-bc4a-54b7e550662a"
+    },
+    "accounts": {
+      "cpa": {
+        "role": "cpa",
+        "email": "enamed.qa.cpa.20261117@example.com",
+        "userId": "528b51f6-4faa-41c8-8df3-9d2f1c23c1f5",
+        "verifiedAt": "2026-11-17T19:31:58.594422+00:00",
+        "aalVerified": true,
+        "mfaVerified": true,
+        "observations": {
+          "aal1": {
+            "courses": {
+              "ids": [],
+              "error": null
+            },
+            "institutions": {
+              "ids": [],
+              "error": null
+            }
+          },
+          "aal2": {
+            "courses": {
+              "ids": [
+                "08241706-482e-465b-bc4a-54b7e550662a",
+                "a9ab7e6c-93cb-4e2f-bd67-c2e770407456"
+              ],
+              "error": null
+            },
+            "institutions": {
+              "ids": [
+                "5c1c0173-92ad-4668-b701-d5945f407389"
+              ],
+              "error": null
+            }
+          },
+          "source": "real Supabase Auth password/TOTP and Data API"
+        }
+      },
+      "nde": {
+        "role": "nde",
+        "email": "enamed.qa.nde.20261117@example.com",
+        "userId": "51373fd3-2650-4fdf-8ad1-8170aa76ae11",
+        "verifiedAt": "2026-11-17T19:31:59.440212+00:00",
+        "aalVerified": true,
+        "mfaVerified": true,
+        "observations": {
+          "aal1": {
+            "courses": {
+              "ids": [],
+              "error": null
+            },
+            "institutions": {
+              "ids": [],
+              "error": null
+            }
+          },
+          "aal2": {
+            "courses": {
+              "ids": [
+                "a9ab7e6c-93cb-4e2f-bd67-c2e770407456"
+              ],
+              "error": null
+            },
+            "institutions": {
+              "ids": [
+                "5c1c0173-92ad-4668-b701-d5945f407389"
+              ],
+              "error": null
+            }
+          },
+          "source": "real Supabase Auth password/TOTP and Data API"
+        }
+      },
+      "master": {
+        "role": "master",
+        "email": "enamed.qa.master.20261117@example.com",
+        "userId": "388a7c6b-28e4-4b37-b6bc-41a719f7cf88",
+        "verifiedAt": "2026-11-17T19:31:57.290702+00:00",
+        "aalVerified": true,
+        "mfaVerified": true,
+        "observations": {
+          "aal1": {
+            "courses": {
+              "ids": [],
+              "error": null
+            },
+            "institutions": {
+              "ids": [],
+              "error": null
+            }
+          },
+          "aal2": {
+            "courses": {
+              "ids": [
+                "08241706-482e-465b-bc4a-54b7e550662a",
+                "55c8ae28-bd1d-4c65-889a-55497c33035c",
+                "a9ab7e6c-93cb-4e2f-bd67-c2e770407456"
+              ],
+              "error": null
+            },
+            "institutions": {
+              "ids": [
+                "5c1c0173-92ad-4668-b701-d5945f407389",
+                "db0f8de7-78ee-40fb-9e6e-9dab8f69b4ae"
+              ],
+              "error": null
+            }
+          },
+          "source": "real Supabase Auth password/TOTP and Data API"
+        }
+      },
+      "direcao": {
+        "role": "diretor_geral",
+        "email": "enamed.qa.direcao.20261117@example.com",
+        "userId": "6de35508-6a3d-489e-b798-f6025c5831d3",
+        "verifiedAt": "2026-11-17T19:31:58.244141+00:00",
+        "aalVerified": true,
+        "mfaVerified": true,
+        "observations": {
+          "aal1": {
+            "courses": {
+              "ids": [],
+              "error": null
+            },
+            "institutions": {
+              "ids": [],
+              "error": null
+            }
+          },
+          "aal2": {
+            "courses": {
+              "ids": [
+                "08241706-482e-465b-bc4a-54b7e550662a",
+                "a9ab7e6c-93cb-4e2f-bd67-c2e770407456"
+              ],
+              "error": null
+            },
+            "institutions": {
+              "ids": [
+                "5c1c0173-92ad-4668-b701-d5945f407389"
+              ],
+              "error": null
+            }
+          },
+          "source": "real Supabase Auth password/TOTP and Data API"
+        }
+      },
+      "docente": {
+        "role": "equipe",
+        "email": "enamed.qa.docente.20261117@example.com",
+        "userId": "a9126e32-1fcb-4cd8-afc4-f6ab9d483c2f",
+        "verifiedAt": "2026-11-17T19:31:59.837339+00:00",
+        "aalVerified": true,
+        "mfaVerified": true,
+        "observations": {
+          "aal1": {
+            "courses": {
+              "ids": [],
+              "error": null
+            },
+            "institutions": {
+              "ids": [],
+              "error": null
+            }
+          },
+          "aal2": {
+            "courses": {
+              "ids": [
+                "a9ab7e6c-93cb-4e2f-bd67-c2e770407456"
+              ],
+              "error": null
+            },
+            "institutions": {
+              "ids": [
+                "5c1c0173-92ad-4668-b701-d5945f407389"
+              ],
+              "error": null
+            }
+          },
+          "source": "real Supabase Auth password/TOTP and Data API"
+        }
+      },
+      "reitoria": {
+        "role": "reitor",
+        "email": "enamed.qa.reitoria.20261117@example.com",
+        "userId": "13144541-8d46-4859-9c2c-1b8a4feee3f5",
+        "verifiedAt": "2026-11-17T19:31:57.858957+00:00",
+        "aalVerified": true,
+        "mfaVerified": true,
+        "observations": {
+          "aal1": {
+            "courses": {
+              "ids": [],
+              "error": null
+            },
+            "institutions": {
+              "ids": [],
+              "error": null
+            }
+          },
+          "aal2": {
+            "courses": {
+              "ids": [
+                "08241706-482e-465b-bc4a-54b7e550662a",
+                "a9ab7e6c-93cb-4e2f-bd67-c2e770407456"
+              ],
+              "error": null
+            },
+            "institutions": {
+              "ids": [
+                "5c1c0173-92ad-4668-b701-d5945f407389"
+              ],
+              "error": null
+            }
+          },
+          "source": "real Supabase Auth password/TOTP and Data API"
+        }
+      },
+      "outra_ies": {
+        "role": "reitor",
+        "email": "enamed.qa.outra_ies.20261117@example.com",
+        "userId": "d3d6c741-bf06-4327-9ccb-9db70ab535fa",
+        "verifiedAt": "2026-11-17T19:32:00.725911+00:00",
+        "aalVerified": true,
+        "mfaVerified": true,
+        "observations": {
+          "aal1": {
+            "courses": {
+              "ids": [],
+              "error": null
+            },
+            "institutions": {
+              "ids": [],
+              "error": null
+            }
+          },
+          "aal2": {
+            "courses": {
+              "ids": [
+                "55c8ae28-bd1d-4c65-889a-55497c33035c"
+              ],
+              "error": null
+            },
+            "institutions": {
+              "ids": [
+                "db0f8de7-78ee-40fb-9e6e-9dab8f69b4ae"
+              ],
+              "error": null
+            }
+          },
+          "source": "real Supabase Auth password/TOTP and Data API"
+        }
+      },
+      "coordenacao": {
+        "role": "coordenador",
+        "email": "enamed.qa.coordenacao.20261117@example.com",
+        "userId": "a9f6e6fe-bc40-4dd6-ab3c-d1c3b4703144",
+        "verifiedAt": "2026-11-17T19:31:58.965857+00:00",
+        "aalVerified": true,
+        "mfaVerified": true,
+        "observations": {
+          "aal1": {
+            "courses": {
+              "ids": [],
+              "error": null
+            },
+            "institutions": {
+              "ids": [],
+              "error": null
+            }
+          },
+          "aal2": {
+            "courses": {
+              "ids": [
+                "a9ab7e6c-93cb-4e2f-bd67-c2e770407456"
+              ],
+              "error": null
+            },
+            "institutions": {
+              "ids": [
+                "5c1c0173-92ad-4668-b701-d5945f407389"
+              ],
+              "error": null
+            }
+          },
+          "source": "real Supabase Auth password/TOTP and Data API"
+        }
+      },
+      "sem_autorizacao": {
+        "role": "none",
+        "email": "enamed.qa.sem_autorizacao.20261117@example.com",
+        "userId": "15a76b1c-f350-4251-a604-42845aa9ae4d",
+        "verifiedAt": "2026-11-17T19:32:00.265802+00:00",
+        "aalVerified": true,
+        "mfaVerified": true,
+        "observations": {
+          "aal1": {
+            "courses": {
+              "ids": [],
+              "error": null
+            },
+            "institutions": {
+              "ids": [],
+              "error": null
+            }
+          },
+          "aal2": {
+            "courses": {
+              "ids": [],
+              "error": null
+            },
+            "institutions": {
+              "ids": [],
+              "error": null
+            }
+          },
+          "source": "real Supabase Auth password/TOTP and Data API"
+        }
+      }
+    },
+    "sessions": 0,
+    "auth_users": 9,
+    "verified_totp": 9,
+    "capability_revoked": true
+  },
+  "scope_checks_passed": true,
+  "capability_replay_check": {
+    "job": {
+      "status": "done",
+      "capability_revoked": true
+    },
+    "accounts": 9,
+    "sessions": 0,
+    "http_body": "{\"error\":\"fixture_provision_failed\",\"phase\":\"claim\",\"code\":\"claim:bootstrap_claim_42501\"}",
+    "http_status": 403
+  },
+  "final_provisioner": {
+    "id": "45de21de-8dce-4d58-ac8f-9e6f30ea7498",
+    "slug": "enamed-homologation-fixtures",
+    "name": "enamed-homologation-fixtures",
+    "status": "ACTIVE",
+    "version": 4,
+    "created_at": 1794943627881,
+    "updated_at": 1794944085703,
+    "verify_jwt": true,
+    "import_map": false,
+    "entrypoint_path": "file:///tmp/user_fn_rnmkmnrfhvjihsuqziwf_45de21de-8dce-4d58-ac8f-9e6f30ea7498_4/source/index.ts",
+    "ezbr_sha256": "b9d9b3161e7c14bafdb22d82312148dc787590d12e8622c8a0cca8140b73787a"
+  },
+  "secrets": "Passwords and TOTP seeds only in encrypted Supabase Vault. No access/refresh tokens persisted. No secret values exported.",
+  "sessions_after_logout": 0,
+  "synthetic_data": {
+    "institutions": 2,
+    "courses": 3,
+    "students": 0,
+    "answers": 0,
+    "official_results": 0
+  },
+  "observed_failure": "Before correction, Coordenação/NDE/Docente could read the second synthetic course in the same institution. Real Data API reads reproduced this; after the isolated policy correction, all three see only courseA.",
+  "production_modified": false,
+  "medical_or_visual_approval": false,
+  "full_browser_scenarios_executed": 0,
+  "release_status": "BLOCKED",
+  "inep_check": {
+    "date": "2026-11-17",
+    "catalog_url": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enamed/provas-e-gabaritos",
+    "catalog_status": "Four 2026 answer keys still labeled preliminary",
+    "final_answer_keys_scheduled": "2026-12-04",
+    "schedule_source": "https://www.gov.br/inep/pt-br/centrais-de-conteudo/noticias/enamed/enamed-2026-inep-divulga-gabarito-preliminar-da-reaplicacao-da-prova"
+  },
+  "sql_sha256": {
+    "20261117_CONTAS_FIXTURE_SETUP.sql": "d27cf0405c880a98e675d7c053f03d436abb75631805e611df479bd6dc44a903",
+    "20261117_CONTAS_API_RLS_PREPARE.sql": "d43a7cc618faed12e7b9f0cda223b28cd6a2da13a50a641871f92fb6e31c02aa",
+    "20261117_CONTAS_COURSE_SCOPE_CORRECAO.sql": "139f8864648df54d60e35552b84ff7059b11f5d9e2714f8dc56e841ed243d4c4"
+  },
+  "database_final_verification": {
+    "users": 9,
+    "courses": 3,
+    "rpc_anon": false,
+    "students": 0,
+    "checked_at": "2026-11-17T19:38:27.387187+00:00",
+    "helper_anon": false,
+    "memberships": [
+      {
+        "role": "reitor",
+        "course_linked": false
+      },
+      {
+        "role": "diretor_geral",
+        "course_linked": false
+      },
+      {
+        "role": "cpa",
+        "course_linked": false
+      },
+      {
+        "role": "coordenador",
+        "course_linked": true
+      },
+      {
+        "role": "nde",
+        "course_linked": true
+      },
+      {
+        "role": "equipe",
+        "course_linked": false
+      },
+      {
+        "role": "reitor",
+        "course_linked": false
+      }
+    ],
+    "institutions": 2,
+    "verified_totp": 9,
+    "new_migrations": [
+      {
+        "name": "enamed_isolated_authorized_test_accounts_foundation",
+        "version": "20261117192651"
+      },
+      {
+        "name": "enamed_isolated_real_auth_metadata_rls_validation",
+        "version": "20261117193014"
+      },
+      {
+        "name": "enamed_isolated_fix_observed_course_scope_read",
+        "version": "20261117193156"
+      }
+    ],
+    "active_sessions": 0,
+    "rpc_authenticated": false,
+    "capability_revoked": true,
+    "unverified_factors": 0,
+    "fixture_clients_access": false
+  },
+  "provisioner_final_readback": {
+    "version": 4,
+    "verify_jwt": true,
+    "sha256": "b9d9b3161e7c14bafdb22d82312148dc787590d12e8622c8a0cca8140b73787a",
+    "source_readback": "exact"
+  }
+}

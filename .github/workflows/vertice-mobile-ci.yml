@@ -44,6 +44,10 @@ jobs:
       - name: Dependências bloqueadas pelo lockfile
         working-directory: .ci-build
         run: npm ci --legacy-peer-deps --no-audit --no-fund
+      - name: Preparar runtime DOM de testes com lockfile existente
+        run: |
+          npm ci --prefix scripts/tests/types-runtime --no-audit --no-fund
+          ln -s "$GITHUB_WORKSPACE/scripts/tests/types-runtime/node_modules/jsdom" .ci-build/node_modules/jsdom
       - name: Preparar referência da branch principal
         uses: actions/checkout@v4
         with:

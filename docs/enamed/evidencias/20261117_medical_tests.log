@@ -1,0 +1,12 @@
+
+ RUN  v2.1.9 /workspace/scratch/f286b1c9f079/portal-build
+
+ ✓ server/learning-bridge-handler.medical.spec.ts (13 tests) 29ms
+ ✓ server/reading-indicators.medical.spec.ts (35 tests) 69ms
+ ✓ server/learning-connected-ui.medical.spec.ts (7 tests) 226ms
+
+ Test Files  3 passed (3)
+      Tests  55 passed (55)
+   Start at  06:14:18
+   Duration  751ms (transform 132ms, setup 0ms, collect 708ms, tests 324ms, environment 250ms, prepare 113ms)
+

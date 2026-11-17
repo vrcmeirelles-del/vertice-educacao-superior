@@ -1,0 +1,296 @@
+{
+  "schema_version": "enamed360-gates-v1",
+  "evaluated_on": "2026-11-17",
+  "pr": 168,
+  "release_status": "BLOCKED",
+  "preliminary_audit": {
+    "status": "COMPLETE",
+    "evidence": "docs/enamed/TERMO_ENCERRAMENTO_AUDITORIA_PRELIMINAR_20261117.md"
+  },
+  "source_pdf_evidence": {
+    "status": "VERIFIED_PRELIMINARY",
+    "count": 8,
+    "manifest": "docs/enamed/INEP_2026_SHA256_DOCUMENTOS_PRELIMINARES_20261117.json"
+  },
+  "regression_ci": {
+    "status": "PASS",
+    "commit": "139f3a01c209d4bb0c32b986c430fffc260e6ce6",
+    "workflow_runs": [
+      44152480338,
+      44152480090,
+      44152480139,
+      44152480347,
+      44152480219,
+      44152480159,
+      44152480526,
+      44152480313,
+      44152480079,
+      44152480520,
+      44152480452,
+      44152480147,
+      44152480089,
+      44152470279
+    ],
+    "caveat": "14 workflows success for code 139f3a0, including TypeScript/full suite/build Node22/24. Final documentation-only commit does not claim a new code test or approve authenticated/medical gates."
+  },
+  "conditions": {
+    "final_inep_answer_keys": {
+      "approved": false,
+      "evidence": [
+        "docs/enamed/INEP_NORMAS_SHA256_20261117.json",
+        "docs/enamed/PARECER_DOCUMENTAL_EXECUCAO_20261117.md"
+      ],
+      "reason": "Catálogo oficial consultado em 17/11/2026 lista quatro gabaritos PRELIMINARES; definitivos previstos 04/12/2026.",
+      "history": [
+        {
+          "date": "2026-11-17",
+          "approved": false,
+          "reason": "2026 final answer keys/retifications not authenticated in reviewed corpus",
+          "evidence": []
+        }
+      ],
+      "status": "BLOQUEADA"
+    },
+    "full_item_text_media_comparison": {
+      "approved": false,
+      "evidence": [
+        "docs/enamed/CONFRONTO_INTEGRAL_483_20261117.json",
+        "docs/enamed/MIDIAS_VINCULOS_PREPARADOS_20261117.json",
+        "docs/enamed/VARIANTES_22_CONFRONTO_COMPLETO_20261117.json",
+        "docs/enamed/REAPLICACAO_17_CONFRONTO_COMPLETO_20261117.json"
+      ],
+      "reason": "483 textos extraídos e quatro alternativas comparados integralmente; revisão visual de tabelas, símbolos e 30 mídias candidatas e direitos ainda sem aceite.",
+      "history": [
+        {
+          "date": "2026-11-17",
+          "approved": false,
+          "reason": "Complete per-ID PDF-vs-stem/options/media audit unfinished",
+          "evidence": []
+        }
+      ],
+      "status": "BLOQUEADA"
+    },
+    "medical_and_dual_ai_editorial_review": {
+      "approved": false,
+      "evidence": [
+        "docs/enamed/MATRIZ_HOMOLOGACAO_EXECUCAO_20261117.json",
+        "docs/enamed/evidencias/20261117_CONTAS_MFA_API_VERIFICADAS.json"
+      ],
+      "reason": "Conta Master criada e AAL2 verificado; as duas avaliações independentes ainda não foram executadas sobre o acervo no ambiente isolado, e os pareceres médico e visual por item continuam sem aceite.",
+      "history": [
+        {
+          "date": "2026-11-17",
+          "approved": false,
+          "reason": "Two independent reviews plus medical final approval not performed",
+          "evidence": []
+        },
+        {
+          "date": "2026-11-17",
+          "approved": false,
+          "reason": "Sem sessão Master AAL2 para executar o comando dual-IA existente, sem parecer médico por item; comando textual não homologa mídia.",
+          "evidence": [
+            "docs/enamed/MATRIZ_HOMOLOGACAO_EXECUCAO_20261117.json"
+          ]
+        }
+      ],
+      "status": "BLOQUEADA"
+    },
+    "authenticated_multi_tenant_qa": {
+      "approved": false,
+      "evidence": [
+        "docs/enamed/MATRIZ_HOMOLOGACAO_EXECUCAO_20261117.json",
+        "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json",
+        "docs/enamed/evidencias/20261117_LOCKDOWN_APLICADO_APOS_CONFIRMACAO.json",
+        "docs/enamed/evidencias/20261117_RESTAURACAO_DEFINICOES_APLICADAS.json",
+        "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json",
+        "docs/enamed/evidencias/20261117_CONCILIACAO_MAIN_E_FUNCOES.json",
+        "docs/enamed/evidencias/20261117_ENCERRAMENTO_EXECUCAO_ISOLADA.json",
+        "docs/enamed/evidencias/20261117_CONTAS_MFA_API_VERIFICADAS.json"
+      ],
+      "reason": "Nove contas por perfil criadas, TOTP e AAL2 reais verificados; Auth/Data API de metadados passou após correção de escopo isolada. Ainda não são os 16 cenários completos no navegador nem homologação integral de módulos/RLS.",
+      "history": [
+        {
+          "date": "2026-11-17",
+          "approved": false,
+          "reason": "No authorized live MFA sessions available in this chat",
+          "evidence": []
+        },
+        {
+          "date": "2026-11-17",
+          "approved": false,
+          "reason": "Anonymous Master guard observed; isolated Supabase branch exists but full replay failed on historical institution FK. Zero Auth test users. Sixteen authenticated cases not executed.",
+          "evidence": [
+            "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json"
+          ]
+        },
+        {
+          "date": "2026-11-17",
+          "approved": false,
+          "reason": "Frontend isolado live; restauração do banco pendente de confirmação Supabase; zero contas Auth de teste. Dezesseis cenários reais não executados.",
+          "evidence": [
+            "docs/enamed/MATRIZ_HOMOLOGACAO_EXECUCAO_20261117.json",
+            "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json"
+          ]
+        },
+        {
+          "date": "2026-11-17",
+          "approved": false,
+          "reason": "Esquema isolado restaurado e duas pontes ACTIVE; zero contas Auth autorizadas com MFA/AAL2. Os 16 casos reais não executados. Pipeline automática bloqueada por HTTP 413 na cópia da pré-validação (38,48 MB).",
+          "evidence": [
+            "docs/enamed/MATRIZ_HOMOLOGACAO_EXECUCAO_20261117.json",
+            "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json",
+            "docs/enamed/evidencias/20261117_LOCKDOWN_APLICADO_APOS_CONFIRMACAO.json",
+            "docs/enamed/evidencias/20261117_RESTAURACAO_DEFINICOES_APLICADAS.json",
+            "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json"
+          ]
+        },
+        {
+          "date": "2026-11-17",
+          "approved": false,
+          "reason": "Render isolado LIVE e fontes das três funções verificadas; zero contas Auth autorizadas com MFA/AAL2. Os 16 cenários reais não foram executados; CI e teste anônimo não aprovam este gate.",
+          "evidence": [
+            "docs/enamed/MATRIZ_HOMOLOGACAO_EXECUCAO_20261117.json",
+            "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json",
+            "docs/enamed/evidencias/20261117_LOCKDOWN_APLICADO_APOS_CONFIRMACAO.json",
+            "docs/enamed/evidencias/20261117_RESTAURACAO_DEFINICOES_APLICADAS.json",
+            "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json",
+            "docs/enamed/evidencias/20261117_CONCILIACAO_MAIN_E_FUNCOES.json",
+            "docs/enamed/evidencias/20261117_ENCERRAMENTO_EXECUCAO_ISOLADA.json"
+          ]
+        }
+      ],
+      "status": "NÃO EXECUTADA"
+    },
+    "fato_ordem_vertice_sapiens_e2e": {
+      "approved": false,
+      "evidence": [
+        "docs/enamed/REGISTRO_EVIDENCIAS_EXECUCAO_20261117.json"
+      ],
+      "reason": "Oito testes locais da ponte, inclusive ENAMED via HTTP e dois motores PostgreSQL, aprovados; diagnóstico semeado e auth simulada. Falta E2E no ambiente remoto autenticado.",
+      "history": [
+        {
+          "date": "2026-11-17",
+          "approved": false,
+          "reason": "No verified synthetic E2E sync; target institutional metrics table zero rows",
+          "evidence": []
+        }
+      ],
+      "status": "BLOQUEADA"
+    },
+    "release_approval": {
+      "approved": false,
+      "evidence": [
+        "docs/enamed/MATRIZ_HOMOLOGACAO_EXECUCAO_20261117.json"
+      ],
+      "reason": "Aceites clínico/documental e autenticado não emitidos; autorização final de publicação pendente deles.",
+      "history": [
+        {
+          "date": "2026-11-17",
+          "approved": false,
+          "reason": "Depends on preceding gates, human sign-off, and deployment QA",
+          "evidence": []
+        }
+      ],
+      "status": "BLOQUEADA"
+    }
+  },
+  "prohibited_until_approval": [
+    "change_official_answer_status",
+    "bulk_taxonomy_update",
+    "question_merge_or_delete",
+    "publish_enamed_official_metrics",
+    "merge_pr_168",
+    "deploy_to_production"
+  ],
+  "next_action_required": "Executar os 16 cenários completos com as contas já criadas, realizar E2E remoto e dupla IA real; obter aceite médico/visual e documentos definitivos INEP. Não repetir provisionamento/MFA concluídos. Não integrar a branch de banco de teste à produção.",
+  "evaluation_history": [
+    {
+      "date": "2026-11-17",
+      "regression_ci": {
+        "status": "PASS",
+        "commit": "a34dfcf814cf4680f768213fd6db8f7edfb8a46c",
+        "workflow_runs": [
+          44049679829,
+          44049679822,
+          44049680109
+        ],
+        "caveat": "Successful static CI does not prove a live signed-in tenant/session"
+      }
+    },
+    {
+      "date": "2026-11-17",
+      "event": "Live anonymous guard + isolated staging setup",
+      "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json",
+      "all_six_gates_remain_unapproved": true
+    },
+    {
+      "date": "2026-11-17",
+      "regression_ci": {
+        "status": "PASS",
+        "commit": "92b5f649d805df3f4ab1ecfaa6313777089a77c6",
+        "workflow_runs": [
+          44054848783,
+          44054849017,
+          44054848825,
+          44054848848
+        ],
+        "caveat": "Ten successful workflows; no live signed-in tenant session or clinical approval."
+      },
+      "event": "Previous CI preserved before homologation isolation update"
+    },
+    {
+      "date": "2026-11-17",
+      "event": "Provider-confirmed staging lockdown applied; cumulative empty-schema restoration",
+      "evidence": "docs/enamed/evidencias/20261117_LOCKDOWN_APLICADO_APOS_CONFIRMACAO.json",
+      "all_six_gates_remain_unapproved": true
+    },
+    {
+      "date": "2026-11-17",
+      "event": "Schema replay restored; two isolated bridges ACTIVE; local native/origin tests passed",
+      "evidence": "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json",
+      "all_six_gates_remain_unapproved": true
+    },
+    {
+      "date": "2026-11-17",
+      "event": "Prior successful CI preserved before verified isolated bridge update",
+      "regression_ci": {
+        "status": "PASS",
+        "commit": "dcd8a1ebab5636c88c6cba07b57fcd4be4d36813",
+        "workflow_runs": [
+          44116468460
+        ],
+        "caveat": "TypeScript/build Node22/24; local 427 tests. Isolated frontend deploy is not authenticated QA or production release."
+      }
+    },
+    {
+      "date": "2026-11-17",
+      "event": "Main conflicts reconciled; exact-source prevalidation redeploy compensated HTTP 413",
+      "evidence": "docs/enamed/evidencias/20261117_CONCILIACAO_MAIN_E_FUNCOES.json",
+      "all_six_gates_remain_unapproved": true
+    },
+    {
+      "date": "2026-11-17",
+      "event": "Previous CI preserved before main reconciliation",
+      "regression_ci": {
+        "status": "PASS",
+        "commit": "0855054b170130572c1c7b3d309d146fcb9c942b",
+        "workflow_runs": [
+          44149342910
+        ],
+        "workflow_url": "https://github.com/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44149342910",
+        "scope": "Complete TypeScript, existing portal suite and static build Node22/24; four new origin/destination checks on Node24. Local 15 ENAMED contracts + 12 bridge/origin tests passed. Not authenticated QA or medical approval."
+      }
+    },
+    {
+      "date": "2026-11-17",
+      "event": "Fourteen code workflows PASS; isolated Render LIVE verified in browser; six release gates remain unapproved",
+      "evidence": "docs/enamed/evidencias/20261117_ENCERRAMENTO_EXECUCAO_ISOLADA.json"
+    },
+    {
+      "date": "2026-11-17",
+      "event": "Nine authorized accounts + real MFA/AAL2 and metadata RLS checks; observed course-scope failure corrected only in staging",
+      "evidence": "docs/enamed/evidencias/20261117_CONTAS_MFA_API_VERIFICADAS.json",
+      "all_six_gates_remain_unapproved": true
+    }
+  ]
+}

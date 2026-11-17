@@ -1,0 +1,112 @@
+name: ENAMED E1 - recuperar documentos públicos do INEP
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "scripts/enamed/discover_public_inep_pdfs.py"
+      - "scripts/enamed/render_inep_public_catalog.py"
+      - "scripts/enamed/inspect_inep_tls_chain.py"
+      - "scripts/enamed/download_inep_verified_chain.py"
+      - "scripts/enamed/download_verified_links_curl.py"
+      - "docs/enamed/INEP_2026_LINKS_OFICIAIS_CONFIRMADOS.json"
+      - ".github/workflows/enamed-inep-public-corpus.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: enamed-e1-public-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  public-documents:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validar sintaxe do coletor oficial
+        run: python -m py_compile scripts/enamed/discover_public_inep_pdfs.py
+      - name: Consultar fonte primária e recuperar PDFs expostos, sem gravar no banco
+        run: python scripts/enamed/discover_public_inep_pdfs.py
+      - name: Guardar relatório e binários recuperados para curadoria documental
+        uses: actions/upload-artifact@v4
+        with:
+          name: enamed-e1-oficial-pdfs-unverified
+          path: evidence/enamed-inep/
+          retention-days: 14
+          if-no-files-found: error
+  rendered-catalog:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Instalar navegador de leitura pública
+        run: |
+          python -m pip install --disable-pip-version-check playwright==1.56.0
+          python -m playwright install --with-deps chromium
+      - name: Renderizar página oficial e descobrir documentos vinculados
+        run: python scripts/enamed/render_inep_public_catalog.py
+      - name: Arquivar relatório de procedência pendente e binários públicos
+        uses: actions/upload-artifact@v4
+        with:
+          name: enamed-e1-browser-rendered-unverified
+          path: evidence/enamed-inep-rendered/
+          retention-days: 14
+          if-no-files-found: error
+  curl-official-links:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Transferir PDFs publicados no catálogo oficial mantendo TLS ativo
+        run: python scripts/enamed/download_verified_links_curl.py
+      - name: Arquivar relatório de tentativas e PDFs íntegros caso recuperados
+        uses: actions/upload-artifact@v4
+        with:
+          name: enamed-e1-curl-tls-evidence
+          path: evidence/enamed-inep-curl/
+          retention-days: 14
+          if-no-files-found: error
+  tls-chain-diagnostic:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Diagnosticar cadeia pública sem desabilitar verificação do certificado
+        run: python scripts/enamed/inspect_inep_tls_chain.py
+      - name: Registrar evidência pública para verificar cadeia intermediária
+        uses: actions/upload-artifact@v4
+        with:
+          name: enamed-e1-tls-chain-diagnostic
+          path: evidence/enamed-tls/tls_chain_report.json
+          retention-days: 14
+          if-no-files-found: error
+  verified-intermediate-download:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validar código do recuperador criptográfico
+        run: python -m py_compile scripts/enamed/download_inep_verified_chain.py
+      - name: Validar CA intermediária contra raiz confiável, hostname e depois PDFs
+        run: python scripts/enamed/download_inep_verified_chain.py
+      - name: Arquivar SHA-256 e PDFs cuja identidade TLS tenha sido confirmada
+        uses: actions/upload-artifact@v4
+        with:
+          name: enamed-e1-verified-chain-pdfs
+          path: evidence/enamed-verified-chain/
+          retention-days: 14
+          if-no-files-found: error

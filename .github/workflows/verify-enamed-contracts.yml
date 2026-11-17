@@ -1,0 +1,60 @@
+name: ENAMED 360 - validar contratos e dicionário
+on:
+  pull_request:
+    branches: [main, feat/enamed-inep-environment-20261116]
+    paths:
+      - "docs/enamed/**"
+      - "scripts/tests/enamed-*.test.mjs"
+      - "supabase/functions/enamed-homologation-fixtures/**"
+      - "scripts/tests/test_verify_inep_artifacts.py"
+      - "scripts/tests/test_enamed_verified_chain.py"
+      - "scripts/enamed/verify_inep_artifacts.py"
+      - "scripts/enamed/compare_full_items.py"
+      - "scripts/enamed/build_editorial_summary.py"
+      - "source-overrides/client/src/data/enamed-editorial-evidence.json"
+      - "scripts/tests/test_enamed_full_items.py"
+      - "source-overrides/client/src/components/area/Enamed*.tsx"
+      - "source-overrides/client/src/components/area/Enade360.tsx"
+      - "source-overrides/client/src/components/area/InstitutionTabs.tsx"
+      - ".github/workflows/verify-enamed-contracts.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: enamed-contracts-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Validar 483 IDs e dicionário normativo em rascunho
+        run: node --test scripts/tests/enamed-dictionary-contract.test.mjs
+      - name: Validar integração sem escrita e escopo por instituição
+        run: node --test scripts/tests/enamed-integration-contract.test.mjs
+      - name: Validar permutações de 200 questões e 400 localizadores de página
+        run: node --test scripts/tests/enamed-booklet-maps.test.mjs
+      - name: Validar 22 questões com páginas e status de revisão preservados
+        run: node --test scripts/tests/enamed-text-variants.test.mjs
+      - name: Validar comparações integrais entre cópias e 6 mídias de origem
+        run: node --test scripts/tests/enamed-e1-content-media-contract.test.mjs
+      - name: Verificar integridade documental com fixtures sintéticas
+        run: python -m unittest discover -s scripts/tests -p "test_verify_inep_artifacts.py" -v
+      - name: Rejeitar rotas TLS inseguras e intermediárias não validadas
+        run: python -m unittest discover -s scripts/tests -p "test_enamed_verified_chain.py" -v
+      - name: Conferir números, unidades, negação e comando completo no comparador
+        run: python -m unittest discover -s scripts/tests -p "test_enamed_full_items.py" -v
+      - name: Conferir resumo editorial do portal contra as evidências versionadas
+        run: python scripts/enamed/build_editorial_summary.py --check
+      - name: Exigir aceite explícito antes de reindexar ou publicar
+        run: node --test scripts/tests/enamed-release-gates.test.mjs
+      - name: Verificar TOTP das contas sintéticas com vetores públicos RFC 6238
+        run: node --test scripts/tests/enamed-fixture-totp.test.mjs
+      - name: Não declarar fontes do Inep homologadas
+        run: |
+          grep -q 'review_required' docs/enamed/DICIONARIO_COMPETENCIAS_478_2025_DRAFT.json
+          grep -q 'E1' docs/enamed/PLANO_DE_TRABALHO_ENAMED_360.md

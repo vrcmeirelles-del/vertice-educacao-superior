@@ -1,0 +1,50 @@
+{
+  "crlf_repair": [
+    {
+      "name": "vertice_private.is_master",
+      "old": "66f69984cfda3bfc559d3ccab1aa95c5",
+      "new": "bc676f7e9092d31c6571599fa2d35b4a"
+    },
+    {
+      "name": "vertice_private.can_read_institution",
+      "old": "d1b7f999f7f1116e08c28bf29799722e",
+      "new": "e8d7f547247ae71103552e2da903479a"
+    },
+    {
+      "name": "vertice_private.audit_change",
+      "old": "3b55de4d97ce2333320068dc28657845",
+      "new": "e1c510be687d13337f5d9b922e4d98df"
+    }
+  ],
+  "table_grants_restored": 52,
+  "function_grants_restored": [
+    {
+      "schema_name": "public",
+      "name": "vertice_accept_invites",
+      "args": "",
+      "role_name": "service_role",
+      "allowed": false
+    },
+    {
+      "schema_name": "public",
+      "name": "vertice_add_member",
+      "args": "target uuid, member_email text, member_role text",
+      "role_name": "service_role",
+      "allowed": false
+    },
+    {
+      "schema_name": "public",
+      "name": "vertice_emec_import",
+      "args": "target uuid, payload jsonb, expected_revision integer",
+      "role_name": "service_role",
+      "allowed": false
+    }
+  ],
+  "schema_only_cost_variant": {
+    "version": "20261107191621",
+    "name": "simulador_resultado_curso",
+    "tenant_seed_omitted": true,
+    "history_records_actual_variant": true
+  },
+  "supabase_branch_merge_to_production_allowed": false
+}

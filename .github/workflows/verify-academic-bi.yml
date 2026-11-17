@@ -46,6 +46,10 @@ jobs:
       - name: Instalar dependências exatas
         working-directory: .validation-build
         run: npm ci --legacy-peer-deps --no-audit --no-fund
+      - name: Preparar runtime DOM de testes com lockfile existente
+        run: |
+          npm ci --prefix scripts/tests/types-runtime --no-audit --no-fund
+          ln -s "$GITHUB_WORKSPACE/scripts/tests/types-runtime/node_modules/jsdom" .validation-build/node_modules/jsdom
       - name: Preparar base TypeScript da main
         uses: actions/checkout@v4
         with:

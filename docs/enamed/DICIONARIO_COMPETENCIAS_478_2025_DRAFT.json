@@ -1,0 +1,319 @@
+{
+  "schema_version": "enamed478-2025-draft-v1",
+  "status": "review_required",
+  "authority": {
+    "act": "Portaria Inep 478/2025",
+    "published": "2025-07-21",
+    "url": "https://www.in.gov.br/en/web/dou/-/portaria-n-478-de-18-de-julho-de-2025-643085112",
+    "verification": "text_examined_official_publication_reproduction;binary_hash_pending"
+  },
+  "general_warning": "Descrições curtas são paráfrases editoriais para busca; não são transcrição integral dos dispositivos. Usar texto oficial para homologação. Conteúdos do art. 8º são sínteses editoriais conferidas na reprodução da publicação oficial, ainda sem hash do PDF.",
+  "areas": [
+    {
+      "code": "A01",
+      "name": "Clínica Médica",
+      "normative_reference": "art. 3º",
+      "status": "pending_clinical_approval"
+    },
+    {
+      "code": "A02",
+      "name": "Cirurgia Geral",
+      "normative_reference": "art. 3º",
+      "status": "pending_clinical_approval"
+    },
+    {
+      "code": "A03",
+      "name": "Ginecologia e Obstetrícia",
+      "normative_reference": "art. 3º",
+      "status": "pending_clinical_approval"
+    },
+    {
+      "code": "A04",
+      "name": "Pediatria",
+      "normative_reference": "art. 3º",
+      "status": "pending_clinical_approval"
+    },
+    {
+      "code": "A05",
+      "name": "Medicina de Família e Comunidade",
+      "normative_reference": "art. 3º",
+      "status": "pending_clinical_approval"
+    },
+    {
+      "code": "A06",
+      "name": "Saúde Mental",
+      "normative_reference": "art. 3º",
+      "status": "pending_clinical_approval"
+    },
+    {
+      "code": "A07",
+      "name": "Saúde Coletiva",
+      "normative_reference": "art. 3º",
+      "status": "pending_clinical_approval"
+    }
+  ],
+  "competencies": [
+    {
+      "code": "I",
+      "summary": "Equidade, diversidade e cuidado humanizado",
+      "normative_reference": "art. 6º",
+      "status": "pending_clinical_approval"
+    },
+    {
+      "code": "II",
+      "summary": "Hipóteses diagnósticas e plano propedêutico clínico",
+      "normative_reference": "art. 6º",
+      "status": "pending_clinical_approval"
+    },
+    {
+      "code": "III",
+      "summary": "Solicitação e interpretação de exames complementares",
+      "normative_reference": "art. 6º",
+      "status": "pending_clinical_approval"
+    },
+    {
+      "code": "IV",
+      "summary": "Elaboração e acompanhamento do plano terapêutico individual",
+      "normative_reference": "art. 6º",
+      "status": "pending_clinical_approval"
+    },
+    {
+      "code": "V",
+      "summary": "Reconhecimento, diagnóstico e tratamento de urgências e emergências",
+      "normative_reference": "art. 6º",
+      "status": "pending_clinical_approval"
+    },
+    {
+      "code": "VI",
+      "summary": "Indicação e realização de procedimentos médicos",
+      "normative_reference": "art. 6º",
+      "status": "pending_clinical_approval"
+    },
+    {
+      "code": "VII",
+      "summary": "Necessidades comunitárias e projetos de intervenção coletiva",
+      "normative_reference": "art. 6º",
+      "status": "pending_clinical_approval"
+    },
+    {
+      "code": "VIII",
+      "summary": "Planejamento e avaliação de promoção, educação e vigilância em saúde",
+      "normative_reference": "art. 6º",
+      "status": "pending_clinical_approval"
+    },
+    {
+      "code": "IX",
+      "summary": "Políticas, princípios, redes e encaminhamentos do SUS",
+      "normative_reference": "art. 6º",
+      "status": "pending_clinical_approval"
+    },
+    {
+      "code": "X",
+      "summary": "Comunicação com paciente, família, comunidade e equipe",
+      "normative_reference": "art. 6º",
+      "status": "pending_clinical_approval"
+    },
+    {
+      "code": "XI",
+      "summary": "Trabalho em equipe e profissionalismo colaborativo",
+      "normative_reference": "art. 6º",
+      "status": "pending_clinical_approval"
+    },
+    {
+      "code": "XII",
+      "summary": "Registro clínico e emissão de documentos médicos",
+      "normative_reference": "art. 6º",
+      "status": "pending_clinical_approval"
+    },
+    {
+      "code": "XIII",
+      "summary": "Ética, deontologia, confidencialidade e autonomia",
+      "normative_reference": "art. 6º",
+      "status": "pending_clinical_approval"
+    },
+    {
+      "code": "XIV",
+      "summary": "Educação permanente e leitura crítica de evidências",
+      "normative_reference": "art. 6º",
+      "status": "pending_clinical_approval"
+    },
+    {
+      "code": "XV",
+      "summary": "Uso responsável de tecnologias de informação na prática médica",
+      "normative_reference": "art. 6º",
+      "status": "pending_clinical_approval"
+    }
+  ],
+  "contexts": [
+    {
+      "code": "R01",
+      "name": "Rede de Atenção Primária e território",
+      "normative_reference": "art. 7º"
+    },
+    {
+      "code": "R02",
+      "name": "Rede de Atenção a Urgência e Emergência",
+      "normative_reference": "art. 7º"
+    },
+    {
+      "code": "R03",
+      "name": "Rede Materno-Infantil",
+      "normative_reference": "art. 7º"
+    },
+    {
+      "code": "R04",
+      "name": "Rede de Atenção Psicossocial",
+      "normative_reference": "art. 7º"
+    },
+    {
+      "code": "R05",
+      "name": "Redes de Doenças Crônicas",
+      "normative_reference": "art. 7º"
+    },
+    {
+      "code": "R06",
+      "name": "Rede de Reabilitação",
+      "normative_reference": "art. 7º"
+    }
+  ],
+  "content_codes": [
+    {
+      "code": "01",
+      "label": "Bases moleculares, celulares e anatomofuncionais",
+      "normative_reference": "art. 8º",
+      "status": "pending_clinical_approval"
+    },
+    {
+      "code": "02",
+      "label": "Fisiologia e ciclo de vida",
+      "normative_reference": "art. 8º",
+      "status": "pending_clinical_approval"
+    },
+    {
+      "code": "03",
+      "label": "Determinantes do processo saúde-doença-cuidado",
+      "normative_reference": "art. 8º",
+      "status": "pending_clinical_approval"
+    },
+    {
+      "code": "04",
+      "label": "Ética, bioética, relação médico-paciente e segurança de dados",
+      "normative_reference": "art. 8º",
+      "status": "pending_clinical_approval"
+    },
+    {
+      "code": "05",
+      "label": "Direitos humanos, inclusão e princípios do SUS",
+      "normative_reference": "art. 8º",
+      "status": "pending_clinical_approval"
+    },
+    {
+      "code": "06",
+      "label": "Semiologia, anamnese e exame físico",
+      "normative_reference": "art. 8º",
+      "status": "pending_clinical_approval"
+    },
+    {
+      "code": "07",
+      "label": "Comunicação com paciente, família e equipes",
+      "normative_reference": "art. 8º",
+      "status": "pending_clinical_approval"
+    },
+    {
+      "code": "08",
+      "label": "Registro e documentação médica",
+      "normative_reference": "art. 8º",
+      "status": "pending_clinical_approval"
+    },
+    {
+      "code": "09",
+      "label": "Propedêutica e diagnóstico clínico",
+      "normative_reference": "art. 8º",
+      "status": "pending_clinical_approval"
+    },
+    {
+      "code": "10",
+      "label": "Terapêutica de doenças e agravos",
+      "normative_reference": "art. 8º",
+      "status": "pending_clinical_approval"
+    },
+    {
+      "code": "11",
+      "label": "Prognóstico e prevenção",
+      "normative_reference": "art. 8º",
+      "status": "pending_clinical_approval"
+    },
+    {
+      "code": "12",
+      "label": "Reabilitação física e psicossocial",
+      "normative_reference": "art. 8º",
+      "status": "pending_clinical_approval"
+    },
+    {
+      "code": "13",
+      "label": "Promoção e educação em saúde",
+      "normative_reference": "art. 8º",
+      "status": "pending_clinical_approval"
+    },
+    {
+      "code": "14",
+      "label": "Políticas de saúde e SUS",
+      "normative_reference": "art. 8º",
+      "status": "pending_clinical_approval"
+    },
+    {
+      "code": "15",
+      "label": "Planejamento e gestão de serviços de saúde",
+      "normative_reference": "art. 8º",
+      "status": "pending_clinical_approval"
+    },
+    {
+      "code": "16",
+      "label": "Epidemiologia, indicadores e sistemas de informação",
+      "normative_reference": "art. 8º",
+      "status": "pending_clinical_approval"
+    },
+    {
+      "code": "17",
+      "label": "Vigilância e controle de agravos",
+      "normative_reference": "art. 8º",
+      "status": "pending_clinical_approval"
+    },
+    {
+      "code": "18",
+      "label": "Saúde ambiental e ocupacional",
+      "normative_reference": "art. 8º",
+      "status": "pending_clinical_approval"
+    },
+    {
+      "code": "19",
+      "label": "Liderança colaborativa e equipe interprofissional",
+      "normative_reference": "art. 8º",
+      "status": "pending_clinical_approval"
+    },
+    {
+      "code": "20",
+      "label": "Metodologia científica e medicina baseada em evidências",
+      "normative_reference": "art. 8º",
+      "status": "pending_clinical_approval"
+    },
+    {
+      "code": "21",
+      "label": "Tecnologias de comunicação e informação em saúde",
+      "normative_reference": "art. 8º",
+      "status": "pending_clinical_approval"
+    }
+  ],
+  "mapping_rules": {
+    "primary_competency": "exactly_one_after_command_review",
+    "secondary_competencies": "optional_with_evidence",
+    "source_exam": "preserved_even_when_cross_mapped",
+    "generic_keywords": [
+      "medicina",
+      "enamed 2026",
+      "medicina — classificação pendente"
+    ],
+    "approval": "proposal_only_dual_AI_and_human_medical_reviewer_required",
+    "scoring": "never_equate_accuracy_with_official_TRI"
+  }
+}

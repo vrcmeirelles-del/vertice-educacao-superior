@@ -1,0 +1,622 @@
+{
+  "schema_version": "enamed-authenticated-qa-v1",
+  "date": "2026-11-17",
+  "environment_observed": "https://vertice-enamed-homologacao.onrender.com/entrar",
+  "observed_state": "Nine synthetic authorized Auth accounts available; all TOTP verified and real AAL2 observed. Real Auth/Data API metadata checks passed after course-scope correction. Zero remaining test sessions. Full 16 browser/module scenarios have not been executed.",
+  "supabase_development_branches": 1,
+  "render_preview_enabled": false,
+  "responsible": "Codex — registro técnico, não aceite humano",
+  "cases": [
+    {
+      "case": "ACL-01",
+      "profile": "Master AAL2",
+      "status": "NÃO EXECUTADA",
+      "executed": false,
+      "observed": null,
+      "reason": "Contas autorizadas/MFA agora disponíveis. Cenário completo de interface/módulo ainda não executado; verificações suplementares reais de Auth/IES/curso estão em evidência separada.",
+      "evidence": "docs/enamed/evidencias/20261117_CONTAS_MFA_API_VERIFICADAS.json",
+      "history": [
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+          "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+          "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
+          "evidence": "docs/enamed/evidencias/20261117_ENCERRAMENTO_EXECUCAO_ISOLADA.json",
+          "observed": null
+        }
+      ]
+    },
+    {
+      "case": "ACL-02",
+      "profile": "Master sem AAL2",
+      "status": "NÃO EXECUTADA",
+      "executed": false,
+      "observed": null,
+      "reason": "Contas autorizadas/MFA agora disponíveis. Cenário completo de interface/módulo ainda não executado; verificações suplementares reais de Auth/IES/curso estão em evidência separada.",
+      "evidence": "docs/enamed/evidencias/20261117_CONTAS_MFA_API_VERIFICADAS.json",
+      "history": [
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+          "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+          "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
+          "evidence": "docs/enamed/evidencias/20261117_ENCERRAMENTO_EXECUCAO_ISOLADA.json",
+          "observed": null
+        }
+      ]
+    },
+    {
+      "case": "ACL-03",
+      "profile": "Reitoria AAL2",
+      "status": "NÃO EXECUTADA",
+      "executed": false,
+      "observed": null,
+      "reason": "Contas autorizadas/MFA agora disponíveis. Cenário completo de interface/módulo ainda não executado; verificações suplementares reais de Auth/IES/curso estão em evidência separada.",
+      "evidence": "docs/enamed/evidencias/20261117_CONTAS_MFA_API_VERIFICADAS.json",
+      "history": [
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+          "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+          "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
+          "evidence": "docs/enamed/evidencias/20261117_ENCERRAMENTO_EXECUCAO_ISOLADA.json",
+          "observed": null
+        }
+      ]
+    },
+    {
+      "case": "ACL-04",
+      "profile": "Reitoria inter-IES",
+      "status": "NÃO EXECUTADA",
+      "executed": false,
+      "observed": null,
+      "reason": "Contas autorizadas/MFA agora disponíveis. Cenário completo de interface/módulo ainda não executado; verificações suplementares reais de Auth/IES/curso estão em evidência separada.",
+      "evidence": "docs/enamed/evidencias/20261117_CONTAS_MFA_API_VERIFICADAS.json",
+      "history": [
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+          "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+          "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
+          "evidence": "docs/enamed/evidencias/20261117_ENCERRAMENTO_EXECUCAO_ISOLADA.json",
+          "observed": null
+        }
+      ]
+    },
+    {
+      "case": "ACL-05",
+      "profile": "CPA AAL2",
+      "status": "NÃO EXECUTADA",
+      "executed": false,
+      "observed": null,
+      "reason": "Contas autorizadas/MFA agora disponíveis. Cenário completo de interface/módulo ainda não executado; verificações suplementares reais de Auth/IES/curso estão em evidência separada.",
+      "evidence": "docs/enamed/evidencias/20261117_CONTAS_MFA_API_VERIFICADAS.json",
+      "history": [
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+          "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+          "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
+          "evidence": "docs/enamed/evidencias/20261117_ENCERRAMENTO_EXECUCAO_ISOLADA.json",
+          "observed": null
+        }
+      ]
+    },
+    {
+      "case": "ACL-06",
+      "profile": "Coordenação visão institucional",
+      "status": "NÃO EXECUTADA",
+      "executed": false,
+      "observed": null,
+      "reason": "Contas autorizadas/MFA agora disponíveis. Cenário completo de interface/módulo ainda não executado; verificações suplementares reais de Auth/IES/curso estão em evidência separada.",
+      "evidence": "docs/enamed/evidencias/20261117_CONTAS_MFA_API_VERIFICADAS.json",
+      "history": [
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+          "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+          "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
+          "evidence": "docs/enamed/evidencias/20261117_ENCERRAMENTO_EXECUCAO_ISOLADA.json",
+          "observed": null
+        }
+      ]
+    },
+    {
+      "case": "ACL-07",
+      "profile": "Coordenação/NDE por curso",
+      "status": "NÃO EXECUTADA",
+      "executed": false,
+      "observed": null,
+      "reason": "Contas autorizadas/MFA agora disponíveis. Cenário completo de interface/módulo ainda não executado; verificações suplementares reais de Auth/IES/curso estão em evidência separada.",
+      "evidence": "docs/enamed/evidencias/20261117_CONTAS_MFA_API_VERIFICADAS.json",
+      "history": [
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+          "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+          "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
+          "evidence": "docs/enamed/evidencias/20261117_ENCERRAMENTO_EXECUCAO_ISOLADA.json",
+          "observed": null
+        }
+      ]
+    },
+    {
+      "case": "ACL-08",
+      "profile": "NDE mutação",
+      "status": "NÃO EXECUTADA",
+      "executed": false,
+      "observed": null,
+      "reason": "Contas autorizadas/MFA agora disponíveis. Cenário completo de interface/módulo ainda não executado; verificações suplementares reais de Auth/IES/curso estão em evidência separada.",
+      "evidence": "docs/enamed/evidencias/20261117_CONTAS_MFA_API_VERIFICADAS.json",
+      "history": [
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+          "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+          "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
+          "evidence": "docs/enamed/evidencias/20261117_ENCERRAMENTO_EXECUCAO_ISOLADA.json",
+          "observed": null
+        }
+      ]
+    },
+    {
+      "case": "ACL-09",
+      "profile": "Docente por disciplina",
+      "status": "NÃO EXECUTADA",
+      "executed": false,
+      "observed": null,
+      "reason": "Contas autorizadas/MFA agora disponíveis. Cenário completo de interface/módulo ainda não executado; verificações suplementares reais de Auth/IES/curso estão em evidência separada.",
+      "evidence": "docs/enamed/evidencias/20261117_CONTAS_MFA_API_VERIFICADAS.json",
+      "history": [
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+          "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+          "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
+          "evidence": "docs/enamed/evidencias/20261117_ENCERRAMENTO_EXECUCAO_ISOLADA.json",
+          "observed": null
+        }
+      ]
+    },
+    {
+      "case": "ACL-10",
+      "profile": "Docente sem AAL2/escopo",
+      "status": "NÃO EXECUTADA",
+      "executed": false,
+      "observed": null,
+      "reason": "Contas autorizadas/MFA agora disponíveis. Cenário completo de interface/módulo ainda não executado; verificações suplementares reais de Auth/IES/curso estão em evidência separada.",
+      "evidence": "docs/enamed/evidencias/20261117_CONTAS_MFA_API_VERIFICADAS.json",
+      "history": [
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+          "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+          "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
+          "evidence": "docs/enamed/evidencias/20261117_ENCERRAMENTO_EXECUCAO_ISOLADA.json",
+          "observed": null
+        }
+      ]
+    },
+    {
+      "case": "ACL-11",
+      "profile": "Outra IES IDOR",
+      "status": "NÃO EXECUTADA",
+      "executed": false,
+      "observed": null,
+      "reason": "Contas autorizadas/MFA agora disponíveis. Cenário completo de interface/módulo ainda não executado; verificações suplementares reais de Auth/IES/curso estão em evidência separada.",
+      "evidence": "docs/enamed/evidencias/20261117_CONTAS_MFA_API_VERIFICADAS.json",
+      "history": [
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+          "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+          "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
+          "evidence": "docs/enamed/evidencias/20261117_ENCERRAMENTO_EXECUCAO_ISOLADA.json",
+          "observed": null
+        }
+      ]
+    },
+    {
+      "case": "ACL-12",
+      "profile": "Usuário não autorizado",
+      "status": "NÃO EXECUTADA",
+      "executed": false,
+      "observed": null,
+      "reason": "Contas autorizadas/MFA agora disponíveis. Cenário completo de interface/módulo ainda não executado; verificações suplementares reais de Auth/IES/curso estão em evidência separada.",
+      "evidence": "docs/enamed/evidencias/20261117_CONTAS_MFA_API_VERIFICADAS.json",
+      "history": [
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+          "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+          "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
+          "evidence": "docs/enamed/evidencias/20261117_ENCERRAMENTO_EXECUCAO_ISOLADA.json",
+          "observed": null
+        }
+      ]
+    },
+    {
+      "case": "ACL-13",
+      "profile": "Filtros institucionais",
+      "status": "NÃO EXECUTADA",
+      "executed": false,
+      "observed": null,
+      "reason": "Contas autorizadas/MFA agora disponíveis. Cenário completo de interface/módulo ainda não executado; verificações suplementares reais de Auth/IES/curso estão em evidência separada.",
+      "evidence": "docs/enamed/evidencias/20261117_CONTAS_MFA_API_VERIFICADAS.json",
+      "history": [
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+          "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+          "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
+          "evidence": "docs/enamed/evidencias/20261117_ENCERRAMENTO_EXECUCAO_ISOLADA.json",
+          "observed": null
+        }
+      ]
+    },
+    {
+      "case": "ACL-14",
+      "profile": "Desktop/celular autenticados",
+      "status": "NÃO EXECUTADA",
+      "executed": false,
+      "observed": null,
+      "reason": "Contas autorizadas/MFA agora disponíveis. Cenário completo de interface/módulo ainda não executado; verificações suplementares reais de Auth/IES/curso estão em evidência separada.",
+      "evidence": "docs/enamed/evidencias/20261117_CONTAS_MFA_API_VERIFICADAS.json",
+      "history": [
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+          "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+          "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
+          "evidence": "docs/enamed/evidencias/20261117_ENCERRAMENTO_EXECUCAO_ISOLADA.json",
+          "observed": null
+        }
+      ]
+    },
+    {
+      "case": "ACL-15",
+      "profile": "Sessão expirada",
+      "status": "NÃO EXECUTADA",
+      "executed": false,
+      "observed": null,
+      "reason": "Contas autorizadas/MFA agora disponíveis. Cenário completo de interface/módulo ainda não executado; verificações suplementares reais de Auth/IES/curso estão em evidência separada.",
+      "evidence": "docs/enamed/evidencias/20261117_CONTAS_MFA_API_VERIFICADAS.json",
+      "history": [
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+          "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+          "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
+          "evidence": "docs/enamed/evidencias/20261117_ENCERRAMENTO_EXECUCAO_ISOLADA.json",
+          "observed": null
+        }
+      ]
+    },
+    {
+      "case": "ACL-16",
+      "profile": "Estudante não conciliado",
+      "status": "NÃO EXECUTADA",
+      "executed": false,
+      "observed": null,
+      "reason": "Contas autorizadas/MFA agora disponíveis. Cenário completo de interface/módulo ainda não executado; verificações suplementares reais de Auth/IES/curso estão em evidência separada.",
+      "evidence": "docs/enamed/evidencias/20261117_CONTAS_MFA_API_VERIFICADAS.json",
+      "history": [
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
+          "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+          "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
+          "evidence": "docs/enamed/evidencias/20261117_ENCERRAMENTO_EXECUCAO_ISOLADA.json",
+          "observed": null
+        }
+      ]
+    }
+  ],
+  "additional_requested_roles": {
+    "Direção": "BLOQUEADA — sem sessão autorizada de teste",
+    "NDE": "BLOQUEADA — sem sessão autorizada de teste"
+  },
+  "synthetic_tests_are_not_live_sessions": true,
+  "supplemental_live_checks": [
+    {
+      "action": "live_anonymous_master_guard",
+      "status": "CONCLUÍDA",
+      "url": "https://www.verticesuperior.com.br/master",
+      "observed": "Painel de gestão; Entre para acessar sua conta.",
+      "scope": "Sessão anônima no portal publicado; não é ACL-12 com usuário autenticado sem autorização.",
+      "credential_request": "Secure request did not return a confirmed authentication; original tab was unavailable; fresh target tab showed no signed-in access."
+    },
+    {
+      "action": "real_auth_mfa_and_metadata_rls_by_profile",
+      "status": "CONCLUÍDA",
+      "profiles": 9,
+      "evidence": "docs/enamed/evidencias/20261117_CONTAS_MFA_API_VERIFICADAS.json",
+      "scope": "Real Auth Admin/password/TOTP/getUser/AAL2 and Data API reads. Not browser UI or full clinical/module QA."
+    }
+  ],
+  "isolated_environment_attempt": {
+    "action": "isolated_schema_replay_and_manual_bridge_deploy",
+    "status": "CONCLUÍDA",
+    "migration_count": 250,
+    "parent_versions_represented": 213,
+    "missing_parent_versions": 0,
+    "cron": [
+      {
+        "name": "vertice-security-gate-daily",
+        "active": true
+      },
+      {
+        "name": "vertice-market-public-discovery-daily",
+        "active": false
+      }
+    ],
+    "triggers": [
+      {
+        "name": "issue_graphql_placeholder",
+        "enabled": "O"
+      },
+      {
+        "name": "pgrst_ddl_watch",
+        "enabled": "O"
+      },
+      {
+        "name": "pgrst_drop_watch",
+        "enabled": "O"
+      },
+      {
+        "name": "issue_pg_cron_access",
+        "enabled": "O"
+      },
+      {
+        "name": "issue_pg_net_access",
+        "enabled": "O"
+      },
+      {
+        "name": "issue_pg_graphql_access",
+        "enabled": "O"
+      },
+      {
+        "name": "vertice_security_guard",
+        "enabled": "O"
+      }
+    ],
+    "auth_users": 0,
+    "course_rows": 0,
+    "student_rows": 0,
+    "public_tables": 325,
+    "storage_objects": 0,
+    "institution_rows": 0,
+    "public_rls_tables": 325,
+    "learning_metrics_rows": 0,
+    "notes": "Schema/version coverage is not exact SQL parity or real authenticated QA; provider automatic function stage failed; two bridge deploys verified individually. Never merge this DB branch to production."
+  },
+  "environment_history": [
+    {
+      "date": "2026-11-17",
+      "environment_observed": "https://www.verticesuperior.com.br/entrar",
+      "observed_state": "Email/password form, no signed-in session; not an isolated staging deployment",
+      "supabase_development_branches": 0
+    },
+    {
+      "date": "2026-11-17",
+      "observed_state": "Isolated frontend live; no Auth users; DB replay incomplete; pending provider confirmation. No authenticated session.",
+      "isolated_environment_attempt": {
+        "action": "staging_replay_progress",
+        "status": "CONCLUÍDA",
+        "migration_count": 85,
+        "public_tables": 103,
+        "public_rls_tables": 103,
+        "auth_users": 0,
+        "institution_rows": 0,
+        "course_rows": 0,
+        "storage_objects": 0,
+        "notes": "Historical replay remains incomplete; do not label as full production-schema parity. Cost seed omitted only in the staging variant; original production migration remains unchanged. Metadata/history in staging stores actual variant SQL. No Supabase branch merge to production allowed."
+      }
+    },
+    {
+      "date": "2026-11-17",
+      "observed_state": "Isolated schema restored with documented variants; Sapiens v4 and Learning v26 ACTIVE/JWT enabled. No authorized Auth test users or authenticated session. Provider automatic function stage FUNCTIONS_FAILED."
+    },
+    {
+      "date": "2026-11-17",
+      "observed_state": "Isolated Render deploy dep-dbua65dckfvc73cpmjng LIVE, code 139f3a0 verified in browser; exact staging CSP/noindex and login form. Zero authorized Auth users. No real profile session executed."
+    }
+  ],
+  "render_homologation_service": "srv-dbu771mc6qcc73fbog0g",
+  "manual_function_recovery_evidence": "docs/enamed/evidencias/20261117_CONCILIACAO_MAIN_E_FUNCOES.json",
+  "terminal_execution_evidence": "docs/enamed/evidencias/20261117_ENCERRAMENTO_EXECUCAO_ISOLADA.json",
+  "render_homologation_deploy": "dep-dbua65dckfvc73cpmjng",
+  "terminal_staging_snapshot": {
+    "courses": 0,
+    "students": 0,
+    "auth_users": 0,
+    "checked_at": "2026-11-17T18:58:41.043063+00:00",
+    "institutions": 0,
+    "public_tables": 325,
+    "storage_objects": 0,
+    "public_rls_tables": 325
+  },
+  "accounts_provisioning": {
+    "status": "CONCLUÍDA",
+    "users": 9,
+    "verified_totp": 9,
+    "active_sessions": 0,
+    "evidence": "docs/enamed/evidencias/20261117_CONTAS_MFA_API_VERIFICADAS.json"
+  }
+}

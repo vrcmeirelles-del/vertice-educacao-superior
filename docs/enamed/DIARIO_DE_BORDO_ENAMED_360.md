@@ -1,0 +1,310 @@
+# DIÁRIO DE BORDO — ENAMED 360° / INEP INTELLIGENCE
+**Data-base:** 16/11/2026 · **Versão inicial:** 1.0  
+Leia em conjunto com `BIBLIA_MESTRA_ENAMED_360.md` e `PLANO_DE_TRABALHO_ENAMED_360.md`.
+
+## 2026-11-16 — E0: Fundação do projeto
+**Foco:** arquitetura transversal, sem dados reais institucionais nesta etapa.
+
+**Entregas verificadas:** revisão de fontes oficiais identificadas em conversa; leitura do código da Vértice, PR #168 e documentação técnica; consulta somente leitura ao Supabase Fato & Ordem; inventário dos acervos; elaboração da Bíblia e do Plano. A publicação desses documentos ocorre na branch da PR #168, não na produção.
+
+**Evidências herdadas:** `docs/implementation/learning-medical-validation-20261113.md` (testes sintéticos da ponte); `docs/sapiens/REVISAO_TEMATICA.md` (revisão por duas IAs apenas propositiva); `docs/enamed/AUDITORIA_TAXONOMIA_20261116.md`; Issue #167; PR #168.
+
+**Fatos:** 483 registros ENAMED 2026; competências vazias nos 483; classificação de área apenas "Medicina"; 483 hashes ausentes; duplicações por caderno+número; status definitivo sem comprovação suficiente; existência dos acervos ENADE e Residência, sem parecer integral de aderência.
+
+**Decisões:**
+- ADR-ENAMED-001: fonte de verdade regulatória = arquivo oficial versionado.
+- ADR-ENAMED-002: uma ontologia transversal com códigos oficiais por instrumento e edição; sem misturar provas.
+- ADR-ENAMED-003: estudante longitudinal unificado somente após conciliação legítima.
+- ADR-ENAMED-004: diagnósticos internos ≠ nota/conceito oficial; dados insuficientes não são zero.
+- ADR-ENAMED-005: instituição é tenant isolado; fase atual independente de instituição específica.
+- ADR-ENAMED-006: evolução cumulativa: ler, herdar, melhorar, testar, atualizar Bíblia e diário.
+
+**Pendências:** download, autenticação e leitura integral das fontes primárias; matriz de competências literal; auditoria 483/483 com cadernos e gabaritos; execução de testes CI/build; confirmação de deploy, RLS e dados institucionais. **Nenhum item alterado no F&O.**
+
+**Status:** E0 — documentação em implementação no código, pendente de revisão e merge; E1–E8 planejadas; E9 futura.
+
+## Modelo de novas entradas
+```markdown
+## AAAA-MM-DD — E{N}: Título
+- Versão da Bíblia lida:
+- Evidências recebidas/checadas:
+- O que foi preservado:
+- O que foi melhorado:
+- Fontes e hashes:
+- Testes/regressões:
+- Decisões ADR:
+- Limites e riscos:
+- Status real (código / teste / homologação / deploy):
+- Versão atualizada da Bíblia:
+- Entrada necessária para E{N+1}:
+```
+
+
+## 2026-11-16 — E1: primeira rodada do corpus INEP (não encerrada)
+- **Versão de entrada:** Bíblia 1.0, Plano 1.0 e Diário E0; Issue #167 e PR #168 consultadas.
+- **Preservado:** todos os contratos e decisões E0, sem edição de perguntas, gabaritos, estudantes, instituições ou migrações de produção.
+- **Documentos gerados:** `INEP_CATALOGO_FONTES_E1.md`; `INEP_MATRIZ_REGRAS_E1.md`; complementos em Bíblia, Plano e este Diário.
+- **Evidências oficiais consultadas:** página normativa ENAMED 2025/2026; Portaria 478/2025 (texto DOU arquivado em domínio acadêmico); Nota Técnica 40/2025 (texto do Inep); Manual ENAMED 2026 (texto do Inep); página de gabaritos 2025/2026; microdados 2025 e planilha Conceito Enade Medicina 2025.
+- **Descoberta/correção ADR-ENAMED-007:** não extrapolar a enumeração abreviada de 12 competências para a enumeração literal I–XV da Portaria 478/2025. O art. 6º VI trata de procedimentos; VII, de intervenções coletivas. A ontologia ainda não está importada.
+- **Cálculo verificado:** NT40: `PCP=NCP/NC`, ao menos 10 válidos, critérios por TP_INSCRICAO/IN_REGULAR/TP_INSCRICAO_ADM/TP_PRES e faixas 1–5. 11 testes **sintéticos locais** dos limiares PCP/SC passaram. Não foram executados testes no Vértice, banco nem comparação com dado oficial por curso.
+- **Limitação documental:** conexão direta do ambiente não resolveu `download.inep.gov.br`; PDFs disponíveis para leitura textual pela ferramenta de consulta, mas arquivos binários oficiais não foram materializados nem hash calculado; leitura integral e vigência pendentes. Status do conjunto **não é ARQUIVO_AUTENTICADO**.
+- **Retificações:** 2026 possui editais republicados e publicação de gabaritos preliminares. Pendentes documentos integrais, verificação de cronologia e posição normativa atual.
+- **Status real:** documentação E1 registrada na branch da PR #168; nenhum merge, deploy, alteração de produção ou homologação desta etapa comprovado.
+- **Próxima entrada necessária:** recuperar corpus íntegro, hashes e regras de todas as notas/retificações e validar contagens oficiais antes de encerrar E1. **E2 não iniciada.**
+
+
+## 2026-11-16 — E1 ainda aberta; incremento de interface E7 sem efeitos em produção
+- **Leitura prévia:** Bíblia 1.1, Plano, Diário e código de `LearningConnected.tsx`, `EnamedEnvironment.tsx`, `Enade360.tsx` na branch da PR #168.
+- **Preservado:** contrato E1 e bloqueios; ENADE 360°; F&O como repositório; resultados INEP nunca simulados; isolamento de IES; E9 com dados reais reservada à fase futura.
+- **Novo código:** `source-overrides/client/src/components/area/EnamedFatoOrdemMetrics.tsx`; aba correspondente em `EnamedEnvironment.tsx`.
+- **Ponte aproveitada:** tabela real da Vértice `public.vertice_learning_course_metrics` com colunas `institution_id, course_id, semester, subject_code, module, competency, participants, attempts, graded, correct, paired_students, external_accuracy, curricular_average, updated_at`.
+- **Read-only DB:** estrutura da tabela verificada, RLS habilitada (1 política detectada). Consulta `group by module` para os módulos enade/enamed/residencia retornou **nenhuma linha**, não se inferindo dados ou falha de sincronização por essa ausência.
+- **Testes:** 10 verificações de contrato feitas sobre código recuperado do GitHub, todas passaram (arquivos, legado, aba, filtros de IES e curso, limite de grupos, leitura apenas, segregação de módulos, rótulo de origem e teste criado). Foi criado `scripts/tests/enamed-integration-contract.test.mjs`, mas **não foi executado em checkout Node**. Ainda pendentes build/TS, testes de navegação, contrato autenticado, RLS por papel e CI.
+- **Estado de produção:** nenhum banco modificado, nenhuma PR integrada, nenhum deploy constatado. Status: `IMPLEMENTADO NO CÓDIGO` para aba/consulta, `NÃO HOMOLOGADO` para integração.
+- **Recomendação:** continuar o corpus E1 e fazer CI/QA do incremento em ambiente seguro; só ativar índices INEP após autenticação dos documentos.
+
+
+## 2026-11-16 — Verificação de compilação, acesso, sincronização e fontes INEP
+- **Entrada:** Bíblia 1.2; E1 aberta; E7 UI com consultas agregadas na PR #168.
+- **Build:** Actions #43989469247 (ENADE 360 integração no Render) concluiu success para compilação estática; não prova deploy. Workflow #43989469122 falhou no TypeScript completo por 2 TS2345 nas tabelas da Governança, embora 17 testes TS e 20 de planejamento tenham passado. Ajuste do tipo `Table` commit `bdf79937c581b4386d7484f0c79d5ffb573c6d11`, reexecução CI em andamento; resultado ainda pendente. Nenhum teste de interface autenticada/browser realizado.
+- **Acesso:** política RLS `learning_metrics_read` encontrada. Leitura institucionais com papel ou MFA+escopo docente; `can_read_institution` e `has_role` examinadas em leitura; Master necessita teste autenticado para verificar correspondência das funções. Testes efetivos por papéis pendentes.
+- **Ponte:** no F&O 12 ENADE, 11 ENAMED, 9 Residência (registros de tentativas), 3235 vínculos/2 instituições; no destino `vertice_learning_course_metrics` = 0 grupos. Falha de alimentação não atribuída a causa única; pode haver requisitos acadêmicos de conciliação e mapeamento não satisfeitos.
+- **Portal:** Render `vertice-portal` ativo, deploy `23d625c5ae9b2fd7aacaf94371e6fb840eb71106` status live. A PR #168 ainda não está na main nem publicada.
+- **INEP:** PDF NT40/2025 visto em domínio oficial, página 1 conferida com SEI nº 1844476 e CRC AD834C1B; demais NTs 19, 1PL, 42 não baixadas por timeout/502; microdados 2025 têm metadado de atualização textual divergente. Hash integral pendente.
+- **Preservado:** não houve escrita em bancos, ativação de sincronização, importação institucional, merge, deploy ou modificações de gabaritos.
+- **Status:** E1 aberta; E2 bloqueada; E7 código em evolução, testes/homologação pendentes; E9 futura.
+
+## 2026-11-16 — Dicionário oficial preliminar e auditoria concomitante (sem produção)
+- **Leitura de entrada:** Bíblia v1.3, Plano e Diário; sem reinício de projeto.
+- **Fonte examinada:** Portaria Inep 478 de 18/07/2025, reprodução DOU de quatro páginas; artigos 3º, 6º, 7º e 8º. PDF foi inspecionado visualmente via ferramenta de consulta; hash binário e validade completa ainda pendentes.
+- **SQL read-only F&O:** 483 registros ENAMED; 483 competências vazias; 483 hashes ausentes; 483 áreas genéricas; 483 com palavra-chave de edição; 433 com keyword exata `medicina`; 200 pares fonte/número repetidos.
+- **Artefatos criados:** `DICIONARIO_COMPETENCIAS_478_2025_DRAFT.json`, `FILA_REVISAO_483_ENAMED_2026.csv`, `AUDITORIA_CONCOMITANTE_483_20261116.md`, `scripts/tests/enamed-dictionary-contract.test.mjs`.
+- **Resultados da fila:** todos os 483 IDs preservados; 343 áreas candidatas por disciplina e 140 ausentes, sem inferência clínica nem aprovação.
+- **Testes executados:** 11 invariantes sobre os quatro arquivos obtidos do GitHub, todas aprovadas. Script Node versionado, mas execução Node/CI ainda não verificada.
+- **Evidência:** dados SQL do Supabase F&O nesta sessão e SHAs/links da branch PR #168; nenhuma questão, gabarito, resposta ou vínculo de estudante modificado.
+- **Decisão ADR-011:** separar sugestão editorial/área, norma versionada e classificação aprovada; duas IAs independentes e médico revisor antes de publicar.
+- **Status real:** E1 não encerrada, E2/E3 com preparativos somente, sem homologação nem aplicação no banco. E9 institucional permanece futura.
+
+
+## 2026-11-16 — Retomada da E1, auditoria interna aprofundada e CI
+- **Leitura inicial:** Bíblia-Mestra, Plano e Diário na PR #168, junto com Catálogo E1 e Matriz de Regras.
+- **Fonte INEP:** página de provas e gabaritos (marcadores de 2026 e 2025), notas técnicas 40/19/1PL/42; Portaria 478/2025 em reprodução do DOU de 4 páginas, visualmente inspecionada. Tentativas de download dos binários INEP falharam por resolução DNS/HTTP 502; manual PDF também sem screenshot. Não há hash SHA-256 oficial.
+- **SQL F&O somente leitura:** 483 registros, 283 posições distintas, 200 duplicadas; 57 enunciados, 2 alternativas, 6 temas, 191 subtemas, 192 keywords diferentes entre cópias; zero divergência interna de gabarito. Método e ressalvas no relatório `E1_CONFRONTO_DOCUMENTAL_483_20261116.md`.
+- **CI:** no commit anterior a PR teve 414 de 415 testes passando, com falha na lista de `InstitutionTabs`. A branch passou a incluir `construcao-curricular` e `trilhas-enade` no macro acadêmico, sem alterar permissões RLS. Workflow `verify-enamed-contracts.yml` criado e passou **6 de 6 testes Node** no run `43994963032`; não equivale a testes de navegador nem homologação médica.
+- **Preservação:** nenhuma escrita em produção, nenhuma modificação de questão ou resposta, e nenhuma alteração de gabarito. PR permanece draft. E1 aberta; E2/E3 preparatórias.
+- **Próxima decisão:** recuperar fontes oficiais binárias, confrontar matrizes e PDFs, efetuar regressão de navegação e iniciar curadoria médica independente quando documentos autenticados estiverem disponíveis.
+
+
+## 2026-11-16 — Passagem E1: origem, hashes futuros e testes de interface
+- **Entrada conferida:** Bíblia v1.5, Plano, Diário, Catálogo, Matriz de Regras e PR #168.
+- **Fonte verificada:** Edital 71/2026 republicado (texto PDF do DOU em domínio Inep, publicação 21/08/2026, seção 3 p.53). 8º e 12º semestres, prova 100×4, corte bibliográfico 03/07/2026, gabarito definitivo previsto em 04/12/2026. Screenshot do PDF não disponível, binário não materializado/hashada.
+- **Fronteira de origem:** página Inep lista cadernos e gabaritos preliminares, mas não expôs URLs nos resultados HTML; os três URLs já armazenados em F&O foram catalogados como **não autenticados** no novo JSON.
+- **Erro técnico de recuperação:** `download.inep.gov.br` por container retornou NameResolutionError; consulta web de PDFs retornou 502/timeout. Nenhum SHA-256 de PDF real.
+- **Revisão F&O:** CSV individual de 200 posições duplicadas e divergências de campo; metadados somente, sem apagar IDs.
+- **Engenharia:** arquivo Python offline de verificação de integridade e quatro testes sintéticos, e quatro testes Vitest SSR/visibilidade de perfil. Workflows atualizados em PR; aprovação do pipeline da última edição deve ser inspecionada.
+- **Constatação de navegação:** `enade` disponível para Master/Reitoria/CPA, mas não para coordenador/NDE; estes veem `trilhas-enade`. Não mudar autorização sem validação do escopo.
+- **Status:** E1 parcial, E2/E3 preparatórias, nenhuma alteração em banco, gabarito, aluno, migração ou Render; PR #168 permanece draft.
+
+
+## 2026-11-16 — Passagem de execução: CI validado, fontes pendentes e fila médica #170
+- **Entrada:** Bíblia v1.6, Plano e Diário; PR #168; scripts e testes existentes.
+- **Automação:** GitHub Actions run `43997164508` completo success: 2 testes do dicionário + 4 de integração Node, 4 testes Python de arquivo sintético, todos sem falhas. Teste TypeScript/SSR de interface na execução da última branch ainda depende do workflow `43997164461`.
+- **PDFs INEP:** consulta ao edital oficial republicado 71/2026 e ao catálogo Inep. Tentativa de download binário no ambiente falhou; nenhum SHA-256 real. Os três source URLs cadastrados no F&O foram inventariados com status `não autenticado`, sem alegar identidade documental.
+- **Curadoria:** issue #170 criada com 200 posições duplicadas, duas diferenças de alternativas e as demais divergências estruturais; nenhum revisor médico individual designado e nenhuma revisão paga por duas IAs disparada.
+- **Regressão e perfil:** testes SSR/visibilidade adicionados; coordenador/NDE não têm acesso direto a ENADE institucional na navegação atual, apesar de possuírem Trilhas ENADE. Exige mudança deliberada e RLS por curso, não simples habilitação visual.
+- **Evidências:** `CONFLITOS_DUPLICATAS_ENAMED_2026.csv`, `FONTES_FO_PENDENTES_AUTENTICACAO_20261116.json`, `E1_CADEIA_CUSTODIA_E_REGRAS_20261116.md`, issue #170 e Actions #43997164508.
+- **Estado final:** E1 não homologada; E2/E3 preparatórias; PR #168 draft, sem publicação; bancos e históricos intactos.
+
+
+## 2026-11-16 — E1: cobertura por caderno e perfil, sem autenticação de binários
+- **Herança:** Bíblia v1.7, Plano, Diário e catálogo E1 conferidos; decisões e preservação de produção mantidas.
+- **Fontes oficiais:** o portal Inep lista aplicação regular com Cadernos 01/02 e reaplicação com Cadernos 01/02; gabaritos disponibilizados no catálogo são preliminares na data verificada. HTML simplificado sem URLs; notas 40/19/1PL/42 retornaram timeout/502; tentativa de baixar Caderno 02 de 2025 falhou.
+- **Banco F&O:** 3 URLs declaradas para ENAMED 2026: C1 regular (200 linhas/100 posições), C2 regular (200/100), C1 reaplicação (83/83), C2 reaplicação sem registros identificados nessa tabela. Potencial lacuna de cobertura, não ausência global comprovada.
+- **Perfis:** nav `enade` a Master/Reitoria/CPA, não a Coordenador/NDE; sem teste de sessão autenticada nem escopo de RLS. Os quatro testes SSR adicionados anteriormente ainda não comprovam essas sessões.
+- **Código/documentação:** `E1_COBERTURA_OFICIAL_E_PERFIS_20261116.md` criado; nenhuma migração, merge, deploy ou alteração de questão/estudante executada.
+- **Aceite:** E1 bloqueada por PDFs/arquivos integrais e hashes; E2/E3 preparatórias; PR #168 draft. Próximo foco: origem oficial íntegra e perfis em homologação controlada.
+
+
+## 2026-11-16 — E1: recuperação pela rede CI, bloqueio de URLs e QA de perfis
+- **Leituras herdadas:** Bíblia v1.8, Plano, Diário, catálogo de fontes, PR #168 e trilha de auditoria 483/283/200.
+- **CI confirmado:** em commit `ae19a884...`, 8 workflows aprovados, TypeScript completo Node 22/24 e 415 testes principais aprovados. Os 4 testes SSR ENAMED estavam ausentes do `vitest.config`; inclusão realizada no commit `ce996872...`; aguarda execução da revisão final.
+- **Recuperação:** container sem DNS, web 502/timeout para URLs declaradas no F&O. Run `43999397676` do GitHub acessou HTML do catálogo do INEP e encontrou 0 links diretos / 0 PDFs. Segunda execução `43999518665` também zerou candidatos, HTML sem marcador esperado. Sem SHA-256 oficial.
+- **Tentativa JS:** criado script com Playwright para renderização. Run `43999660361` falhou no preparo do navegador por incompatibilidade de SO. Corrigido runner Ubuntu 24.04; execução subsequente foi cancelada por commits novos; resultado final ainda pendente.
+- **RLS:** examinada a política `learning_metrics_read`, com condições de IES/papel, MFA `aal2` e escopo staff. Ausência de navegador conectado impede testar sessões reais. Não proclamar homologação por perfil.
+- **F&O:** duas tabelas ENAMED nomeadas, `fo_enamed_items` registra 83 posições de reaplicação C1 e nenhuma de C2; lacuna candidata, sem modificação.
+- **Artefato:** `E1_COLETA_BINARIOS_E_QA_PERFIS_20261116.md` com URLs, relatórios Actions e aceite pendente.
+- **Estado:** E1 aberta, E2/E3 preparatórias, PR #168 draft, produção preservada; pendências explicitamente mantidas.
+
+
+## 2026-11-16 — E1: 11 URLs oficiais descobertas com browser; certificados de PDF bloqueados
+- **Entrada:** Bíblia v1.9, Plano e Diário; tentou-se primeiro HTML estático, sem URLs.
+- **Browser:** run `43999991024` em Ubuntu 24.04 instalou Chromium, renderizou `www.gov.br/inep` com JavaScript e extraiu 11 URLs de PDFs, 837 âncoras. JSON oficial versionado com metadados de aplicação, caderno, tipo e `sha256:null`.
+- **Transferência:** urllib não concluiu nenhum dos 11 documentos (TLS issuer/reset); `curl` no run `44000426717` tentou oito documentos principais, 0 êxitos, sete `curl 60` e um `curl 35`. Não foi usado bypass de TLS, não houve SHA-256 de PDF.
+- **Acurácia:** URL dos três cadernos já declarados no F&O coincide com URL publicada pelo INEP; Caderno 2 da reaplicação e dois gabaritos da reaplicação agora têm links oficiais identificados. Isso não valida conteúdo nem gabarito definitivo, ainda previsto para 04/12/2026.
+- **Código:** `discover_public_inep_pdfs.py`, `render_inep_public_catalog.py`, `download_verified_links_curl.py`, workflow `enamed-inep-public-corpus.yml` e `INEP_2026_LINKS_OFICIAIS_CONFIRMADOS.json`. Nenhuma migração ou escrita em banco.
+- **Permissões:** testes estáticos / SSR adicionados à suíte; logins reais com MFA e escopo de cursos ainda não executados. A aprovação do TypeScript em commit anterior não é aceite de sessão real.
+- **Próxima barreira:** obter binários com cadeia de certificados verificável ou canal oficial alternativo; após isso homologar provas, 483 itens, duplicatas, competências e gabaritos. E1 aberta, E2/E3 preparatórias, PR #168 draft.
+
+
+## 2026-11-16 — Resultado final do CI: 419 testes principais aprovados
+- **GitHub Actions:** run `44000644637` terminou success em Node 22/24. Em Node 22, `tsc --noEmit` passou; 52 arquivos e **419 testes principais** aprovados, entre eles os **4 testes EnamedEnvironment.test.tsx** recentemente incluídos. Grupos complementares 214+19+30 aprovações; Vite `built in 9.74s`.
+- **Limite da evidência:** simulação SSR/visibilidade não substitui testes RLS autenticados por perfil ou dispositivo, que permanecem em aberto.
+- **E1:** 11 URLs PDF diretamente publicadas no DOM Inep (run `43999991024`), mas 0 PDF obtido com confiança TLS: 8 transferências `curl` em `44000426717` falharam por erro de certificado/reset. Não declarar documentos autenticados.
+- **Decisão:** documentação cumulativa v2.1; E1 não homologada, E2/E3 somente preparatórias; PR #168 draft, sem merge ou deploy; F&O, gabaritos e históricos preservados.
+
+
+## 2026-11-17 — E1: oito PDFs recuperados sob TLS validado, 483 gabaritos preliminares conciliados
+- **Entrada:** Bíblia v2.1, Plano, Diário; issue #167, issue #170 e PR #168.
+- **Cadeia TLS:** diagnóstico `download.inep.gov.br` detectou intermediária ausente no handshake, emissor `RNP ICPEdu GR46 OV TLS CA 2025`. Nova ferramenta `download_inep_verified_chain.py` baixou a intermediária e a verificou criptograficamente até raiz do sistema antes de fazer HTTPS com verificação ativa. Sem `curl -k` ou desligamento TLS.
+- **Fonte/artefato:** run `44017133303` (success), artefato `14299257407`, **8 PDFs recuperados**; todos SHA-256 recomputados do ZIP e iguais aos metadados da execução. URLs, hashes, tamanhos e páginas preservados no novo JSON; PDFs de prova: 28 páginas cada, gabaritos preliminares: 2 páginas cada.
+- **Confronto SQL somente leitura:** quatro gabaritos preliminares com 100 chaves cada. Regular C1: 200/200 registros F&O coincidentes; regular C2: 200/200; reaplicação C1: 83/83; **483/483 coincidências**, nenhuma divergência de letra. O status `definitivo` do banco segue sem validação pela publicação preliminar e não foi alterado.
+- **Cobertura:** reaplicação C1 tem 17 posições sem registro na tabela; reaplicação C2 tem 100 posições oficiais com zero registros encontrados em `fo_enamed_items`; sem comprovar inventário global ou aprovar importação.
+- **Duplicatas:** q19 e q28 regular C1, duas diferenças em alternativas, exibem variação de pontuação/whitespace, não troca de resposta; demais 57 variações de enunciado, 191 subtema e 192 keywords não homologadas.
+- **CI e portal:** recuperação, contratos ENAMED e TS completo concluíram success no commit `ccda5e4...`. Sem sessão autenticada por perfil (Master/Reitoria/CPA/Coordenação/NDE/outra IES) e sem deploy Render desta PR.
+- **Documentos criados:** `INEP_2026_SHA256_DOCUMENTOS_PRELIMINARES_20261117.json` e `E1_CONFRONTO_GABARITOS_PRELIMINARES_483_20261117.md`; registro cumulativo v2.2.
+- **Decisão:** E1 **ainda aberta** até validade das versões definitivas, notas metodológicas, identidade textual dos itens e aceite regulatório; E2/E3 preparatórias, E9 institucional futura. **Nenhum registro de questões, gabaritos ou estudante foi alterado.**
+
+
+## 2026-11-17 — Auditoria textual de aberturas e permutação oficial C1/C2
+- **Herança:** Bíblia v2.2, Plano, Diário, PDFs oficiais do artefato 14299257407, catálogo de hashes, relatórios de 483 gabaritos preliminares concordantes, issue #170.
+- **PDFs:** PyMuPDF com páginas de questões (excluindo questionário de percepção) identificou 100/100 questões por caderno. Verificação de página renderizada confirmou layout de duas colunas e questão de reaplicação 78 C2.
+- **Permutações:** regular C2→C1: 100/100 aberturas normalizadas e 100/100 letras preliminares concordantes; reaplicação C2→C1: 100/100 e 100/100; um prefixo com marcador gráfico adicional foi associado com similaridade ~98,2%. Mapas são bijetivos, em rascunho até checagem integral de conteúdo e mídia.
+- **F&O somente leitura:** 483 registros consultados em lotes e comparados com os 24 caracteres iniciais normalizados dos enunciados oficiais remapeados: regular C1 200/200, regular C2 200/200, reaplicação C1 83/83. **Triagem inicial, não homologação integral.** Nenhuma alteração de banco.
+- **Correção de hipótese anterior:** reaplicação C2 representa os mesmos 100 casos em outra ordem; a lacuna candidata de *conteúdo* permanece 17 questões da reaplicação C1, e não 117 questões inéditas. As 100 posições C2 ausentes da tabela ainda exigem mapeamento de apresentação.
+- **Artefatos:** `ENAMED_2026_MAPA_PERMUTACOES_CADERNOS_DRAFT.json`, `ENAMED_2026_LOCALIZADOR_PAGINAS_400_QUESTOES.json`, `ENAMED_2026_REAPLICACAO_17_POSICOES_EQUIVALENTES.json`, `E1_AUDITORIA_TEXTUAL_483_E_MAPA_CADERNOS_20261117.md`, `scripts/tests/enamed-booklet-maps.test.mjs`; workflow ENAMED atualizado.
+- **QA:** execução anterior de TypeScript/419 testes comprovada em commits anteriores; verificar execução final do novo workflow. Sessões reais autenticadas por perfis continuam não executadas; PR #168 draft, sem deploy.
+- **Estado:** E1 não aceita integralmente; revisão clínica e duas IAs não disparadas; nenhuma questão, gabarito ou tentativa de estudante modificada.
+
+
+### 2026-11-17 — Adendo: divergências normalizadas por campo
+- Consulta somente leitura em `fo_enamed_items`: 200 posições duplicadas; 57 enunciados brutos distintos, 31 após ignorar espaços, 22 após ignorar espaços/pontuação; todas as 22 posições no regular Caderno 2. Alternativas: 2 diferenças brutas e 0 após ignorar espaços.
+- Novos artefatos: `ENAMED_2026_22_DIVERGENCIAS_TEXTUAIS_PERSISTENTES_C2.json` e adendo `E1_AUDITORIA_TEXTUAL_483_E_MAPA_CADERNOS_20261117.md`.
+- Nenhuma alteração em gabaritos, itens, históricos, banco ou RLS. Divergências alfanuméricas não equivalem automaticamente a erro semântico. A análise clínica integral e autenticação por perfil continuam pendentes.
+
+
+### 2026-11-17 — Roteiro de QA institucional
+- Novo artefato `ENAMED_2026_ROTEIRO_HOMOLOGACAO_PERFIS.md`: 16 cenários sintéticos de login/MFA/RLS por perfil, instituições e cursos, e responsividade; execução não realizada por falta de navegador autenticado contextual.
+- Nenhuma permissão, token, dado real ou tabela foi alterado. E1 sem aceite integral; homologação de perfis ainda bloqueia merge/deploy.
+
+
+## 2026-11-17 — Triagem direta de 22 variantes do Caderno 2 e mídias
+- **Leituras herdadas:** Bíblia v2.3, Plano, Diário, PDF oficial regular C2 com SHA-256, 22 conflitos identificados e mapa de permutações/páginas.
+- **SQL read-only:** 22 pares de versões: primeira região textual divergente inspecionada; campos `blocks`, `source_page`, `source_hash`, `competencies` inventariados. 483/483 `blocks=[]`, 223 `source_page=NULL`, 483 `source_hash=NULL`, 483 `competencies=[]`.
+- **Achados PDF:** Q12 C2 utiliza diagrama e tabela Lund–Browder; Q81 C2, imagem dermatológica; Q82 C2, radiografia. Os campos `blocks` dessas questões estão vazios; outras fontes possíveis de mídia no portal não foram inspecionadas.
+- **Classificação de triagem (não clínica):** variações em tabelas laboratoriais e valores (Q40,42,44,45,49,51,74,90), contextos de paciente/ética/urgência e grafia técnica; a equivalência integral das questões não foi atestada.
+- **Criado:** `ENAMED_2026_TRIAGEM_22_VARIANTES_TEXTUAIS_C2.json`; `E1_AUDITORIA_22_VARIANTES_E_MIDIAS_20261117.md`; `scripts/tests/enamed-text-variants.test.mjs` incluído no workflow da PR #168.
+- **QA:** CI da revisão anterior aprovado; reexecução nova pendente de conclusão. Nenhuma sessão autenticada Master/Reitoria/CPA/Coordenação/NDE ou teste RLS com dados sintéticos executado.
+- **Preservação:** nenhum UPDATE, DELETE ou importação de questões/gabaritos/imagens, nenhuma mudança de notas, respostas ou vínculos estudantis, PR #168 draft, sem deploy Render.
+- **Status:** E1 aberta até cotejo integral e gabaritos definitivos; E2/E3 apenas preparação, E9 futura.
+
+
+### 2026-11-17 — Evidência de CI da triagem de 22 variantes
+- Workflow GitHub Actions `ENAMED 360 - validar contratos e dicionário`, run **44047302738**, referente ao commit `ae76798f2f6a242e51c39c7ca7ab9d85010303a9`: **success**. Log confirmou 2 testes Node do dicionário, 4 de integração, 2 de mapas, 2 dos 22 itens/páginas e 4+3 testes Python, sem falhas. A finalidade é integridade/contrato, **não homologação clínica**.
+- Workflows de build ENADE e cruzamentos do mesmo commit concluíram `success`; TypeScript completo ainda estava em execução na consulta realizada, portanto **não declarar o HEAD integralmente homologado**.
+
+
+## 2026-11-17 — Três ações em sequência: 22 pares integrais de base, seis imagens PDF e testes
+- **Entrada:** Bíblia v2.4, Plano, Diário e oito PDFs oficiais com hashes verificados; preservados ADRs e fila da Issue #170.
+- **1 — Banco somente leitura:** recuperados `stem` completos e JSON de alternativas dos dois IDs das 22 posições REG-C2. Oito pares apresentaram diferenças de tokens numéricos: Q12,42,44,49,74,89,90,99. As 22 duplas mantiveram alternativas idênticas após normalizar whitespace. **Sem comparação integral automatizada PDF×cada versão; sem juízo médico**.
+- **2 — Mídia:** inspeção de layout PDF PyMuPDF e renderização de páginas C2 REG. Seis imagens com XREF/posicionamento dentro de questões Q12 (Lund–Browder), 68 (radiografia de pelve), 81 (foto dermatológica), 82 (contraste radiológico), 89 (tomografia abdominal), 97 (USG transvaginal); bytes e SHA-256 registrados em manifesto, sem publicar imagens no GitHub ou Storage.
+- **3 — Contratos:** novo teste Node cobrindo os 22 registros, 8 diferenças numéricas e 6 fontes rasterizadas, com bloqueio de `approval`; integração ao workflow `verify-enamed-contracts.yml`.
+- **Governança:** relatório `E1_TRES_ACOES_TEXTOS_MIDIAS_CONTRATOS_20261117.md`, manifestos de comparação e mídia, Biblia-Mestra v2.5, Plano atualizado; evidências geradas exclusivamente em branch draft. Nenhum UPDATE/DELETE/importação, nenhuma tentativa/histórico/gabarito alterado.
+- **Acesso:** 16 cenários autenticados por Master/Reitoria/CPA/Coordenação/NDE/multi-IES continuam **não executados**; CI não equivale a sessão real.
+- **Estado:** E1 parcial sem aceite integral; E2/E3 apenas preparação; PR #168 draft, não publicada.
+
+
+## 2026-11-17 — Encerramento terminal da auditoria técnica preliminar
+- Resultado objetivo: oito PDFs preliminares com SHA-256; 483 respostas compatíveis com versão preliminar; 22 variantes sinalizadas; oito diferenças numéricas cotejadas por tokens oficiais, candidatos documentais anotados (Q12,42,44,49,74,99 em `ENAMED-2026-REG-C2`; Q89,90 em `enamed-2026-c2`).
+- Artefatos de fechamento: `ENCERRAMENTO_8_DIVERGENCIAS_NUMERICAS_VERIFICADAS_20261117.json` e `TERMO_ENCERRAMENTO_AUDITORIA_PRELIMINAR_20261117.md`.
+- Auditoria preliminar **ENCERRADA**. E1 regulatória completa e PR #168 **NÃO homologadas** devido a gabaritos definitivos/parecer médico, conferência integral do texto/mídias e 16 testes reais autenticados. Reindexação e publicação não autorizadas.
+- Nenhum UPDATE/DELETE/UPSERT, nenhum gabarito alterado, nenhuma sessão simulada reportada como real, nenhum dado de aluno ou histórico modificado.
+
+
+## 2026-11-17 — Fechamento formal da solicitação de homologação e publicação
+- Revisão do histórico Bíblia v2.6 + Termo final; verificadas no GitHub as nove execuções `success` do commit `a34dfcf814cf4680f768213fd6db8f7edfb8a46c`.
+- Ferramenta de navegador conectado recusou acesso por falta de contexto de extensão; não houve login real de Master, Reitoria, CPA, Coordenação ou NDE. Consulta SQL somente leitura confirmou **0 linhas** em `public.vertice_learning_course_metrics` (Vértice).
+- Criado `ENAMED_360_REGISTRO_GATES_PUBLICACAO.json`: seis gates reprovados/pendentes de evidência para E1, revisão clínica, RLS real, ponte ponta a ponta e release, com operações de produção vedadas. Criado `enamed-release-gates.test.mjs` e vinculado à CI.
+- **Decisão:** auditoria preliminar concluída; homologação definitiva, reindexação e publicação **BLOQUEADAS** e não executadas; PR #168 permanece draft. Nenhum gabarito, item, tentativa, histórico, migração ou serviço produtivo alterado.
+
+
+## 2026-11-17 — execução em três ciclos, confronto completo e correções reais
+- **CONCLUÍDA:** confronto automatizado de 483 IDs × cinco campos; 414 equivalentes em tokens extraídos, 69 diferenças; 22 variantes e 17 posições da reaplicação com relatórios completos. Sem parecer clínico.
+- **CONCLUÍDA:** 30 ocorrências de imagens inventariadas; vínculos preparados, seis hashes herdados preservados; sem upload nem liberação de direitos.
+- **CONCLUÍDA:** cinco PDFs normativos adicionais recuperados e hashados no Actions 44054849030; revisão por edição em PARECER_DOCUMENTAL_EXECUCAO_20261117.md.
+- **CONCLUÍDA:** atualização da branch com main, conflito/menu duplicado corrigidos, prompt por curso, teste sintético ENAMED na ponte, proteção de médias/deltas com amostra insuficiente. Oito cenários nativos e regressões aprovados; evidência em REGISTRO_EVIDENCIAS_EXECUCAO_20261117.json.
+- **CONCLUÍDA:** dez workflows success no código 92b5f649d805df3f4ab1ecfaa6313777089a77c6, incluindo TS22/24 e contratos. Não é deploy.
+- **BLOQUEADA:** 16 cenários autenticados por ausência de ambiente isolado e contas por perfil/MFA; browser disponível, chegou à tela /entrar. Matriz individual atualizada.
+- **BLOQUEADA:** dual-IA real sem sessão Master AAL2; curador médico e aceite por item ausentes; mídia não pode ser homologada pelo comando textual.
+- **BLOQUEADA:** definitivos previstos em 04/12/2026, retificações e aceites; migração/reindexação/merge/deploy NÃO EXECUTADOS.
+- Histórico preservado; nenhuma operação em dados produtivos. Bíblia v2.8.
+
+
+## 17/11/2026 — frente de incorporações ENAMED, Bíblia v2.9
+- **CONCLUÍDA:** branch `feat/enamed-incorporacoes-20261117` baseada na PR168, sem novo serviço/banco/login.
+- **CONCLUÍDA NO CÓDIGO:** acervo e incorporações com 69 diferenças filtráveis, 17 candidatas com páginas e correspondência C2 e documentação verificada; correção dos avisos obsoletos de recuperação documental.
+- **CONCLUÍDA LOCALMENTE:** TypeScript, 423 testes (quatro novos DOM), build e contratos ENAMED. Resumo de interface conferido contra fontes versionadas por comando --check.
+- **NÃO EXECUTADA:** importação, alteração de gabaritos, classificação clínica, aprovação médica/dual-IA, merge e deploy. Nenhuma operação produtiva. CI remoto e link da PR registrados no GitHub da nova frente.
+- Permanecem os seis gates não aprovados e as dependências de sessão real, médico e fontes definitivas.
+
+### Correção do CI desta frente
+O workflow BI acadêmico falhou ao carregar os quatro testes DOM por ausência de jsdom, enquanto o workflow completo do portal passou em Node22/24. Corrigido o preparo do runtime de testes nos workflows BI acadêmico e mobile com o lockfile já existente em scripts/tests/types-runtime e o mesmo vínculo de jsdom usado no workflow do portal. Nenhuma dependência produtiva adicionada e nenhum teste desabilitado. Ver reexecução e evidências da PR172.
+
+
+## 17/11/2026 — execução real de acesso e preparação isolada, v2.10
+1. **CONCLUÍDA:** navegador Work abriu /entrar; solicitação segura não produziu autenticação confirmada. Em nova aba, /master mostrou “Entre para acessar sua conta.” É teste negativo anônimo do portal publicado, não aceite dos 16 cenários autenticados. Git merge-tree confirmou main ancestral e árvore sem conflito; GitHub ainda indicou dirty. Nenhum merge forçado.
+2. **CONCLUÍDA PARCIALMENTE:** branch Supabase `enamed360-homologacao-20261117`, ref `rnmkmnrfhvjihsuqziwf`, criada com `with_data=false`. Aplicadas bases originais do repositório; corrigidos metadados legados estritamente conforme o preflight original, preservando suas guardas. Replay avançou a 66 migrações/70 tabelas públicas, sem usuários, IES ou cursos. **REPROVADA:** restauração integral parou na FK de parâmetros de custo vinculados a IES ausente. Não criada instituição fictícia com ID produtivo nem removida FK; ambiente completo ainda não está pronto.
+3. **CONCLUÍDA NO CÓDIGO:** destino Supabase por configuração de build; homologação recusa destino produtivo, chave privilegiada ou configuração incompleta. Experiência, demonstração, branding e biblioteca usam o mesmo destino. Pós-build da homologação mantém CSP restritiva, troca somente a origem Supabase e bloqueia o F&O produtivo; 72 HTMLs conferidos e noindex. TypeScript, 427 testes e builds padrão/isolado passaram. Não comprova sessões, chamadas dual-IA ou integração remota.
+**Evidência:** `evidencias/20261117_WORK_HOMOLOGACAO.json`. PR172 já integrada somente na branch de desenvolvimento por `782257d116b5db0fe2fd8bb4e42c106f8a7b8fcf`; PR168 continua draft. Dados/serviços produtivos preservados. Seis gates continuam não aprovados; definitivos, parecer médico e contas reais permanecem indispensáveis.
+
+
+### Resultado efetivo da preparação de homologação — 17/11/2026
+- **CONCLUÍDA:** código de isolamento em `36842091e00aed8eced8e2f056bf0b902c054aad`; CI de branch em `dcd8a1ebab5636c88c6cba07b57fcd4be4d36813`, Actions [44116468460](https://github.com/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44116468460) success. TypeScript, 427 testes principais e builds padrão/isolado aprovados. O push agora também valida a branch quando o GitHub informa dirty na PR; nenhuma tentativa de forçar merge.
+- **CONCLUÍDA:** frontend de homologação publicado no Render, serviço `srv-dbu771mc6qcc73fbog0g`, deploy `dep-dbu771uc6qcc73fbogf0`, commit `3684209`, auto-deploy desligado. Navegador verificou [login isolado](https://vertice-enamed-homologacao.onrender.com/entrar) e CSP com destino Supabase `rnmkmnrfhvjihsuqziwf`; F&O produtivo não está na política de conexão. Não é release em produção nem homologação dos perfis.
+- **CONCLUÍDA PARCIALMENTE:** estrutura isolada avançou a **85 registros de migração e 103 tabelas públicas/103 com RLS**, sem usuários Auth, IES, cursos ou objetos Storage. Réplica completa NÃO comprovada. A carga de custo destinada a uma IES real foi omitida apenas na variante de homologação; histórico da branch registra SQL realmente aplicado, preservando o original produtivo. Estruturas e-ORBIT copiadas somente como DDL, sem linhas ou estados de sequência produtivos. Preservados FKs e controles. A branch Supabase de preparação **não deve ser integrada em produção**.
+- **BLOQUEADA:** migração de lockdown da restauração exigiu confirmação do Supabase; a solicitação expirou sem aplicação. SQL concreto revisável em `evidencias/20261117_HOMOLOGACAO_LOCKDOWN_PENDENTE.sql`, com preflight exclusivo da base isolada vazia. Não usado execute_sql para contornar a confirmação. Estado da restauração ainda MIGRATIONS_FAILED; zero contas de teste. Não solicitar credenciais pessoais para um banco de teste vazio.
+- **NÃO EXECUTADOS:** 16 cenários autenticados, chamadas dual-IA, parecer médico, reindexação, integração remota ponta a ponta e release produtivo. Advisors registram 81 INFO de RLS sem policy e 49 WARN de funções definer executáveis; não foram rotulados como aprovação de segurança. Ver evidência JSON com links de remediação.
+- **PRODUÇÃO:** sem alteração de questões, tentativas, gabaritos, históricos ou migrações no banco produtivo. PR168 draft; sem merge em main ou deploy produtivo. Seis gates não aprovados. Próxima providência externa: confirmação Supabase para a migração isolada e contas de teste com MFA/AAL2; parecer médico e definitivos continuam pendentes para o release.
+
+
+## 17/11/2026 — execução da confirmação Supabase e restauração cumulativa, v2.11
+1. **CONCLUÍDA:** confirmação recebida e migração `enamed_staging_lockdown_with_private_empty_map` aplicada somente em `rnmkmnrfhvjihsuqziwf` (versão 20261117162115). SHA-256 do SQL autorizado: `9ba6466ba1f61e5ef5e365d8ae770b6683050ef779c3cf58161fcb7bfc56d19d`. A pendência anterior de confirmação desse lockdown está resolvida. Preflight e guardas originais preservados; não foi usado SQL alternativo para contornar confirmação.
+2. **CONCLUÍDA PARCIALMENTE:** recuperadas definições históricas ausentes da criação do ambiente vazio. Fontes: migrações originais do repositório e metadados PostgreSQL somente leitura da produção, sem linhas de alunos, contratos, consentimentos ou resultados. Participantes/livro-razão de Extensão têm estrutura vazia e trigger de imutabilidade; restauração avançou por TCC, AC e Estágio. Cinco operações históricas destinadas a contas/vínculos reais foram omitidas exclusivamente na homologação vazia, com SQL efetivamente executado registrado no histórico. Não reproduzidas credenciais, sessões ou IDs de pessoas reais. A branch de banco de homologação não pode ser integrada à produção. Definições e hashes no arquivo de evidência, sem confundir variante com reprodução exata do original.
+3. **CONCLUÍDA:** recibos e evolução documentados cumulativamente. **NÃO EXECUTADOS:** os 16 cenários autenticados, dual-IA real, parecer médico, reindexação e integração remota ponta a ponta. Zero contas Auth de teste na última consulta; permissões de catálogo/ACL não equivalem a sessão real. Os seis gates permanecem sem aceite. Produção e PR168 preservadas, sem merge em main ou deploy produtivo.
+**Evidências:** `evidencias/20261117_LOCKDOWN_APLICADO_APOS_CONFIRMACAO.json` e `evidencias/20261117_RESTAURACAO_DEFINICOES_APLICADAS.json`. O estado terminal da restauração deve ser lido no snapshot final anexado, não inferido da aplicação de uma migração intermediária.
+
+
+### Resultado verificado da restauração — 17/11/2026, v2.11
+- **CONCLUÍDA:** restauração do esquema isolado até `20261117175935`: 213 versões/nomes do projeto de origem representados, nenhuma versão ausente na comparação, 250 registros totais na branch. Inclui variantes explícitas de homologação; não significa igualdade integral dos SQLs nem homologação. Há 325 tabelas públicas, todas com RLS. Contagens verificadas: zero usuários Auth, instituições, cursos, estudantes, métricas de aprendizagem e objetos Storage.
+- **CONCLUÍDA:** 24 definições adicionais arquivadas com SHA-256; cron externo de coleta desativado exclusivamente na homologação, cron interno de segurança e event trigger preservados. As variantes de identidade e carga específica de IES não importaram pessoas nem contas produtivas. Recuperação adicional de Conecta feita com migração original do repositório, sem dados.
+- **CONCLUÍDA:** `vertice-sapiens-bridge` v4 e `vertice-learning-bridge` v26 publicadas manualmente somente na base isolada, `verify_jwt=true`. Leitura de retorno confirmou igualdade exata dos arquivos. Origem do preview aceita apenas pelo projeto isolado; destino F&O produtivo bloqueado no servidor isolado. Quatro verificações de origem/destino e oito ciclos nativos sintéticos passaram; 15 contratos ENAMED também passaram. Esses testes locais não equivalem a chamada remota autenticada nem sessão real por perfil.
+- **REPROVADA:** etapa automática geral de funções do provedor terminou `FUNCTIONS_FAILED`; o painel confirmou HTTP 413 (`request entity too large`) na cópia automática de `vertice-doc-prevalidate`, pacote de 38,48 MB. Não declarar a pipeline completa aprovada. As duas funções necessárias acima têm recibos individuais `ACTIVE`; outras funções não foram invocadas. Advisors: 117 ocorrências INFO de RLS sem policy, 8 WARN de search_path, 1 extensão pública, 5 funções definer anônimas e 91 autenticadas. São achados para conferência de acesso, sem presunção de vulnerabilidade ou aprovação automática.
+- **BLOQUEADA:** homologação real por perfil e E2E sem contas autorizadas de teste e MFA/AAL2; os 16 casos permanecem não executados. Parecer médico, dupla avaliação real e fontes definitivas permanecem requisitos separados. Seis gates não aprovados; PR168 draft; sem reindexação ou publicação produtiva.
+**Evidência terminal:** `evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json`. A confirmação do lockdown deixou de ser um recurso externo pendente; não solicitá-la novamente.
+
+**CI do código v2.11:** commit `0855054b170130572c1c7b3d309d146fcb9c942b`, [Actions 44149342910](https://github.com/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44149342910) concluído `success`: TypeScript completo, suíte existente e build em Node22/24; quatro novos testes de origem/destino em Node24. Permanecem seis gates sem aprovação e 16 casos reais não executados. Atualização documental posterior não é novo teste do código.
+
+
+## 17/11/2026 — conciliação com main e recuperação exata de função, v2.12
+1. **CONCLUÍDA NO CÓDIGO:** conciliação com main `8a40f880bb81e75c1d02f5f18bdff5bb3eb4ae41` na branch de desenvolvimento, preservando as duas linhas de histórico. Resolvidos quatro conflitos em ENADE/ENAMED, navegação acadêmica, fixture nativa e sanitização do feedback. Mantidos os avisos de homologação científica, Discursiva e controles de privacidade/origem/destino. Nenhum merge em main.
+2. **CONCLUÍDA:** recuperadas via API as três fontes EXATAS da pré-validação v3 ativa na homologação. Republicação direta gerou v4 ACTIVE, JWT obrigatório, arquivos idênticos e mesmo hash de bundle `176d814865ac3d34abae9871628949ac8a534dc3bca1bd5e29ec157d451c20d9`. Assim, a falha 413 da cópia automática recebeu compensação manual verificada sem substituir o conteúdo. A pipeline automática histórica continua FUNCTIONS_FAILED; não foi marcada como sucesso. Sapiens isolado atualizado para v5 após conciliar a sanitização mais restritiva da main; Learning permanece v26. Produção preservada.
+3. **CONCLUÍDA LOCALMENTE:** TypeScript recomposto, 15 contratos ENAMED e resumo editorial passaram. O runner nativo executou 23 testes sem falhas; oito são repetidos pelo import da fixture, correspondendo a 15 casos distintos incluindo origem/destino e privacidade. CI completo da árvore conciliada deve ser registrado após executar; CI 44149342910 comprova apenas o código anterior 0855054.
+**PENDÊNCIAS REAIS:** contas de teste autorizadas por perfil e MFA/AAL2 no banco isolado (zero Auth), 16 cenários reais/E2E e dupla IA não executados, parecer médico/visual e gabaritos definitivos ainda sem aceite. Não há reindexação, alteração de gabaritos ou publicação produtiva. Seis gates não aprovados.
+**Evidência:** `evidencias/20261117_CONCILIACAO_MAIN_E_FUNCOES.json`, com fontes originais da pré-validação e hashes para rastreabilidade; não contém credenciais.
+
+
+### Encerramento desta execução técnica isolada — 17/11/2026, v2.12
+- **CONCLUÍDA:** código `139f3a01c209d4bb0c32b986c430fffc260e6ce6`, com conciliação de main em `6a61156`. **14 workflows success**, incluindo TypeScript completo, suíte do portal/build Node22/24, ponte médica, mobile e contratos ENAMED. Falha do VM médico (`exports is not defined`) corrigida sem remover asserts: 55 testes médicos locais passaram. Build local aprovado após atualizar dependências pelo lockfile conciliado; a tentativa anterior com node_modules antigo falhou por `qrcode` ausente e foi corrigida por npm ci.
+- **CONCLUÍDA:** Render exclusivamente de homologação publicado, deploy `dep-dbua65dckfvc73cpmjng` LIVE, commit `139f3a0`, auto-deploy desligado. Navegador conferiu `/version.json` com SHA exato, tela `/entrar`, CSP para o Supabase isolado e `noindex,nofollow`. Não houve autenticação; não confundir tela de acesso com aceite por perfil. Pontes Sapiens v5/Learning v26 e pré-validação v4 ACTIVE, JWT obrigatório e fontes relidas. A falha 413 da cópia automática foi compensada por publicação direta do MESMO conteúdo; o histórico automático não foi reclassificado como sucesso.
+- **CONCLUÍDA:** verificação SQL final às 18:58:41 UTC (15:58:41 America/Sao_Paulo): 325 tabelas públicas/325 RLS, zero usuários Auth, IES, cursos, estudantes e objetos Storage. Os 213 nomes/versões representados e 250 registros de migração são o snapshot documentado, com variantes explícitas; não representam igualdade integral com SQL produtivo.
+- **BLOQUEADA:** missão integral por ausência das contas autorizadas de teste/MFA no banco isolado e dos aceites obrigatórios. Os 16 cenários autenticados, E2E remoto e dual-IA real continuam NÃO EXECUTADOS; parecer médico/visual e documentos definitivos continuam pendentes. Nenhuma reindexação, troca de gabarito, fusão/exclusão de ID ou operação produtiva nesta execução. PR168 permanece draft, seis gates não aprovados.
+**Providência externa imediata:** disponibilizar contas de teste por perfil com MFA/AAL2 no projeto isolado `rnmkmnrfhvjihsuqziwf`; não enviar credenciais pessoais em documentos ou comentários. A confirmação de migração anterior está resolvida e não deve ser solicitada novamente.
+**Evidência:** `evidencias/20261117_ENCERRAMENTO_EXECUCAO_ISOLADA.json`. Este registro final é apenas documental; os testes e o deploy estão vinculados ao commit de código exato, sem nova execução redundante de recuperação de PDFs.
+
+
+## 17/11/2026 — contas autorizadas por perfil e MFA real, v2.13
+1. **CONCLUÍDA:** nove contas sintéticas no Supabase isolado `rnmkmnrfhvjihsuqziwf`, criadas pela API Auth Admin: Master, Reitoria, Direção, CPA, Coordenação, NDE, Docente vinculado, usuário sem autorização e usuário de outra IES. Duas IES e três cursos estão marcados SINTÉTICO/HOMOLOGAÇÃO; nenhum estudante ou resultado foi criado. A restrição legada de três papéis foi alinhada, somente no isolado, aos papéis já definidos no código RBAC; Coordenação/NDE têm course_id e Docente tem vínculo de disciplina. Nenhuma migração ou usuário produtivo alterado.
+2. **CONCLUÍDA:** nove logins reais por senha e MFA/TOTP no Supabase Auth, com getUser e AAL2 verificados; não houve JWT forjado nem INSERT em auth.users. Todas as nove contas têm fator TOTP verified e todas as sessões de teste foram encerradas. Senhas aleatórias e seeds TOTP ficam apenas no Vault criptografado, sem valores em código/relatórios. Capability de acionamento revogada; replay recebeu HTTP 403 sem criar usuário; provisionador final v4 exige JWT e recusa projeto produtivo. RPC de credenciais/controle é restrito a service_role e também depende da capability ativa; anon/authenticated não o executam nem leem a tabela privada.
+3. **CONCLUÍDA NO ESCOPO API:** consultas Data API com sessões reais confirmaram bloqueio em AAL1 para os nove perfis e isolamento entre as IES sintéticas. **REPROVADA ANTES DA CORREÇÃO:** Coordenação, NDE e Docente listavam o segundo curso da própria IES. **CONCLUÍDA APÓS CORREÇÃO:** política de leitura de cursos restringida no isolado; novo login/MFA e consultas reais confirmaram somente o curso vinculado para os três perfis. Usuário sem autorização recebe zero registros; outro-IES recebe apenas seus registros. Preservados antes/depois, SQL aplicado e rollback revisável não executado. Isto valida Auth e metadados de IES/curso; NÃO homologa todos os módulos, métricas clínicas ou os 16 cenários completos pelo navegador.
+**Testes:** 17 contratos/fixtures Node aprovados, incluindo vetores públicos RFC 6238; execução Auth/Data API real documentada por perfil, sem mocks ou claims artificiais. Advisors não registraram novos WARN atribuídos ao RPC/helper; INFO de tabela privada sem policy é intencional, sem acesso de clientes. Achados preexistentes não foram rotulados como segurança integralmente aprovada.
+**Estado da missão:** providência de contas/MFA CONCLUÍDA. Os 16 cenários completos de interface, integração remota F&O e dupla IA real permanecem NÃO EXECUTADOS integralmente; aceite médico/visual não emitido nesta execução. Catálogo oficial consultado em 17/11 continua com quatro gabaritos 2026 preliminares; fonte oficial mantém 04/12/2026 para os definitivos. Seis gates permanecem sem aprovação; sem reindexação, merge em main ou publicação produtiva.
+**Evidência:** `evidencias/20261117_CONTAS_MFA_API_VERIFICADAS.json`. Não solicitar novamente a criação das nove contas ou o MFA: ambos foram executados e verificados. Credenciais de teste devem ser acessadas somente por operador autorizado no Vault, em canal seguro.
