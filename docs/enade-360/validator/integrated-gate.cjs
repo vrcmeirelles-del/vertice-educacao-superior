@@ -2,6 +2,7 @@
 // Integrated synthetic gate: JSON Schema is checked by Python upstream; this file
 // validates cross-field consistency and pedagogical interpretation on the SAME instance.
 const fs=require("node:fs");
+const {validateCrossReport}=require("./cross-report-controls.cjs");
 const {validateReport}=require("./schema-validator.cjs");
 function validateInterpretation(r){
  const problems=[];
@@ -21,7 +22,7 @@ function validateInterpretation(r){
  }
  return problems;
 }
-function run(r){const basic=validateReport(r);const pedagogical=validateInterpretation(r);return {ok:basic.ok&&pedagogical.length===0,errors:[...basic.errors,...pedagogical]};}
+function run(r){const basic=validateReport(r);const pedagogical=validateInterpretation(r);const cross=validateCrossReport(r);return {ok:basic.ok&&pedagogical.length===0&&cross.length===0,errors:[...basic.errors,...pedagogical,...cross]};}
 if(require.main===module){
  try{const data=JSON.parse(fs.readFileSync(0,"utf8"));process.stdout.write(JSON.stringify(run(data))+"\n");}catch(e){process.stderr.write(String(e)+"\n");process.exit(2);}
 }
