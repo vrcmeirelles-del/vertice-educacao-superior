@@ -114,3 +114,12 @@ Leia em conjunto com `BIBLIA_MESTRA_ENAMED_360.md` e `PLANO_DE_TRABALHO_ENAMED_3
 - **Regressão e perfil:** testes SSR/visibilidade adicionados; coordenador/NDE não têm acesso direto a ENADE institucional na navegação atual, apesar de possuírem Trilhas ENADE. Exige mudança deliberada e RLS por curso, não simples habilitação visual.
 - **Evidências:** `CONFLITOS_DUPLICATAS_ENAMED_2026.csv`, `FONTES_FO_PENDENTES_AUTENTICACAO_20261116.json`, `E1_CADEIA_CUSTODIA_E_REGRAS_20261116.md`, issue #170 e Actions #43997164508.
 - **Estado final:** E1 não homologada; E2/E3 preparatórias; PR #168 draft, sem publicação; bancos e históricos intactos.
+
+
+## 2026-11-16 — E1: cobertura por caderno e perfil, sem autenticação de binários
+- **Herança:** Bíblia v1.7, Plano, Diário e catálogo E1 conferidos; decisões e preservação de produção mantidas.
+- **Fontes oficiais:** o portal Inep lista aplicação regular com Cadernos 01/02 e reaplicação com Cadernos 01/02; gabaritos disponibilizados no catálogo são preliminares na data verificada. HTML simplificado sem URLs; notas 40/19/1PL/42 retornaram timeout/502; tentativa de baixar Caderno 02 de 2025 falhou.
+- **Banco F&O:** 3 URLs declaradas para ENAMED 2026: C1 regular (200 linhas/100 posições), C2 regular (200/100), C1 reaplicação (83/83), C2 reaplicação sem registros identificados nessa tabela. Potencial lacuna de cobertura, não ausência global comprovada.
+- **Perfis:** nav `enade` a Master/Reitoria/CPA, não a Coordenador/NDE; sem teste de sessão autenticada nem escopo de RLS. Os quatro testes SSR adicionados anteriormente ainda não comprovam essas sessões.
+- **Código/documentação:** `E1_COBERTURA_OFICIAL_E_PERFIS_20261116.md` criado; nenhuma migração, merge, deploy ou alteração de questão/estudante executada.
+- **Aceite:** E1 bloqueada por PDFs/arquivos integrais e hashes; E2/E3 preparatórias; PR #168 draft. Próximo foco: origem oficial íntegra e perfis em homologação controlada.
