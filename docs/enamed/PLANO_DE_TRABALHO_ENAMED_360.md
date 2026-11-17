@@ -202,3 +202,16 @@ RECOMENDAÇÃO PARA A ETAPA SEGUINTE:
 - [ ] Resolver duplicidades e correções com preservação de IDs, tentativas e histórico, após aceite técnico.
 
 **Porta de qualidade:** E1 continua aberta; início formal da E2/E3 permanece dependente da homologação E1. Os arquivos desta rodada são preparação reversível e sem DDL/DML.
+
+
+## Verificações E1 e QA da PR #168 — rodada adicional em 16/11/2026
+- [x] Inspecionar publicação/reprodução da Portaria 478/2025 e página oficial de notas técnicas, com limitações de arquivo e versão registradas.
+- [x] Comparar grupos duplicados no F&O sem escritas: 283 posições, 200 duplicadas, 57 diferenças de enunciado, 2 de alternativas, 6 de tema, 191 de subtema, 192 de keywords, zero de gabarito entre cópias.
+- [x] Registrar divergências em `E1_CONFRONTO_DOCUMENTAL_483_20261116.md` e criar plano de correção preservando tentativas.
+- [x] Identificar o teste de navegação institucional da PR que falhou na rodada anterior e ajustar duas abas faltantes no macro acadêmico.
+- [x] Criar workflow CI dedicado ao ENAMED; **6 testes Node aprovados**, run `43994963032`.
+- [ ] Aprovação de TypeScript completo e testes de interface após alteração da navegação; verificar execução mais recente e logs.
+- [ ] Teste visual/autenticado da interface por perfil e largura de tela.
+- [ ] Baixar/hashear prova, gabaritos, todas as notas e atos essenciais; autenticar vigência e versões; E1 continua sem aceite.
+- [ ] Executar confronto semântico 483/483 por caderno, comando, alternativa, gabarito e matriz; curadoria clínica dupla.
+**Porta:** preparação em branch permitida; E2/E3 dependem do corpus E1 autenticado. Não efetuar merge nem deploy enquanto gates de produção estiverem abertos.
