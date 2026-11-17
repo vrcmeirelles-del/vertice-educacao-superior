@@ -1,6 +1,6 @@
 # BÍBLIA-MESTRA DO PROJETO — ENAMED 360° / INEP INTELLIGENCE
 **Projeto:** Vértice Educação Superior × Fato & Ordem × Sapiens 360°  
-**Versão:** 1.9 — E1 parcial + coleta binária via CI e QA por perfil  
+**Versão:** 2.0 — E1 parcial + 11 links oficiais e auditoria de TLS  
 **Data-base:** 16 de novembro de 2026  
 **Status:** documento-mestre de projeto; NÃO corresponde à implantação ou homologação da solução.  
 **Governança:** evolução cumulativa por etapas, com revisão retrospectiva obrigatória.  
@@ -335,3 +335,24 @@ No banco F&O (leitura) só foram encontrados `fo_enamed_items` e `fo_enamed_atte
 
 ### ADR-ENAMED-017
 **Critérios de aceite devem provar cada elo**: fonte oficial autenticada e vigente, binário integral + hash, reconciliação da prova/gabarito, competência revisada por duas IAs independentes + médico, UI e RLS por sessão autenticada, e finalmente deploy comprovado. Um CI verde para TypeScript não autoriza liberar índices oficiais nem modificar dados de estudante. Não fundir a PR #168 antes dessas verificações.
+
+
+## 21. Atualização cumulativa v2.0 — URLs oficiais comprovadas, TLS bloqueia autenticação (16/11/2026)
+**Regra mantida:** E1 permanece EM ABERTO; E2/E3 só artefatos preparatórios, E9 futura. Produção e históricos preservados.
+
+### Avanço de procedência E1
+- GitHub Actions run `43999991024`, renderização da página oficial INEP com Playwright/Chromium e JavaScript: **837 âncoras no DOM; 11 hyperlinks de PDFs do ENAMED 2026 extraídos diretamente do catálogo oficial**. A lista e seus metadados foram versionados em `docs/enamed/INEP_2026_LINKS_OFICIAIS_CONFIRMADOS.json`, com `sha256:null` e `binary_status:NOT_RECOVERED`.
+- Confirmados links do catálogo para as provas regulares C1/C2, três versões acessíveis de C1, gabaritos preliminares C1/C2, reaplicação C1/C2 e gabaritos preliminares correspondentes. Os três `source_url` previamente cadastrados no F&O aparecem na listagem oficial — **proveniência dos links confirmada, identidade dos arquivos ainda não**.
+- Downloads com urllib de 11 arquivos falharam (cadeia certificadora não validada ou conexão encerrada). Workflow `enamed-inep-public-corpus.yml` ampliado com rota `curl` usando TLS ativo, sem `-k`. Run `44000426717`: **8 tentativas / 0 binários íntegros**; sete erros curl 60 (emissor do certificado desconhecido) e um curl 35 (conexão reset). Não diminuir segurança TLS para produzir hash enganoso.
+- A E1 **não autentica quaisquer PDFs nem gabaritos**, logo nenhuma questão é homologada e nenhuma correção em F&O pode ser aplicada. O catálogo de fontes atualizado distingue claramente URL oficialmente publicada de hash de arquivo autêntico.
+
+### Estado da interface/perfil
+- Em commit anterior `ae19a8847c9ea4b0fe2935634be24ac7d34523e9`, TypeScript completo Node 22 e 24 e demais 8 workflows foram concluídos com sucesso (415 testes da suite principal).
+- Os quatro testes SSR ENAMED foram incluídos posteriormente no `source-overrides/vitest.config.ts` para executar pelo pipeline, e o resultado completo do **HEAD atual** deve ser verificado separadamente; nenhum acesso real por perfil, MFA ou RLS foi executado em sessão autenticada. Navegador conectado não disponível no contexto.
+- ADR-ENAMED-018: **proveniência do link, autenticação TLS e identidade do arquivo são três gates separados.** Links oficiais podem alimentar o manifesto de recuperação, mas não podem se converter em prova homologada sem binário completo + SHA-256 + revisão de caderno/edição/retificação.
+
+### Evidências principais
+- Catálogo oficial: https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enamed/provas-e-gabaritos
+- Browser e relatório: https://github.com/vrcmeirelles-del/vertice-educacao-superior/actions/runs/43999991024
+- `curl` TLS: https://github.com/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44000426717
+- `docs/enamed/E1_COLETA_BINARIOS_E_QA_PERFIS_20261116.md` (limitações e protocolo).
