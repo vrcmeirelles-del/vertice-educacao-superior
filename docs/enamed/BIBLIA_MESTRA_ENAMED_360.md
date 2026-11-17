@@ -1,6 +1,6 @@
 # BÍBLIA-MESTRA DO PROJETO — ENAMED 360° / INEP INTELLIGENCE
 **Projeto:** Vértice Educação Superior × Fato & Ordem × Sapiens 360°  
-**Versão:** 1.7 — E1 parcial + CI de integridade e fila formal de curadoria  
+**Versão:** 1.8 — E1 parcial + cobertura dos cadernos e matriz de perfis  
 **Data-base:** 16 de novembro de 2026  
 **Status:** documento-mestre de projeto; NÃO corresponde à implantação ou homologação da solução.  
 **Governança:** evolução cumulativa por etapas, com revisão retrospectiva obrigatória.  
@@ -301,3 +301,13 @@ Prosseguir conferindo as fontes INEP e originais de cada caderno; E1 não pode s
 Pode-se **encaminhar a fila de revisão** antes da autenticação da fonte (issue de trabalho), mas não executar homologação clínica, atualização F&O ou publicação de índices oficiais até os critérios de E1. Distinguir issue aberta de parecer médico ou de IA concluído.
 
 **Portal:** PR #168 draft, sem merge ou deploy nesta execução. Não afirmar acesso de coordenação ao ENADE 360: acesso escopado pendente de revisão e teste.
+
+
+## 19. Atualização cumulativa v1.8 — cobertura por caderno e limites de homologação (16/11/2026)
+**Etapa E1 ainda não aceita.** O ambiente de consulta confirmou no catálogo do Inep a listagem dos **dois cadernos regulares e dois da reaplicação 2026**, com gabaritos preliminares. A tabela F&O tem 200+200 registros de cadernos regulares, mas apenas 83 da reaplicação Caderno 1; não foi localizado registro do Caderno 2 da reaplicação na tabela inspecionada. Isso identifica lacuna **candidata** de cobertura, não comprova ausência de outras tabelas/acervos. Registro detalhado em `E1_COBERTURA_OFICIAL_E_PERFIS_20261116.md`.
+
+**Proveniência:** portal oficial lista provas/gabaritos, mas conteúdo HTML simplificado não expôs URLs diretas e downloads binários (4 notas e caderno de 2025) falharam. **SHA-256 oficial: nenhum novo**. Documentação de edição, gabaritos e questões segue pendente. Restrições e decisões ADR-001–015 preservadas.
+
+**QA:** matriz de navegação `visibleTabs` e testes SSR identificam que coordenador/NDE têm Trilhas ENADE, mas não aba `enade` institucional; ainda sem testes reais autenticados/RLS por perfil. CI específico ENAMED anterior 10/10; workflow completo no HEAD de documentação anterior foi cancelado por commits concorrentes, então a última versão não é homologada. **PR #168 segue em rascunho, sem merge/deploy.**
+
+**ADR-ENAMED-016:** cobertura documental é aferida por **edição, aplicação/reaplicação, caderno e versão de gabarito**; não inferir equivalência de questões por numeração nem declarar ausência global a partir de uma tabela apenas. A E2/E3 seguem com preparativos e E9 de dados reais IES permanece futura.
