@@ -207,6 +207,21 @@
     }
   ],
   "subsequent_execution_records": [
-    "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json"
+    "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json",
+    {
+      "date": "2026-11-17",
+      "event": "Confirmed staging lockdown applied; additional empty-schema baselines restored",
+      "evidence": "docs/enamed/evidencias/20261117_LOCKDOWN_APLICADO_APOS_CONFIRMACAO.json",
+      "definitions_archive": "docs/enamed/evidencias/20261117_RESTAURACAO_DEFINICOES_APLICADAS.json",
+      "production_modified": false,
+      "authenticated_qa_executed": false
+    },
+    {
+      "date": "2026-11-17",
+      "event": "Final isolated schema restoration and verified bridge deployments",
+      "evidence": "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json",
+      "production_modified": false,
+      "authenticated_qa_executed": false
+    }
   ]
 }

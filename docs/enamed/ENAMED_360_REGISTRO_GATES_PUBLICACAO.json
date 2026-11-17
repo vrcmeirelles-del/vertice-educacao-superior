@@ -77,9 +77,12 @@
       "approved": false,
       "evidence": [
         "docs/enamed/MATRIZ_HOMOLOGACAO_EXECUCAO_20261117.json",
-        "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json"
+        "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json",
+        "docs/enamed/evidencias/20261117_LOCKDOWN_APLICADO_APOS_CONFIRMACAO.json",
+        "docs/enamed/evidencias/20261117_RESTAURACAO_DEFINICOES_APLICADAS.json",
+        "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json"
       ],
-      "reason": "Frontend isolado live; restauração do banco pendente de confirmação Supabase; zero contas Auth de teste. Dezesseis cenários reais não executados.",
+      "reason": "Esquema isolado restaurado e duas pontes ACTIVE; zero contas Auth autorizadas com MFA/AAL2. Os 16 casos reais não executados. Pipeline automática bloqueada por HTTP 413 na cópia da pré-validação (38,48 MB).",
       "history": [
         {
           "date": "2026-11-17",
@@ -92,6 +95,15 @@
           "approved": false,
           "reason": "Anonymous Master guard observed; isolated Supabase branch exists but full replay failed on historical institution FK. Zero Auth test users. Sixteen authenticated cases not executed.",
           "evidence": [
+            "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json"
+          ]
+        },
+        {
+          "date": "2026-11-17",
+          "approved": false,
+          "reason": "Frontend isolado live; restauração do banco pendente de confirmação Supabase; zero contas Auth de teste. Dezesseis cenários reais não executados.",
+          "evidence": [
+            "docs/enamed/MATRIZ_HOMOLOGACAO_EXECUCAO_20261117.json",
             "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json"
           ]
         }
@@ -139,7 +151,7 @@
     "merge_pr_168",
     "deploy_to_production"
   ],
-  "next_action_required": "Confirmar a migração isolada pendente no Supabase e disponibilizar contas de teste com MFA/AAL2. Homologar a integração/perfis; obter parecer médico e definitivos antes de reindexar ou liberar produção.",
+  "next_action_required": "Disponibilizar contas autorizadas de teste no projeto isolado rnmkmnrfhvjihsuqziwf, com perfis e MFA/AAL2, para executar os 16 casos e E2E. Parecer médico, dupla IA real e gabaritos definitivos continuam necessários para o release.",
   "evaluation_history": [
     {
       "date": "2026-11-17",
@@ -174,6 +186,18 @@
         "caveat": "Ten successful workflows; no live signed-in tenant session or clinical approval."
       },
       "event": "Previous CI preserved before homologation isolation update"
+    },
+    {
+      "date": "2026-11-17",
+      "event": "Provider-confirmed staging lockdown applied; cumulative empty-schema restoration",
+      "evidence": "docs/enamed/evidencias/20261117_LOCKDOWN_APLICADO_APOS_CONFIRMACAO.json",
+      "all_six_gates_remain_unapproved": true
+    },
+    {
+      "date": "2026-11-17",
+      "event": "Schema replay restored; two isolated bridges ACTIVE; local native/origin tests passed",
+      "evidence": "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json",
+      "all_six_gates_remain_unapproved": true
     }
   ]
 }

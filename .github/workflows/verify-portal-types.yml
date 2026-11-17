@@ -6,6 +6,10 @@ on:
       - 'source-overrides/client/**'
       - 'source-overrides/server/**'
       - 'source-overrides/scripts/configure-homologacao-build.mjs'
+      - 'supabase/functions/_shared/bridge-origins.ts'
+      - 'supabase/functions/vertice-sapiens-bridge/**'
+      - 'supabase/functions/vertice-learning-bridge/**'
+      - 'scripts/tests/sapiens-runtime/homologation-origin.test.mjs'
       - '.github/workflows/verify-portal-types.yml'
   pull_request:
     branches: [main, feat/enamed-inep-environment-20261116]
@@ -15,6 +19,10 @@ on:
       - 'source-overrides/tsconfig.json'
       - 'source-overrides/package*.json'
       - 'source-overrides/supabase/functions/vertice-sapiens-analyze/**'
+      - 'supabase/functions/_shared/bridge-origins.ts'
+      - 'supabase/functions/vertice-sapiens-bridge/**'
+      - 'supabase/functions/vertice-learning-bridge/**'
+      - 'scripts/tests/sapiens-runtime/homologation-origin.test.mjs'
       - 'supabase/migrations/*planning*.sql'
       - 'supabase/migrations/*school_operations*.sql'
       - 'supabase/migrations/*integration_observations.sql'
@@ -72,6 +80,9 @@ jobs:
           node --test scripts/tests/extension-runtime/*.test.mjs
       - name: Testar o bloqueio de regressões do compilador
         run: node --test scripts/tests/typescript-diagnostics.test.mjs
+      - name: Testar origem isolada das pontes sem ampliar acesso em produção
+        if: matrix.node == '24'
+        run: node --test scripts/tests/sapiens-runtime/homologation-origin.test.mjs
       - name: Testar autorização, contexto e rastreabilidade do planejamento em PostgreSQL
         if: matrix.node == '24'
         run: |

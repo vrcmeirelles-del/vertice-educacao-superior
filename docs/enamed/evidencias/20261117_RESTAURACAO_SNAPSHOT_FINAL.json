@@ -1,0 +1,2379 @@
+{
+  "schema_version": "enamed-staging-restoration-v1",
+  "date": "2026-11-17",
+  "checked_at": "2026-11-17T18:28:49.001Z",
+  "project_ref": "rnmkmnrfhvjihsuqziwf",
+  "migration_coverage": {
+    "checkedAt": "2026-11-17T18:25:55.810Z",
+    "parent_migration_count": 213,
+    "staging_migration_count": 250,
+    "missing_parent_migrations": [],
+    "latest_parent": {
+      "version": "20261117175935",
+      "name": "discursiva_clinical_profiles"
+    },
+    "caveat": "Names/versions include documented staging variants; this is not exact SQL parity, authenticated QA or production approval."
+  },
+  "snapshot": {
+    "cron": [
+      {
+        "name": "vertice-security-gate-daily",
+        "active": true
+      },
+      {
+        "name": "vertice-market-public-discovery-daily",
+        "active": false
+      }
+    ],
+    "triggers": [
+      {
+        "name": "issue_graphql_placeholder",
+        "enabled": "O"
+      },
+      {
+        "name": "pgrst_ddl_watch",
+        "enabled": "O"
+      },
+      {
+        "name": "pgrst_drop_watch",
+        "enabled": "O"
+      },
+      {
+        "name": "issue_pg_cron_access",
+        "enabled": "O"
+      },
+      {
+        "name": "issue_pg_net_access",
+        "enabled": "O"
+      },
+      {
+        "name": "issue_pg_graphql_access",
+        "enabled": "O"
+      },
+      {
+        "name": "vertice_security_guard",
+        "enabled": "O"
+      }
+    ],
+    "auth_users": 0,
+    "course_rows": 0,
+    "student_rows": 0,
+    "public_tables": 325,
+    "storage_objects": 0,
+    "institution_rows": 0,
+    "public_rls_tables": 325,
+    "learning_metrics_rows": 0
+  },
+  "provider_branch_status": "FUNCTIONS_FAILED",
+  "provider_status_caveat": "Automatic function stage failed after all schema versions applied; do not claim entire branch pipeline passed. Two relevant bridge functions deployed manually and ACTIVE, receipts below.",
+  "deployed_functions": [
+    {
+      "id": "e521d590-eb6e-44b6-8d2d-66ce47be31e3",
+      "slug": "vertice-sapiens-bridge",
+      "name": "vertice-sapiens-bridge",
+      "status": "ACTIVE",
+      "version": 4,
+      "created_at": 1794706704963,
+      "updated_at": 1794940103248,
+      "verify_jwt": true,
+      "import_map": false,
+      "entrypoint_path": "file:///tmp/user_fn_rnmkmnrfhvjihsuqziwf_e521d590-eb6e-44b6-8d2d-66ce47be31e3_4/source/supabase/functions/vertice-sapiens-bridge/index.ts",
+      "ezbr_sha256": "7906a06da929a18cd56709468f5ae0f77010de496f1a04d17b524d2315365d33"
+    },
+    {
+      "id": "46ee4fcd-e849-4895-80a4-a65864f05def",
+      "slug": "vertice-learning-bridge",
+      "name": "vertice-learning-bridge",
+      "status": "ACTIVE",
+      "version": 26,
+      "created_at": 1794088469570,
+      "updated_at": 1794940105076,
+      "verify_jwt": true,
+      "import_map": false,
+      "entrypoint_path": "file:///tmp/user_fn_rnmkmnrfhvjihsuqziwf_46ee4fcd-e849-4895-80a4-a65864f05def_26/source/supabase/functions/vertice-learning-bridge/index.ts",
+      "ezbr_sha256": "d4b47b6b4417bbdaea32071a09de815dab1d3bf71640081dc0d5475c22febbaa"
+    }
+  ],
+  "security_advisors": [
+    {
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "count": 117,
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy",
+      "findings": [
+        {
+          "detail": "Table \\`dd_private.green_backups\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "green_backups",
+            "type": "table",
+            "schema": "dd_private"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`dd_private.green_imports\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "green_imports",
+            "type": "table",
+            "schema": "dd_private"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`public.dd_acknowledgements\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "dd_acknowledgements",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`public.dd_actions\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "dd_actions",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`public.dd_audit\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "dd_audit",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`public.dd_conflicts\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "dd_conflicts",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`public.dd_document_access_log\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "dd_document_access_log",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`public.dd_finding_history\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "dd_finding_history",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`public.dd_wall_keepers\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "dd_wall_keepers",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`public.dd_walls\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "dd_walls",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`public.dd_workspace\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "dd_workspace",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`public.vertice_ai_analyses\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "vertice_ai_analyses",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`public.vertice_ai_findings\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "vertice_ai_findings",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`public.vertice_captacao_leads\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "vertice_captacao_leads",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`public.vertice_doc_alerts\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "vertice_doc_alerts",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`public.vertice_doc_findings\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "vertice_doc_findings",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`public.vertice_doc_indicator_links\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "vertice_doc_indicator_links",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`public.vertice_doc_prevalidation\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "vertice_doc_prevalidation",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`public.vertice_documents\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "vertice_documents",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`public.vertice_enade_course_config\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "vertice_enade_course_config",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`public.vertice_enade_eligibility\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "vertice_enade_eligibility",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`public.vertice_enem_escola\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "vertice_enem_escola",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`public.vertice_eorbit_alunos\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "vertice_eorbit_alunos",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`public.vertice_eorbit_institution_map\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "vertice_eorbit_institution_map",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`public.vertice_extension_activities\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "vertice_extension_activities",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`public.vertice_extension_axes\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "vertice_extension_axes",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`public.vertice_extension_deliverables\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "vertice_extension_deliverables",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`public.vertice_extension_evidence\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "vertice_extension_evidence",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`public.vertice_extension_evidence_registry\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "vertice_extension_evidence_registry",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`public.vertice_extension_hour_entries\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "vertice_extension_hour_entries",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`public.vertice_extension_participants\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "vertice_extension_participants",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`public.vertice_extension_partners\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "vertice_extension_partners",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`public.vertice_extension_projects\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "vertice_extension_projects",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`public.vertice_extension_student_identity\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "vertice_extension_student_identity",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`public.vertice_extension_students\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "vertice_extension_students",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`public.vertice_impacto_roles\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "vertice_impacto_roles",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`public.vertice_module_activations\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "vertice_module_activations",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`public.vertice_reprovacoes_detalhe\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "vertice_reprovacoes_detalhe",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`public.vertice_risco_agregado\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "vertice_risco_agregado",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`public.vertice_roster_entries\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "vertice_roster_entries",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`public.vertice_roster_imports\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "vertice_roster_imports",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`public.vertice_school_alumni\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "vertice_school_alumni",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`public.vertice_school_classes\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "vertice_school_classes",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`public.vertice_student_registry\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "vertice_student_registry",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_app.alert_events\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "alert_events",
+            "type": "table",
+            "schema": "vertice_app"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_app.alerts\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "alerts",
+            "type": "table",
+            "schema": "vertice_app"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_app.audit_log\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "audit_log",
+            "type": "table",
+            "schema": "vertice_app"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_app.billing_events\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "billing_events",
+            "type": "table",
+            "schema": "vertice_app"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_app.courses\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "courses",
+            "type": "table",
+            "schema": "vertice_app"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_app.data_subject_requests\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "data_subject_requests",
+            "type": "table",
+            "schema": "vertice_app"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_app.document_access_log\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "document_access_log",
+            "type": "table",
+            "schema": "vertice_app"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_app.documents\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "documents",
+            "type": "table",
+            "schema": "vertice_app"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_app.enrollments\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "enrollments",
+            "type": "table",
+            "schema": "vertice_app"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_app.evidence_documents\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "evidence_documents",
+            "type": "table",
+            "schema": "vertice_app"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_app.evidence_history\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "evidence_history",
+            "type": "table",
+            "schema": "vertice_app"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_app.evidence_items\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "evidence_items",
+            "type": "table",
+            "schema": "vertice_app"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_app.ingestion_batches\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "ingestion_batches",
+            "type": "table",
+            "schema": "vertice_app"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_app.institutions\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "institutions",
+            "type": "table",
+            "schema": "vertice_app"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_app.instrument_requirements\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "instrument_requirements",
+            "type": "table",
+            "schema": "vertice_app"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_app.instruments\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "instruments",
+            "type": "table",
+            "schema": "vertice_app"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_app.memberships\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "memberships",
+            "type": "table",
+            "schema": "vertice_app"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_app.pairing_tokens\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "pairing_tokens",
+            "type": "table",
+            "schema": "vertice_app"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_app.plan_limits\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "plan_limits",
+            "type": "table",
+            "schema": "vertice_app"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_app.retention_records\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "retention_records",
+            "type": "table",
+            "schema": "vertice_app"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_app.revoked_sessions\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "revoked_sessions",
+            "type": "table",
+            "schema": "vertice_app"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_app.rulesets\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "rulesets",
+            "type": "table",
+            "schema": "vertice_app"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_app.schema_migrations\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "schema_migrations",
+            "type": "table",
+            "schema": "vertice_app"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_app.semester_plannings\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "semester_plannings",
+            "type": "table",
+            "schema": "vertice_app"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_app.strategic_plans\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "strategic_plans",
+            "type": "table",
+            "schema": "vertice_app"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_app.subscriptions\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "subscriptions",
+            "type": "table",
+            "schema": "vertice_app"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_app.user_invites\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "user_invites",
+            "type": "table",
+            "schema": "vertice_app"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_app.users\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "users",
+            "type": "table",
+            "schema": "vertice_app"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_conecta.applications\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "applications",
+            "type": "table",
+            "schema": "vertice_conecta"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_conecta.audit\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "audit",
+            "type": "table",
+            "schema": "vertice_conecta"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_conecta.config\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "config",
+            "type": "table",
+            "schema": "vertice_conecta"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_conecta.evidence\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "evidence",
+            "type": "table",
+            "schema": "vertice_conecta"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_conecta.goal_links\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "goal_links",
+            "type": "table",
+            "schema": "vertice_conecta"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_conecta.identity_links\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "identity_links",
+            "type": "table",
+            "schema": "vertice_conecta"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_conecta.opportunities\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "opportunities",
+            "type": "table",
+            "schema": "vertice_conecta"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_conecta.partner_links\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "partner_links",
+            "type": "table",
+            "schema": "vertice_conecta"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_conecta.partner_proposals\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "partner_proposals",
+            "type": "table",
+            "schema": "vertice_conecta"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_conecta.partner_registrations\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "partner_registrations",
+            "type": "table",
+            "schema": "vertice_conecta"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_conecta.preferences\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "preferences",
+            "type": "table",
+            "schema": "vertice_conecta"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_conecta.profile_history\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "profile_history",
+            "type": "table",
+            "schema": "vertice_conecta"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_conecta.rate_limits\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "rate_limits",
+            "type": "table",
+            "schema": "vertice_conecta"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_conecta.tracks\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "tracks",
+            "type": "table",
+            "schema": "vertice_conecta"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_discursiva.audit\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "audit",
+            "type": "table",
+            "schema": "vertice_discursiva"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_discursiva.exams\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "exams",
+            "type": "table",
+            "schema": "vertice_discursiva"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_discursiva.questions\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "questions",
+            "type": "table",
+            "schema": "vertice_discursiva"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_discursiva.submissions\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "submissions",
+            "type": "table",
+            "schema": "vertice_discursiva"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_enade_audit.record_events\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "record_events",
+            "type": "table",
+            "schema": "vertice_enade_audit"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_planning.competitive_events\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "competitive_events",
+            "type": "table",
+            "schema": "vertice_planning"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_planning.competitive_findings\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "competitive_findings",
+            "type": "table",
+            "schema": "vertice_planning"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_planning.competitive_profiles\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "competitive_profiles",
+            "type": "table",
+            "schema": "vertice_planning"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_private.ai_policy\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "ai_policy",
+            "type": "table",
+            "schema": "vertice_private"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_private.ai_smoke_run\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "ai_smoke_run",
+            "type": "table",
+            "schema": "vertice_private"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_private.api_connection_events\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "api_connection_events",
+            "type": "table",
+            "schema": "vertice_private"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_private.api_connections\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "api_connections",
+            "type": "table",
+            "schema": "vertice_private"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_private.api_staging_records\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "api_staging_records",
+            "type": "table",
+            "schema": "vertice_private"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_private.api_sync_batches\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "api_sync_batches",
+            "type": "table",
+            "schema": "vertice_private"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_private.captacao_setup_audit\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "captacao_setup_audit",
+            "type": "table",
+            "schema": "vertice_private"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_private.learning_curricular_grades\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "learning_curricular_grades",
+            "type": "table",
+            "schema": "vertice_private"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_private.learning_events\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "learning_events",
+            "type": "table",
+            "schema": "vertice_private"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_private.learning_semester_windows\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "learning_semester_windows",
+            "type": "table",
+            "schema": "vertice_private"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_private.learning_students\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "learning_students",
+            "type": "table",
+            "schema": "vertice_private"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_private.learning_subject_maps\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "learning_subject_maps",
+            "type": "table",
+            "schema": "vertice_private"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_private.learning_sync_cursors\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "learning_sync_cursors",
+            "type": "table",
+            "schema": "vertice_private"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_private.learning_sync_runs\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "learning_sync_runs",
+            "type": "table",
+            "schema": "vertice_private"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_private.master_homologation_entries\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "master_homologation_entries",
+            "type": "table",
+            "schema": "vertice_private"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_private.master_invitation_audit\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "master_invitation_audit",
+            "type": "table",
+            "schema": "vertice_private"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_private.master_invitation_config\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "master_invitation_config",
+            "type": "table",
+            "schema": "vertice_private"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_private.master_invitations\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "master_invitations",
+            "type": "table",
+            "schema": "vertice_private"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_private.preanalysis_actor_usage\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "preanalysis_actor_usage",
+            "type": "table",
+            "schema": "vertice_private"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_private.preanalysis_daily_usage\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "preanalysis_daily_usage",
+            "type": "table",
+            "schema": "vertice_private"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_private.preanalysis_policy\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "preanalysis_policy",
+            "type": "table",
+            "schema": "vertice_private"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_private.preanalysis_run_authorizations\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "preanalysis_run_authorizations",
+            "type": "table",
+            "schema": "vertice_private"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Table \\`vertice_private.sapiens_delivery\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "sapiens_delivery",
+            "type": "table",
+            "schema": "vertice_private"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        }
+      ]
+    },
+    {
+      "name": "function_search_path_mutable",
+      "level": "WARN",
+      "count": 8,
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0011_function_search_path_mutable",
+      "findings": [
+        {
+          "detail": "Function \\`public.vertice_ac_student_submissions\\` has a role mutable search_path",
+          "metadata": {
+            "name": "vertice_ac_student_submissions",
+            "type": "function",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function \\`public.vertice_ac_public_categories\\` has a role mutable search_path",
+          "metadata": {
+            "name": "vertice_ac_public_categories",
+            "type": "function",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function \\`public.vertice_invite_lookup\\` has a role mutable search_path",
+          "metadata": {
+            "name": "vertice_invite_lookup",
+            "type": "function",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function \\`public.vertice_ac_student_login\\` has a role mutable search_path",
+          "metadata": {
+            "name": "vertice_ac_student_login",
+            "type": "function",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function \\`public.vertice_ac_student_submit\\` has a role mutable search_path",
+          "metadata": {
+            "name": "vertice_ac_student_submit",
+            "type": "function",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function \\`vertice_private.sync_ac_rule_active\\` has a role mutable search_path",
+          "metadata": {
+            "name": "sync_ac_rule_active",
+            "type": "function",
+            "schema": "vertice_private"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function \\`vertice_private.prevent_hour_entry_mutation\\` has a role mutable search_path",
+          "metadata": {
+            "name": "prevent_hour_entry_mutation",
+            "type": "function",
+            "schema": "vertice_private"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function \\`vertice_private.sync_tcc_to_alumni_production\\` has a role mutable search_path",
+          "metadata": {
+            "name": "sync_tcc_to_alumni_production",
+            "type": "function",
+            "schema": "vertice_private"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        }
+      ]
+    },
+    {
+      "name": "extension_in_public",
+      "level": "WARN",
+      "count": 1,
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0014_extension_in_public",
+      "findings": [
+        {
+          "detail": "Extension \\`pg_trgm\\` is installed in the public schema. Move it to another schema.",
+          "metadata": {
+            "name": "pg_trgm",
+            "type": "extension",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        }
+      ]
+    },
+    {
+      "name": "anon_security_definer_function_executable",
+      "level": "WARN",
+      "count": 5,
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable",
+      "findings": [
+        {
+          "detail": "Function `public.vertice_ac_public_categories(p_institution_id uuid)` can be executed by the `anon` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_ac_public_categories`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_ac_public_categories",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_institution_id uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_ac_student_login(p_matricula text, p_cpf text, p_institution_id uuid)` can be executed by the `anon` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_ac_student_login`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_ac_student_login",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_matricula text, p_cpf text, p_institution_id uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_ac_student_submissions(p_student_id uuid, p_institution_id uuid)` can be executed by the `anon` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_ac_student_submissions`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_ac_student_submissions",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_student_id uuid, p_institution_id uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_ac_student_submit(p_student_id uuid, p_institution_id uuid, p_category_id uuid, p_title text, p_issuer text, p_documentary_minutes integer, p_content_hash text)` can be executed by the `anon` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_ac_student_submit`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_ac_student_submit",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_student_id uuid, p_institution_id uuid, p_category_id uuid, p_title text, p_issuer text, p_documentary_minutes integer, p_content_hash text",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_invite_lookup(p_invite_id uuid)` can be executed by the `anon` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_invite_lookup`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_invite_lookup",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_invite_id uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        }
+      ]
+    },
+    {
+      "name": "authenticated_security_definer_function_executable",
+      "level": "WARN",
+      "count": 91,
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable",
+      "findings": [
+        {
+          "detail": "Function `public.governance_add_evidence(p_deliberation_id uuid, p_file_id uuid, p_description text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/governance_add_evidence`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "governance_add_evidence",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_deliberation_id uuid, p_file_id uuid, p_description text",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.governance_add_member(p_body_id uuid, p_member_name text, p_segment text, p_role_in_body text, p_email text, p_user_id uuid, p_mandate_start date, p_mandate_end date, p_appointed_by text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/governance_add_member`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "governance_add_member",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_body_id uuid, p_member_name text, p_segment text, p_role_in_body text, p_email text, p_user_id uuid, p_mandate_start date, p_mandate_end date, p_appointed_by text",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.governance_alerts(p_institution_id uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/governance_alerts`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "governance_alerts",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_institution_id uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.governance_batch_route(p_routes jsonb)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/governance_batch_route`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "governance_batch_route",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_routes jsonb",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.governance_body_detail(p_body_id uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/governance_body_detail`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "governance_body_detail",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_body_id uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.governance_collegiate_review(p_deliberation_id uuid, p_approved boolean, p_meeting_id uuid, p_feedback_text text, p_feedback_rating integer, p_note text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/governance_collegiate_review`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "governance_collegiate_review",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_deliberation_id uuid, p_approved boolean, p_meeting_id uuid, p_feedback_text text, p_feedback_rating integer, p_note text",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.governance_create_deliberation(p_institution_id uuid, p_body_id uuid, p_meeting_id uuid, p_minute_id uuid, p_subject text, p_full_text text, p_original_excerpt text, p_decision_type text, p_nature text, p_priority text, p_due_date date, p_responsible_name text, p_responsible_user_id uuid, p_target_sector text, p_ai_extracted boolean, p_ai_confidence numeric)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/governance_create_deliberation`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "governance_create_deliberation",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_institution_id uuid, p_body_id uuid, p_meeting_id uuid, p_minute_id uuid, p_subject text, p_full_text text, p_original_excerpt text, p_decision_type text, p_nature text, p_priority text, p_due_date date, p_responsible_name text, p_responsible_user_id uuid, p_target_sector text, p_ai_extracted boolean, p_ai_confidence numeric",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.governance_create_meeting(p_body_id uuid, p_meeting_type text, p_scheduled_date timestamp with time zone, p_location text, p_agenda jsonb, p_convocation_text text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/governance_create_meeting`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "governance_create_meeting",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_body_id uuid, p_meeting_type text, p_scheduled_date timestamp with time zone, p_location text, p_agenda jsonb, p_convocation_text text",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.governance_dashboard(p_institution_id uuid, p_course_id uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/governance_dashboard`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "governance_dashboard",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_institution_id uuid, p_course_id uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.governance_deactivate_member(p_member_id uuid, p_reason text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/governance_deactivate_member`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "governance_deactivate_member",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_member_id uuid, p_reason text",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.governance_deliberation_trace(p_deliberation_id uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/governance_deliberation_trace`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "governance_deliberation_trace",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_deliberation_id uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.governance_execution_metrics(p_institution_id uuid, p_date_from date, p_date_to date)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/governance_execution_metrics`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "governance_execution_metrics",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_institution_id uuid, p_date_from date, p_date_to date",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.governance_generate_review(p_body_id uuid, p_period_start date, p_period_end date)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/governance_generate_review`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "governance_generate_review",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_body_id uuid, p_period_start date, p_period_end date",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.governance_homologate_dossier(p_institution_id uuid, p_course_id uuid, p_period_start date, p_period_end date, p_notes text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/governance_homologate_dossier`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "governance_homologate_dossier",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_institution_id uuid, p_course_id uuid, p_period_start date, p_period_end date, p_notes text",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.governance_link_to_goal(p_deliberation_id uuid, p_goal_id uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/governance_link_to_goal`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "governance_link_to_goal",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_deliberation_id uuid, p_goal_id uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.governance_list_bodies(p_institution_id uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/governance_list_bodies`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "governance_list_bodies",
+            "schema": "public",
+            "language": "sql",
+            "arguments": "p_institution_id uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.governance_list_deliberations(p_institution_id uuid, p_body_id uuid, p_status text, p_priority text, p_overdue_only boolean, p_limit integer, p_offset integer)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/governance_list_deliberations`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "governance_list_deliberations",
+            "schema": "public",
+            "language": "sql",
+            "arguments": "p_institution_id uuid, p_body_id uuid, p_status text, p_priority text, p_overdue_only boolean, p_limit integer, p_offset integer",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.governance_list_reviews(p_institution_id uuid, p_body_id uuid, p_status text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/governance_list_reviews`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "governance_list_reviews",
+            "schema": "public",
+            "language": "sql",
+            "arguments": "p_institution_id uuid, p_body_id uuid, p_status text",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.governance_progress_checkin(p_deliberation_id uuid, p_note text, p_action_progress integer)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/governance_progress_checkin`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "governance_progress_checkin",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_deliberation_id uuid, p_note text, p_action_progress integer",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.governance_register_attendance(p_meeting_id uuid, p_attendees jsonb)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/governance_register_attendance`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "governance_register_attendance",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_meeting_id uuid, p_attendees jsonb",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.governance_regulatory_dossier(p_institution_id uuid, p_course_id uuid, p_date_from date, p_date_to date)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/governance_regulatory_dossier`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "governance_regulatory_dossier",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_institution_id uuid, p_course_id uuid, p_date_from date, p_date_to date",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.governance_request_evidence(p_deliberation_id uuid, p_note text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/governance_request_evidence`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "governance_request_evidence",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_deliberation_id uuid, p_note text",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.governance_review_approve(p_review_id uuid, p_meeting_id uuid, p_notes text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/governance_review_approve`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "governance_review_approve",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_review_id uuid, p_meeting_id uuid, p_notes text",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.governance_review_set_diagnostic(p_review_id uuid, p_body_assessment text, p_ai_diagnostic text, p_improvement_actions jsonb)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/governance_review_set_diagnostic`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "governance_review_set_diagnostic",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_review_id uuid, p_body_assessment text, p_ai_diagnostic text, p_improvement_actions jsonb",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.governance_route_to_action(p_deliberation_id uuid, p_what text, p_why text, p_where_at text, p_who text, p_how text, p_how_much text, p_start_date date, p_due_date date, p_responsible_user_id uuid, p_course_id uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/governance_route_to_action`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "governance_route_to_action",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_deliberation_id uuid, p_what text, p_why text, p_where_at text, p_who text, p_how text, p_how_much text, p_start_date date, p_due_date date, p_responsible_user_id uuid, p_course_id uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.governance_route_to_goal_and_action(p_deliberation_id uuid, p_goal_title text, p_goal_indicator text, p_goal_target numeric, p_goal_direction text, p_goal_unit text, p_goal_baseline numeric, p_goal_due_date date, p_goal_frequency text, p_action_what text, p_action_who text, p_action_how text, p_action_due_date date, p_responsible_user_id uuid, p_course_id uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/governance_route_to_goal_and_action`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "governance_route_to_goal_and_action",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_deliberation_id uuid, p_goal_title text, p_goal_indicator text, p_goal_target numeric, p_goal_direction text, p_goal_unit text, p_goal_baseline numeric, p_goal_due_date date, p_goal_frequency text, p_action_what text, p_action_who text, p_action_how text, p_action_due_date date, p_responsible_user_id uuid, p_course_id uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.governance_traceability_report(p_institution_id uuid, p_body_id uuid, p_date_from date, p_date_to date)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/governance_traceability_report`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "governance_traceability_report",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_institution_id uuid, p_body_id uuid, p_date_from date, p_date_to date",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.governance_transition_status(p_deliberation_id uuid, p_new_status text, p_note text, p_to_actor uuid, p_to_sector text, p_evidence_file_id uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/governance_transition_status`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "governance_transition_status",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_deliberation_id uuid, p_new_status text, p_note text, p_to_actor uuid, p_to_sector text, p_evidence_file_id uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.governance_upsert_minute(p_meeting_id uuid, p_minute_text text, p_file_id uuid, p_approval_status text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/governance_upsert_minute`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "governance_upsert_minute",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_meeting_id uuid, p_minute_text text, p_file_id uuid, p_approval_status text",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.governance_validate_deliberation(p_deliberation_id uuid, p_approved boolean, p_corrections jsonb)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/governance_validate_deliberation`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "governance_validate_deliberation",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_deliberation_id uuid, p_approved boolean, p_corrections jsonb",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.governance_verify_execution(p_deliberation_id uuid, p_approved boolean, p_note text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/governance_verify_execution`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "governance_verify_execution",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_deliberation_id uuid, p_approved boolean, p_note text",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_ac_public_categories(p_institution_id uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_ac_public_categories`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_ac_public_categories",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_institution_id uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_ac_student_login(p_matricula text, p_cpf text, p_institution_id uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_ac_student_login`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_ac_student_login",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_matricula text, p_cpf text, p_institution_id uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_ac_student_submissions(p_student_id uuid, p_institution_id uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_ac_student_submissions`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_ac_student_submissions",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_student_id uuid, p_institution_id uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_ac_student_submit(p_student_id uuid, p_institution_id uuid, p_category_id uuid, p_title text, p_issuer text, p_documentary_minutes integer, p_content_hash text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_ac_student_submit`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_ac_student_submit",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_student_id uuid, p_institution_id uuid, p_category_id uuid, p_title text, p_issuer text, p_documentary_minutes integer, p_content_hash text",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_accept_invites()` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_accept_invites`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_accept_invites",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_accept_master_invitation(invitation uuid, raw_token text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_accept_master_invitation`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_accept_master_invitation",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "invitation uuid, raw_token text",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_add_member(target uuid, member_email text, member_role text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_add_member`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_add_member",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "target uuid, member_email text, member_role text",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_ai_context(inst uuid, course uuid, file_ids uuid[])` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_ai_context`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_ai_context",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "inst uuid, course uuid, file_ids uuid[]",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_ai_crosschecks(p_institution uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_ai_crosschecks`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_ai_crosschecks",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_institution uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_ai_management_snapshot(inst uuid, course uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_ai_management_snapshot`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_ai_management_snapshot",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "inst uuid, course uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_ai_reserve(inst uuid, course uuid, file_ids uuid[], request_hash text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_ai_reserve`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_ai_reserve",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "inst uuid, course uuid, file_ids uuid[], request_hash text",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_api_connection_bind(p_institution uuid, p_system_url text, p_api_url text, p_key text, p_technical_email text, p_external_institution_code text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_api_connection_bind`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_api_connection_bind",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_institution uuid, p_system_url text, p_api_url text, p_key text, p_technical_email text, p_external_institution_code text",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_api_connection_get(p_institution uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_api_connection_get`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_api_connection_get",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_institution uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_api_connection_revoke(p_institution uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_api_connection_revoke`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_api_connection_revoke",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_institution uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_api_ingestion_summary(p_institution uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_api_ingestion_summary`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_api_ingestion_summary",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_institution uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_base_ai_reserve(target uuid, request uuid, request_hash text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_base_ai_reserve`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_base_ai_reserve",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "target uuid, request uuid, request_hash text",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_base_cycle(target uuid, exercise integer)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_base_cycle`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_base_cycle",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "target uuid, exercise integer",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_base_link_matter(target uuid, matter uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_base_link_matter`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_base_link_matter",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "target uuid, matter uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_base_matters(target uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_base_matters`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_base_matters",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "target uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_base_save(target uuid, cycle uuid, record_kind text, record_title text, payload jsonb, series uuid, expected_revision integer)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_base_save`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_base_save",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "target uuid, cycle uuid, record_kind text, record_title text, payload jsonb, series uuid, expected_revision integer",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_bi_module_status(p_institution uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_bi_module_status`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_bi_module_status",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_institution uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_cnpj_academic_context(p_institution uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_cnpj_academic_context`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_cnpj_academic_context",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_institution uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_cnpj_matter_context(p_matter uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_cnpj_matter_context`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_cnpj_matter_context",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_matter uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_discursiva(p_institution_id uuid, p_course_id uuid, p_action text, p_payload jsonb)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_discursiva`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_discursiva",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_institution_id uuid, p_course_id uuid, p_action text, p_payload jsonb",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_emec_import(target uuid, payload jsonb, expected_revision integer)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_emec_import`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_emec_import",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "target uuid, payload jsonb, expected_revision integer",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_enade360_audit_history(target_record uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_enade360_audit_history`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_enade360_audit_history",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "target_record uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_form_vocabulary(p_institution uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_form_vocabulary`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_form_vocabulary",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_institution uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_ies_accept_invite(p_token text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_ies_accept_invite`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_ies_accept_invite",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_token text",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_ies_get_review_policy(p_ies uuid, p_course uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_ies_get_review_policy`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_ies_get_review_policy",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_ies uuid, p_course uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_ies_issue_invite(p_ies uuid, p_email text, p_role text, p_course uuid, p_capacity text, p_token_hash text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_ies_issue_invite`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_ies_issue_invite",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_ies uuid, p_email text, p_role text, p_course uuid, p_capacity text, p_token_hash text",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_ies_list_assignments(p_ies uuid, p_after uuid, p_limit integer)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_ies_list_assignments`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_ies_list_assignments",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_ies uuid, p_after uuid, p_limit integer",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_ies_list_courses(p_ies uuid, p_query text, p_limit integer)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_ies_list_courses`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_ies_list_courses",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_ies uuid, p_query text, p_limit integer",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_ies_list_institutions(p_after uuid, p_limit integer)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_ies_list_institutions`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_ies_list_institutions",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_after uuid, p_limit integer",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_ies_list_invites(p_ies uuid, p_after uuid, p_limit integer)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_ies_list_invites`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_ies_list_invites",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_ies uuid, p_after uuid, p_limit integer",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_ies_my_context()` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_ies_my_context`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_ies_my_context",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_ies_notices()` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_ies_notices`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_ies_notices",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_ies_preview_invite(p_token text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_ies_preview_invite`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_ies_preview_invite",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_token text",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_ies_propose_document(p_ies uuid, p_course uuid, p_kind text, p_resource uuid, p_base_version bigint, p_payload jsonb)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_ies_propose_document`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_ies_propose_document",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_ies uuid, p_course uuid, p_kind text, p_resource uuid, p_base_version bigint, p_payload jsonb",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_ies_register(p_name text, p_emec_code text, p_source_reference text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_ies_register`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_ies_register",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_name text, p_emec_code text, p_source_reference text",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_ies_register_existing(p_ies uuid, p_source_reference text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_ies_register_existing`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_ies_register_existing",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_ies uuid, p_source_reference text",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_ies_registration_detail(p_ies uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_ies_registration_detail`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_ies_registration_detail",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_ies uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_ies_reopen_registration(p_ies uuid, p_expected_revision integer)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_ies_reopen_registration`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_ies_reopen_registration",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_ies uuid, p_expected_revision integer",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_ies_review_registration(p_ies uuid, p_approve boolean, p_expected_revision integer)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_ies_review_registration`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_ies_review_registration",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_ies uuid, p_approve boolean, p_expected_revision integer",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_ies_revoke_assignment(p_assignment uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_ies_revoke_assignment`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_ies_revoke_assignment",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_assignment uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_ies_revoke_invite(p_invitation uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_ies_revoke_invite`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_ies_revoke_invite",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_invitation uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_ies_search(p_query text, p_limit integer)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_ies_search`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_ies_search",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_query text, p_limit integer",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_ies_set_preferences(p_optional_news_email boolean, p_optional_news_whatsapp boolean, p_optional_learning_email boolean, p_optional_learning_whatsapp boolean, p_notice_version text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_ies_set_preferences`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_ies_set_preferences",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_optional_news_email boolean, p_optional_news_whatsapp boolean, p_optional_learning_email boolean, p_optional_learning_whatsapp boolean, p_notice_version text",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_ies_set_review_policy(p_ies uuid, p_course uuid, p_required boolean, p_notice_version text, p_acknowledged boolean, p_expected_revision integer)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_ies_set_review_policy`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_ies_set_review_policy",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_ies uuid, p_course uuid, p_required boolean, p_notice_version text, p_acknowledged boolean, p_expected_revision integer",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_ies_validate_document(p_proposal uuid, p_approve boolean)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_ies_validate_document`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_ies_validate_document",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_proposal uuid, p_approve boolean",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_integration_monitor_read(p_institution uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_integration_monitor_read`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_integration_monitor_read",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_institution uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_invite_lookup(p_invite_id uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_invite_lookup`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_invite_lookup",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_invite_id uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_issue_master_invitation(target_email text, token_digest text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_issue_master_invitation`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_issue_master_invitation",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "target_email text, token_digest text",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_list_master_invitations(page_size integer, before_created_at timestamp with time zone, before_id uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_list_master_invitations`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_list_master_invitations",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "page_size integer, before_created_at timestamp with time zone, before_id uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_list_masters(page_size integer, before_created_at timestamp with time zone, before_user_id uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_list_masters`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_list_masters",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "page_size integer, before_created_at timestamp with time zone, before_user_id uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_platform_bi_contract_counts()` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_platform_bi_contract_counts`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_platform_bi_contract_counts",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_preview_master_invitation(invitation uuid, raw_token text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_preview_master_invitation`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_preview_master_invitation",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "invitation uuid, raw_token text",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_record_channel_choices(target uuid, allow_email boolean, whatsapp text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_record_channel_choices`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_record_channel_choices",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "target uuid, allow_email boolean, whatsapp text",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_revoke_master_invitation(invitation uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_revoke_master_invitation`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_revoke_master_invitation",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "invitation uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_sapiens_can_read(inst uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_sapiens_can_read`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_sapiens_can_read",
+            "schema": "public",
+            "language": "sql",
+            "arguments": "inst uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        },
+        {
+          "detail": "Function `public.vertice_team(target uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/vertice_team`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "vertice_team",
+            "schema": "public",
+            "language": "sql",
+            "arguments": "target uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-17T18:26:05.516Z"
+        }
+      ]
+    }
+  ],
+  "local_tests": {
+    "enamed_contracts": {
+      "passed": 15,
+      "failed": 0
+    },
+    "bridge_native_and_origin": {
+      "passed": 12,
+      "failed": 0,
+      "scope": "8 local synthetic native cycles + 4 origin/destination security checks; no authenticated remote sessions"
+    }
+  },
+  "production_modified": false,
+  "auth_qa_executed": false,
+  "dual_ai_live_calls": 0,
+  "medical_approval": false,
+  "release_status": "BLOCKED",
+  "edge_function_source_readback": "PASS — all deployed source files matched local source exactly; JWT verification remains enabled",
+  "edge_source_sha256": {
+    "supabase/functions/_shared/bridge-origins.ts": "23a9704f5e5122a184e35f481c5cc45ee245b3ab1d61c635f265f6d030315334",
+    "supabase/functions/vertice-sapiens-bridge/handler.ts": "200da2e8e048f1562819b6f9cbe6062bdcea1b2b686c374a859ee1790cdb5463",
+    "supabase/functions/vertice-sapiens-bridge/index.ts": "b8058a14b20a3781fd0fd1b501120b3a31db4d86bf51a918faf1ba7e9222fe0f",
+    "supabase/functions/vertice-learning-bridge/index.ts": "4c4842a4bbaa116723dcc2b34689ad12de34c6ba9210e4723fbe674b1469bb19"
+  },
+  "final_eorbit_acl": {
+    "all_rls": true,
+    "eorbit_tables": 25,
+    "protected_read_tables": 0,
+    "anon_any_privilege_tables": 0,
+    "authenticated_write_or_maintenance_tables": 0,
+    "checked_privileges": [
+      "SELECT",
+      "INSERT",
+      "UPDATE",
+      "DELETE",
+      "TRUNCATE",
+      "REFERENCES",
+      "TRIGGER",
+      "MAINTAIN"
+    ]
+  },
+  "provider_failure_observed_in_browser": {
+    "status": "REPROVADA",
+    "workflow_run_local": "2026-11-17 15:25:08 America/Sao_Paulo",
+    "function": "vertice-doc-prevalidate",
+    "script_size": "38.48MB",
+    "http_status": 413,
+    "message": "request entity too large",
+    "url": "https://supabase.com/dashboard/project/rnmkmnrfhvjihsuqziwf/branches",
+    "no_older_function_substitution": "Local 18.9KB source uses basic PDF extraction; equivalence with current deployed bundle not established. Current prevalidation function preserved."
+  }
+}

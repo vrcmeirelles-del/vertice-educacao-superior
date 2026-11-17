@@ -1,11 +1,8 @@
 import {createClient,type SupabaseClient} from "npm:@supabase/supabase-js@2.45.4";
+import {bridgeOrigins,bridgeRemoteAllowed} from '../_shared/bridge-origins.ts';
 
 // Server-only bridge. No CPF is persisted, logged or returned.
-const ORIGINS=new Set([
- "https://www.verticesuperior.com.br","https://verticesuperior.com.br",
- "https://vertice-portal.onrender.com","https://vertice-educacao-superior.onrender.com",
- "https://vertice-educacao-superior-site.onrender.com"
-]);
+const ORIGINS=bridgeOrigins(Deno.env.get('SUPABASE_URL')||'');
 const UUID=/^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
 const ALLOWED_ROLES=new Set(["reitor","gestor","diretor_geral","diretor_pedagogico","procurador"]);
 const MODS=new Set(["oab","cfc","enade","enamed","residencia","enem","delegado","pf","estadual","federal","defensoria","mp"]);
@@ -92,13 +89,13 @@ async function remote(path:string,method="GET",body?:unknown,aggregateOnly=false
  if(key.length<32)throw fail("Credencial de comunicação com o Fato & Ordem não configurada.",503);
  const base=env("FATO_ORDEM_BRIDGE_URL")||"https://www.fatoeordem.com.br";
  const url=new URL(path,base);
- if(url.protocol!=="https:"||!["www.fatoeordem.com.br","fatoeordem.com.br","fato-e-ordem-lab.onrender.com"].includes(url.hostname))
+ if(!bridgeRemoteAllowed(url,env('SUPABASE_URL')))
   throw fail("Origem da integração não autorizada.",503);
  const response=await fetch(url,{method,headers:{
   "x-vertice-bridge-key":key,
   ...(method!=="GET"?{"x-requested-with":"fato-e-ordem","content-type":"application/json"}:{})
- },body:body===undefined?undefined:JSON.stringify(body),signal:AbortSignal.timeout(20000),
- ...(aggregateOnly?{redirect:"error" as const,cache:"no-store" as const}:{})});
+ },body:body===undefined?undefined:JSON.stringify(body),signal:AbortSignal.timeout(20000),redirect:"error",
+ ...(aggregateOnly?{cache:"no-store" as const}:{})});
  if(!response.ok){
   if(aggregateOnly)throw fail("Indicadores de leitura indisponíveis na origem (HTTP "+response.status+").",502);
   const errBody=await response.text().catch(()=>"(sem corpo)");

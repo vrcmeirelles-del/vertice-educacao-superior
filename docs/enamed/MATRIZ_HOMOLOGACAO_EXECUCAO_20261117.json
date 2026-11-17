@@ -2,7 +2,7 @@
   "schema_version": "enamed-authenticated-qa-v1",
   "date": "2026-11-17",
   "environment_observed": "https://vertice-enamed-homologacao.onrender.com/entrar",
-  "observed_state": "Isolated frontend live; no Auth users; DB replay incomplete; pending provider confirmation. No authenticated session.",
+  "observed_state": "Isolated schema restored with documented variants; Sapiens v4 and Learning v26 ACTIVE/JWT enabled. No authorized Auth test users or authenticated session. Provider automatic function stage FUNCTIONS_FAILED.",
   "supabase_development_branches": 1,
   "render_preview_enabled": false,
   "responsible": "Codex — registro técnico, não aceite humano",
@@ -13,14 +13,20 @@
       "status": "BLOQUEADA",
       "executed": false,
       "observed": null,
-      "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
-      "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json",
+      "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
+      "evidence": "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json",
       "history": [
         {
           "status": "BLOQUEADA",
           "executed": false,
           "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
           "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+          "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json"
         }
       ]
     },
@@ -30,14 +36,20 @@
       "status": "BLOQUEADA",
       "executed": false,
       "observed": null,
-      "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
-      "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json",
+      "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
+      "evidence": "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json",
       "history": [
         {
           "status": "BLOQUEADA",
           "executed": false,
           "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
           "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+          "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json"
         }
       ]
     },
@@ -47,14 +59,20 @@
       "status": "BLOQUEADA",
       "executed": false,
       "observed": null,
-      "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
-      "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json",
+      "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
+      "evidence": "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json",
       "history": [
         {
           "status": "BLOQUEADA",
           "executed": false,
           "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
           "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+          "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json"
         }
       ]
     },
@@ -64,14 +82,20 @@
       "status": "BLOQUEADA",
       "executed": false,
       "observed": null,
-      "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
-      "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json",
+      "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
+      "evidence": "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json",
       "history": [
         {
           "status": "BLOQUEADA",
           "executed": false,
           "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
           "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+          "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json"
         }
       ]
     },
@@ -81,14 +105,20 @@
       "status": "BLOQUEADA",
       "executed": false,
       "observed": null,
-      "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
-      "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json",
+      "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
+      "evidence": "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json",
       "history": [
         {
           "status": "BLOQUEADA",
           "executed": false,
           "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
           "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+          "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json"
         }
       ]
     },
@@ -98,14 +128,20 @@
       "status": "BLOQUEADA",
       "executed": false,
       "observed": null,
-      "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
-      "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json",
+      "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
+      "evidence": "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json",
       "history": [
         {
           "status": "BLOQUEADA",
           "executed": false,
           "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
           "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+          "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json"
         }
       ]
     },
@@ -115,14 +151,20 @@
       "status": "BLOQUEADA",
       "executed": false,
       "observed": null,
-      "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
-      "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json",
+      "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
+      "evidence": "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json",
       "history": [
         {
           "status": "BLOQUEADA",
           "executed": false,
           "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
           "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+          "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json"
         }
       ]
     },
@@ -132,14 +174,20 @@
       "status": "BLOQUEADA",
       "executed": false,
       "observed": null,
-      "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
-      "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json",
+      "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
+      "evidence": "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json",
       "history": [
         {
           "status": "BLOQUEADA",
           "executed": false,
           "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
           "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+          "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json"
         }
       ]
     },
@@ -149,14 +197,20 @@
       "status": "BLOQUEADA",
       "executed": false,
       "observed": null,
-      "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
-      "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json",
+      "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
+      "evidence": "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json",
       "history": [
         {
           "status": "BLOQUEADA",
           "executed": false,
           "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
           "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+          "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json"
         }
       ]
     },
@@ -166,14 +220,20 @@
       "status": "BLOQUEADA",
       "executed": false,
       "observed": null,
-      "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
-      "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json",
+      "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
+      "evidence": "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json",
       "history": [
         {
           "status": "BLOQUEADA",
           "executed": false,
           "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
           "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+          "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json"
         }
       ]
     },
@@ -183,14 +243,20 @@
       "status": "BLOQUEADA",
       "executed": false,
       "observed": null,
-      "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
-      "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json",
+      "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
+      "evidence": "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json",
       "history": [
         {
           "status": "BLOQUEADA",
           "executed": false,
           "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
           "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+          "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json"
         }
       ]
     },
@@ -200,14 +266,20 @@
       "status": "BLOQUEADA",
       "executed": false,
       "observed": null,
-      "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
-      "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json",
+      "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
+      "evidence": "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json",
       "history": [
         {
           "status": "BLOQUEADA",
           "executed": false,
           "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
           "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+          "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json"
         }
       ]
     },
@@ -217,14 +289,20 @@
       "status": "BLOQUEADA",
       "executed": false,
       "observed": null,
-      "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
-      "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json",
+      "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
+      "evidence": "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json",
       "history": [
         {
           "status": "BLOQUEADA",
           "executed": false,
           "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
           "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+          "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json"
         }
       ]
     },
@@ -234,14 +312,20 @@
       "status": "BLOQUEADA",
       "executed": false,
       "observed": null,
-      "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
-      "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json",
+      "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
+      "evidence": "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json",
       "history": [
         {
           "status": "BLOQUEADA",
           "executed": false,
           "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
           "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+          "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json"
         }
       ]
     },
@@ -251,14 +335,20 @@
       "status": "BLOQUEADA",
       "executed": false,
       "observed": null,
-      "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
-      "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json",
+      "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
+      "evidence": "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json",
       "history": [
         {
           "status": "BLOQUEADA",
           "executed": false,
           "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
           "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+          "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json"
         }
       ]
     },
@@ -268,14 +358,20 @@
       "status": "BLOQUEADA",
       "executed": false,
       "observed": null,
-      "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
-      "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json",
+      "reason": "Conta de teste autorizada do respectivo perfil com MFA/AAL2 ausente no ambiente isolado. Esquema restaurado; duas pontes ACTIVE; sessão real ainda não executada.",
+      "evidence": "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json",
       "history": [
         {
           "status": "BLOQUEADA",
           "executed": false,
           "reason": "Ambiente isolado e conta de teste correspondente com MFA/AAL2 indisponíveis nesta sessão.",
           "evidence": "Browser Work: tela /entrar; Supabase list_branches=[]; Render previews=off"
+        },
+        {
+          "status": "BLOQUEADA",
+          "executed": false,
+          "reason": "Frontend isolado disponível; banco ainda em restauração e confirmação de migração pendente. Zero contas Auth de teste com MFA/AAL2.",
+          "evidence": "docs/enamed/evidencias/20261117_WORK_HOMOLOGACAO.json"
         }
       ]
     }
@@ -296,16 +392,60 @@
     }
   ],
   "isolated_environment_attempt": {
-    "action": "staging_replay_progress",
+    "action": "isolated_schema_replay_and_manual_bridge_deploy",
     "status": "CONCLUÍDA",
-    "migration_count": 85,
-    "public_tables": 103,
-    "public_rls_tables": 103,
+    "migration_count": 250,
+    "parent_versions_represented": 213,
+    "missing_parent_versions": 0,
+    "cron": [
+      {
+        "name": "vertice-security-gate-daily",
+        "active": true
+      },
+      {
+        "name": "vertice-market-public-discovery-daily",
+        "active": false
+      }
+    ],
+    "triggers": [
+      {
+        "name": "issue_graphql_placeholder",
+        "enabled": "O"
+      },
+      {
+        "name": "pgrst_ddl_watch",
+        "enabled": "O"
+      },
+      {
+        "name": "pgrst_drop_watch",
+        "enabled": "O"
+      },
+      {
+        "name": "issue_pg_cron_access",
+        "enabled": "O"
+      },
+      {
+        "name": "issue_pg_net_access",
+        "enabled": "O"
+      },
+      {
+        "name": "issue_pg_graphql_access",
+        "enabled": "O"
+      },
+      {
+        "name": "vertice_security_guard",
+        "enabled": "O"
+      }
+    ],
     "auth_users": 0,
-    "institution_rows": 0,
     "course_rows": 0,
+    "student_rows": 0,
+    "public_tables": 325,
     "storage_objects": 0,
-    "notes": "Historical replay remains incomplete; do not label as full production-schema parity. Cost seed omitted only in the staging variant; original production migration remains unchanged. Metadata/history in staging stores actual variant SQL. No Supabase branch merge to production allowed."
+    "institution_rows": 0,
+    "public_rls_tables": 325,
+    "learning_metrics_rows": 0,
+    "notes": "Schema/version coverage is not exact SQL parity or real authenticated QA; provider automatic function stage failed; two bridge deploys verified individually. Never merge this DB branch to production."
   },
   "environment_history": [
     {
@@ -313,6 +453,22 @@
       "environment_observed": "https://www.verticesuperior.com.br/entrar",
       "observed_state": "Email/password form, no signed-in session; not an isolated staging deployment",
       "supabase_development_branches": 0
+    },
+    {
+      "date": "2026-11-17",
+      "observed_state": "Isolated frontend live; no Auth users; DB replay incomplete; pending provider confirmation. No authenticated session.",
+      "isolated_environment_attempt": {
+        "action": "staging_replay_progress",
+        "status": "CONCLUÍDA",
+        "migration_count": 85,
+        "public_tables": 103,
+        "public_rls_tables": 103,
+        "auth_users": 0,
+        "institution_rows": 0,
+        "course_rows": 0,
+        "storage_objects": 0,
+        "notes": "Historical replay remains incomplete; do not label as full production-schema parity. Cost seed omitted only in the staging variant; original production migration remains unchanged. Metadata/history in staging stores actual variant SQL. No Supabase branch merge to production allowed."
+      }
     }
   ],
   "render_homologation_service": "srv-dbu771mc6qcc73fbog0g"

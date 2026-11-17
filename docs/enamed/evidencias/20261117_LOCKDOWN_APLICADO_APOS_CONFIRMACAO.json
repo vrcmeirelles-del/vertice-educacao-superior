@@ -1,0 +1,64 @@
+{
+  "schema_version": "enamed-staging-confirmed-migration-v1",
+  "date": "2026-11-17",
+  "project_ref": "rnmkmnrfhvjihsuqziwf",
+  "parent_project_ref": "qvetbbmviatxxatzzuzc",
+  "authorization": "Confirmação do usuário após pedido de aplicação exclusiva em homologação",
+  "migration": "enamed_staging_lockdown_with_private_empty_map",
+  "status": "CONCLUÍDA",
+  "provider_result": {
+    "success": true
+  },
+  "sql_file": "docs/enamed/evidencias/20261117_HOMOLOGACAO_LOCKDOWN_PENDENTE.sql",
+  "sql_sha256": "9ba6466ba1f61e5ef5e365d8ae770b6683050ef779c3cf58161fcb7bfc56d19d",
+  "verified_after_apply": {
+    "repair_recorded": true,
+    "legacy_lockdown_recorded": true,
+    "public_tables": 103,
+    "public_rls_tables": 103,
+    "eorbit_select_policies": 22,
+    "alunos_and_map_client_grants": 0,
+    "auth_users": 0,
+    "institutions": 0
+  },
+  "subsequent_baseline": {
+    "file": "supabase/migrations/novo_instrumento.sql",
+    "sha256": "28a97b8eccdc39b5f4119d69371e9dbd397ae2d13dd7b72240976ec023475502",
+    "migration": "enamed_staging_restore_instrumento_baseline",
+    "status": "CONCLUÍDA",
+    "verified_tables": 4,
+    "all_four_rls": true
+  },
+  "authenticated_qa_executed": false,
+  "production_modified": false,
+  "release_status": "BLOCKED",
+  "staging_branch_merge_to_production_allowed": false,
+  "additional_structural_repairs": [
+    {
+      "source": "docs/enamed/evidencias/20261117_RESTAURACAO_DEFINICOES_APLICADAS.json",
+      "status": "CONCLUÍDA",
+      "scope": "Two empty prerequisite tables; production institution defaults omitted; no data copied"
+    },
+    {
+      "source": "docs/enamed/evidencias/20261117_RESTAURACAO_DEFINICOES_APLICADAS.json",
+      "status": "CONCLUÍDA",
+      "scope": "Module catalog structure only; subsequent historical migration seeds system catalog metadata, not student results"
+    },
+    {
+      "source": "docs/enamed/evidencias/20261117_RESTAURACAO_DEFINICOES_APLICADAS.json",
+      "status": "CONCLUÍDA",
+      "scope": "Contracts and billing-cycle structure only; no contracts, payments or charges created"
+    }
+  ],
+  "acl_query_verified": {
+    "eorbit_tables": 25,
+    "all_rls": true,
+    "anon_tables_with_any_access": 0,
+    "authenticated_tables_with_write": 0,
+    "authenticated_restricted_tables_with_read": 0
+  },
+  "additional_structural_repairs_archive": "docs/enamed/evidencias/20261117_RESTAURACAO_DEFINICOES_APLICADAS.json",
+  "replay_state": "SCHEMA_RESTORED_WITH_DOCUMENTED_VARIANTS",
+  "final_snapshot": "docs/enamed/evidencias/20261117_RESTAURACAO_SNAPSHOT_FINAL.json",
+  "acl_scope_clarification": "Earlier intermediate ACL result does not substitute for final full SELECT/DML/maintenance privilege check; see final snapshot. A separately applied maintenance-privilege revocation was observed in staging history, not claimed as an action of this execution."
+}
