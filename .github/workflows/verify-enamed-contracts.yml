@@ -35,6 +35,8 @@ jobs:
         run: node --test scripts/tests/enamed-booklet-maps.test.mjs
       - name: Validar 22 questões com páginas e status de revisão preservados
         run: node --test scripts/tests/enamed-text-variants.test.mjs
+      - name: Validar comparações integrais entre cópias e 6 mídias de origem
+        run: node --test scripts/tests/enamed-e1-content-media-contract.test.mjs
       - name: Verificar integridade documental com fixtures sintéticas
         run: python -m unittest discover -s scripts/tests -p "test_verify_inep_artifacts.py" -v
       - name: Rejeitar rotas TLS inseguras e intermediárias não validadas
