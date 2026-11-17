@@ -334,3 +334,17 @@ RECOMENDAÇÃO PARA A ETAPA SEGUINTE:
 
 - [x] Preparar `ENAMED_2026_ROTEIRO_HOMOLOGACAO_PERFIS.md` com 16 casos e massa sintética multi-IES; nenhuma sessão real foi executada.
 - [ ] Executar os 16 casos em ambiente autenticado de homologação e registrar respostas positivas/negativas RLS, MFA e evidências de tela; publicação permanece bloqueada.
+
+
+## E1 e curadoria preparatória — triagem de 22 variantes e mídias (17/11/2026)
+- [x] Confrontar primeiras regiões divergentes de 22 pares Caderno 2 com o PDF oficial e classificar necessidades de revisão, sem decisão clínica automática.
+- [x] Gerar `ENAMED_2026_TRIAGEM_22_VARIANTES_TEXTUAIS_C2.json` com identificadores, página PDF, C1 equivalente e bloqueio de publicação.
+- [x] Identificar Q12 (Lund–Browder), Q81 (imagem dermatológica), Q82 (radiografia) como dependentes de imagem, a conferir antes de uso.
+- [x] Inspecionar tabela F&O: `blocks` vazio 483/483, `source_hash` nulo 483/483, `competencies` vazio 483/483 e `source_page` ausente em 223/483.
+- [x] Criar `E1_AUDITORIA_22_VARIANTES_E_MIDIAS_20261117.md` e teste Node de rastreabilidade no CI.
+- [ ] Confirmar resultado CI da última revisão com o teste novo de 22 variantes.
+- [ ] Cotejar integralmente comando/alternativas/tabelas/valores/imagens das 22 variações persistentes e demais itens, e atribuir parecer de especialista por item.
+- [ ] Inspecionar outras possíveis fontes de mídia em armazenamento, sem concluir ausência global só pelo `blocks=[]`.
+- [ ] Preparar homologação autenticada dos 16 cenários com massa sintética, AAL2 e duas IES, sem modificar o ambiente produtivo.
+- [ ] Recuperar gabaritos definitivos e notas metodológicas, revisar retificações, e finalizar E1 antes da reindexação no F&O.
+**Status:** triagem documental ampliada; nenhum aceite clínico, E1 ainda aberta.
