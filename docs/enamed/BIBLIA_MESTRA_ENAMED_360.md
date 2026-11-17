@@ -1,6 +1,6 @@
 # BÍBLIA-MESTRA DO PROJETO — ENAMED 360° / INEP INTELLIGENCE
 **Projeto:** Vértice Educação Superior × Fato & Ordem × Sapiens 360°  
-**Versão:** 1.6 — E1 parcial + cadeia de custódia e QA por perfil  
+**Versão:** 1.7 — E1 parcial + CI de integridade e fila formal de curadoria  
 **Data-base:** 16 de novembro de 2026  
 **Status:** documento-mestre de projeto; NÃO corresponde à implantação ou homologação da solução.  
 **Governança:** evolução cumulativa por etapas, com revisão retrospectiva obrigatória.  
@@ -283,3 +283,21 @@ Prosseguir conferindo as fontes INEP e originais de cada caderno; E1 não pode s
 - ADR-ENAMED-014: perfil de coordenação exige uma visualização institucional restrita por curso antes de ser habilitado no ENAMED/ENADE 360; não presumir autorização somente pelo menu.
 
 **Porta E1:** fechada até haver arquivos oficiais integrais, versões, hashes e revisão normativa. Futura validação por IES continua E9.
+
+
+## 18. Atualização v1.7 — execução formal de testes e encaminhamento à curadoria (16/11/2026)
+**Herdeiro de v1.6:** E1 aberta, E2/E3 preparatórias, E9 institucional futura. Nenhuma modificação de produção.
+
+### Evidências novas
+- Run GitHub Actions `43997164508`, workflow `ENAMED 360 - validar contratos e dicionário`: **6 testes Node aprovados (2 de dicionário + 4 de integração)** e **4 testes Python aprovados**, usando fixtures sintéticas. Isso comprova os contratos versionados e o verificador offline, **não a autenticidade de PDFs oficiais**.
+- Componentes `EnamedEnvironment.test.tsx` foram adicionados ao suíte Vitest, com quatro testes SSR e de matriz de navegação (Master/Reitoria/CPA versus coordenador/NDE/equipe/leitor). Resultado da execução TypeScript completa após as mudanças ainda depende da conclusão do workflow `43997164461`; execução local em navegador e RLS autenticada não ocorreram.
+- Extraídas das tabelas F&O três URLs por edição: aplicação regular cadernos 1 e 2 (100 posições por caderno, 200 registros cada) e reaplicação caderno 1 (83 posições). Todas registradas em `FONTES_FO_PENDENTES_AUTENTICACAO_20261116.json`, com `sha256: null`, origem declarada no banco, sem certificação da publicação original.
+- `CONFLITOS_DUPLICATAS_ENAMED_2026.csv` enumera individualmente 200 posições duplicadas e flags; nenhum conteúdo clínico completo de paciente ou dados nominais foi adicionado.
+- Issue **#170** criada como fila formal de curadoria: 483 registros, 200 posições duplicadas e revisão temática/competências das duas IAs **somente após** PDF/gabarito autenticados e curadoria médica.
+- Edital republicado nº 71/2026, DOU 21/08/2026, validado textualmente via documento hospedado no domínio Inep: 8º/12º semestres, 100 itens, 4 alternativas, marco 03/07/2026, definitivo previsto 04/12/2026. Captura visual do PDF e SHA-256 dos binários não foram obtidos; **não fechar E1**.
+- Repetida tentativa de download dos binários via ambiente de arquivos: falha de domínio/transferência. Sem falsear checksum.
+
+### ADR-ENAMED-015
+Pode-se **encaminhar a fila de revisão** antes da autenticação da fonte (issue de trabalho), mas não executar homologação clínica, atualização F&O ou publicação de índices oficiais até os critérios de E1. Distinguir issue aberta de parecer médico ou de IA concluído.
+
+**Portal:** PR #168 draft, sem merge ou deploy nesta execução. Não afirmar acesso de coordenação ao ENADE 360: acesso escopado pendente de revisão e teste.
