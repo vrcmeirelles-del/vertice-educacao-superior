@@ -163,3 +163,14 @@ Leia em conjunto com `BIBLIA_MESTRA_ENAMED_360.md` e `PLANO_DE_TRABALHO_ENAMED_3
 - **CI e portal:** recuperação, contratos ENAMED e TS completo concluíram success no commit `ccda5e4...`. Sem sessão autenticada por perfil (Master/Reitoria/CPA/Coordenação/NDE/outra IES) e sem deploy Render desta PR.
 - **Documentos criados:** `INEP_2026_SHA256_DOCUMENTOS_PRELIMINARES_20261117.json` e `E1_CONFRONTO_GABARITOS_PRELIMINARES_483_20261117.md`; registro cumulativo v2.2.
 - **Decisão:** E1 **ainda aberta** até validade das versões definitivas, notas metodológicas, identidade textual dos itens e aceite regulatório; E2/E3 preparatórias, E9 institucional futura. **Nenhum registro de questões, gabaritos ou estudante foi alterado.**
+
+
+## 2026-11-17 — Auditoria textual de aberturas e permutação oficial C1/C2
+- **Herança:** Bíblia v2.2, Plano, Diário, PDFs oficiais do artefato 14299257407, catálogo de hashes, relatórios de 483 gabaritos preliminares concordantes, issue #170.
+- **PDFs:** PyMuPDF com páginas de questões (excluindo questionário de percepção) identificou 100/100 questões por caderno. Verificação de página renderizada confirmou layout de duas colunas e questão de reaplicação 78 C2.
+- **Permutações:** regular C2→C1: 100/100 aberturas normalizadas e 100/100 letras preliminares concordantes; reaplicação C2→C1: 100/100 e 100/100; um prefixo com marcador gráfico adicional foi associado com similaridade ~98,2%. Mapas são bijetivos, em rascunho até checagem integral de conteúdo e mídia.
+- **F&O somente leitura:** 483 registros consultados em lotes e comparados com os 24 caracteres iniciais normalizados dos enunciados oficiais remapeados: regular C1 200/200, regular C2 200/200, reaplicação C1 83/83. **Triagem inicial, não homologação integral.** Nenhuma alteração de banco.
+- **Correção de hipótese anterior:** reaplicação C2 representa os mesmos 100 casos em outra ordem; a lacuna candidata de *conteúdo* permanece 17 questões da reaplicação C1, e não 117 questões inéditas. As 100 posições C2 ausentes da tabela ainda exigem mapeamento de apresentação.
+- **Artefatos:** `ENAMED_2026_MAPA_PERMUTACOES_CADERNOS_DRAFT.json`, `ENAMED_2026_LOCALIZADOR_PAGINAS_400_QUESTOES.json`, `ENAMED_2026_REAPLICACAO_17_POSICOES_EQUIVALENTES.json`, `E1_AUDITORIA_TEXTUAL_483_E_MAPA_CADERNOS_20261117.md`, `scripts/tests/enamed-booklet-maps.test.mjs`; workflow ENAMED atualizado.
+- **QA:** execução anterior de TypeScript/419 testes comprovada em commits anteriores; verificar execução final do novo workflow. Sessões reais autenticadas por perfis continuam não executadas; PR #168 draft, sem deploy.
+- **Estado:** E1 não aceita integralmente; revisão clínica e duas IAs não disparadas; nenhuma questão, gabarito ou tentativa de estudante modificada.
