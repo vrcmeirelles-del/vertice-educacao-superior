@@ -215,3 +215,18 @@ RECOMENDAÇÃO PARA A ETAPA SEGUINTE:
 - [ ] Baixar/hashear prova, gabaritos, todas as notas e atos essenciais; autenticar vigência e versões; E1 continua sem aceite.
 - [ ] Executar confronto semântico 483/483 por caderno, comando, alternativa, gabarito e matriz; curadoria clínica dupla.
 **Porta:** preparação em branch permitida; E2/E3 dependem do corpus E1 autenticado. Não efetuar merge nem deploy enquanto gates de produção estiverem abertos.
+
+
+## E1 e QA — rodada de autenticação e perfis (16/11/2026)
+- [x] Inspecionar Edital 71/2026 republicado e registrar itens 1.1.1–1.1.2, 1.3, 3.1.1.1, 3.1.1.2.1.
+- [x] Catalogar três URLs de cadernos declaradas pelo F&O, **ainda não autenticadas**.
+- [x] Enumerar 200 posições duplicadas com flags por campo no CSV restrito a metadados.
+- [x] Implementar verificador offline de hash/assinatura básica PDF com falha fechada e 4 testes sintéticos.
+- [x] Adicionar testes de renderização estática/visibilidade por perfil; manter permissões intactas.
+- [x] Atualizar workflow ENAMED para invocar testes Node e Python.
+- [ ] Comprovar aprovação do último CI com novos testes, TypeScript, renderização e build.
+- [ ] Executar testes reais autenticados por Master, Reitoria, CPA, coordenador, NDE e docente com autorização; conferir RLS por curso/IES.
+- [ ] Baixar PDFs/gabaritos diretamente de URLs primárias e comparar SHA-256, edição, comandos e alternativas.
+- [ ] Conferir notas técnicas e todo o acervo E1; completar parecer regulatório.
+- [ ] Enviar 483 propostas à dupla-IA e revisão clínica apenas depois de documentação verificável; **sem escrita na produção**.
+**Aceite E1 não alcançado.**
