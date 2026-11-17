@@ -269,3 +269,14 @@ RECOMENDAÇÃO PARA A ETAPA SEGUINTE:
 - [ ] Confirmar 4 testes SSR adicionais no CI e validar autenticação RLS efetiva por Master, Reitoria, CPA, Coordenação/NDE e outra IES.
 - [ ] Confrontar as 483 questões com provas e gabaritos oficiais, concluir revisão médica antes de atualizar F&O/Sapiens.
 **E1 não aceita; não avançar a etapas dependentes.**
+
+
+## E1 — Recuperação com JavaScript e validação TLS (16/11/2026)
+- [x] Resolver descoberta de URLs oficiais pelo navegador Playwright em CI, **11 links PDF confirmados diretamente na página do INEP**, manifestados em JSON com proveniência e estado separado.
+- [x] Reconhecer Caderno 2 da reaplicação e seus gabaritos como documentos oficialmente listados, sem inferir a existência deles no banco F&O.
+- [x] Implementar e executar segunda rota `curl` com TLS ativo: 8 tentativas, 0 arquivos; erros de certificado e reset documentados.
+- [x] Atualizar catálogo E1, Bíblia, Plano e Diário preservando histórico e gates.
+- [ ] Obter PDFs íntegros via canal com cadeia TLS válida ou transferência documental oficial autorizada; registrar SHA-256, tamanho, versão e gabarito.
+- [ ] Confrontar 483 registros e 200 pares duplicados com as provas originais, antes de liberar duas IAs e curadoria médica.
+- [ ] Confirmar CI completo do HEAD incluindo testes SSR ENAMED e executar sessões autenticadas reais para cada perfil/IES.
+**Aceite:** E1 bloqueada por transferência/autenticação de binários; não confundir URL publicada com prova autenticada.
