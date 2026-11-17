@@ -76,3 +76,9 @@ Antes de cada etapa consultar os três documentos. Concluído só com evidência
 - Causa provável tecnicamente fundamentada: instalação `jsonschema==4.23.0` sem extras de verificadores de formato opcional; isso pode impedir validação de `date-time` e `uri` mesmo quando o `FormatChecker` está presente. Não remover os testes.
 - Correção versionada no workflow: `python -m pip install "jsonschema[format]==4.23.0"`, commit `1f62c2163db65309e40957553abc7272d6b603a2`. Resultado final da repetição ainda sujeito a confirmação do CI.
 - Esta falha faz parte do histórico auditável e não deve ser apagada. Não representa prova com microdados INEP.
+
+## Adendo v0.8.2 — Integração estrutural e semântica (2026-11-16)
+- Gate real 28/28 confirmado no CI run `43996910743` após correção do formato URI/data; histórico da falha anterior preservado.
+- Implementado `integrated-gate.cjs` e estendida suíte Python para que as mesmas fixtures percorram JSON Schema e validações semânticas/pedagógicas, adicionando 4 negativos: hipóteses e inferências sem ressalvas, ação sem aprovação, contagens ilógicas.
+- Total esperado na nova suíte: 32, ainda sujeito a confirmação de execução CI própria. Próximo passo: obter conclusão final, corrigir eventuais falhas e registrar log, SHA e aceites reais.
+- Dependências oficiais P-ZIP-001, P-REF-001, P-NT-001 abertas; sem especialização.
