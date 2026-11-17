@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Positive and negative JSON Schema Draft 2020-12 tests; entirely synthetic."""
-import copy, json, pathlib, sys
+import copy, json, pathlib, sys, subprocess
 from jsonschema import Draft202012Validator, FormatChecker
 
 HERE=pathlib.Path(__file__).resolve().parent
@@ -30,12 +30,15 @@ def fixture(kind="R1"):
  validation_status="PENDING",evidence_refs=[])],payload=copy.deepcopy(payloads[kind]))
 def check(name,report,expected):
  errors=list(validator.iter_errors(report))
- result=not errors
+ node=subprocess.run(['node',str(HERE/'integrated-gate.cjs')],input=json.dumps(report,ensure_ascii=False),capture_output=True,text=True)
+ if node.returncode: raise RuntimeError('Integrated Node gate failed: '+node.stderr)
+ semantic=json.loads(node.stdout)
+ result=(not errors) and semantic['ok']
  if result!=expected:
   print("FAIL",name,"expected",expected,"got",result,
         "; ".join(f"{'.'.join(map(str,e.path))}: {e.message}" for e in errors[:2]))
   return False
- print("PASS",name,"schema", "VALID" if result else "REJECTED")
+ print("PASS",name,"combined_schema_and_semantics", "VALID" if result else "REJECTED")
  return True
 tests=[]
 for k in payloads:tests.append(("positive_"+k,fixture(k),True))
@@ -62,6 +65,10 @@ mutation("public_person_data",lambda x:x.update(public_output=True,contains_indi
 mutation("unverified_official_2026",lambda x:x.update(edition_year=2026,official_publication=True))
 mutation("bad_comparability_class",lambda x:x.update(comparability_class="C9"))
 mutation("bad_missing_counts",lambda x:x.update(missing_counts={"x":-1}))
+mutation("validated_hypothesis_no_limits",lambda x:x["claims"][0].update(validation_status="VALIDATED"))
+mutation("validated_inference_no_assumptions",lambda x:x["claims"][0].update(epistemic_label="STATISTICAL_INFERENCE",validation_status="VALIDATED"))
+mutation("validated_action_without_approval",lambda x:x["claims"][0].update(epistemic_label="ACTION_PROPOSAL",validation_status="VALIDATED"))
+mutation("impossible_participation",lambda x:x["payload"].update(inscribed=5,present=7,valid=6))
 passes=sum(check(name,r,expected) for name,r,expected in tests)
 print(json.dumps({"schema_draft":"2020-12","tests":len(tests),"passed":passes,"failed":len(tests)-passes,"positive":7,"negative":len(tests)-7},ensure_ascii=False))
 sys.exit(0 if passes==len(tests) else 1)
