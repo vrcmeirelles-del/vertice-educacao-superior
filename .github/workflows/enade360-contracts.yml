@@ -1,0 +1,19 @@
+name: ENADE 360 - Contract Tests
+on:
+  pull_request:
+    paths:
+      - "docs/enade-360/validator/**"
+      - ".github/workflows/enade360-contracts.yml"
+  workflow_dispatch:
+jobs:
+  contract-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Run synthetic contract cases
+        run: node docs/enade-360/validator/test-contracts.cjs
+      - name: JSON Schema syntax check
+        run: node -e 'JSON.parse(require("node:fs").readFileSync("docs/enade-360/validator/report-schema-0.2.json","utf8")); console.log("JSON syntax OK")'
