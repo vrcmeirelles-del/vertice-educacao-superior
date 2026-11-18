@@ -171,3 +171,17 @@
 .ext-workspace-hero .ext-btn-secondary {color:#fff;border-color:#a5d7d5;}
 .ext-stage-content .ext-form-grid {grid-template-columns:repeat(auto-fit,minmax(min(12rem,100%),1fr));}
 .ext-stage-content .ext-form-grid :is(input:not([type=checkbox]),select,textarea),.ext-student-page :is(input,textarea) {width:100%;min-width:0;}
+
+.ext-registration {display:grid;gap:.8rem;padding:clamp(.75rem,2vw,1.25rem);background:#f4f8fa;}
+.ext-registration-hero {display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;background:#14364a;color:#fff;padding:clamp(1rem,2.5vw,1.65rem);border-radius:.75rem;}
+.ext-registration-hero h3 {margin:0;color:inherit;font-size:clamp(1.25rem,3vw,1.7rem);}
+.ext-registration-hero p {margin:.35rem 0 0;color:#e2eff5;max-width:58ch;}
+.ext-registration-hero .ext-btn-secondary {color:#fff;border-color:#a5d7d5;}
+.ext-registration-panel {padding:1rem;background:#fff;border:1px solid #d4e0e9;border-radius:.7rem;min-width:0;margin:0;}
+.ext-registration-panel h4,.ext-registration-panel summary {margin:0;color:#1e374a;font-size:1rem;font-weight:700;}
+.ext-registration-panel summary {cursor:pointer;}
+.ext-registration-panel h4,.ext-registration-panel[open] > summary {margin-bottom:.85rem;}
+.ext-registration-panel .ext-form-grid {grid-template-columns:repeat(auto-fit,minmax(min(12rem,100%),1fr));}
+.ext-registration-title {grid-column:1 / -1;}
+.ext-registration-footer {position:sticky;bottom:0;z-index:2;margin:0;padding:.65rem;background:#fff;border:1px solid #d4e0e9;border-radius:.6rem;flex-wrap:wrap;}
+.ext-project-retention {color:#455f72;flex-basis:100%;}

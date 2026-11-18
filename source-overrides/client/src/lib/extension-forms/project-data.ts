@@ -80,10 +80,6 @@ export const PLANNED_FIELD: Record<string, string> = {
   investment_actual: 'budget',
 };
 
-export function canDiscardProject(project: ProjectSource) {
-  return project.status === 'planejamento' && project.review_status === 'rascunho' && !project.first_submitted_at;
-}
-
 const DOCUMENT_HEADINGS: Record<string, string[]> = {
   introduction: ['introdução', 'apresentação'],
   area_characterization: ['diagnóstico do território', 'caracterização da área'],

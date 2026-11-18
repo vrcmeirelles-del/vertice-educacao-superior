@@ -10,7 +10,7 @@ test('linked form, recoverable deletion, immutable first submission and scoped s
  const db=new PGlite();
  t.after(()=>db.close());
  await db.exec(read('./fixture.sql'));
- for(const file of ['20261114122806_extension_electronic_forms.sql','20261117193500_extension_project_workspace.sql','20261117193600_extension_student_invites.sql']) {
+ for(const file of ['20261114122806_extension_electronic_forms.sql','20261117193500_extension_project_workspace.sql','20261117193600_extension_student_invites.sql','20261117201000_extension_cancelled_project_discard.sql']) {
   await db.exec(read('../../../supabase/migrations/'+file));
  }
  const actor=async n=>db.query("select set_config('request.jwt.claim.sub',$1,false),set_config('request.jwt.claim.aal','aal2',false)",[id(n)]);
@@ -59,5 +59,15 @@ test('linked form, recoverable deletion, immutable first submission and scoped s
  await sql("select vertice_extension_review_move($1,'submetido','pendente_ajustes','Completar dados')",id(31));
  await sql("update vertice_extension_projects set review_status='rascunho', first_submitted_at=null where id=$1",id(31));
  await assert.rejects(sql("select vertice_extension_draft_visibility($1,true)",id(31)),/nunca submetido/);
+ await sql("update vertice_extension_projects set status='cancelado', review_status='pendente' where id in ($1,$2)",id(31),id(32));
+ await assert.rejects(sql("select vertice_extension_draft_visibility($1,true)",id(31)),/nunca submetido/);
+ const eligible=async()=> (await sql("select vertice_extension_discardable_projects($1) as value",id(11))).rows.map(r=>r.value);
+ assert.deepEqual(await eligible(),[id(32)]);
+ await sql("select vertice_extension_draft_visibility($1,true)",id(32));
+ assert.equal(await value("select status value from vertice_extension_projects where id=$1 and deleted_at is not null",id(32)),'cancelado');
+ await sql("select vertice_extension_draft_visibility($1,false)",id(32));
+ await sql("insert into vertice_extension_reviews values($1)",id(32));
+ assert.deepEqual(await eligible(),[]);
+ await assert.rejects(sql("select vertice_extension_draft_visibility($1,true)",id(32)),/nunca submetido/);
  await assert.rejects(sql("delete from vertice_extension_projects where id=$1",id(31)),/recuperável/);
 });
