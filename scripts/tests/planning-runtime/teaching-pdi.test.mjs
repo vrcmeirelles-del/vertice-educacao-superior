@@ -164,5 +164,48 @@ test('atividade: instituição, curso, programa/meta nativa, evidência e valida
    assert.deepEqual((await db.query(`select goal_id,evidence_doc_id,status from vertice_teaching_activities where id='${activity}'`)).rows,[{goal_id:goal,evidence_doc_id:null,status:'validada'}]);
    assert.equal((await db.query('select id from vertice_goal_measurements')).rows.length,0);
   });
+
+  await t.test('relatório: migração preserva validados anteriores; rascunho, ata e revisão humana continuam separados',async()=>{
+   await db.exec(`reset role;`);
+   const oldCount=(await db.query("select count(*)::int as n from vertice_teaching_activities where status='validada'")).rows[0].n;
+   await db.exec(readFileSync(new URL('../../../supabase/migrations/20261118194013_teaching_execution_report.sql', import.meta.url),'utf8'));
+   assert.equal((await db.query("select count(*)::int as n from vertice_teaching_activities where status='validada' and execution_report='{}'::jsonb")).rows[0].n,oldCount);
+   const minutes=id(31);
+   await db.exec(`insert into public.vertice_documents values ('${minutes}','${a}','${c1}','Ata sintética','active',null);`);
+   const base={title:'Relatório sintético',category:'evento',description:'Síntese',activity_date:'2026-11-18',organizer_role:'docente'};
+   const report=Object.fromEntries(['event_name','coordinator','teachers','technicians','presentation','results','acknowledgments','partners_support','schedule','personnel','materials','publicity'].map(k=>[k,'Relato sintético '+k]));
+   report.presentation='Apresentação verificável. '.repeat(350); report.investment_amount=0;
+   const save=async(activity,fields)=> (await db.query(`select id,updated_at::text as version,execution_report,minutes_doc_id from public.vertice_teaching_save_activity($1,$2,$3,$4::jsonb,null)`,[a,c1,activity,JSON.stringify(fields)])).rows[0];
+   await role(db,coord);
+   const blank=await save(null,base);
+   assert.deepEqual(blank.execution_report,{});
+   await assert.rejects(db.query("update vertice_teaching_activities set status='validada' where id=$1",[blank.id]),{code:'23514'});
+   for (const bad of [{...report,investment_amount:-1},{...report,investment_amount:1.001},{...report,investment_amount:'25'},{...report,unexpected:true},{...report,teachers:[]},{...report,event_name:'a'.repeat(251)}]) {
+    await assert.rejects(save(null,{...base,execution_report:bad}),{code:'23514'});
+   }
+   await assert.rejects(save(null,{...base,execution_report:report,minutes_doc_id:doc2}),{code:'23514'});
+   await assert.rejects(save(null,{...base,execution_report:report,minutes_doc_id:docDraft}),{code:'23514'});
+   await assert.rejects(save(null,{...base,execution_report:{...report,presentation_page_reviewed:true}}),{code:'42501'});
+   const complete=await save(blank.id,{...base,updated_at:blank.version,execution_report:report,minutes_doc_id:minutes});
+   assert.deepEqual(complete.execution_report,report); assert.equal(complete.minutes_doc_id,minutes);
+   const compatible=await save(complete.id,{...base,updated_at:complete.version});
+   assert.deepEqual(compatible.execution_report,report); assert.equal(compatible.minutes_doc_id,minutes);
+   await assert.rejects(save(complete.id,{...base,updated_at:complete.version,execution_report:{}}),{code:'40001'});
+   await assert.rejects(db.query("update vertice_teaching_activities set status='validada' where id=$1",[complete.id]),{code:'23514'});
+   await role(db,staff);
+   await assert.rejects(save(null,{...base,execution_report:{...report,presentation_page_reviewed:true}}),{code:'42501'});
+   await role(db,coord,'aal1'); await assert.rejects(save(null,base),{code:'42501'});
+   await role(db,outsider); await assert.rejects(save(null,base),{code:'42501'});
+   assert.equal((await db.query('select id from vertice_teaching_activities')).rows.length,0);
+   await role(db,coord);
+   await db.query("update vertice_teaching_activities set status='validada',execution_report=$2::jsonb where id=$1",[complete.id,JSON.stringify({...report,presentation_page_reviewed:true})]);
+   const accepted=(await db.query('select status,validated_by,execution_report from vertice_teaching_activities where id=$1',[complete.id])).rows[0];
+   assert.equal(accepted.status,'validada'); assert.equal(accepted.validated_by,coord); assert.equal(accepted.execution_report.presentation_page_reviewed,true);
+   assert.equal((await db.query("update vertice_teaching_activities set execution_report='{}'::jsonb where id=$1 returning id",[complete.id])).rows.length,0);
+   await db.exec('reset role');
+   await assert.rejects(db.query("update vertice_teaching_activities set execution_report='{}'::jsonb where id=$1",[complete.id]),{code:'23514'});
+   await assert.rejects(db.query('delete from vertice_documents where id=$1',[minutes]),{code:'23001'});
+   assert.equal((await db.query('select count(*)::int as n from vertice_goal_measurements')).rows[0].n,0);
+  });
  } finally { await db.close(); }
 });

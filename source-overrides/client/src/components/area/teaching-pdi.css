@@ -345,3 +345,14 @@
  .teaching-pdi--management .pdi-overview > div + div { border-top: 1px solid var(--border); }
  .course-planning.teaching-pdi--management .card { padding: 18px 14px; }
 }
+
+/* Relato completo em lista, com texto preservado e revisão humana explícita. */
+.teaching-report-details { margin: 16px 0; }
+.teaching-report-details summary { color: #245379; font-size: 14px; font-weight: 600; cursor: pointer; }
+.teaching-report-details dl { display: grid; gap: 16px; margin: 18px 0; }
+.teaching-report-details dt { font-size: 13px; font-weight: 650; color: #28485f; }
+.teaching-report-details dd { margin: 6px 0 0; font-size: 14px; line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; }
+.teaching-review-check { display: flex; align-items: flex-start; gap: 10px; margin: 16px 0; font-size: 13px; line-height: 1.6; }
+.teaching-review-check input[type=checkbox] { flex: 0 0 18px; width: 18px; height: 18px; margin-top: 3px; }
+.teaching-pdi .teaching-form-step textarea[rows='12'] { min-height: 300px; }
+.teaching-pdi .teaching-form-step textarea[rows='7'] { min-height: 180px; }
