@@ -1,0 +1,43 @@
+name: ENADE 360 - Central operacional Master
+on:
+  pull_request:
+    paths:
+      - 'source-overrides/client/src/components/enade-operations/**'
+      - 'source-overrides/client/src/pages/OwnerDashboard.tsx'
+      - 'source-overrides/client/src/components/MasterLayout.tsx'
+      - 'source-overrides/client/src/components/area/MasterOverview.tsx'
+      - 'supabase/migrations/*enade360_master_operations.sql'
+      - 'scripts/enade360/operations*'
+      - '.github/workflows/enade360-operations.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  operations:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Compor fonte canônica
+        run: |
+          mkdir .operations-build
+          unzip -qo vertice-servidor-source.zip -d .operations-build
+          cp -a source-overrides/. .operations-build/
+          cp scripts/enade360/operations.vitest.config.ts .operations-build/
+      - name: Instalar dependências fixadas dos runtimes existentes
+        run: |
+          npm ci --prefix .operations-build --legacy-peer-deps --no-audit --no-fund
+          npm ci --prefix scripts/tests/types-runtime --no-audit --no-fund
+          npm ci --prefix scripts/tests/evidence-runtime --no-audit --no-fund
+          ln -s "$GITHUB_WORKSPACE/scripts/tests/types-runtime/node_modules/jsdom" .operations-build/node_modules/jsdom
+          mkdir -p .operations-build/node_modules/@electric-sql
+          ln -s "$GITHUB_WORKSPACE/scripts/tests/evidence-runtime/node_modules/@electric-sql/pglite" .operations-build/node_modules/@electric-sql/pglite
+      - name: Regras, interface e PostgreSQL embarcado isolado (identidades sintéticas)
+        run: |
+          cd .operations-build
+          VERTICE_REPO="$GITHUB_WORKSPACE" VERTICE_BUILD="$GITHUB_WORKSPACE/.operations-build" npx vitest run --config operations.vitest.config.ts
+      - name: Compilar portal
+        run: npm run build:static --prefix .operations-build

@@ -1,0 +1,12 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+ RUN  v2.1.9 /workspace/scratch/bca191235552/vertice-build
+
+ ✓ ../vertice/scripts/enade360/operations.database.test.ts (10 tests) 1138ms
+ ✓ client/src/components/enade-operations/operations.test.ts (11 tests) 2ms
+ ✓ client/src/components/enade-operations/EnadeOperations.ui.test.tsx (6 tests) 300ms
+
+ Test Files  3 passed (3)
+      Tests  27 passed (27)
+   Start at  21:42:33
+   Duration  2.33s (transform 121ms, setup 0ms, collect 411ms, tests 1.44s, environment 224ms, prepare 64ms)
