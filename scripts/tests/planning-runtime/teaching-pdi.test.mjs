@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 import {PGlite} from '@electric-sql/pglite';
 
 const migration = readFileSync(new URL('../../../supabase/migrations/20261118131715_teaching_activities_pdi.sql', import.meta.url),'utf8');
-const rosterMigration = readFileSync(new URL('../../../supabase/migrations/20261118202000_teaching_activity_roster.sql', import.meta.url),'utf8');
+const rosterMigration = readFileSync(new URL('../../../supabase/migrations/20261118145421_teaching_activity_roster.sql', import.meta.url),'utf8');
 const id = n => '91000000-0000-4000-8000-'+String(n).padStart(12,'0');
 const [a,b,school,c1,c2,c3,cSchool,reitor,coord,staff,nde,outsider,program,goal,otherProgram,otherGoal,doc1,doc2,docDraft] =
  Array.from({length:19},(_,i)=>id(i+1));
