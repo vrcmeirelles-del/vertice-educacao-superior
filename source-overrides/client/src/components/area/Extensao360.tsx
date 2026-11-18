@@ -114,6 +114,7 @@ export default function Extensao360({ institutionId, role, courses = [], onBack 
   const [hourLedger, setHourLedger] = useState<{ participantId: string; participantName: string; projectId: string } | null>(null);
   const [odsPanel, setOdsPanel] = useState<{ projectId: string; projectTitle: string } | null>(null);
   const [activityPanel, setActivityPanel] = useState<{ projectId: string; projectTitle: string } | null>(null);
+  const [evidenceRevision, setEvidenceRevision] = useState(0);
   const [evidencePanel, setEvidencePanel] = useState<{ projectId: string; projectTitle: string } | null>(null);
   const [workflowPanel, setWorkflowPanel] = useState<{ projectId: string; projectTitle: string; reviewStatus: string } | null>(null);
   const [discardableIds, setDiscardableIds] = useState<string[]|null>(null);
@@ -435,7 +436,7 @@ Este documento constitui evidência para fins de avaliação institucional (INEP
   const projDeliverables = selectedProject ? deliverables.filter(d => d.project_id === selectedProject) : [];
 
   const viewButton=(v:View)=>(
-    <button key={v} className={view === v ? 'active' : ''} aria-current={view===v?'page':undefined} onClick={() => {if(v==='formularios'&&view!=='formularios'){setTargetForm(undefined);setShowProjectInvites(false);}setView(v);}}>
+    <button key={v} className={view === v ? 'active' : ''} aria-current={view===v?'page':undefined} onClick={() => {if(v==='formularios'&&view!=='formularios'){setTargetForm(undefined);setShowProjectInvites(false);}if(v==='evidencias')setEvidencePanel(null);setView(v);}}>
             {v === 'projetos' ? `Projetos (${projects.length})` :
              v === 'formularios' ? 'Formulários e PDF' :
              v === 'equipe' ? `Equipe (${team.length})` :
@@ -514,7 +515,7 @@ Este documento constitui evidência para fins de avaliação institucional (INEP
         </details>
       </nav>
 
-      {(formsVisited || view === 'formularios') && <div hidden={view !== 'formularios'}><ExtensaoFormularios key={`${institutionId}:${targetForm||''}:${showProjectInvites}`} institutionId={institutionId} role={role} courses={courses || []} projects={[...projects,...deletedProjects]} targetId={targetForm} startWithInvites={showProjectInvites} onBack={()=>{setView('projetos');setTargetForm(undefined);}} onChanged={() => { void load(); }} /></div>}
+      {(formsVisited || view === 'formularios') && <div hidden={view !== 'formularios'}><ExtensaoFormularios key={`${institutionId}:${targetForm||''}:${showProjectInvites}`} institutionId={institutionId} role={role} courses={courses || []} projects={[...projects,...deletedProjects]} targetId={targetForm} startWithInvites={showProjectInvites} evidenceRevision={evidenceRevision} onBack={()=>{setView('projetos');setTargetForm(undefined);}} onChanged={() => { void load(); }} /></div>}
 
       {loading ? <p className="ext-loading">Carregando dados de extensão...</p> : (
         <>
@@ -1146,11 +1147,14 @@ Este documento constitui evidência para fins de avaliação institucional (INEP
           {/* ===== EVIDÊNCIAS ===== */}
           {view === 'evidencias' && (
             <ExtensaoEvidencias
+              key={`${institutionId}:${evidencePanel?.projectId || ''}`}
               institutionId={institutionId}
               projectId={evidencePanel?.projectId}
               projectTitle={evidencePanel?.projectTitle}
               canEdit={canEdit}
-              onClose={() => setEvidencePanel(null)}
+              linkableProjects={projects.filter(canManage)}
+              onLinked={() => setEvidenceRevision(revision => revision + 1)}
+              onClose={() => { setEvidencePanel(null); setView('projetos'); }}
             />
           )}
 

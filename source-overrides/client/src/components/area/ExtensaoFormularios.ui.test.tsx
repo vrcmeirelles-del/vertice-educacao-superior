@@ -5,6 +5,7 @@ const api=vi.hoisted(()=>({from:vi.fn(),rpc:vi.fn(),getUser:vi.fn(),invoke:vi.fn
 vi.mock('@/lib/supabase',()=>({supabase:{from:api.from,rpc:api.rpc,auth:{getUser:api.getUser},functions:{invoke:api.invoke}}}));
 import ExtensaoAlunosConvites from './ExtensaoAlunosConvites';
 import ExtensaoFormularios from './ExtensaoFormularios';
+import ExtensaoEvidencias from './ExtensaoEvidencias';
 let container:HTMLDivElement,root:Root;
 const record={id:'form',institution_id:'ies',project_id:'project',course_id:'course',template:'extensao',answers:{title:'PROJETO FICTÍCIO'},attachments:[],revision:1,owner_id:'user',status:'rascunho',document_id:null};
 function button(t:string){const b=Array.from(container.querySelectorAll('button')).find(b=>b.textContent===t||b.querySelector('span')?.textContent===t);if(!b)throw new Error(t);return b;}
@@ -51,4 +52,48 @@ it('generates an individual WhatsApp link for a pending invitation without invok
   await click('Ocultar link');
   expect(container.querySelector('section[aria-label="Link de convite para WhatsApp"]')).toBeNull();
  }finally{confirm.mockRestore();}
+});
+
+
+it('links an existing evidence to the open project and refreshes the project list of evidence',async()=>{
+ const document={
+  id:'evidence',title:'Ata da reunião',file_name:'ata.pdf',file_size_bytes:1024,
+  document_type:'ata',validation_status:'aprovada',version:1,
+  uploaded_at:'2026-11-17T12:00:00Z',project_id:'original',
+ };
+ let linked=false;
+ api.from.mockImplementation((table:string)=>({
+  select:()=>{
+   const query={
+    eq:()=>query,is:()=>query,
+    order:()=>query,
+    then:(resolve:(result:{data:unknown[];error:null})=>void)=>{
+     resolve({data:table==='vertice_extension_evidence_registry'||linked?[document]:[],error:null});
+    },
+   };
+   return query;
+  },
+ }));
+ api.rpc.mockImplementation(async()=>{linked=true;return {error:null};});
+ const onLinked=vi.fn();
+ await act(async()=>root.render(createElement(ExtensaoEvidencias,{
+  institutionId:'ies',projectId:'destination',projectTitle:'Projeto destino',
+  canEdit:false,linkableProjects:[{id:'destination',title:'Projeto destino'}],
+  onLinked,onClose:vi.fn(),
+ })));
+ await click('Vincular evidência existente');
+ const select=container.querySelector<HTMLSelectElement>('fieldset select')!;
+ expect(select.options[1].textContent).toContain('Ata da reunião · ata.pdf');
+ await act(async()=>{
+  select.value='evidence';
+  select.dispatchEvent(new Event('change',{bubbles:true}));
+ });
+ await click('Vincular');
+ expect(api.rpc).toHaveBeenCalledTimes(1);
+ expect(api.rpc).toHaveBeenCalledWith('vertice_extension_link_evidence',{
+  p_project:'destination',p_evidence:'evidence',
+ });
+ expect(onLinked).toHaveBeenCalledOnce();
+ expect(container.querySelector('tbody')?.textContent).toContain('Ata da reunião');
+ expect(container.querySelector('[role=status]')?.textContent).toContain('Evidência vinculada');
 });

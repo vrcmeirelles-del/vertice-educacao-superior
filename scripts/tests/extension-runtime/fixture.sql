@@ -26,7 +26,13 @@ alter table public.vertice_extension_projects add column unit_name text,add colu
  add column activity_schedule text,add column modality text,add column thematic_area text,add column activity_type text,
  add column detailed_program text,add column evaluation_method text,add column specific_objectives text[],
  add column expected_results text[],add column target_audience_count integer,add column infrastructure_needs text,add column partnerships_detail text;
-create table public.vertice_extension_evidence_registry(id uuid primary key,institution_id uuid,project_id uuid);
+create table public.vertice_extension_evidence_registry(
+ id uuid primary key,institution_id uuid,project_id uuid,is_current boolean default true,student_id uuid
+);
+alter table public.vertice_extension_evidence_registry enable row level security;
+grant select on public.vertice_extension_evidence_registry to authenticated;
+create policy evidence_read on public.vertice_extension_evidence_registry for select to authenticated
+ using (vertice_private.can_read_institution(institution_id));
 create table public.vertice_extension_project_history(
  institution_id uuid,project_id uuid,field_changed text,old_value text,new_value text,changed_by uuid,reason text
 );
