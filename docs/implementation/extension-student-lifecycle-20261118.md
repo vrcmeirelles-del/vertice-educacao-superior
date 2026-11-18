@@ -1,4 +1,4 @@
-# Gestão de alunos de extensão — proposta para publicação
+# Extensão: alunos e evidências por projetos — proposta para publicação
 
 Solicitação do proprietário em 18/11/2026: comandos para excluir alunos, retirar do projeto e desativar.
 
@@ -41,12 +41,38 @@ A migração **não foi aplicada em produção**. Nenhum aluno real foi desativa
 retirado ou excluído por esta tarefa. A autorização anterior referia-se à PR #190
 do painel ENADE; a publicação desta alteração de Extensão requer aprovação própria.
 
+## Evidências vinculadas a um ou mais projetos
+
+Correção solicitada pelo proprietário em 18/11/2026: o formulário de envio e o
+ajuste dos vínculos agora mostram o campo **Projetos vinculados — selecione um
+ou mais**, com caixas de seleção e busca quando há mais de cinco projetos.
+O envio exige ao menos um projeto permitido e usa um único arquivo e cadastro,
+preservando o cálculo SHA-256. Dentro de um projeto, ele vem pré-selecionado.
+O arquivo só é enviado após clicar em Salvar evidência.
+
+A edição permite acrescentar vários projetos de uma vez; os vínculos anteriores
+aparecem marcados e não podem ser removidos por este formulário. São exibidos
+somente os projetos fornecidos pelo escopo de autorização existente. Evidências
+individuais de aluno continuam fora do compartilhamento entre projetos.
+
+São reutilizadas a view e a RPC de vínculo existentes, sem nova migração para
+este campo. Falhas parciais exibem os projetos pendentes e permitem repetir apenas
+os vínculos que falharam, sem novo upload ou cadastro. Falha no cadastro tenta
+remover o arquivo recém-enviado e informa se a limpeza não foi confirmada.
+Nenhum envio aprova automaticamente a evidência.
+
+Os sete testes sintéticos cobrem seleção obrigatória, upload único para dois
+projetos, preservação de vínculos, pré-seleção do projeto atual, falha parcial e
+repetição sem duplicação, limpeza após erro e bloqueio por sessão/limite do arquivo.
+O digest da API de criptografia é simulado nos testes de interface: eles não são
+prova de extração, indexação ou funcionamento com documentos reais em produção.
+
 ## Validação
 
 - Seis testes novos de banco isolado (PGlite 0.5.8, identidades fictícias).
-- Seis testes novos de interface com API simulada.
+- Seis testes novos de interface de alunos e sete de evidências com API simulada.
 - Suíte de banco de Extensão e regressões: 32 testes passaram.
-- Formulários de Extensão, TCC e Estágio: 29 testes passaram.
+- Formulários de Extensão, TCC e Estágio: 36 testes passaram.
 - TypeScript sem erros e compilação estática do portal aprovada.
 - Verificador de fonte canônica aprovado.
 
