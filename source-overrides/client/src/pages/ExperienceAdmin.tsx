@@ -1,4 +1,5 @@
 import NativeInvitationEmail from "@/components/communications/NativeInvitationEmail";
+import PortalPageHeader from '@/components/PortalPageHeader';
 import { ContextHelp } from '@/components/ContextHelp';
 import { HelpLabel } from '@/components/ContextHelp';
 import React,{useCallback,useEffect,useMemo,useState,type FormEvent} from 'react';
@@ -80,10 +81,9 @@ export default function ExperienceAdmin({embedded=false}:{embedded?:boolean}={})
    <Link href="/entrar" className="corp-button">Entrar ou confirmar segundo fator</Link>
  </Frame>;
  return <Frame id="convites-demonstrativos" className={embedded?"":"corp-container corp-section"} style={{maxWidth:1350,margin:'0 auto',padding:embedded?'18px 0 36px':'32px 18px 60px'}}>
-   <header style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:20}}>
-     <div><span className="corp-eyebrow">VÉRTICE EXPERIENCE · MASTER</span><h1>Convites e inteligência comercial</h1><p>Ambientes fictícios por perfil, com validade, revogação e acompanhamento da visita.</p></div>
+   <PortalPageHeader title="Convites e inteligência comercial" eyebrow="Vértice Experience · Master" level={1} icon={ShieldCheck} description="Ambientes fictícios por perfil, com validade, revogação e acompanhamento da visita.">
      {!embedded&&<Link href="/master" className="corp-button">Voltar ao painel Master<ExternalLink size={16}/></Link>}
-   </header>
+   </PortalPageHeader>
    <nav aria-label="Cenários públicos para demonstrar" style={{display:"flex",flexWrap:"wrap",gap:10,margin:"16px 0"}}>
     <a className="corp-button small" href="/demonstracao?perfil=escola" target="_blank" rel="noopener noreferrer">🏫 Prévia Escola <ExternalLink size={14}/></a>
     <a className="corp-button small" href="/demonstracao?perfil=faculdade" target="_blank" rel="noopener noreferrer">Prévia Faculdade <ExternalLink size={14}/></a>

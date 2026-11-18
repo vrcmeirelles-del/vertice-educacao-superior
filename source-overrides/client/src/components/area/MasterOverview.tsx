@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import PortalPageHeader from '../PortalPageHeader';
 import { ArrowRight, Building2, GraduationCap, ChartColumn, Wallet, Settings, Brain, GitBranch } from 'lucide-react';
 import './master-overview.css';
 import '../homologacao/homologation.css';
@@ -18,10 +19,8 @@ interface Props {
 /** Presentation only: queries, authentication and invitation actions stay in MasterHub. */
 export default function MasterOverview({ ies, schools, revenue, contracts, trials, onNavigate, children }: Props) {
   return <div className="master-overview">
-    <header className="master-overview-heading">
-      <div><p className="master-eyebrow">ADMINISTRAÇÃO DA PLATAFORMA</p><h2>Gestão institucional e operação</h2><p>Selecione uma instituição para gerenciar cursos e módulos. A administração da plataforma fica reunida nesta visão.</p></div>
-      <span className="master-scope">Área Master</span>
-    </header>
+    <PortalPageHeader title="Gestão institucional e operação" eyebrow="Administração da plataforma" icon={Building2}
+      description="Selecione uma instituição para gerenciar cursos e módulos. A administração da plataforma fica reunida nesta visão." />
 
     <section aria-label="Resumo da plataforma" className="master-summary">
       <div><span>Instituições ativas</span><strong>{ies.length + schools.length}</strong><small>Educação superior e escolas</small></div>

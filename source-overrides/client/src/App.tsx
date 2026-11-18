@@ -2,7 +2,8 @@ import InstitutionDirectoryNotice from "./components/area/InstitutionDirectoryNo
 import InstitutionEntry from "./pages/public/InstitutionEntry";
 import IesPortal, { useIesRoute } from "./components/ies/IesPortal";
 import "./components/ebitda.css";
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense, useEffect, type ReactNode } from "react";
+import './styles/portal-design-system.css';
 import { Link, useLocation } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import DemoTelemetry from "./components/DemoTelemetry";
@@ -18,6 +19,7 @@ const OwnerDashboard = lazy(() => import("./pages/OwnerDashboard"));
 const VerticeMobileBI = lazy(() => import("./components/bi/VerticeMobileBI"));
 const VerticeMobilePublicPreview = lazy(() => import("./components/bi/VerticeMobilePublicPreview"));
 const DemoApp = lazy(() => import("./DemoApp"));
+function PortalSurface({ children }: { children: ReactNode }) { return <div className="vertice-portal portal-standalone">{children}</div>; }
 const ExperiencePortal = lazy(() => import("./pages/public/ExperiencePortal"));
 const ExperienceAdmin = lazy(() => import("./pages/ExperienceAdmin"));
 const ExtensaoConvite = lazy(() => import("./pages/public/ExtensaoConvite"));
@@ -67,14 +69,14 @@ export default function App() {
       if (description) description.content = page.description;
     }
   }, [path, normalized, isPublic, iesActive]);
-  if (normalized === "/integracao") return <ErrorBoundary><Suspense fallback={<main role="status">Verificando acesso à integração…</main>}><IntegracaoPage /></Suspense></ErrorBoundary>;
+  if (normalized === "/integracao") return <ErrorBoundary><Suspense fallback={<main role="status">Verificando acesso à integração…</main>}><PortalSurface><IntegracaoPage /></PortalSurface></Suspense></ErrorBoundary>;
   if (normalized === "/conecta-parceiros") return <ErrorBoundary><IesBrandedLayout><Suspense fallback={<main style={{padding:40}} role="status">Carregando cadastro de parceiros…</main>}><ConectaPartnerPortal /></Suspense></IesBrandedLayout></ErrorBoundary>;
   if (normalized === "/acesso-estudante") return <ErrorBoundary><IesBrandedLayout><Suspense fallback={<main style={{padding:40}} role="status">Carregando acesso do estudante…</main>}><StudentAccess /></Suspense></IesBrandedLayout></ErrorBoundary>;
-  if (normalized === "/ac-aluno") return <ErrorBoundary><Suspense fallback={<main style={{padding:40}} role="status">Carregando portal do aluno…</main>}><AcPortalAluno /></Suspense></ErrorBoundary>;
-  if (normalized === "/extensao-convite") return <ErrorBoundary><Suspense fallback={<main style={{padding:40}} role="status">Carregando convite…</main>}><ExtensaoConvite /></Suspense></ErrorBoundary>;
-  if (normalized === "/cpa-avaliacao") return <ErrorBoundary><Suspense fallback={<main style={{padding:40}} role="status">Carregando avaliação CPA…</main>}><CpaAvaliacao /></Suspense></ErrorBoundary>;
-  if (normalized === "/mobile/apresentacao") return <ErrorBoundary><Suspense fallback={<main role="status">Carregando apresentação Vértice Mobile…</main>}><VerticeMobilePublicPreview /></Suspense></ErrorBoundary>;
-  if (normalized === "/mobile") return <ErrorBoundary><Suspense fallback={<main role="status">Carregando Vértice Mobile…</main>}><VerticeMobileBI /></Suspense></ErrorBoundary>;
+  if (normalized === "/ac-aluno") return <ErrorBoundary><Suspense fallback={<main style={{padding:40}} role="status">Carregando portal do aluno…</main>}><PortalSurface><AcPortalAluno /></PortalSurface></Suspense></ErrorBoundary>;
+  if (normalized === "/extensao-convite") return <ErrorBoundary><Suspense fallback={<main style={{padding:40}} role="status">Carregando convite…</main>}><PortalSurface><ExtensaoConvite /></PortalSurface></Suspense></ErrorBoundary>;
+  if (normalized === "/cpa-avaliacao") return <ErrorBoundary><Suspense fallback={<main style={{padding:40}} role="status">Carregando avaliação CPA…</main>}><PortalSurface><CpaAvaliacao /></PortalSurface></Suspense></ErrorBoundary>;
+  if (normalized === "/mobile/apresentacao") return <ErrorBoundary><Suspense fallback={<main role="status">Carregando apresentação Vértice Mobile…</main>}><PortalSurface><VerticeMobilePublicPreview /></PortalSurface></Suspense></ErrorBoundary>;
+  if (normalized === "/mobile") return <ErrorBoundary><Suspense fallback={<main role="status">Carregando Vértice Mobile…</main>}><PortalSurface><VerticeMobileBI /></PortalSurface></Suspense></ErrorBoundary>;
   if (normalized === "/experience") return <ErrorBoundary><PublicLayout><Suspense fallback={<main className="corp-container corp-section" role="status">Abrindo Vértice Experience…</main>}><ExperiencePortal /></Suspense></PublicLayout></ErrorBoundary>;
   if (normalized === "/master/experience") return <ErrorBoundary><MasterLayout><Suspense fallback={<main className="corp-container corp-section" role="status">Verificando administração Experience…</main>}><ExperienceAdmin /></Suspense></MasterLayout></ErrorBoundary>;
   if (iesActive) return <ErrorBoundary>{iesSuspended ? <main className="ies-shell"><p role="status">Área institucional suspensa. Os links de convite foram removidos.</p></main> : <IesPortal key={iesRouteRevision} />}</ErrorBoundary>;
@@ -84,7 +86,7 @@ export default function App() {
       <DemoTelemetry /><InstitutionDirectoryNotice />
       {["/gestor", "/admin-ies", "/painel-real"].includes(normalized) && <nav style={{background:'#0f172a',padding:'12px 20px',display:'flex',gap:8,flexWrap:'wrap'}} aria-label="Cadastro institucional"><a className="corp-button" href="/master#ies=1" style={{color:'#e2e8f0',borderColor:'#334155',fontSize:13}}>Cadastro e convites</a><a className="corp-button" href="/master/experience" style={{color:'#e2e8f0',borderColor:'#334155',fontSize:13}}>Convites Experience</a><a className="corp-button" href="/mobile" style={{color:'#e2e8f0',borderColor:'#334155',fontSize:13}}>Vértice Mobile</a><a className="corp-button" href="/master#sapiens=1" style={{color:'#a78bfa',borderColor:'#a78bfa',fontSize:13}}>🧠 Sapiens</a><a className="corp-button" href="/demonstracao?perfil=faculdade&bi=1" style={{color:'#fbbf24',borderColor:'#fbbf24',fontSize:13}}>BI Premium • demo</a></nav>}
 
-      {passwordCallback ? <PublicLayout><ResetPassword /></PublicLayout> : normalized === "/master" ? <MasterLayout><Suspense fallback={<p role="status">Verificando acesso…</p>}><OwnerDashboard /></Suspense></MasterLayout> : normalized === "/master/aquisicoes" ? <Suspense fallback={<p>Verificando acesso…</p>}><OwnerDashboard /></Suspense> : ["/master", "/gestor", "/admin-ies", "/painel-real", "/reitor/reservado"].includes(normalized) ? <PublicLayout><Suspense fallback={<p>Verificando acesso…</p>}><OwnerDashboard /></Suspense></PublicLayout> : isPublic ? (
+      {passwordCallback ? <PublicLayout portal><ResetPassword /></PublicLayout> : normalized === "/master" ? <MasterLayout><Suspense fallback={<p role="status">Verificando acesso…</p>}><OwnerDashboard /></Suspense></MasterLayout> : normalized === "/master/aquisicoes" ? <Suspense fallback={<p>Verificando acesso…</p>}><OwnerDashboard /></Suspense> : ["/master", "/gestor", "/admin-ies", "/painel-real", "/reitor/reservado"].includes(normalized) ? <PublicLayout><Suspense fallback={<p>Verificando acesso…</p>}><OwnerDashboard /></Suspense></PublicLayout> : isPublic ? (
         <PublicApp />
       ) : demoPaths.has(normalized) ? (
         <Suspense

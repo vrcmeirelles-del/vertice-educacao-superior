@@ -1,3 +1,4 @@
+import PortalPageHeader from '@/components/PortalPageHeader';
 import { HelpLabel } from '@/components/ContextHelp';
 import React,{useCallback,useEffect,useRef,useState} from 'react';
 import {Link} from 'wouter';
@@ -56,11 +57,11 @@ export default function ExperiencePortal(){
  </main>;
  const institution=demoInstitutionProfiles[access.mode],role=roles[access.role];
  return <main className="corp-container corp-section" style={{maxWidth:1500,margin:'0 auto',padding:'24px 16px 56px'}}>
-   <header style={{display:'flex',justifyContent:'space-between',gap:20,alignItems:'center',flexWrap:'wrap',paddingBottom:20}}>
-    <div><span className="corp-eyebrow">VÉRTICE EXPERIENCE · AMBIENTE RESERVADO</span><h1 style={{margin:'8px 0'}}>{institution.name}</h1>
-    <p style={{margin:0}}>{access.name?access.name+' · ':''}{role.title} · <strong>Dados 100% fictícios</strong></p></div>
+   <PortalPageHeader title={institution.name} eyebrow="Vértice Experience · Ambiente reservado" level={1} icon={ShieldCheck}
+     description={`${access.name ? access.name + ' · ' : ''}${role.title}`}>
+    <strong className="portal-demo-badge">Dados 100% fictícios</strong>
     <button type="button" className="demo-link-button" onClick={leave}>Encerrar esta visita</button>
-   </header>
+   </PortalPageHeader>
    <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(240px,1fr))',gap:12,marginBottom:24}}>
     <article className="ds-card"><strong><ShieldCheck size={17} style={{verticalAlign:'middle'}}/> Simulação segregada</strong><p>Não há alunos, instituições ou dados financeiros reais neste ambiente.</p></article>
     <article className="ds-card"><strong><Clock size={17} style={{verticalAlign:'middle'}}/> Prazo do convite</strong><p>Até {date(access.expires_at)}. O Master poderá revogar o acesso antes disso.</p></article>

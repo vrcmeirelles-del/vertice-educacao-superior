@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { BookOpen, CircleCheck, Clock3, GraduationCap, Info, Link2, Save, Target, UsersRound } from 'lucide-react';
+import PortalPageHeader from '../PortalPageHeader';
 import { supabase } from '@/lib/supabase';
 import { isFullAccess, visibleTabs, GOAL_STATUS, DIRECTION, type Role } from '@/lib/area';
 import './planning/planning.css';
@@ -15,6 +16,7 @@ type Props = {
   role: string | null;
   mode: 'gestao' | 'academico';
   onNavigate?: (tab: string) => void;
+  showHeader?: boolean;
 };
 
 const TYPES = [
@@ -185,7 +187,7 @@ async function writeRow(
   );
 }
 
-function ScopedPanel({ institutionId, courses, role, mode, onNavigate }: Props) {
+function ScopedPanel({ institutionId, courses, role, mode, onNavigate, showHeader = true }: Props) {
   const management = isFullAccess(role as Role | null);
   const canEditActivity = management || role === 'coordenador' || role === 'equipe';
   const canValidate = management || role === 'coordenador';
@@ -458,21 +460,10 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate }: Props) 
   const busyLoading = busy || loading || courseLoading;
 
   return <section className={`course-planning teaching-pdi${mode === 'academico' ? ' teaching-pdi--academic' : ' teaching-pdi--management'}`} aria-label={title} aria-busy={busyLoading}>
-    {mode === 'academico' ? <header className="teaching-hero">
-      <div className="teaching-hero-icon" aria-hidden="true"><GraduationCap size={29} /></div>
-      <div>
-        <p className="teaching-kicker">Gestão acadêmica</p>
-        <h2>{title}</h2>
-        <p>Registre atividades da graduação e da pós-graduação, com participantes, carga horária e evidências.</p>
-      </div>
-    </header> : <header className="pdi-page-header">
-      <span className="pdi-page-icon" aria-hidden="true"><Target size={25} /></span>
-      <div>
-        <p className="pdi-eyebrow">Gestão institucional</p>
-        <h2>{title}</h2>
-        <p className="teaching-pdi-intro">Organize os programas institucionais e acompanhe quais atividades contribuem para cada meta. Contribuição e evidência de execução não substituem medição de resultado.</p>
-      </div>
-    </header>}
+    {showHeader && <PortalPageHeader title={title} eyebrow={mode === 'academico' ? 'Gestão acadêmica' : 'Gestão institucional'}
+      icon={mode === 'academico' ? GraduationCap : Target}
+      description={mode === 'academico' ? 'Registre atividades da graduação e da pós-graduação, com participantes, carga horária e evidências.' : 'Organize os programas institucionais e acompanhe quais atividades contribuem para cada meta. Contribuição e evidência de execução não substituem medição de resultado.'} />}
+    {!showHeader && mode === 'gestao' && <p className="teaching-pdi-intro">Contribuição e evidência de execução não substituem medição de resultado.</p>}
     <ScopeNavigation mode={mode} role={role} onNavigate={onNavigate} />
     {mode === 'academico' && <div className="teaching-course-bar"><Field label="Curso">
       <select value={courseId} disabled={busy || courseLoading || !!courseError} onChange={e => chooseCourse(e.target.value)}>

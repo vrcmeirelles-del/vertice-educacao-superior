@@ -298,183 +298,50 @@
   .teaching-pdi .teaching-save-bar > span { width: 100%; }
 }
 
-/* PDI institucional: escala tipográfica e paleta próprias, sem alterar Ensino. */
+/* PDI: organização de conteúdo sobre o padrão visual compartilhado do portal. */
 .course-planning.teaching-pdi--management {
-  --accent: #235b8e;
-  --accent-light: #edf4fb;
-  --accent-border: #93b4d3;
-  --ink: #1e354e;
-  --ink-soft: #526276;
-  --ink-muted: #68798b;
-  --bg: #f5f8fc;
-  --bg-card: #fff;
-  --border: #dbe4ee;
-  --border-soft: #e8edf4;
-  color: var(--ink);
-  background: var(--bg);
-  border-radius: 14px;
-  font-size: 14px;
-  line-height: 1.6;
-  padding: clamp(18px, 2.4vw, 28px);
-  container-type: inline-size;
-  container-name: pdi-workspace;
+  --accent: var(--portal-primary, #16629a); --accent-light: #edf4fb;
+  --accent-border: #93b4d3; --ink: #1e354e; --ink-soft: #526579; --ink-muted: #68798b;
+  --bg: #f5f8fc; --bg-card: #fff; --border: #d8e4ef; --border-soft: #e8edf4;
+  padding: clamp(18px, 2.4vw, 28px); font-size: 14px; line-height: 1.6;
+  container-type: inline-size; container-name: pdi-workspace;
 }
-.teaching-pdi--management .pdi-page-header {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  padding: 2px 0 22px;
-  border-bottom: 1px solid var(--border);
-}
-.teaching-pdi--management .pdi-page-icon {
-  display: grid;
-  place-items: center;
-  flex: 0 0 48px;
-  height: 48px;
-  color: var(--accent);
-  background: #e5eef8;
-  border: 1px solid #d3e0ef;
-  border-radius: 12px;
-}
-.teaching-pdi--management .pdi-eyebrow {
-  margin: 0 0 5px;
-  color: #526b87;
-  font-size: 11px;
-  line-height: 1.4;
-  font-weight: 650;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-}
-.course-planning.teaching-pdi--management h2 {
-  margin: 0 0 9px;
-  color: var(--ink);
-  font-size: clamp(21px, 2vw, 26px);
-  line-height: 1.25;
-  font-weight: 700;
-  letter-spacing: -.025em;
-}
-.teaching-pdi--management .teaching-pdi-intro {
-  margin: 0;
-  max-width: 70ch;
-  color: var(--ink-soft);
-  font-size: 14px;
-  line-height: 1.7;
-}
-.teaching-pdi--management > .teaching-pdi-actions {
-  margin: 16px 0 22px;
-  gap: 8px;
-}
-.teaching-pdi--management button {
-  min-height: 42px;
-  padding: 9px 15px;
-  border-width: 1px;
-  font-size: 13px;
-  line-height: 1.4;
-  font-weight: 600;
-  box-shadow: none;
-}
-.teaching-pdi--management button.planning-primary {
-  color: #fff;
-  background: var(--accent);
-  border-color: var(--accent);
-  padding: 10px 18px;
-  font-size: 13px;
-}
-.teaching-pdi--management button.planning-primary:hover:not(:disabled) { background: #194973; }
-.teaching-pdi--management button:disabled { opacity: 1; background: #eef1f5; color: #697789; border-color: #dce3eb; cursor: not-allowed; }
-.teaching-pdi--management .pdi-overview {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1px;
-  margin: 0 0 24px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  overflow: hidden;
-  background: var(--border);
-}
-.teaching-pdi--management .pdi-overview > div {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 16px 18px;
-  background: #fff;
-}
+.teaching-pdi--management > .teaching-pdi-intro { margin: 0 0 16px; font-size: 13px; line-height: 1.65; }
+.teaching-pdi--management > .teaching-pdi-actions { margin: 16px 0 22px; gap: 8px; }
+.teaching-pdi--management .pdi-overview { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 1px; margin: 0 0 24px; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--border); }
+.teaching-pdi--management .pdi-overview > div { display: flex; flex-direction: column; gap: 8px; padding: 16px 18px; background: #fff; }
 .teaching-pdi--management .pdi-overview dt { color: var(--ink-soft); font-size: 12px; font-weight: 500; line-height: 1.4; }
 .teaching-pdi--management .pdi-overview dd { margin: 0; color: var(--accent); font-size: 25px; font-weight: 650; line-height: 1.2; font-variant-numeric: tabular-nums; }
-.teaching-pdi--management .pdi-editor-layout { grid-template-columns: minmax(0, 1fr); gap: 20px; align-items: start; }
+.teaching-pdi--management .pdi-editor-layout { grid-template-columns: minmax(0,1fr); gap: 20px; align-items: start; }
 .course-planning.teaching-pdi--management .card { margin: 0; padding: 22px; border-radius: 12px; box-shadow: 0 2px 7px rgb(30 53 78 / 3%); }
 .teaching-pdi--management legend { margin-bottom: 18px; padding: 0; color: var(--ink); font-size: 17px; line-height: 1.4; font-weight: 650; }
 .teaching-pdi--management .planning-field { margin: 0; gap: 7px; min-width: 0; }
-.teaching-pdi--management .planning-field > span { color: #354a61; font-size: 12px; line-height: 1.5; font-weight: 600; letter-spacing: 0; }
 .teaching-pdi--management .planning-field > small { color: var(--ink-soft); font-size: 12px; line-height: 1.55; font-weight: 400; }
-.teaching-pdi--management :is(input, select, textarea) {
-  min-height: 44px;
-  padding: 10px 12px;
-  border-width: 1px;
-  border-radius: 8px;
-  color: #263d54;
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 1.5;
-}
-.teaching-pdi--management :is(input, select, textarea):disabled { opacity: 1; color: #607185; background: #f5f7fa; border-color: #dce4ed; cursor: not-allowed; }
-.teaching-pdi--management textarea { min-height: 108px; }
-.teaching-pdi--management .pdi-program-fields,
-.teaching-pdi--management .pdi-field-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 16px; }
-.teaching-pdi--management .pdi-program-fields { grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); }
-.teaching-pdi--management .pdi-target-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 16px; margin: 18px 0; }
+.teaching-pdi--management :is(input,select,textarea):disabled { opacity: 1; color: #607185; background: #f5f7fa; border-color: #dce4ed; cursor: not-allowed; }
+.teaching-pdi--management .pdi-program-fields,.teaching-pdi--management .pdi-field-pair { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 18px 16px; }
+.teaching-pdi--management .pdi-program-fields { grid-template-columns: minmax(0,.85fr) minmax(0,1.15fr); }
+.teaching-pdi--management .pdi-target-fields { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 18px 16px; margin: 18px 0; }
 .teaching-pdi--management .pdi-form-note { display: flex; align-items: flex-start; gap: 8px; margin: 0 0 20px; padding: 12px; color: #395a7a; background: #edf4fb; border-radius: 8px; font-size: 13px; }
 .teaching-pdi--management .pdi-form-note svg { flex-shrink: 0; margin-top: 2px; }
 .teaching-pdi--management form .teaching-pdi-actions { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-soft); }
-.teaching-pdi--management > h3 { margin: 30px 0 14px; color: var(--ink); font-size: 18px; font-weight: 650; line-height: 1.4; letter-spacing: -.015em; }
+.teaching-pdi--management > h3 { margin: 30px 0 14px; color: var(--ink); font-size: 18px; font-weight: 650; line-height: 1.4; }
 .teaching-pdi--management .teaching-pdi-list { gap: 12px; }
 .teaching-pdi--management .teaching-pdi-record { border-radius: 10px; padding: 18px; }
 .teaching-pdi--management .teaching-pdi-record h4 { margin: 0 0 8px; color: #23496c; font-size: 15px; line-height: 1.5; font-weight: 650; }
 .teaching-pdi--management .teaching-pdi-record p { margin: 6px 0; color: var(--ink-soft); font-size: 13px; line-height: 1.65; }
-.teaching-pdi--management .teaching-pdi-record p strong { color: #354a61; font-weight: 600; }
-.teaching-pdi--management .teaching-pdi-record summary { font-size: 13px; font-weight: 600; }
 .teaching-pdi--management .pdi-empty { margin: 0; padding: 18px; color: var(--ink-soft); background: #fff; border: 1px dashed #cdd9e6; border-radius: 10px; font-size: 13px; }
 .teaching-pdi--management > .planning-field { max-width: 420px; margin-bottom: 16px; }
-.teaching-pdi--management .planning-success { color: #23527b; background: #edf4fb; border-color: #4f83b1; }
-
-/* O título interno é a referência visual; o externo continua nomeando a região. */
-.inst-active-module--pdi { border: 1px solid #dbe4ee; border-radius: 14px; padding: 0; box-shadow: 0 4px 16px rgb(30 53 78 / 4%); }
-.inst-active-module--pdi > .inst-active-module-head { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.inst-active-module--pdi > .teaching-pdi--management { margin: 0; border: 0; border-top-left-radius: 0; border-top-right-radius: 0; }
-.inst-active-module--pdi > [aria-label='Central de convites e e-mail'] { margin: 0 !important; padding: 12px 24px !important; border: 0 !important; border-bottom: 1px solid #e6ecf3 !important; border-radius: 14px 14px 0 0 !important; background: #fff; box-shadow: none; }
-.inst-active-module--pdi > [aria-label='Central de convites e e-mail']:hover { transform: none; }
-.inst-active-module--pdi > [aria-label='Central de convites e e-mail'] > button { color: #476783; font-size: 12px; font-weight: 500; text-decoration: none; }
 @container pdi-workspace (min-width: 820px) {
-  .teaching-pdi--management .pdi-editor-layout { grid-template-columns: minmax(0, .85fr) minmax(0, 1.25fr); }
-  .teaching-pdi--management .pdi-program-fields { grid-template-columns: minmax(0, 1fr); }
+ .teaching-pdi--management .pdi-editor-layout { grid-template-columns: minmax(0,.85fr) minmax(0,1.25fr); }
+ .teaching-pdi--management .pdi-program-fields { grid-template-columns: minmax(0,1fr); }
 }
 @container pdi-workspace (max-width: 520px) {
-  .teaching-pdi--management .pdi-program-fields,
-  .teaching-pdi--management .pdi-field-pair,
-  .teaching-pdi--management .pdi-target-fields { grid-template-columns: minmax(0, 1fr); }
+ .teaching-pdi--management :is(.pdi-program-fields,.pdi-field-pair,.pdi-target-fields) { grid-template-columns: minmax(0,1fr); }
 }
-@media (max-width: 600px) {
-  .course-planning.teaching-pdi--management { padding: 18px 14px; }
-  .teaching-pdi--management .pdi-page-header { gap: 10px; }
-  .teaching-pdi--management .pdi-page-icon { flex-basis: 36px; height: 36px; border-radius: 9px; }
-  .teaching-pdi--management .pdi-page-icon svg { width: 21px; }
-  .teaching-pdi--management .pdi-overview { gap: 0; grid-template-columns: minmax(0, 1fr); }
-  .teaching-pdi--management .pdi-overview > div { flex-direction: row; align-items: center; gap: 12px; padding: 12px 14px; }
-  .teaching-pdi--management .pdi-overview > div + div { border-top: 1px solid var(--border); }
-  .teaching-pdi--management .pdi-overview dd { font-size: 22px; }
-  .course-planning.teaching-pdi--management .card { padding: 18px 14px; }
-  .teaching-pdi--management :is(input, select, textarea) { font-size: 16px; }
-  .teaching-pdi--management button { min-height: 44px; }
-  .inst-active-module--pdi > [aria-label='Central de convites e e-mail'] { padding: 12px 14px !important; }
+@media(max-width:600px) {
+ .course-planning.teaching-pdi--management { padding: 18px 14px; }
+ .teaching-pdi--management .pdi-overview { gap: 0; grid-template-columns: minmax(0,1fr); }
+ .teaching-pdi--management .pdi-overview > div { flex-direction: row; align-items: center; gap: 12px; padding: 12px 14px; }
+ .teaching-pdi--management .pdi-overview > div + div { border-top: 1px solid var(--border); }
+ .course-planning.teaching-pdi--management .card { padding: 18px 14px; }
 }
-.area-ws--pdi { --area-ink: #1e354e; --area-muted: #526276; }
-.area-ws--pdi .area-ws-head { background: #f7f9fc; border: 1px solid #dbe4ee; border-radius: 14px; box-shadow: none; }
-.area-ws--pdi .area-ws-head h2 { color: #1e354e; font-size: 22px; line-height: 1.35; letter-spacing: -.02em; }
-.area-ws--pdi .area-ws-head p { color: #526276; font-size: 13px; line-height: 1.6; }
-.area-ws--pdi .area-guide-link { color: #235b8e; font-size: 12px; }
-.area-ws--pdi .corp-button { background: #235b8e; border-color: #235b8e; color: #fff; }
-.area-ws--pdi .corp-button:hover:not(:disabled) { background: #194973; }
-.area-ws--pdi .inst-tabs-nav-item--active { background: #edf4fb; border-left-color: #235b8e; color: #235b8e; }
-.area-ws--pdi .inst-tabs-nav-item--active .inst-tabs-nav-item-icon { color: #235b8e; }
-.area-ws--pdi .inst-tabs-mobile-toggle { color: #354a61; background: #f7f9fc; border-color: #dbe4ee; font-size: 13px; }

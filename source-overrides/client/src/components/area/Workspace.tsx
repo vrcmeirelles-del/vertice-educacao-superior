@@ -1,4 +1,6 @@
 import PortalInvitations from '../communications/PortalInvitations';
+import PortalPageHeader from '../PortalPageHeader';
+import { portalModulePresentation } from '@/lib/portal-module-presentation';
 import { ContextHelp } from "@/components/ContextHelp";
 import { MODULE_HELP } from "@/lib/module-help";
 import { HelpLabel } from '@/components/ContextHelp';
@@ -444,7 +446,7 @@ export default function Workspace({
   };
 
   return (
-    <section aria-labelledby="ws-title" className={`area-ws${tab === 'programas-pdi' ? ' area-ws--pdi' : ''}`}>
+    <section aria-labelledby="ws-title" className="area-ws vertice-portal">
       {role && tab !== "cadastro" && <RegistryContacts institutionId={id} courses={[]} manage={false} firstVisit/>}
       <p>
         <button className="corp-login-text-button" onClick={() => { if (confirmNavigation()) { edited.current = false; onBack(); } }}>
@@ -572,11 +574,12 @@ export default function Workspace({
       </section>}
       {role === "master" && activeMacro === "historico" && <p className="area-note">Os registros disponíveis permanecem nos módulos desta área. Esta área não constitui um histórico consolidado de auditoria.</p>}
       {macroOverride && <p role="status" className="area-note">Os módulos desta área precisam ser ativados. Selecione um módulo acima para consultar as condições existentes.</p>}
-      <div ref={moduleContentRef} hidden={Boolean(macroOverride)} tabIndex={-1} role="region" aria-labelledby={role === "master" ? "inst-active-module-title" : undefined} className={role === "master" ? `inst-active-module${tab === 'programas-pdi' ? ' inst-active-module--pdi' : ''}` : undefined}>
-      {role === "master" && <header className="inst-active-module-head">
-        <div><p>{activeMacroDefinition.label}</p><h3 id="inst-active-module-title">{TABS.find(([key]) => key === tab)?.[1] ?? "Painel institucional"}</h3></div>
-      </header>}
+      <div ref={moduleContentRef} hidden={Boolean(macroOverride)} tabIndex={-1} role="region" aria-labelledby="inst-active-module-title" className="inst-active-module portal-module" data-module={tab}>
+      <PortalPageHeader id="inst-active-module-title" title={TABS.find(([key]) => key === tab)?.[1] ?? 'Painel institucional'}
+        eyebrow={portalModulePresentation(tab, activeMacro).eyebrow} icon={portalModulePresentation(tab, activeMacro).icon}
+        description={portalModulePresentation(tab, activeMacro).description ?? TAB_DETAILS[tab]?.description} />
       {!['extensao','tcc','estagio'].includes(tab) && <PortalInvitations key={`${id}:${tab}`} institutionId={String(id)} role={role} module={tab} courses={data.courses.map(c=>({id:String(c.id),name:String(c.display_name??c.name)}))} />}
+      <div className="portal-module-content">
       {tab === 'base' && <InstitutionAddress institutionId={id} manage={role==='master'}/>}
       {error && <p role="alert" className="area-error">{error}</p>}
       {MODULE_HELP.some(item=>item.key===tab) && <div className="vx-module-help"><span>Como usar esta área</span><ContextHelp title={TABS.find(([key])=>key===tab)?.[1] || "Módulo"} text={MODULE_HELP.find(item=>item.key===tab)?.text} /></div>}
@@ -596,7 +599,7 @@ export default function Workspace({
       ) : tab === "atividades-ensino" || tab === "programas-pdi" ? (
         instTier === "superior" && role && allowedTabs.includes(tab) ? (
           <Suspense fallback={<p role="status">Carregando…</p>}>
-            <TeachingPdiPanel key={`${id}:${tab}`} institutionId={String(id)} mode={tab === "programas-pdi" ? "gestao" : "academico"} role={role}
+            <TeachingPdiPanel key={`${id}:${tab}`} institutionId={String(id)} mode={tab === "programas-pdi" ? "gestao" : "academico"} role={role} showHeader={false}
               courses={data.courses.map(c=>({id:String(c.id),name:String(c.name),degree:typeof c.degree === "string" ? c.degree : null}))}
               onNavigate={destination=>{const permitted = allowedTabs.find(key=>key===destination); if(permitted) choose(permitted);}}/>
           </Suspense>
@@ -735,6 +738,7 @@ export default function Workspace({
         <><RegistryContacts institutionId={id} courses={data.courses} manage={can.manageTeam(role)}/><TeamTab institutionId={id} role={role} /></>
       )}
       {TAB_FAQ[tab] && <TabFaq id={tab} />}
+      </div>
       </div>
       </div>
       </InstitutionTabs>

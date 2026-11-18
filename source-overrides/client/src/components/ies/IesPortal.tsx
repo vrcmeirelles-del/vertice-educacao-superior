@@ -1,4 +1,6 @@
 import { HelpLabel } from '@/components/ContextHelp';
+import PortalPageHeader from '../PortalPageHeader';
+import { Building2 } from 'lucide-react';
 import {
   useCallback,
   useEffect,
@@ -201,17 +203,12 @@ export default function IesPortal() {
     window.dispatchEvent(new HashChangeEvent("hashchange"));
   }
   return (
-    <main className="ies-shell">
-      <header className="ies-header">
-        <div>
-          <p className="ies-eyebrow">VÉRTICE · INSTITUIÇÕES</p>
-          <h1>Cadastro e vínculos acadêmicos</h1>
-          <p>Identificação, revisão e convites por instituição e curso.</p>
-        </div>
+    <main className="ies-shell vertice-portal">
+      <PortalPageHeader title="Cadastro e vínculos acadêmicos" eyebrow="Vértice · Instituições" description="Identificação, revisão e convites por instituição e curso." level={1} icon={Building2}>
         <button disabled={writing} onClick={close}>
           Fechar área IES
         </button>
-      </header>
+      </PortalPageHeader>
       {exitNotice && <p role="alert">{exitNotice}</p>}
       {iesBootstrapRejected || !invitationVault() ? (
         <p role="alert">

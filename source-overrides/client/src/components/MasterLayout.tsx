@@ -65,7 +65,7 @@ export default function MasterLayout({ children }: { children: ReactNode }) {
   }, [open]);
   const active = groups.flatMap(group => group.items).find(item => item.href === `${path}${hash}`);
   const institutionalContext = new URLSearchParams(hash.slice(1)).has('instituicao');
-  return <div className={`corporate-site master-layout${collapsed ? ' is-collapsed' : ''}${open ? ' is-open' : ''}`}>
+  return <div className={`corporate-site master-layout vertice-portal${collapsed ? ' is-collapsed' : ''}${open ? ' is-open' : ''}`}>
     <a className="skip-link" href="#master-content">Pular para o conteúdo</a>
     {open && <button className="master-overlay" aria-label="Fechar menu" onClick={() => { setOpen(false); menuButton.current?.focus(); }} />}
     <aside className="master-sidebar" id="master-navigation" aria-label="Menu administrativo">

@@ -69,7 +69,7 @@ export default function AtividadesComplementares360({ institutionId, courses, ro
 
         {section === 'overview' && (<div>
           <header className="alumni-header">
-            <h2>Atividades Complementares 360</h2>
+            <h2 className="portal-module-title-duplicate">Atividades Complementares 360</h2>
             <p className="alumni-subtitle">Recebimento, análise, validação e contabilização de atividades complementares</p>
           </header>
           <div className="alumni-kpis">

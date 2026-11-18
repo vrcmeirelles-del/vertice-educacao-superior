@@ -1,0 +1,212 @@
+/* Padrão visual do portal Vértice. Escopo explícito; não altera o site comercial. */
+.vertice-portal {
+  --portal-primary: #16629a;
+  --portal-primary-hover: #114c79;
+  --portal-hero-start: #153f66;
+  --portal-hero-end: #196b9f;
+  --portal-ink: #1e354e;
+  --portal-muted: #526579;
+  --portal-soft: #edf4fb;
+  --portal-canvas: #f5f8fc;
+  --portal-line: #d8e4ef;
+  --portal-radius: 14px;
+  --primary: var(--portal-primary);
+  --primary-hover: var(--portal-primary-hover);
+  --primary-light: var(--portal-soft);
+  --foreground: var(--portal-ink);
+  --muted-foreground: var(--portal-muted);
+  --background: var(--portal-canvas);
+  --card: #fff;
+  --border: var(--portal-line);
+  --border-light: #e6edf5;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: var(--portal-ink);
+  color-scheme: light;
+}
+.vertice-portal--institution-themed { --portal-primary: var(--color-primary, #16629a); --portal-primary-hover: var(--color-primary-hover, #114c79); }
+.portal-page-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: clamp(14px, 2vw, 24px);
+  margin: 0 0 22px;
+  padding: clamp(22px, 3vw, 36px);
+  min-width: 0;
+  color: #fff;
+  background: linear-gradient(118deg, var(--portal-hero-start, #153f66), var(--portal-hero-end, #196b9f));
+  border: 1px solid transparent;
+  border-radius: 20px;
+  box-shadow: 0 8px 24px rgb(18 69 112 / 12%);
+}
+.portal-page-header-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 60px;
+  height: 60px;
+  border: 1px solid rgb(255 255 255 / 32%);
+  border-radius: 15px;
+  background: rgb(255 255 255 / 12%);
+  color: #fff;
+}
+.portal-page-header-icon svg { display: block; flex-shrink: 0; }
+.portal-page-header-copy { flex: 1 1 240px; min-width: 0; }
+.portal-page-header .portal-page-header-eyebrow {
+  margin: 0 0 7px;
+  color: #deefff;
+  font-size: 11px;
+  line-height: 1.4;
+  font-weight: 750;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.portal-page-header .portal-page-header-copy :is(h1,h2,h3) {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(25px, 2.8vw, 36px);
+  line-height: 1.18;
+  font-weight: 750;
+  letter-spacing: -.025em;
+  overflow-wrap: anywhere;
+}
+.portal-page-header .portal-page-header-description {
+  max-width: 72ch;
+  margin: 10px 0 0;
+  color: #e7f2fc;
+  font-size: 15px;
+  line-height: 1.6;
+  font-weight: 400;
+}
+.portal-page-header-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; min-width: 0; }
+.portal-page-header-actions button { border: 1px solid #9dc0de; border-radius: 9px; background: #fff; color: #17486f; padding: 10px 15px; font-size: 13px; font-weight: 600; min-height: 42px; cursor: pointer; }
+.vertice-portal :is(h2,h3,h4) { line-height: 1.35; }
+.vertice-portal :is(button,input,select,textarea) { font-family: inherit; }
+.vertice-portal :is(button,a,input,select,textarea,summary):focus-visible { outline: 3px solid #74a7d1; outline-offset: 3px; }
+.vertice-portal .area-ws {
+  --ui-accent: var(--portal-primary);
+  --ui-accent-hover: var(--portal-primary-hover);
+  --ui-soft: var(--portal-soft);
+  --ui-ink: var(--portal-ink);
+  --ui-muted: var(--portal-muted);
+  --ui-border: var(--portal-line);
+  --area-ink: var(--portal-ink);
+  --area-muted: var(--portal-muted);
+  --area-line: var(--portal-line);
+}
+.master-layout.vertice-portal .area-ws {
+  --ui-accent: var(--portal-primary); --ui-accent-hover: var(--portal-primary-hover);
+  --ui-soft: var(--portal-soft); --ui-ink: var(--portal-ink); --ui-muted: var(--portal-muted); --ui-border: var(--portal-line);
+}
+.vertice-portal :is(.area-panel,.area-card,.conecta-card,.alumni-info-box,.alumni-section,.pbi-card) {
+  border-color: var(--portal-line);
+  border-radius: var(--portal-radius);
+  background-color: #fff;
+  box-shadow: 0 2px 9px rgb(30 53 78 / 4%);
+}
+.vertice-portal .area-ws-head { background: #f7f9fc; border-color: var(--portal-line); box-shadow: none; }
+.vertice-portal .area-ws-head h2 { color: var(--portal-ink); font-size: clamp(21px, 2vw, 26px); letter-spacing: -.02em; }
+.vertice-portal .area-ws-head p { font-size: 13px; line-height: 1.6; color: var(--portal-muted); }
+.vertice-portal .area-guide-link { color: var(--portal-primary); font-size: 13px; }
+.vertice-portal :is(.area-form,.area-panel,.course-planning,.alumni-form,.conecta-card) label { line-height: 1.5; }
+.vertice-portal .area-ws :is(input:not([type]),input[type=text],input[type=email],input[type=search],input[type=number],input[type=date],input[type=url],input[type=tel],select,textarea),
+.vertice-portal :is(.access-form,.corp-login-card,.ies-shell,.conecta-fields) :is(input:not([type]),input[type=text],input[type=email],input[type=password],select,textarea) {
+  min-height: 44px;
+  min-width: 0;
+  max-width: 100%;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #294158;
+}
+.vertice-portal .area-ws textarea { min-height: 108px; resize: vertical; }
+.vertice-portal .area-ws :is(.planning-field > span,.area-form-grid label,.conecta-fields label) { font-size: 13px; color: #354e67; font-weight: 600; }
+.vertice-portal .area-ws :is(.planning-field > small,.area-field-help,.area-form-grid label small) { color: var(--portal-muted); font-size: 12px; line-height: 1.55; font-weight: 400; }
+.vertice-portal :is(.corp-button,.planning-primary,.alumni-btn-primary,.ext-btn-primary) {
+  border-radius: 9px;
+  border-color: var(--portal-primary);
+  background-color: var(--portal-primary);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  min-height: 42px;
+  padding: 10px 16px;
+}
+.vertice-portal .area-ws :is(.planning-primary,.alumni-btn-primary,.ext-btn-primary):not(:disabled):not(.area-danger) {
+  background: var(--portal-primary) !important;
+  border-color: var(--portal-primary) !important;
+  color: #fff !important;
+}
+.vertice-portal :is(.planning-primary,.alumni-btn-primary,.ext-btn-primary):hover:not(:disabled) { filter: brightness(.94); }
+.vertice-portal .area-ws :is(.btn-secondary,.alumni-btn-secondary,.alumni-btn-small) {
+  min-height: 38px;
+  border: 1px solid var(--portal-line);
+  border-radius: 8px;
+  color: #275a83;
+  background: #fff;
+  padding: 8px 12px;
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 500;
+}
+.vertice-portal .area-ws :is(.btn-secondary,.alumni-btn-secondary,.alumni-btn-small):hover:not(:disabled) { background: var(--portal-soft); }
+.vertice-portal .area-ws :is(.alumni-nav-btn,.ext-tab,.conecta-nav button) { font-size: 13px; line-height: 1.4; border-radius: 8px; padding: 9px 12px; }
+.vertice-portal .area-ws :is(.alumni-nav-btn-active,.alumni-nav-btn.active,.ext-tab.active) { color: #165789; background: var(--portal-soft); border-color: #c4d9eb; }
+.vertice-portal .area-ws :is(.area-table,.alumni-table) { font-size: 13px; line-height: 1.55; }
+.vertice-portal .area-ws :is(.area-table,.alumni-table) th { font-size: 12px; font-weight: 650; color: #496078; background: #f0f5fa; }
+.vertice-portal .area-ws :is(.area-table,.alumni-table) :is(td,th) { padding: 12px; border-bottom-color: #e4ebf3; }
+.vertice-portal .area-ws :is(.alumni-section-title,.area-panel-head h3) { color: #254967; font-size: 18px; font-weight: 650; }
+.vertice-portal .inst-tabs-nav { border-color: var(--portal-line); }
+.vertice-portal .inst-tabs-nav-item--active { color: var(--portal-primary); background: var(--portal-soft); border-left-color: var(--portal-primary); }
+.vertice-portal.master-layout :is(.master-public-link,.master-nav-group a[aria-current=page]) { color: var(--portal-primary); }
+.vertice-portal.master-layout .master-nav-group a[aria-current=page] { background: var(--portal-soft); box-shadow: inset 3px 0 var(--portal-primary); }
+.vertice-portal .portal-module,
+.master-layout.vertice-portal .area-ws .portal-module { border: 0; padding: 0; background: transparent; box-shadow: none; border-radius: 0; }
+.portal-module > .portal-page-header { margin-bottom: 16px; }
+.portal-module > [aria-label='Central de convites e e-mail'] { box-shadow: none; background: #fff; }
+.portal-module > [aria-label='Central de convites e e-mail'] > button { color: #406582; font-size: 13px; font-weight: 500; text-decoration: none; }
+.portal-module-content {
+  min-width: 0;
+  padding: clamp(16px, 2vw, 24px);
+  background: var(--portal-canvas, #f5f8fc);
+  border: 1px solid var(--portal-line, #d8e4ef);
+  border-radius: 16px;
+}
+.portal-module-content > :is(.course-planning,.alumni-360,.conecta360) { margin: 0; padding: 0; border: 0; background: transparent; box-shadow: none; }
+.portal-module .portal-module-title-duplicate { display: none; }
+.portal-module-content .conecta-hero { padding: 0 0 16px; border: 0; background: transparent; box-shadow: none; }
+.portal-module-content .conecta-hero h2 { display: none; }
+.portal-module-content .conecta-hero :is(p,small) { color: var(--portal-muted); }
+.vertice-portal .master-page-heading { border-bottom-color: var(--portal-line); }
+.vertice-portal .master-page-heading h1 { font-size: 23px; color: var(--portal-ink); }
+.vertice-portal .master-session { color: var(--portal-muted); font-size: 12px; }
+.vertice-portal .portal-page-header-actions .master-session { color: #e7f2fc; }
+.vertice-portal.ies-branded .corp-header { background: linear-gradient(118deg, #153f66, #196b9f); }
+.vertice-portal.ies-branded .ies-footer { background: #153f66; }
+.portal-standalone { min-height: 100dvh; background: var(--portal-canvas); }
+@media (max-width: 640px) {
+  .portal-page-header { gap: 14px; padding: 22px 18px; border-radius: 16px; }
+  .portal-page-header-icon { flex-basis: 44px; height: 44px; border-radius: 11px; }
+  .portal-page-header-icon svg { width: 25px; height: 25px; }
+  .portal-page-header-copy { flex-basis: calc(100% - 60px); }
+  .portal-page-header .portal-page-header-copy :is(h1,h2,h3) { font-size: clamp(23px, 6.5vw, 29px); }
+  .portal-page-header .portal-page-header-description { font-size: 14px; }
+  .portal-page-header-actions { flex-basis: 100%; }
+  .vertice-portal .area-ws :is(input:not([type]),input[type=text],input[type=email],input[type=search],input[type=number],input[type=date],input[type=url],input[type=tel],select,textarea) { font-size: 16px; }
+  .vertice-portal .area-ws :is(.corp-button,.planning-primary,.alumni-btn-primary,.alumni-btn-secondary,.btn-secondary) { min-height: 44px; }
+}
+@media (prefers-reduced-motion: reduce) { .vertice-portal :is(button,a,.area-card,.area-panel) { transition: none; } }
+@media print {
+  .portal-page-header { color: #1e354e; background: #fff; border-color: #d8e4ef; box-shadow: none; }
+  .portal-page-header :is(h1,h2,h3,.portal-page-header-description,.portal-page-header-eyebrow) { color: #1e354e; }
+  .portal-page-header-icon { color: #16629a; border-color: #d8e4ef; background: #fff; }
+}
+/* Ações e identidade mantêm contraste no cabeçalho; estados críticos seguem distintos. */
+.portal-page-header .portal-page-header-actions :is(button,.corp-button) { background: #fff; color: #17486f; border-color: #9dc0de; }
+.vertice-portal :is(.area-danger,.alumni-btn-danger,.ext-btn-danger) { color: #9b3042; background: #fff3f4; border-color: #e8bec7; }
+.vertice-portal .portal-page-header .portal-page-header-copy :is(h1,h2,h3) { color: #fff; line-height: 1.18; }
+.vertice-portal--institution-themed .area-ws.vertice-portal { --portal-primary: var(--color-primary, #16629a); --portal-primary-hover: var(--color-primary-hover, #114c79); }
+
+.portal-demo-badge { display: inline-block; border: 1px solid #a7c8e4; border-radius: 99px; color: #fff; background: rgb(255 255 255 / 10%); padding: 7px 11px; font-size: 12px; line-height: 1.4; }
+.vertice-portal :is(.ies-shell,.access-form,.corp-login-card) input[type=password] { min-height:44px; border-radius:8px; font-size:14px; padding:10px 12px; }
