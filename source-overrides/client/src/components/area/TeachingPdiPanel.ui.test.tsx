@@ -158,7 +158,7 @@ describe('Atividades de Ensino e PDI', () => {
     const write = db.rpc.find(c => c.name === 'vertice_teaching_save_activity')?.args;
     expect(write).toMatchObject({
       p_course: 'curso-a', p_activity: 'activity-a', p_students: null,
-      p_fields: { title: 'Oficina revisada', updated_at: 'revision-a' },
+      p_fields: { title: 'Oficina revisada', updated_at: 'revision-a', total_minutes: null },
     });
     expect(write?.p_fields).not.toHaveProperty('course_id');
   });
@@ -178,7 +178,10 @@ describe('Atividades de Ensino e PDI', () => {
     expect(db.rpc.some(call => call.name === 'vertice_teaching_save_activity')).toBe(false);
     await fill('Papel de Aluna sintética', 'organizador');
     await fill('Minutos de Aluna sintética', '150');
+    await fill('Carga total da atividade (minutos)', '180');
     await submit();
+    expect(db.rpc.find(call => call.name === 'vertice_teaching_save_activity')?.args.p_fields).toMatchObject({ total_minutes: 180 });
+    expect(container.textContent).toContain('Carga total da atividade: 180 min');
     expect(db.rpc.find(call => call.name === 'vertice_teaching_save_activity')?.args.p_students).toEqual([
       { student_id: 'student-existing', participant_role: 'participante', minutes: 90 },
       { student_id: 'student-other', participant_role: 'organizador', minutes: 150 },

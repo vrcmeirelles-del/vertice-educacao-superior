@@ -94,6 +94,7 @@ test('atividade: instituição, curso, programa/meta nativa, evidência e valida
    await role(db,staff);
    const insert=await create();activity=insert.rows[0].id;
    assert.equal(insert.rows[0].status,'rascunho');
+   assert.equal((await db.query(`select total_minutes from public.vertice_teaching_activities where id='${activity}'`)).rows[0].total_minutes,null);
    await assert.rejects(db.exec(`update vertice_teaching_activities set status='validada' where id='${activity}'`),{code:'42501'});
    await role(db,nde);
    assert.equal((await db.query('select id from vertice_teaching_activities')).rows.length,1);
@@ -103,10 +104,10 @@ test('atividade: instituição, curso, programa/meta nativa, evidência e valida
    assert.equal((await db.query(`select id from vertice_teaching_course_options('${a}')`)).rows.length,0);
   });
   await t.test('roster limita dados à matrícula ativa verificada e equipe autorizada, com carga independente e inclusão atômica',async()=>{
-   const base={title:'Registro sintético',category:'evento',description:'Sem alunos reais',activity_date:'2026-11-18',organizer_role:'discente',goal_id:goal,evidence_doc_id:doc1,ods_goal:12,ods_rationale:'Justificativa sintética'};
+   const base={title:'Registro sintético',category:'evento',description:'Sem alunos reais',activity_date:'2026-11-18',organizer_role:'discente',goal_id:goal,evidence_doc_id:doc1,ods_goal:12,ods_rationale:'Justificativa sintética',total_minutes:270};
    const roster=(activityId=null,query='')=>db.query('select * from vertice_teaching_roster($1,$2,$3,$4)',[a,c1,activityId,query]).then(r=>r.rows);
    const save=(activityId,fields,students)=>db.query(
-     'select id,status,updated_at::text as version from vertice_teaching_save_activity($1,$2,$3,$4,$5)',
+     'select id,status,updated_at::text as version,total_minutes,evidence_doc_id from vertice_teaching_save_activity($1,$2,$3,$4,$5)',
      [a,c1,activityId,JSON.stringify(fields),students === null ? null : JSON.stringify(students)],
    ).then(r=>r.rows[0]);
    const one={student_id:student1,participant_role:'organizador',minutes:150};
@@ -121,6 +122,8 @@ test('atividade: instituição, curso, programa/meta nativa, evidência e valida
    await assert.rejects(save(null,{...base,status:'validada'},[one]),{code:'22023'});
    const original=await save(null,base,[one,two]);
    assert.equal(original.status,'rascunho');
+   assert.equal(original.total_minutes,270);
+   assert.equal(original.evidence_doc_id,doc1);
    assert.deepEqual((await roster(original.id)).map(({student_id,participant_role,minutes})=>({student_id,participant_role,minutes})).sort((x,y)=>x.student_id.localeCompare(y.student_id)),[one,two]);
    await role(db,staff);
    await assert.rejects(save(original.id,{...base,updated_at:original.version},[]),{code:'40001'});
@@ -133,6 +136,8 @@ test('atividade: instituição, curso, programa/meta nativa, evidência e valida
    await role(db,coord);
    const preserved=await save(original.id,{...base,updated_at:original.version},null);
    assert.equal((await roster(original.id)).length,2);
+   assert.equal(preserved.total_minutes,270);
+   assert.equal(preserved.evidence_doc_id,doc1);
    await assert.rejects(save(original.id,{...base,updated_at:original.version},[]),{code:'40001'});
    const edited=await save(original.id,{...base,updated_at:preserved.version},[{...one,minutes:170}]);
    assert.deepEqual((await roster(original.id)).map(r=>[r.student_id,r.minutes]),[[student1,170]]);

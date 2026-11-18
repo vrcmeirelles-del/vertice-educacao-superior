@@ -1,6 +1,10 @@
 -- Lista acadêmica de participação, separada de extensão e do livro de horas complementares.
 begin;
 
+alter table public.vertice_teaching_activities add column total_minutes integer
+ check (total_minutes is null or total_minutes between 0 and 60000);
+comment on column public.vertice_teaching_activities.total_minutes is 'Carga informada da atividade. Independente das cargas individuais, sem crédito automático.';
+
 create table vertice_private.teaching_activity_students (
  activity_id uuid not null references public.vertice_teaching_activities(id) on delete restrict,
  student_id uuid not null references public.vertice_student_registry(id) on delete restrict,
@@ -68,13 +72,13 @@ begin
  select * into f from jsonb_populate_record(null::public.vertice_teaching_activities,p_fields);
  if p_activity is null then
   insert into public.vertice_teaching_activities
-   (institution_id,course_id,title,category,description,activity_date,organizer_role,exam_module,goal_id,evidence_doc_id,ods_goal,ods_rationale)
-  values(p_institution,p_course,f.title,f.category,f.description,f.activity_date,f.organizer_role,f.exam_module,f.goal_id,f.evidence_doc_id,f.ods_goal,f.ods_rationale)
+   (institution_id,course_id,title,category,description,activity_date,organizer_role,exam_module,goal_id,evidence_doc_id,ods_goal,ods_rationale,total_minutes)
+  values(p_institution,p_course,f.title,f.category,f.description,f.activity_date,f.organizer_role,f.exam_module,f.goal_id,f.evidence_doc_id,f.ods_goal,f.ods_rationale,f.total_minutes)
   returning * into row_saved;
  else
   update public.vertice_teaching_activities a set
    title=f.title,category=f.category,description=f.description,activity_date=f.activity_date,organizer_role=f.organizer_role,
-   exam_module=f.exam_module,goal_id=f.goal_id,evidence_doc_id=f.evidence_doc_id,ods_goal=f.ods_goal,ods_rationale=f.ods_rationale
+   exam_module=f.exam_module,goal_id=f.goal_id,evidence_doc_id=f.evidence_doc_id,ods_goal=f.ods_goal,ods_rationale=f.ods_rationale,total_minutes=f.total_minutes
   where a.id=p_activity and a.institution_id=p_institution and a.course_id=p_course and a.status='rascunho'
     and a.updated_at=f.updated_at and (a.created_by=auth.uid() or vertice_private.teaching_access(p_institution,p_course,'validate'))
   returning * into row_saved;

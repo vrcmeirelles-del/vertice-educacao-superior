@@ -71,7 +71,7 @@ type Activity = {
   id: string; course_id: string; title: string; category: string; description: string;
   activity_date: string; organizer_role: string; goal_id: string | null;
   evidence_doc_id: string | null; ods_goal: number | null; ods_rationale: string | null;
-  status: string; updated_at: string; exam_module: string | null; created_by: string | null;
+  status: string; updated_at: string; exam_module: string | null; created_by: string | null; total_minutes: number | null;
 };
 type Evidence = { id: string; title: string };
 const TABLE = { programs: 'vertice_pdi_programs', goals: 'vertice_goals', activities: 'vertice_teaching_activities' };
@@ -79,11 +79,11 @@ const emptyProgram = { id: '', title: '', description: '' };
 const emptyGoal = { id: '', pdi_program_id: '', title: '', indicator: '', target: '', unit: '', owner_name: '', due_date: '', direction: 'aumentar', status: 'planejada', pdi_expected_result: '' };
 const newActivity = () => ({
   id: '', updated_at: '', title: '', category: 'evento', description: '', activity_date: browserDate(), organizer_role: 'docente', exam_module: '',
-  goal_id: '', evidence_doc_id: '', ods_goal: '', ods_rationale: '',
+  goal_id: '', evidence_doc_id: '', ods_goal: '', ods_rationale: '', total_minutes: '',
 });
 const activityStatus = (status: string) => ({ rascunho: 'Rascunho', validada: 'Validada', cancelada: 'Cancelada' }[status] ?? status);
 const GOAL_FIELDS = 'id,title,pdi_program_id,indicator,target,unit,owner_name,due_date,direction,status,pdi_expected_result';
-const ACTIVITY_FIELDS = 'id,course_id,title,category,description,activity_date,organizer_role,goal_id,evidence_doc_id,ods_goal,ods_rationale,status,updated_at,exam_module,created_by';
+const ACTIVITY_FIELDS = 'id,course_id,title,category,description,activity_date,organizer_role,goal_id,evidence_doc_id,ods_goal,ods_rationale,status,updated_at,exam_module,created_by,total_minutes';
 
 function parseError(error: unknown) {
   if (error && typeof error === 'object' && 'message' in error) return String(error.message);
@@ -395,6 +395,10 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate }: Props) 
     if (draft.evidence_doc_id && !knownEvidence.some(d => d.id === draft.evidence_doc_id)) {
       setActionError('Selecione uma evidência disponível na Mesa Digital deste curso ou remova o vínculo.'); return;
     }
+    const totalMinutes = draft.total_minutes.trim() === '' ? null : Number(draft.total_minutes);
+    if (totalMinutes !== null && (!Number.isInteger(totalMinutes) || totalMinutes < 0 || totalMinutes > 60000)) {
+      setActionError('Informe uma carga total inteira entre 0 e 60.000 minutos ou deixe o campo vazio.'); return;
+    }
     if (studentsDraft.error) { setActionError(studentsDraft.error); return; }
     void run(
       async () => {
@@ -402,7 +406,7 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate }: Props) 
           p_institution: institutionId, p_course: courseId, p_activity: draft.id || null,
           p_fields: {
             title: draft.title.trim(), category: draft.category, description: draft.description.trim(),
-            activity_date: draft.activity_date, organizer_role: draft.organizer_role,
+            activity_date: draft.activity_date, organizer_role: draft.organizer_role, total_minutes: totalMinutes,
             exam_module: draft.category === 'avaliacao' ? draft.exam_module || null : null, goal_id: draft.goal_id || null,
             evidence_doc_id: draft.evidence_doc_id || null, ods_goal: draft.ods_goal ? Number(draft.ods_goal) : null,
             ods_rationale: draft.ods_goal ? draft.ods_rationale.trim() : null,
@@ -426,6 +430,7 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate }: Props) 
     setActivityDraft({
       ...row, exam_module: row.exam_module ?? '', goal_id: row.goal_id ?? '', evidence_doc_id: row.evidence_doc_id ?? '',
       ods_goal: row.ods_goal ? String(row.ods_goal) : '', ods_rationale: row.ods_rationale ?? '',
+      total_minutes: row.total_minutes == null ? '' : String(row.total_minutes),
     });
     if (row.evidence_doc_id && !knownEvidence.some(d => d.id === row.evidence_doc_id)) {
       const scopedId = courseId;
@@ -558,6 +563,9 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate }: Props) 
             <Field label="Tipo de atividade"><select value={activityDraft.category} onChange={e => setActivityDraft({ ...activityDraft, category: e.target.value, exam_module: e.target.value === 'avaliacao' ? activityDraft.exam_module : '' })}>{TYPES.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></Field>
             <Field label="Quem organizou"><select value={activityDraft.organizer_role} onChange={e => setActivityDraft({ ...activityDraft, organizer_role: e.target.value })}>{ORGANIZERS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></Field>
             <Field label="Data da atividade"><input required type="date" value={activityDraft.activity_date} onChange={e => setActivityDraft({ ...activityDraft, activity_date: e.target.value })} /></Field>
+            <Field label="Carga total da atividade (minutos)" help="Opcional. Duração da atividade, independente dos minutos registrados por estudante.">
+              <input type="number" min="0" max="60000" step="1" value={activityDraft.total_minutes} onChange={e => setActivityDraft({ ...activityDraft, total_minutes: e.target.value })} />
+            </Field>
           </div>
           {activityDraft.category === 'avaliacao' && <Field label="Exame ou carreira (opcional)" help="É uma referência informada no cadastro, não uma sincronização de resultados com o Fato & Ordem.">
             <select value={activityDraft.exam_module} onChange={e => setActivityDraft({ ...activityDraft, exam_module: e.target.value })}>
@@ -611,6 +619,7 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate }: Props) 
         <h4>{row.title}</h4>
         <p className="teaching-pdi-meta">{displayDate(row.activity_date)} · {TYPES.find(([value]) => value === row.category)?.[1] ?? row.category} · {activityStatus(row.status)} · Organização: {ORGANIZERS.find(([value]) => value === row.organizer_role)?.[1] ?? row.organizer_role}</p>
         <p className="teaching-pdi-description">{row.description}</p>
+        {row.total_minutes != null && <p><strong>Carga total da atividade:</strong> {row.total_minutes.toLocaleString('pt-BR')} min</p>}
         {row.exam_module && <p><strong>Exame ou carreira:</strong> {EXAMS.find(([value]) => value === row.exam_module)?.[1] ?? row.exam_module}</p>}
         {row.goal_id && <p><strong>Meta do PDI:</strong> {goals.find(g => g.id === row.goal_id)?.title ?? 'Meta vinculada'}</p>}
         {row.evidence_doc_id && <ContributionEvidence key={row.evidence_doc_id} institutionId={institutionId} row={row} />}
