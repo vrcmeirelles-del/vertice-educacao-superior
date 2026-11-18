@@ -5,14 +5,25 @@ import assert from 'node:assert/strict';
 
 const id = n => `00000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
 const read = path => readFileSync(new URL(path,import.meta.url),'utf8');
-
-test('linked form, recoverable deletion, immutable first submission and scoped student activation',async t=>{
+const workspaceMigrations = [
+ '20261114122806_extension_electronic_forms.sql',
+ '20261117193500_extension_project_workspace.sql',
+ '20261117193600_extension_student_invites.sql',
+ '20261117201000_extension_cancelled_project_discard.sql',
+ '20261118200000_extension_evidence_project_links.sql',
+];
+async function workspace(t){
  const db=new PGlite();
  t.after(()=>db.close());
  await db.exec(read('./fixture.sql'));
- for(const file of ['20261114122806_extension_electronic_forms.sql','20261117193500_extension_project_workspace.sql','20261117193600_extension_student_invites.sql','20261117201000_extension_cancelled_project_discard.sql']) {
+ for(const file of workspaceMigrations){
   await db.exec(read('../../../supabase/migrations/'+file));
  }
+ return db;
+}
+
+test('linked form, recoverable deletion, immutable first submission and scoped student activation',async t=>{
+ const db=await workspace(t);
  const actor=async n=>db.query("select set_config('request.jwt.claim.sub',$1,false),set_config('request.jwt.claim.aal','aal2',false)",[id(n)]);
  const sql=(statement,...values)=>db.query(statement,values);
  const value=async(statement,...values)=>(await sql(statement,...values)).rows[0]?.value;
@@ -70,4 +81,62 @@ test('linked form, recoverable deletion, immutable first submission and scoped s
  assert.deepEqual(await eligible(),[]);
  await assert.rejects(sql("select vertice_extension_draft_visibility($1,true)",id(32)),/nunca submetido/);
  await assert.rejects(sql("delete from vertice_extension_projects where id=$1",id(31)),/recuperável/);
+});
+
+
+test('shares one evidence record among projects and validates final report references',async t=>{
+ const db=await workspace(t);
+ const sql=(statement,...values)=>db.query(statement,values);
+ const actor=async n=>sql("select set_config('request.jwt.claim.sub',$1,false),set_config('request.jwt.claim.aal','aal2',false)",id(n));
+ await sql("insert into auth.users(id) values($1),($2),($3)",id(1),id(2),id(3));
+ await sql("insert into vertice_institutions values($1,'IES A'),($2,'IES B')",id(11),id(12));
+ await sql("insert into vertice_courses values($1,$2,'Direito')",id(21),id(11));
+ await sql("insert into vertice_memberships values($1,$2,'equipe'),($3,$2,'equipe'),($4,$5,'gestor')",id(1),id(11),id(2),id(3),id(12));
+ await actor(1);
+ await sql("insert into vertice_extension_projects(id,institution_id,title,status,review_status) values($1,$2,'Projeto original','planejamento','rascunho'),($3,$2,'Projeto destino','planejamento','rascunho'),($4,$2,'Projeto sem vínculo','planejamento','rascunho')",id(31),id(11),id(32),id(33));
+ await sql("insert into vertice_extension_evidence_registry(id,institution_id,project_id,student_id,is_current) values($1,$2,$3,null,true),($4,$2,null,$5,true),($6,$7,null,null,true),($8,$2,null,null,false)",id(51),id(11),id(31),id(52),id(2),id(53),id(12),id(54));
+
+ await db.exec('set role authenticated');
+ const link=(project,evidence)=>sql('select vertice_extension_link_evidence($1,$2)',id(project),id(evidence));
+ await actor(2);
+ await assert.rejects(link(32,51),/responsável ou gestor/);
+ await actor(1);
+ await assert.rejects(link(32,53),/indisponível nesta instituição/);
+ await assert.rejects(link(32,52),/compartilhamento/);
+ await assert.rejects(link(32,54),/compartilhamento/);
+ await assert.rejects(sql("insert into vertice_extension_evidence_project_links(project_id,evidence_id,institution_id) values($1,$2,$3)",id(32),id(51),id(11)),/permission denied/);
+ await link(31,51);
+ await link(32,51);
+ await link(32,51);
+ const list=()=>sql('select target_project_id from vertice_extension_project_evidence where id=$1 order by target_project_id',id(51));
+ assert.deepEqual((await list()).rows.map(row=>row.target_project_id),[id(31),id(32)]);
+ const stored=await sql('select project_id,evidence_id,linked_by from vertice_extension_evidence_project_links');
+ assert.deepEqual(stored.rows,[{project_id:id(32),evidence_id:id(51),linked_by:id(1)}]);
+ const save=(project,title)=>sql("select (vertice_extension_form_save($1,$2,$3,'extensao',$4,'[]',0)).answers as answers",id(project),id(11),id(21),{title,evidence_ids:id(51)});
+ await assert.rejects(save(33,'Projeto sem vínculo'),/Evidência fora do projeto/);
+ assert.equal((await save(32,'Projeto destino')).rows[0].answers.evidence_ids,id(51));
+ assert.equal((await save(31,'Projeto original')).rows[0].answers.evidence_ids,id(51));
+
+ await actor(3);
+ assert.deepEqual((await list()).rows,[]);
+});
+
+
+test('issues sequential project codes at creation and preserves historical project codes',async t=>{
+ const db=await workspace(t);
+ const sql=(statement,...values)=>db.query(statement,values);
+ await sql("insert into auth.users(id) values($1)",id(1));
+ await sql("insert into vertice_institutions values($1,'IES A'),($2,'IES B')",id(11),id(12));
+ await sql("insert into vertice_courses values($1,$2,'Direito')",id(21),id(11));
+ await sql("insert into vertice_memberships values($1,$2,'equipe')",id(1),id(11));
+ await sql("select set_config('request.jwt.claim.sub',$1,false),set_config('request.jwt.claim.aal','aal2',false)",id(1));
+ await sql("insert into vertice_extension_projects(id,institution_id,code) values($1,$2,'EXT-2026-095'),($3,$2,'999999999999999999999')",id(31),id(11),id(32));
+ await db.exec(read('../../../supabase/migrations/20261118201000_extension_project_numbers.sql'));
+ const register=(project,institution)=>sql("insert into vertice_extension_projects(id,institution_id,code) values($1,$2,'fornecido na tela') returning code",id(project),id(institution));
+ assert.equal((await register(33,11)).rows[0].code,'1000000000000000000000');
+ assert.equal((await register(34,12)).rows[0].code,'1');
+ await sql("select vertice_extension_form_save($1,$2,$3,'extensao',$4,'[]',0)",id(35),id(11),id(21),{title:'Projeto pelo formulário'});
+ await sql("update vertice_extension_projects set title='Projeto legado atualizado' where id=$1",id(31));
+ const {rows}=await sql("select id,code from vertice_extension_projects where institution_id=$1 order by id",id(11));
+ assert.deepEqual(rows.map(row=>row.code),['EXT-2026-095','999999999999999999999','1000000000000000000000','1000000000000000000001']);
 });

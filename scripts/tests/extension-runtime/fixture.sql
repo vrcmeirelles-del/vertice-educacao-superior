@@ -9,7 +9,7 @@ create table public.vertice_memberships(user_id uuid,institution_id uuid,role te
 create function vertice_private.can_read_institution(i uuid) returns boolean language sql stable security definer as $$select exists(select 1 from public.vertice_memberships where user_id=auth.uid() and institution_id=i)$$;
 create function vertice_private.has_role(i uuid,r text[]) returns boolean language sql stable security definer as $$select current_setting('request.jwt.claim.aal',true)='aal2' and exists(select 1 from public.vertice_memberships where user_id=auth.uid() and institution_id=i and role=any(r))$$;
 create table public.vertice_doc_categories(code text primary key,label text,tier text,linked_module text,linked_tab text,sort_order int);
-create table public.vertice_extension_projects(id uuid primary key,institution_id uuid,title text,course_ids uuid[],coordinator_name text,coordinator_email text,status text,review_status text,completed_at timestamptz,evidence_pdf_path text,semester text,description text,social_problem text,general_objective text,methodology text,target_community text,updated_at timestamptz,total_hours numeric,budget_estimated numeric,budget_executed numeric,start_date date,end_date date);
+create table public.vertice_extension_projects(id uuid primary key,institution_id uuid,title text,course_ids uuid[],code text,coordinator_name text,coordinator_email text,status text,review_status text,completed_at timestamptz,evidence_pdf_path text,semester text,description text,social_problem text,general_objective text,methodology text,target_community text,updated_at timestamptz,total_hours numeric,budget_estimated numeric,budget_executed numeric,start_date date,end_date date);
 create table public.vertice_documents(id uuid primary key default gen_random_uuid(),institution_id uuid,category_code text references public.vertice_doc_categories(code),title text,description text,storage_path text,file_name text,file_size bigint,mime_type text,sha256 text,course_id uuid,tags text[],linked_module text,linked_entity_type text,linked_entity_id uuid,uploaded_by uuid,ai_status text);
 create table public.vertice_extension_deliverables(id uuid default gen_random_uuid(),institution_id uuid,project_id uuid,title text,deliverable_type text,document_id uuid,delivered_at date);
 create table storage.objects(bucket_id text,name text,metadata jsonb,owner_id text,id uuid default gen_random_uuid());
@@ -26,7 +26,13 @@ alter table public.vertice_extension_projects add column unit_name text,add colu
  add column activity_schedule text,add column modality text,add column thematic_area text,add column activity_type text,
  add column detailed_program text,add column evaluation_method text,add column specific_objectives text[],
  add column expected_results text[],add column target_audience_count integer,add column infrastructure_needs text,add column partnerships_detail text;
-create table public.vertice_extension_evidence_registry(id uuid primary key,institution_id uuid,project_id uuid);
+create table public.vertice_extension_evidence_registry(
+ id uuid primary key,institution_id uuid,project_id uuid,is_current boolean default true,student_id uuid
+);
+alter table public.vertice_extension_evidence_registry enable row level security;
+grant select on public.vertice_extension_evidence_registry to authenticated;
+create policy evidence_read on public.vertice_extension_evidence_registry for select to authenticated
+ using (vertice_private.can_read_institution(institution_id));
 create table public.vertice_extension_project_history(
  institution_id uuid,project_id uuid,field_changed text,old_value text,new_value text,changed_by uuid,reason text
 );

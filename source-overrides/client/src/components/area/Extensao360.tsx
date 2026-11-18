@@ -80,6 +80,36 @@ const DELIV_LABELS: Record<string, string> = {
 };
 const REVIEW_LABELS: Record<string, string> = { acompanhamento: 'Acompanhamento da Extensão', regulacao: 'Regulação' };
 
+type ExtensionCourse = { id: string; name: string; degree?: string | null; modality?: string | null };
+
+function courseTags(course: ExtensionCourse) {
+  const normalize = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const degree = normalize(course.degree || '');
+  const modality = normalize(course.modality || '');
+  const name = normalize(course.name);
+  const tags: { tone: string; label: string }[] = [];
+
+  if (/^(especializacao|mestrado|doutorado|pos|pos-graduacao)$/.test(degree) ||
+      (!degree || degree === 'outro') && /\b(pos-graduacao|especializacao|mestrado|doutorado|mba)\b/.test(name)) {
+    tags.push({ tone: '4', label: 'Pós-graduação' });
+  } else if (degree === 'tecnico' || ((!degree || degree === 'outro') && /^curso tecnico\b|^tecnico\s+em\b/.test(name))) {
+    tags.push({ tone: '5', label: 'Técnico' });
+  } else if (degree === 'bacharelado' || (!degree && /\bbacharelado\b/.test(name))) {
+    tags.push({ tone: '1', label: 'Bacharelado' });
+  } else if (degree === 'licenciatura' || (!degree && /\blicenciatura\b/.test(name))) {
+    tags.push({ tone: '2', label: 'Licenciatura' });
+  } else if (degree === 'tecnologo') {
+    tags.push({ tone: '3', label: 'Tecnólogo' });
+  }
+
+  if (modality === 'ead' || modality === 'a distancia' || (!modality && /\bead\b/.test(name))) {
+    tags.push({ tone: '0', label: 'EAD' });
+  } else if (modality === 'presencial' || modality === 'semipresencial') {
+    tags.push({ tone: 'neutral', label: modality === 'presencial' ? 'Presencial' : 'Semipresencial' });
+  }
+  return tags;
+}
+
 function Badge({ status }: { status: string }) {
   return <span className="ext-badge" style={{ background: (STATUS_COLORS[status] || '#888') + '18', color: STATUS_COLORS[status] || '#888' }}>
     {STATUS_LABELS[status] || status}
@@ -89,7 +119,7 @@ function fmtDate(d: string | null) { return d ? new Date(d).toLocaleDateString('
 
 export default function Extensao360({ institutionId, role, courses = [], onBack }: {
   institutionId: string; role: string;
-  courses?: { id: string; name: string }[];
+  courses?: ExtensionCourse[];
   onBack?: () => void;
 }) {
   const [view, setView] = useState<View>('projetos');
@@ -114,6 +144,7 @@ export default function Extensao360({ institutionId, role, courses = [], onBack 
   const [hourLedger, setHourLedger] = useState<{ participantId: string; participantName: string; projectId: string } | null>(null);
   const [odsPanel, setOdsPanel] = useState<{ projectId: string; projectTitle: string } | null>(null);
   const [activityPanel, setActivityPanel] = useState<{ projectId: string; projectTitle: string } | null>(null);
+  const [evidenceRevision, setEvidenceRevision] = useState(0);
   const [evidencePanel, setEvidencePanel] = useState<{ projectId: string; projectTitle: string } | null>(null);
   const [workflowPanel, setWorkflowPanel] = useState<{ projectId: string; projectTitle: string; reviewStatus: string } | null>(null);
   const [discardableIds, setDiscardableIds] = useState<string[]|null>(null);
@@ -203,17 +234,12 @@ export default function Extensao360({ institutionId, role, courses = [], onBack 
 
   function courseName(id: string) { return courses?.find(c => c.id === id)?.name || id.slice(0, 8); }
 
-  async function generateCode() {
-    const { data } = await supabase.rpc('generate_extension_code', { p_institution_id: institutionId });
-    return data as string || '';
-  }
   function axisName(id: string) { return axes.find(a => a.id === id)?.name || ''; }
 
   // === SAVES ===
   async function saveProject() {
     const payload: any = {
       ...formData, institution_id: institutionId,
-      code: formData.code,
       course_ids: formData.course_ids || [],
       partner_institutions: formData.partner_institutions_text ? formData.partner_institutions_text.split(',').map((s: string) => s.trim()) : (formData.partner_institutions || []),
       ods_goals: formData.ods_goals_text ? formData.ods_goals_text.split(',').map((s: string) => s.trim()) : (formData.ods_goals || []),
@@ -224,7 +250,7 @@ export default function Extensao360({ institutionId, role, courses = [], onBack 
     if (payload.status === 'concluido' && (!formData.id || projects.find(p => p.id === formData.id)?.status !== 'concluido')) {
       payload.review_status = 'pendente';
     }
-    delete payload.owner_id;delete payload.first_submitted_at;delete payload.deleted_at;
+    delete payload.code;delete payload.owner_id;delete payload.first_submitted_at;delete payload.deleted_at;
     if(!payload.title?.trim()){setProjectError('Informe o título do projeto.');return;}
     let result;
     if (payload.id) {
@@ -435,7 +461,7 @@ Este documento constitui evidência para fins de avaliação institucional (INEP
   const projDeliverables = selectedProject ? deliverables.filter(d => d.project_id === selectedProject) : [];
 
   const viewButton=(v:View)=>(
-    <button key={v} className={view === v ? 'active' : ''} aria-current={view===v?'page':undefined} onClick={() => {if(v==='formularios'&&view!=='formularios'){setTargetForm(undefined);setShowProjectInvites(false);}setView(v);}}>
+    <button key={v} className={view === v ? 'active' : ''} aria-current={view===v?'page':undefined} onClick={() => {if(v==='formularios'&&view!=='formularios'){setTargetForm(undefined);setShowProjectInvites(false);}if(v==='evidencias')setEvidencePanel(null);setView(v);}}>
             {v === 'projetos' ? `Projetos (${projects.length})` :
              v === 'formularios' ? 'Formulários e PDF' :
              v === 'equipe' ? `Equipe (${team.length})` :
@@ -472,7 +498,7 @@ Este documento constitui evidência para fins de avaliação institucional (INEP
         {canEdit && view === 'projetos' && (
           <div className="ext-header-actions">
             <button className="ext-btn-secondary" onClick={() => { setFormType('axis'); setFormData({}); setShowForm(true); }}>+ Eixo temático</button>
-            <button className="ext-btn-primary" onClick={async () => { const code = await generateCode(); setFormType('project'); setFormData({ status: 'planejamento', review_status: 'rascunho', project_type: 'projeto', course_ids: [], code }); setShowForm(true); }}>+ Novo projeto</button>
+            <button className="ext-btn-primary" onClick={() => { setFormType('project'); setFormData({ status: 'planejamento', review_status: 'rascunho', project_type: 'projeto', course_ids: [] }); setShowForm(true); }}>+ Novo projeto</button>
           </div>
         )}
       </div>
@@ -514,7 +540,7 @@ Este documento constitui evidência para fins de avaliação institucional (INEP
         </details>
       </nav>
 
-      {(formsVisited || view === 'formularios') && <div hidden={view !== 'formularios'}><ExtensaoFormularios key={`${institutionId}:${targetForm||''}:${showProjectInvites}`} institutionId={institutionId} role={role} courses={courses || []} projects={[...projects,...deletedProjects]} targetId={targetForm} startWithInvites={showProjectInvites} onBack={()=>{setView('projetos');setTargetForm(undefined);}} onChanged={() => { void load(); }} /></div>}
+      {(formsVisited || view === 'formularios') && <div hidden={view !== 'formularios'}><ExtensaoFormularios key={`${institutionId}:${targetForm||''}:${showProjectInvites}`} institutionId={institutionId} role={role} courses={courses || []} projects={[...projects,...deletedProjects]} targetId={targetForm} startWithInvites={showProjectInvites} evidenceRevision={evidenceRevision} onBack={()=>{setView('projetos');setTargetForm(undefined);}} onChanged={() => { void load(); }} /></div>}
 
       {loading ? <p className="ext-loading">Carregando dados de extensão...</p> : (
         <>
@@ -579,7 +605,7 @@ Este documento constitui evidência para fins de avaliação institucional (INEP
                   <h4 id="ext-identification-heading">Identificação</h4>
                   <div className="ext-form-grid">
                     <HelpLabel className="ext-registration-title">Título<input value={formData.title || ''} onChange={e => setFormData({ ...formData, title: e.target.value })} /></HelpLabel>
-                    <HelpLabel>Código<input value={formData.code || ''} readOnly style={{background:'var(--bg-card,#f3f4f6)',cursor:'default',fontFamily:'monospace',fontWeight:600}} title="Gerado automaticamente" /></HelpLabel>
+                    <HelpLabel>Código<input value={formData.code || ''} readOnly className="ext-project-code" placeholder={formData.id ? "Sem código" : "Gerado ao salvar"} /></HelpLabel>
                     <HelpLabel>Tipo
                       <select value={formData.project_type || 'projeto'} onChange={e => setFormData({ ...formData, project_type: e.target.value })}>
                         {Object.entries(TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
@@ -591,9 +617,11 @@ Este documento constitui evidência para fins de avaliação institucional (INEP
                         {axes.map(a => {
                           const ids = formData.axis_ids || (formData.axis_id ? [formData.axis_id] : []);
                           const sel = ids.includes(a.id);
-                          return <button key={a.id} type="button" className={`ext-chip ${sel ? 'selected' : ''}`} onClick={() => {
+                          const primaryOds = Number(a.ods_alignment?.[0]?.match(/[0-9]+/)?.[0] || 0);
+                          return <button key={a.id} type="button" className="ext-chip ext-chip-themed"
+                            data-tone={primaryOds % 6} aria-pressed={sel} onClick={() => {
                             setFormData({ ...formData, axis_ids: sel ? ids.filter((x:string) => x !== a.id) : [...ids, a.id], axis_id: null });
-                          }}>{a.suggested_by_ai ? '🤖 ' : ''}{a.name} · {(a.ods_alignment||[]).join(', ')}</button>;
+                          }}>{a.suggested_by_ai ? '🤖 ' : ''}{a.name}{a.ods_alignment?.length ? ` · ${a.ods_alignment.join(', ')}` : ''}</button>;
                         })}
                       </div>
                     </div>
@@ -757,8 +785,13 @@ Este documento constitui evidência para fins de avaliação institucional (INEP
                       <div className="ext-course-chips">
                         {courses.map(c => {
                           const selected = (formData.course_ids || []).includes(c.id);
-                          return <button key={c.id} type="button" className={`ext-chip ${selected ? 'selected' : ''}`}
-                            onClick={() => { const ids = formData.course_ids || []; setFormData({ ...formData, course_ids: selected ? ids.filter((i: string) => i !== c.id) : [...ids, c.id] }); }}>{c.name}</button>;
+                          const tags = courseTags(c);
+                          return <button key={c.id} type="button" className="ext-chip ext-chip-themed ext-course-choice"
+                            data-tone={tags[0]?.tone ?? 'neutral'} aria-pressed={selected}
+                            onClick={() => { const ids = formData.course_ids || []; setFormData({ ...formData, course_ids: selected ? ids.filter((i: string) => i !== c.id) : [...ids, c.id] }); }}>
+                            <span>{c.name}</span>
+                            {tags.map(tag => <span key={tag.label} className="ext-course-tag" data-tone={tag.tone}>{tag.label}</span>)}
+                          </button>;
                         })}
                       </div>
                     </details>
@@ -1146,11 +1179,14 @@ Este documento constitui evidência para fins de avaliação institucional (INEP
           {/* ===== EVIDÊNCIAS ===== */}
           {view === 'evidencias' && (
             <ExtensaoEvidencias
+              key={`${institutionId}:${evidencePanel?.projectId || ''}`}
               institutionId={institutionId}
               projectId={evidencePanel?.projectId}
               projectTitle={evidencePanel?.projectTitle}
               canEdit={canEdit}
-              onClose={() => setEvidencePanel(null)}
+              linkableProjects={projects.filter(canManage)}
+              onLinked={() => setEvidenceRevision(revision => revision + 1)}
+              onClose={() => { setEvidencePanel(null); setView('projetos'); }}
             />
           )}
 

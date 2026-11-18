@@ -14,8 +14,8 @@ const money=new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'});
 const displayValue=(value:string|undefined,currency=false)=>value?.trim()?(currency&&Number.isFinite(Number(value))?money.format(Number(value)):value):'Em aberto';
 const BUCKET='vertice-documents';
 const KINDS=['Programação','Registro fotográfico','Lista de presença','Clipagem','Peça gráfica','Termo de parceria','Recibo de doação','Avaliação da comunidade','Outro'];
-export default function ExtensaoFormularios({institutionId,role,courses,onChanged,projects=[],targetId,startWithInvites,onBack}: {
- institutionId: string; role: string; courses: {id:string;name:string}[]; onChanged:()=>void; projects?:ProjectSource[]; targetId?:string; startWithInvites?:boolean; onBack?:()=>void;
+export default function ExtensaoFormularios({institutionId,role,courses,onChanged,projects=[],targetId,startWithInvites,evidenceRevision,onBack}: {
+ institutionId: string; role: string; courses: {id:string;name:string}[]; onChanged:()=>void; projects?:ProjectSource[]; targetId?:string; startWithInvites?:boolean; evidenceRevision?:number; onBack?:()=>void;
 }) {
  const [records,setRecords]=useState<FormRecord[]>([]);
  const [current,setCurrent]=useState<FormRecord|null>(null);
@@ -69,11 +69,11 @@ export default function ExtensaoFormularios({institutionId,role,courses,onChange
   if(!projectId)return;
   let active=true;
   void (async()=>Promise.all([
-   supabase.from('vertice_extension_evidence_registry').select('id,title,uploaded_at,version').eq('institution_id',institutionId).eq('project_id',projectId),
+   supabase.from('vertice_extension_project_evidence').select('id,title,uploaded_at,version').eq('institution_id',institutionId).eq('target_project_id',projectId),
    supabase.from('vertice_documents').select('id,title,file_name,extracted_text').eq('institution_id',institutionId).eq('linked_entity_id',projectId).limit(25),
   ]))().then(([ev,docs])=>{if(active){setEvidence(ev.data||[]);setSources(docs.data||[]);}}).catch(()=>{if(active){setEvidence([]);setSources([]);}});
   return()=>{active=false;};
- },[institutionId,projectId]);
+ },[institutionId,projectId,evidenceRevision]);
  const ppcCourseIds=(project?.course_ids?.length ? project.course_ids : current?.course_id?[current.course_id]:[]).join(',');
  useEffect(()=>{
   setPpcDocs([]);
@@ -187,7 +187,7 @@ export default function ExtensaoFormularios({institutionId,role,courses,onChange
    const bytes=await buildDossier({id:saved.id,template:saved.template,answers:saved.answers,courseName:courses.filter(c=>(project?.course_ids||[saved.course_id]).includes(c.id)).map(c=>c.name).join(', '),institutionName,revision:saved.revision,author,generatedAt:new Date().toISOString(),attachments:saved.attachments},async a=>{
     const r=await supabase.storage.from(BUCKET).download(a.path);if(r.error)throw new Error(`Não foi possível ler ${a.name}: ${r.error.message}`);return new Uint8Array(await r.data.arrayBuffer());
    },undefined,[
-    ...selectedEvidence.map(id=>{const item=evidence.find(e=>e.id===id);return item?`${item.title} | versão ${item.version} | ${item.uploaded_at.slice(0,10)} | protocolo ${id}`:`Protocolo ${id}`;}),
+    ...selectedEvidence.map(id=>{const item=evidence.find(e=>e.id===id);return item?`${item.title} | versão ${item.version} | ${(item.uploaded_at?.slice(0,10)||'Data indisponível')} | protocolo ${id}`:`Protocolo ${id}`;}),
     ...evidenceLinks.split('\n').filter(Boolean),
    ]);
    if(bytes.length>30*1024*1024)throw new Error('O dossiê ultrapassa 30 MB. Reduza o tamanho dos anexos antes de concluir.');

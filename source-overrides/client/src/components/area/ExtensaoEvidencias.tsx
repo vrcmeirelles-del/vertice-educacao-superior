@@ -6,7 +6,8 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
 interface Evidence {
-  id: string; title: string; document_type: string; project_id: string;
+  id: string; title: string; document_type: string; project_id: string | null;
+  student_id: string | null;
   file_name: string; mime_type: string; file_size_bytes: number;
   version: number; is_current: boolean; validation_status: string;
   validated_by: string | null; validated_at: string | null; rejection_reason: string | null;
@@ -34,12 +35,14 @@ const VALIDATION_COLORS: Record<string, string> = {
 };
 
 export default function ExtensaoEvidencias({
-  institutionId, projectId, projectTitle, canEdit, onClose,
+  institutionId, projectId, projectTitle, canEdit, linkableProjects, onLinked, onClose,
 }: {
   institutionId: string;
   projectId?: string;
   projectTitle?: string;
   canEdit: boolean;
+  linkableProjects: { id: string; title: string }[];
+  onLinked: () => void;
   onClose: () => void;
 }) {
   const [evidences, setEvidences] = useState<Evidence[]>([]);
@@ -48,24 +51,91 @@ export default function ExtensaoEvidencias({
   const [filterStatus, setFilterStatus] = useState('todos');
   const [showUpload, setShowUpload] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [picker, setPicker] = useState<{ evidence?: Evidence } | null>(null);
+  const [choices, setChoices] = useState<{ id: string; label: string }[]>([]);
+  const [choice, setChoice] = useState('');
+  const [loadingChoices, setLoadingChoices] = useState(false);
+  const [linking, setLinking] = useState(false);
+  const [loadError, setLoadError] = useState('');
+  const [linkError, setLinkError] = useState('');
+  const [linkMessage, setLinkMessage] = useState('');
+  const canLinkHere = !!projectId && linkableProjects.some(project => project.id === projectId);
   const [uploadForm, setUploadForm] = useState({
     title: '', document_type: 'outro', notes: '', period: '',
   });
 
   const load = useCallback(async () => {
     setLoading(true);
-    let q = supabase.from('vertice_extension_evidence_registry')
+    setLoadError('');
+    const table = projectId ? 'vertice_extension_project_evidence' : 'vertice_extension_evidence_registry';
+    let q = supabase.from(table)
       .select('*')
       .eq('institution_id', institutionId)
       .eq('is_current', true)
       .order('uploaded_at', { ascending: false });
-    if (projectId) q = q.eq('project_id', projectId);
-    const { data } = await q;
+    if (projectId) q = q.eq('target_project_id', projectId);
+    const { data, error } = await q;
+    if (error) setLoadError('Não foi possível carregar as evidências.');
     setEvidences(data || []);
     setLoading(false);
   }, [institutionId, projectId]);
 
   useEffect(() => { load(); }, [load]);
+
+  async function openPicker(evidence?: Evidence) {
+    setPicker({ evidence });
+    setChoice('');
+    setChoices([]);
+    setLinkMessage('');
+    setLinkError('');
+    setLoadingChoices(true);
+
+    if (evidence) {
+      const { data, error } = await supabase.from('vertice_extension_project_evidence')
+        .select('target_project_id').eq('institution_id', institutionId).eq('id', evidence.id);
+      if (error) setLinkError('Não foi possível consultar os projetos já vinculados.');
+      else {
+        const linked = new Set((data || []).map(row => row.target_project_id));
+        setChoices(linkableProjects.filter(project => !linked.has(project.id))
+          .map(project => ({ id: project.id, label: project.title })));
+      }
+    } else {
+      const { data, error } = await supabase.from('vertice_extension_evidence_registry')
+        .select('id,title,file_name,version,uploaded_at').eq('institution_id', institutionId)
+        .eq('is_current', true).is('student_id', null).order('title');
+      if (error) setLinkError('Não foi possível consultar o repositório de evidências.');
+      else {
+        const linked = new Set(evidences.map(item => item.id));
+        setChoices((data || []).filter(item => !linked.has(item.id)).map(item => ({
+          id: item.id,
+          label: `${item.title} · ${item.file_name} · v${item.version} · ${fmtDate(item.uploaded_at)}`,
+        })));
+      }
+    }
+    setLoadingChoices(false);
+  }
+
+  async function saveLink() {
+    const target = picker?.evidence ? choice : projectId;
+    const evidence = picker?.evidence?.id || choice;
+    if (!target || !choice || linking) return;
+
+    setLinking(true);
+    setLinkError('');
+    const { error } = await supabase.rpc('vertice_extension_link_evidence', {
+      p_project: target,
+      p_evidence: evidence,
+    });
+    setLinking(false);
+    if (error) {
+      setLinkError(error.message);
+      return;
+    }
+    setPicker(null);
+    setLinkMessage('Evidência vinculada ao projeto.');
+    onLinked();
+    if (projectId) await load();
+  }
 
   const updateValidation = async (id: string, status: string, reason?: string) => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -135,6 +205,8 @@ export default function ExtensaoEvidencias({
     (filterStatus === 'todos' || e.validation_status === filterStatus)
   );
 
+  const showActions = canEdit || (!projectId && linkableProjects.length > 0);
+
   // KPIs
   const total = evidences.length;
   const aprovadas = evidences.filter(e => e.validation_status === 'aprovada').length;
@@ -163,12 +235,34 @@ export default function ExtensaoEvidencias({
         </div>
       </div>
 
-      {/* Filters */}
-      {/* Upload */}
-      {canEdit && (
-        <button className="ext-btn-primary" style={{ marginBottom: '1rem' }} onClick={() => setShowUpload(true)}>
-          📤 Enviar evidência
-        </button>
+      <div className="ext-project-main-actions">
+        {canEdit && <button className="ext-btn-primary" onClick={() => setShowUpload(true)}>Enviar evidência</button>}
+        {canLinkHere && <button className="ext-btn-secondary" disabled={loading || loadingChoices || linking}
+          onClick={() => void openPicker()}>Vincular evidência existente</button>}
+      </div>
+      {linkMessage && <p role="status">{linkMessage}</p>}
+      {loadError && <p role="alert">{loadError}</p>}
+      {picker && (
+        <fieldset className="ext-source-box">
+          <legend>{picker.evidence ? 'Vincular a outro projeto' : 'Vincular evidência existente'}</legend>
+          {picker.evidence && <p><strong>{picker.evidence.title}</strong></p>}
+          {loadingChoices ? <p>Carregando opções…</p> : choices.length > 0 && (
+            <HelpLabel>{picker.evidence ? 'Projeto' : 'Evidência do repositório'}
+              <select value={choice} disabled={linking} onChange={event => setChoice(event.target.value)}>
+                <option value="">Selecione</option>
+                {choices.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}
+              </select>
+            </HelpLabel>
+          )}
+          {!loadingChoices && !linkError && choices.length === 0 && (
+            <p>{picker.evidence ? 'Todos os projetos disponíveis já têm esta evidência.' : 'Nenhuma outra evidência disponível nesta instituição.'}</p>
+          )}
+          {linkError && <p role="alert">{linkError}</p>}
+          <div className="ext-form-actions">
+            <button type="button" className="ext-btn-cancel" disabled={loadingChoices || linking} onClick={() => setPicker(null)}>Cancelar</button>
+            <button type="button" className="ext-btn-primary" disabled={!choice || linking} onClick={() => void saveLink()}>Vincular</button>
+          </div>
+        </fieldset>
       )}
 
       {showUpload && (
@@ -220,7 +314,7 @@ export default function ExtensaoEvidencias({
       ) : (
         <table className="ext-table">
           <thead>
-            <tr><th>Data</th><th>Tipo</th><th>Título</th><th>Arquivo</th><th>Versão</th><th>Status</th>{canEdit && <th>Ações</th>}</tr>
+            <tr><th>Data</th><th>Tipo</th><th>Título</th><th>Arquivo</th><th>Versão</th><th>Status</th>{showActions && <th>Ações</th>}</tr>
           </thead>
           <tbody>
             {filtered.map(e => (
@@ -236,12 +330,16 @@ export default function ExtensaoEvidencias({
                   </span>
                   {e.rejection_reason && <><br /><small style={{ color: '#ef4444' }}>{e.rejection_reason}</small></>}
                 </td>
-                {canEdit && (
+                {showActions && (
                   <td>
-                    {e.validation_status === 'pendente' && <>
+                    {!projectId && linkableProjects.length > 0 && !e.student_id && (
+                      <button type="button" className="ext-btn-small" disabled={loadingChoices || linking}
+                        onClick={() => void openPicker(e)}>Vincular a projeto</button>
+                    )}
+                    {canEdit && e.validation_status === 'pendente' && <>
                       <button className="ext-btn-small" onClick={() => updateValidation(e.id, 'em_analise')}>Analisar</button>
                     </>}
-                    {e.validation_status === 'em_analise' && <>
+                    {canEdit && e.validation_status === 'em_analise' && <>
                       <button className="ext-btn-small" style={{ marginRight: '.25rem' }} onClick={() => updateValidation(e.id, 'aprovada')}>✅</button>
                       <button className="ext-btn-small" onClick={() => {
                         const reason = prompt('Motivo da rejeição:');

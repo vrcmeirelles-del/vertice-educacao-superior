@@ -360,7 +360,7 @@ export default function OwnerDashboard(){
        <button style={{background:'none',border:'1px solid #e2e8f0',borderRadius:6,padding:'6px 12px',fontSize:12,cursor:'pointer',color:'#64748b'}} onClick={async()=>{await supabase.auth.signOut();}}>Sair</button>
      </div>
      <Suspense fallback={<p>Carregando Extensão 360°…</p>}>
-       <Extensao360 institutionId={equipeInstitution.id} role={equipeRole} courses={equipeCourses.map(c=>({id:c.id,name:c.name}))} />
+       <Extensao360 institutionId={equipeInstitution.id} role={equipeRole} courses={equipeCourses} />
      </Suspense>
    </main>;
  }
