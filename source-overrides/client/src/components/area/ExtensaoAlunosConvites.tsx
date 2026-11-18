@@ -62,7 +62,8 @@ export default function ExtensaoAlunosConvites({projectId,onUse}:{
           await review();
           throw new Error(details?.error||'Falha no e-mail. Use a opção de gerar link para WhatsApp.');
         }
-        setMessage('Convite enviado ao e-mail cadastrado.');
+        if(result.data?.sent!==true)throw new Error('O serviço não confirmou o envio do convite. Confira os registros antes de reenviar.');
+        setMessage('Convite aceito pelo serviço de e-mail. A entrega na caixa do destinatário ainda não foi confirmada.');
       }
       if(!invite)setIdentity({registration:'',cpf:'',email:''});
       await review();
