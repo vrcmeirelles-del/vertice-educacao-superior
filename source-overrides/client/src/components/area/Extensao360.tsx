@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 import "./extensao360.css";
 import type { ProjectSource } from '@/lib/extension-forms/project-data';
 import ExtensaoFormularios from "./ExtensaoFormularios";
+import ExtensionStudentActions from './ExtensionStudentActions';
 import ExtensaoHourLedger from "./ExtensaoHourLedger";
 import ExtensaoODS from "./ExtensaoODS";
 import ExtensaoGovernanca from "./ExtensaoGovernanca";
@@ -43,6 +44,7 @@ interface Student {
   id: string; project_id: string; full_name: string; email: string; phone: string;
   registration_number: string; cpf: string; course_id: string;
   hours_assigned: number; hours_completed: number; is_scholarship: boolean; status: string;
+  lifecycle_version?:number;removed_at?:string|null;deleted_at?:string|null;
 }
 interface Deliverable {
   id: string; project_id: string; title: string; deliverable_type: string;
@@ -112,7 +114,7 @@ function courseTags(course: ExtensionCourse) {
 
 function Badge({ status }: { status: string }) {
   return <span className="ext-badge" style={{ background: (STATUS_COLORS[status] || '#888') + '18', color: STATUS_COLORS[status] || '#888' }}>
-    {STATUS_LABELS[status] || status}
+    {({inativo:'Inativo',retirado:'Retirado do projeto',excluido:'Cadastro na lixeira'} as Record<string,string>)[status] || STATUS_LABELS[status] || status}
   </span>;
 }
 function fmtDate(d: string | null) { return d ? new Date(d).toLocaleDateString('pt-BR') : '—'; }
@@ -136,6 +138,8 @@ export default function Extensao360({ institutionId, role, courses = [], onBack 
   const [projects, setProjects] = useState<ExtProject[]>([]);
   const [team, setTeam] = useState<TeamMember[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
+  const [archivedStudents,setArchivedStudents]=useState<Student[]>([]);
+  const [studentVisibility,setStudentVisibility]=useState('vinculados');
   const [deliverables, setDeliverables] = useState<Deliverable[]>([]);
   const [axes, setAxes] = useState<Axis[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -186,7 +190,9 @@ export default function Extensao360({ institutionId, role, courses = [], onBack 
     setDeletedProjects(all.filter(row=>row.deleted_at));
     setProjectError(p.error?.message||'');
     setTeam((t.data || []) as TeamMember[]);
-    setStudents((s.data || []) as Student[]);
+    const allStudents=(s.data||[]) as Student[];
+    setStudents(allStudents.filter(row=>!row.removed_at&&!row.deleted_at));
+    setArchivedStudents(allStudents.filter(row=>row.removed_at||row.deleted_at));
     setDeliverables((del.data || []) as Deliverable[]);
     setAxes((ax.data || []) as Axis[]);
     setReviews((rev.data || []) as Review[]);
@@ -458,6 +464,7 @@ Este documento constitui evidência para fins de avaliação institucional (INEP
 
   const projTeam = selectedProject ? team.filter(t => t.project_id === selectedProject) : [];
   const projStudents = selectedProject ? students.filter(s => s.project_id === selectedProject) : [];
+  const studentRows=(studentVisibility==='vinculados'?students:studentVisibility==='retirados'?archivedStudents.filter(s=>s.removed_at&&!s.deleted_at):studentVisibility==='excluidos'?archivedStudents.filter(s=>s.deleted_at):[...students,...archivedStudents]).filter(s=>!selectedProject||s.project_id===selectedProject);
   const projDeliverables = selectedProject ? deliverables.filter(d => d.project_id === selectedProject) : [];
 
   const viewButton=(v:View)=>(
@@ -1000,12 +1007,14 @@ Este documento constitui evidência para fins de avaliação institucional (INEP
                   </div>
                 </div>
               )}
-              {(selectedProject ? projStudents : students).length === 0 ? <p className="ext-empty">{selectedProject ? 'Nenhum aluno vinculado a este projeto.' : 'Nenhum aluno vinculado aos projetos.'}</p> : (
+              <p className="ext-info">Desative o aluno, retire-o do projeto ou exclua seu cadastro de participação de forma recuperável. As ações preservam horas e evidências e não alteram outros projetos.</p>
+              <label>Mostrar alunos <select value={studentVisibility} onChange={e=>setStudentVisibility(e.target.value)}><option value="vinculados">Vinculados ao projeto</option><option value="retirados">Retirados do projeto</option><option value="excluidos">Lixeira · cadastros excluídos</option><option value="todos">Todos, incluindo retirados e excluídos</option></select></label>
+              {studentRows.length === 0 ? <p className="ext-empty">{selectedProject ? 'Nenhum aluno vinculado a este projeto.' : 'Nenhum aluno vinculado aos projetos.'}</p> : (
                 <table className="ext-table"><thead><tr><th>Nome</th><th>Projeto</th><th>E-mail<ContextHelp title="E-mail" /></th><th>WhatsApp</th><th>Matrícula</th><th>Horas</th><th>Bolsista</th><th>Status</th><th>Ações</th></tr></thead>
-                <tbody>{(selectedProject ? projStudents : students).map(s => (
-                  <tr key={s.id} className={canEdit?'clickable':''} onClick={() => { if(canEdit){setFormType('student');setFormData(s);setStudentError('');setSelectedProject(s.project_id);setShowForm(true);} }}>
+                <tbody>{studentRows.map(s => (
+                  <tr key={s.id} className={canEdit?'clickable':''} onClick={() => { if(canEdit&&!s.removed_at&&!s.deleted_at){setFormType('student');setFormData(s);setStudentError('');setSelectedProject(s.project_id);setShowForm(true);} }}>
                     <td><strong>{s.full_name}</strong></td><td>{projects.find(p=>p.id===s.project_id)?.title||'—'}</td><td>{s.email||'—'}</td><td>{s.phone||'—'}</td><td className="mono">{s.registration_number||'—'}</td><td className="num">{s.hours_completed||0}/{s.hours_assigned||0}h</td><td>{s.is_scholarship?'✅':'—'}</td><td><Badge status={s.status}/></td>
-                    <td><button className="ext-btn-small" onClick={(e) => { e.stopPropagation(); setHourLedger({ participantId: s.id, participantName: s.full_name, projectId: s.project_id }); }}>📒 Horas</button></td>
+                    <td><button className="ext-btn-small" onClick={(e) => { e.stopPropagation(); setHourLedger({ participantId: s.id, participantName: s.full_name, projectId: s.project_id }); }}>📒 Horas</button>{canEdit&&<ExtensionStudentActions student={s} projectTitle={projects.find(p=>p.id===s.project_id)?.title||'Projeto selecionado'} onChanged={async()=>{setShowForm(false);await load();}}/>}</td>
                   </tr>
                 ))}</tbody></table>
               )}

@@ -217,3 +217,5 @@
   font-weight: 700;
   white-space: nowrap;
 }
+
+.ext-student-actions{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}.ext-student-dialog{max-width:560px;width:90vw;max-height:85vh;overflow:auto;border:1px solid #cbd5e1;border-radius:10px;padding:24px;color:#24354c}.ext-student-dialog::backdrop{background:#16274199}.ext-student-dialog p{line-height:1.65;font-size:14px}.ext-student-dialog label{display:flex;flex-direction:column;gap:8px;font-weight:600}.ext-student-dialog textarea{width:100%;min-height:80px;padding:10px;border:1px solid #cbd5e1;border-radius:6px;font:inherit}.ext-student-dialog :focus-visible{outline:3px solid #79a7e3;outline-offset:2px}
