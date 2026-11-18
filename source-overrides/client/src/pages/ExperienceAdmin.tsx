@@ -1,3 +1,4 @@
+import NativeInvitationEmail from "@/components/communications/NativeInvitationEmail";
 import { ContextHelp } from '@/components/ContextHelp';
 import { HelpLabel } from '@/components/ContextHelp';
 import React,{useCallback,useEffect,useMemo,useState,type FormEvent} from 'react';
@@ -117,6 +118,7 @@ export default function ExperienceAdmin({embedded=false}:{embedded?:boolean}={})
        </form>
        {link&&<section style={{marginTop:22,overflowWrap:'anywhere'}}>
         <h3>Link confidencial — disponível somente agora</h3>
+        <NativeInvitationEmail link={link} kind="experience" />
         <textarea rows={4} readOnly value={link} onFocus={e=>e.currentTarget.select()} style={{width:'100%'}}/>
         <div style={{display:'flex',gap:10,flexWrap:'wrap'}}>
           <button className="corp-button" type="button" onClick={()=>void copy()}><Copy size={16}/> Copiar link</button>

@@ -1,3 +1,4 @@
+import PortalInvitations from '../communications/PortalInvitations';
 // Estagio360.tsx — Estágio Obrigatório 360 (Interno e Externo)
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
@@ -68,6 +69,7 @@ export default function Estagio360({ institutionId, courses, role, onNavigate }:
 
   return (
     <div className="alumni-360">
+      <PortalInvitations institutionId={institutionId} role={role} courses={courses} module="estagio" />
       <nav className="alumni-nav" role="tablist">
         {NAV.map(n => (
           <button key={n.key} role="tab" aria-selected={section === n.key}
@@ -214,10 +216,7 @@ export default function Estagio360({ institutionId, courses, role, onNavigate }:
                       {p.ends_at && ` · Fim: ${new Date(p.ends_at).toLocaleDateString('pt-BR')}`}
                     </span>
                     <div style={{ display: 'flex', gap: 4 }}>
-                      {!p.supervisor_name && (
-                        <button style={{ fontSize: '.6875rem', padding: '2px 10px', borderRadius: 4, border: '1px solid #7c3aed', background: '#f5f3ff', color: '#7c3aed', cursor: 'pointer' }}
-                          onClick={async (e) => { e.stopPropagation(); const email = prompt('E-mail do supervisor externo:'); if (!email) return; const name = prompt('Nome do supervisor:') || ''; const token = crypto.randomUUID(); const enc = new TextEncoder().encode(token); const buf = await crypto.subtle.digest('SHA-256', enc); const hash = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join(''); await supabase.from('vertice_internship_supervisor_invites').insert({ institution_id: institutionId, placement_id: p.id, supervisor_email: email, supervisor_name: name, token_hash: hash, purpose: 'evaluation', expires_at: new Date(Date.now() + 30*24*60*60*1000).toISOString() }); await supabase.from('vertice_internship_placements').update({ supervisor_name: name }).eq('id', p.id); setPlacements(prev => prev.map(x => x.id === p.id ? { ...x, supervisor_name: name } : x)); alert(`Convite criado para ${email}. Token: ${token.slice(0,8)}…`); }}>📧 Convidar supervisor</button>
-                      )}
+                      {/* Convites de colaboradores utilizam a central acima; não emitir token sem canal de aceite. */}
                       {nextLifecycle(p.lifecycle) && (
                         <button style={{ fontSize: '.6875rem', padding: '2px 10px', borderRadius: 4, border: '1px solid #2563eb', background: '#eff6ff', color: '#2563eb', cursor: 'pointer' }}
                           onClick={async (e) => { e.stopPropagation(); const next = nextLifecycle(p.lifecycle)!; await supabase.from('vertice_internship_placements').update({ lifecycle: next }).eq('id', p.id); setPlacements(prev => prev.map(x => x.id === p.id ? { ...x, lifecycle: next } : x)); }}>

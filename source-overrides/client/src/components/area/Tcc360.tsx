@@ -1,3 +1,4 @@
+import PortalInvitations from '../communications/PortalInvitations';
 // Tcc360.tsx — TCC e Produção Acadêmica 360
 // Navegação interna: Visão Geral, Carteira, Projeto, Orientações, Atividades,
 // Horas, Banca, Acervo, Evidências PPC/ODS, BI, Configurações
@@ -62,11 +63,7 @@ export default function Tcc360({ institutionId, courses, role, onNavigate }: Pro
   const [selectedWork, setSelectedWork] = useState<string | null>(null);
   const [courseFilter, setCourseFilter] = useState('');
   const [loading, setLoading] = useState(true);
-  const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteName, setInviteName] = useState('');
-  const [inviteBusy, setInviteBusy] = useState(false);
-  const [inviteMsg, setInviteMsg] = useState('');
-  const [inviteLink, setInviteLink] = useState('');
+
 
   useEffect(() => {
     setLoading(true);
@@ -91,43 +88,10 @@ export default function Tcc360({ institutionId, courses, role, onNavigate }: Pro
   const deposited = filtered.filter(w => w.stage === 'deposited');
 
   const canEdit = role === 'master' || role === 'gestor';
-  async function sendInvite(e: React.FormEvent) {
-    e.preventDefault();
-    setInviteBusy(true); setInviteMsg(''); setInviteLink('');
-    try {
-      const mail = inviteEmail.trim().toLowerCase();
-      const { data: result, error: fnErr } = await supabase.functions.invoke('vertice-convite-simples', {
-        body: { email: mail, institution_id: institutionId, role: 'equipe', name: inviteName || undefined }
-      });
-      if (fnErr) throw fnErr;
-      if (result && !result.ok) throw new Error(result.error || 'Erro ao criar convite');
-      const link = `${window.location.origin}/entrar`;
-      setInviteLink(link);
-      setInviteMsg(result?.created
-        ? `✅ Convite criado para ${mail}. Copie o link e envie por WhatsApp.`
-        : `✅ ${mail} já tem conta. Acesso liberado. Envie o link abaixo.`);
-      setInviteEmail(''); setInviteName('');
-    } catch (err) { setInviteMsg(`Erro: ${(err as Error).message}`); }
-    finally { setInviteBusy(false); }
-  }
 
   return (
     <div className="alumni-360">
-      {/* Convite simplificado */}
-      {canEdit && <div style={{padding:'14px 18px',background:'#f0fdf4',border:'1px solid #86efac',borderRadius:10,marginBottom:16}}>
-        <strong style={{fontSize:13,color:'#166534'}}>📩 Convidar orientador / professor para o TCC</strong>
-        <form onSubmit={sendInvite} style={{display:'flex',gap:8,alignItems:'flex-end',flexWrap:'wrap',marginTop:8}}>
-          <label style={{display:'grid',gap:4,fontSize:12,flex:1,minWidth:160}}>Nome<input value={inviteName} onChange={e=>setInviteName(e.target.value)} placeholder="Prof. Maria Silva" style={{padding:'7px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:13}}/></label>
-          <label style={{display:'grid',gap:4,fontSize:12,flex:1,minWidth:200}}>E-mail *<input type="email" required value={inviteEmail} onChange={e=>setInviteEmail(e.target.value)} placeholder="professor@email.com" style={{padding:'7px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:13}}/></label>
-          <button type="submit" disabled={inviteBusy} style={{padding:'7px 14px',background:'#16a34a',color:'#fff',border:0,borderRadius:6,fontSize:13,fontWeight:600,cursor:'pointer',whiteSpace:'nowrap'}}>{inviteBusy?'Enviando…':'Enviar convite'}</button>
-        </form>
-        {inviteMsg&&<p style={{fontSize:12,margin:'8px 0 0',color:inviteMsg.startsWith('✅')?'#166534':'#991b1b'}}>{inviteMsg}</p>}
-        {inviteLink&&<div style={{display:'flex',gap:8,alignItems:'center',marginTop:8}}>
-          <input readOnly value={inviteLink} style={{flex:1,padding:'7px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:11,background:'#fff'}} onClick={e=>(e.target as HTMLInputElement).select()}/>
-          <button type="button" onClick={()=>navigator.clipboard.writeText(inviteLink).then(()=>setInviteMsg('📋 Link copiado! Cole no WhatsApp.')).catch(()=>{})} style={{padding:'7px 12px',background:'#16a34a',color:'#fff',border:0,borderRadius:6,fontSize:12,fontWeight:600,cursor:'pointer',whiteSpace:'nowrap'}}>📋 Copiar</button>
-        </div>}
-        <p style={{fontSize:10,color:'#6b7280',marginTop:6}}>O professor acessa pelo link do convite, sem precisar de senha.</p>
-      </div>}
+      <PortalInvitations institutionId={institutionId} role={role} courses={courses} module="tcc" />
 
       {/* Nav */}
       <nav className="alumni-nav" role="tablist">
