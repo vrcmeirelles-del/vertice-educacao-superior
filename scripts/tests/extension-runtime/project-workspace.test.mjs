@@ -120,3 +120,23 @@ test('shares one evidence record among projects and validates final report refer
  await actor(3);
  assert.deepEqual((await list()).rows,[]);
 });
+
+
+test('issues sequential project codes at creation and preserves historical project codes',async t=>{
+ const db=await workspace(t);
+ const sql=(statement,...values)=>db.query(statement,values);
+ await sql("insert into auth.users(id) values($1)",id(1));
+ await sql("insert into vertice_institutions values($1,'IES A'),($2,'IES B')",id(11),id(12));
+ await sql("insert into vertice_courses values($1,$2,'Direito')",id(21),id(11));
+ await sql("insert into vertice_memberships values($1,$2,'equipe')",id(1),id(11));
+ await sql("select set_config('request.jwt.claim.sub',$1,false),set_config('request.jwt.claim.aal','aal2',false)",id(1));
+ await sql("insert into vertice_extension_projects(id,institution_id,code) values($1,$2,'EXT-2026-095'),($3,$2,'999999999999999999999')",id(31),id(11),id(32));
+ await db.exec(read('../../../supabase/migrations/20261118201000_extension_project_numbers.sql'));
+ const register=(project,institution)=>sql("insert into vertice_extension_projects(id,institution_id,code) values($1,$2,'fornecido na tela') returning code",id(project),id(institution));
+ assert.equal((await register(33,11)).rows[0].code,'1000000000000000000000');
+ assert.equal((await register(34,12)).rows[0].code,'1');
+ await sql("select vertice_extension_form_save($1,$2,$3,'extensao',$4,'[]',0)",id(35),id(11),id(21),{title:'Projeto pelo formulário'});
+ await sql("update vertice_extension_projects set title='Projeto legado atualizado' where id=$1",id(31));
+ const {rows}=await sql("select id,code from vertice_extension_projects where institution_id=$1 order by id",id(11));
+ assert.deepEqual(rows.map(row=>row.code),['EXT-2026-095','999999999999999999999','1000000000000000000000','1000000000000000000001']);
+});

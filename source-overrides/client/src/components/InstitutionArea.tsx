@@ -12,7 +12,7 @@ import type {Role} from '@/lib/area';
 import AcademicReports, {type AcademicReport} from '@/components/AcademicReports';
 
 export type Institution={id:string;name:string;tier?:string};
-export type Course={id:string;institution_id:string;name:string;code:string|null;modality?:string|null};
+export type Course={id:string;institution_id:string;name:string;code:string|null;modality?:string|null;degree?:string|null};
 export type Enrollment={id:string;course_id:string;semester:string;class_label:string;enrolled:number;capacity:number|null;available:number|null;source_report_at:string;reported_total:number|null;student_status:string};
 export type Modality='presencial'|'semipresencial'|'ead';
 
