@@ -10,7 +10,16 @@ function setup(fetcher=async()=>new Response(JSON.stringify({id:'recibo-ficticio
  return {rows,logs,calls,deps:{env:k=>({VERTICE_RESEND_API_KEY:'segredo-config',VERTICE_RESEND_FROM:'Vértice <noreply@verticesuperior.com.br>'})[k],db,fetch:fetcher,log:x=>logs.push(x)}};
 }
 test('uma configuração para qualquer módulo; remetente de outro domínio é recusado',()=>{
- const env=k=>({VERTICE_RESEND_API_KEY:'global',RESEND_API_KEY:'legada',EXTENSION_RESEND_API_KEY:'ignorada'})[k];assert.equal(portalEmailConfig(env).key,'global');assert.equal(portalEmailConfig(k=>k==='RESEND_FROM'?'F&O <sender@fatoeordem.com.br>':env(k)).configured,false);
+ const env=k=>({VERTICE_RESEND_API_KEY:'global',RESEND_API_KEY:'legada',EXTENSION_RESEND_API_KEY:'compatibilidade'})[k];assert.equal(portalEmailConfig(env).key,'global');assert.equal(portalEmailConfig(k=>k==='RESEND_FROM'?'F&O <sender@fatoeordem.com.br>':env(k)).configured,false);
+});
+test('credencial já salva com nome antigo atende todos os módulos, com prioridade sobre a chave genérica',async()=>{
+ const saved={EXTENSION_RESEND_API_KEY:'credencial-vertice-sintetica',RESEND_API_KEY:'credencial-generica-sintetica',EXTENSION_RESEND_FROM:'Vértice <noreply@verticesuperior.com.br>',RESEND_FROM:'F&O <sender@fatoeordem.com.br>'};
+ assert.equal(portalEmailConfig(k=>saved[k]).configured,true);
+ for(const module of ['tcc','estagio','cadastro','extensao','governanca','contrato','notificacoes']){
+  let calls=0;const s=setup(async(_url,init)=>{calls++;assert.equal(init.headers.Authorization,'Bearer '+saved.EXTENSION_RESEND_API_KEY);assert.equal(JSON.parse(init.body).from,saved.EXTENSION_RESEND_FROM);return new Response(JSON.stringify({id:'receipt'}),{status:200});});
+  const result=await sendPortalEmail({...context,module},async()=>message,{...s.deps,env:k=>saved[k]});assert.equal(result.ok,true);assert.equal(calls,1);assert.equal(result.delivery_confirmed,false);
+ }
+ assert.equal(portalEmailConfig(k=>({ ...saved,VERTICE_RESEND_API_KEY:'preferencial',VERTICE_RESEND_FROM:'Vértice <mail@verticesuperior.com.br>'})[k]).key,'preferencial');
 });
 test('categorias seguras de credencial, domínio, cota e conexão',()=>{
  for(const [status,body,code] of [[401,{},'email_credentials'],[403,{name:'restricted_api_key'},'email_credentials'],[403,{message:'domain is not verified'},'email_sender_domain'],[429,{name:'daily_quota_exceeded'},'email_quota'],[429,{},'email_rate_limit'],[422,{},'email_invalid_request']])assert.equal(classifyEmailFailure(status,body).code,code);

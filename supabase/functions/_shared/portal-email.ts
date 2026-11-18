@@ -32,9 +32,15 @@ export const digest = async (text: string) =>
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
 export function portalEmailConfig(env: MailDeps["env"]) {
-  const key = env("VERTICE_RESEND_API_KEY") || env("RESEND_API_KEY") || "";
+  // Compatibilidade com a credencial já salva antes da unificação. A seleção
+  // é global: todos os módulos usam a mesma chave, independentemente do nome.
+  const key =
+    env("VERTICE_RESEND_API_KEY") ||
+    env("EXTENSION_RESEND_API_KEY") ||
+    env("RESEND_API_KEY") || "";
   const from =
     env("VERTICE_RESEND_FROM") ||
+    env("EXTENSION_RESEND_FROM") ||
     env("RESEND_FROM") ||
     "Vértice Educação Superior <noreply@verticesuperior.com.br>";
   const address = from.match(/<([^<>]+)>/)?.[1] || from;
