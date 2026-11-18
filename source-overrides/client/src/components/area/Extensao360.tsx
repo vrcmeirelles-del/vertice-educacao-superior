@@ -1193,7 +1193,13 @@ Este documento constitui evidência para fins de avaliação institucional (INEP
               projectId={evidencePanel?.projectId}
               projectTitle={evidencePanel?.projectTitle}
               canEdit={canEdit}
-              linkableProjects={projects.filter(canManage)}
+              linkableProjects={projects.filter(canManage).map(project => ({
+                id: project.id, title: project.title,
+                courses: [...new Set(project.course_ids || [])].map(id => {
+                  const course = courses.find(course => course.id === id);
+                  return { id, name: course ? [course.name, course.modality].filter(Boolean).join(' · ') : 'Curso não identificado' };
+                }),
+              }))}
               onLinked={() => setEvidenceRevision(revision => revision + 1)}
               onClose={() => { setEvidencePanel(null); setView('projetos'); }}
             />

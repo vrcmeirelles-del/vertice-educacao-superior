@@ -4,7 +4,9 @@ import { HelpLabel } from "@/components/ContextHelp";
  */
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import ExtensionEvidenceProjects from "./ExtensionEvidenceProjects";
+import ExtensionEvidenceProjects, {
+  type ExtensionEvidenceProject,
+} from "./ExtensionEvidenceProjects";
 
 interface Evidence {
   id: string;
@@ -74,7 +76,7 @@ export default function ExtensaoEvidencias({
   projectId?: string;
   projectTitle?: string;
   canEdit: boolean;
-  linkableProjects: { id: string; title: string }[];
+  linkableProjects: ExtensionEvidenceProject[];
   onLinked: () => void;
   onClose: () => void;
 }) {
@@ -567,7 +569,7 @@ export default function ExtensaoEvidencias({
           )}
           {!loadingChoices && picker.evidence && choices.length > 0 && (
             <ExtensionEvidenceProjects
-              projects={choices.map((c) => ({ id: c.id, title: c.label }))}
+              projects={linkableProjects}
               selected={selectedProjects}
               locked={existingProjects}
               disabled={linking}

@@ -20,13 +20,25 @@ vi.mock("@/lib/supabase", () => ({
   },
 }));
 import ExtensaoEvidencias from "./ExtensaoEvidencias";
+import ExtensionEvidenceProjects from "./ExtensionEvidenceProjects";
 let host: HTMLDivElement, root: Root;
 let linked: string[];
 const onLinked = vi.fn();
 const projects = [
-  { id: "p1", title: "Projeto A sintético" },
-  { id: "p2", title: "Projeto B sintético" },
-  { id: "p3", title: "Projeto C sintético" },
+  {
+    id: "p1",
+    title: "Projeto A sintético",
+    courses: [{ id: "direito", name: "Direito" }],
+  },
+  {
+    id: "p2",
+    title: "Projeto B sintético",
+    courses: [
+      { id: "fisio", name: "Fisioterapia" },
+      { id: "direito", name: "Direito" },
+    ],
+  },
+  { id: "p3", title: "Projeto C sintético", courses: [] },
 ];
 const evidence = {
   id: "e1",
@@ -115,12 +127,20 @@ async function click(label: string) {
   expect(b).toBeTruthy();
   await act(async () => b.click());
 }
-async function check(label: string) {
+async function select(label: string, value: string) {
   const el = [...host.querySelectorAll("label")]
-    .find((el) => el.textContent?.includes(label))
-    ?.querySelector<HTMLInputElement>("input[type=checkbox]");
+    .find((el) => el.textContent?.startsWith(label))
+    ?.querySelector<HTMLSelectElement>("select");
   expect(el).toBeTruthy();
-  await act(async () => el!.click());
+  await act(async () => {
+    el!.value = value;
+    el!.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+}
+async function check(label: string) {
+  const project = projects.find((p) => p.title === label)!;
+  await select("Projeto", project.id);
+  await click("Adicionar projeto");
 }
 async function fillTitle() {
   const el = host.querySelector<HTMLInputElement>(".ext-form-grid input")!;
@@ -188,11 +208,12 @@ it("reabrir vínculos mantém o projeto anterior marcado e adiciona vários de u
   registry = [evidence];
   await render();
   await click("Vincular projetos");
-  const checks = host.querySelectorAll<HTMLInputElement>(
-    "input[type=checkbox]",
-  );
-  expect(checks[0].checked).toBe(true);
-  expect(checks[0].disabled).toBe(true);
+  const selected = host.querySelector(
+    'ul[aria-label="Projetos selecionados"]',
+  )!;
+  expect(selected.textContent).toContain("Projeto A sintético");
+  expect(selected.textContent).toContain("Já vinculado");
+  expect(selected.querySelector("button")).toBeNull();
   await check("Projeto B sintético");
   await check("Projeto C sintético");
   await click("Vincular");
@@ -204,8 +225,9 @@ it("campo também aparece no contexto de um projeto e pré-seleciona o projeto a
   await render("p1");
   await click("Enviar evidência");
   expect(
-    host.querySelector<HTMLInputElement>("input[type=checkbox]")?.checked,
-  ).toBe(true);
+    host.querySelector('ul[aria-label="Projetos selecionados"]')?.textContent,
+  ).toContain("Projeto A sintético");
+  expect(host.querySelectorAll("input[type=checkbox]")).toHaveLength(0);
 });
 it("falha parcial não declara sucesso geral e retoma só vínculos pendentes sem reenviar arquivo", async () => {
   let fail = true;
@@ -266,4 +288,87 @@ it("sessão expirada e arquivo acima do limite não deixam envio confirmado", as
   await pickFile(11 * 1024 * 1024);
   await click("Salvar evidência");
   expect(host.querySelector("[role=alert]")?.textContent).toContain("10 MB");
+});
+
+it("filtra por curso sem perder projetos selecionados em outros cursos", async () => {
+  await render();
+  await click("Enviar evidência");
+  await select("Curso vinculado", "fisio");
+  const projectSelect = () =>
+    [...host.querySelectorAll("label")]
+      .find((el) => el.textContent?.startsWith("Projeto"))!
+      .querySelector("select")!;
+  expect([...projectSelect().options].map((o) => o.value)).toEqual(["", "p2"]);
+  await check("Projeto B sintético");
+  await select("Curso vinculado", "direito");
+  await check("Projeto A sintético");
+  await select("Curso vinculado", "__without_course__");
+  expect([...projectSelect().options].map((o) => o.value)).toEqual(["", "p3"]);
+  const list = host.querySelector('ul[aria-label="Projetos selecionados"]')!;
+  expect(list.querySelectorAll("li")).toHaveLength(2);
+  expect(list.textContent).toContain("Fisioterapia · Direito");
+  await click("Remover");
+  expect(list.querySelectorAll("li")).toHaveLength(1);
+  expect(api.rpc).not.toHaveBeenCalled();
+  expect(api.upload).not.toHaveBeenCalled();
+});
+it("agrupa por curso e busca sem acentos sem criar seleção duplicada", async () => {
+  await render();
+  await click("Enviar evidência");
+  expect([...host.querySelectorAll("optgroup")].map((g) => g.label)).toEqual([
+    "Direito",
+    "Fisioterapia",
+    "Sem curso vinculado",
+  ]);
+  const search = host.querySelector<HTMLInputElement>("input[type=search]")!;
+  await act(async () => {
+    Object.getOwnPropertyDescriptor(
+      HTMLInputElement.prototype,
+      "value",
+    )!.set!.call(search, "B SINTETICO");
+    search.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  const options = [...host.querySelectorAll("optgroup option")];
+  expect(options).toHaveLength(2);
+  expect(options.every((o) => o.textContent === "Projeto B sintético")).toBe(
+    true,
+  );
+  await check("Projeto B sintético");
+  expect(
+    host.querySelectorAll('ul[aria-label="Projetos selecionados"] li'),
+  ).toHaveLength(1);
+  expect(host.querySelectorAll("optgroup option")).toHaveLength(0);
+});
+
+it("mantém uma lista compacta com 240 projetos e filtra pelos vínculos de curso", async () => {
+  const many = Array.from({ length: 240 }, (_, i) => ({
+    id: `proj-${i}`,
+    title: `Ação ${i}`,
+    courses: [{ id: `curso-${i % 20}`, name: `Curso ${i % 20}` }],
+  }));
+  await act(async () =>
+    root.render(
+      createElement(ExtensionEvidenceProjects, {
+        projects: many,
+        selected: [],
+        onChange: vi.fn(),
+      }),
+    ),
+  );
+  expect(host.querySelectorAll("input[type=checkbox]")).toHaveLength(0);
+  expect(
+    host.querySelectorAll('ul[aria-label="Projetos selecionados"] li'),
+  ).toHaveLength(0);
+  expect(host.querySelectorAll("optgroup")).toHaveLength(20);
+  await select("Curso vinculado", "curso-7");
+  const projectSelect = [...host.querySelectorAll("label")]
+    .find((el) => el.textContent?.startsWith("Projeto"))!
+    .querySelector("select")!;
+  expect(projectSelect.options).toHaveLength(13);
+  expect(
+    [...projectSelect.options]
+      .slice(1)
+      .every((o) => Number(o.value.split("-")[1]) % 20 === 7),
+  ).toBe(true);
+  expect(api.rpc).not.toHaveBeenCalled();
 });
