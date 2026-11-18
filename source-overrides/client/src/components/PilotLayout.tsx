@@ -23,6 +23,7 @@ import { downloadFile, usePilot } from "@/contexts/PilotContext";
 import { toast } from "sonner";
 
 import { Brand } from "./Brand";
+import PortalPageHeader from './PortalPageHeader';
 export { Brand } from "./Brand";
 
 const navigation = [
@@ -79,7 +80,7 @@ export function PilotLayout({ children }: { children: ReactNode }) {
     toast.success("Cópia da demonstração exportada.");
   };
   return (
-    <div className="app-shell">
+    <div className="app-shell vertice-portal">
       {mobileOpen && (
         <button
           className="sidebar-backdrop"
@@ -273,14 +274,7 @@ export function PageHeader({
   children?: ReactNode;
 }) {
   return (
-    <div className="page-header">
-      <div>
-        <div className="eyebrow">{eyebrow}</div>
-        <h1>{title}</h1>
-        <p>{description}</p>
-      </div>
-      {children && <div className="header-actions">{children}</div>}
-    </div>
+    <PortalPageHeader title={title} eyebrow={eyebrow} description={description} level={1} icon={Compass}>{children}</PortalPageHeader>
   );
 }
 export function Filter({

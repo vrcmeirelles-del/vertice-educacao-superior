@@ -111,7 +111,7 @@ export default function Tcc360({ institutionId, courses, role, onNavigate }: Pro
         {/* ── VISÃO GERAL ── */}
         {section === 'overview' && (<div>
           <header className="alumni-header">
-            <h2>TCC e Produção Acadêmica 360</h2>
+            <h2 className="portal-module-title-duplicate">TCC e Produção Acadêmica 360</h2>
             <p className="alumni-subtitle">Acompanhamento de projetos, orientações, bancas, acervo e evidências de formação</p>
           </header>
 

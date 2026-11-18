@@ -1,3 +1,5 @@
+import PortalPageHeader from '@/components/PortalPageHeader';
+import { LayoutDashboard } from 'lucide-react';
 import { HelpLabel } from '@/components/ContextHelp';
 import {isEnrolledStatus} from '@/lib/enrollment-summary';
 import {applyInstitutionTheme, resetToVerticeTheme} from '@/lib/theme-provider';
@@ -365,7 +367,12 @@ export default function OwnerDashboard(){
      </Suspense>
    </main>;
  }
- return <main className="corp-container corp-section"><div className="master-page-heading"><h1>{window.location.pathname.startsWith('/reitor')?'Área reservada da Direção':master&&route.enadeOperations?'ENADE 360° · Conclusão operacional':master&&route.homologacao?'Central de Homologação':master&&route.repositories?'Repositórios · visão master':master&&route.demonstrativos?'Convites demonstrativos · Master':master&&route.tierFilter==='superior'?'Educação superior':master&&route.tierFilter==='escolas'?'Escolas':master&&route.financeiro?'Financeiro':master&&currentInst?currentCourse?'Gestão do curso':'Ambiente institucional':master&&route.hub?'Visão geral':master?'Administração Master':'Painel de gestão'}</h1>{session&&<p className="master-session">Conectado como <strong>{session.user.email}</strong></p>}</div>
+ const portalTitle = window.location.pathname.startsWith('/reitor')?'Área reservada da Direção':master&&route.enadeOperations?'ENADE 360° · Conclusão operacional':master&&route.homologacao?'Central de Homologação':master&&route.repositories?'Repositórios · visão master':master&&route.demonstrativos?'Convites demonstrativos · Master':master&&route.tierFilter==='superior'?'Educação superior':master&&route.tierFilter==='escolas'?'Escolas':master&&route.financeiro?'Financeiro':master&&currentInst?currentCourse?'Gestão do curso':'Ambiente institucional':master&&route.hub?'Visão geral':master?'Administração Master':'Painel de gestão';
+ const globalHero = !currentInst && !(master && route.hub);
+ return <main className={`corp-container corp-section vertice-portal${!master && currentInst ? ' vertice-portal--institution-themed' : ''}`}>
+ {globalHero ? <PortalPageHeader title={portalTitle} eyebrow={master ? 'Administração da plataforma' : 'Gestão institucional'} level={1} icon={LayoutDashboard}>
+   {session && <p className="master-session">Conectado como <strong>{session.user.email}</strong></p>}
+ </PortalPageHeader> : <div className="master-page-heading"><h1>{portalTitle}</h1>{session && <p className="master-session">Conectado como <strong>{session.user.email}</strong></p>}</div>}
  {master&&(route.tierFilter||route.financeiro)&&!route.inst&&<button onClick={()=>{window.location.hash='';window.dispatchEvent(new HashChangeEvent('hashchange'));}} style={{background:'none',border:'none',color:'#2563eb',cursor:'pointer',fontSize:13,marginBottom:12,padding:0}}>← Voltar ao hub</button>}
  {loading?<p role="status">Verificando acesso…</p>:!session?<><p>Entre para acessar sua conta.</p><Link className="corp-button" href={window.location.pathname.startsWith('/reitor')?'/entrar?destino=reitor':'/entrar'}>Entrar</Link></>:<>
  {aal!=='aal2'&&master?<section className="corp-login-card"><h2>Proteja seu acesso</h2><p>O segundo fator é obrigatório para consultar os dados das instituições como administrador.</p>

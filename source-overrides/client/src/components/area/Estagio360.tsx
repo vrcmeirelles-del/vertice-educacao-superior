@@ -85,7 +85,7 @@ export default function Estagio360({ institutionId, courses, role, onNavigate }:
 
         {section === 'overview' && (<div>
           <header className="alumni-header">
-            <h2>Estágio Obrigatório 360</h2>
+            <h2 className="portal-module-title-duplicate">Estágio Obrigatório 360</h2>
             <p className="alumni-subtitle">Campos internos e externos, acompanhamento, frequência, avaliação e secretaria</p>
           </header>
           <div className="alumni-kpis">

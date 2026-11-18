@@ -1,4 +1,6 @@
 import { ContextHelp } from '@/components/ContextHelp';
+import PortalPageHeader from './PortalPageHeader';
+import { Building2, GraduationCap } from 'lucide-react';
 import { HelpLabel } from '@/components/ContextHelp';
 import {isEnrolledStatus} from '@/lib/enrollment-summary';
 import {courseTotals} from "@/lib/enrollment-summary";
@@ -69,7 +71,7 @@ export function InstitutionView({institution,courses,enrollments,onOpenCourse,on
  const active=own.filter(c=>value(c.id,sem)>0).length;
  return <section className="academic-data" aria-labelledby={embedded?undefined:"inst-title"}>
   {!embedded&&<><p><button className="corp-login-text-button" onClick={onBack}>← Todas as instituições</button></p>
-  <h2 id="inst-title">{institution.name}</h2></>}
+  <PortalPageHeader id="inst-title" title={institution.name} eyebrow="Gestão institucional" icon={Building2} /></>}
   {!semesters.length?<p>Nenhum quantitativo importado para esta instituição.</p>:<>
   <HelpLabel>Semestre <select value={sem} onChange={e=>setSemester(e.target.value)}>{semesters.map(s=><option key={s} value={s}>{s}</option>)}</select></HelpLabel>
   <div className="stats-row">
@@ -120,7 +122,7 @@ export function CourseView({course,institution,enrollments,reports,onBack,onPlan
  const comparison=[{period:previous,value:prior,classes:baseline},{period:sem,value:selected.length?current:null,classes:selected}];
  return <section className="academic-data" aria-labelledby="course-title">
   <p><button className="corp-login-text-button" onClick={onBack}>← {institution.name}</button></p>
-  <h2 id="course-title">{course.name}{course.code?` · código ${course.code}`:''}</h2>
+  <PortalPageHeader id="course-title" title={`${course.name}${course.code ? ` · código ${course.code}` : ''}`} eyebrow="Gestão do curso" icon={GraduationCap} />
   <p>Modalidade: {LABEL[modalityOf(course)]}</p>
   <section className="enrollment-insight">
    <header><small>ACOMPANHAMENTO DO CURSO</small><h3>Matrículas em perspectiva</h3><strong>{change}</strong></header>

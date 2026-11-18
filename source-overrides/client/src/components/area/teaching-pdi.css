@@ -297,3 +297,51 @@
   .teaching-pdi :is(.teaching-save-bar,.teaching-roster-entry,.teaching-roster-search) button { width: 100%; min-height: 2.75rem; }
   .teaching-pdi .teaching-save-bar > span { width: 100%; }
 }
+
+/* PDI: organização de conteúdo sobre o padrão visual compartilhado do portal. */
+.course-planning.teaching-pdi--management {
+  --accent: var(--portal-primary, #16629a); --accent-light: #edf4fb;
+  --accent-border: #93b4d3; --ink: #1e354e; --ink-soft: #526579; --ink-muted: #68798b;
+  --bg: #f5f8fc; --bg-card: #fff; --border: #d8e4ef; --border-soft: #e8edf4;
+  padding: clamp(18px, 2.4vw, 28px); font-size: 14px; line-height: 1.6;
+  container-type: inline-size; container-name: pdi-workspace;
+}
+.teaching-pdi--management > .teaching-pdi-intro { margin: 0 0 16px; font-size: 13px; line-height: 1.65; }
+.teaching-pdi--management > .teaching-pdi-actions { margin: 16px 0 22px; gap: 8px; }
+.teaching-pdi--management .pdi-overview { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 1px; margin: 0 0 24px; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--border); }
+.teaching-pdi--management .pdi-overview > div { display: flex; flex-direction: column; gap: 8px; padding: 16px 18px; background: #fff; }
+.teaching-pdi--management .pdi-overview dt { color: var(--ink-soft); font-size: 12px; font-weight: 500; line-height: 1.4; }
+.teaching-pdi--management .pdi-overview dd { margin: 0; color: var(--accent); font-size: 25px; font-weight: 650; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.teaching-pdi--management .pdi-editor-layout { grid-template-columns: minmax(0,1fr); gap: 20px; align-items: start; }
+.course-planning.teaching-pdi--management .card { margin: 0; padding: 22px; border-radius: 12px; box-shadow: 0 2px 7px rgb(30 53 78 / 3%); }
+.teaching-pdi--management legend { margin-bottom: 18px; padding: 0; color: var(--ink); font-size: 17px; line-height: 1.4; font-weight: 650; }
+.teaching-pdi--management .planning-field { margin: 0; gap: 7px; min-width: 0; }
+.teaching-pdi--management .planning-field > small { color: var(--ink-soft); font-size: 12px; line-height: 1.55; font-weight: 400; }
+.teaching-pdi--management :is(input,select,textarea):disabled { opacity: 1; color: #607185; background: #f5f7fa; border-color: #dce4ed; cursor: not-allowed; }
+.teaching-pdi--management .pdi-program-fields,.teaching-pdi--management .pdi-field-pair { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 18px 16px; }
+.teaching-pdi--management .pdi-program-fields { grid-template-columns: minmax(0,.85fr) minmax(0,1.15fr); }
+.teaching-pdi--management .pdi-target-fields { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 18px 16px; margin: 18px 0; }
+.teaching-pdi--management .pdi-form-note { display: flex; align-items: flex-start; gap: 8px; margin: 0 0 20px; padding: 12px; color: #395a7a; background: #edf4fb; border-radius: 8px; font-size: 13px; }
+.teaching-pdi--management .pdi-form-note svg { flex-shrink: 0; margin-top: 2px; }
+.teaching-pdi--management form .teaching-pdi-actions { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-soft); }
+.teaching-pdi--management > h3 { margin: 30px 0 14px; color: var(--ink); font-size: 18px; font-weight: 650; line-height: 1.4; }
+.teaching-pdi--management .teaching-pdi-list { gap: 12px; }
+.teaching-pdi--management .teaching-pdi-record { border-radius: 10px; padding: 18px; }
+.teaching-pdi--management .teaching-pdi-record h4 { margin: 0 0 8px; color: #23496c; font-size: 15px; line-height: 1.5; font-weight: 650; }
+.teaching-pdi--management .teaching-pdi-record p { margin: 6px 0; color: var(--ink-soft); font-size: 13px; line-height: 1.65; }
+.teaching-pdi--management .pdi-empty { margin: 0; padding: 18px; color: var(--ink-soft); background: #fff; border: 1px dashed #cdd9e6; border-radius: 10px; font-size: 13px; }
+.teaching-pdi--management > .planning-field { max-width: 420px; margin-bottom: 16px; }
+@container pdi-workspace (min-width: 820px) {
+ .teaching-pdi--management .pdi-editor-layout { grid-template-columns: minmax(0,.85fr) minmax(0,1.25fr); }
+ .teaching-pdi--management .pdi-program-fields { grid-template-columns: minmax(0,1fr); }
+}
+@container pdi-workspace (max-width: 520px) {
+ .teaching-pdi--management :is(.pdi-program-fields,.pdi-field-pair,.pdi-target-fields) { grid-template-columns: minmax(0,1fr); }
+}
+@media(max-width:600px) {
+ .course-planning.teaching-pdi--management { padding: 18px 14px; }
+ .teaching-pdi--management .pdi-overview { gap: 0; grid-template-columns: minmax(0,1fr); }
+ .teaching-pdi--management .pdi-overview > div { flex-direction: row; align-items: center; gap: 12px; padding: 12px 14px; }
+ .teaching-pdi--management .pdi-overview > div + div { border-top: 1px solid var(--border); }
+ .course-planning.teaching-pdi--management .card { padding: 18px 14px; }
+}

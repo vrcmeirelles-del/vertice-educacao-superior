@@ -17,7 +17,7 @@ const links = [
   { href: "/caso-real.html", label: "Caso real" },
   { href: "/fundador.html", label: "Quem conduz" },
 ];
-export default function PublicLayout({ children }: { children: ReactNode }) {
+export default function PublicLayout({ children, portal = false }: { children: ReactNode; portal?: boolean }) {
   const [location] = useLocation();
   const [open, setOpen] = useState(false);
   const [logged, setLogged] = useState(false);
@@ -51,7 +51,7 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("keydown", close);
   }, [open]);
   return (
-    <div className="corporate-site">
+    <div className={`corporate-site${portal || ['/entrar','/redefinir-senha','/recuperar-senha','/gestor','/admin-ies','/painel-real','/reitor/reservado','/experience'].includes(location.replace(/\.html$/, '')) ? ' vertice-portal' : ''}`}>
       <a className="skip-link" href="#conteudo">
         Pular para o conteúdo
       </a>

@@ -64,7 +64,7 @@ export default function CpaAutoavaliacao({ institutionId, role }: Props) {
   return (
     <div className="alumni-360">
       <header className="alumni-header">
-        <h2>CPA e Autoavaliação Institucional</h2>
+        <h2 className="portal-module-title-duplicate">CPA e Autoavaliação Institucional</h2>
         <p className="alumni-subtitle">Planejar → pesquisar → analisar → melhorar → devolver → reavaliar</p>
         <nav className="alumni-nav" style={{ flexWrap: 'wrap' }}>
           {NAV.map(n => (

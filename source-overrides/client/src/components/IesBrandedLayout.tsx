@@ -10,7 +10,7 @@ function InstitutionLayout({children}: {children: ReactNode}) {
   const [failedLogo, setFailedLogo] = useState<string | null>(null);
   const logo = ies?.logoUrl && failedLogo !== ies.logoUrl ? ies.logoUrl : null;
   const initials = ies?.name.split(/\s+/).filter(Boolean).map(word => word[0]).slice(0, 3).join('').toUpperCase() || '?';
-  return <div className="corporate-site ies-branded"><style>{`
+  return <div className="corporate-site ies-branded vertice-portal"><style>{`
     .ies-branded .corp-header { background: #0f172a; }
     .ies-branded .ies-brand-header { display: flex; align-items: center; gap: 16px; padding: 16px 24px; max-width: 1200px; margin: 0 auto; }
     .ies-branded .ies-brand-logo { width: 64px; height: 64px; padding: 4px; border-radius: 12px; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700; color: #1e293b; flex-shrink: 0; }
