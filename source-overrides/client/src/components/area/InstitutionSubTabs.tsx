@@ -21,13 +21,22 @@ interface Props {
   favorites?: Tab[];
   onToggleFavorite?: (tab: Tab) => void;
   onlyFavorites?: boolean;
+  sortByLabel?: boolean;
   onToggleOnlyFavorites?: () => void;
 }
 
+const academicLabelOrder = new Intl.Collator("pt-BR", { usage: "sort", sensitivity: "base", numeric: true });
+
+/** Presentation only: retain the supplied membership, IDs, badges and priority for equal labels. */
+export function orderAcademicModules<T>(entries: readonly T[], label: (entry: T) => string): T[] {
+  return [...entries].sort((first, second) => academicLabelOrder.compare(label(first), label(second)));
+}
+
 /** Persistent module navigation; activation and authorization stay with the caller. */
-export default function InstitutionSubTabs({ macro, entries, activeTab, onSelect, query = "", onQueryChange, favorites = [], onToggleFavorite, onlyFavorites = false, onToggleOnlyFavorites }: Props) {
+export default function InstitutionSubTabs({ macro, entries, activeTab, onSelect, query = "", onQueryChange, favorites = [], onToggleFavorite, onlyFavorites = false, onToggleOnlyFavorites, sortByLabel = false }: Props) {
   const search = query.trim().toLocaleLowerCase("pt-BR");
-  const shown = entries.filter(entry => (!onlyFavorites || favorites.includes(entry.key)) && (!search || `${entry.label} ${entry.description ?? ""}`.toLocaleLowerCase("pt-BR").includes(search)));
+  const filtered = entries.filter(entry => (!onlyFavorites || favorites.includes(entry.key)) && (!search || `${entry.label} ${entry.description ?? ""}`.toLocaleLowerCase("pt-BR").includes(search)));
+  const shown = sortByLabel ? orderAcademicModules(filtered, entry => entry.label) : filtered;
   return (
     <nav className="inst-subtabs" aria-label={`Módulos de ${macro.label}`}>
       <div className="inst-subtabs-head">

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { BookOpen, CircleCheck, Clock3, GraduationCap, Info, Link2, Save, UsersRound } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { isFullAccess, visibleTabs, GOAL_STATUS, DIRECTION, type Role } from '@/lib/area';
 import './planning/planning.css';
@@ -456,18 +457,30 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate }: Props) 
   const labelOfEvidence = (id: string) => knownEvidence.find(d => d.id === id)?.title ?? 'Documento vinculado';
   const busyLoading = busy || loading || courseLoading;
 
-  return <section className="course-planning teaching-pdi" aria-label={title} aria-busy={busyLoading}>
-    <h2>{title}</h2>
-    <p className="teaching-pdi-intro">{mode === 'gestao'
-      ? 'Organize os programas institucionais e acompanhe quais atividades contribuem para cada meta. Contribuição e evidência de execução não substituem medição de resultado.'
-      : 'Registre atividades formativas da graduação ou pós-graduação. Vincule metas do PDI, ODS e documentos da Mesa Digital quando houver relação direta.'}</p>
+  return <section className={`course-planning teaching-pdi${mode === 'academico' ? ' teaching-pdi--academic' : ''}`} aria-label={title} aria-busy={busyLoading}>
+    {mode === 'academico' ? <header className="teaching-hero">
+      <div className="teaching-hero-icon" aria-hidden="true"><GraduationCap size={29} /></div>
+      <div>
+        <p className="teaching-kicker">Gestão acadêmica</p>
+        <h2>{title}</h2>
+        <p>Registre atividades da graduação e da pós-graduação, com participantes, carga horária e evidências.</p>
+      </div>
+    </header> : <>
+      <h2>{title}</h2>
+      <p className="teaching-pdi-intro">Organize os programas institucionais e acompanhe quais atividades contribuem para cada meta. Contribuição e evidência de execução não substituem medição de resultado.</p>
+    </>}
     <ScopeNavigation mode={mode} role={role} onNavigate={onNavigate} />
-    {mode === 'academico' && <Field label="Curso">
+    {mode === 'academico' && <div className="teaching-course-bar"><Field label="Curso">
       <select value={courseId} disabled={busy || courseLoading || !!courseError} onChange={e => chooseCourse(e.target.value)}>
         <option value="">Selecione um curso</option>
         {courseOptions.map(c => <option key={c.id} value={c.id}>{c.name}{c.degree ? ` · ${c.degree}` : ''}</option>)}
       </select>
-    </Field>}
+    </Field>
+      {!!courseId && !loading && !courseLoading && !loadError && <div className="teaching-course-stats" aria-label="Resumo das atividades">
+        <span><Clock3 size={16} aria-hidden="true" /> <strong>{displayedActivities.filter(row => row.status === 'rascunho').length}</strong> rascunhos</span>
+        <span><CircleCheck size={16} aria-hidden="true" /> <strong>{displayedActivities.filter(row => row.status === 'validada').length}</strong> validadas</span>
+      </div>}
+    </div>}
     {notice && <p role="status" className="planning-success">{notice}</p>}
     {actionError && <p role="alert" className="planning-error">{actionError}</p>}
     {(loading || courseLoading) && <p role="status">Carregando registros…</p>}
@@ -552,9 +565,15 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate }: Props) 
     </>}
     {!loading && !courseLoading && !loadError && !courseError && mode === 'academico' && !courseId && <p>{courseOptions.length ? 'Selecione um curso para consultar as atividades.' : 'Nenhum curso disponível para o seu perfil.'}</p>}
     {!loading && !courseLoading && !loadError && !courseError && mode === 'academico' && courseId && <>
-      <p className="teaching-pdi-meta">Este registro não é Extensão. Horas complementares elegíveis devem ser avaliadas conforme o regulamento do curso; não são creditadas por este cadastro.</p>
-      {canEditActivity && <form ref={activityForm} className="card" onSubmit={e => { e.preventDefault(); saveActivity(); }}>
-        <fieldset disabled={busy}><legend>{activityDraft.id ? 'Editar rascunho' : 'Nova atividade de ensino'}</legend>
+      <p className="teaching-scope-note"><Info size={17} aria-hidden="true" /><span>Este registro não é Extensão. Horas complementares, quando elegíveis, passam por análise conforme as regras do curso.</span></p>
+      {canEditActivity && <form ref={activityForm} className="card teaching-editor" onSubmit={e => { e.preventDefault(); saveActivity(); }}>
+        <fieldset disabled={busy}>
+          <legend className="teaching-editor-title">{activityDraft.id ? 'Editar rascunho' : 'Nova atividade de ensino'}</legend>
+          <div className="teaching-editor-guide">
+            <span><BookOpen size={15} aria-hidden="true" /> Dados da atividade</span>
+            <span><UsersRound size={15} aria-hidden="true" /> Participantes</span>
+            <span><Link2 size={15} aria-hidden="true" /> Vínculos</span>
+          </div>
           <section className="teaching-form-step" aria-label="Identificação e planejamento">
             <h4><span aria-hidden="true">1</span> Identificação e planejamento</h4>
             <p>Defina o tipo, quem organiza e a data. Use a descrição para registrar propósito, metodologia e entregas, sem dados pessoais.</p>
@@ -607,17 +626,18 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate }: Props) 
           {evidenceError && <p role="status" className="teaching-pdi-meta">Não foi possível listar as evidências do curso. {evidenceError} <button type="button" className="btn-secondary" onClick={() => setRevision(v => v + 1)}>Recarregar evidências</button></p>}
           {activityDraft.ods_goal && <Field label="Justificativa do vínculo com o ODS"><textarea required maxLength={1500} value={activityDraft.ods_rationale} onChange={e => setActivityDraft({ ...activityDraft, ods_rationale: e.target.value })} /></Field>}
           </section>
-          <div className="teaching-pdi-actions">
-            <button type="submit" className="planning-primary">Salvar rascunho</button>
+          <div className="teaching-pdi-actions teaching-save-bar">
+            <span>Um rascunho pode ser revisado antes da validação.</span>
+            <button type="submit" className="planning-primary"><Save size={17} aria-hidden="true" />Salvar rascunho</button>
             {activityDraft.id && <button type="button" className="btn-secondary" onClick={resetActivityDraft}>Cancelar edição da atividade</button>}
           </div>
         </fieldset>
       </form>}
       <FatoOrdemSection key={courseId} institutionId={institutionId} courseId={courseId} />
-      <h3>Atividades do curso</h3>
-      {displayedActivities.length ? <ul className="teaching-pdi-list">{displayedActivities.map(row => <li className="teaching-pdi-record" key={row.id}>
-        <h4>{row.title}</h4>
-        <p className="teaching-pdi-meta">{displayDate(row.activity_date)} · {TYPES.find(([value]) => value === row.category)?.[1] ?? row.category} · {activityStatus(row.status)} · Organização: {ORGANIZERS.find(([value]) => value === row.organizer_role)?.[1] ?? row.organizer_role}</p>
+      <div className="teaching-register-heading"><h3>Atividades do curso</h3><span>{displayedActivities.length} {displayedActivities.length === 1 ? 'registro' : 'registros'}</span></div>
+      {displayedActivities.length ? <ul className="teaching-pdi-list">{displayedActivities.map(row => <li className="teaching-pdi-record teaching-activity-card" key={row.id}>
+        <div className="teaching-record-heading"><h4>{row.title}</h4><span className="teaching-activity-state" data-state={row.status}>{activityStatus(row.status)}</span></div>
+        <p className="teaching-pdi-meta">{displayDate(row.activity_date)} · {TYPES.find(([value]) => value === row.category)?.[1] ?? row.category} · Organização: {ORGANIZERS.find(([value]) => value === row.organizer_role)?.[1] ?? row.organizer_role}</p>
         <p className="teaching-pdi-description">{row.description}</p>
         {row.total_minutes != null && <p><strong>Carga total da atividade:</strong> {row.total_minutes.toLocaleString('pt-BR')} min</p>}
         {row.exam_module && <p><strong>Exame ou carreira:</strong> {EXAMS.find(([value]) => value === row.exam_module)?.[1] ?? row.exam_module}</p>}
@@ -642,7 +662,7 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate }: Props) 
             <button type="button" className="btn-secondary" disabled={busy} onClick={() => setConfirmActivity(null)}>Cancelar validação</button>
           </div>
         </div>}
-      </li>)}</ul> : <p>Nenhuma atividade registrada para este curso.</p>}
+      </li>)}</ul> : <p className="teaching-empty">Nenhuma atividade registrada para este curso.</p>}
     </>}
   </section>;
 }

@@ -1,6 +1,6 @@
 import React from 'react';
 import { visibleTabs } from '@/lib/area';
-import InstitutionSubTabs from './InstitutionSubTabs';
+import InstitutionSubTabs, { orderAcademicModules } from './InstitutionSubTabs';
 import { describe, it, expect } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { readFileSync } from 'node:fs';
@@ -78,5 +78,44 @@ describe('persistent module navigation', () => {
     const html = renderToStaticMarkup(<InstitutionSubTabs macro={macro} entries={[{key:'cadastro',label:'Cadastro'}]} activeTab="cadastro" onSelect={() => {}} query="inexistente" onQueryChange={() => {}} onlyFavorites onToggleOnlyFavorites={() => {}} />);
     expect(html).toContain('Nenhum módulo encontrado');
     expect(html).toContain('Limpar filtros');
+  });
+});
+
+
+describe('academic module labels in alphabetical order', () => {
+  const academic = MACRO_TABS.find(item => item.key === 'academico')!;
+  const entries = [
+    {key:'extensao',label:'Extensão 360°',locked:true},
+    {key:'estagio',label:'Estágio Obrigatório 360°'},
+    {key:'atividades-ensino',label:'Atividades de Ensino'},
+    {key:'acompanhamento-especial',label:'Acompanhamento Especial 360°'},
+    {key:'discursiva',label:'Discursiva 360°'},
+  ] as const;
+
+  it('orders the Master list by visible Portuguese labels and retains the selected route/activation', () => {
+    const html = renderToStaticMarkup(<InstitutionSubTabs macro={academic} sortByLabel entries={[...entries]} activeTab="atividades-ensino" onSelect={() => {}} />);
+    const names = ['Acompanhamento Especial 360°','Atividades de Ensino','Discursiva 360°','Estágio Obrigatório 360°','Extensão 360°'];
+    expect(names.map(name => html.indexOf(name))).toEqual(names.map(name => html.indexOf(name)).sort((a,b)=>a-b));
+    expect(html).toMatch(/aria-current="page"[^>]*><span>Atividades de Ensino<\/span>/);
+    expect(html).toContain('Ativar');
+    expect(macroDestination('academico',entries.map(entry=>entry.key),()=>false)).toBe('discursiva');
+  });
+
+  it('works on the institutional role-filtered list without injecting, removing, or changing modules', () => {
+    const allowed = visibleTabs('coordenador');
+    const visible = entries.filter(item=>allowed.includes(item.key)).map(({key,label})=>[key,label] as const);
+    const ordered = orderAcademicModules(visible, ([,label])=>label);
+    expect(ordered.map(([key])=>key)).toEqual(['atividades-ensino','discursiva']);
+    expect(visible.map(([key])=>key)).toEqual(['atividades-ensino','discursiva']);
+    expect(orderAcademicModules(['Z','Evasão','Áreas'], label=>label)).toEqual(['Áreas','Evasão','Z']);
+  });
+
+  it('does not reorder an opt-out menu or undo Favorites', () => {
+    const unchanged = renderToStaticMarkup(<InstitutionSubTabs macro={academic} entries={[...entries]} activeTab={null} onSelect={() => {}} />);
+    expect(unchanged.indexOf('Extensão 360°')).toBeLessThan(unchanged.indexOf('Atividades de Ensino'));
+    const favorite = renderToStaticMarkup(<InstitutionSubTabs macro={academic} sortByLabel entries={[...entries]} activeTab={null}
+      onSelect={() => {}} onlyFavorites favorites={['estagio','atividades-ensino']} />);
+    expect(favorite).not.toContain('Extensão 360°');
+    expect(favorite.indexOf('Atividades de Ensino')).toBeLessThan(favorite.indexOf('Estágio Obrigatório 360°'));
   });
 });

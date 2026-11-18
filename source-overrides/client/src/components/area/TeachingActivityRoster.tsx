@@ -83,6 +83,14 @@ export default function TeachingActivityRoster({ institutionId, courseId, activi
     setRequest(previous => ({ query: term, revision: previous.revision + 1 }));
   }
 
+  function identity(row: Row | Selected) {
+    const initials = row.enrollment_code ? row.student_name.trim().split(/\s+/).slice(0, 2).map(word => word[0]).join('').toLocaleUpperCase('pt-BR') : '·';
+    return <div className="teaching-roster-person">
+      <span className="teaching-roster-avatar" aria-hidden="true">{initials}</span>
+      <div><strong>{row.student_name}</strong>{row.enrollment_code && <small>Matrícula {row.enrollment_code}</small>}</div>
+    </div>;
+  }
+
   const available = results.filter(row => !selected.some(s => s.student_id === row.student_id));
   return <div className="teaching-roster">
     <p>Busque na base institucional do curso. O papel e as horas registrados aqui não concedem crédito de Atividades Complementares.</p>
@@ -97,27 +105,27 @@ export default function TeachingActivityRoster({ institutionId, courseId, activi
     {initialized && !loading && submittedQuery && available.length === 0 && !error && <p>Nenhum estudante disponível para adicionar nessa busca.</p>}
     {initialized && available.length > 0 && <ul className="teaching-pdi-list" aria-label="Estudantes encontrados">{available.map(row =>
       <li key={row.student_id} className="teaching-pdi-record teaching-roster-entry">
-        <span><strong>{row.student_name}</strong>{row.enrollment_code ? ` · ${row.enrollment_code}` : ''}</span>
+        {identity(row)}
         <button type="button" disabled={selected.length >= 500 || loading} onClick={() => change([...selected, { ...row, participant_role: 'participante', minutes: '' }])}>Adicionar {row.student_name}</button>
       </li>
     )}</ul>}
     {initialized && <>
-      <h4>Organizadores e participantes ({selected.length})</h4>
-      {!selected.length && <p>Nenhum estudante vinculado.</p>}
+      <div className="teaching-register-heading"><h4>Organizadores e participantes</h4><span>{selected.length} {selected.length === 1 ? 'estudante' : 'estudantes'}</span></div>
+      {!selected.length && <p className="teaching-empty">Nenhum estudante vinculado.</p>}
       <ul className="teaching-pdi-list" aria-label="Estudantes selecionados">{selected.map(row =>
-        <li key={row.student_id} className="teaching-pdi-record">
-          <strong>{row.student_name}</strong>{row.enrollment_code ? ` · ${row.enrollment_code}` : ''}
-          <div className="teaching-pdi-grid">
-            <label className="planning-field"><span>Papel de {row.student_name}</span>
+        <li key={row.student_id} className="teaching-pdi-record teaching-roster-selected">
+          {identity(row)}
+          <div className="teaching-pdi-grid teaching-roster-fields">
+            <label className="planning-field"><span>Papel<span className="teaching-sr-only"> de {row.student_name}</span></span>
               <select disabled={!row.enrollment_code || row.editable === false} value={row.participant_role} onChange={event => change(selected.map(s => s.student_id === row.student_id ? { ...s, participant_role: event.target.value as Selected['participant_role'] } : s))}>
                 <option value="participante">Participante</option><option value="organizador">Organizador</option>
               </select>
             </label>
-            <label className="planning-field"><span>Minutos de {row.student_name}</span>
+            <label className="planning-field"><span>Minutos<span className="teaching-sr-only"> de {row.student_name}</span></span>
               <input disabled={!row.enrollment_code || row.editable === false} type="number" min="0" max="60000" step="1" value={row.minutes} onChange={event => change(selected.map(s => s.student_id === row.student_id ? { ...s, minutes: event.target.value } : s))} />
             </label>
           </div>
-          <button type="button" onClick={() => change(selected.filter(s => s.student_id !== row.student_id))}>Remover {row.student_name}</button>
+          <button type="button" className="teaching-roster-remove" onClick={() => change(selected.filter(s => s.student_id !== row.student_id))}>Remover<span className="teaching-sr-only"> {row.student_name}</span></button>
         </li>
       )}</ul>
     </>}

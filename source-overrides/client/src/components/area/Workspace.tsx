@@ -2,7 +2,7 @@ import PortalInvitations from '../communications/PortalInvitations';
 import { ContextHelp } from "@/components/ContextHelp";
 import { MODULE_HELP } from "@/lib/module-help";
 import { HelpLabel } from '@/components/ContextHelp';
-import InstitutionSubTabs from "./InstitutionSubTabs";
+import InstitutionSubTabs, { orderAcademicModules } from "./InstitutionSubTabs";
 import InstitutionTabs, { MACRO_TABS, macroTabFor, macroDestination, type MacroTab } from "./InstitutionTabs";
 import {actionDraftKey,parseActionDraft,storeActionDraft,validateActionLinks,changeActionScope} from "@/lib/portal-integration";
 import ActionCockpit from "./ActionCockpit";
@@ -97,11 +97,11 @@ const ExtensaoDashboard = lazy(() => import("./ExtensaoDashboard"));
 import "./area.css";
 import "./module-offer.css";
 
-const TAB_GROUPS: {label:string;subtitle:string;icon:string;tabs:Tab[];tier?:'superior'|'escolas'|'both'}[] = [
+const TAB_GROUPS: {label:string;subtitle:string;icon:string;tabs:Tab[];tier?:'superior'|'escolas'|'both';sortByLabel?:boolean}[] = [
   {label:'Gestão',subtitle:'Planejamento, metas e governança',icon:'▦',tabs:['planejamento-estrategico','planejamento-semestral','base','metas','plano','diagnostico','equipe','cpa-autoavaliacao'],tier:'both'},
   {label:'Gestão Institucional',subtitle:'Programas e metas do PDI',icon:'◎',tabs:['programas-pdi'],tier:'superior'},
   {label:'Regulação',subtitle:'Instrumentos e evidências MEC/INEP',icon:'◇',tabs:['emec','repositorio','validacao','avaliacao','novo_instrumento','biblioteca'],tier:'superior'},
-  {label:'Acadêmico',subtitle:'Currículo, desempenho e avaliação',icon:'▤',tabs:['discursiva','geral','cadastro','visao','construcao-curricular','trilhas-enade','enade','atividades-ensino','eorbit','backups','auditoria'],tier:'superior'},
+  {label:'Acadêmico',sortByLabel:true,subtitle:'Currículo, desempenho e avaliação',icon:'▤',tabs:['discursiva','geral','cadastro','visao','construcao-curricular','trilhas-enade','enade','atividades-ensino','eorbit','backups','auditoria'],tier:'superior'},
   {label:'Inteligência',subtitle:'Análises, integrações e decisões',icon:'◎',tabs:['mercado','analise','ia','fontes','conexoes','reitor','resultado-curso','simulador','raio-x-direito','vitrine-curso','aprendizagem'],tier:'superior'},
   {label:'Carreiras e Egressos',subtitle:'Relacionamento, desenvolvimento e empregabilidade',icon:'🎓',tabs:['conecta','egressos'],tier:'superior'},
   {label:'Extensão',subtitle:'Projetos de extensão, participantes e cobertura',icon:'🤝',tabs:['extensao'],tier:'superior'},
@@ -480,6 +480,7 @@ export default function Workspace({
       {role === "master" && <InstitutionSubTabs
         macro={activeMacroDefinition}
         entries={availableWorkspaceTabs.filter(([key]) => macroTabFor(key) === activeMacro).map(([key, label]) => ({key, label, icon: TAB_DETAILS[key]?.icon, description: TAB_DETAILS[key]?.description, locked: isLocked(key), tasting: isTasting(key)}))}
+        sortByLabel={activeMacro === "academico" && instTier === "superior"}
         activeTab={macroOverride ? null : tab}
         onSelect={selectModule}
         query={moduleSearch} onQueryChange={setModuleSearch}
@@ -530,7 +531,8 @@ export default function Workspace({
         <div className="vx-modules-grid" aria-label="Áreas da instituição">
           {visibleGroups.map(group => {
             const q=moduleSearch.trim().toLocaleLowerCase("pt-BR");
-            const groupTabs = visible.filter(([k,l])=>group.tabs.includes(k)&&(!onlyFavorites||favoriteTabs.includes(k))&&(!q||[l,group.label,TAB_DETAILS[k]?.description??""].join(" ").toLocaleLowerCase("pt-BR").includes(q)));
+            const filteredTabs = visible.filter(([k,l])=>group.tabs.includes(k)&&(!onlyFavorites||favoriteTabs.includes(k))&&(!q||[l,group.label,TAB_DETAILS[k]?.description??""].join(" ").toLocaleLowerCase("pt-BR").includes(q)));
+            const groupTabs = group.sortByLabel ? orderAcademicModules(filteredTabs, ([,label]) => label) : filteredTabs;
             if(!groupTabs.length)return null;
             return <div className="vx-module-group" key={group.label}>
               <div className="vx-module-group-head">
