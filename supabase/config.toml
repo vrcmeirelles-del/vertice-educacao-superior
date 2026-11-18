@@ -11,3 +11,23 @@ verify_jwt = true
 
 [functions.vertice-extension-student-invite]
 verify_jwt = true
+
+# Serviço único; autorização da IES e MFA também são verificados pelo handler/RPC.
+[functions.vertice-communications]
+verify_jwt = true
+
+[functions.vertice-convite]
+verify_jwt = true
+
+[functions.vertice-convite-simples]
+verify_jwt = true
+
+[functions.vertice-notify-students]
+verify_jwt = true
+
+[functions.send-contract-confirmation]
+verify_jwt = true
+
+# Jornada pública existente: valida identidade, token, escopo e limites no handler.
+[functions.vertice-student-portal]
+verify_jwt = false

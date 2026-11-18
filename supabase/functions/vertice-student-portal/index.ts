@@ -1,3 +1,4 @@
+import {sendPortalEmail} from "../_shared/portal-email.ts";
 // Existing student portal: AC/Estágio retain their academic passwordless flow.
 // Conecta validates enrollment + CPF, uses scoped reusable 72h links and native career/survey RPCs.
 // Partner intake uses scoped private links and institutional review; public callers never read students.
@@ -7,8 +8,8 @@ import { createClient } from "npm:@supabase/supabase-js@2.118.0";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")
   || (() => { try { return JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS") || "{}").default; } catch { return ""; } })();
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") || "";
-const FROM_EMAIL = Deno.env.get("FROM_EMAIL") || "noreply@verticesuperior.com.br";
+
+
 const BASE_URL = Deno.env.get("STUDENT_PORTAL_URL") || "https://www.verticesuperior.com.br";
 
 const BUCKET = "vertice-documents";
@@ -114,8 +115,8 @@ async function dashboard(student: { id: string; institution_id: string; course_i
   };
 }
 
-async function sendLinkEmail(to: string, name: string, link: string, mod: string) {
-  if (!RESEND_API_KEY) { console.error("student-portal: RESEND_API_KEY ausente"); return; }
+async function sendLinkEmail(to: string, name: string, link: string, mod: string, institutionId?:string, courseId?:string) {
+
   const label = mod === "conecta" ? "Conecta 360°" : mod === "estagio" ? "Estágio Obrigatório" : "Atividades Complementares";
   const html = `<div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:24px;color:#1e293b">
   <h2 style="margin:0 0 12px">Olá, ${esc(name)}!</h2>
@@ -125,12 +126,7 @@ async function sendLinkEmail(to: string, name: string, link: string, mod: string
   <p style="font-size:13px;color:#64748b">Se você não fez esta solicitação, ignore este e-mail. Ninguém acessa sua conta sem este link.</p>
   <hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0">
   <p style="font-size:11px;color:#94a3b8">Plataforma Vértice Educação Superior</p></div>`;
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: `Vértice Educação Superior <${FROM_EMAIL}>`, to: [to], subject: `Seu acesso — ${label}`, html }),
-  });
-  if (!res.ok) console.error("student-portal: resend", res.status);
+  await sendPortalEmail({module:mod==='ac'?'atividades-complementares':mod==='conecta'?'conecta':'estagio',recipient:to,institutionId,courseId,fingerprint:link},async()=>({subject:`Seu acesso — ${label}`,html}),{env:name=>Deno.env.get(name),db:admin,fetch,log:entry=>console.log(JSON.stringify(entry))});
 }
 
 async function handle(action: string, b: Record<string, unknown>, req: Request) {
@@ -173,7 +169,7 @@ async function handle(action: string, b: Record<string, unknown>, req: Request) 
     const mod = moduleOf(b.module);
     if (!UUID.test(institutionId) || !enrollment || cpf.length !== 11 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return GENERIC_SENT;
     const { data: st } = await admin.from("vertice_student_registry")
-      .select("id, institution_id, email, full_name, academic_status")
+      .select("id, institution_id, course_id, email, full_name, academic_status")
       .eq("institution_id", institutionId).eq("enrollment_code", enrollment).eq("cpf_hash", await sha256(cpf)).maybeSingle();
     if (!st || !eligible(st.academic_status, mod) || String(st.email).trim().toLowerCase() !== email) return GENERIC_SENT;
     const since = new Date(Date.now() - 3600_000).toISOString();
@@ -187,7 +183,7 @@ async function handle(action: string, b: Record<string, unknown>, req: Request) 
     });
     if (error) { console.error("student-portal: token insert", error.code); return GENERIC_SENT; }
     const link = `${BASE_URL}/acesso-estudante?ies=${encodeURIComponent(st.institution_id)}&mod=${mod}&token=${token}`;
-    await sendLinkEmail(st.email, st.full_name, link, mod);
+    await sendLinkEmail(st.email, st.full_name, link, mod, st.institution_id, st.course_id);
     return GENERIC_SENT;
   }
 

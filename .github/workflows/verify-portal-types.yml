@@ -4,6 +4,14 @@ on:
     branches: [main]
     paths:
       - 'supabase/functions/vertice-discursiva/**'
+      - 'supabase/functions/_shared/**'
+      - 'supabase/functions/vertice-communications/**'
+      - 'supabase/functions/vertice-convite*/**'
+      - 'supabase/functions/vertice-extension-student-invite/**'
+      - 'supabase/functions/vertice-student-portal/**'
+      - 'supabase/functions/vertice-notify-students/**'
+      - 'supabase/functions/send-contract-confirmation/**'
+      - 'supabase/migrations/*portal_communications.sql'
       - 'supabase/migrations/*discursiva*.sql'
       - 'scripts/tests/discursiva-runtime/**'
       - 'source-overrides/shared/**'
@@ -66,7 +74,7 @@ jobs:
       - name: Testar permissões e conclusão dos formulários de extensão
         run: |
           npm ci --prefix scripts/tests/extension-runtime --no-audit --no-fund
-          node --test scripts/tests/extension-runtime/*.test.mjs
+          node --test --test-concurrency=1 scripts/tests/extension-runtime/*.test.mjs
       - name: Testar o bloqueio de regressões do compilador
         run: node --test scripts/tests/typescript-diagnostics.test.mjs
       - name: Testar autorização, contexto e rastreabilidade do planejamento em PostgreSQL

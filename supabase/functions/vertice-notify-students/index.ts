@@ -1,3 +1,4 @@
+import {digest,sendPortalEmail} from "../_shared/portal-email.ts";
 import {createClient} from "npm:@supabase/supabase-js@2.45.4";
 
 /**
@@ -139,19 +140,9 @@ function fillTemplate(template:string,vars:Record<string,string>):string{
 
 // ── Channel senders ────────────────────────────────────────────────
 
-async function sendEmail(to:string,subject:string,body:string):Promise<{ok:boolean;error?:string}>{
- const key=env("RESEND_API_KEY");
- if(!key)return{ok:false,error:"RESEND_API_KEY não configurada"};
- const from=env("RESEND_FROM")||"Fato & Ordem <comunicados@fatoeordem.com.br>";
- try{
-  const res=await fetch("https://api.resend.com/emails",{
-   method:"POST",headers:{"Authorization":"Bearer "+key,"Content-Type":"application/json"},
-   body:JSON.stringify({from,to:[to],subject,text:body}),
-   signal:AbortSignal.timeout(15000)
-  });
-  if(!res.ok)return{ok:false,error:"Resend HTTP "+res.status};
-  return{ok:true};
- }catch(e){return{ok:false,error:(e as Error).message};}
+async function sendEmail(to:string,subject:string,body:string,admin:any,institution:string,actor:string,campaignId:string):Promise<{ok:boolean;error?:string}>{
+ const hash=await digest('campaign:'+campaignId+':'+to.toLowerCase());const requestId=hash.slice(0,8)+'-'+hash.slice(8,12)+'-'+hash.slice(12,16)+'-'+hash.slice(16,20)+'-'+hash.slice(20,32);
+ return sendPortalEmail({requestId,module:'notificacoes',institutionId:institution,actorId:actor,recipient:to,fingerprint:subject+body},async()=>({subject,text:body}),{env:name=>Deno.env.get(name),db:admin,fetch,log:entry=>console.log(JSON.stringify(entry))});
 }
 
 async function sendWhatsApp(phone:string,body:string):Promise<{ok:boolean;error?:string}>{
@@ -216,10 +207,16 @@ Deno.serve(async req=>{
   const campaignId=String(body.campaignId||"");
   if(!campaignId)throw new Error("Campaign ID obrigatório");
 
+  const caller=createClient(url,env('SUPABASE_ANON_KEY'),{global:{headers:{Authorization:auth}},auth:{persistSession:false}});
+  const permitted=await caller.from('vertice_notification_campaigns').select('id').eq('id',campaignId).maybeSingle();
+  if(permitted.error||!permitted.data)throw Error('Campanha não autorizada');
   // Load campaign
   const {data:campaign,error:campError}=await admin.from("vertice_notification_campaigns")
    .select("*").eq("id",campaignId).single();
   if(campError||!campaign)throw new Error("Campanha não encontrada");
+
+  const authority=await caller.rpc('vertice_portal_email_history',{p_institution:campaign.institution_id});
+  if(authority.error)throw Error('Gestão da campanha não autorizada ou MFA ausente');
 
   // Load institution name
   const {data:inst}=await admin.from("vertice_institutions")
@@ -265,7 +262,7 @@ Deno.serve(async req=>{
    const phone=contactOverride?.phone||rosterContact?.telefone||"";
 
    if(channels.has("email")&&email){
-    const result=await sendEmail(email,fillTemplate(template.subject,vars),fillTemplate(template.email,vars));
+    const result=await sendEmail(email,fillTemplate(template.subject,vars),fillTemplate(template.email,vars),admin,campaign.institution_id,userData.user.id,campaignId);
     deliveries.push({campaign_id:campaignId,institution_id:campaign.institution_id,
      student_name:student.student_name,channel:"email",destination:email.replace(/(.{3}).*(@.*)/, "$1***$2"),
      status:result.ok?"sent":"failed",error_message:result.error||null,sent_at:new Date().toISOString()});
@@ -304,7 +301,7 @@ Deno.serve(async req=>{
 
   return send({ok:true,sentEmail,sentWhatsapp,sentSms,failed,
    total:(students||[]).length,
-   notice:`Envio concluído: ${sentEmail} emails, ${sentWhatsapp} WhatsApp, ${sentSms} SMS.`},200,origin);
+   notice:`Aceitos pelo provedor: ${sentEmail} e-mails. A entrega não foi confirmada. WhatsApp: ${sentWhatsapp}; SMS: ${sentSms}; falhas: ${failed}.`},200,origin);
  }catch(error){
   return send({error:(error as Error).message},500,origin);
  }

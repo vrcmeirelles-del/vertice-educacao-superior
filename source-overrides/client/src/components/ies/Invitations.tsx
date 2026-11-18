@@ -1,3 +1,4 @@
+import NativeInvitationEmail from "../communications/NativeInvitationEmail";
 import { ContextHelp } from '@/components/ContextHelp';
 import { HelpLabel } from '@/components/ContextHelp';
 import { useEffect, useRef, useState, type FormEvent } from "react";
@@ -270,6 +271,7 @@ export default function Invitations({
       {link && (
         <section className="ies-share">
           <h3>Compartilhar convite</h3>
+          <NativeInvitationEmail link={link} kind="ies" />
           <p>
             Escolher onde compartilhar este link não altera preferências de
             comunicação futura. O link ficará disponível somente nesta tela.

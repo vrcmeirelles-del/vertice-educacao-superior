@@ -1,3 +1,4 @@
+import NativeInvitationEmail from "../communications/NativeInvitationEmail";
 import { ContextHelp } from '@/components/ContextHelp';
 import { HelpLabel } from '@/components/ContextHelp';
 import React, { useEffect, useRef, useState, type FormEvent } from 'react';
@@ -93,6 +94,7 @@ export default function MasterInvitations({ userId, isMaster, backendReady = fal
     </form>
     {error && <p role="alert">{error}</p>}{notice && <p role="status">{notice}</p>}
     {created && <div style={{ marginTop: 16, overflowWrap: 'anywhere' }}>
+      <NativeInvitationEmail link={created.link} kind="master" />
       <p>Destinatário: <strong>{created.email}</strong>. Válido até {displayDate(created.expiresAt)}.</p>
       <p>Compartilhe este link confidencial somente com a pessoa indicada. O link não é salvo no navegador nem enviado automaticamente.</p>
       <HelpLabel>Link do convite<textarea rows={4} readOnly spellCheck={false} autoComplete="off" value={created.link} style={{ width: '100%' }} /></HelpLabel>

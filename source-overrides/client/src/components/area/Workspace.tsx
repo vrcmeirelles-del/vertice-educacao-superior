@@ -1,3 +1,4 @@
+import PortalInvitations from '../communications/PortalInvitations';
 import { ContextHelp } from "@/components/ContextHelp";
 import { MODULE_HELP } from "@/lib/module-help";
 import { HelpLabel } from '@/components/ContextHelp';
@@ -567,6 +568,7 @@ export default function Workspace({
       {role === "master" && <header className="inst-active-module-head">
         <div><p>{activeMacroDefinition.label}</p><h3 id="inst-active-module-title">{TABS.find(([key]) => key === tab)?.[1] ?? "Painel institucional"}</h3></div>
       </header>}
+      {!['extensao','tcc','estagio'].includes(tab) && <PortalInvitations key={`${id}:${tab}`} institutionId={String(id)} role={role} module={tab} courses={data.courses.map(c=>({id:String(c.id),name:String(c.display_name??c.name)}))} />}
       {tab === 'base' && <InstitutionAddress institutionId={id} manage={role==='master'}/>}
       {error && <p role="alert" className="area-error">{error}</p>}
       {MODULE_HELP.some(item=>item.key===tab) && <div className="vx-module-help"><span>Como usar esta área</span><ContextHelp title={TABS.find(([key])=>key===tab)?.[1] || "Módulo"} text={MODULE_HELP.find(item=>item.key===tab)?.text} /></div>}
@@ -1462,12 +1464,8 @@ type Member = { user_id: string; email: string; role: Role; created_at: string }
 function TeamTab({ institutionId, role }: { institutionId: string; role: Role | null }) {
   const [members, setMembers] = useState<Member[]>([]);
   const [invites, setInvites] = useState<Row[]>([]);
-  const [email, setEmail] = useState("");
-  const [newRole, setNewRole] = useState<Role>("equipe");
+  const [msg,setMsg]=useState("");
   const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState("");
-  const [inviteLink, setInviteLink] = useState("");
-  const roles: Role[] = role === "master" ? ["gestor", "equipe", "leitor"] : ["equipe", "leitor"];
 
   const load = useCallback(async () => {
     const [m, i] = await Promise.all([
@@ -1481,45 +1479,6 @@ function TeamTab({ institutionId, role }: { institutionId: string; role: Role | 
     load();
   }, [load]);
 
-  async function add(e: React.FormEvent) {
-    e.preventDefault();
-    setBusy(true);
-    setMsg("");
-    setInviteLink("");
-    try {
-      const mail = email.trim().toLowerCase();
-      const { data, error } = await supabase.rpc("vertice_add_member", { target: institutionId, member_email: mail, member_role: newRole });
-      if (error) throw error;
-      if (data === "convite_pendente") {
-        // Buscar o convite recém-criado para gerar o link
-        const { data: inv } = await supabase.from(TABLES.invites).select("id").eq("institution_id", institutionId).eq("email", mail).is("accepted_at", null).order("created_at", { ascending: false }).limit(1);
-        const inviteId = inv?.[0]?.id;
-        const link = inviteId ? `${window.location.origin}/entrar?convite=${inviteId}` : "";
-        // Tentar enviar e-mail, mas não depender dele
-        const sent = await supabase.functions.invoke("vertice-convite", { body: { institution_id: institutionId, email: mail } }).catch(() => ({ error: true }));
-        if (link) setInviteLink(link);
-        setMsg(
-          sent.error
-            ? "Convite registrado! Copie o link abaixo e envie por WhatsApp para a pessoa criar a conta."
-            : "Convite enviado por e-mail. Você também pode copiar o link abaixo e enviar por WhatsApp."
-        );
-      } else {
-        setMsg("Conta existente vinculada a esta instituição.");
-      }
-      setEmail("");
-      await load();
-    } catch (err) {
-      setMsg(explain(err));
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  function copyLink() {
-    if (inviteLink) {
-      navigator.clipboard.writeText(inviteLink).then(() => setMsg("Link copiado! Cole no WhatsApp e envie para a pessoa.")).catch(() => {});
-    }
-  }
 
   async function changeRole(m: Member, r: Role) {
     const { error, count } = await supabase.from(TABLES.memberships).update({ role: r }, { count: "exact" }).eq("user_id", m.user_id).eq("institution_id", institutionId);
@@ -1537,21 +1496,8 @@ function TeamTab({ institutionId, role }: { institutionId: string; role: Role | 
   return (
     <div className="area-panel">
       <div className="area-panel-head"><h3>Equipe com acesso ({members.length})</h3></div>
-      <form className="area-form area-inline-form" onSubmit={add}>
-        <HelpLabel>E-mail <input type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="nome@instituicao.edu.br" /></HelpLabel>
-        <HelpLabel>Perfil
-          <select value={newRole} onChange={e => setNewRole(e.target.value as Role)}>
-            {roles.map(r => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
-          </select>
-        </HelpLabel>
-        <button className="corp-button small" disabled={busy}>{busy ? "Enviando…" : "Dar acesso"}</button>
-      </form>
-      <p className="area-field-help">Use o e-mail institucional da pessoa. Se ela ainda não tiver conta, será criado um convite por link.</p>
-      {msg && <p role="status" className="area-note">{msg}</p>}
-      {inviteLink && <div style={{display:'flex',gap:8,alignItems:'center',margin:'8px 0 12px',padding:12,background:'#f0fdf4',border:'1px solid #86efac',borderRadius:8}}>
-        <input readOnly value={inviteLink} style={{flex:1,padding:'8px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:12,color:'#1e3a5f',background:'#fff'}} onClick={e=>(e.target as HTMLInputElement).select()} />
-        <button type="button" className="corp-button small" onClick={copyLink} style={{whiteSpace:'nowrap',background:'#16a34a',borderColor:'#16a34a'}}>📋 Copiar link</button>
-      </div>}
+      {msg&&<p role="status">{msg}</p>}
+
       <dl className="area-roles">
         <div><dt>Gestor<ContextHelp title="Gestor" /></dt><dd>cadastra cursos, define metas, gere a equipe (equipe e leitura) e remove registros.</dd></div>
         <div><dt>Equipe<ContextHelp title="Equipe" /></dt><dd>registra medições, ações 5W2H e critérios do diagnóstico; não altera metas nem remove registros.</dd></div>
