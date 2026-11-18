@@ -1,4 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
+import { deliverInvitation } from "./delivery.ts";
 
 const origin = "https://www.verticesuperior.com.br";
 const allowedOrigins = new Set([origin, "https://verticesuperior.com.br", "https://vertice-portal.onrender.com", "https://vertice-educacao-superior.onrender.com"]);
@@ -39,21 +40,11 @@ Deno.serve(async (req) => {
     const link = new URL("/extensao-convite", origin);
     link.searchParams.set("aluno", "1");
     link.hash = new URLSearchParams({ ativacao: data.token }).toString();
-    try {
-      const sent = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: { Authorization: "Bearer " + key, "Content-Type": "application/json" },
-        signal: AbortSignal.timeout(12000),
-        body: JSON.stringify({
-          from, to: [data.email], subject: "Convite individual para a Extensão 360°",
-          text: `Você foi convidado(a) para contribuir com o projeto “${data.title}”.\n\nAcesse o Vértice pelo link individual abaixo e valide seus dados com o e-mail cadastrado. O link expira em 72 horas.\n\n${link.href}\n\nSe precisar de ajuda, procure o responsável pelo projeto.`,
-        }),
-      });
-      if (!sent.ok) return reply({ error: "Convite registrado. Falha no envio de e-mail. Use Reenviar." }, 502);
-    } catch {
-      return reply({ error: "Convite registrado. Falha no envio de e-mail. Use Reenviar." }, 502);
-    }
-    return reply({ sent: true });
+    const result = await deliverInvitation({ key, from, to: data.email, title: data.title, link: link.href }, {
+      fetch, log: (entry) => console.log(JSON.stringify(entry)),
+    });
+    if (!result.ok) return reply({ error: "Convite registrado. " + result.error, code: result.code, invitation_registered: true, sent: false }, 502);
+    return reply({ sent: true, accepted_by_provider: true, delivery_confirmed: false });
   } catch {
     return reply({ error: "Não foi possível processar o convite." }, 400);
   }
