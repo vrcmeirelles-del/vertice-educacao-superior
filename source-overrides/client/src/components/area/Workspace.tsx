@@ -444,7 +444,7 @@ export default function Workspace({
   };
 
   return (
-    <section aria-labelledby="ws-title" className="area-ws">
+    <section aria-labelledby="ws-title" className={`area-ws${tab === 'programas-pdi' ? ' area-ws--pdi' : ''}`}>
       {role && tab !== "cadastro" && <RegistryContacts institutionId={id} courses={[]} manage={false} firstVisit/>}
       <p>
         <button className="corp-login-text-button" onClick={() => { if (confirmNavigation()) { edited.current = false; onBack(); } }}>
@@ -572,7 +572,7 @@ export default function Workspace({
       </section>}
       {role === "master" && activeMacro === "historico" && <p className="area-note">Os registros disponíveis permanecem nos módulos desta área. Esta área não constitui um histórico consolidado de auditoria.</p>}
       {macroOverride && <p role="status" className="area-note">Os módulos desta área precisam ser ativados. Selecione um módulo acima para consultar as condições existentes.</p>}
-      <div ref={moduleContentRef} hidden={Boolean(macroOverride)} tabIndex={-1} role="region" aria-labelledby={role === "master" ? "inst-active-module-title" : undefined} className={role === "master" ? "inst-active-module" : undefined}>
+      <div ref={moduleContentRef} hidden={Boolean(macroOverride)} tabIndex={-1} role="region" aria-labelledby={role === "master" ? "inst-active-module-title" : undefined} className={role === "master" ? `inst-active-module${tab === 'programas-pdi' ? ' inst-active-module--pdi' : ''}` : undefined}>
       {role === "master" && <header className="inst-active-module-head">
         <div><p>{activeMacroDefinition.label}</p><h3 id="inst-active-module-title">{TABS.find(([key]) => key === tab)?.[1] ?? "Painel institucional"}</h3></div>
       </header>}

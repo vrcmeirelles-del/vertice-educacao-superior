@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { BookOpen, CircleCheck, Clock3, GraduationCap, Info, Link2, Save, UsersRound } from 'lucide-react';
+import { BookOpen, CircleCheck, Clock3, GraduationCap, Info, Link2, Save, Target, UsersRound } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { isFullAccess, visibleTabs, GOAL_STATUS, DIRECTION, type Role } from '@/lib/area';
 import './planning/planning.css';
@@ -457,7 +457,7 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate }: Props) 
   const labelOfEvidence = (id: string) => knownEvidence.find(d => d.id === id)?.title ?? 'Documento vinculado';
   const busyLoading = busy || loading || courseLoading;
 
-  return <section className={`course-planning teaching-pdi${mode === 'academico' ? ' teaching-pdi--academic' : ''}`} aria-label={title} aria-busy={busyLoading}>
+  return <section className={`course-planning teaching-pdi${mode === 'academico' ? ' teaching-pdi--academic' : ' teaching-pdi--management'}`} aria-label={title} aria-busy={busyLoading}>
     {mode === 'academico' ? <header className="teaching-hero">
       <div className="teaching-hero-icon" aria-hidden="true"><GraduationCap size={29} /></div>
       <div>
@@ -465,10 +465,14 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate }: Props) 
         <h2>{title}</h2>
         <p>Registre atividades da graduação e da pós-graduação, com participantes, carga horária e evidências.</p>
       </div>
-    </header> : <>
-      <h2>{title}</h2>
-      <p className="teaching-pdi-intro">Organize os programas institucionais e acompanhe quais atividades contribuem para cada meta. Contribuição e evidência de execução não substituem medição de resultado.</p>
-    </>}
+    </header> : <header className="pdi-page-header">
+      <span className="pdi-page-icon" aria-hidden="true"><Target size={25} /></span>
+      <div>
+        <p className="pdi-eyebrow">Gestão institucional</p>
+        <h2>{title}</h2>
+        <p className="teaching-pdi-intro">Organize os programas institucionais e acompanhe quais atividades contribuem para cada meta. Contribuição e evidência de execução não substituem medição de resultado.</p>
+      </div>
+    </header>}
     <ScopeNavigation mode={mode} role={role} onNavigate={onNavigate} />
     {mode === 'academico' && <div className="teaching-course-bar"><Field label="Curso">
       <select value={courseId} disabled={busy || courseLoading || !!courseError} onChange={e => chooseCourse(e.target.value)}>
@@ -493,26 +497,36 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate }: Props) 
       <button type="button" className="btn-secondary" onClick={() => setRevision(v => v + 1)}>Tentar novamente</button>
     </div>}
     {!loading && !loadError && mode === 'gestao' && <>
-      {management && <div className="teaching-pdi-grid">
-        <form ref={programForm} className="card" onSubmit={e => { e.preventDefault(); saveProgram(); }}>
+      <dl className="pdi-overview" aria-label="Resumo do PDI">
+        <div><dt>Programas institucionais</dt><dd>{programs.length.toLocaleString('pt-BR')}</dd></div>
+        <div><dt>Metas do PDI</dt><dd>{goals.length.toLocaleString('pt-BR')}</dd></div>
+        <div><dt>Atividades vinculadas</dt><dd>{activities.length.toLocaleString('pt-BR')}</dd></div>
+      </dl>
+      {management && <div className="teaching-pdi-grid pdi-editor-layout">
+        <form ref={programForm} className="card pdi-program-editor" onSubmit={e => { e.preventDefault(); saveProgram(); }}>
           <fieldset disabled={busy}><legend>{programDraft.id ? 'Editar programa institucional' : 'Novo programa institucional'}</legend>
+            <div className="pdi-program-fields">
             <Field label="Nome do programa"><input required maxLength={250} value={programDraft.title} onChange={e => setProgramDraft({ ...programDraft, title: e.target.value })} /></Field>
             <Field label="Descrição do programa" help="Por exemplo: sustentabilidade, acessibilidade ou responsabilidade social."><textarea maxLength={4000} value={programDraft.description} onChange={e => setProgramDraft({ ...programDraft, description: e.target.value })} /></Field>
+            </div>
             <div className="teaching-pdi-actions">
               <button type="submit" className="planning-primary">Salvar programa</button>
               {programDraft.id && <button type="button" className="btn-secondary" onClick={() => setProgramDraft(emptyProgram)}>Cancelar edição do programa</button>}
             </div>
           </fieldset>
         </form>
-        <form ref={goalForm} className="card" onSubmit={e => { e.preventDefault(); saveGoal(); }}>
+        <form ref={goalForm} className="card pdi-goal-editor" onSubmit={e => { e.preventDefault(); saveGoal(); }}>
           <fieldset disabled={busy || !programs.length}><legend>{goalDraft.id ? 'Editar meta do PDI' : 'Nova meta do PDI'}</legend>
-            {!programs.length && <p>Cadastre primeiro um programa institucional.</p>}
+            {!programs.length && <p className="pdi-form-note"><Info size={17} aria-hidden="true" />Cadastre primeiro um programa institucional.</p>}
+            <div className="pdi-field-pair">
             <Field label="Programa da meta"><select required value={goalDraft.pdi_program_id} onChange={e => setGoalDraft({ ...goalDraft, pdi_program_id: e.target.value })}>
               <option value="">Selecione um programa</option>{programs.map(p => <option key={p.id} value={p.id}>{p.title}</option>)}
             </select></Field>
             <Field label="Título da meta"><input required maxLength={250} value={goalDraft.title} onChange={e => setGoalDraft({ ...goalDraft, title: e.target.value })} /></Field>
             <Field label="Indicador"><input required maxLength={250} value={goalDraft.indicator} onChange={e => setGoalDraft({ ...goalDraft, indicator: e.target.value })} /></Field>
-            <div className="teaching-pdi-grid">
+            <Field label="Responsável"><input required maxLength={250} value={goalDraft.owner_name} onChange={e => setGoalDraft({ ...goalDraft, owner_name: e.target.value })} /></Field>
+            </div>
+            <div className="teaching-pdi-grid pdi-target-fields">
               <Field label="Direção desejada"><select value={goalDraft.direction} onChange={e => setGoalDraft({ ...goalDraft, direction: e.target.value })}>
                 {DIRECTION.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
               </select></Field>
@@ -520,7 +534,6 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate }: Props) 
               <Field label="Unidade"><input maxLength={30} placeholder="%, kg, participantes…" value={goalDraft.unit} onChange={e => setGoalDraft({ ...goalDraft, unit: e.target.value })} /></Field>
               <Field label="Prazo"><input required type="date" value={goalDraft.due_date} onChange={e => setGoalDraft({ ...goalDraft, due_date: e.target.value })} /></Field>
             </div>
-            <Field label="Responsável"><input required maxLength={250} value={goalDraft.owner_name} onChange={e => setGoalDraft({ ...goalDraft, owner_name: e.target.value })} /></Field>
             <Field label="Resultado esperado"><textarea required maxLength={4000} value={goalDraft.pdi_expected_result} onChange={e => setGoalDraft({ ...goalDraft, pdi_expected_result: e.target.value })} /></Field>
             <div className="teaching-pdi-actions">
               <button type="submit" className="planning-primary">Salvar meta</button>
@@ -533,7 +546,7 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate }: Props) 
       {programs.length ? <ul className="teaching-pdi-list">{programs.map(program => <li key={program.id} className="teaching-pdi-record">
         <h4>{program.title}</h4>{program.description && <p className="teaching-pdi-description">{program.description}</p>}
         {management && <button type="button" className="btn-secondary" disabled={busy} onClick={() => { setProgramDraft({ id: program.id, title: program.title, description: program.description ?? '' }); programForm.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' }); }}>Editar programa</button>}
-      </li>)}</ul> : <p>Nenhum programa cadastrado.</p>}
+      </li>)}</ul> : <p className="pdi-empty">Nenhum programa cadastrado.</p>}
       <h3>Metas e contribuições de ensino</h3>
       {programs.length > 0 && <Field label="Filtrar por programa"><select value={filterProgram} onChange={e => setFilterProgram(e.target.value)}>
         <option value="">Todos os programas</option>{programs.map(p => <option key={p.id} value={p.id}>{p.title}</option>)}
@@ -561,7 +574,7 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate }: Props) 
             }); goalForm.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' }); }}>Editar meta</button></div>}
           </li>;
         })}
-      </ul> : <p>Nenhuma meta do PDI neste filtro.</p>}
+      </ul> : <p className="pdi-empty">Nenhuma meta do PDI neste filtro.</p>}
     </>}
     {!loading && !courseLoading && !loadError && !courseError && mode === 'academico' && !courseId && <p>{courseOptions.length ? 'Selecione um curso para consultar as atividades.' : 'Nenhum curso disponível para o seu perfil.'}</p>}
     {!loading && !courseLoading && !loadError && !courseError && mode === 'academico' && courseId && <>
