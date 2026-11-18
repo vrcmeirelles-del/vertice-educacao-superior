@@ -17,7 +17,7 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return reply({ error: "Método inválido." }, 405);
   const authorization = req.headers.get("Authorization");
   if (!authorization?.startsWith("Bearer ")) return reply({ error: "Entre no portal para convidar alunos." }, 401);
-  const key = Deno.env.get("RESEND_API_KEY");
+  const key = Deno.env.get("EXTENSION_RESEND_API_KEY") || Deno.env.get("RESEND_API_KEY");
   const from = Deno.env.get("EXTENSION_RESEND_FROM") || Deno.env.get("RESEND_FROM");
   if (!key || !from) return reply({ error: "Serviço de e-mail da Extensão indisponível." }, 503);
   try {
