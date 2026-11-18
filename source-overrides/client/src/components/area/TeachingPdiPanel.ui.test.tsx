@@ -69,6 +69,8 @@ vi.mock('@/lib/supabase', () => ({
 vi.mock('@/lib/institution-directory', () => ({ syncInstitutionDirectory: vi.fn() }));
 
 import TeachingPdiPanel from './TeachingPdiPanel';
+import { REPORT_FIELDS } from '@/lib/teaching-execution-report';
+const completeReport = { ...Object.fromEntries(REPORT_FIELDS.map(f=>[f.key, `Conteúdo sintético ${f.label}`])), investment_amount: 0 };
 
 let container: HTMLDivElement;
 let root: Root;
@@ -127,7 +129,7 @@ describe('Atividades de Ensino e PDI', () => {
 
   it('exige justificativa ODS e salva apenas uma referência documental e a origem declarada', async () => {
     await render();
-    await fill('Título da atividade', 'Simulado para teste');
+    await fill('Nome da atividade', 'Simulado para teste');
     await fill('Tipo de atividade', 'avaliacao');
     await fill('Exame ou carreira (opcional)', 'enade');
     await fill('Descrição do que foi feito', 'Questões discutidas em sala');
@@ -153,7 +155,7 @@ describe('Atividades de Ensino e PDI', () => {
     await render({ onNavigate: navigate });
     expect([...container.querySelectorAll('button')].some(button => button.textContent === 'Programas e metas do PDI')).toBe(false);
     await click('Editar rascunho');
-    await fill('Título da atividade', 'Oficina revisada');
+    await fill('Nome da atividade', 'Oficina revisada');
     await submit();
     const write = db.rpc.find(c => c.name === 'vertice_teaching_save_activity')?.args;
     expect(write).toMatchObject({
@@ -188,16 +190,20 @@ describe('Atividades de Ensino e PDI', () => {
     ]);
   });
 
-  it('só valida após confirmação e não grava medição nem atividade complementar', async () => {
+  it('só valida após revisão humana do relatório e não grava medição nem atividade complementar', async () => {
+    Object.assign(db.data.vertice_teaching_activities[0], {execution_report: completeReport, minutes_doc_id: 'doc-a'});
     await render();
     await click('Revisar validação');
     expect(db.calls.some(c => c.action === 'update')).toBe(false);
+    await click('Confirmar validação');
+    expect(db.calls.some(c => c.action === 'update')).toBe(false);
+    await act(async()=>container.querySelector<HTMLInputElement>('.teaching-review-check input')!.click());
     await click('Confirmar validação');
     const writes = db.calls.filter(c => c.action !== 'read');
     expect(writes).toEqual([{
       table: 'vertice_teaching_activities', action: 'update',
       where: [['institution_id', 'ies-a'], ['id', 'activity-a'], ['course_id', 'curso-a'], ['updated_at', 'revision-a'], ['status', 'rascunho']],
-      payload: { status: 'validada' },
+      payload: { status: 'validada', execution_report: {...completeReport, presentation_page_reviewed: true} },
     }]);
     expect(container.textContent).toContain('Não houve crédito de horas nem medição automática');
     expect(container.textContent).not.toContain('Editar rascunho');
@@ -205,6 +211,27 @@ describe('Atividades de Ensino e PDI', () => {
     expect(db.rpc.some(c => c.name.startsWith('vertice_teaching_ac_'))).toBe(false);
   });
 
+
+  it('salva todos os itens do relato e a ata no curso correto, preservando investimento zero', async () => {
+    await render();
+    await click('Editar rascunho');
+    for (const field of REPORT_FIELDS) await fill(field.label, `Relato ${field.label}`);
+    await fill('Valor investido (R$)', '0');
+    await fill('Ata com assinaturas dos participantes', 'doc-a');
+    await submit();
+    const fields = db.rpc.find(c=>c.name==='vertice_teaching_save_activity')?.args.p_fields;
+    expect(fields).toMatchObject({minutes_doc_id:'doc-a',execution_report:{investment_amount:0,presentation:'Relato Apresentação',results:'Relato Resultados alcançados'}});
+    expect((fields as Row).execution_report).not.toHaveProperty('presentation_page_reviewed');
+    expect(container.textContent).toContain('Relato Agradecimentos');
+  });
+  it('bloqueia validação de relatório incompleto sem transformar campos preenchidos em aprovação', async () => {
+    await render(); await click('Revisar validação');
+    await act(async()=>container.querySelector<HTMLInputElement>('.teaching-review-check input')!.click());
+    await click('Confirmar validação');
+    expect(container.querySelector('[role="alert"]')?.textContent).toContain('Complete o relatório');
+    expect(container.querySelector('[role="alert"]')?.textContent).toContain('Ata com assinaturas');
+    expect(db.calls.some(c=>c.action==='update')).toBe(false);
+  });
   it('busca o documento exato da contribuição apenas ao abrir a evidência', async () => {
     await render({ mode: 'gestao', role: 'diretor_pedagogico' });
     expect(db.rpc.some(c => c.name === 'vertice_teaching_evidence_options')).toBe(false);
@@ -254,9 +281,11 @@ describe('Atividades de Ensino e PDI', () => {
   });
 
   it('não confirma sucesso quando a versão não é atual ou falta acesso', async () => {
+    Object.assign(db.data.vertice_teaching_activities[0], {execution_report: completeReport, minutes_doc_id: 'doc-a'});
     await render();
     db.denyWrite = true;
     await click('Revisar validação');
+    await act(async()=>container.querySelector<HTMLInputElement>('.teaching-review-check input')!.click());
     await click('Confirmar validação');
     expect(container.querySelector('[role="alert"]')?.textContent).toContain('Não foi possível confirmar a alteração');
     expect(container.textContent).not.toContain('Atividade validada.');

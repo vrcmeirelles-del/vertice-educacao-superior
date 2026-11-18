@@ -7,6 +7,8 @@ import './planning/planning.css';
 import './teaching-pdi.css';
 import TeachingFatoOrdem from './TeachingFatoOrdem';
 import TeachingAcHandoff from './TeachingAcHandoff';
+import TeachingExecutionReport from './TeachingExecutionReport';
+import { REPORT_FIELDS, readTeachingReport, reportPayload, reportProblems } from '@/lib/teaching-execution-report';
 import TeachingActivityRoster, { TeachingActivityRosterSummary, type RosterPayload } from './TeachingActivityRoster';
 
 type Course = { id: string; name: string; degree?: string | null };
@@ -74,7 +76,7 @@ type Activity = {
   id: string; course_id: string; title: string; category: string; description: string;
   activity_date: string; organizer_role: string; goal_id: string | null;
   evidence_doc_id: string | null; ods_goal: number | null; ods_rationale: string | null;
-  status: string; updated_at: string; exam_module: string | null; created_by: string | null; total_minutes: number | null;
+  status: string; updated_at: string; exam_module: string | null; created_by: string | null; total_minutes: number | null; execution_report: unknown; minutes_doc_id: string | null;
 };
 type Evidence = { id: string; title: string };
 const TABLE = { programs: 'vertice_pdi_programs', goals: 'vertice_goals', activities: 'vertice_teaching_activities' };
@@ -82,11 +84,11 @@ const emptyProgram = { id: '', title: '', description: '' };
 const emptyGoal = { id: '', pdi_program_id: '', title: '', indicator: '', target: '', unit: '', owner_name: '', due_date: '', direction: 'aumentar', status: 'planejada', pdi_expected_result: '' };
 const newActivity = () => ({
   id: '', updated_at: '', title: '', category: 'evento', description: '', activity_date: browserDate(), organizer_role: 'docente', exam_module: '',
-  goal_id: '', evidence_doc_id: '', ods_goal: '', ods_rationale: '', total_minutes: '',
+  goal_id: '', evidence_doc_id: '', ods_goal: '', ods_rationale: '', total_minutes: '', minutes_doc_id: '', execution_report: readTeachingReport(null),
 });
 const activityStatus = (status: string) => ({ rascunho: 'Rascunho', validada: 'Validada', cancelada: 'Cancelada' }[status] ?? status);
 const GOAL_FIELDS = 'id,title,pdi_program_id,indicator,target,unit,owner_name,due_date,direction,status,pdi_expected_result';
-const ACTIVITY_FIELDS = 'id,course_id,title,category,description,activity_date,organizer_role,goal_id,evidence_doc_id,ods_goal,ods_rationale,status,updated_at,exam_module,created_by,total_minutes';
+const ACTIVITY_FIELDS = 'id,course_id,title,category,description,activity_date,organizer_role,goal_id,evidence_doc_id,ods_goal,ods_rationale,status,updated_at,exam_module,created_by,total_minutes,execution_report,minutes_doc_id';
 
 function parseError(error: unknown) {
   if (error && typeof error === 'object' && 'message' in error) return String(error.message);
@@ -115,7 +117,7 @@ async function evidenceOptions(institutionId: string, courseId: string, query?: 
   return (data ?? []) as Evidence[];
 }
 
-function ContributionEvidence({ institutionId, row }: { institutionId: string; row: Activity }) {
+function ContributionEvidence({ institutionId, row, caption = 'Evidência da Mesa Digital vinculada' }: { institutionId: string; row: Activity; caption?: string }) {
   const [label, setLabel] = useState('');
   const [busy, setBusy] = useState(false);
   const [attempted, setAttempted] = useState(false);
@@ -133,7 +135,7 @@ function ContributionEvidence({ institutionId, row }: { institutionId: string; r
     }
   }
   return <details onToggle={e => { if (e.currentTarget.open) void show(); }}>
-    <summary>Evidência da Mesa Digital vinculada</summary>
+    <summary>{caption}</summary>
     {busy ? <p role="status">Consultando evidência do curso…</p> : label && <p>{label}</p>}
   </details>;
 }
@@ -210,6 +212,7 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate, showHeade
   const [programDraft, setProgramDraft] = useState(emptyProgram);
   const [goalDraft, setGoalDraft] = useState(emptyGoal);
   const [activityDraft, setActivityDraft] = useState(newActivity);
+  const [reportReviewed, setReportReviewed] = useState(false);
   const [draftRevision, setDraftRevision] = useState(0);
   const [studentsDraft, setStudentsDraft] = useState<{ rows: RosterPayload | null; error: string }>({ rows: null, error: '' });
   const [loading, setLoading] = useState(true);
@@ -402,6 +405,11 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate, showHeade
     if (totalMinutes !== null && (!Number.isInteger(totalMinutes) || totalMinutes < 0 || totalMinutes > 60000)) {
       setActionError('Informe uma carga total inteira entre 0 e 60.000 minutos ou deixe o campo vazio.'); return;
     }
+    const reportErrors = reportProblems(draft.execution_report);
+    if (reportErrors.length) { setActionError(reportErrors.join('; ')); return; }
+    if (draft.minutes_doc_id && !knownEvidence.some(d => d.id === draft.minutes_doc_id)) {
+      setActionError('Selecione a ata disponível na Mesa Digital deste curso ou remova o vínculo.'); return;
+    }
     if (studentsDraft.error) { setActionError(studentsDraft.error); return; }
     void run(
       async () => {
@@ -413,6 +421,7 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate, showHeade
             exam_module: draft.category === 'avaliacao' ? draft.exam_module || null : null, goal_id: draft.goal_id || null,
             evidence_doc_id: draft.evidence_doc_id || null, ods_goal: draft.ods_goal ? Number(draft.ods_goal) : null,
             ods_rationale: draft.ods_goal ? draft.ods_rationale.trim() : null,
+            execution_report: reportPayload(draft.execution_report), minutes_doc_id: draft.minutes_doc_id || null,
             ...(draft.id ? { updated_at: draft.updated_at } : {}),
           },
           p_students: studentsDraft.rows,
@@ -434,19 +443,25 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate, showHeade
       ...row, exam_module: row.exam_module ?? '', goal_id: row.goal_id ?? '', evidence_doc_id: row.evidence_doc_id ?? '',
       ods_goal: row.ods_goal ? String(row.ods_goal) : '', ods_rationale: row.ods_rationale ?? '',
       total_minutes: row.total_minutes == null ? '' : String(row.total_minutes),
+      execution_report: readTeachingReport(row.execution_report), minutes_doc_id: row.minutes_doc_id ?? '',
     });
-    if (row.evidence_doc_id && !knownEvidence.some(d => d.id === row.evidence_doc_id)) {
-      const scopedId = courseId;
-      void evidenceOptions(institutionId, scopedId, undefined, row.evidence_doc_id).then(options => {
-        if (options.length && evidenceScope.current === scopedId) setKnownEvidence(previous => [...new Map([...previous, ...options].map(document => [document.id, document])).values()]);
-      }).catch(() => undefined);
+    for (const documentId of [row.evidence_doc_id, row.minutes_doc_id]) {
+      if (documentId && !knownEvidence.some(d => d.id === documentId)) {
+        const scopedId = courseId;
+        void evidenceOptions(institutionId, scopedId, undefined, documentId).then(options => {
+          if (options.length && evidenceScope.current === scopedId) setKnownEvidence(previous => [...new Map([...previous, ...options].map(document => [document.id, document])).values()]);
+        }).catch(() => undefined);
+      }
     }
   }
 
   function validateActivity(row: Activity) {
     if (!canValidate || row.status !== 'rascunho' || row.course_id !== courseId) return;
+    const problems = reportProblems(readTeachingReport(row.execution_report), true, row.minutes_doc_id);
+    if (problems.length) { setActionError(`Complete o relatório antes de validar: ${problems.join('; ')}.`); return; }
+    if (!reportReviewed) { setActionError('Confirme a revisão da apresentação e da ata assinada.'); return; }
     void run(
-      () => writeRow('activities', institutionId, { status: 'validada' }, { id: row.id, courseId, updatedAt: row.updated_at, fromStatus: 'rascunho' }),
+      () => writeRow('activities', institutionId, { status: 'validada', execution_report: { ...reportPayload(readTeachingReport(row.execution_report)), presentation_page_reviewed: true } }, { id: row.id, courseId, updatedAt: row.updated_at, fromStatus: 'rascunho' }),
       'Atividade validada. Não houve crédito de horas nem medição automática da meta.',
       () => { setConfirmActivity(null); if (activityDraft.id === row.id) resetActivityDraft(); },
     );
@@ -575,13 +590,14 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate, showHeade
           <legend className="teaching-editor-title">{activityDraft.id ? 'Editar rascunho' : 'Nova atividade de ensino'}</legend>
           <div className="teaching-editor-guide">
             <span><BookOpen size={15} aria-hidden="true" /> Dados da atividade</span>
+            <span><BookOpen size={15} aria-hidden="true" /> Relato da execução</span>
             <span><UsersRound size={15} aria-hidden="true" /> Participantes</span>
             <span><Link2 size={15} aria-hidden="true" /> Vínculos</span>
           </div>
           <section className="teaching-form-step" aria-label="Identificação e planejamento">
             <h4><span aria-hidden="true">1</span> Identificação e planejamento</h4>
             <p>Defina o tipo, quem organiza e a data. Use a descrição para registrar propósito, metodologia e entregas, sem dados pessoais.</p>
-          <Field label="Título da atividade"><input required maxLength={250} value={activityDraft.title} onChange={e => setActivityDraft({ ...activityDraft, title: e.target.value })} /></Field>
+          <Field label="Nome da atividade"><input required maxLength={250} value={activityDraft.title} onChange={e => setActivityDraft({ ...activityDraft, title: e.target.value })} /></Field>
           <div className="teaching-pdi-grid">
             <Field label="Tipo de atividade"><select value={activityDraft.category} onChange={e => setActivityDraft({ ...activityDraft, category: e.target.value, exam_module: e.target.value === 'avaliacao' ? activityDraft.exam_module : '' })}>{TYPES.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></Field>
             <Field label="Quem organizou"><select value={activityDraft.organizer_role} onChange={e => setActivityDraft({ ...activityDraft, organizer_role: e.target.value })}>{ORGANIZERS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></Field>
@@ -599,14 +615,15 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate, showHeade
             <textarea required maxLength={4000} value={activityDraft.description} onChange={e => setActivityDraft({ ...activityDraft, description: e.target.value })} />
           </Field>
           </section>
+          <TeachingExecutionReport value={activityDraft.execution_report} onChange={execution_report => setActivityDraft({ ...activityDraft, execution_report })} />
           <section className="teaching-form-step" aria-label="Alunos, papéis e carga por pessoa">
-            <h4><span aria-hidden="true">2</span> Alunos, papéis e carga por pessoa</h4>
+            <h4><span aria-hidden="true">3</span> Alunos envolvidos, papéis e carga por pessoa</h4>
             <TeachingActivityRoster key={`${courseId}:${activityDraft.id || 'novo'}:${draftRevision}`}
               institutionId={institutionId} courseId={courseId} activityId={activityDraft.id || null}
               onChange={(rows, error) => setStudentsDraft({ rows, error })} />
           </section>
           <section className="teaching-form-step" aria-label="Vínculos e comprovação">
-            <h4><span aria-hidden="true">3</span> Vínculos e comprovação</h4>
+            <h4><span aria-hidden="true">4</span> Vínculos e comprovação</h4>
           <div className="teaching-pdi-grid">
             <Field label="Meta do PDI (opcional)"><select value={activityDraft.goal_id} onChange={e => setActivityDraft({ ...activityDraft, goal_id: e.target.value })}>
               <option value="">Sem vínculo com meta</option>
@@ -620,6 +637,13 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate, showHeade
               <select value={activityDraft.evidence_doc_id} disabled={!evidenceReady && !activityDraft.evidence_doc_id} onChange={e => setActivityDraft({ ...activityDraft, evidence_doc_id: e.target.value })}>
                 <option value="">{evidenceReady ? 'Sem evidência vinculada' : 'Evidências não carregadas'}</option>
                 {activityDraft.evidence_doc_id && !evidence.some(d => d.id === activityDraft.evidence_doc_id) && <option value={activityDraft.evidence_doc_id}>{labelOfEvidence(activityDraft.evidence_doc_id)} (vínculo atual)</option>}
+                {evidence.map(d => <option key={d.id} value={d.id}>{d.title}</option>)}
+              </select>
+            </Field>
+            <Field label="Ata com assinaturas dos participantes" help="Anexe a ata na Mesa Digital do curso e selecione o documento aqui. A existência do arquivo não confirma as assinaturas; a conferência é humana.">
+              <select value={activityDraft.minutes_doc_id} disabled={!evidenceReady && !activityDraft.minutes_doc_id} onChange={e => setActivityDraft({ ...activityDraft, minutes_doc_id: e.target.value })}>
+                <option value="">{evidenceReady ? 'Selecione a ata assinada' : 'Evidências não carregadas'}</option>
+                {activityDraft.minutes_doc_id && !evidence.some(d => d.id === activityDraft.minutes_doc_id) && <option value={activityDraft.minutes_doc_id}>{labelOfEvidence(activityDraft.minutes_doc_id)} (vínculo atual)</option>}
                 {evidence.map(d => <option key={d.id} value={d.id}>{d.title}</option>)}
               </select>
             </Field>
@@ -643,6 +667,12 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate, showHeade
         <div className="teaching-record-heading"><h4>{row.title}</h4><span className="teaching-activity-state" data-state={row.status}>{activityStatus(row.status)}</span></div>
         <p className="teaching-pdi-meta">{displayDate(row.activity_date)} · {TYPES.find(([value]) => value === row.category)?.[1] ?? row.category} · Organização: {ORGANIZERS.find(([value]) => value === row.organizer_role)?.[1] ?? row.organizer_role}</p>
         <p className="teaching-pdi-description">{row.description}</p>
+        <details className="teaching-report-details"><summary>Relatório da execução</summary>
+          <dl>{REPORT_FIELDS.map(field => <div key={field.key}><dt>{field.label}</dt><dd>{readTeachingReport(row.execution_report)[field.key] || 'Não informado'}</dd></div>)}
+            <div><dt>Valor investido</dt><dd>{readTeachingReport(row.execution_report).investment_amount === '' ? 'Não informado' : Number(readTeachingReport(row.execution_report).investment_amount).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</dd></div>
+          </dl>
+        </details>
+        {row.minutes_doc_id && <ContributionEvidence key={`ata:${row.minutes_doc_id}`} institutionId={institutionId} row={{ ...row, evidence_doc_id: row.minutes_doc_id }} caption="Ata com assinaturas vinculada" />}
         {row.total_minutes != null && <p><strong>Carga total da atividade:</strong> {row.total_minutes.toLocaleString('pt-BR')} min</p>}
         {row.exam_module && <p><strong>Exame ou carreira:</strong> {EXAMS.find(([value]) => value === row.exam_module)?.[1] ?? row.exam_module}</p>}
         {row.goal_id && <p><strong>Meta do PDI:</strong> {goals.find(g => g.id === row.goal_id)?.title ?? 'Meta vinculada'}</p>}
@@ -656,11 +686,12 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate, showHeade
         />}
         {row.status === 'rascunho' && (canValidate || (role === 'equipe' && !!staffId && row.created_by === staffId)) && <div className="teaching-pdi-actions">
           <button type="button" className="btn-secondary" disabled={busy} onClick={() => editActivity(row)}>Editar rascunho</button>
-          {canValidate && <button type="button" className="btn-secondary" disabled={busy} onClick={() => setConfirmActivity(row)}>Revisar validação</button>}
+          {canValidate && <button type="button" className="btn-secondary" disabled={busy} onClick={() => { setReportReviewed(false); setConfirmActivity(row); }}>Revisar validação</button>}
         </div>}
         {confirmActivity?.id === row.id && row.status === 'rascunho' && canValidate && <div className="card">
           <p>Confirme o registro de execução da atividade. A validação encerra a edição, não comprova o resultado da meta e não credita horas complementares.</p>
           {!row.evidence_doc_id && <p>Sem evidência vinculada, esta atividade não poderá ser encaminhada para análise de horas complementares. Se precisar disso, cancele a validação e vincule o documento no rascunho.</p>}
+          <label className="teaching-review-check"><input type="checkbox" checked={reportReviewed} onChange={e => setReportReviewed(e.target.checked)} />Conferi a apresentação formatada com no mínimo uma folha, o relato dos resultados e a ata com assinaturas dos participantes.</label>
           <div className="teaching-pdi-actions">
             <button type="button" className="planning-primary" disabled={busy} onClick={() => validateActivity(row)}>Confirmar validação</button>
             <button type="button" className="btn-secondary" disabled={busy} onClick={() => setConfirmActivity(null)}>Cancelar validação</button>
