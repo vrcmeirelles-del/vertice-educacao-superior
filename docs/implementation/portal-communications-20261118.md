@@ -26,7 +26,7 @@ Login, recuperação de senha e e-mails do Supabase Auth continuam no SMTP nativ
 
 A inspeção do Resend nesta sessão identificou chave de envio do Fato & Ordem usada com o remetente `verticesuperior.com.br`, recusado por restrição de domínio. A nova configuração é global: `VERTICE_RESEND_API_KEY` e `VERTICE_RESEND_FROM`. Não configurar uma chave por módulo. O remetente deve pertencer a `verticesuperior.com.br` e a chave deve permitir esse domínio.
 
-As variáveis genéricas legadas `RESEND_API_KEY` e `RESEND_FROM` continuam como fallback de compatibilidade; as variáveis institucionais prevalecem. Variáveis `EXTENSION_RESEND_*` não são usadas. Presença de configuração não comprova permissão da chave no provedor. Nenhuma credencial foi alterada neste pacote.
+As variáveis institucionais `VERTICE_RESEND_*` prevalecem. Para aproveitar a credencial já salva antes da unificação, `EXTENSION_RESEND_API_KEY` e `EXTENSION_RESEND_FROM` são aliases globais de compatibilidade, com prioridade sobre `RESEND_API_KEY` e `RESEND_FROM`. Essa escolha acontece uma única vez na biblioteca compartilhada e atende todos os módulos, sem limitação à Extensão. Não é necessário copiar, revelar ou inserir novamente a chave existente. Presença de configuração não comprova permissão no provedor ou entrega real. Nenhum valor de credencial foi alterado.
 
 ## Rastreabilidade e limites
 
