@@ -7,6 +7,7 @@ import './master-layout.css';
 const groups = [
   { label: 'Plataforma', items: [
     { label: 'Visão geral', href: '/master', icon: LayoutDashboard },
+    { label: 'ENADE 360° · Operação', href: '/master#enade-operacao=1', icon: ClipboardCheck },
     { label: 'Central de Homologação', href: '/master#homologacao=1', icon: ClipboardCheck },
     { label: 'Financeiro', href: '/master#financeiro=1', icon: Wallet },
     { label: 'Administração de acessos', href: '/master#masters=1', icon: Settings },

@@ -35,6 +35,11 @@ export default function MasterOverview({ ies, schools, revenue, contracts, trial
       <button type="button" onClick={()=>onNavigate('homologacao')}>Abrir Central de Homologação <ArrowRight size={17} aria-hidden="true"/></button>
     </section>
 
+    <section className="master-homologation-intro" aria-labelledby="master-enade-title">
+      <div><h3 id="master-enade-title">ENADE 360° · Conclusão operacional</h3><p>Núcleo genérico, evidências, OCR, relatórios R2–R6 e validação científica. Acompanhe cada versão até o aceite humano e a publicação controlada.</p><div className="master-homologation-modules"><span>Rastreabilidade documental</span><span>Checklists por ambiente</span><span>Aprovações explícitas</span></div></div>
+      <a className="corp-btn" href="/master#enade-operacao=1">Abrir acompanhamento ENADE 360° <ArrowRight size={17} aria-hidden="true"/></a>
+    </section>
+
     <section aria-labelledby="master-institutions-title">
       <div className="master-section-heading"><div><h3 id="master-institutions-title">Instituições</h3><p>Escolha o segmento ou entre diretamente em um ambiente.</p></div><span>01 · Gestão institucional</span></div>
       <div className="master-segment-grid">
