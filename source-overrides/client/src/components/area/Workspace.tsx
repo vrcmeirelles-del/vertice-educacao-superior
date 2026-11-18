@@ -70,6 +70,7 @@ const Discursiva360 = lazy(() => import("./Discursiva360"));
 const CoursePlanning = lazy(() => import("./CoursePlanning"));
 const CurriculumBuilder = lazy(() => import("./CurriculumBuilder"));
 const TrailAnalysis = lazy(() => import("./TrailAnalysis"));
+const TeachingPdiPanel = lazy(() => import("./TeachingPdiPanel"));
 const Tcc360 = lazy(() => import("./Tcc360"));
 const AtividadesComplementares360 = lazy(() => import("./AtividadesComplementares360"));
 const Estagio360 = lazy(() => import("./Estagio360"));
@@ -97,8 +98,9 @@ import "./module-offer.css";
 
 const TAB_GROUPS: {label:string;subtitle:string;icon:string;tabs:Tab[];tier?:'superior'|'escolas'|'both'}[] = [
   {label:'Gestão',subtitle:'Planejamento, metas e governança',icon:'▦',tabs:['planejamento-estrategico','planejamento-semestral','base','metas','plano','diagnostico','equipe','cpa-autoavaliacao'],tier:'both'},
+  {label:'Gestão Institucional',subtitle:'Programas e metas do PDI',icon:'◎',tabs:['programas-pdi'],tier:'superior'},
   {label:'Regulação',subtitle:'Instrumentos e evidências MEC/INEP',icon:'◇',tabs:['emec','repositorio','validacao','avaliacao','novo_instrumento','biblioteca'],tier:'superior'},
-  {label:'Acadêmico',subtitle:'Currículo, desempenho e avaliação',icon:'▤',tabs:['discursiva','geral','cadastro','visao','construcao-curricular','trilhas-enade','enade','eorbit','backups','auditoria'],tier:'superior'},
+  {label:'Acadêmico',subtitle:'Currículo, desempenho e avaliação',icon:'▤',tabs:['discursiva','geral','cadastro','visao','construcao-curricular','trilhas-enade','enade','atividades-ensino','eorbit','backups','auditoria'],tier:'superior'},
   {label:'Inteligência',subtitle:'Análises, integrações e decisões',icon:'◎',tabs:['mercado','analise','ia','fontes','conexoes','reitor','resultado-curso','simulador','raio-x-direito','vitrine-curso','aprendizagem'],tier:'superior'},
   {label:'Carreiras e Egressos',subtitle:'Relacionamento, desenvolvimento e empregabilidade',icon:'🎓',tabs:['conecta','egressos'],tier:'superior'},
   {label:'Extensão',subtitle:'Projetos de extensão, participantes e cobertura',icon:'🤝',tabs:['extensao'],tier:'superior'},
@@ -117,6 +119,8 @@ const TAB_GROUPS: {label:string;subtitle:string;icon:string;tabs:Tab[];tier?:'su
 ];
 
 const TAB_DETAILS: Partial<Record<Tab,{icon:string;description:string}>> = {
+ 'programas-pdi':{icon:'◎',description:'Programas, metas, indicadores e contribuições acadêmicas do PDI'},
+ 'atividades-ensino':{icon:'▤',description:'Eventos formativos, práticas e simulados com evidências da Mesa Digital'},
  "discursiva":{icon:"✍",description:"Casos práticos, provas com QR e correção assistida por rubrica"},
  mercado:{icon:"◎",description:"Movimentações de mercado, fontes, exposição e decisões estratégicas"},
  "escola-individual":{icon:"▤",description:"Acompanhamento Individual com fontes, histórico e revisão da direção"},
@@ -184,6 +188,8 @@ const TAB_DETAILS: Partial<Record<Tab,{icon:string;description:string}>> = {
 };
 
 const TABS: [Tab, string][] = [
+  ["programas-pdi", "Programas e metas do PDI"],
+  ["atividades-ensino", "Atividades de Ensino"],
  ["discursiva", "Discursiva 360°"],
   ["escola-individual","Acompanhamento Individual"],
   ["escola-documentos","Documentos e Assinaturas"],
@@ -421,7 +427,7 @@ export default function Workspace({
       setModuleSearch(""); setOnlyFavorites(false);
     }
   };
-  const isLocked = (tabKey: string) => tabKey !== "discursiva" && !["escola-individual","escola-documentos","escola-bi", "escola-permanencia", "escola-financeiro", "escola-dados", "escola-projetos", "escola-estagio", "escola-captacao"].includes(tabKey) && tabKey !== "mercado" && tabKey !== "conecta" && tabKey !== "gestao-escolar" && tabKey !== "planejamento-estrategico" && tabKey !== "planejamento-semestral" && activeTabs.size > 0 && !activeTabs.has(tabKey);
+  const isLocked = (tabKey: string) => tabKey !== "discursiva" && tabKey !== "programas-pdi" && tabKey !== "atividades-ensino" && !["escola-individual","escola-documentos","escola-bi", "escola-permanencia", "escola-financeiro", "escola-dados", "escola-projetos", "escola-estagio", "escola-captacao"].includes(tabKey) && tabKey !== "mercado" && tabKey !== "conecta" && tabKey !== "gestao-escolar" && tabKey !== "planejamento-estrategico" && tabKey !== "planejamento-semestral" && activeTabs.size > 0 && !activeTabs.has(tabKey);
   const isTasting = (tabKey: string) => {
     const mod = findModuleByTab(moduleCatalog, tabKey);
     return mod?.display_status === 'tasting';
@@ -583,6 +589,14 @@ export default function Workspace({
         <Suspense fallback={<p role="status">Carregando construção curricular…</p>}><CurriculumBuilder institutionId={String(id)} courses={data.courses.map(c=>({id:String(c.id),name:String(c.name),code:String(c.code??"")}))} role={role} /></Suspense>
       ) : tab === "trilhas-enade" ? (
         <Suspense fallback={<p role="status">Carregando trilhas ENADE…</p>}><TrailAnalysis institutionId={String(id)} courses={data.courses.map(c=>({id:String(c.id),name:String(c.name),code:String(c.code??"")}))} role={role} /></Suspense>
+      ) : tab === "atividades-ensino" || tab === "programas-pdi" ? (
+        instTier === "superior" && role && allowedTabs.includes(tab) ? (
+          <Suspense fallback={<p role="status">Carregando…</p>}>
+            <TeachingPdiPanel key={`${id}:${tab}`} institutionId={String(id)} mode={tab === "programas-pdi" ? "gestao" : "academico"} role={role}
+              courses={data.courses.map(c=>({id:String(c.id),name:String(c.name),degree:typeof c.degree === "string" ? c.degree : null}))}
+              onNavigate={destination=>{const permitted = allowedTabs.find(key=>key===destination); if(permitted) choose(permitted);}}/>
+          </Suspense>
+        ) : <p role="alert">Área restrita aos perfis autorizados no ensino superior.</p>
       ) : tab === "planejamento-estrategico" ? (
         <Suspense fallback={<p role="status">Carregando planejamento estratégico…</p>}>{instTier==='escolas'?<SchoolPlanning key={`${id}:strategic`} institutionId={String(id)} role={role} kind="strategic"/>:<CoursePlanning institutionId={String(id)} courses={data.courses.map(c=>({id:String(c.id),name:String(c.name),code:String(c.code??"")}))} role={role} kind="strategic" />}</Suspense>
       ) : tab === "planejamento-semestral" ? (

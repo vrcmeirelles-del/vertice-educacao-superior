@@ -603,3 +603,154 @@ test("definition tracks optional formula and population while ordinary goal prog
     false,
   );
 });
+
+test("Sapiens freezes scoped validated teaching, PDI and evidence sources without measurements or private text", async (t) => {
+  const { db, auth, rpc } = await fixture(t);
+  await db.exec(`
+    ALTER TABLE public.vertice_goals ADD COLUMN pdi_program_id uuid, ADD COLUMN pdi_expected_result text;
+    CREATE TABLE public.vertice_pdi_programs(id uuid PRIMARY KEY, institution_id uuid, title text);
+    CREATE TABLE public.vertice_teaching_activities(
+      id uuid PRIMARY KEY, institution_id uuid, course_id uuid, title text, category text,
+      activity_date date, status text, ods_goal integer, updated_at timestamptz DEFAULT now(),
+      goal_id uuid, evidence_doc_id uuid, description text, ods_rationale text, exam_module text
+    );
+    CREATE TABLE public.synthetic_teaching_scope(user_id uuid, course_id uuid);
+    CREATE FUNCTION vertice_private.teaching_access(p_institution uuid,p_course uuid,p_mode text)
+    RETURNS boolean LANGUAGE sql AS $$
+      SELECT vertice_planning.can_interpret(p_institution, p_course) AND
+        (vertice_planning.can_interpret(p_institution, NULL) OR EXISTS(
+          SELECT 1 FROM public.synthetic_teaching_scope s WHERE s.user_id=auth.uid() AND s.course_id=p_course
+        ));
+    $$;
+    CREATE FUNCTION vertice_private.is_full_access(p_institution uuid)
+    RETURNS boolean LANGUAGE sql AS $$SELECT vertice_planning.can_interpret(p_institution,NULL)$$;
+    CREATE FUNCTION vertice_private.pdi_access(p_institution uuid,p_edit boolean)
+    RETURNS boolean LANGUAGE sql AS $$
+      SELECT coalesce(vertice_private.member_role(p_institution) IN ('reitor','coordenador'),false);
+    $$;
+    CREATE FUNCTION public.synthetic_reference_date() RETURNS trigger LANGUAGE plpgsql AS $$
+    BEGIN NEW.context:=NEW.context||'{"reference_date":"2026-11-18"}'::jsonb; RETURN NEW; END $$;
+    CREATE TRIGGER zzy_synthetic_reference_date BEFORE INSERT ON public.vertice_sapiens_planning_analyses
+      FOR EACH ROW EXECUTE FUNCTION public.synthetic_reference_date();
+  `);
+  await db.exec(
+    await readFile(
+      new URL(
+        "../../../supabase/migrations/20261118131739_sapiens_teaching_pdi_context.sql",
+        import.meta.url,
+      ),
+      "utf8",
+    ),
+  );
+  await db.query(
+    "INSERT INTO vertice_pdi_programs VALUES($1,$2,'Sustentabilidade'),($3,$4,'Programa de outra IES')",
+    [id(71), id(11), id(72), id(12)],
+  );
+  await db.query(
+    `INSERT INTO vertice_goals(id,institution_id,title,indicator,status,pdi_program_id,pdi_expected_result) VALUES
+    ($1,$2,'Redução de resíduos','kg por semana','ativa',$3,'Reduzir volume'),
+    ($4,$5,'Meta de outra IES','kg por semana','ativa',$6,'Outro resultado')`,
+    [id(73), id(11), id(71), id(74), id(12), id(72)],
+  );
+  await db.query(
+    `INSERT INTO vertice_documents(id,institution_id,course_id,status) VALUES
+    ($1,$2,$3,'approved'),($4,$2,$5,'approved'),($6,$7,$8,'approved')`,
+    [id(81), id(11), id(21), id(82), id(22), id(83), id(12), id(23)],
+  );
+  await db.query(
+    `INSERT INTO vertice_documents(id,institution_id,course_id,status,superseded_by)
+      VALUES($1,$2,$3,'approved',$4)`,
+    [id(84), id(11), id(21), id(81)],
+  );
+  for (const [n, inst, course, label, day, status, goal, doc] of [
+    [90, 11, 21, "Oficina validada", "2026-09-10", "validada", 73, 81],
+    [91, 11, 21, "Oficina em rascunho", "2026-09-11", "rascunho", 73, 81],
+    [92, 11, 22, "Atividade de outro curso", "2026-09-11", "validada", 73, 82],
+    [93, 12, 23, "Atividade de outra IES", "2026-09-11", "validada", 74, 83],
+    [
+      94,
+      11,
+      21,
+      "Atividade fora do semestre",
+      "2026-06-30",
+      "validada",
+      73,
+      81,
+    ],
+    [95, 11, 21, "Atividade futura", "2026-12-31", "validada", 73, 81],
+    [96, 11, 21, "Vínculos fora do escopo", "2026-09-09", "validada", 74, 82],
+    [97, 11, 21, "Evidência substituída", "2026-09-08", "validada", 73, 84],
+  ]) {
+    await db.query(
+      `INSERT INTO vertice_teaching_activities
+      (id,institution_id,course_id,title,category,activity_date,status,ods_goal,goal_id,evidence_doc_id,description,ods_rationale)
+      VALUES($1,$2,$3,$4,'pratica',$5,$6,12,$7,$8,'PRIVADO_DESCRICAO','PRIVADO_JUSTIFICATIVA')`,
+      [id(n), id(inst), id(course), label, day, status, id(goal), id(doc)],
+    );
+  }
+  await auth(2);
+  const noTeachingMembership = await rpc("start", {
+    course_id: id(21),
+    semester: "2026/2",
+  });
+  assert.equal(noTeachingMembership.context.teaching_pdi.eligible_count, 0);
+  await db.exec("RESET ROLE");
+  await db.exec("UPDATE vertice_sapiens_planning_analyses SET status='failed'");
+  await db.query("INSERT INTO synthetic_teaching_scope VALUES($1,$2)", [
+    id(2),
+    id(21),
+  ]);
+  await auth(2);
+  const job = await rpc("start", { course_id: id(21), semester: "2026/2" });
+  const teaching = job.context.teaching_pdi;
+  assert.equal(teaching.eligible_count, 3);
+  assert.deepEqual(
+    teaching.activities.map((r) => r.id),
+    [id(90), id(96), id(97)],
+  );
+  assert.deepEqual(
+    teaching.goals.map((r) => r.id),
+    [id(73)],
+  );
+  assert.equal(teaching.activities[0].pdi_goal_id, id(73));
+  assert.deepEqual(teaching.activities[0].evidence, {
+    id: id(81),
+    status: "approved",
+  });
+  assert.equal(teaching.activities[1].pdi_goal_id, null);
+  assert.equal(teaching.activities[1].evidence, null);
+  assert.equal(teaching.activities[2].evidence, null);
+  assert.doesNotMatch(
+    JSON.stringify(teaching),
+    /PRIVADO_|measurements|Outra IES|Outro resultado/i,
+  );
+  await db.exec("RESET ROLE");
+  const stored = await db.query(
+    "SELECT context FROM vertice_sapiens_planning_analyses WHERE id=$1",
+    [job.id],
+  );
+  assert.deepEqual(stored.rows[0].context, job.context);
+  await db.exec("UPDATE vertice_sapiens_planning_analyses SET status='failed'");
+  await auth(2);
+  assert.deepEqual(
+    (await rpc("list", { course_id: id(21) })).map((p) => p.id).sort(),
+    [job.id, noTeachingMembership.id].sort(),
+  );
+  await db.exec("RESET ROLE");
+  await db.exec("DELETE FROM public.synthetic_teaching_scope");
+  await auth(2);
+  assert.deepEqual(
+    (await rpc("list", { course_id: id(21) })).map((p) => p.id),
+    [noTeachingMembership.id],
+  );
+  await auth(1);
+  const institutional = await rpc("start", { semester: "2026/2" });
+  assert.deepEqual(
+    institutional.context.teaching_pdi.activities.map((r) => r.id),
+    [id(92), id(90), id(96), id(97)],
+  );
+  assert.deepEqual(
+    institutional.context.teaching_pdi.goals.map((r) => r.id),
+    [id(73)],
+  );
+});

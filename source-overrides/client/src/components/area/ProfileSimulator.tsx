@@ -4,7 +4,7 @@ import {
   type Role, type Tab,
 } from "@/lib/area";
 
-const TAB_LABELS: Record<Tab, string> = {discursiva:"Discursiva 360°","trilhas-enade":"Trilhas ENADE","construcao-curricular":"Construção Curricular",mercado:"Inteligência de Mercado",conecta:"Conecta 360°","escola-individual":"Acompanhamento individual","escola-documentos":"Documentos escolares","escola-bi":"BI Escolar","escola-permanencia":"Permanência Escolar","escola-financeiro":"Financeiro Escolar","escola-dados":"Dados Escolares","escola-projetos":"Projetos Escolares","escola-estagio":"Prática Escolar","escola-captacao":"Captação Escolar","gestao-escolar":"Gestão Escolar","planejamento-estrategico":"Planejamento Estratégico","planejamento-semestral":"Planejamento Semestral",
+const TAB_LABELS: Record<Tab, string> = {"atividades-ensino":"Atividades de Ensino","programas-pdi":"Programas e metas do PDI",discursiva:"Discursiva 360°","trilhas-enade":"Trilhas ENADE","construcao-curricular":"Construção Curricular",mercado:"Inteligência de Mercado",conecta:"Conecta 360°","escola-individual":"Acompanhamento individual","escola-documentos":"Documentos escolares","escola-bi":"BI Escolar","escola-permanencia":"Permanência Escolar","escola-financeiro":"Financeiro Escolar","escola-dados":"Dados Escolares","escola-projetos":"Projetos Escolares","escola-estagio":"Prática Escolar","escola-captacao":"Captação Escolar","gestao-escolar":"Gestão Escolar","planejamento-estrategico":"Planejamento Estratégico","planejamento-semestral":"Planejamento Semestral",
   tcc: "TCC e Pesquisa 360°",
   "atividades-complementares": "Atividades Complementares 360°",
   estagio: "Estágio Obrigatório 360°",
