@@ -48,6 +48,19 @@ vi.mock('@/lib/supabase', () => ({
       db.rpc.push({ name, args });
       if (name === 'vertice_teaching_course_options') return { data: [{ id: 'curso-a', name: 'Pós-graduação sintética' }], error: null };
       if (name === 'vertice_teaching_fo_metrics') return { data: [], error: null };
+      if (name === 'vertice_teaching_roster') {
+        const historical = args.p_activity === 'activity-a'
+          ? [{ student_id: 'student-existing', student_name: 'Aluna já vinculada', enrollment_code: 'A-001', participant_role: 'participante', minutes: 90 }]
+          : [];
+        return { data: args.p_query ? [...historical, { student_id: 'student-other', student_name: 'Aluna sintética', enrollment_code: 'A-002', participant_role: null, minutes: null }] : historical, error: null };
+      }
+      if (name === 'vertice_teaching_save_activity') {
+        const fields = args.p_fields as Row;
+        const row = { ...fields, id: args.p_activity || 'added', institution_id: args.p_institution, course_id: args.p_course, status: 'rascunho', updated_at: 'revision-b' };
+        const rows = db.data.vertice_teaching_activities;
+        db.data.vertice_teaching_activities = [...rows.filter(existing => existing.id !== row.id), row];
+        return { data: row, error: null };
+      }
       if (name === 'vertice_teaching_evidence_options') return { data: [{ id: 'doc-a', title: 'Relatório didático sintético' }], error: null };
       return { data: null, error: { message: 'Operação não prevista no teste' } };
     }),
@@ -123,16 +136,14 @@ describe('Atividades de Ensino e PDI', () => {
     await fill('ODS (opcional)', '4');
     await submit();
     expect(container.querySelector('[role="alert"]')?.textContent).toContain('Justifique a relação com o ODS');
-    expect(db.calls.some(c => c.action === 'insert')).toBe(false);
+    expect(db.rpc.some(c => c.name === 'vertice_teaching_save_activity')).toBe(false);
     await fill('Justificativa do vínculo com o ODS', 'Prática voltada à qualidade do ensino');
     await submit();
-    const write = db.calls.filter(c => c.action !== 'read');
+    const write = db.rpc.filter(c => c.name === 'vertice_teaching_save_activity');
     expect(write).toHaveLength(1);
-    expect(write[0]).toMatchObject({
-      table: 'vertice_teaching_activities', action: 'insert', payload: {
-        institution_id: 'ies-a', course_id: 'curso-a', goal_id: 'goal-a', evidence_doc_id: 'doc-a', ods_goal: 4,
-        exam_module: 'enade',
-      },
+    expect(write[0].args).toMatchObject({
+      p_institution: 'ies-a', p_course: 'curso-a', p_activity: null, p_students: null,
+      p_fields: { goal_id: 'goal-a', evidence_doc_id: 'doc-a', ods_goal: 4, exam_module: 'enade' },
     });
     expect(container.textContent).toContain('Nenhuma hora foi creditada');
   });
@@ -144,10 +155,37 @@ describe('Atividades de Ensino e PDI', () => {
     await click('Editar rascunho');
     await fill('Título da atividade', 'Oficina revisada');
     await submit();
-    const write = db.calls.find(c => c.action === 'update');
-    expect(write?.where).toContainEqual(['course_id', 'curso-a']);
-    expect(write?.payload).not.toHaveProperty('course_id');
-    expect(write?.payload?.title).toBe('Oficina revisada');
+    const write = db.rpc.find(c => c.name === 'vertice_teaching_save_activity')?.args;
+    expect(write).toMatchObject({
+      p_course: 'curso-a', p_activity: 'activity-a', p_students: null,
+      p_fields: { title: 'Oficina revisada', updated_at: 'revision-a', total_minutes: null },
+    });
+    expect(write?.p_fields).not.toHaveProperty('course_id');
+  });
+
+  it('vincula estudante da base, informa papel e carga individuais e grava junto com o rascunho', async () => {
+    await render();
+    await click('Editar rascunho');
+    expect(container.textContent).toContain('Aluna já vinculada');
+    await fill('Nome ou matrícula', 'A-002');
+    await click('Buscar estudantes');
+    expect(db.rpc).toContainEqual({
+      name: 'vertice_teaching_roster', args: { p_institution: 'ies-a', p_course: 'curso-a', p_activity: 'activity-a', p_query: 'A-002' },
+    });
+    await click('Adicionar Aluna sintética');
+    await submit();
+    expect(container.querySelector('[role="alert"]')?.textContent).toContain('carga individual');
+    expect(db.rpc.some(call => call.name === 'vertice_teaching_save_activity')).toBe(false);
+    await fill('Papel de Aluna sintética', 'organizador');
+    await fill('Minutos de Aluna sintética', '150');
+    await fill('Carga total da atividade (minutos)', '180');
+    await submit();
+    expect(db.rpc.find(call => call.name === 'vertice_teaching_save_activity')?.args.p_fields).toMatchObject({ total_minutes: 180 });
+    expect(container.textContent).toContain('Carga total da atividade: 180 min');
+    expect(db.rpc.find(call => call.name === 'vertice_teaching_save_activity')?.args.p_students).toEqual([
+      { student_id: 'student-existing', participant_role: 'participante', minutes: 90 },
+      { student_id: 'student-other', participant_role: 'organizador', minutes: 150 },
+    ]);
   });
 
   it('só valida após confirmação e não grava medição nem atividade complementar', async () => {

@@ -40,3 +40,36 @@
 .teaching-pdi input[type="checkbox"] { width: auto; }
 .teaching-pdi .teaching-pdi-record details { margin-top: .65rem; }
 .teaching-pdi .teaching-pdi-record details form { display: grid; gap: .75rem; margin: .65rem 0; }
+.teaching-pdi .teaching-form-step {
+  margin: .85rem 0;
+  padding: clamp(.8rem, 2.5vw, 1.2rem);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+}
+.teaching-pdi .teaching-form-step > h4 { margin: 0; color: var(--ink); }
+.teaching-pdi .teaching-form-step > h4 span {
+  display: inline-grid;
+  place-items: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 50%;
+  margin-right: .25rem;
+  background: var(--accent-light);
+  color: var(--accent);
+}
+.teaching-pdi .teaching-form-step > p, .teaching-pdi .teaching-roster > p { color: var(--ink-soft); }
+.teaching-pdi .teaching-roster-search, .teaching-pdi .teaching-roster-entry {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .6rem;
+}
+.teaching-pdi .teaching-roster-search label, .teaching-pdi .teaching-roster-entry > span:first-child {
+  flex: 1 1 min(100%, 14rem);
+}
+.teaching-pdi .teaching-roster-search label { margin: 0; }
+.teaching-pdi .teaching-roster-search button { align-self: end; }
+@media (max-width: 400px) {
+  .teaching-pdi .teaching-roster-search button { width: 100%; }
+}
