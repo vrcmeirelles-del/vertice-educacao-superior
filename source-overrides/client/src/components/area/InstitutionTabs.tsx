@@ -46,14 +46,14 @@ export const MACRO_TABS: MacroTabDef[] = [
     label: 'Módulos Acadêmicos',
     icon: '▥',
     description: 'CPA, egressos, TCC, extensão e estágio',
-    tabs: ['discursiva','escola-individual','escola-documentos','escola-projetos','escola-estagio','inclusao', 'acompanhamento-especial', 'construcao-curricular', 'extensao', 'conecta', 'egressos', 'cpa-autoavaliacao', 'tcc', 'atividades-complementares', 'estagio'],
+    tabs: ['discursiva','escola-individual','escola-documentos','escola-projetos','escola-estagio','inclusao', 'acompanhamento-especial', 'construcao-curricular', 'extensao', 'conecta', 'egressos', 'cpa-autoavaliacao', 'tcc', 'atividades-ensino','atividades-complementares', 'estagio'],
   },
   {
     key: 'gestores',
     label: 'Gestão e Acessos',
     icon: '♙',
     description: 'Equipe, metas, planos e governança',
-    tabs: ['mercado','gestao-escolar','escola-financeiro','escola-captacao','planejamento-estrategico', 'planejamento-semestral', 'equipe', 'metas', 'plano', 'diagnostico', 'governanca', 'aquisicoes'],
+    tabs: ['mercado','gestao-escolar','escola-financeiro','escola-captacao','planejamento-estrategico', 'planejamento-semestral', 'equipe', 'metas', 'programas-pdi', 'plano', 'diagnostico', 'governanca', 'aquisicoes'],
   },
   {
     key: 'integracoes',

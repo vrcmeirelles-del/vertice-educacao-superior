@@ -264,6 +264,77 @@ describe("Sapiens interpretation and traceability", () => {
     );
     expect(f.saved.input_hash).toHaveLength(64);
   });
+  it("uses the persisted teaching/PDI/evidence context in the provider and source catalog without treating it as a series", async () => {
+    const f = adminFixture();
+    const teaching = {
+      semester: "2026/2",
+      eligible_count: 1,
+      activities: [
+        {
+          id: "a1",
+          course_id: "c",
+          title: "Oficina de sustentabilidade",
+          category: "pratica",
+          activity_date: "2026-09-25",
+          status: "validada",
+          pdi_goal_id: "pg1",
+          evidence: { id: "memo", status: "approved" },
+        },
+      ],
+      goals: [
+        {
+          id: "pg1",
+          indicator: "Resíduo por semana",
+          title: "Reduzir resíduos",
+          program_id: "p1",
+        },
+      ],
+      notice: "Contribuição, não medição.",
+    };
+    const scoped = { ...context, scope: "superior", teaching_pdi: teaching };
+    const refs = [
+      "/teaching_pdi/activities/0",
+      "/teaching_pdi/activities/0/evidence",
+      "/teaching_pdi/goals/0",
+    ];
+    const generated = {
+      ...result,
+      findings: [{ ...result.findings[0], type: "fato", source_refs: refs }],
+    };
+    const provider = vi.fn(async (system: string, input: string) => {
+      const parsed = JSON.parse(input);
+      expect(system).toContain("não uma medição");
+      expect(parsed.snapshot.teaching_pdi).toEqual(teaching);
+      expect(
+        parsed.source_catalog
+          .filter((s: any) => refs.includes(s.ref))
+          .map((s: any) => s.record_id),
+      ).toEqual(["a1", "memo", "pg1"]);
+      return { content: JSON.stringify(generated), model: "synthetic-test" };
+    });
+    const response = await analyzePlanning(
+      { rpc: async () => ({ data: { id: "j", context: scoped } }) },
+      f.admin,
+      "i",
+      {},
+      provider,
+      async () => null,
+    );
+    expect(response.status).toBe(200);
+    expect(provider).toHaveBeenCalledTimes(1);
+    expect(
+      f.saved.result.sources
+        .filter((s: any) => refs.includes(s.ref))
+        .every((s: any) => s.series_key === null),
+    ).toBe(true);
+    expect(f.saved.result.findings[0].source_refs).toEqual(refs);
+    expect(
+      buildPlanningSources({ ...scoped, scope: "escolas" }).some((s) =>
+        s.ref.startsWith("/teaching_pdi"),
+      ),
+    ).toBe(false);
+  });
+
   it("records missing independent review and uses fallback when primary throws", async () => {
     const f = adminFixture();
     const oai = vi.fn(async () => {

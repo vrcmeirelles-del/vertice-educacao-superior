@@ -290,6 +290,76 @@ export function buildPlanningSources(context: Row): Source[] {
     ] as const)
       add(`${p}/${key}`, table, c[key], key, null, c[key] ?? null);
   }
+  // Current, authorized operational metadata: never a measurement series.
+  const teaching = context.teaching_pdi;
+  if (
+    teaching &&
+    typeof teaching === "object" &&
+    context.scope === "superior"
+  ) {
+    add(
+      "/teaching_pdi",
+      "snapshot",
+      null,
+      "teaching_pdi_scope",
+      teaching.semester ?? null,
+      {
+        semester: teaching.semester ?? null,
+        eligible_count: teaching.eligible_count ?? null,
+        available_records: rows(teaching.activities).length,
+        notice: teaching.notice ?? null,
+      },
+    );
+    for (const [i, activity] of rows(teaching.activities).entries()) {
+      add(
+        `/teaching_pdi/activities/${i}`,
+        "vertice_teaching_activities",
+        activity,
+        "validated_activity_metadata",
+        activity.activity_date ?? null,
+        pick(activity, [
+          "id",
+          "course_id",
+          "course_name",
+          "title",
+          "category",
+          "activity_date",
+          "status",
+          "ods_goal",
+          "exam_module",
+          "updated_at",
+          "pdi_goal_id",
+        ]),
+      );
+      if (activity.evidence && typeof activity.evidence.id === "string")
+        add(
+          `/teaching_pdi/activities/${i}/evidence`,
+          "vertice_documents",
+          activity.evidence,
+          "linked_document_status",
+          null,
+          pick(activity.evidence, ["id", "status"]),
+        );
+    }
+    for (const [i, goal] of rows(teaching.goals).entries())
+      add(
+        `/teaching_pdi/goals/${i}`,
+        "vertice_goals",
+        goal,
+        "pdi_goal_metadata",
+        null,
+        pick(goal, [
+          "id",
+          "title",
+          "indicator",
+          "due_date",
+          "status",
+          "expected_result",
+          "program_id",
+          "program_title",
+        ]),
+      );
+  }
   if (!Array.isArray(context.courses))
     add(
       "/school_context",

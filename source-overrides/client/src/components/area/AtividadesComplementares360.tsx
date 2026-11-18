@@ -172,11 +172,11 @@ export default function AtividadesComplementares360({ institutionId, courses, ro
               <thead><tr><th>Título</th><th>Emissor</th><th>Carga Doc.</th><th>Status</th><th>Data</th><th>Ações</th></tr></thead>
               <tbody>{submissions.slice(0, 100).map(s => (
                 <tr key={s.id}>
-                  <td>{s.title}</td><td>{s.issuer || '—'}</td>
+                  <td>{s.title}{s.teaching_activity_id && <small className="alumni-tag">Atividade de Ensino · {s.teaching_participant_role === 'organizador' ? 'organização' : 'participação'}</small>}</td><td>{s.issuer || '—'}</td>
                   <td>{s.documentary_minutes ? minutesToHours(s.documentary_minutes) : '—'}</td>
                   <td><span className="alumni-tag">{AC_STATUS_LABELS[s.status] || s.status}</span></td>
                   <td>{new Date(s.created_at).toLocaleDateString('pt-BR')}</td>
-                  <td>{['submitted','under_review','suggestion_ready'].includes(s.status) && (
+                  <td>{s.teaching_activity_id ? <small>Em fila; decisão e crédito ainda não disponíveis para esta origem.</small> : ['submitted','under_review','suggestion_ready'].includes(s.status) && (
                     <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                       {s.status === 'submitted' && (
                         <button style={{ fontSize: '.6875rem', padding: '2px 8px', borderRadius: 4, border: '1px solid #7c3aed', background: '#f5f3ff', color: '#7c3aed', cursor: 'pointer' }}

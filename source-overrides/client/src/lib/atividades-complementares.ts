@@ -3,7 +3,7 @@ import { supabase } from './supabase';
 
 export interface AcRule { id: string; institution_id: string; course_id: string; curriculum_version: string; rule_version: string; total_required_minutes: number; is_active: boolean; effective_from: string; regulation_file_path?: string | null; }
 export interface AcCategory { id: string; rule_id: string; code: string; label: string; description: string|null; max_per_item_minutes: number|null; max_category_minutes: number|null; conversion_numerator: number; conversion_denominator: number; sort_order: number; }
-export interface AcSubmission { id: string; institution_id: string; student_id: string; rule_id: string; category_id: string|null; title: string; issuer: string|null; documentary_minutes: number|null; status: string; created_at: string; updated_at: string; }
+export interface AcSubmission { id: string; institution_id: string; student_id: string; rule_id: string; category_id: string|null; title: string; issuer: string|null; documentary_minutes: number|null; status: string; created_at: string; updated_at: string; teaching_activity_id?: string | null; teaching_participant_role?: 'participante' | 'organizador' | null; }
 export interface AcExtraction { id: string; submission_id: string; participant_name: string|null; issuer: string|null; event_title: string|null; documentary_minutes: number|null; extraction_quality: string|null; suggested_category_id: string|null; warnings: string[]|null; }
 export interface AcDecision { id: string; submission_id: string; decision: string; awarded_minutes: number|null; reviewer_name: string; reason: string|null; decided_at: string; }
 export interface AcStudentBalance { institution_id: string; student_id: string; full_name: string; enrollment_code: string; course_id: string; rule_id: string; total_required_minutes: number; credited_minutes: number; remaining_minutes: number; submissions_total: number; submissions_pending: number; }
@@ -63,6 +63,7 @@ export function minutesToHours(m: number): string {
 
 /** Deferir submissão com cálculo determinístico e gravação no livro razão */
 export async function approveAcSubmission(submission: AcSubmission, reviewerName: string): Promise<{ awarded: number; capped: boolean; limits: string[] }> {
+  if (submission.teaching_activity_id) throw new Error('Decisão e crédito ainda não disponíveis para Atividades de Ensino.');
   // 1) Buscar categoria
   if (!submission.category_id) throw new Error('Submissão sem categoria vinculada.');
   const { data: cat } = await supabase.from('vertice_ac_categories').select('*').eq('id', submission.category_id).single();

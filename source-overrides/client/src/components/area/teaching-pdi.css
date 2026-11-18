@@ -1,0 +1,42 @@
+.teaching-pdi .teaching-pdi-intro {
+  color: var(--ink-soft);
+  max-width: 74ch;
+}
+.teaching-pdi .teaching-pdi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  column-gap: 1rem;
+}
+.teaching-pdi textarea { min-height: 6rem; resize: vertical; }
+.teaching-pdi legend { font-weight: 700; margin-bottom: .5rem; }
+.teaching-pdi .teaching-pdi-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .65rem;
+  margin-top: 1rem;
+}
+.teaching-pdi .teaching-pdi-list {
+  display: grid;
+  gap: .8rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.teaching-pdi .teaching-pdi-record {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+  overflow-wrap: anywhere;
+}
+.teaching-pdi .teaching-pdi-record h4 { color: var(--ink); font-size: 1rem; margin: 0 0 .35rem; }
+.teaching-pdi .teaching-pdi-record p { margin: .35rem 0; }
+.teaching-pdi .teaching-pdi-record ul { margin-top: .5rem; }
+.teaching-pdi .teaching-pdi-meta { color: var(--ink-soft); font-size: .86rem; }
+.teaching-pdi .teaching-pdi-description { white-space: pre-wrap; }
+.teaching-pdi .planning-field > small { color: var(--ink-soft); }
+.teaching-pdi summary { color: var(--accent); cursor: pointer; font-weight: 650; }
+.teaching-pdi input[type="checkbox"] { width: auto; }
+.teaching-pdi .teaching-pdi-record details { margin-top: .65rem; }
+.teaching-pdi .teaching-pdi-record details form { display: grid; gap: .75rem; margin: .65rem 0; }
