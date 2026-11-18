@@ -5,6 +5,7 @@ import './planning/planning.css';
 import './teaching-pdi.css';
 import TeachingFatoOrdem from './TeachingFatoOrdem';
 import TeachingAcHandoff from './TeachingAcHandoff';
+import TeachingActivityRoster, { TeachingActivityRosterSummary, type RosterPayload } from './TeachingActivityRoster';
 
 type Course = { id: string; name: string; degree?: string | null };
 type Props = {
@@ -206,6 +207,8 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate }: Props) 
   const [programDraft, setProgramDraft] = useState(emptyProgram);
   const [goalDraft, setGoalDraft] = useState(emptyGoal);
   const [activityDraft, setActivityDraft] = useState(newActivity);
+  const [draftRevision, setDraftRevision] = useState(0);
+  const [studentsDraft, setStudentsDraft] = useState<{ rows: RosterPayload | null; error: string }>({ rows: null, error: '' });
   const [loading, setLoading] = useState(true);
   const [evidenceReady, setEvidenceReady] = useState(false);
   const [evidenceError, setEvidenceError] = useState('');
@@ -300,6 +303,11 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate }: Props) 
     return () => { current = false; };
   }, [institutionId, courseId, mode, revision, evidenceQuery]);
 
+  function resetActivityDraft() {
+    setActivityDraft(newActivity());
+    setDraftRevision(value => value + 1);
+    setStudentsDraft({ rows: null, error: '' });
+  }
   function chooseCourse(value: string) {
     if (busyGuard.current) return;
     evidenceScope.current = value;
@@ -313,7 +321,7 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate }: Props) 
     setEvidenceReady(false);
     setActionError('');
     setNotice('');
-    setActivityDraft(newActivity());
+    resetActivityDraft();
     setConfirmActivity(null);
   }
 
@@ -387,19 +395,33 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate }: Props) 
     if (draft.evidence_doc_id && !knownEvidence.some(d => d.id === draft.evidence_doc_id)) {
       setActionError('Selecione uma evidência disponível na Mesa Digital deste curso ou remova o vínculo.'); return;
     }
+    if (studentsDraft.error) { setActionError(studentsDraft.error); return; }
     void run(
-      () => writeRow('activities', institutionId, {
-        ...(draft.id ? {} : { course_id: courseId }), title: draft.title.trim(), category: draft.category, description: draft.description.trim(),
-        activity_date: draft.activity_date, organizer_role: draft.organizer_role, exam_module: draft.category === 'avaliacao' ? draft.exam_module || null : null, goal_id: draft.goal_id || null,
-        evidence_doc_id: draft.evidence_doc_id || null, ods_goal: draft.ods_goal ? Number(draft.ods_goal) : null,
-        ods_rationale: draft.ods_goal ? draft.ods_rationale.trim() : null,
-      }, draft.id ? { id: draft.id, courseId, updatedAt: draft.updated_at, fromStatus: 'rascunho' } : undefined),
+      async () => {
+        const { data, error } = await supabase.rpc('vertice_teaching_save_activity', {
+          p_institution: institutionId, p_course: courseId, p_activity: draft.id || null,
+          p_fields: {
+            title: draft.title.trim(), category: draft.category, description: draft.description.trim(),
+            activity_date: draft.activity_date, organizer_role: draft.organizer_role,
+            exam_module: draft.category === 'avaliacao' ? draft.exam_module || null : null, goal_id: draft.goal_id || null,
+            evidence_doc_id: draft.evidence_doc_id || null, ods_goal: draft.ods_goal ? Number(draft.ods_goal) : null,
+            ods_rationale: draft.ods_goal ? draft.ods_rationale.trim() : null,
+            ...(draft.id ? { updated_at: draft.updated_at } : {}),
+          },
+          p_students: studentsDraft.rows,
+        });
+        const record = Array.isArray(data) ? data[0] : data;
+        if (error) throw error;
+        if (!record?.id) throw new Error('Não foi possível confirmar o rascunho salvo.');
+      },
       'Atividade salva como rascunho. Nenhuma hora foi creditada.',
-      () => setActivityDraft(newActivity()),
+      resetActivityDraft,
     );
   }
 
   function editActivity(row: Activity) {
+    setDraftRevision(value => value + 1);
+    setStudentsDraft({ rows: null, error: '' });
     activityForm.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
     setActivityDraft({
       ...row, exam_module: row.exam_module ?? '', goal_id: row.goal_id ?? '', evidence_doc_id: row.evidence_doc_id ?? '',
@@ -418,7 +440,7 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate }: Props) 
     void run(
       () => writeRow('activities', institutionId, { status: 'validada' }, { id: row.id, courseId, updatedAt: row.updated_at, fromStatus: 'rascunho' }),
       'Atividade validada. Não houve crédito de horas nem medição automática da meta.',
-      () => { setConfirmActivity(null); if (activityDraft.id === row.id) setActivityDraft(newActivity()); },
+      () => { setConfirmActivity(null); if (activityDraft.id === row.id) resetActivityDraft(); },
     );
   }
 
@@ -528,6 +550,9 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate }: Props) 
       <p className="teaching-pdi-meta">Este registro não é Extensão. Horas complementares elegíveis devem ser avaliadas conforme o regulamento do curso; não são creditadas por este cadastro.</p>
       {canEditActivity && <form ref={activityForm} className="card" onSubmit={e => { e.preventDefault(); saveActivity(); }}>
         <fieldset disabled={busy}><legend>{activityDraft.id ? 'Editar rascunho' : 'Nova atividade de ensino'}</legend>
+          <section className="teaching-form-step" aria-label="Identificação e planejamento">
+            <h4><span aria-hidden="true">1</span> Identificação e planejamento</h4>
+            <p>Defina o tipo, quem organiza e a data. Use a descrição para registrar propósito, metodologia e entregas, sem dados pessoais.</p>
           <Field label="Título da atividade"><input required maxLength={250} value={activityDraft.title} onChange={e => setActivityDraft({ ...activityDraft, title: e.target.value })} /></Field>
           <div className="teaching-pdi-grid">
             <Field label="Tipo de atividade"><select value={activityDraft.category} onChange={e => setActivityDraft({ ...activityDraft, category: e.target.value, exam_module: e.target.value === 'avaliacao' ? activityDraft.exam_module : '' })}>{TYPES.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></Field>
@@ -542,6 +567,15 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate }: Props) 
           <Field label="Descrição do que foi feito" help={activityDraft.category === 'avaliacao' ? 'Para simulados ou questões do Fato & Ordem, identifique o exame ou carreira e descreva a atividade. Não inclua dados pessoais de estudantes.' : 'Descreva objetivos, formato e entregas. Não inclua dados pessoais de estudantes.'}>
             <textarea required maxLength={4000} value={activityDraft.description} onChange={e => setActivityDraft({ ...activityDraft, description: e.target.value })} />
           </Field>
+          </section>
+          <section className="teaching-form-step" aria-label="Alunos, papéis e carga por pessoa">
+            <h4><span aria-hidden="true">2</span> Alunos, papéis e carga por pessoa</h4>
+            <TeachingActivityRoster key={`${courseId}:${activityDraft.id || 'novo'}:${draftRevision}`}
+              institutionId={institutionId} courseId={courseId} activityId={activityDraft.id || null}
+              onChange={(rows, error) => setStudentsDraft({ rows, error })} />
+          </section>
+          <section className="teaching-form-step" aria-label="Vínculos e comprovação">
+            <h4><span aria-hidden="true">3</span> Vínculos e comprovação</h4>
           <div className="teaching-pdi-grid">
             <Field label="Meta do PDI (opcional)"><select value={activityDraft.goal_id} onChange={e => setActivityDraft({ ...activityDraft, goal_id: e.target.value })}>
               <option value="">Sem vínculo com meta</option>
@@ -564,9 +598,10 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate }: Props) 
           </div>
           {evidenceError && <p role="status" className="teaching-pdi-meta">Não foi possível listar as evidências do curso. {evidenceError} <button type="button" className="btn-secondary" onClick={() => setRevision(v => v + 1)}>Recarregar evidências</button></p>}
           {activityDraft.ods_goal && <Field label="Justificativa do vínculo com o ODS"><textarea required maxLength={1500} value={activityDraft.ods_rationale} onChange={e => setActivityDraft({ ...activityDraft, ods_rationale: e.target.value })} /></Field>}
+          </section>
           <div className="teaching-pdi-actions">
             <button type="submit" className="planning-primary">Salvar rascunho</button>
-            {activityDraft.id && <button type="button" className="btn-secondary" onClick={() => setActivityDraft(newActivity())}>Cancelar edição da atividade</button>}
+            {activityDraft.id && <button type="button" className="btn-secondary" onClick={resetActivityDraft}>Cancelar edição da atividade</button>}
           </div>
         </fieldset>
       </form>}
@@ -580,6 +615,7 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate }: Props) 
         {row.goal_id && <p><strong>Meta do PDI:</strong> {goals.find(g => g.id === row.goal_id)?.title ?? 'Meta vinculada'}</p>}
         {row.evidence_doc_id && <ContributionEvidence key={row.evidence_doc_id} institutionId={institutionId} row={row} />}
         {row.ods_goal && <p><strong>ODS {row.ods_goal}: {ODS[row.ods_goal - 1]}</strong> · {row.ods_rationale}</p>}
+        {canEditActivity && <TeachingActivityRosterSummary key={`${row.id}:${row.updated_at}`} institutionId={institutionId} courseId={row.course_id} activityId={row.id} />}
         {row.status === 'validada' && canValidate && <TeachingAcHandoff
           institutionId={institutionId} courseId={row.course_id} activityId={row.id}
           enabled={!!row.evidence_doc_id}

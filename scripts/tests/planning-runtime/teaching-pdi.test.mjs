@@ -4,9 +4,12 @@ import {readFileSync} from 'node:fs';
 import {PGlite} from '@electric-sql/pglite';
 
 const migration = readFileSync(new URL('../../../supabase/migrations/20261118131715_teaching_activities_pdi.sql', import.meta.url),'utf8');
+const rosterMigration = readFileSync(new URL('../../../supabase/migrations/20261118202000_teaching_activity_roster.sql', import.meta.url),'utf8');
 const id = n => '91000000-0000-4000-8000-'+String(n).padStart(12,'0');
 const [a,b,school,c1,c2,c3,cSchool,reitor,coord,staff,nde,outsider,program,goal,otherProgram,otherGoal,doc1,doc2,docDraft] =
  Array.from({length:19},(_,i)=>id(i+1));
+
+const [student1,student2,studentOther,studentUnverified]=[20,21,22,23].map(id);
 
 const role = async (db, uid, aal='aal2') => db.exec(`reset role; select set_config('s.uid','${uid}',false),set_config('s.aal','${aal}',false); set role authenticated;`);
 
@@ -22,6 +25,7 @@ test('atividade: instituição, curso, programa/meta nativa, evidência e valida
  grant usage on schema auth,vertice_private to authenticated;
  create table public.vertice_institutions(id uuid primary key,tier text);
  create table public.vertice_courses(id uuid primary key,institution_id uuid references public.vertice_institutions(id),name text,degree text);
+ create table public.vertice_student_registry(id uuid primary key,institution_id uuid,course_id uuid,full_name text,enrollment_code text,academic_status text,verified boolean);
  create table public.vertice_memberships(user_id uuid,institution_id uuid,role text);
  create table public.vertice_learning_staff_scope(user_id uuid,institution_id uuid,course_id uuid,active bool);
  create function vertice_private.member_role(inst uuid) returns text language sql stable security definer set search_path='' as $$
@@ -51,6 +55,12 @@ test('atividade: instituição, curso, programa/meta nativa, evidência e valida
  insert into public.vertice_documents values ('${doc1}','${a}','${c1}','Lista sintética','active',null),('${doc2}','${a}','${c2}','Outro curso','active',null),('${docDraft}','${a}','${c1}','Não publicado','draft',null);
  `);
   await db.exec(migration);
+  await db.exec(rosterMigration);
+  await db.exec(`insert into public.vertice_student_registry values
+    ('${student1}','${a}','${c1}','Pessoa Demo Um','DEMO-01','active',true),
+    ('${student2}','${a}','${c1}','Pessoa Demo Dois','DEMO-02','active',true),
+    ('${studentOther}','${a}','${c2}','Pessoa Demo Outro Curso','DEMO-03','active',true),
+    ('${studentUnverified}','${a}','${c1}','Pessoa Demo Não Validada','DEMO-04','active',false);`);
   await db.exec(`insert into public.vertice_pdi_programs(id,institution_id,title) values ('${program}','${a}','Sustentabilidade'),('${otherProgram}','${b}','Programa B');
     insert into public.vertice_goals(id,institution_id,title,indicator,target,owner_name,due_date,pdi_program_id,pdi_expected_result)
     values ('${goal}','${a}','Reduzir resíduos','kg',30,'Coordenação','2027-06-30','${program}','Redução confirmada por pesagem'),
@@ -91,6 +101,51 @@ test('atividade: instituição, curso, programa/meta nativa, evidência e valida
    await role(db,coord,'aal1');
    assert.equal((await db.query('select id from vertice_teaching_activities')).rows.length,0);
    assert.equal((await db.query(`select id from vertice_teaching_course_options('${a}')`)).rows.length,0);
+  });
+  await t.test('roster limita dados à matrícula ativa verificada e equipe autorizada, com carga independente e inclusão atômica',async()=>{
+   const base={title:'Registro sintético',category:'evento',description:'Sem alunos reais',activity_date:'2026-11-18',organizer_role:'discente',goal_id:goal,evidence_doc_id:doc1,ods_goal:12,ods_rationale:'Justificativa sintética'};
+   const roster=(activityId=null,query='')=>db.query('select * from vertice_teaching_roster($1,$2,$3,$4)',[a,c1,activityId,query]).then(r=>r.rows);
+   const save=(activityId,fields,students)=>db.query(
+     'select id,status,updated_at::text as version from vertice_teaching_save_activity($1,$2,$3,$4,$5)',
+     [a,c1,activityId,JSON.stringify(fields),students === null ? null : JSON.stringify(students)],
+   ).then(r=>r.rows[0]);
+   const one={student_id:student1,participant_role:'organizador',minutes:150};
+   const two={student_id:student2,participant_role:'participante',minutes:45};
+   await role(db,coord);
+   assert.deepEqual((await roster(null,'demo')).map(r=>r.student_id).sort(),[student1,student2].sort());
+   assert.deepEqual(await roster(null,'d'),[]);
+   await assert.rejects(save(null,base,[{...one,student_id:studentOther}]),{code:'22023'});
+   assert.equal((await db.query("select id from vertice_teaching_activities where title='Registro sintético'")).rows.length,0);
+   await assert.rejects(save(null,base,[one,one]),{code:'22023'});
+   await assert.rejects(save(null,base,[{...one,minutes:-1}]),{code:'22023'});
+   await assert.rejects(save(null,{...base,status:'validada'},[one]),{code:'22023'});
+   const original=await save(null,base,[one,two]);
+   assert.equal(original.status,'rascunho');
+   assert.deepEqual((await roster(original.id)).map(({student_id,participant_role,minutes})=>({student_id,participant_role,minutes})).sort((x,y)=>x.student_id.localeCompare(y.student_id)),[one,two]);
+   await role(db,staff);
+   await assert.rejects(save(original.id,{...base,updated_at:original.version},[]),{code:'40001'});
+   await role(db,nde);
+   await assert.rejects(roster(original.id),{code:'42501'});
+   await role(db,coord,'aal1');
+   await assert.rejects(roster(original.id),{code:'42501'});
+   await role(db,outsider);
+   await assert.rejects(roster(original.id),{code:'42501'});
+   await role(db,coord);
+   const preserved=await save(original.id,{...base,updated_at:original.version},null);
+   assert.equal((await roster(original.id)).length,2);
+   await assert.rejects(save(original.id,{...base,updated_at:original.version},[]),{code:'40001'});
+   const edited=await save(original.id,{...base,updated_at:preserved.version},[{...one,minutes:170}]);
+   assert.deepEqual((await roster(original.id)).map(r=>[r.student_id,r.minutes]),[[student1,170]]);
+   await db.exec(`reset role; update public.vertice_student_registry set course_id='${c2}' where id='${student1}'`);
+   assert.ok((await db.query(`select removed_at from vertice_private.teaching_activity_students where student_id='${student2}'`)).rows[0].removed_at);
+   await role(db,coord);
+   assert.equal((await roster(original.id))[0].enrollment_code,null);
+   await assert.rejects(save(original.id,{...base,updated_at:edited.version},[one]),{code:'22023'});
+   await save(original.id,{...base,updated_at:edited.version},[{...one,minutes:170}]);
+   await db.exec(`update vertice_teaching_activities set status='validada' where id='${original.id}'`);
+   assert.equal((await roster(original.id,'demo')).length,1);
+   const latest=(await db.query(`select updated_at::text as v from vertice_teaching_activities where id='${original.id}'`)).rows[0].v;
+   await assert.rejects(save(original.id,{...base,updated_at:latest},[]),{code:'40001'});
   });
   await t.test('coordenação valida uma vez; atividade não gera medição nem cruza IES; exclusão de arquivo preserva histórico',async()=>{
    await role(db,coord);
