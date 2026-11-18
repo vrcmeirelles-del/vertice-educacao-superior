@@ -1,10 +1,10 @@
 import { ContextHelp } from '@/components/ContextHelp';
 import { HelpLabel } from '@/components/ContextHelp';
 // Extensao360.tsx — Repositório de Projetos de Extensão (v3 — Impacto integrado)
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import "./extensao360.css";
-import { canDiscardProject, type ProjectSource } from '@/lib/extension-forms/project-data';
+import type { ProjectSource } from '@/lib/extension-forms/project-data';
 import ExtensaoFormularios from "./ExtensaoFormularios";
 import ExtensaoHourLedger from "./ExtensaoHourLedger";
 import ExtensaoODS from "./ExtensaoODS";
@@ -116,9 +116,17 @@ export default function Extensao360({ institutionId, role, courses = [], onBack 
   const [activityPanel, setActivityPanel] = useState<{ projectId: string; projectTitle: string } | null>(null);
   const [evidencePanel, setEvidencePanel] = useState<{ projectId: string; projectTitle: string } | null>(null);
   const [workflowPanel, setWorkflowPanel] = useState<{ projectId: string; projectTitle: string; reviewStatus: string } | null>(null);
+  const [discardableIds, setDiscardableIds] = useState<string[]|null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [studentError,setStudentError]=useState('');
+  const [savingStudent,setSavingStudent]=useState(false);
   const [formData, setFormData] = useState<any>({});
   const [formType, setFormType] = useState<'project' | 'team' | 'student' | 'deliverable' | 'axis' | 'review'>('project');
+  const registrationHeading = useRef<HTMLHeadingElement>(null);
+  const projectFormOpen = showForm && formType === 'project' && view === 'projetos';
+  useEffect(() => {
+    if(projectFormOpen) registrationHeading.current?.focus();
+  },[projectFormOpen]);
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('todos');
   const [staffList, setStaffList] = useState<{full_name:string;email:string|null;source:string}[]>([]);
@@ -130,7 +138,7 @@ export default function Extensao360({ institutionId, role, courses = [], onBack 
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [p, t, s, del, ax, rev, cov, staff] = await Promise.all([
+    const [p, t, s, del, ax, rev, cov, staff, discardable] = await Promise.all([
       supabase.from('vertice_extension_projects').select('*').eq('institution_id', institutionId).order('created_at', { ascending: false }),
       supabase.from('vertice_extension_team').select('*').eq('institution_id', institutionId).order('full_name'),
       supabase.from('vertice_extension_students').select('*').eq('institution_id', institutionId).order('full_name'),
@@ -139,8 +147,10 @@ export default function Extensao360({ institutionId, role, courses = [], onBack 
       supabase.from('vertice_extension_reviews').select('*').eq('institution_id', institutionId).order('created_at', { ascending: false }),
       supabase.from('v_extension_coverage').select('*').eq('institution_id', institutionId),
       supabase.rpc('get_institution_staff', { p_institution_id: institutionId }),
+      supabase.rpc('vertice_extension_discardable_projects', { p_institution: institutionId }),
     ]);
     const all=(p.data || []) as ExtProject[];
+    setDiscardableIds(discardable.error?null:discardable.data||[]);
     setProjects(all.filter(row=>!row.deleted_at));
     setDeletedProjects(all.filter(row=>row.deleted_at));
     setProjectError(p.error?.message||'');
@@ -180,7 +190,7 @@ export default function Extensao360({ institutionId, role, courses = [], onBack 
   function canManage(p:ProjectSource) { return canEdit || (!!actor.id && role==='equipe' && (p.owner_id===actor.id||(!p.owner_id&&!!actor.email&&p.coordinator_email?.toLowerCase()===actor.email.toLowerCase()))); }
   function openReport(id:string,invites=false) { setTargetForm(id);setShowProjectInvites(invites);setView('formularios'); }
   async function discardProject(p:ProjectSource,deleted:boolean) {
-    if(deleted&&!confirm(`Excluir o rascunho “${p.title}”? Você poderá recuperá-lo na lista de rascunhos excluídos.`))return;
+    if(deleted&&!confirm(`Excluir “${p.title}”? Você poderá recuperar o projeto na lista de projetos excluídos.`))return;
     setArchiving(true);setProjectError('');
     try {
       const {error}=await supabase.rpc('vertice_extension_draft_visibility',{p_project:p.id,p_deleted:deleted});
@@ -238,11 +248,36 @@ export default function Extensao360({ institutionId, role, courses = [], onBack 
   }
 
   async function saveStudent() {
-    const payload = { ...formData, institution_id: institutionId, project_id: selectedProject };
-    if (payload.id) {
-      await supabase.from('vertice_extension_students').update(payload).eq('id', payload.id);
-    } else { delete payload.id; await supabase.from('vertice_extension_students').insert(payload); }
-    setShowForm(false); setFormData({}); load();
+    const projectId=projects.find(project=>project.id===formData.project_id)?.id;
+    if(!projectId||!formData.full_name?.trim()){
+      setStudentError('Selecione o projeto e informe o nome completo do aluno.');
+      return;
+    }
+    const email=formData.email?.trim().toLowerCase()||null;
+    const registration=formData.registration_number?.trim()||null;
+    const duplicate=students.some(student=>student.project_id===projectId&&student.id!==formData.id&&(
+      (registration&&student.registration_number?.trim().toUpperCase()===registration.toUpperCase())||
+      (email&&student.email?.trim().toLowerCase()===email)
+    ));
+    if(duplicate){setStudentError('Este aluno já está vinculado ao projeto selecionado.');return;}
+    const payload={
+      institution_id:institutionId,project_id:projectId,full_name:formData.full_name.trim(),
+      email,registration_number:registration,phone:formData.phone?.trim()||null,
+      cpf:formData.cpf?.trim()||null,course_id:formData.course_id||null,
+      hours_assigned:formData.hours_assigned??0,hours_completed:formData.hours_completed??0,
+      is_scholarship:formData.is_scholarship??false,status:formData.status||'ativo',
+    };
+    setSavingStudent(true);setStudentError('');
+    try{
+      const result=formData.id
+        ? await supabase.from('vertice_extension_students').update(payload)
+            .eq('id',formData.id).eq('institution_id',institutionId).eq('project_id',projectId).select('id').single()
+        : await supabase.from('vertice_extension_students').insert(payload).select('id').single();
+      if(result.error)throw result.error;
+      setSelectedProject(projectId);setShowForm(false);setFormData({});
+      await load();
+    }catch(e){setStudentError((e as Error).message);}
+    finally{setSavingStudent(false);}
   }
 
   async function saveDeliverable() {
@@ -489,7 +524,7 @@ Este documento constitui evidência para fins de avaliação institucional (INEP
               <div className="ext-project-list-tools">
                 <div><h3>Projetos de Extensão</h3><p>Abra um projeto para acompanhar a tramitação e o relatório.</p></div>
                 {canEdit||role==='equipe'?<button className="ext-btn-secondary" aria-pressed={showDeleted} onClick={()=>setShowDeleted(!showDeleted)}>
-                  {showDeleted?'Projetos ativos':`Rascunhos excluídos (${deletedProjects.filter(canManage).length})`}
+                  {showDeleted?'Projetos ativos':`Projetos excluídos (${deletedProjects.filter(canManage).length})`}
                 </button>:null}
               </div>
               {projectError&&<p className="ext-project-error" role="alert">{projectError}</p>}
@@ -533,10 +568,17 @@ Este documento constitui evidência para fins de avaliação institucional (INEP
 
               {/* Form: Projeto completo */}
               {showForm && formType === 'project' && (
-                <div className="ext-form">
-                  <h3>{formData.id ? 'Editar' : 'Novo'} Projeto de Extensão</h3>
+                <section className="ext-form ext-registration" aria-labelledby="ext-registration-heading">
+                  <header className="ext-registration-hero">
+                    <div><h3 id="ext-registration-heading" ref={registrationHeading} tabIndex={-1}>{formData.id ? 'Editar projeto de extensão' : 'Novo projeto de extensão'}</h3>
+                      <p>{formData.id ? formData.title : 'Informe o título para salvar o rascunho e completar as demais informações depois.'}</p>
+                    </div>
+                    <button type="button" className="ext-btn-secondary" onClick={()=>setShowForm(false)}>Voltar aos projetos</button>
+                  </header>
+                  <section className="ext-registration-panel" aria-labelledby="ext-identification-heading">
+                  <h4 id="ext-identification-heading">Identificação</h4>
                   <div className="ext-form-grid">
-                    <HelpLabel>Título<input value={formData.title || ''} onChange={e => setFormData({ ...formData, title: e.target.value })} /></HelpLabel>
+                    <HelpLabel className="ext-registration-title">Título<input value={formData.title || ''} onChange={e => setFormData({ ...formData, title: e.target.value })} /></HelpLabel>
                     <HelpLabel>Código<input value={formData.code || ''} readOnly style={{background:'var(--bg-card,#f3f4f6)',cursor:'default',fontFamily:'monospace',fontWeight:600}} title="Gerado automaticamente" /></HelpLabel>
                     <HelpLabel>Tipo
                       <select value={formData.project_type || 'projeto'} onChange={e => setFormData({ ...formData, project_type: e.target.value })}>
@@ -584,9 +626,9 @@ Este documento constitui evidência para fins de avaliação institucional (INEP
                   </div>
                   <HelpLabel className="ext-form-full">Descrição<textarea value={formData.description || ''} onChange={e => setFormData({ ...formData, description: e.target.value })} rows={3} /></HelpLabel>
 
-                  {/* Campos Impacto */}
-                  <div style={{ borderTop: '1px solid var(--border,#e5e7eb)', paddingTop: '1rem', marginTop: '.5rem' }}>
-                    <h4 style={{ margin: '0 0 .75rem', fontSize: '.9rem', color: 'var(--accent,#0b9185)' }}>📋 Detalhamento Impacto</h4>
+                  </section>
+                  <details className="ext-registration-panel">
+                    <summary>Planejamento e impacto</summary>
                     <HelpLabel className="ext-form-full">Problema social identificado
                       <textarea value={formData.social_problem || ''} onChange={e => setFormData({ ...formData, social_problem: e.target.value })} rows={2} placeholder="Qual problema social o projeto visa resolver?" />
                     </HelpLabel>
@@ -614,9 +656,9 @@ Este documento constitui evidência para fins de avaliação institucional (INEP
                       <textarea value={(formData.expected_results || []).join('\n')} onChange={e => setFormData({ ...formData, expected_results: e.target.value.split('\n').filter((s: string) => s.trim()) })} rows={2} placeholder="Um resultado por linha" />
                     </HelpLabel>
 
-                  {/* Campos do formulário institucional */}
-                  <div style={{ borderTop: '1px solid var(--border,#e5e7eb)', paddingTop: '1rem', marginTop: '.5rem' }}>
-                    <h4 style={{ margin: '0 0 .75rem', fontSize: '.9rem', color: 'var(--accent,#0b9185)' }}>📑 Dados Institucionais (Formulário de Extensão)</h4>
+                  </details>
+                  <details className="ext-registration-panel">
+                    <summary>Dados institucionais da atividade</summary>
                     <div className="ext-form-grid">
                       <HelpLabel>Categoria
                         <select value={formData.category || 'evento'} onChange={e => setFormData({ ...formData, category: e.target.value })}>
@@ -701,19 +743,17 @@ Este documento constitui evidência para fins de avaliação institucional (INEP
                     <HelpLabel className="ext-form-full">Parcerias e formas de apoio
                       <textarea value={formData.partnerships_detail || ''} onChange={e => setFormData({ ...formData, partnerships_detail: e.target.value })} rows={2} placeholder="Instituições parceiras, apoio logístico..." />
                     </HelpLabel>
-                  </div>
-
-                    <div className="ext-form-grid">
+                  </details>
+                  {formData.id&&<section className="ext-registration-panel ext-registration-tramitation">
                       <div><strong>Tramitação</strong><p>{STATUS_LABELS[formData.review_status]||formData.review_status||'Rascunho'}</p>
                         {formData.id&&<button type="button" className="ext-btn-secondary" onClick={()=>setWorkflowPanel({projectId:formData.id,projectTitle:formData.title,reviewStatus:formData.review_status})}>Abrir tramitação</button>}
                       </div>
-                    </div>
-                  </div>
+                  </section>}
 
                   {/* Cursos vinculados */}
                   {courses && courses.length > 0 && (
-                    <div className="ext-course-picker">
-                      <strong>Cursos vinculados:</strong>
+                    <details className="ext-registration-panel">
+                      <summary>Cursos vinculados ({formData.course_ids?.length||0})</summary>
                       <div className="ext-course-chips">
                         {courses.map(c => {
                           const selected = (formData.course_ids || []).includes(c.id);
@@ -721,12 +761,11 @@ Este documento constitui evidência para fins de avaliação institucional (INEP
                             onClick={() => { const ids = formData.course_ids || []; setFormData({ ...formData, course_ids: selected ? ids.filter((i: string) => i !== c.id) : [...ids, c.id] }); }}>{c.name}</button>;
                         })}
                       </div>
-                    </div>
+                    </details>
                   )}
 
-                  {/* Pré-análise da Pró-Reitoria de Extensão */}
-                  <div className="ext-ai-panel" style={{marginTop:'1rem'}}>
-                    <h5>🤝 Pré-análise da Pró-Reitoria de Extensão</h5>
+                  {formData.id&&<details className="ext-registration-panel ext-ai-panel">
+                    <summary>Pré-análise da Pró-Reitoria de Extensão</summary>
                     <p style={{fontSize:'.82rem',color:'var(--text-secondary,#6b7280)',margin:'0 0 .75rem'}}>
                       Vinculação automática às dimensões e indicadores do Instrumento de Avaliação INEP/MEC.
                     </p>
@@ -743,18 +782,18 @@ Este documento constitui evidência para fins de avaliação institucional (INEP
                     <p style={{fontSize:'.75rem',color:'var(--text-secondary,#999)',marginTop:'.5rem',fontStyle:'italic'}}>
                       A análise será refinada com base nas evidências e no relatório final. Itens sem comprovação ficam como "Sem vínculo".
                     </p>
-                  </div>
+                  </details>}
 
-                  <div className="ext-form-actions">
-                    <button className="ext-btn-save" onClick={saveProject}>Salvar</button>
-                    {formData.id&&canManage(formData)&&canDiscardProject(formData)&&<button className="ext-btn-danger" disabled={archiving} onClick={()=>void discardProject(formData,true)}>Excluir projeto</button>}
+                  <footer className="ext-form-actions ext-registration-footer">
+                    <button className="ext-btn-save" onClick={saveProject}>{formData.id?'Salvar alterações':'Salvar rascunho'}</button>
+                    {formData.id&&canManage(formData)&&discardableIds?.includes(formData.id)&&<button className="ext-btn-danger" disabled={archiving} onClick={()=>void discardProject(formData,true)}>Excluir projeto</button>}
                     <button className="ext-btn-cancel" onClick={() => setShowForm(false)}>Cancelar</button>
-                  </div>
-                </div>
+                  </footer>
+                </section>
               )}
 
               {/* Cards de projetos */}
-              {filteredProjects.length === 0 ? <p className="ext-empty">{showDeleted?'Nenhum rascunho excluído encontrado.':'Nenhum projeto encontrado.'}</p> : (
+              {!projectFormOpen && (filteredProjects.length === 0 ? <p className="ext-empty">{showDeleted?'Nenhum projeto excluído encontrado.':'Nenhum projeto encontrado.'}</p> : (
                 <div className="ext-project-grid">
                   {filteredProjects.map(p => {
                     const pTeam = team.filter(t => t.project_id === p.id);
@@ -804,11 +843,12 @@ Este documento constitui evidência para fins de avaliação institucional (INEP
                           {pDel.length > 0 && <span className="ext-ai-badge">📎 {pDel.length} evidência{pDel.length>1?'s':''}</span>}
                           {p.review_status === 'ajuste_solicitado' && <span className="ext-ai-badge" style={{color:'#ef4444',background:'rgba(239,68,68,.1)'}}>⚠ Ajuste solicitado</span>}
                         </div>
-                        {showDeleted?<div className="ext-card-actions"><button disabled={archiving} onClick={()=>void discardProject(p,false)}>Recuperar rascunho</button></div>:<>
+                        {showDeleted?<div className="ext-card-actions"><button disabled={archiving} onClick={()=>void discardProject(p,false)}>Recuperar projeto</button></div>:<>
                           <div className="ext-project-main-actions">
                             <button className="ext-btn-primary" onClick={()=>openReport(p.id)}>Relatório Final</button>
                             {canManage(p)&&<button className="ext-btn-secondary" onClick={()=>{setFormType('project');setFormData({...p,partner_institutions_text:(p.partner_institutions||[]).join(', '),ods_goals_text:(p.ods_goals||[]).join(', ')});setShowForm(true);}}>Editar projeto</button>}
-                            {canManage(p)&&canDiscardProject(p)&&<button className="ext-btn-danger" disabled={archiving} onClick={()=>void discardProject(p,true)}>Excluir projeto</button>}
+                            {canManage(p)&&discardableIds?.includes(p.id)&&<button className="ext-btn-danger" disabled={archiving} onClick={()=>void discardProject(p,true)}>Excluir projeto</button>}
+                            {canManage(p)&&p.status==='cancelado'&&discardableIds&&!discardableIds.includes(p.id)&&<small className="ext-project-retention">Histórico de tramitação ou encerramento preservado.</small>}
                           </div>
                         {canManage(p) && (
                           <div className="ext-card-actions"  onClick={e => e.stopPropagation()}>
@@ -827,7 +867,7 @@ Este documento constitui evidência para fins de avaliação institucional (INEP
                     );
                   })}
                 </div>
-              )}
+              ))}
             </div>
           )}
 
@@ -869,12 +909,43 @@ Este documento constitui evidência para fins de avaliação institucional (INEP
           {/* ===== ALUNOS ===== */}
           {view === 'alunos' && (
             <div className="ext-section">
-              {selectedProject && <p className="ext-filter-label">Projeto: <strong>{projects.find(p => p.id === selectedProject)?.title}</strong> <button className="ext-clear" onClick={() => setSelectedProject(null)}>✕</button></p>}
-              {canEdit && selectedProject && <button className="ext-btn-primary" style={{marginBottom:'1rem'}} onClick={() => { setFormType('student'); setFormData({ status: 'ativo' }); setShowForm(true); }}>+ Vincular aluno</button>}
+              <div className="ext-project-list-tools">
+                <h3>Alunos por projeto</h3>
+                {canEdit&&projects.length>0&&<button className="ext-btn-primary" onClick={()=>{
+                  setFormType('student');setFormData({status:'ativo',project_id:selectedProject||''});
+                  setStudentError('');setShowForm(true);
+                }}>+ Vincular aluno</button>}
+              </div>
+              <div className="ext-filter-row">
+                <label>Filtrar alunos por projeto <select value={selectedProject||''} onChange={e=>setSelectedProject(e.target.value||null)}>
+                  <option value="">Todos os projetos</option>
+                  {projects.map(p=><option key={p.id} value={p.id}>{p.title} · {STATUS_LABELS[p.status]||p.status}</option>)}
+                </select></label>
+              </div>
               {showForm && formType === 'student' && (
                 <div className="ext-form">
-                  <h3>{formData.id ? 'Editar' : 'Vincular'} Aluno</h3>
-                  <div className="ext-form-grid">
+                  <h3>{formData.id ? 'Editar vínculo' : 'Vincular aluno ao projeto'}</h3>
+                  {studentError&&<p className="ext-project-error" role="alert">{studentError}</p>}
+                  <fieldset className="ext-form-grid" disabled={savingStudent} style={{border:0,padding:0}}>
+                    <HelpLabel>Projeto <select value={formData.project_id||''} disabled={!!formData.id} onChange={e=>setFormData({...formData,project_id:e.target.value})}>
+                      <option value="">Selecione o projeto</option>
+                      {projects.map(p=><option key={p.id} value={p.id}>{p.title} · {STATUS_LABELS[p.status]||p.status}</option>)}
+                    </select></HelpLabel>
+                    {!formData.id&&students.some(s=>s.project_id!==formData.project_id)&&<HelpLabel>Usar cadastro de outro projeto
+                      <select value={formData.source_student_id||''} onChange={e=>{
+                        const student=students.find(s=>s.id===e.target.value);
+                        setFormData({
+                          ...formData,source_student_id:student?.id||'',full_name:student?.full_name||'',
+                          email:student?.email||'',phone:student?.phone||'',cpf:student?.cpf||'',
+                          course_id:student?.course_id||null,registration_number:student?.registration_number||'',
+                        });
+                      }}>
+                        <option value="">Preencher manualmente</option>
+                        {students.filter(s=>s.project_id!==formData.project_id).map(s=><option key={s.id} value={s.id}>
+                          {s.full_name} · {projects.find(p=>p.id===s.project_id)?.title||'Projeto anterior'}
+                        </option>)}
+                      </select>
+                    </HelpLabel>}
                     <HelpLabel>Nome completo<input value={formData.full_name || ''} onChange={e => setFormData({ ...formData, full_name: e.target.value })} /></HelpLabel>
                     <HelpLabel>E-mail<input type="email" value={formData.email || ''} onChange={e => setFormData({ ...formData, email: e.target.value })} /></HelpLabel>
                     <HelpLabel>Telefone / WhatsApp<input value={formData.phone || ''} onChange={e => setFormData({ ...formData, phone: e.target.value })} placeholder="(63) 99999-0000" /></HelpLabel>
@@ -889,18 +960,18 @@ Este documento constitui evidência para fins de avaliação institucional (INEP
                     <HelpLabel>Bolsista? <select value={formData.is_scholarship?'sim':'nao'} onChange={e => setFormData({ ...formData, is_scholarship: e.target.value==='sim' })}>
                       <option value="nao">Não</option><option value="sim">Sim</option>
                     </select></HelpLabel>
-                  </div>
+                  </fieldset>
                   <div className="ext-form-actions">
-                    <button className="ext-btn-save" onClick={saveStudent}>Salvar</button>
-                    <button className="ext-btn-cancel" onClick={() => setShowForm(false)}>Cancelar</button>
+                    <button className="ext-btn-save" disabled={savingStudent} onClick={saveStudent}>{savingStudent?'Salvando…':formData.id?'Salvar alterações':'Salvar vínculo'}</button>
+                    <button className="ext-btn-cancel" disabled={savingStudent} onClick={() => setShowForm(false)}>Cancelar</button>
                   </div>
                 </div>
               )}
-              {(selectedProject ? projStudents : students).length === 0 ? <p className="ext-empty">{selectedProject ? 'Nenhum aluno vinculado.' : 'Selecione um projeto.'}</p> : (
-                <table className="ext-table"><thead><tr><th>Nome</th><th>E-mail<ContextHelp title="E-mail" /></th><th>WhatsApp</th><th>Matrícula</th><th>Horas</th><th>Bolsista</th><th>Status</th><th>Ações</th></tr></thead>
+              {(selectedProject ? projStudents : students).length === 0 ? <p className="ext-empty">{selectedProject ? 'Nenhum aluno vinculado a este projeto.' : 'Nenhum aluno vinculado aos projetos.'}</p> : (
+                <table className="ext-table"><thead><tr><th>Nome</th><th>Projeto</th><th>E-mail<ContextHelp title="E-mail" /></th><th>WhatsApp</th><th>Matrícula</th><th>Horas</th><th>Bolsista</th><th>Status</th><th>Ações</th></tr></thead>
                 <tbody>{(selectedProject ? projStudents : students).map(s => (
-                  <tr key={s.id} className={canEdit?'clickable':''} onClick={() => { if(canEdit){setFormType('student');setFormData(s);setSelectedProject(s.project_id);setShowForm(true);} }}>
-                    <td><strong>{s.full_name}</strong></td><td>{s.email||'—'}</td><td>{s.phone||'—'}</td><td className="mono">{s.registration_number||'—'}</td><td className="num">{s.hours_completed||0}/{s.hours_assigned||0}h</td><td>{s.is_scholarship?'✅':'—'}</td><td><Badge status={s.status}/></td>
+                  <tr key={s.id} className={canEdit?'clickable':''} onClick={() => { if(canEdit){setFormType('student');setFormData(s);setStudentError('');setSelectedProject(s.project_id);setShowForm(true);} }}>
+                    <td><strong>{s.full_name}</strong></td><td>{projects.find(p=>p.id===s.project_id)?.title||'—'}</td><td>{s.email||'—'}</td><td>{s.phone||'—'}</td><td className="mono">{s.registration_number||'—'}</td><td className="num">{s.hours_completed||0}/{s.hours_assigned||0}h</td><td>{s.is_scholarship?'✅':'—'}</td><td><Badge status={s.status}/></td>
                     <td><button className="ext-btn-small" onClick={(e) => { e.stopPropagation(); setHourLedger({ participantId: s.id, participantName: s.full_name, projectId: s.project_id }); }}>📒 Horas</button></td>
                   </tr>
                 ))}</tbody></table>

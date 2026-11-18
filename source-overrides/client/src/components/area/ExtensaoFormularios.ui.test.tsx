@@ -1,8 +1,9 @@
 import {act,createElement} from 'react';
 import {createRoot,type Root} from 'react-dom/client';
 import {beforeEach,afterEach,it,expect,vi} from 'vitest';
-const api=vi.hoisted(()=>({from:vi.fn(),rpc:vi.fn(),getUser:vi.fn()}));
-vi.mock('@/lib/supabase',()=>({supabase:{from:api.from,rpc:api.rpc,auth:{getUser:api.getUser}}}));
+const api=vi.hoisted(()=>({from:vi.fn(),rpc:vi.fn(),getUser:vi.fn(),invoke:vi.fn()}));
+vi.mock('@/lib/supabase',()=>({supabase:{from:api.from,rpc:api.rpc,auth:{getUser:api.getUser},functions:{invoke:api.invoke}}}));
+import ExtensaoAlunosConvites from './ExtensaoAlunosConvites';
 import ExtensaoFormularios from './ExtensaoFormularios';
 let container:HTMLDivElement,root:Root;
 const record={id:'form',institution_id:'ies',project_id:'project',course_id:'course',template:'extensao',answers:{title:'PROJETO FICTÍCIO'},attachments:[],revision:1,owner_id:'user',status:'rascunho',document_id:null};
@@ -29,4 +30,25 @@ it('does not offer writing controls to readers or show fake empty state on load 
 it('accepts a single-row RPC array and confirms saved state only after persistence',async()=>{
  api.rpc.mockResolvedValue({data:[{...record,revision:2}],error:null});await render();await click('Abrir formulário');await click('Salvar rascunho');
  expect(container.querySelector('[role=status]')?.textContent).toContain('Rascunho salvo');expect(container.textContent).toContain('Revisão 2');
+});
+
+it('generates an individual WhatsApp link for a pending invitation without invoking email delivery',async()=>{
+ const email='aluno@example.org',token='ab'.repeat(32);
+ api.rpc.mockImplementation(async (name:string)=>({
+  data:name==='vertice_extension_student_issue'?{token,email}:[{
+   id:'invite',email,expires_at:'2099-01-01T00:00:00Z',updated_at:'2026-11-17T00:00:00Z',
+   state:'rascunho',answers:{},
+  }],error:null,
+ }));
+ const confirm=vi.spyOn(window,'confirm').mockReturnValue(true);
+ try{
+  await act(async()=>root.render(createElement(ExtensaoAlunosConvites,{projectId:'project',onUse:vi.fn()})));
+  await click('Gerar novo link');
+  expect(api.rpc).toHaveBeenCalledWith('vertice_extension_student_issue',expect.objectContaining({p_project:'project',p_invite:'invite'}));
+  expect(api.invoke).not.toHaveBeenCalled();
+  const input=container.querySelector<HTMLInputElement>('section[aria-label="Link de convite para WhatsApp"] input');
+  expect(input?.value).toBe(window.location.origin+'/extensao-convite?aluno=1#ativacao='+token);
+  await click('Ocultar link');
+  expect(container.querySelector('section[aria-label="Link de convite para WhatsApp"]')).toBeNull();
+ }finally{confirm.mockRestore();}
 });

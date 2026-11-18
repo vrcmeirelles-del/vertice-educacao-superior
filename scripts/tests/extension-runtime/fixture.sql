@@ -30,3 +30,6 @@ create table public.vertice_extension_evidence_registry(id uuid primary key,inst
 create table public.vertice_extension_project_history(
  institution_id uuid,project_id uuid,field_changed text,old_value text,new_value text,changed_by uuid,reason text
 );
+
+alter table public.vertice_extension_projects add column approved_at timestamptz;
+create table public.vertice_extension_reviews(project_id uuid);
