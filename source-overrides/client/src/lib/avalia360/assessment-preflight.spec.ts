@@ -60,6 +60,13 @@ describe('preflight do Avalia 360°',()=>{
     expect(out.ok).toBe(false);
     if (!out.ok) expect(out.reasons).toContain('CATALOG_PAYLOAD_MISMATCH');
   });
+  it('recusa conflito entre períodos validados do adaptador e do catálogo',()=>{
+    const altered={...source,catalog:{...source.catalog,
+      competencies:source.catalog.competencies.map(c=>({...c,period:5}))}};
+    const out=preflightAndAnalyze({...fixture,source:altered});
+    expect(out.ok).toBe(false);
+    if (!out.ok) expect(out.reasons).toContain('CATALOG_CURRICULUM_MISMATCH');
+  });
   it('não aprova avaliação com duas questões de mesmo identificador',()=>{
     const item=fixture.input.assessment.items[0];
     const out=preflightAndAnalyze({...fixture,input:{...fixture.input,assessment:{
