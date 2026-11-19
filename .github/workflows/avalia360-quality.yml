@@ -4,6 +4,8 @@ on:
     paths:
       - 'source-overrides/client/src/lib/avalia360/**'
       - 'source-overrides/vitest.config.ts'
+      - 'scripts/tests/avalia360-runtime/**'
+      - 'docs/avalia360/sql/**'
       - '.github/workflows/avalia360-quality.yml'
   workflow_dispatch:
 permissions:
@@ -31,3 +33,19 @@ jobs:
         run: npx vitest run client/src/lib/avalia360
       - name: Verificar TypeScript exclusivo do Avalia 360
         run: npx tsc -p client/src/lib/avalia360/tsconfig.json --noEmit
+
+  postgres-isolated:
+    name: "Avalia 360 - PostgreSQL isolado (PGlite)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Dependências de PostgreSQL em memória
+        run: npm install --prefix scripts/tests/avalia360-runtime --no-audit --no-fund --ignore-scripts
+      - name: Testar RPC, isolamento e snapshots
+        run: node --test scripts/tests/avalia360-runtime/*.test.mjs
