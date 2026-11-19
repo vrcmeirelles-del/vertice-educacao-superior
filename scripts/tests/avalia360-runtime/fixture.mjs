@@ -35,7 +35,7 @@ export async function fixture(t){
      [inst,course,discipline,action,payload]);return r.rows[0].result;
  };
  const q={id:'q-1',disciplineId:'civil',statement:'Analise o seguinte caso de responsabilidade civil.',
-   topicIds:['tema1'],competencyIds:['c1'],pendingImageCount:0,points:2,
+   topicIds:['tema1'],competencyIds:['c1'],pendingImageCount:0,images:[],points:2,
    kind:'objetiva',options:[{id:'A',text:'A'},{id:'B',text:'B'}],correctOptionId:'A'};
  return {db,session,rpc,question:q};
 }
