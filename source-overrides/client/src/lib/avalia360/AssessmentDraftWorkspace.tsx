@@ -1,7 +1,8 @@
-import {useState} from 'react';
+import {useRef,useState} from 'react';
 import {QuestionDraftEditor, type QuestionOption} from './QuestionDraftEditor';
 import {saveAssessmentDraft, type DraftReceipt} from './draft-api';
 import type {QuestionDraft} from './question-draft';
+import {uploadQuestionImage,type UploadedImageReceipt} from './private-image-upload';
 
 export interface AssessmentDraftWorkspaceProps {
  institutionId:string;courseId:string;disciplineId:string;
@@ -16,20 +17,39 @@ export function AssessmentDraftWorkspace(props:AssessmentDraftWorkspaceProps){
  const [message,setMessage]=useState('');
  const [receipt,setReceipt]=useState<DraftReceipt|null>(null);
  const [question,setQuestion]=useState<QuestionDraft|null>(null);
+ const uploaded=useRef(new Map<string,{receipt:UploadedImageReceipt;file:File}>());
  const prepare=async(next:QuestionDraft)=>{
   if(status==='saving')return;
   setStatus('saving');setMessage('');
-  const result=await saveAssessmentDraft({
-    institutionId:props.institutionId,courseId:props.courseId,
-    disciplineId:props.disciplineId,
-    ...(receipt ? {draftId:receipt.id,expectedRevision:receipt.revision} : {}),
-    questions:[next]
-  });
-  if(result.ok){
-   setReceipt(result.receipt);setQuestion(next);
-   setStatus('saved');setMessage('Rascunho salvo no servidor. Nenhuma prova foi publicada.');
-  } else {
-   setStatus('error');setMessage(result.error.message);
+  try {
+   const media: Array<{localId:string;receipt:UploadedImageReceipt}> = [];
+   for(const image of next.images){
+     const cached=uploaded.current.get(image.localId);
+     let item=cached?.file===image.file?cached.receipt:null;
+     if(!item){
+       item=await uploadQuestionImage(image.file,{
+         institutionId:props.institutionId,courseId:props.courseId,
+         disciplineId:props.disciplineId,questionId:next.id
+       });
+       uploaded.current.set(image.localId,{receipt:item,file:image.file});
+     }
+     media.push({localId:image.localId,receipt:item});
+   }
+   const result=await saveAssessmentDraft({
+     institutionId:props.institutionId,courseId:props.courseId,
+     disciplineId:props.disciplineId,
+     ...(receipt ? {draftId:receipt.id,expectedRevision:receipt.revision} : {}),
+     questions:[next],uploadedImages:{[next.id]:media}
+   });
+   if(result.ok){
+     setReceipt(result.receipt);setQuestion(next);
+     setStatus('saved');setMessage('Rascunho salvo no servidor. Nenhuma prova foi publicada.');
+   } else {
+     setStatus('error');setMessage(result.error.message);
+   }
+  } catch(error) {
+   setStatus('error');
+   setMessage(error instanceof Error?error.message:'Falha ao enviar imagens.');
   }
  };
  return <section aria-label="Rascunho da avaliação — Avalia 360°">
