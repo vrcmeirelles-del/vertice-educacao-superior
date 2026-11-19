@@ -43,6 +43,13 @@ export function preflightAndAnalyze(input: PreflightInput): PreflightResult {
   if (!source.ready || source.source.status !== 'published')
     reasons.push('CURRICULUM_NOT_READY');
   if (!projectedCatalog.ready) reasons.push('CATALOG_NOT_VALIDATED');
+  // Cross-check independente: projeção validada e adaptador da matriz
+  // precisam concordar quanto às competências e aos respectivos períodos.
+  const sourcePeriods = new Map(source.catalog.competencies.map(c => [c.id,c.period]));
+  const projectedPeriods = new Map(projectedCatalog.catalog.competencies.map(c => [c.id,c.period]));
+  if (sourcePeriods.size !== projectedPeriods.size ||
+      [...sourcePeriods].some(([id,period]) => projectedPeriods.get(id) !== period))
+    reasons.push('CATALOG_CURRICULUM_MISMATCH');
   // O catálogo projetado é autoritativo; metadados de catálogo fornecidos
   // pelo cliente devem ser ignorados para não forjar competências/temas.
   if (JSON.stringify(payload.catalog) !== JSON.stringify(projectedCatalog.catalog))
