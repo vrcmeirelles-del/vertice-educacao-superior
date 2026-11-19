@@ -20,6 +20,9 @@ export async function fixture(t){
  await db.query('INSERT INTO public.vertice_learning_staff_scope VALUES($1,$2,$3,$4,$5)',[id(1),id(11),id(21),'civil',true]);
  const sql=await readFile(new URL('../../../docs/avalia360/sql/RASCUNHOS_RPC_STAGING_V1.sql',import.meta.url),'utf8');
  await db.exec(sql);
+ // Imagens privadas: contrato adicional, no mesmo banco efêmero (sem Storage real).
+ const mediaSql=await readFile(new URL('../../../docs/avalia360/sql/IMAGENS_PRIVADAS_STAGING_V1.sql',import.meta.url),'utf8');
+ await db.exec(mediaSql);
  async function session(user=id(1),institutionRole='equipe',aal='aal2'){
    await db.exec(`RESET ROLE;SET ROLE authenticated;
    SET "request.jwt.claim.sub"='${user}';
