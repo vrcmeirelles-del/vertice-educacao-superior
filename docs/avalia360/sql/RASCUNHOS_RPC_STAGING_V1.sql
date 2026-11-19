@@ -142,8 +142,8 @@ BEGIN
        coalesce(v_image->>'imageId','') !~
           '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
        OR length(btrim(coalesce(v_image->>'altText',''))) < 3
-       OR v_image->>'rightsStatus' NOT IN ('autoral','licenciado','uso_autorizado')
-       OR v_image->>'placement' NOT IN ('enunciado','alternativa','apoio')
+       OR coalesce(v_image->>'rightsStatus','') NOT IN ('autoral','licenciado','uso_autorizado')
+       OR coalesce(v_image->>'placement','') NOT IN ('enunciado','alternativa','apoio')
        OR jsonb_typeof(v_image->'order') IS DISTINCT FROM 'number'
        OR (v_image->>'order')::integer NOT BETWEEN 0 AND 11
        OR NOT EXISTS(
