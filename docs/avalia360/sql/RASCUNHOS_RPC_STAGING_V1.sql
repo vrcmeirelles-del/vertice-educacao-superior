@@ -28,12 +28,15 @@ CREATE TABLE vertice_avalia.assessment_draft_events (
   actor_id uuid NOT NULL REFERENCES auth.users(id),
   action text NOT NULL CHECK(action IN ('create','update')),
   revision integer NOT NULL CHECK(revision>=1),
+  snapshot jsonb NOT NULL CHECK(jsonb_typeof(snapshot)='object'),
+  curriculum_build_id uuid,
   created_at timestamptz NOT NULL DEFAULT now(),
   UNIQUE(draft_id,revision)
 );
 ALTER TABLE vertice_avalia.assessment_drafts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE vertice_avalia.assessment_draft_events ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON vertice_avalia.assessment_drafts,vertice_avalia.assessment_draft_events FROM PUBLIC,anon,authenticated;
+-- Os eventos preservam snapshots de todas as revisões; revogar UPDATE/DELETE de usuários.
 -- Dados privados acessíveis apenas pela RPC autorizada, não pela Data API diretamente.
 
 CREATE OR REPLACE FUNCTION public.vertice_avalia_draft(
@@ -159,8 +162,8 @@ BEGIN
         revision=revision+1,updated_at=now()
     WHERE id=v_previous.id RETURNING id,revision INTO v_id,v_revision;
  END IF;
- INSERT INTO vertice_avalia.assessment_draft_events(draft_id,institution_id,course_id,actor_id,action,revision)
- VALUES (v_id,p_institution,p_course,v_user,p_action,v_revision);
+ INSERT INTO vertice_avalia.assessment_draft_events(draft_id,institution_id,course_id,actor_id,action,revision,snapshot,curriculum_build_id)
+ VALUES (v_id,p_institution,p_course,v_user,p_action,v_revision,v_snapshot,v_build);
  RETURN jsonb_build_object('id',v_id,'revision',v_revision,'status','draft');
 END;
 $$;
