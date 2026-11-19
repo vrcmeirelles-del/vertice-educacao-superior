@@ -43,3 +43,10 @@ A branch Supabase de desenvolvimento dedicada ao Avalia 360° não existe. Há b
 
 ### Próxima ação
 Concluir testes TypeScript/Vitest, abrir ambiente isolado de validação autorizado em custo, aplicar SQL ali, testar isolamento com usuários/curso distintos e corrigir falhas. Só então completar gateway de imagens e vincular o formulário ao portal.
+
+### Atualização de testes e revisão (mesma frente)
+- CI #44635509309: 50 testes unitários aprovados, mas compilação isolada falhou inicialmente com TS2307 pela ausência de alias `@/lib/supabase` no `tsconfig.json` dedicado.
+- Corrigido `source-overrides/client/src/lib/avalia360/tsconfig.json` (baseUrl e paths).
+- CI #44635725337: execução Vitest 50/50 e TypeScript isolado **aprovados**. Evidência: https://github.com/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44635725337
+- Ajustado o `AssessmentDraftWorkspace.tsx` para usar o recibo (`id` + `revision`) nos salvamentos posteriores, evitando criar novo rascunho a cada alteração. **Essa alteração posterior precisa de nova execução de CI.**
+- Nenhum SQL foi aplicado em produção; integração permanece preparada em código, **não operacional no ambiente publicado**.
