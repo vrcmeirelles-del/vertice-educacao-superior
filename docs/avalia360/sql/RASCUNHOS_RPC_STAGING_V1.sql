@@ -128,62 +128,7 @@ BEGIN
    END IF;
    IF v_image_count>0 THEN
      IF coalesce(v_item->>'id','') !~
-       '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12} <>
-    (SELECT count(DISTINCT value->>'id') FROM jsonb_array_elements(v_questions)) THEN
-   RAISE EXCEPTION 'Questão duplicada' USING ERRCODE='22023';
- END IF;
- -- Não permitir que o cliente crie vínculo falso com o currículo.
- v_build:=nullif(p_payload->>'buildId','')::uuid;
- IF v_build IS NOT NULL AND NOT EXISTS(
-    SELECT 1 FROM vertice_app.curriculum_builds b
-      WHERE b.id=v_build AND b.institution_id=p_institution AND
-        b.course_id=p_course AND b.status='published') THEN
-   RAISE EXCEPTION 'Currículo não vinculado ou não publicado'
-    USING ERRCODE='22023';
- END IF;
- v_snapshot:=jsonb_build_object('questions',v_questions,'curriculumStatus',
-    CASE WHEN v_build IS NULL THEN 'unmapped' ELSE 'linked' END);
- IF p_action='create' THEN
-   IF p_payload ? 'id' OR p_payload ? 'expectedRevision' THEN
-     RAISE EXCEPTION 'Identificador/versão indevido na criação' USING ERRCODE='22023';
-   END IF;
-   INSERT INTO vertice_avalia.assessment_drafts
-     (institution_id,course_id,discipline_code,author_id,curriculum_build_id,snapshot)
-   VALUES (p_institution,p_course,p_discipline,v_user,v_build,v_snapshot)
-   RETURNING id,revision INTO v_id,v_revision;
- ELSE
-   IF p_payload->>'id' IS NULL OR p_payload->>'expectedRevision' IS NULL THEN
-     RAISE EXCEPTION 'ID e revisão obrigatórios' USING ERRCODE='22023';
-   END IF;
-   SELECT * INTO v_previous FROM vertice_avalia.assessment_drafts
-      WHERE id=(p_payload->>'id')::uuid AND institution_id=p_institution
-      AND course_id=p_course AND discipline_code=p_discipline
-      AND author_id=v_user FOR UPDATE;
-   IF NOT FOUND THEN RAISE EXCEPTION 'Rascunho não localizado' USING ERRCODE='22023'; END IF;
-   IF v_previous.status <> 'draft' THEN
-      RAISE EXCEPTION 'Apenas rascunhos podem ser editados' USING ERRCODE='22023';
-   END IF;
-   IF v_previous.revision <> (p_payload->>'expectedRevision')::integer THEN
-      RAISE EXCEPTION 'Conflito de versão; recarregue o rascunho' USING ERRCODE='40001';
-   END IF;
-   UPDATE vertice_avalia.assessment_drafts
-    SET snapshot=v_snapshot,curriculum_build_id=v_build,
-        revision=revision+1,updated_at=now()
-    WHERE id=v_previous.id RETURNING id,revision INTO v_id,v_revision;
- END IF;
- INSERT INTO vertice_avalia.assessment_draft_events(draft_id,institution_id,course_id,actor_id,action,revision,snapshot,curriculum_build_id)
- VALUES (v_id,p_institution,p_course,v_user,p_action,v_revision,v_snapshot,v_build);
- RETURN jsonb_build_object('id',v_id,'revision',v_revision,'status','draft');
-END;
-$$;
-REVOKE ALL ON FUNCTION public.vertice_avalia_draft(uuid,uuid,text,text,jsonb) FROM PUBLIC,anon,authenticated;
-GRANT EXECUTE ON FUNCTION public.vertice_avalia_draft(uuid,uuid,text,text,jsonb) TO authenticated;
-COMMIT;
-
--- Não aplicada. Antes de execução: testes Postgres de RLS, autorização por
--- disciplina, tentativas de IDOR, revisão concorrente, grants e rollback.
--- Questões com imagens não são gravadas até o gateway seguro de upload existir.
- THEN
+       '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$' THEN
        RAISE EXCEPTION 'Questão com imagens exige identificador UUID' USING ERRCODE='22023';
      END IF;
      IF (SELECT count(DISTINCT media->>'imageId') FROM jsonb_array_elements(v_media) AS media)
@@ -195,62 +140,7 @@ COMMIT;
    LOOP
      IF jsonb_typeof(v_image) IS DISTINCT FROM 'object' OR
        coalesce(v_image->>'imageId','') !~
-          '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12} <>
-    (SELECT count(DISTINCT value->>'id') FROM jsonb_array_elements(v_questions)) THEN
-   RAISE EXCEPTION 'Questão duplicada' USING ERRCODE='22023';
- END IF;
- -- Não permitir que o cliente crie vínculo falso com o currículo.
- v_build:=nullif(p_payload->>'buildId','')::uuid;
- IF v_build IS NOT NULL AND NOT EXISTS(
-    SELECT 1 FROM vertice_app.curriculum_builds b
-      WHERE b.id=v_build AND b.institution_id=p_institution AND
-        b.course_id=p_course AND b.status='published') THEN
-   RAISE EXCEPTION 'Currículo não vinculado ou não publicado'
-    USING ERRCODE='22023';
- END IF;
- v_snapshot:=jsonb_build_object('questions',v_questions,'curriculumStatus',
-    CASE WHEN v_build IS NULL THEN 'unmapped' ELSE 'linked' END);
- IF p_action='create' THEN
-   IF p_payload ? 'id' OR p_payload ? 'expectedRevision' THEN
-     RAISE EXCEPTION 'Identificador/versão indevido na criação' USING ERRCODE='22023';
-   END IF;
-   INSERT INTO vertice_avalia.assessment_drafts
-     (institution_id,course_id,discipline_code,author_id,curriculum_build_id,snapshot)
-   VALUES (p_institution,p_course,p_discipline,v_user,v_build,v_snapshot)
-   RETURNING id,revision INTO v_id,v_revision;
- ELSE
-   IF p_payload->>'id' IS NULL OR p_payload->>'expectedRevision' IS NULL THEN
-     RAISE EXCEPTION 'ID e revisão obrigatórios' USING ERRCODE='22023';
-   END IF;
-   SELECT * INTO v_previous FROM vertice_avalia.assessment_drafts
-      WHERE id=(p_payload->>'id')::uuid AND institution_id=p_institution
-      AND course_id=p_course AND discipline_code=p_discipline
-      AND author_id=v_user FOR UPDATE;
-   IF NOT FOUND THEN RAISE EXCEPTION 'Rascunho não localizado' USING ERRCODE='22023'; END IF;
-   IF v_previous.status <> 'draft' THEN
-      RAISE EXCEPTION 'Apenas rascunhos podem ser editados' USING ERRCODE='22023';
-   END IF;
-   IF v_previous.revision <> (p_payload->>'expectedRevision')::integer THEN
-      RAISE EXCEPTION 'Conflito de versão; recarregue o rascunho' USING ERRCODE='40001';
-   END IF;
-   UPDATE vertice_avalia.assessment_drafts
-    SET snapshot=v_snapshot,curriculum_build_id=v_build,
-        revision=revision+1,updated_at=now()
-    WHERE id=v_previous.id RETURNING id,revision INTO v_id,v_revision;
- END IF;
- INSERT INTO vertice_avalia.assessment_draft_events(draft_id,institution_id,course_id,actor_id,action,revision,snapshot,curriculum_build_id)
- VALUES (v_id,p_institution,p_course,v_user,p_action,v_revision,v_snapshot,v_build);
- RETURN jsonb_build_object('id',v_id,'revision',v_revision,'status','draft');
-END;
-$$;
-REVOKE ALL ON FUNCTION public.vertice_avalia_draft(uuid,uuid,text,text,jsonb) FROM PUBLIC,anon,authenticated;
-GRANT EXECUTE ON FUNCTION public.vertice_avalia_draft(uuid,uuid,text,text,jsonb) TO authenticated;
-COMMIT;
-
--- Não aplicada. Antes de execução: testes Postgres de RLS, autorização por
--- disciplina, tentativas de IDOR, revisão concorrente, grants e rollback.
--- Questões com imagens não são gravadas até o gateway seguro de upload existir.
-
+          '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
        OR length(btrim(coalesce(v_image->>'altText',''))) < 3
        OR v_image->>'rightsStatus' NOT IN ('autoral','licenciado','uso_autorizado')
        OR v_image->>'placement' NOT IN ('enunciado','alternativa','apoio')
