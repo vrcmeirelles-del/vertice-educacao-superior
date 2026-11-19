@@ -4,7 +4,7 @@ import indicators from './criteria.json' with {type:'json'};
 import {managementChunks} from './management.ts';
 // IA suspensa até a plataforma gerar receita (decisão de 19/11/2026). Para religar: secret AI_SUSPENDED=false.
 {const __aiFetch=globalThis.fetch;const __aiHosts=/(^|\.)(api\.anthropic\.com|api\.openai\.com|generativelanguage\.googleapis\.com)$/i;
-globalThis.fetch=((input:any,init?:any)=>{let host="";try{host=new URL(typeof input==="string"?input:input instanceof URL?input.href:input.url).hostname;}catch{}
+globalThis.fetch=((input:any,init?:any)=>{let host="";try{host=new globalThis.URL(typeof input==="string"?input:input instanceof globalThis.URL?input.href:input.url).hostname;}catch{}
 if(__aiHosts.test(host)&&String(Deno.env.get("AI_SUSPENDED")??"true").toLowerCase()!=="false")
  return Promise.resolve(new Response(JSON.stringify({error:{type:"ai_suspended",message:"IA suspensa temporariamente."}}),{status:503,headers:{"content-type":"application/json"}}));
 return __aiFetch(input,init);}) as typeof fetch;}
