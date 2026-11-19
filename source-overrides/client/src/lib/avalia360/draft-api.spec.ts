@@ -1,5 +1,5 @@
 import {describe,expect,it,vi,beforeEach} from 'vitest';
-const rpc=vi.fn();
+const {rpc}=vi.hoisted(()=>({rpc:vi.fn()}));
 vi.mock('@/lib/supabase',()=>({supabase:{rpc}}));
 import {saveAssessmentDraft} from './draft-api';
 import type {QuestionDraft} from './question-draft';
