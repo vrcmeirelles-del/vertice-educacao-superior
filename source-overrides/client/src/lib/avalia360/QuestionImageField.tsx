@@ -8,7 +8,7 @@ export interface PendingQuestionImage {
   caption: string;
   placement: ImagePlacement;
   alternativeId?: string;
-  rightsStatus: 'autoral' | 'licenciado' | 'uso_autorizado';
+  rightsStatus: 'nao_informado' | 'autoral' | 'licenciado' | 'uso_autorizado';
 }
 interface Props {
   questionId: string;
@@ -44,7 +44,7 @@ export function QuestionImageField({questionId,value,onChange,disabled=false}:Pr
       if (value.length+proposed.length>=IMAGE_MAX_PER_QUESTION) {
         setError('Limite de 12 imagens por questão.');break;
       }
-      proposed.push({localId:createId(),file,altText:'',caption:'',placement:'enunciado',rightsStatus:'autoral'});
+      proposed.push({localId:createId(),file,altText:'',caption:'',placement:'enunciado',rightsStatus:'nao_informado'});
     }
     if (proposed.length) onChange([...value,...proposed]);
   };
@@ -84,7 +84,7 @@ export function QuestionImageField({questionId,value,onChange,disabled=false}:Pr
       </label>
       <label>Direito de uso
         <select value={item.rightsStatus} onChange={e=>patch(item.localId,{rightsStatus:e.target.value as PendingQuestionImage['rightsStatus']})}>
-          <option value="autoral">Imagem autoral</option><option value="licenciado">Licenciada</option>
+          <option value="nao_informado">Selecione o direito de uso</option><option value="autoral">Imagem autoral</option><option value="licenciado">Licenciada</option>
           <option value="uso_autorizado">Uso autorizado</option>
         </select>
       </label>
