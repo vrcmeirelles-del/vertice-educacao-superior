@@ -21,7 +21,9 @@ export function AssessmentDraftWorkspace(props:AssessmentDraftWorkspaceProps){
   setStatus('saving');setMessage('');
   const result=await saveAssessmentDraft({
     institutionId:props.institutionId,courseId:props.courseId,
-    disciplineId:props.disciplineId,questions:[next]
+    disciplineId:props.disciplineId,
+    ...(receipt ? {draftId:receipt.id,expectedRevision:receipt.revision} : {}),
+    questions:[next]
   });
   if(result.ok){
    setReceipt(result.receipt);setQuestion(next);
