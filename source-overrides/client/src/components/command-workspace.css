@@ -1,0 +1,136 @@
+/* Vértice Command Workspace · camada de apresentação do Master.
+   Escopo estrito: não modifica autorizações, dados, rotas ou estados. */
+.master-layout.command-workspace {
+  --command-blue:#245ed1;
+  --command-blue-dark:#194da9;
+  --command-navy:#102e58;
+  --command-canvas:#f4f7fc;
+  --command-border:#dce7f4;
+  --portal-primary:var(--command-blue);
+  --portal-primary-hover:var(--command-blue-dark);
+  --portal-hero-start:#173e80;
+  --portal-hero-end:#3476df;
+  --portal-soft:#edf4ff;
+  --portal-canvas:var(--command-canvas);
+  --portal-line:var(--command-border);
+  --portal-ink:#1a3557;
+  --portal-muted:#536a84;
+  background:var(--command-canvas);
+  color:#1a3557;
+}
+.master-layout.command-workspace .master-sidebar {
+  background:linear-gradient(180deg,#fff 0%,#f8fbff 100%);
+  border-right-color:var(--command-border);
+  box-shadow:5px 0 24px rgba(21,65,126,.035);
+}
+.master-layout.command-workspace .master-brand {
+  border-bottom-color:var(--command-border);
+}
+.master-layout.command-workspace .master-nav-group p {
+  color:#7185a1;
+  letter-spacing:.12em;
+}
+.master-layout.command-workspace .master-nav-group a {
+  border-radius:11px;
+  color:#4a607c;
+  transition:background-color .18s,color .18s;
+}
+.master-layout.command-workspace .master-nav-group a:hover {
+  background:#eaf2ff;
+  color:#194da9;
+}
+.master-layout.command-workspace .master-nav-group a[aria-current=page] {
+  color:#194da9;
+  background:#e7f0ff;
+  box-shadow:inset 3px 0 #245ed1,0 3px 12px rgba(36,94,209,.06);
+  font-weight:750;
+}
+.master-layout.command-workspace .master-collapse {border-color:var(--command-border);background:#fff;}
+.master-layout.command-workspace .master-topbar {
+  background:rgba(255,255,255,.96);
+  border-bottom:1px solid var(--command-border);
+  box-shadow:0 4px 20px rgba(22,65,121,.035);
+  min-height:76px;
+  height:auto;
+  padding-block:12px;
+}
+.master-layout.command-workspace .master-topbar small {
+  color:#627b9c;
+  font-weight:800;
+  letter-spacing:.11em;
+}
+.master-layout.command-workspace .master-topbar strong {
+  color:var(--command-navy);
+  font-size:17px;
+  letter-spacing:-.025em;
+}
+.master-layout.command-workspace .master-content {
+  max-width:1720px;
+  margin:0 auto;
+  padding:clamp(16px,2.6vw,38px);
+}
+.master-layout.command-workspace .master-command-links {
+  display:flex;align-items:center;gap:9px;margin-left:auto;flex-wrap:wrap;
+}
+.master-layout.command-workspace .master-command-links a {
+  display:inline-flex;align-items:center;gap:7px;
+  min-height:38px;padding:9px 13px;border:1px solid #cbdcf2;
+  border-radius:10px;text-decoration:none;font-size:12px;
+  font-weight:700;color:#2659a2;background:white;
+}
+.master-layout.command-workspace .master-command-links .master-command-bi {
+  border-color:#245ed1;background:#245ed1;color:#fff;
+}
+.master-layout.command-workspace .master-command-links a:hover {filter:brightness(.96);}
+.master-layout.command-workspace .area-ws {
+  --ui-accent:#245ed1;
+  --ui-accent-hover:#194da9;
+  --ui-soft:#edf4ff;
+  --ui-ink:#1c385b;
+  --ui-muted:#58708e;
+  --ui-border:#dce7f4;
+}
+.master-layout.command-workspace .area-ws :is(.area-panel,.area-card,.conecta-card,.organization-base,.portal-connections) {
+  border-radius:16px;
+  border-color:#dce7f4;
+  box-shadow:0 5px 24px rgba(23,70,125,.04);
+}
+.master-layout.command-workspace .area-ws :is(.area-ws-head,.conecta-hero,.vx-modules) {
+  background:linear-gradient(120deg,#f8fbff,#eaf2ff);
+  border-color:#dce7f4;
+}
+.master-layout.command-workspace .area-ws .area-executive>header {
+  background:#edf4ff;
+  border-color:#d6e5fa;
+}
+.master-layout.command-workspace .area-ws .area-executive>header :is(p,small) {color:#4c6584;}
+.master-layout.command-workspace .area-ws .inst-tabs-nav-item--active {
+  color:#194da9;background:#edf4ff;border-left-color:#245ed1;
+}
+.master-layout.command-workspace .area-ws .inst-tabs-nav-item--active .inst-tabs-nav-item-icon {color:#194da9;}
+.master-layout.command-workspace .master-public-link {color:#245ed1;}
+.master-layout.command-workspace .master-page-heading {
+  border-bottom-color:#dce7f4;
+}
+.master-layout.command-workspace .master-page-heading h1 {
+  color:#163a6b;letter-spacing:-.04em;
+}
+.master-layout.command-workspace .portal-bi .vx-bi-heading {
+  background:linear-gradient(118deg,#173e80,#3476df);
+  border-radius:18px;
+}
+@media(max-width:1000px){
+  .master-layout.command-workspace .master-command-links .master-command-public {display:none;}
+}
+@media(max-width:767px){
+  .master-layout.command-workspace .master-topbar {min-height:68px;padding:10px 13px;gap:9px;}
+  .master-layout.command-workspace .master-topbar strong {font-size:14px;}
+  .master-layout.command-workspace .master-command-links .master-command-bi {font-size:11px;padding:8px;}
+  .master-layout.command-workspace .master-content {padding:16px 12px;}
+}
+@media(max-width:440px){
+  .master-layout.command-workspace .master-command-links .master-command-bi {display:none;}
+}
+@media(prefers-reduced-motion:reduce){
+  .master-layout.command-workspace .master-nav-group a {transition:none;}
+}
