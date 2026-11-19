@@ -2,7 +2,7 @@ import {PGlite} from '@electric-sql/pglite';
 import {readFile} from 'node:fs/promises';
 export const id=n=>'00000000-0000-4000-8000-'+String(n).padStart(12,'0');
 export async function fixture(t){
- const db=new PGlite();await db.waitReady();t.after(()=>db.close());
+ const db=new PGlite();t.after(()=>db.close());
  await db.exec(`CREATE ROLE anon;CREATE ROLE authenticated;CREATE ROLE service_role;
  CREATE SCHEMA auth;CREATE SCHEMA vertice_app;CREATE SCHEMA vertice_private;
  CREATE TABLE auth.users(id uuid PRIMARY KEY);
