@@ -38,3 +38,9 @@ Consulta direta à organização vinculada ao projeto Supabase da Vértice indic
 
 ### Próxima decisão
 Confirmar expressamente a cotação por hora da branch de Supabase. Não criar nem cobrar sem esse aceite. Prosseguir no código e nos testes sintéticos independentemente da decisão.
+
+### Evidência complementar — revisão de direitos de uso aprovada
+- GitHub Actions **#44641929603**: **60/60 testes unitários e 18/18 testes PostgreSQL isolados**, ambos jobs aprovados e TypeScript isolado incluído no job unitário.
+- Teste novo confirma que mídia sem declaração de direitos de uso é rejeitada.
+- URL: https://github.com/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44641929603
+- O checklist de CI após a última validação de direitos passa a **concluído**. Permanecem pendentes integração real com Supabase Storage, Deno, autenticação e homologação pedagógica no portal.
