@@ -75,7 +75,7 @@ type Activity = {
   activity_date: string; organizer_role: string; goal_id: string | null;
   evidence_doc_id: string | null; ods_goal: number | null; ods_rationale: string | null;
   status: string; updated_at: string; exam_module: string | null; created_by: string | null; total_minutes: number | null;
-  /* CCG-MD1 Projeto */
+  /* Projeto */
   unit_name: string | null; courses_involved: string | null; teachers_involved: string | null;
   technicians: string | null; activity_time: string | null; location: string | null;
   schedule_detail: string | null; qty_students: number | null; qty_technicians: number | null;
@@ -85,7 +85,7 @@ type Activity = {
   infrastructure: string | null; evaluation_methods: string | null;
   target_audience: string | null; marketing_scope: string | null; marketing_channels: string | null;
   students_involved_desc: string | null;
-  /* CCG-MDL-02 Relatório */
+  /* Relatório */
   report_phase: 'projeto' | 'relatorio' | 'finalizado';
   report_presentation: string | null; report_results: string | null;
   report_engagement: string | null; report_budget_staff: number | null;
@@ -100,13 +100,13 @@ const emptyGoal = { id: '', pdi_program_id: '', title: '', indicator: '', target
 const newActivity = () => ({
   id: '', updated_at: '', title: '', category: 'evento', description: '', activity_date: browserDate(), organizer_role: 'docente', exam_module: '',
   goal_id: '', evidence_doc_id: '', ods_goal: '', ods_rationale: '', total_minutes: '',
-  /* CCG-MD1 */
+  /* Projeto */
   unit_name: '', courses_involved: '', teachers_involved: '', technicians: '', activity_time: '', location: '',
   schedule_detail: '', qty_students: '', qty_technicians: '', qty_teachers: '', partnerships: '',
   attendance_method: '', proposed_budget: '', approved_budget: '', general_objective: '', specific_objectives: '',
   infrastructure: '', evaluation_methods: '', target_audience: '', marketing_scope: '', marketing_channels: '',
   students_involved_desc: '',
-  /* CCG-MDL-02 */
+  /* Relatório */
   report_phase: 'projeto' as Activity['report_phase'],
   report_presentation: '', report_results: '', report_engagement: '',
   report_budget_staff: '', report_budget_materials: '', report_materials_desc: '',
@@ -441,7 +441,7 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate, showHeade
             exam_module: draft.category === 'avaliacao' ? draft.exam_module || null : null, goal_id: draft.goal_id || null,
             evidence_doc_id: draft.evidence_doc_id || null, ods_goal: draft.ods_goal ? Number(draft.ods_goal) : null,
             ods_rationale: draft.ods_goal ? draft.ods_rationale.trim() : null,
-            /* CCG-MD1 */
+            /* Projeto */
             unit_name: draft.unit_name.trim() || null, courses_involved: draft.courses_involved.trim() || null,
             teachers_involved: draft.teachers_involved.trim() || null, technicians: draft.technicians.trim() || null,
             activity_time: draft.activity_time.trim() || null, location: draft.location.trim() || null,
@@ -456,7 +456,7 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate, showHeade
             infrastructure: draft.infrastructure.trim() || null, evaluation_methods: draft.evaluation_methods.trim() || null,
             target_audience: draft.target_audience.trim() || null, marketing_scope: draft.marketing_scope.trim() || null,
             marketing_channels: draft.marketing_channels.trim() || null, students_involved_desc: draft.students_involved_desc.trim() || null,
-            /* CCG-MDL-02 */
+            /* Relatório */
             report_phase: draft.report_phase,
             report_presentation: draft.report_presentation.trim() || null, report_results: draft.report_results.trim() || null,
             report_engagement: draft.report_engagement.trim() || null,
@@ -485,7 +485,7 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate, showHeade
       ...row, exam_module: row.exam_module ?? '', goal_id: row.goal_id ?? '', evidence_doc_id: row.evidence_doc_id ?? '',
       ods_goal: row.ods_goal ? String(row.ods_goal) : '', ods_rationale: row.ods_rationale ?? '',
       total_minutes: row.total_minutes == null ? '' : String(row.total_minutes),
-      /* CCG campos */
+      /* Campos do projeto */
       unit_name: row.unit_name ?? '', courses_involved: row.courses_involved ?? '',
       teachers_involved: row.teachers_involved ?? '', technicians: row.technicians ?? '',
       activity_time: row.activity_time ?? '', location: row.location ?? '',
@@ -670,9 +670,9 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate, showHeade
             <textarea required maxLength={4000} value={activityDraft.description} onChange={e => setActivityDraft({ ...activityDraft, description: e.target.value })} />
           </Field>
           </section>
-          <section className="teaching-form-step" aria-label="Dados do projeto (CCG-MD1)">
+          <section className="teaching-form-step" aria-label="Dados do projeto">
             <h4><span aria-hidden="true">1b</span> Dados do projeto</h4>
-            <p>Campos do formulário CCG-MD1 — preencha os dados de planejamento da atividade.</p>
+            <p>Preencha os dados de planejamento da atividade.</p>
             <div className="teaching-pdi-grid">
               <Field label="Unidade"><input maxLength={120} value={activityDraft.unit_name} onChange={e => setActivityDraft({ ...activityDraft, unit_name: e.target.value })} placeholder="Ex: Palmas" /></Field>
               <Field label="Curso(s) proponente(s)"><input maxLength={500} value={activityDraft.courses_involved} onChange={e => setActivityDraft({ ...activityDraft, courses_involved: e.target.value })} placeholder="Ex: Direito" /></Field>
@@ -697,7 +697,7 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate, showHeade
               <Field label="Qtd. professores"><input type="number" min="0" value={activityDraft.qty_teachers} onChange={e => setActivityDraft({ ...activityDraft, qty_teachers: e.target.value })} /></Field>
             </div>
             <Field label="Parcerias e forma de apoio"><textarea maxLength={2000} value={activityDraft.partnerships} onChange={e => setActivityDraft({ ...activityDraft, partnerships: e.target.value })} /></Field>
-            <Field label="Modo de confirmação de presença"><input maxLength={250} value={activityDraft.attendance_method} onChange={e => setActivityDraft({ ...activityDraft, attendance_method: e.target.value })} placeholder="Ex: Lista de Participação (CCG-FOR-52)" /></Field>
+            <Field label="Modo de confirmação de presença"><input maxLength={250} value={activityDraft.attendance_method} onChange={e => setActivityDraft({ ...activityDraft, attendance_method: e.target.value })} placeholder="Ex: Lista de presença, chamada" /></Field>
             <div className="teaching-pdi-grid">
               <Field label="Valor proposto (R$)"><input type="number" min="0" step="0.01" value={activityDraft.proposed_budget} onChange={e => setActivityDraft({ ...activityDraft, proposed_budget: e.target.value })} /></Field>
               <Field label="Valor aprovado (R$)"><input type="number" min="0" step="0.01" value={activityDraft.approved_budget} onChange={e => setActivityDraft({ ...activityDraft, approved_budget: e.target.value })} /></Field>
@@ -712,7 +712,7 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate, showHeade
               <Field label="Divulgação: canais"><input maxLength={250} value={activityDraft.marketing_channels} onChange={e => setActivityDraft({ ...activityDraft, marketing_channels: e.target.value })} placeholder="Ex: Mídias Sociais, E-mail" /></Field>
             </div>
           </section>
-          {(activityDraft.report_phase === 'relatorio' || activityDraft.report_phase === 'finalizado') && <section className="teaching-form-step" aria-label="Relatório final (CCG-MDL-02)">
+          {(activityDraft.report_phase === 'relatorio' || activityDraft.report_phase === 'finalizado') && <section className="teaching-form-step" aria-label="Relatório final">
             <h4><span aria-hidden="true">1c</span> Relatório final</h4>
             <p>Campos exclusivos do relatório pós-evento. Os dados do projeto acima podem ser corrigidos se necessário.</p>
             <Field label="Apresentação do projeto executado" help="Mínimo 500 caracteres. Descreva justificativa e objetivos alcançados.">
