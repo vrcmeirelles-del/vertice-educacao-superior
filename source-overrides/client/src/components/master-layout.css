@@ -56,7 +56,7 @@
 
 /* Shared institutional theme: quiet navigation, consistent action hierarchy. */
 .master-layout .area-ws{
- --ui-accent:#256b73;--ui-accent-hover:#1d555c;--ui-soft:#edf5f6;
+ --ui-accent:#245ed1;--ui-accent-hover:#194da9;--ui-soft:#edf4ff;
  --ui-ink:#243b4b;--ui-muted:#617383;--ui-border:#dce5eb;
  --area-ink:var(--ui-ink);--area-muted:var(--ui-muted);--area-line:var(--ui-border);
  --cx-ink:var(--ui-ink);--cx-line:var(--ui-border)
@@ -80,7 +80,7 @@
 .master-layout .area-ws :is(.area-btn.secondary,.area-guide-link,.vx-modules-fav-filter,.vx-modules-clear):hover:not([disabled]),
 .master-layout .area-ws :is(.cost-evidence,.vx-onedrive-espelho)>button:hover:not([disabled]),
 .master-layout .area-ws .conecta360 button:not(.vx-help-dot):not(.conecta-person):hover:not([disabled]){
- background:var(--ui-soft);border-color:#b7cfd3;color:var(--ui-accent)
+ background:var(--ui-soft);border-color:#b6ccef;color:var(--ui-accent)
 }
 .master-layout .area-ws :is(.area-btn,.corp-button,.conecta360 button):disabled{opacity:.5;cursor:not-allowed;box-shadow:none}
 .master-layout .area-ws :is(.area-inline,.area-row-actions,.area-form-actions,.conecta-actions){gap:8px;flex-wrap:wrap}
@@ -90,8 +90,8 @@
 }
 .master-layout .area-ws :is(.area-panel,.area-card):hover{transform:none;box-shadow:0 2px 8px rgb(36 59 75 / 5%)}
 .master-layout .area-ws :is(.area-ws-head,.conecta-hero,.vx-modules){background:#f6f9fa;border-color:var(--ui-border);box-shadow:none}
-.master-layout .area-ws .area-executive>header{background:#edf5f6;border:1px solid #d5e5e7;color:var(--ui-ink)}
-.master-layout .area-ws .area-executive>header :is(p,small){color:#526f77}
+.master-layout .area-ws .area-executive>header{background:#edf4ff;border:1px solid #d6e5fa;color:var(--ui-ink)}
+.master-layout .area-ws .area-executive>header :is(p,small){color:#4c6584}
 .master-layout .area-ws .inst-tabs-nav{border-color:var(--ui-border);padding:10px 8px;border-radius:12px;box-shadow:none}
 .master-layout .area-ws .inst-tabs-nav-item{margin:3px 0;border-radius:7px;border-left:3px solid transparent;padding:10px 12px;color:#536676;background:transparent}
 .master-layout .area-ws .inst-tabs-nav-item:hover{background:#f4f7f9}
@@ -103,10 +103,10 @@
 .master-layout .area-ws .inst-active-module-head p{color:var(--ui-accent)}
 .master-layout .area-ws :is(.inst-subtabs,.area-tabs,.conecta-nav) button{border-radius:7px;box-shadow:none;font-size:13px;font-weight:500}
 .master-layout .area-ws :is(.inst-subtabs,.area-tabs) button:is(.active,[aria-selected=true],[aria-current=page]),
-.master-layout .area-ws .conecta360 .conecta-nav button[aria-current=page]{background:var(--ui-soft);border-color:#cbdfe2;color:var(--ui-accent);box-shadow:none;font-weight:600}
+.master-layout .area-ws .conecta360 .conecta-nav button[aria-current=page]{background:var(--ui-soft);border-color:#cbdcf2;color:var(--ui-accent);box-shadow:none;font-weight:600}
 .master-layout .area-ws :is(a,button,input,select,textarea,summary):focus-visible{outline:2px solid var(--ui-accent);outline-offset:3px}
-.master-layout .master-nav-group a[aria-current=page]{background:#edf5f6;color:#256b73;box-shadow:inset 3px 0 #256b73}
-.master-layout .master-public-link{color:#256b73}
+.master-layout .master-nav-group a[aria-current=page]{background:#edf4ff;color:#245ed1;box-shadow:inset 3px 0 #245ed1}
+.master-layout .master-public-link{color:#245ed1}
 @media(pointer:coarse){
  .master-layout .area-ws :is(.area-btn,.corp-button,.area-guide-link,.conecta360 button:not(.vx-help-dot)){min-height:44px}
 }
@@ -120,8 +120,8 @@
 }
 
 /* Shared controls also used by cross-institutional Sapiens and BI screens. */
-.master-layout .area-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:36px;padding:8px 12px;border:1px solid #256b73;border-radius:8px;background:#256b73;color:#fff;font:inherit;font-size:13px;font-weight:500;line-height:1.4;text-decoration:none;box-shadow:none;cursor:pointer}
+.master-layout .area-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:36px;padding:8px 12px;border:1px solid #245ed1;border-radius:8px;background:#245ed1;color:#fff;font:inherit;font-size:13px;font-weight:500;line-height:1.4;text-decoration:none;box-shadow:none;cursor:pointer}
 .master-layout .area-btn.secondary{background:#fff;border-color:#dce5eb;color:#243b4b}
-.master-layout .area-btn:hover:not(:disabled){background:#edf5f6;border-color:#b7cfd3;color:#256b73}
+.master-layout .area-btn:hover:not(:disabled){background:#edf4ff;border-color:#b6ccef;color:#245ed1}
 .master-layout .area-btn:disabled{opacity:.5;cursor:not-allowed}
 @media(pointer:coarse){.master-layout .area-btn{min-height:44px}}

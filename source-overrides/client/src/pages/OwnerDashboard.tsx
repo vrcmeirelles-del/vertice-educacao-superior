@@ -70,7 +70,7 @@ function writeHash(inst:string,course:string,repositories=false,library=false,re
 type BiItem = {label:string; group:string; value:number; href?:string};
 type BiSource = {items:BiItem[]; error?:boolean};
 const BI_NAMES=['Metas','Matrículas','Documentação','Reconhecimento de Curso','Aquisições','Captação e permanência','Egressos','TCC e Pesquisa','Ativ. Complementares','Estágio','360° Integrado','Risco de Evasão','Estratégia e execução'];
-const BI_COLORS=['#0b9185','#daa94e','#e5765e','#368aa6','#6bbf9f','#b58b3b','#116d78'];
+const BI_COLORS=['#245ed1','#4884e8','#6da2ec','#194da9','#8cb9f3','#316ac0','#a9cdf5'];
 const biNumber=new Intl.NumberFormat('pt-BR');
 const biMoney=new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'});
 export function PortalBI({institutions,courses,enrollments,session}:{institutions:Institution[];courses:Course[];enrollments:Enrollment[];session:Session}){
