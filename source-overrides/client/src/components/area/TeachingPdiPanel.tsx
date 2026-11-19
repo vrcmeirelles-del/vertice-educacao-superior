@@ -107,7 +107,7 @@ const newActivity = () => ({
   infrastructure: '', evaluation_methods: '', target_audience: '', marketing_scope: '', marketing_channels: '',
   students_involved_desc: '',
   /* CCG-MDL-02 */
-  report_phase: 'projeto' as const,
+  report_phase: 'projeto' as Activity['report_phase'],
   report_presentation: '', report_results: '', report_engagement: '',
   report_budget_staff: '', report_budget_materials: '', report_materials_desc: '',
   report_dissemination: '', report_thanks: '',
