@@ -48,3 +48,18 @@ test('imagem pendente não pode ser gravada na questão',async t=>{
  await assert.rejects(()=>rpc('create',{questions:[{...question,id:id(51),pendingImageCount:1,images:[image]}]}),
   /não confirmada/);
 });
+
+test('imagem sem declaração de direitos de uso é rejeitada',async t=>{
+ const {db,rpc,question}=await fixture(t);
+ const media=await db.query('SELECT public.vertice_avalia_media($1,$2,$3,$4,$5,$6) as result',[
+  id(11),id(21),'civil',id(51),'prepare',{sha256:sha,mime:'image/png',sizeBytes:1200}
+ ]);
+ const ticket=media.rows[0].result;
+ await db.exec('reset role');
+ await db.query('SELECT public.vertice_avalia_media_finalize($1,$2,$3,$4)',[ticket.imageId,sha,1200,'image/png']);
+ await db.exec(`set role authenticated;set "request.jwt.claim.sub"='${id(1)}';set "request.jwt.claim.aal"='aal2';set "test.role"='equipe'`);
+ const image={imageId:ticket.imageId,path:ticket.path,sha256:sha,mime:'image/png',sizeBytes:1200,
+  altText:'Gráfico de incidência de responsabilidade objetiva',placement:'enunciado',order:0};
+ await assert.rejects(()=>rpc('create',{questions:[{...question,id:id(51),pendingImageCount:1,images:[image]}]}),
+  /Imagem não confirmada ou fora do escopo/);
+});
