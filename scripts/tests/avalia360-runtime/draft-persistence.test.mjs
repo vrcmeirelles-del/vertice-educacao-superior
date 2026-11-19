@@ -37,7 +37,7 @@ test('bloqueia curso de outra IES e IDOR de rascunho',async t=>{
 });
 test('não aceita mídia ainda sem upload autorizado',async t=>{
  const {rpc,question}=await fixture(t);
- await assert.rejects(()=>rpc('create',{questions:[{...question,pendingImageCount:1}]}),/mídia sem upload/);
+ await assert.rejects(()=>rpc('create',{questions:[{...question,pendingImageCount:1}]}),/Quantidade de imagens inválida/);
 });
 test('não permite escrita direta em tabela privada ao usuário autenticado',async t=>{
  const {db}=await fixture(t);
