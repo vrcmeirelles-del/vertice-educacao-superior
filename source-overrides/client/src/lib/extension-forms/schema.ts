@@ -2,8 +2,8 @@ export type Template = 'ensino' | 'acao_social' | 'extensao';
 export type Answers = Record<string, string>;
 export interface Field { key: string; label: string; type?: 'text'|'textarea'|'number'|'date'|'email'; required?: boolean; templates?: Template[]; }
 export const TEMPLATES: Record<Template, { label: string; source: string }> = {
-  ensino: { label: 'Atividade de ensino', source: 'Estrutura CCG-MDL-01 e CCG-MDL-02' },
-  acao_social: { label: 'Ação de responsabilidade social', source: 'Estrutura CCG-MDL-05 e CCG-MDL-06' },
+  ensino: { label: 'Atividade de ensino', source: 'Projeto e relatório de atividade de ensino' },
+  acao_social: { label: 'Ação de responsabilidade social', source: 'Projeto e relatório de responsabilidade social' },
   extensao: { label: 'Projeto de extensão', source: 'Estrutura PEX-MDL-55 e relatório de intervenção' },
 };
 export const SECTIONS: {title: string; stage: 'projeto'|'relatorio'; fields: Field[]}[] = [

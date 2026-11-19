@@ -1,9 +1,9 @@
--- Campos do CCG-MD1 (projeto) e CCG-MDL-02 (relatório) para Atividades de Ensino.
+-- Campos do projeto e do relatório para Atividades de Ensino.
 -- Fase "projeto" usa os campos já existentes + novos; fase "relatório" adiciona campos exclusivos.
 -- Um único registro, duas fases. Campos compartilhados não se repetem.
 begin;
 
--- ============ PROJETO (CCG-MD1) — campos novos ============
+-- ============ PROJETO — campos novos ============
 alter table public.vertice_teaching_activities
   add column unit_name          text,                              -- Unidade (Palmas etc.)
   add column courses_involved   text,                              -- Cursos proponentes (texto livre, pode ser mais de um)
@@ -28,7 +28,7 @@ alter table public.vertice_teaching_activities
   add column marketing_channels text,                              -- Divulgação: canais (cartazes, folders, e-mail, mídias…)
   add column students_involved_desc text,                          -- Descrição dos alunos envolvidos (períodos)
 
-  -- ============ RELATÓRIO (CCG-MDL-02) — campos exclusivos ============
+  -- ============ RELATÓRIO — campos exclusivos ============
   add column report_phase       text not null default 'projeto'    -- projeto | relatorio | finalizado
     check (report_phase in ('projeto','relatorio','finalizado')),
   add column report_presentation text,                             -- Apresentação do projeto executado (mín. 500 caracteres)
@@ -44,8 +44,8 @@ alter table public.vertice_teaching_activities
 
 comment on column public.vertice_teaching_activities.report_phase is 'Fase do registro: projeto (planejamento), relatorio (execução) ou finalizado.';
 comment on column public.vertice_teaching_activities.unit_name is 'Unidade da IES onde a atividade acontece.';
-comment on column public.vertice_teaching_activities.general_objective is 'Objetivo geral da atividade (CCG-MD1).';
-comment on column public.vertice_teaching_activities.report_presentation is 'Apresentação do projeto executado no relatório final (CCG-MDL-02).';
+comment on column public.vertice_teaching_activities.general_objective is 'Objetivo geral da atividade.';
+comment on column public.vertice_teaching_activities.report_presentation is 'Apresentação do projeto executado no relatório final.';
 
 -- Permitir que a função de salvamento aceite os novos campos
 -- Recriar a função de salvamento com os novos campos
