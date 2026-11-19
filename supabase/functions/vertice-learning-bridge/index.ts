@@ -113,6 +113,49 @@ async function remote(path:string,method="GET",body?:unknown,aggregateOnly=false
  }
  return result.result;
 }
+// Contrato v1 do sapiens-feed do Fato & Ordem (docs/vertice/SAPIENS_FEED_V1.md na origem).
+// Resposta incompatível falha inteira: nada parcial é apresentado como atual.
+const ENGAGEMENT=new Set(["ativo","em_queda","sem_atividade","nunca_iniciou"]);
+type SapiensSignal={studentToken:string;courseId:string;engagement:Record<string,unknown>;diagnostics:Record<string,unknown>[];prescriptions:Record<string,unknown>[]};
+function sapiensSignalsContract(result:unknown,inst:string,tier:string):SapiensSignal[]{
+ const bad=(what:string)=>fail("Contrato de sinais do Sapiens inválido: "+what+".",502);
+ if(!result||typeof result!=="object"||Array.isArray(result))throw bad("envelope");
+ const r=result as Record<string,unknown>;
+ if(r.contractVersion!=="v1"||r.institutionId!==inst||r.educationTier!==tier||!Array.isArray(r.students)||r.students.length>20000)
+  throw bad("envelope");
+ const text=(v:unknown,max:number)=>{if(typeof v!=="string"||!v.trim()||v.length>max)throw bad("texto");return v.trim();};
+ const date=(v:unknown,optional=false)=>{if(optional&&(v===null||v===undefined))return null;if(typeof v!=="string"||!Number.isFinite(Date.parse(v)))throw bad("data");return new Date(v).toISOString();};
+ const count=(v:unknown)=>{if(!Number.isSafeInteger(v)||Number(v)<0)throw bad("contagem");return Number(v);};
+ const seen=new Set<string>();
+ return r.students.map((value:unknown)=>{
+  if(!value||typeof value!=="object"||Array.isArray(value))throw bad("aluno");
+  const s=value as Record<string,unknown>;
+  const token=String(s.studentToken??"");if(!/^[a-f0-9]{64}$/.test(token))throw bad("token");
+  const courseId=String(s.courseId??"").toLowerCase();if(!UUID.test(courseId))throw bad("curso");
+  if(seen.has(token+":"+courseId))throw bad("aluno repetido");seen.add(token+":"+courseId);
+  const e=s.engagement as Record<string,unknown>;
+  if(!e||typeof e!=="object"||!ENGAGEMENT.has(String(e.status)))throw bad("situação");
+  const engagement={status:String(e.status),lastActivityAt:date(e.lastActivityAt,true),
+   answersLast7Days:count(e.answersLast7Days),answersPrevious7Days:count(e.answersPrevious7Days),
+   activeDaysLast14:count(e.activeDaysLast14),pausesAcceptedLast14Days:count(e.pausesAcceptedLast14Days)};
+  if(engagement.activeDaysLast14>14)throw bad("dias ativos");
+  if(!Array.isArray(s.diagnostics)||s.diagnostics.length>50||!Array.isArray(s.prescriptions)||s.prescriptions.length>50)throw bad("listas");
+  const diagnostics=s.diagnostics.map((v:unknown)=>{
+   const d=v as Record<string,unknown>;if(!d||typeof d!=="object")throw bad("diagnóstico");
+   const code=String(d.code??"");if(!/^E-[A-Z]{2,5}-\d{2}$/.test(code))throw bad("código");
+   const c=d.competency as Record<string,unknown>|null;
+   const competency=c==null?null:{kcId:text(c.kcId,80),discipline:c.discipline==null?null:text(c.discipline,160),theme:c.theme==null?null:text(c.theme,200)};
+   return {code,label:text(d.label,160),family:d.family==null?null:text(d.family,80),competency,since:date(d.since),sampleSize:count(d.sampleSize)};
+  });
+  const prescriptions=s.prescriptions.map((v:unknown)=>{
+   const p=v as Record<string,unknown>;if(!p||typeof p!=="object")throw bad("prescrição");
+   const rule=String(p.rule??"");if(!/^P-\d{3}$/.test(rule))throw bad("regra");
+   const diagnosticCode=String(p.diagnosticCode??"");if(!/^E-[A-Z]{2,5}-\d{2}$/.test(diagnosticCode))throw bad("código");
+   return {rule,label:p.label==null?rule:text(p.label,200),diagnosticCode,since:date(p.since),deadline:date(p.deadline,true)};
+  });
+  return {studentToken:token,courseId,engagement,diagnostics,prescriptions};
+ });
+}
 function rows(value:unknown,max=100){
  if(!Array.isArray(value)||!value.length||value.length>max)throw fail("Lote inválido ou acima do limite.");
  return value.map(object);
@@ -162,6 +205,45 @@ Deno.serve(async req=>{
    return send({ok:true,institutionId:inst,educationTier:segment.tier,scope:"institution",
     periodDays:90,retrievedAt:new Date().toISOString(),indicators,
     notice:"Exibição, abertura e leitura autodeclarada. Não comprovam aprendizagem nem alteram desempenho."},200,origin);
+  }
+  if(operation==="sapiens_signals"){
+   // Sinais do Sapiens (F&O): situação de estudo, padrões de erro liberados e prescrições.
+   // A origem envia só tokens; a matrícula vem da própria Vértice. Recorte institucional apenas.
+   if(segment.tier!=="superior"&&segment.tier!=="escolas")throw fail("Segmento institucional inválido.",403);
+   if(Object.keys(body).some(key=>!["institutionId","operation"].includes(key)))
+    throw fail("Sinais do Sapiens disponíveis somente no recorte institucional.");
+   let result;
+   try{result=await remote("/api/internal/vertice/sapiens-feed?institutionId="+encodeURIComponent(inst),"GET",undefined,true);}
+   catch(error){
+    const status=(error as {status?:number}).status;
+    throw fail(status===503?"Credencial de integração não configurada.":"Não foi possível consultar os sinais do Sapiens no Fato & Ordem.",status===503?503:502);
+   }
+   const signals=sapiensSignalsContract(result,inst,String(segment.tier));
+   const tokens=signals.map(s=>s.studentToken);
+   const roster=tokens.length?await rpc(admin,"vertice_sapiens_signal_roster",{p_institution:inst,p_tokens:tokens}):[];
+   const byKey=new Map<string,{course_name:string;enrollment_ref:string}>();
+   for(const r of (Array.isArray(roster)?roster:[]) as {student_token:string;course_id:string;course_name:string;enrollment_ref:string}[])
+    byKey.set(String(r.student_token).trim()+":"+String(r.course_id),r);
+   const ORDER:Record<string,number>={sem_atividade:0,em_queda:1,nunca_iniciou:2,ativo:3};
+   const students=[] as Record<string,unknown>[];let unmatched=0;
+   for(const s of signals){
+    const local=byKey.get(s.studentToken+":"+s.courseId);
+    if(!local){unmatched++;continue;}
+    // Allowlist: nunca repassa o token nem texto livre da origem além dos rótulos validados.
+    students.push({enrollmentRef:local.enrollment_ref,courseId:s.courseId,courseName:local.course_name,
+     engagement:s.engagement,diagnostics:s.diagnostics,prescriptions:s.prescriptions});
+   }
+   students.sort((a,b)=>(ORDER[(a.engagement as {status:string}).status]-ORDER[(b.engagement as {status:string}).status])||
+    String(a.courseName).localeCompare(String(b.courseName))||String(a.enrollmentRef).localeCompare(String(b.enrollmentRef)));
+   const summary={ativo:0,em_queda:0,sem_atividade:0,nunca_iniciou:0,comDiagnostico:0,comPrescricao:0};
+   for(const s of students){
+    summary[(s.engagement as {status:keyof typeof summary}).status]++;
+    if((s.diagnostics as unknown[]).length)summary.comDiagnostico++;
+    if((s.prescriptions as unknown[]).length)summary.comPrescricao++;
+   }
+   return send({ok:true,institutionId:inst,educationTier:segment.tier,scope:"institution",
+    retrievedAt:new Date().toISOString(),generatedAt:result.generatedAt,summary,students,unmatched,
+    notice:"Sinais descritivos do Sapiens. Situação de estudo segue regra fixa; não é previsão nem nota. Padrões de erro só aparecem depois de liberados ao próprio aluno."},200,origin);
   }
   if(operation==="sync_enem"&&!school)throw fail("ENEM integra exclusivamente a Vértice Escolas.",403);
   if(operation==="sync"&&school)throw fail("Use a sincronização ENEM da Vértice Escolas.",403);
