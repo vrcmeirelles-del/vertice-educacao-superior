@@ -10,6 +10,7 @@ test('rascunho cria, lista, reabre e atualiza sem perder histórico',async t=>{
  const loaded=await rpc('get',{id:c.id});assert.equal(loaded.snapshot.questions.length,1);
  const updated=await rpc('update',{id:c.id,expectedRevision:1,questions:[{...question,statement:'Novo enunciado sobre relações jurídicas e responsabilidade civil.'}]});
  assert.equal(updated.id,c.id);assert.equal(updated.revision,2);
+ await db.exec('reset role'); // auditoria técnica somente no banco isolado; usuário autenticado não possui SELECT direto
  const events=await db.query('select action,revision,snapshot->\'questions\'->0->>\'statement\' as title from vertice_avalia.assessment_draft_events order by revision');
  assert.deepEqual(events.rows.map(x=>x.revision),[1,2]);
  assert.notEqual(events.rows[0].title,events.rows[1].title);
