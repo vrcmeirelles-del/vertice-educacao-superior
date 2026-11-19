@@ -5,6 +5,7 @@
  */
 import {supabase} from '@/lib/supabase';
 import type {QuestionDraft} from './question-draft';
+import type {UploadedImageReceipt} from './private-image-upload';
 
 export interface DraftReceipt {
  id:string;revision:number;status:'draft'|'submitted'|'validated'|'archived';
@@ -15,23 +16,36 @@ export interface DraftSaveInput {
  institutionId:string;courseId:string;disciplineId:string;
  draftId?:string;expectedRevision?:number;buildId?:string;
  questions:QuestionDraft[];
+ uploadedImages?: Record<string, Array<{localId:string;receipt:UploadedImageReceipt}>>;
 }
-function sanitizeQuestion(q:QuestionDraft) {
+function sanitizeQuestion(q:QuestionDraft, uploaded:DraftSaveInput['uploadedImages']) {
  // Os metadados de mídia dependem de upload privado validado e
  // não podem ser fabricados a partir de File ou IDs locais.
+ const matched=uploaded?.[q.id]||[];
+ if(q.images.length!==matched.length || matched.some(item=>!q.images.some(i=>i.localId===item.localId)))
+   throw new Error('IMAGE_UPLOAD_REQUIRED');
+ const imageMetadata=q.images.map((image,order)=>{
+   const receipt=matched.find(item=>item.localId===image.localId)?.receipt;
+   if(!receipt?.imageId || !receipt.path || !receipt.sha256) throw new Error('IMAGE_UPLOAD_REQUIRED');
+   return {imageId:receipt.imageId,path:receipt.path,sha256:receipt.sha256,
+     mime:receipt.mime,sizeBytes:receipt.sizeBytes,altText:image.altText,
+     caption:image.caption,placement:image.placement,
+     ...(image.alternativeId?{alternativeId:image.alternativeId}:{}),
+     rightsStatus:image.rightsStatus,order};
+ });
  return {
   id:q.id,disciplineId:q.disciplineId,kind:q.kind,statement:q.statement,
   options:q.options,correctOptionId:q.correctOptionId,rubric:q.rubric,
   topicIds:q.topicIds,competencyIds:q.competencyIds,
   purpose:q.purpose,estimatedDifficulty:q.estimatedDifficulty,
   points:q.points,examTags:q.examTags,
-  pendingImageCount:q.images.length
+  pendingImageCount:q.images.length,images:imageMetadata
  };
 }
 export async function saveAssessmentDraft(input:DraftSaveInput):Promise<DraftApiResult> {
  if (!input.institutionId || !input.courseId || !input.disciplineId || !input.questions.length)
   return {ok:false,error:{code:'INVALID_INPUT',message:'Identificação de curso, disciplina e questões obrigatória.'}};
- if (input.questions.some(q=>q.images.length>0))
+ if (input.questions.some(q=>q.images.length !== (input.uploadedImages?.[q.id]?.length||0)))
   return {ok:false,error:{code:'IMAGE_UPLOAD_REQUIRED',message:'Conclua o upload privado das imagens antes de salvar o rascunho.'}};
  if (input.expectedRevision!==undefined && (!Number.isInteger(input.expectedRevision)||input.expectedRevision<1))
   return {ok:false,error:{code:'INVALID_REVISION',message:'Versão de rascunho inválida.'}};
@@ -46,7 +60,7 @@ export async function saveAssessmentDraft(input:DraftSaveInput):Promise<DraftApi
     ...(input.draftId?{id:input.draftId}:{}),
     ...(input.expectedRevision?{expectedRevision:input.expectedRevision}:{}),
     ...(input.buildId?{buildId:input.buildId}:{}),
-    questions:input.questions.map(sanitizeQuestion)
+    questions:input.questions.map(q=>sanitizeQuestion(q,input.uploadedImages))
    }
   });
   if(error) return {ok:false,error:{code:error.code||'PERSISTENCE_ERROR',message:error.message}};
