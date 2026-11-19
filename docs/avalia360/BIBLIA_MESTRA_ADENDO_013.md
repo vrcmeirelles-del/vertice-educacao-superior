@@ -50,3 +50,11 @@ Concluir testes TypeScript/Vitest, abrir ambiente isolado de validação autoriz
 - CI #44635725337: execução Vitest 50/50 e TypeScript isolado **aprovados**. Evidência: https://github.com/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44635725337
 - Ajustado o `AssessmentDraftWorkspace.tsx` para usar o recibo (`id` + `revision`) nos salvamentos posteriores, evitando criar novo rascunho a cada alteração. **Essa alteração posterior precisa de nova execução de CI.**
 - Nenhum SQL foi aplicado em produção; integração permanece preparada em código, **não operacional no ambiente publicado**.
+
+### Fechamento parcial de integração (evidência posterior)
+- O `AssessmentDraftWorkspace` foi conectado ao cliente RPC e passou a fornecer `draftId` e `expectedRevision` a cada atualização; não implica conexão com banco enquanto a RPC não for aplicada.
+- SQL de staging revisada para registrar snapshot integral de cada revisão em `vertice_avalia.assessment_draft_events` e preservar histórico de conteúdo.
+- GitHub Actions #44635902864: **50 testes Vitest aprovados e verificação TypeScript isolada aprovada** após alterações de formulário e API.
+- Evidência: https://github.com/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44635902864
+- Última alteração da proposta SQL ainda NÃO foi testada contra PostgreSQL; não executar diretamente em produção.
+- Para testar em branch Supabase própria é exigida confirmação de custo pela plataforma; criação não autorizada financeiramente nesta conversa. A branch de ENAMED existente não foi reutilizada.
