@@ -3,6 +3,7 @@ import { useLocation } from 'wouter';
 import { LayoutDashboard, Building2, GraduationCap, Wallet, Users, Mail, Brain, ClipboardCheck, GitBranch, ChartColumn, Smartphone, PanelLeftClose, PanelLeftOpen, Menu, X, Settings, FolderOpen } from 'lucide-react';
 import { Brand } from './Brand';
 import './master-layout.css';
+import './command-workspace.css';
 
 const groups = [
   { label: 'Plataforma', items: [
@@ -65,7 +66,7 @@ export default function MasterLayout({ children }: { children: ReactNode }) {
   }, [open]);
   const active = groups.flatMap(group => group.items).find(item => item.href === `${path}${hash}`);
   const institutionalContext = new URLSearchParams(hash.slice(1)).has('instituicao');
-  return <div className={`corporate-site master-layout vertice-portal${collapsed ? ' is-collapsed' : ''}${open ? ' is-open' : ''}`}>
+  return <div className={`corporate-site master-layout command-workspace vertice-portal${collapsed ? ' is-collapsed' : ''}${open ? ' is-open' : ''}`}>
     <a className="skip-link" href="#master-content">Pular para o conteúdo</a>
     {open && <button className="master-overlay" aria-label="Fechar menu" onClick={() => { setOpen(false); menuButton.current?.focus(); }} />}
     <aside className="master-sidebar" id="master-navigation" aria-label="Menu administrativo">
@@ -83,7 +84,7 @@ export default function MasterLayout({ children }: { children: ReactNode }) {
       <header className="master-topbar">
         <button ref={menuButton} className="master-mobile-toggle" aria-label="Abrir menu" aria-expanded={open} aria-controls="master-navigation" onClick={() => setOpen(true)}><Menu size={22}/></button>
         <div><small>{institutionalContext ? 'MASTER / AMBIENTE INSTITUCIONAL' : 'VÉRTICE / ADMINISTRAÇÃO MASTER'}</small><strong>{institutionalContext ? 'Gestão da instituição' : active?.label ?? 'Painel Master'}</strong></div>
-        <a className="master-public-link" href="/">Site institucional</a>
+        <div className="master-command-links"><a className="master-command-bi" href="/master#bi-vertice=1">Visão executiva ↗</a><a className="master-command-public" href="/">Site institucional</a></div>
       </header>
       <div id="master-content" className="master-content" tabIndex={-1}>{children}</div>
     </div>
