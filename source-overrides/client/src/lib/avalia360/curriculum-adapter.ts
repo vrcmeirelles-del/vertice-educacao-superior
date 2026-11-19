@@ -68,7 +68,7 @@ export function adaptCurriculum(input: AdapterInput): CurriculumAdapterResult {
     if (!c.id || ids.has(c.id)) report('DUPLICATE_COMPETENCY','Identificador de competência ausente ou duplicado.',c.id);
     if (!c.code?.trim() || codes.has(c.code.trim().toLowerCase()))
       report('DUPLICATE_CODE','Código de competência ausente ou duplicado.',c.id);
-    ids.add(c.id); codes.add(c.code.trim().toLowerCase());
+    ids.add(c.id); codes.add((c.code || '').trim().toLowerCase());
   }
   if (!ownCompetencies.length) report('EMPTY_COMPETENCIES','Matriz sem competências cadastradas.');
   const periodById = new Map<string,number>();
