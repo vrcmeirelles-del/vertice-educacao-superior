@@ -1,6 +1,12 @@
 import {createClient} from 'npm:@supabase/supabase-js@2.45.4';
 import {runAction} from './handler.ts';
 import {fail,type Obj} from './core.ts';
+// IA suspensa até a plataforma gerar receita (decisão de 19/11/2026). Para religar: secret AI_SUSPENDED=false.
+{const __aiFetch=globalThis.fetch;const __aiHosts=/(^|\.)(api\.anthropic\.com|api\.openai\.com|generativelanguage\.googleapis\.com)$/i;
+globalThis.fetch=((input:any,init?:any)=>{let host="";try{host=new URL(typeof input==="string"?input:input instanceof URL?input.href:input.url).hostname;}catch{}
+if(__aiHosts.test(host)&&String(Deno.env.get("AI_SUSPENDED")??"true").toLowerCase()!=="false")
+ return Promise.resolve(new Response(JSON.stringify({error:{type:"ai_suspended",message:"IA suspensa temporariamente."}}),{status:503,headers:{"content-type":"application/json"}}));
+return __aiFetch(input,init);}) as typeof fetch;}
 const env=(s:string)=>Deno.env.get(s)||'';
 const origins=new Set(['https://www.verticesuperior.com.br','https://verticesuperior.com.br','https://vertice-portal.onrender.com','https://vertice-educacao-superior.onrender.com','https://vertice-educacao-superior-site.onrender.com']);
 Deno.serve(async(req:Request)=>{
