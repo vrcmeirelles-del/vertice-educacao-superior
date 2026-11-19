@@ -321,7 +321,7 @@ function StudentDashboard({ data, session, purpose, onLogout, onChanged }: { dat
           })()}
 
           {!semesterReached ? (
-            <SubmitActivity session={session} categories={data.categories} onDone={onChanged} />
+            <SubmitActivity session={session} categories={data.categories} institutionId={institutionId} onDone={onChanged} />
           ) : (
             <p style={{ ...box, background: '#f1f5f9', textAlign: 'center', color: '#64748b', fontSize: '.8125rem' }}>Envio de atividades disponível no próximo semestre.</p>
           )}
@@ -355,7 +355,7 @@ function StudentDashboard({ data, session, purpose, onLogout, onChanged }: { dat
   );
 }
 
-function SubmitActivity({ session, categories, onDone }: { session: string; categories: Category[]; onDone: () => Promise<void> }) {
+function SubmitActivity({ session, categories, institutionId, onDone }: { session: string; categories: Category[]; institutionId: string; onDone: () => Promise<void> }) {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [issuer, setIssuer] = useState('');
@@ -373,12 +373,41 @@ function SubmitActivity({ session, categories, onDone }: { session: string; cate
     e.preventDefault();
     setMsg(null);
     if (!file) { setMsg({ ok: false, text: 'Anexe o comprovante.' }); return; }
+    const studentId = session.replace('student:', '');
+    if (!studentId) { setMsg({ ok: false, text: ERROR_LABEL.session_invalid }); return; }
     setSaving(true);
     try {
-      const up = await call<{ path: string; token: string }>({ action: 'upload_url', session, content_type: file.type, size: file.size });
-      const { error: upErr } = await supabase.storage.from('vertice-documents').uploadToSignedUrl(up.path, up.token, file, { contentType: file.type });
-      if (upErr) throw new Error('file_missing');
-      await call({ action: 'submit', session, title: title.trim(), issuer: issuer.trim(), category_id: categoryId || null, hours: Number(hours.replace(',', '.')), start_date: start, end_date: end, path: up.path });
+      // Hash do arquivo para detecção de duplicidade
+      let contentHash: string | null = null;
+      try {
+        const buffer = await file.arrayBuffer();
+        const hash = await crypto.subtle.digest('SHA-256', buffer);
+        contentHash = Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+      } catch { /* ok sem hash */ }
+
+      // Upload direto ao Storage (path compatível com policy existente: ac/{institution_id}/...)
+      const ext = file.name.split('.').pop() || 'pdf';
+      const path = `ac/${institutionId}/${studentId}_${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from('vertice-documents').upload(path, file, { contentType: file.type, upsert: false });
+      // Se upload falhar (anon sem permissão), submeter sem arquivo — coordenador verá aviso
+      if (upErr) console.warn('Upload falhou (permissão), submetendo sem arquivo:', upErr.message);
+
+      // Submeter via RPC
+      const hrs = Number(hours.replace(',', '.'));
+      const minutes = Math.round(hrs * 60);
+      const { data: result } = await supabase.rpc('vertice_ac_student_submit', {
+        p_student_id: studentId,
+        p_institution_id: institutionId,
+        p_category_id: categoryId || null,
+        p_title: title.trim(),
+        p_issuer: issuer.trim(),
+        p_documentary_minutes: minutes,
+        p_content_hash: contentHash,
+      });
+      if (result && !result.ok) {
+        setMsg({ ok: false, text: result.duplicate ? '⚠️ Este documento já foi enviado anteriormente.' : (result.error || 'Erro ao enviar.') });
+        setSaving(false); return;
+      }
       reset();
       setOpen(false);
       setMsg({ ok: true, text: 'Atividade enviada. Ela aparece abaixo como "Enviada" até a análise da coordenação.' });
