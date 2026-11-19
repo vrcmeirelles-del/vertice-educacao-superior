@@ -1,0 +1,31 @@
+name: "Avalia 360 - Núcleo algorítmico"
+on:
+  pull_request:
+    paths:
+      - 'source-overrides/client/src/lib/avalia360/**'
+      - 'source-overrides/vitest.config.ts'
+      - '.github/workflows/avalia360-quality.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  unit:
+    name: "Avalia 360 - Testes unitários"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: source-overrides
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: source-overrides/package-lock.json
+      - name: Instalar dependências fixadas
+        run: npm ci --legacy-peer-deps --no-audit --no-fund
+      - name: Executar testes exclusivos do Avalia 360
+        run: npx vitest run client/src/lib/avalia360
