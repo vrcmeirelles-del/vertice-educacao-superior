@@ -9,6 +9,7 @@ const st=(enrollmentRef:string,status:string,diagnostics:unknown[]=[])=>({enroll
  engagement:{status,lastActivityAt:'2026-11-10T10:00:00Z',answersLast7Days:2,answersPrevious7Days:9,activeDaysLast14:3,pausesAcceptedLast14Days:0},diagnostics,prescriptions:[]});
 const snapshot=(institutionId='synthetic-a',extra:Record<string,unknown>={})=>({ok:true,institutionId,scope:'institution',educationTier:'superior',retrievedAt:'2026-11-19T09:00:00Z',unmatched:0,
  summary:{ativo:1,em_queda:0,sem_atividade:1,nunca_iniciou:0,comDiagnostico:1,comPrescricao:0},
+ patterns:[{label:'Lacuna de base',discipline:'Direito Civil',theme:'Contratos',students:1}],
  students:[st('2024002','sem_atividade',[{code:'E-CONT-01',label:'Lacuna de base',family:'Conteúdo',competency:{kcId:'DC-05',discipline:'Direito Civil',theme:'Contratos'},since:'2026-11-18T00:00:00Z',sampleSize:12}]),st('2024001','ativo')],...extra});
 const render=async(institutionId='synthetic-a',role:string|null='reitor')=>act(async()=>root.render(<SapiensSignals institutionId={institutionId} role={role}/>));
 beforeEach(()=>{(globalThis as any).IS_REACT_ACT_ENVIRONMENT=true;mocks.invoke.mockReset().mockResolvedValue({data:snapshot(),error:null});host=document.createElement('div');document.body.append(host);root=createRoot(host);});

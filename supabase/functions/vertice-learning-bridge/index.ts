@@ -235,14 +235,22 @@ Deno.serve(async req=>{
    }
    students.sort((a,b)=>(ORDER[(a.engagement as {status:string}).status]-ORDER[(b.engagement as {status:string}).status])||
     String(a.courseName).localeCompare(String(b.courseName))||String(a.enrollmentRef).localeCompare(String(b.enrollmentRef)));
+   // Totais e padrões consideram todos os vínculos verificados (agregado, sem identificação);
+   // a lista nominal depende da matrícula ativa na Vértice.
    const summary={ativo:0,em_queda:0,sem_atividade:0,nunca_iniciou:0,comDiagnostico:0,comPrescricao:0};
-   for(const s of students){
-    summary[(s.engagement as {status:keyof typeof summary}).status]++;
-    if((s.diagnostics as unknown[]).length)summary.comDiagnostico++;
-    if((s.prescriptions as unknown[]).length)summary.comPrescricao++;
+   const patternMap=new Map<string,{label:string;discipline:string|null;theme:string|null;students:number}>();
+   for(const s of signals){
+    summary[s.engagement.status as keyof typeof summary]++;
+    if(s.diagnostics.length)summary.comDiagnostico++;
+    if(s.prescriptions.length)summary.comPrescricao++;
+    for(const d of s.diagnostics as {label:string;competency:{discipline:string|null;theme:string|null}|null}[]){
+     const discipline=d.competency?.discipline??null,theme=d.competency?.theme??null,key=d.label+"|"+discipline+"|"+theme;
+     const entry=patternMap.get(key)||{label:d.label,discipline,theme,students:0};entry.students++;patternMap.set(key,entry);
+    }
    }
+   const patterns=[...patternMap.values()].sort((a,b)=>b.students-a.students).slice(0,20);
    return send({ok:true,institutionId:inst,educationTier:segment.tier,scope:"institution",
-    retrievedAt:new Date().toISOString(),generatedAt:result.generatedAt,summary,students,unmatched,
+    retrievedAt:new Date().toISOString(),generatedAt:result.generatedAt,summary,patterns,students,unmatched,
     notice:"Sinais descritivos do Sapiens. Situação de estudo segue regra fixa; não é previsão nem nota. Padrões de erro só aparecem depois de liberados ao próprio aluno."},200,origin);
   }
   if(operation==="sync_enem"&&!school)throw fail("ENEM integra exclusivamente a Vértice Escolas.",403);

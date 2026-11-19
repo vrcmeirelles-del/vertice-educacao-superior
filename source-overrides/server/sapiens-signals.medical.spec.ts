@@ -34,7 +34,9 @@ describe('sinais do Sapiens no Vértice',()=>{
   const h=harness();const r=await h.run();expect(r.status).toBe(200);const data=await r.json();
   expect(data.students.map((s:any)=>[s.enrollmentRef,s.engagement.status])).toEqual([['2024002','sem_atividade'],['2024001','ativo']]);
   expect(data.unmatched).toBe(1);
-  expect(data.summary).toEqual({ativo:1,em_queda:0,sem_atividade:1,nunca_iniciou:0,comDiagnostico:1,comPrescricao:1});
+  // totais agregados incluem o vínculo sem matrícula (em_queda)
+  expect(data.summary).toEqual({ativo:1,em_queda:1,sem_atividade:1,nunca_iniciou:0,comDiagnostico:1,comPrescricao:1});
+  expect(data.patterns).toEqual([{label:'Lacuna de base',discipline:'Direito Civil',theme:'Contratos',students:1}]);
   expect(data.students[0].prescriptions[0].label).toBe('P-009');
   expect(JSON.stringify(data)).not.toContain(tokA);expect(JSON.stringify(data)).not.toContain(tokB);
  });

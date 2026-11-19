@@ -8,8 +8,9 @@ type Prescription={rule:string;label:string;diagnosticCode:string;since:string;d
 type Student={enrollmentRef:string;courseId:string;courseName:string;
  engagement:{status:Status;lastActivityAt:string|null;answersLast7Days:number;answersPrevious7Days:number;activeDaysLast14:number;pausesAcceptedLast14Days:number};
  diagnostics:Diagnosis[];prescriptions:Prescription[]};
+type Pattern={label:string;discipline:string|null;theme:string|null;students:number};
 type Snapshot={ok:true;institutionId:string;educationTier:'superior'|'escolas';scope:'institution';retrievedAt:string;
- summary:Record<Status|'comDiagnostico'|'comPrescricao',number>;students:Student[];unmatched:number};
+ summary:Record<Status|'comDiagnostico'|'comPrescricao',number>;patterns:Pattern[];students:Student[];unmatched:number};
 
 // Mesmo recorte de papéis da ponte (alta gestão autorizada); nenhuma permissão nova.
 const ROLES=new Set(['master','reitor','gestor','diretor_geral','diretor_pedagogico','procurador']);
@@ -27,7 +28,8 @@ function valid(data:any,institutionId:string,expectedTier?:string):data is Snaps
  if(data?.ok!==true||data.institutionId!==institutionId||data.scope!=='institution'||
    !['superior','escolas'].includes(data.educationTier)||(expectedTier&&data.educationTier!==expectedTier)||
    !Array.isArray(data.students)||data.students.length>20000||!Number.isFinite(Date.parse(data.retrievedAt))||
-   !data.summary||typeof data.summary!=='object')return false;
+   !data.summary||typeof data.summary!=='object'||!Array.isArray(data.patterns)||data.patterns.length>20||
+   !data.patterns.every((p:any)=>p&&typeof p.label==='string'&&Number.isSafeInteger(p.students)))return false;
  return data.students.every((s:any)=>s&&typeof s.enrollmentRef==='string'&&typeof s.courseName==='string'&&
   Object.hasOwn(STATUS,s.engagement?.status)&&Array.isArray(s.diagnostics)&&Array.isArray(s.prescriptions));
 }
@@ -56,14 +58,7 @@ export default function SapiensSignals({institutionId,role,expectedTier}:{instit
  const current=state.scope===scope?state:undefined;
  const snapshot=current?.data;
  const rows=useMemo(()=>!snapshot?[]:snapshot.students.filter(s=>filter==='todos'?true:filter==='diagnostico'?s.diagnostics.length>0:s.engagement.status===filter),[snapshot,filter]);
- const weakest=useMemo(()=>{
-  const map=new Map<string,{label:string;n:number}>();
-  for(const s of snapshot?.students||[])for(const d of s.diagnostics){
-   const key=d.competency?[d.competency.discipline,d.competency.theme].filter(Boolean).join(' · ')||d.competency.kcId:'Sem competência específica';
-   const entry=map.get(key+'|'+d.label)||{label:key+' — '+d.label,n:0};entry.n++;map.set(key+'|'+d.label,entry);
-  }
-  return [...map.values()].sort((a,b)=>b.n-a.n).slice(0,8);
- },[snapshot]);
+ const weakest=(snapshot?.patterns||[]).slice(0,8).map(p=>({label:([p.discipline,p.theme].filter(Boolean).join(' · ')||'Sem competência específica')+' — '+p.label,n:p.students}));
  if(!allowed)return <section className="reading-indicators"><h3>Sinais dos alunos (Sapiens)</h3><p>Sinais por aluno restritos à alta gestão autorizada.</p></section>;
  return <section className="reading-indicators" aria-label="Sinais dos alunos — Sapiens">
   <header><div><small>FATO & ORDEM · SAPIENS</small><h3>Sinais dos alunos</h3></div>
@@ -72,7 +67,7 @@ export default function SapiensSignals({institutionId,role,expectedTier}:{instit
   {(!current||current.loading)&&<p role="status">Consultando sinais autorizados…</p>}
   {current?.error&&<p role="alert">{current.error} Nenhum dado anterior é apresentado como atualizado.</p>}
   {snapshot&&<>
-   <p className="reading-provenance">Fonte: Fato & Ordem · consultado em <time dateTime={snapshot.retrievedAt}>{new Date(snapshot.retrievedAt).toLocaleString('pt-BR')}</time>. Alunos com vínculo verificado, identificados pela matrícula da Vértice.{snapshot.unmatched>0&&<> {fmt.format(snapshot.unmatched)} vínculo(s) da origem sem matrícula ativa na Vértice não aparecem.</>}</p>
+   <p className="reading-provenance">Fonte: Fato & Ordem · consultado em <time dateTime={snapshot.retrievedAt}>{new Date(snapshot.retrievedAt).toLocaleString('pt-BR')}</time>. Alunos com vínculo verificado, identificados pela matrícula da Vértice.{snapshot.unmatched>0&&<> Os totais incluem todos os vínculos verificados; {fmt.format(snapshot.unmatched)} aluno(s) sem matrícula ativa na Vértice não aparecem na lista nominal. Importe as matrículas (CPF e matrícula) na Aprendizagem Conectada para identificá-los.</>}</p>
    <div className="reading-scroll"><table><caption>Situação de estudo</caption><thead><tr>{ORDER.map(s=><th key={s} scope="col" title={STATUS[s].hint}>{STATUS[s].label}</th>)}<th scope="col">Com padrão de erro</th><th scope="col">Com prescrição</th></tr></thead>
     <tbody><tr>{ORDER.map(s=><td key={s}>{fmt.format(snapshot.summary[s]??0)}</td>)}<td>{fmt.format(snapshot.summary.comDiagnostico??0)}</td><td>{fmt.format(snapshot.summary.comPrescricao??0)}</td></tr></tbody></table></div>
    {weakest.length>0&&<><h4>Padrões de erro mais frequentes</h4><ul>{weakest.map(w=><li key={w.label}>{w.label}: {fmt.format(w.n)} aluno(s)</li>)}</ul></>}

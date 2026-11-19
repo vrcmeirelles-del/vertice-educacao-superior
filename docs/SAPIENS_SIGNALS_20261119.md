@@ -19,7 +19,11 @@ Nova aba **Sinais dos alunos** no Vértice Sapiens. Mostra, por matrícula, a si
 
    Se qualquer item falhar, a resposta inteira falha.
 5. O token é traduzido em matrícula e nome do curso pela função `vertice_sapiens_signal_roster`. A função é `SECURITY DEFINER`, só executável por `service_role` e lê `vertice_private.learning_students`. O token nunca chega ao navegador.
-6. Vínculos sem matrícula ativa na Vértice são contados (`unmatched`), não exibidos.
+6. Os totais por situação e os padrões de erro mais frequentes (até 20) consideram todos os vínculos verificados. São agregados, sem identificação. A lista nominal mostra só quem tem matrícula ativa na Vértice. Os demais são contados em `unmatched`.
+
+## Pré-requisito para a lista nominal
+
+A lista por matrícula depende de `vertice_private.learning_students`, que hoje está vazia. Ela é preenchida pela importação de matrículas (`import_roster`: CPF, matrícula e curso). O lote de vinculação (`batch_link`) envia CPFs ao Fato & Ordem, mas guarda na Vértice apenas uma auditoria sem CPF e sem matrícula, e por isso não basta. Sem essa importação, a aba mostra só os totais institucionais. O mesmo vale para eventos e métricas da Aprendizagem Conectada, que também dependem dessa tabela.
 
 ## Regras exibidas
 
