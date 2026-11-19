@@ -37,3 +37,8 @@ A nova suíte adicionada neste adendo exige **nova execução**; não extrapolar
 - [ ] Gateway autorizado e testes multi-IES/curso.
 - [ ] Armazenamento de imagens e edição posterior preservados.
 - [ ] Interface e homologação operacional.
+
+### Atualização de evidência após a criação do adendo
+- GitHub Actions **#44634212948**, commit da nova suíte: **46 testes aprovados (46/46)**, execução do TypeScript específico do Avalia 360° concluída com sucesso.
+- URL: https://github.com/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44634212948
+- A comprovação substitui exclusivamente a pendência de execução da suíte deste adendo. Gateway autenticado, gravação transacional, RLS e interface continuam pendentes.
