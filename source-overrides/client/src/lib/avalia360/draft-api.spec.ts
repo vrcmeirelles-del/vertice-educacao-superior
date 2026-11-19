@@ -19,7 +19,7 @@ describe('cliente de rascunhos do Avalia 360°',()=>{
    const [name,parameters]=rpc.mock.calls[0];
    expect(name).toBe('vertice_avalia_draft');
    expect(parameters.p_payload.questions[0].pendingImageCount).toBe(0);
-   expect(parameters.p_payload.questions[0]).not.toHaveProperty('images');
+   expect(parameters.p_payload.questions[0].images).toEqual([]);
  });
  it('não declara sucesso sem confirmação válida da RPC',async()=>{
    rpc.mockResolvedValue({data:null,error:null});
