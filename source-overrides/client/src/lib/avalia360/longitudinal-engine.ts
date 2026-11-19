@@ -83,7 +83,9 @@ export function analyzeAssessment({ assessment: a, catalog, results = [] }: Anal
   for (const x of coverage.competencies) if (!x.items) add('COMPETENCY_GAP','attention',`Competência ${x.id} não contemplada.`);
   for (const x of coverage.topics) if (!x.items) add('TOPIC_GAP','attention',`Tema ${x.id} não contemplado.`);
   const longitudinal = a.items.map(item => {
-    const current = unique(item.competencyIds.filter(id => (c.get(id)?.period ?? Infinity) >= a.period));
+    const current = unique(item.competencyIds.filter(id => c.get(id)?.period === a.period));
+    const future = unique(item.competencyIds.filter(id => (c.get(id)?.period ?? -1) > a.period));
+    if (future.length) add('FUTURE_COMPETENCY','attention','Competência prevista para período posterior; verificar intencionalidade.',[item.id]);
     const prior = unique(item.competencyIds.filter(id => (c.get(id)?.period ?? Infinity) < a.period));
     const links = unique(item.competencyIds.flatMap(id => (c.get(id)?.relations || [])
       .filter(r => item.competencyIds.includes(r.to)).map(r => r.kind))) as Relation[];
