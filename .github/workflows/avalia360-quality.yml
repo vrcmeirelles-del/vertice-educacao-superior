@@ -29,3 +29,5 @@ jobs:
         run: npm ci --legacy-peer-deps --no-audit --no-fund
       - name: Executar testes exclusivos do Avalia 360
         run: npx vitest run client/src/lib/avalia360
+      - name: Verificar TypeScript exclusivo do Avalia 360
+        run: npx tsc -p client/src/lib/avalia360/tsconfig.json --noEmit
