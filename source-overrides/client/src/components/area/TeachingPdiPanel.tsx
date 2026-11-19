@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { BookOpen, CircleCheck, Clock3, GraduationCap, Info, Link2, Save, Target, UsersRound } from 'lucide-react';
+import { BookOpen, CircleCheck, Clock3, GraduationCap, Info, Link2, Paperclip, Save, Target, Upload, UsersRound } from 'lucide-react';
 import PortalPageHeader from '../PortalPageHeader';
 import { supabase } from '@/lib/supabase';
 import { isFullAccess, visibleTabs, GOAL_STATUS, DIRECTION, type Role } from '@/lib/area';
@@ -92,6 +92,12 @@ type Activity = {
   report_budget_materials: number | null; report_materials_desc: string | null;
   report_dissemination: string | null; report_thanks: string | null;
   report_opened_at: string | null; report_submitted_at: string | null;
+  /* Considerações finais e anexos */
+  final_remarks: string | null;
+  evidence_photos: { path: string; name: string; uploaded_at?: string }[];
+  evidence_attendance: { path: string; name: string }[];
+  evidence_clippings: { path: string; name: string }[];
+  roster_spreadsheet_path: string | null; roster_spreadsheet_name: string | null;
 };
 type Evidence = { id: string; title: string };
 const TABLE = { programs: 'vertice_pdi_programs', goals: 'vertice_goals', activities: 'vertice_teaching_activities' };
@@ -111,10 +117,16 @@ const newActivity = () => ({
   report_presentation: '', report_results: '', report_engagement: '',
   report_budget_staff: '', report_budget_materials: '', report_materials_desc: '',
   report_dissemination: '', report_thanks: '',
+  /* Considerações finais e anexos */
+  final_remarks: '',
+  evidence_photos: [] as { path: string; name: string; uploaded_at?: string }[],
+  evidence_attendance: [] as { path: string; name: string }[],
+  evidence_clippings: [] as { path: string; name: string }[],
+  roster_spreadsheet_path: '', roster_spreadsheet_name: '',
 });
 const activityStatus = (status: string) => ({ rascunho: 'Rascunho', validada: 'Validada', cancelada: 'Cancelada' }[status] ?? status);
 const GOAL_FIELDS = 'id,title,pdi_program_id,indicator,target,unit,owner_name,due_date,direction,status,pdi_expected_result';
-const ACTIVITY_FIELDS = 'id,course_id,title,category,description,activity_date,organizer_role,goal_id,evidence_doc_id,ods_goal,ods_rationale,status,updated_at,exam_module,created_by,total_minutes,unit_name,courses_involved,teachers_involved,technicians,activity_time,location,schedule_detail,qty_students,qty_technicians,qty_teachers,partnerships,attendance_method,proposed_budget,approved_budget,general_objective,specific_objectives,infrastructure,evaluation_methods,target_audience,marketing_scope,marketing_channels,students_involved_desc,report_phase,report_presentation,report_results,report_engagement,report_budget_staff,report_budget_materials,report_materials_desc,report_dissemination,report_thanks,report_opened_at,report_submitted_at';
+const ACTIVITY_FIELDS = 'id,course_id,title,category,description,activity_date,organizer_role,goal_id,evidence_doc_id,ods_goal,ods_rationale,status,updated_at,exam_module,created_by,total_minutes,unit_name,courses_involved,teachers_involved,technicians,activity_time,location,schedule_detail,qty_students,qty_technicians,qty_teachers,partnerships,attendance_method,proposed_budget,approved_budget,general_objective,specific_objectives,infrastructure,evaluation_methods,target_audience,marketing_scope,marketing_channels,students_involved_desc,report_phase,report_presentation,report_results,report_engagement,report_budget_staff,report_budget_materials,report_materials_desc,report_dissemination,report_thanks,report_opened_at,report_submitted_at,final_remarks,evidence_photos,evidence_attendance,evidence_clippings,roster_spreadsheet_path,roster_spreadsheet_name';
 
 function parseError(error: unknown) {
   if (error && typeof error === 'object' && 'message' in error) return String(error.message);
@@ -213,6 +225,23 @@ async function writeRow(
       ? 'Não foi possível confirmar a alteração. Recarregue os dados e verifique o acesso ou a versão atual.'
       : parseError(error),
   );
+}
+
+const EVIDENCE_BUCKET = 'vertice-documents';
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.ms-excel', 'text/csv'];
+
+async function uploadTeachingFile(institutionId: string, courseId: string, file: File, folder: string): Promise<{ path: string; name: string }> {
+  if (file.size > MAX_FILE_SIZE) throw new Error(`Arquivo ${file.name} excede 10 MB.`);
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData.user) throw new Error('Sessão expirada.');
+  const ext = file.name.split('.').pop()?.toLowerCase() ?? 'bin';
+  const path = `teaching/${institutionId}/${courseId}/${folder}/${crypto.randomUUID()}.${ext}`;
+  const { error } = await supabase.storage.from(EVIDENCE_BUCKET).upload(path, file, { contentType: file.type, upsert: false });
+  if (error) throw error;
+  return { path, name: file.name };
 }
 
 function ScopedPanel({ institutionId, courses, role, mode, onNavigate, showHeader = true }: Props) {
@@ -464,6 +493,12 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate, showHeade
             report_budget_materials: draft.report_budget_materials ? Number(draft.report_budget_materials) : null,
             report_materials_desc: draft.report_materials_desc.trim() || null,
             report_dissemination: draft.report_dissemination.trim() || null, report_thanks: draft.report_thanks.trim() || null,
+            final_remarks: draft.final_remarks.trim() || null,
+            evidence_photos: draft.evidence_photos.length ? draft.evidence_photos : [],
+            evidence_attendance: draft.evidence_attendance.length ? draft.evidence_attendance : [],
+            evidence_clippings: draft.evidence_clippings.length ? draft.evidence_clippings : [],
+            roster_spreadsheet_path: draft.roster_spreadsheet_path || null,
+            roster_spreadsheet_name: draft.roster_spreadsheet_name || null,
             ...(draft.id ? { updated_at: draft.updated_at } : {}),
           },
           p_students: studentsDraft.rows,
@@ -505,6 +540,11 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate, showHeade
       report_budget_materials: row.report_budget_materials == null ? '' : String(row.report_budget_materials),
       report_materials_desc: row.report_materials_desc ?? '', report_dissemination: row.report_dissemination ?? '',
       report_thanks: row.report_thanks ?? '',
+      final_remarks: row.final_remarks ?? '',
+      evidence_photos: Array.isArray(row.evidence_photos) ? row.evidence_photos : [],
+      evidence_attendance: Array.isArray(row.evidence_attendance) ? row.evidence_attendance : [],
+      evidence_clippings: Array.isArray(row.evidence_clippings) ? row.evidence_clippings : [],
+      roster_spreadsheet_path: row.roster_spreadsheet_path ?? '', roster_spreadsheet_name: row.roster_spreadsheet_name ?? '',
     });
     if (row.evidence_doc_id && !knownEvidence.some(d => d.id === row.evidence_doc_id)) {
       const scopedId = courseId;
@@ -727,6 +767,82 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate, showHeade
             <Field label="Descrição dos materiais"><input maxLength={1000} value={activityDraft.report_materials_desc} onChange={e => setActivityDraft({ ...activityDraft, report_materials_desc: e.target.value })} placeholder="Ex: Material impresso e recursos multimídia" /></Field>
             <Field label="Divulgação efetiva"><input maxLength={1000} value={activityDraft.report_dissemination} onChange={e => setActivityDraft({ ...activityDraft, report_dissemination: e.target.value })} placeholder="Ex: Grupos de WhatsApp e redes sociais" /></Field>
             <Field label="Agradecimentos"><textarea maxLength={4000} rows={3} value={activityDraft.report_thanks} onChange={e => setActivityDraft({ ...activityDraft, report_thanks: e.target.value })} /></Field>
+            <Field label="Considerações finais"><textarea maxLength={8000} rows={4} value={activityDraft.final_remarks} onChange={e => setActivityDraft({ ...activityDraft, final_remarks: e.target.value })} /></Field>
+
+            <h4 style={{marginTop: 24}}><Paperclip size={17} aria-hidden="true" /> Anexos e evidências</h4>
+            {activityDraft.evidence_doc_id && <p className="teaching-pdi-meta">✓ Evidência da Mesa Digital já vinculada na seção de vínculos — será incluída no relatório.</p>}
+
+            <Field label="Registro fotográfico (até 3 fotos)" help="JPEG, PNG ou WebP. Máximo 10 MB cada.">
+              <input type="file" accept="image/jpeg,image/png,image/webp" multiple disabled={busy || activityDraft.evidence_photos.length >= 3}
+                onChange={async e => {
+                  const files = e.target.files; if (!files?.length) return;
+                  setBusy(true); setActionError('');
+                  try {
+                    const uploads = [...activityDraft.evidence_photos];
+                    for (const file of Array.from(files).slice(0, 3 - uploads.length)) {
+                      const result = await uploadTeachingFile(institutionId, courseId, file, 'fotos');
+                      uploads.push({ ...result, uploaded_at: new Date().toISOString() });
+                    }
+                    setActivityDraft({ ...activityDraft, evidence_photos: uploads });
+                  } catch (err) { setActionError(err instanceof Error ? err.message : 'Erro no upload.'); }
+                  finally { setBusy(false); e.target.value = ''; }
+                }} />
+              {activityDraft.evidence_photos.length > 0 && <ul>{activityDraft.evidence_photos.map((f, i) =>
+                <li key={f.path}>{f.name} <button type="button" className="teaching-roster-remove" onClick={() => setActivityDraft({ ...activityDraft, evidence_photos: activityDraft.evidence_photos.filter((_, j) => j !== i) })}>Remover</button></li>
+              )}</ul>}
+            </Field>
+
+            <Field label="Listas de frequência (PDF)" help="Listas de participação assinadas.">
+              <input type="file" accept="application/pdf" multiple disabled={busy}
+                onChange={async e => {
+                  const files = e.target.files; if (!files?.length) return;
+                  setBusy(true); setActionError('');
+                  try {
+                    const uploads = [...activityDraft.evidence_attendance];
+                    for (const file of Array.from(files)) {
+                      uploads.push(await uploadTeachingFile(institutionId, courseId, file, 'frequencia'));
+                    }
+                    setActivityDraft({ ...activityDraft, evidence_attendance: uploads });
+                  } catch (err) { setActionError(err instanceof Error ? err.message : 'Erro no upload.'); }
+                  finally { setBusy(false); e.target.value = ''; }
+                }} />
+              {activityDraft.evidence_attendance.length > 0 && <ul>{activityDraft.evidence_attendance.map((f, i) =>
+                <li key={f.path}>{f.name} <button type="button" className="teaching-roster-remove" onClick={() => setActivityDraft({ ...activityDraft, evidence_attendance: activityDraft.evidence_attendance.filter((_, j) => j !== i) })}>Remover</button></li>
+              )}</ul>}
+            </Field>
+
+            <Field label="Clipagens e matérias (PDF ou imagem)">
+              <input type="file" accept="application/pdf,image/jpeg,image/png,image/webp" multiple disabled={busy}
+                onChange={async e => {
+                  const files = e.target.files; if (!files?.length) return;
+                  setBusy(true); setActionError('');
+                  try {
+                    const uploads = [...activityDraft.evidence_clippings];
+                    for (const file of Array.from(files)) {
+                      uploads.push(await uploadTeachingFile(institutionId, courseId, file, 'clipagens'));
+                    }
+                    setActivityDraft({ ...activityDraft, evidence_clippings: uploads });
+                  } catch (err) { setActionError(err instanceof Error ? err.message : 'Erro no upload.'); }
+                  finally { setBusy(false); e.target.value = ''; }
+                }} />
+              {activityDraft.evidence_clippings.length > 0 && <ul>{activityDraft.evidence_clippings.map((f, i) =>
+                <li key={f.path}>{f.name} <button type="button" className="teaching-roster-remove" onClick={() => setActivityDraft({ ...activityDraft, evidence_clippings: activityDraft.evidence_clippings.filter((_, j) => j !== i) })}>Remover</button></li>
+              )}</ul>}
+            </Field>
+
+            <Field label="Planilha de conciliação (nome + matrícula)" help="Excel ou CSV com nome e matrícula dos alunos para conciliar com Atividades Complementares.">
+              <input type="file" accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv" disabled={busy}
+                onChange={async e => {
+                  const file = e.target.files?.[0]; if (!file) return;
+                  setBusy(true); setActionError('');
+                  try {
+                    const result = await uploadTeachingFile(institutionId, courseId, file, 'conciliacao');
+                    setActivityDraft({ ...activityDraft, roster_spreadsheet_path: result.path, roster_spreadsheet_name: result.name });
+                  } catch (err) { setActionError(err instanceof Error ? err.message : 'Erro no upload.'); }
+                  finally { setBusy(false); e.target.value = ''; }
+                }} />
+              {activityDraft.roster_spreadsheet_name && <p>📎 {activityDraft.roster_spreadsheet_name} <button type="button" className="teaching-roster-remove" onClick={() => setActivityDraft({ ...activityDraft, roster_spreadsheet_path: '', roster_spreadsheet_name: '' })}>Remover</button></p>}
+            </Field>
           </section>}
           {activityDraft.report_phase === 'projeto' && activityDraft.id && canValidate && <div className="card">
             <p>Quando a atividade for executada, abra a fase de relatório para registrar os resultados.</p>
