@@ -19,6 +19,7 @@ export default function ClassBatchPublisher({institutionId,courseId,institutionN
  const [students,setStudents]=useState<PrintStudent[]>([]);
  const [raw,setRaw]=useState('');
  const [status,setStatus]=useState('');
+ const [pdfErrors,setPdfErrors]=useState<string[]>([]);
  const [working,setWorking]=useState(false);
  const [variantCount,setVariantCount]=useState(1);
  const [shuffleMode,setShuffleMode]=useState<ShuffleMode>('ambos');
@@ -28,7 +29,7 @@ export default function ClassBatchPublisher({institutionId,courseId,institutionN
  useEffect(()=>()=>{if(pdfUrl)URL.revokeObjectURL(pdfUrl);},[pdfUrl]);
  useEffect(()=>()=>{if(answerKeyUrl)URL.revokeObjectURL(answerKeyUrl);},[answerKeyUrl]);
  // Invalidar documentos gerados quando conteúdo, turma ou configuração mudarem.
- useEffect(()=>{setPdfUrl('');setAnswerKeyUrl('');},
+ useEffect(()=>{setPdfUrl('');setAnswerKeyUrl('');setPdfErrors([]);},
   [questions,students,variantCount,shuffleMode,classLabel,courseName,discipline,title,instructions,semester,printInstitutionName]);
  const chooseExample=()=>{setStudents(demoStudents.map(x=>({...x})));setClassLabel('2A');setStatus('Turma fictícia carregada. Nenhum estudante real foi consultado.');};
  const loadReal=async()=>{
@@ -58,12 +59,18 @@ export default function ClassBatchPublisher({institutionId,courseId,institutionN
   setStudents(rows);setStatus('Lista local importada: '+rows.length+' estudante(s). Confira antes de emitir.');
  };
  const generate=async()=>{
-  if(!previewMode){setStatus('A emissão nominal real depende de autorização e conciliação com o cadastro institucional.');return;}
-  const problems=validatePrintAssessment({institutionName:printInstitutionName,courseName,discipline,title,instructions,semester,classLabel,questions});
-  if(problems.length){setStatus(problems.join(' '));return;}
+  setStatus('');
+  const problems=validatePrintAssessment({institutionName:printInstitutionName,courseName,discipline,title,
+   instructions,semester,classLabel,questions});
+  if(!previewMode)problems.unshift('A emissão nominal exige autorização institucional e conciliação das matrículas.');
+  if(students.length===0)problems.push(previewMode
+   ?'Carregue a turma fictícia 2A ou insira uma lista de teste.'
+   :'Carregue a lista autorizada da turma.');
+  else if(!students.some(student=>student.selected))problems.push('Selecione pelo menos um estudante da turma.');
   const variantError=versioningNotice(questions,variantCount,shuffleMode);
-  if(variantError){setStatus(variantError);return;}
-  if(!classLabel.trim()){setStatus('Informe a turma.');return;}
+  if(variantError)problems.push(variantError);
+  setPdfErrors(problems);
+  if(problems.length)return;
   setWorking(true);setStatus('Preparando as folhas individualizadas…');
   setPdfUrl('');setAnswerKeyUrl('');
   try{
@@ -87,7 +94,7 @@ export default function ClassBatchPublisher({institutionId,courseId,institutionN
    // O link explícito abaixo funciona mesmo se o download automático for bloqueado pelo navegador.
    downloadPdf(bytes,filename);
    setStatus('PDF demonstrativo preparado com '+issues.length+' caderno(s), '+variantCount+' versão(ões) e cartão de respostas com QR por aluno. O gabarito por versão é um arquivo separado, restrito ao professor. QR sem registro no servidor.');
-  }catch(e){setStatus(e instanceof Error?e.message:'Não foi possível criar o PDF.');}
+  }catch(e){setStatus('');setPdfErrors([e instanceof Error?e.message:'Ocorreu uma falha inesperada na geração.']);}
   finally{setWorking(false);}
  };
  return <section aria-label="Geração por turma" style={{border:'1px solid #dce7f4',background:'#fff',borderRadius:14,padding:18,marginTop:18}}>
@@ -139,10 +146,14 @@ export default function ClassBatchPublisher({institutionId,courseId,institutionN
      </label>)}
     </div>
   </div>}
-  <button type="button" disabled={working||!previewMode||students.every(x=>!x.selected)}
+  <button type="button" disabled={working}
    onClick={generate} style={{background:'#164b92',color:'#fff',border:'none',borderRadius:9,padding:'12px 18px',fontWeight:700,cursor:'pointer'}}>
    {working?'Gerando PDF…':'Gerar PDF individualizado da turma'}
   </button>
+  {pdfErrors.length>0&&<div role="alert" style={{marginTop:12,padding:12,borderRadius:8,background:'#FFF0F0',color:'#982F2F'}}>
+   <strong>Não foi possível gerar o PDF</strong>
+   <ul style={{marginTop:6,marginBottom:0}}>{pdfErrors.map(error=><li key={error}>{error}</li>)}</ul>
+  </div>}
   {pdfUrl&&<a href={pdfUrl} download={pdfFilename} style={{display:'inline-block',marginTop:12,padding:'12px 16px',background:'#164b92',color:'#fff',fontWeight:700,borderRadius:9,textDecoration:'none'}}>
    Baixar PDF gerado
   </a>}

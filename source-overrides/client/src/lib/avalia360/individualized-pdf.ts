@@ -19,8 +19,10 @@ export interface PrintIssue { student:PrintStudent;token:string;paperId:string; 
 /** Bloqueios de emissão — nenhuma prova incompleta é considerada pronta. */
 export function validatePrintAssessment(info:PrintAssessment):string[]{
  const issues:string[]=[];
- if(!info.courseName.trim()||!info.discipline.trim()||!info.title.trim()||!info.classLabel.trim())
-  issues.push('Curso, disciplina, título e turma são obrigatórios.');
+ if(!info.courseName.trim())issues.push('Selecione o curso em Preparar avaliação.');
+ if(!info.discipline.trim())issues.push('Informe a disciplina em Preparar avaliação.');
+ if(!info.title.trim())issues.push('Informe o título em Preparar avaliação.');
+ if(!info.classLabel.trim())issues.push('Informe a turma para gerar o PDF.');
  if(!info.questions.length)issues.push('A avaliação precisa conter questões.');
  info.questions.forEach((q,i)=>{
   const prefix='Questão '+(i+1)+': ';
