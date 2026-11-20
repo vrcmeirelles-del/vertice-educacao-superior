@@ -9,7 +9,7 @@ import ResetPassword from './ResetPassword';
 export default function Login({institutionId}:{institutionId?:string} = {}) {
   const destination = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("destino") : null;
   const conviteId = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("convite") : null;
-  const dashboard = institutionId ? `/master#${new URLSearchParams({instituicao:institutionId})}` : destination === "reitor" ? "/reitor/reservado" : destination === "mobile" ? "/mobile" : destination === "integracao" ? "/integracao" : "/master";
+  const dashboard = institutionId ? `/master#${new URLSearchParams({instituicao:institutionId})}` : destination === "reitor" ? "/reitor/reservado" : destination === "mobile" ? "/mobile" : destination === "integracao" ? "/integracao" : destination === "rede" ? "/rede" : "/master";
   // Se veio com convite, armazenar para aceitar após login
   useEffect(() => { if (conviteId) { try { localStorage.setItem("vertice_pending_invite", conviteId); } catch {} } }, [conviteId]);
   const [session, setSession] = useState<Session | null>(null);
