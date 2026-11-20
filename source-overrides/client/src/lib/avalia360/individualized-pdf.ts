@@ -11,7 +11,7 @@ import {createExamVariants,versioningNotice,type ShuffleMode} from './exam-varia
 
 export interface PrintStudent { id:string;name:string;registration?:string;selected:boolean; }
 export interface PrintAssessment {
- institutionName:string;courseName:string;discipline:string;title:string;
+ institutionName:string;institutionLogo?:ArrayBuffer;courseName:string;discipline:string;title:string;
  semester:string;classLabel:string;questions:QuestionDraft[];
  variantCount?:number;shuffleMode?:ShuffleMode;
 }
@@ -72,7 +72,7 @@ function wrap(text:string,max=91):string[]{
  return lines.length?lines:[''];
 }
 function safeName(name:string){return name.normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Za-z0-9 -]/g,'').slice(0,140);}
-function safePrint(value:string){return value.normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^\x20-\x7e]/g,'?');}
+function safePrint(value:string){return value.normalize('NFC').replace(/[^\x20-\x7e\xa0-\xff–—‘’“”]/gu,'?');}
 
 /** Converte apenas WebP em PNG via canvas do navegador; PNG/JPEG permanecem intactos. */
 async function embedFigure(pdf:PDFDocument,figure:PendingQuestionImage){
@@ -115,6 +115,7 @@ export async function buildIndividualizedPdf(info:PrintAssessment,issues:PrintIs
  if(impossible)throw Error(impossible);
  const variants=createExamVariants(info.questions,variantCount,mode);
  const doc=await PDFDocument.create();
+ const institutionLogo=info.institutionLogo ? await doc.embedPng(info.institutionLogo) : undefined;
  const regular=await doc.embedFont(StandardFonts.Helvetica);
  const bold=await doc.embedFont(StandardFonts.HelveticaBold);
  const W=595,H=842,margin=43,top=793,bottom=54;
@@ -149,27 +150,67 @@ export async function buildIndividualizedPdf(info:PrintAssessment,issues:PrintIs
  const images=new Map<string,Awaited<ReturnType<typeof embedFigure>>>();
  for(let studentIndex=0;studentIndex<issues.length;studentIndex++){
   const issue=issues[studentIndex],variant=variants[studentIndex%variants.length];
-  let page=doc.addPage([W,H]),col=0,y=651;
+  let page=doc.addPage([W,H]),col=0,y=top;
   // Versionamento no QR sem expor nome, matrícula ou identificador acadêmico.
   // O token é demonstrativo: falta registro autenticado de emissão e conferência no backend.
   const qrPayload='VA360-DEMO:1:'+variant.code+':'+issue.token;
   const qrData=await QRCode.toDataURL(qrPayload,{errorCorrectionLevel:'M',margin:2,width:220});
   const qr=await doc.embedPng(qrData);
-  const bookHeader=()=>{
-   lineText(page,info.institutionName||'Instituição demonstrativa',margin,top,13,true);
-   lineText(page,info.title||'Avaliação demonstrativa',margin,top-23,12,true);
-   lineText(page,'Curso: '+info.courseName+'  |  Disciplina: '+info.discipline,margin,top-40,9);
-   lineText(page,'Turma: '+info.classLabel+'  |  Semestre: '+info.semester,margin,top-55,9);
-   lineText(page,'Estudante: '+issue.student.name,margin,top-76,10,true);
-   lineText(page,'Identificação: '+(issue.student.registration||'demonstração'),margin,top-91,9);
-   lineText(page,'Versão '+variant.code+'  |  Folha '+issue.paperId.slice(0,12),margin,top-106,9,true);
-   page.drawImage(qr,{x:W-145,y:top-100,width:82,height:82});
-   page.drawLine({start:{x:margin,y:top-118},end:{x:W-margin,y:top-118},thickness:.8,color:pale});
-   lineText(page,'CADERNO EM DUAS COLUNAS · QR DEMONSTRATIVO SEM REGISTRO',margin,top-137,7);
+  const drawHeader=(target:PdfPage,heading:string,showGrade:boolean)=>{
+   const right=W-margin;
+   const qrWidth=88;
+   const middleRight=right-qrWidth;
+   const border=(x:number,y:number,width:number,height:number)=>{
+    target.drawRectangle({x,y,width,height,borderWidth:.7,borderColor:muted});
+   };
+   const cell=(label:string,value:string,x:number,rowTop:number,width:number)=>{
+    const lines=wrapMeasured(value,9,width-16,true);
+    const height=20+lines.length*11;
+    border(x,rowTop-height,width,height);
+    lineText(target,label,x+8,rowTop-11,7);
+    lines.forEach((line,i)=>lineText(target,line,x+8,rowTop-23-i*11,9,true));
+    return height;
+   };
+   const logoSize=46;
+   const nameX=margin+(institutionLogo?logoSize+18:8);
+   const nameLines=wrapMeasured(info.institutionName||'Instituição demonstrativa',14,right-nameX-8,true);
+   const nameHeight=Math.max(60,16+nameLines.length*16);
+   border(margin,top-nameHeight,right-margin,nameHeight);
+   if(institutionLogo){
+    const dims=figureSize(institutionLogo.width,institutionLogo.height,logoSize,logoSize);
+    target.drawImage(institutionLogo,{x:margin+8+(logoSize-dims.width)/2,
+     y:top-(nameHeight+dims.height)/2,...dims});
+   }
+   nameLines.forEach((line,i)=>lineText(target,line,nameX,top-(nameHeight-nameLines.length*16)/2-12-i*16,14,true));
+
+   const detailsTop=top-nameHeight;
+   const detailsWidth=middleRight-margin;
+   let rowTop=detailsTop;
+   rowTop-=cell('Avaliação',heading,margin,rowTop,detailsWidth);
+   rowTop-=cell('Curso / Disciplina',info.courseName+' / '+info.discipline,margin,rowTop,detailsWidth);
+   rowTop-=cell('Estudante / Identificação',issue.student.name+' / '+(issue.student.registration||'demonstração'),
+    margin,rowTop,detailsWidth);
+   const gradeWidth=showGrade?92:0;
+   const lastHeight=cell('Turma / Semestre / Versão / Folha',
+    [info.classLabel,info.semester,variant.code,issue.paperId.slice(0,12)].join(' / '),
+    margin,rowTop,detailsWidth-gradeWidth);
+   if(showGrade){
+    border(middleRight-gradeWidth,rowTop-lastHeight,gradeWidth,lastHeight);
+    lineText(target,'Nota do professor',middleRight-gradeWidth+8,rowTop-11,7);
+   }
+   rowTop-=lastHeight;
+   border(middleRight,rowTop,qrWidth,detailsTop-rowTop);
+   const qrSize=72;
+   target.drawImage(qr,{x:middleRight+(qrWidth-qrSize)/2,y:(detailsTop+rowTop-qrSize)/2,width:qrSize,height:qrSize});
+   return rowTop-19;
   };
-  bookHeader();
+  const captionY=drawHeader(page,info.title,true);
+  lineText(page,'CADERNO EM DUAS COLUNAS - QR DEMONSTRATIVO SEM REGISTRO',margin,captionY,7);
+  const firstPage=page;
+  const firstPageStart=captionY-20;
+  y=firstPageStart;
   const advance=()=>{
-   if(col===0){col=1;y=651;}
+   if(col===0){col=1;y=page===firstPage?firstPageStart:top;}
    else{
     page=doc.addPage([W,H]);col=0;y=top;
     lineText(page,'Continuação · '+issue.student.name+' · Versão '+variant.code,margin,top+20,8,true);
@@ -225,15 +266,9 @@ export async function buildIndividualizedPdf(info:PrintAssessment,issues:PrintIs
   }
   // Página própria: o cartão não usa a paginação em colunas do caderno.
   const objective=variant.items.filter(i=>i.question.kind==='objetiva');
-  let card=doc.addPage([W,H]),cardY=top-130;
+  let card=doc.addPage([W,H]),cardY=0;
   const cardHead=(continuation=false)=>{
-   lineText(card,'CARTÃO DE RESPOSTAS · '+(continuation?'CONTINUAÇÃO':'VERSÃO '+variant.code),margin,top,13,true);
-   lineText(card,'Estudante: '+issue.student.name,margin,top-23,10,true);
-   lineText(card,'Turma: '+info.classLabel+' · Disciplina: '+info.discipline,margin,top-41,9);
-   lineText(card,'Versão '+variant.code+' · Folha '+issue.paperId.slice(0,12),margin,top-56,9,true);
-   card.drawImage(qr,{x:W-145,y:top-99,width:84,height:84});
-   card.drawLine({start:{x:margin,y:top-111},end:{x:W-margin,y:top-111},thickness:.8,color:pale});
-   cardY=top-132;
+   cardY=drawHeader(card,'CARTÃO DE RESPOSTAS'+(continuation?' - CONTINUAÇÃO':''),false);
   };
   cardHead();
   if(!objective.length){lineText(card,'Sem questões objetivas. Responda às discursivas no caderno.',margin,cardY,10);}
