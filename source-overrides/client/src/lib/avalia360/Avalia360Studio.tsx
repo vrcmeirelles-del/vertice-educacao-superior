@@ -64,6 +64,7 @@ function SavedPreview({value}: {value:StoredAssessmentDraft}){
   <h3 style={{marginTop:0}}>Caderno recuperado do servidor</h3>
   <p><strong>{value.snapshot.meta?.title||'Avaliação'}</strong> · {value.snapshot.meta?.semester||'sem semestre informado'} · {value.snapshot.meta?.purpose||'sem finalidade informada'}</p>
   <p>Versão {value.revision} · {value.snapshot.curriculumStatus==='linked'?'Matriz associada':'Aguardando vinculação ao PPC'}</p>
+  {value.snapshot.meta?.declaredPedagogy&&<p style={{fontSize:13}}>Metadados pedagógicos declarados preservados: {value.snapshot.meta.declaredPedagogy.competencies.length} competências e {value.snapshot.meta.declaredPedagogy.topics.length} temas. Sem homologação curricular.</p>}
   {value.snapshot.questions.map((q,i)=><div key={String(q.id||i)} style={{padding:'12px 0',borderTop:'1px solid '+line}}>
    <strong>{i+1}. {String(q.statement||'Enunciado indisponível')}</strong>
    {Array.isArray(q.options)&&(q.options as Array<{id:string;text:string}>).map(o=>
@@ -146,7 +147,7 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
    setStatus(previewMode?'Guardando demonstração neste navegador…':'Salvando versão no Supabase…');
    const out=await saveAssessmentDraft({institutionId,courseId,disciplineId,
      ...(receipt?{draftId:receipt.id,expectedRevision:receipt.revision}:{}),
-     questions,uploadedImages:grouped,assessmentMeta:{title:title.trim(),semester:period.trim(),purpose}});
+     questions,uploadedImages:grouped,assessmentMeta:{title:title.trim(),semester:period.trim(),purpose,declaredPedagogy:{...pedagogy,purpose}}});
    if(!out.ok){setStatus('Falha no salvamento.');setErrors([out.error.message]);return;}
    setReceipt(out.receipt);setStatus((previewMode?'Demonstração local salva':'Rascunho salvo')+' na versão '+out.receipt.revision+'.');
    setLoaded(null);
