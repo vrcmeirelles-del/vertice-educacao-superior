@@ -18,7 +18,7 @@ async function renderPending(){
 }
 it('offers classification for already indexed pending AI without starting or approving automatically',async()=>{
  await renderPending();
- const button=Array.from(el.querySelectorAll('button')).find(b=>b.textContent==='Gerar sugestões de classificação com IA');
+ const button=Array.from(el.querySelectorAll('button')).find(b=>b.textContent==='Gerar sugestões de classificação');
  expect(button).toBeDefined();expect(fx.invoke).not.toHaveBeenCalled();
  await act(async()=>button!.click());
  expect(fx.invoke).toHaveBeenCalledTimes(1);
