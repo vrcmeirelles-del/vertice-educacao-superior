@@ -12,7 +12,7 @@ function fixture({access=true,quota=false,key=true,provider=true,reservationErro
   if(String(url).endsWith('/vertice_base_ai_reserve'))return reservationError?Response.json({message:'internal SQL failure'},{status:400}):quota?Response.json({message:'quota_exceeded'},{status:400}):Response.json({courses:2,observed_at:'2026-11-02T00:00:00Z'});
   return provider?Response.json({status:'completed',output:[{type:'message',role:'assistant',content:[{type:'output_text',text:'Organize as fontes e confirme os responsáveis.'}]}]}):Response.json({error:'test'},{status:500});
  };
- const handler=createHandler(k=>({SUPABASE_URL:'https://backend.invalid',SUPABASE_ANON_KEY:'public',OPENAI_API_KEY:key?'server-secret':undefined}[k]),fetcher as typeof fetch);
+ const handler=createHandler(k=>({SUPABASE_URL:'https://backend.invalid',SUPABASE_ANON_KEY:'public',AI_SUSPENDED:'false',OPENAI_API_KEY:key?'server-secret':undefined}[k]),fetcher as typeof fetch);
  const run=(data:any={},auth=true,origin='https://www.verticesuperior.com.br')=>handler(new Request('https://function.invalid',{method:'POST',headers:{Origin:origin,'Content-Type':'application/json',...(auth?{Authorization:'Bearer test-session'}:{})},body:JSON.stringify({action:'chat',institution_id:institution,request_id:crypto.randomUUID(),message:'Como organizar a revisão anual?',confirmed:true,...data})}));
  return {calls,run};
 }

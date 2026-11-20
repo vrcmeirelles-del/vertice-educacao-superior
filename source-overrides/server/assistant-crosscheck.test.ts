@@ -15,7 +15,7 @@ function fixture(crossError=false){
   if(url.endsWith('/vertice_base_ai_reserve'))return Response.json({institution_id:institution,courses:3,observed_at:'2026-11-06'});
   return Response.json({status:'completed',output:[{type:'message',role:'assistant',content:[{type:'output_text',text:'Dados de origens diferentes. Solicite conciliação.'}]}]});
  };
- const handler=createHandler(k=>({SUPABASE_URL:'https://backend.invalid',SUPABASE_ANON_KEY:'anonymous-test',OPENAI_API_KEY:'fake-test-key'} as Record<string,string>)[k],fetcher as typeof fetch);
+ const handler=createHandler(k=>({SUPABASE_URL:'https://backend.invalid',SUPABASE_ANON_KEY:'anonymous-test',AI_SUSPENDED:'false',OPENAI_API_KEY:'fake-test-key'} as Record<string,string>)[k],fetcher as typeof fetch);
  const run=(origin='https://vertice-portal.onrender.com')=>handler(new Request('https://function.invalid',{method:'POST',headers:{Origin:origin,Authorization:'Bearer test-token','Content-Type':'application/json'},body:JSON.stringify({action:'chat',institution_id:institution,request_id:crypto.randomUUID(),message:'Cruze os dados acadêmicos.',confirmed:true})}));
  return {calls,run};
 }

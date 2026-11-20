@@ -32,7 +32,10 @@ export function createHandler(env:(key:string)=>string|undefined,request:typeof 
   const access=await rpc('vertice_ebitda_access',{target:p.institution_id});
   if(!access.ok||await access.json()!==true)return send({error:'access_denied'},403);
   const key=env('OPENAI_API_KEY');
-  if(p.action==='status')return send({configured:Boolean(key?.trim()),provider:'OpenAI',actor_daily_limit:5,institution_daily_limit:25});
+  // Com a IA suspensa (padrão), o portal responde por regras (lib/base-rules.ts) e não chama esta rota de chat.
+  const aiOn=Boolean(key?.trim())&&String(env('AI_SUSPENDED')??'true').toLowerCase()==='false';
+  if(p.action==='status')return send({configured:aiOn,provider:aiOn?'OpenAI':'regras',actor_daily_limit:5,institution_daily_limit:25});
+  if(!aiOn)return send({error:'ai_not_configured'},503);
   if(!key)return send({error:'ai_not_configured'},503);
   if(p.confirmed!==true||!UUID.test(p.request_id||'')||typeof p.message!=='string'||!p.message.trim()||p.message.length>1500)return send({error:'confirmation_required'},400);
   const history=Array.isArray(p.history)?p.history:[];
