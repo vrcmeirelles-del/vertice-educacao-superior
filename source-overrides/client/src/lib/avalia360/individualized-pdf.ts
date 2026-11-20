@@ -234,19 +234,17 @@ export async function buildIndividualizedPdf(info:PrintAssessment,issues:PrintIs
   };
   cardHead();
   if(!objective.length){lineText(card,'Sem questões objetivas. Responda às discursivas no caderno.',margin,cardY,10);}
-  for(const item of objective){
-   if(cardY<bottom+43){card=doc.addPage([W,H]);cardHead(true);}
-   const x=margin+(item.displayNumber%2===0?260:0);
-   // Distribuição horizontal simples, preserva sequência mesmo em provas grandes.
-   if(item.displayNumber%2===1&&item!==objective[0])cardY-=29;
-   const rowY=cardY;
+  for(const [rowIndex,item] of objective.entries()){
+   if(rowIndex%2===0&&cardY<bottom+35){card=doc.addPage([W,H]);cardHead(true);}
+   const x=margin+(rowIndex%2===1?260:0),rowY=cardY;
    lineText(card,'Q'+String(item.displayNumber).padStart(2,'0'),x,rowY,9,true);
+   const gap=item.options.length>6?23:29;
    item.options.forEach((op,j)=>{
-    const cx=x+55+j*31;
-    card.drawCircle({x:cx,y:rowY+4,size:10,borderWidth:1.1,borderColor:ink});
-    lineText(card,op.label,cx-3,rowY+1,7);
+    const cx=x+50+j*gap;
+    card.drawCircle({x:cx,y:rowY+4,size:9,borderWidth:1.1,borderColor:ink});
+    lineText(card,op.label,cx-2.7,rowY+1,7);
    });
-   if(item===objective[objective.length-1]||item.displayNumber%2===0)cardY-=29;
+   if(rowIndex%2===1||rowIndex===objective.length-1)cardY-=29;
   }
   lineText(card,'Preencha apenas uma opção por questão. QR identifica a folha, NÃO lê respostas automaticamente.',margin,48,7);
   lineText(card,'PRÉVIA NÃO OFICIAL · QR SEM CADASTRO NO BANCO',margin,34,7);
