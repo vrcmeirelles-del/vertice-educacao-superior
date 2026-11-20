@@ -7,6 +7,7 @@ import {supabase} from '@/lib/supabase';
 import type {QuestionDraft} from './question-draft';
 import type {UploadedImageReceipt} from './private-image-upload';
 import type {PedagogicalDraft} from './declared-analysis';
+import type {CurationDecision} from './curation-decision';
 
 export interface DraftReceipt {
  id:string;revision:number;status:'draft'|'submitted'|'validated'|'archived';
@@ -18,7 +19,7 @@ export interface DraftSaveInput {
  draftId?:string;expectedRevision?:number;buildId?:string;
  questions:QuestionDraft[];
  uploadedImages?: Record<string, Array<{localId:string;receipt:UploadedImageReceipt}>>;
- assessmentMeta?: {title:string;semester:string;purpose:'diagnostica'|'formativa'|'somativa';declaredPedagogy?:PedagogicalDraft};
+ assessmentMeta?: {title:string;semester:string;purpose:'diagnostica'|'formativa'|'somativa';declaredPedagogy?:PedagogicalDraft;curationHistory?:CurationDecision[]};
 }
 function sanitizeQuestion(q:QuestionDraft, uploaded:DraftSaveInput['uploadedImages']) {
  // Os metadados de mídia dependem de upload privado validado e
