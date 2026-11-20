@@ -947,8 +947,12 @@ function RelatoriosCPA({ institutionId, role }: { institutionId: string; role: s
     setEditSection(null);
   };
 
+  // O banco (jsonb) reordena as chaves; as seções são exibidas e exportadas pela numeração do título.
+  const orderedSections = (content: any): [string, any][] => Object.entries(content || {}).sort((a: [string, any], b: [string, any]) => (parseInt(a[1]?.title, 10) || 99) - (parseInt(b[1]?.title, 10) || 99));
+  const sectionBadge = (notes: string = '') => notes.includes('Editado') ? { l: '✏️ Editado', bg: '#dcfce7', c: '#16a34a' } : notes.includes('Roteiro') ? { l: '📝 A redigir', bg: '#fef3c7', c: '#b45309' } : notes.includes('IA') ? { l: '🤖 IA', bg: '#dbeafe', c: '#2563eb' } : { l: '📊 Dados', bg: '#e0f2fe', c: '#0369a1' };
+
   const exportReportWord = (report: any) => {
-    const sections = Object.values(report.content_json) as any[];
+    const sections = orderedSections(report.content_json).map(([, v]) => v);
     const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
 <head><meta charset="utf-8"><style>
 body{font-family:Calibri,sans-serif;font-size:12pt;line-height:1.6;margin:40px}
@@ -972,7 +976,7 @@ ${sections.map(s => `<h2>${s.title}</h2><p>${(s.content || '').replace(/\n/g, '<
   };
 
   const exportReportPDF = (report: any) => {
-    const sections = Object.values(report.content_json) as any[];
+    const sections = orderedSections(report.content_json).map(([, v]) => v);
     const win = window.open('', '_blank');
     if (!win) { alert('Permita pop-ups para exportar PDF'); return; }
     win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${report.title}</title>
@@ -1005,11 +1009,11 @@ ${sections.map(s => `<h2>${s.title}</h2><p>${(s.content || '').replace(/\n/g, '<
             <button className="alumni-btn-primary" style={{ background: '#7c3aed' }} onClick={() => generate('integral', String(new Date().getFullYear()))}>🤖 Gerar relatório integral</button>
           </div>
         )}
-        {generating && <span style={{ color: '#2563eb', fontWeight: 600 }}>⏳ Gerando com IA (pode levar 1-2 minutos)…</span>}
+        {generating && <span style={{ color: '#2563eb', fontWeight: 600 }}>⏳ Montando a minuta com os dados…</span>}
       </div>
 
       {/* Lista de relatórios */}
-      {reports.length === 0 && !generating ? <EmptyState msg="Nenhum relatório gerado. Clique em 'Gerar relatório' para criar a minuta com IA." /> : (
+      {reports.length === 0 && !generating ? <EmptyState msg="Nenhum relatório gerado. Clique em 'Gerar relatório' para montar a minuta com os dados da CPA." /> : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
           {reports.map(r => {
             const st = STATUS_L[r.status] || { l: r.status, bg: '#94a3b8' };
@@ -1068,12 +1072,12 @@ ${sections.map(s => `<h2>${s.title}</h2><p>${(s.content || '').replace(/\n/g, '<
           </div>
 
           {/* Seções do relatório */}
-          {Object.entries(viewReport.content_json).map(([key, sec]: [string, any]) => (
+          {orderedSections(viewReport.content_json).map(([key, sec]: [string, any]) => (
             <div key={key} style={{ marginBottom: 16, padding: 14, borderRadius: 10, background: '#f8fafc', border: '1px solid #e2e8f0' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                 <strong style={{ fontSize: '.95rem', color: '#0f172a' }}>{sec.title}</strong>
                 <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-                  <span style={{ fontSize: '.6rem', padding: '2px 6px', borderRadius: 4, background: sec.ai_notes?.includes('Editado') ? '#dcfce7' : '#dbeafe', color: sec.ai_notes?.includes('Editado') ? '#16a34a' : '#2563eb' }}>{sec.ai_notes?.includes('Editado') ? '✏️ Editado' : '🤖 IA'}</span>
+                  <span title={sec.ai_notes || ''} style={{ fontSize: '.6rem', padding: '2px 6px', borderRadius: 4, background: sectionBadge(sec.ai_notes).bg, color: sectionBadge(sec.ai_notes).c }}>{sectionBadge(sec.ai_notes).l}</span>
                   {(role === 'master' || role === 'gestor') && viewReport.status !== 'aprovado' && viewReport.status !== 'finalizado' && (
                     <button style={{ fontSize: '.65rem', padding: '2px 8px', borderRadius: 4, border: '1px solid #2563eb', background: '#fff', color: '#2563eb', cursor: 'pointer' }}
                       onClick={() => { setEditSection(key); setEditText(sec.content); }}>✏️ Editar</button>
@@ -1097,7 +1101,7 @@ ${sections.map(s => `<h2>${s.title}</h2><p>${(s.content || '').replace(/\n/g, '<
           ))}
 
           <div style={{ padding: 12, background: '#f5f3ff', borderRadius: 10, fontSize: '.8rem', color: '#475569' }}>
-            🤖 <strong>Minuta gerada por IA</strong> — requer revisão e aprovação da CPA. A CPA pode editar cada seção antes de aprovar.
+            📊 <strong>Minuta montada com os dados do sistema</strong> — as seções marcadas "A redigir" trazem um roteiro para a análise da CPA. Revise e edite cada seção antes de aprovar.
             Fluxo: Minuta → Revisão CPA → Aprovado → Finalizado para postagem.
           </div>
         </div>
