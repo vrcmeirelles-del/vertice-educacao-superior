@@ -160,10 +160,23 @@ async function callClaude(systemPrompt: string, userPrompt: string): Promise<any
 // Handler
 // ============================================================
 
+// CORS restrito aos domínios da Vértice em todas as respostas (antes só o preflight tinha cabeçalho,
+// e o navegador bloqueava a leitura do resultado).
+const ORIGINS = new Set(["https://www.verticesuperior.com.br", "https://verticesuperior.com.br", "https://vertice-portal.onrender.com", "https://vertice-educacao-superior.onrender.com", "https://vertice-educacao-superior-site.onrender.com", "https://vertice-educacao-superior-jlri.onrender.com"]);
+function corsHeaders(origin: string): Record<string, string> {
+  return { "access-control-allow-origin": ORIGINS.has(origin) ? origin : "https://www.verticesuperior.com.br", "access-control-allow-methods": "POST, OPTIONS", "access-control-allow-headers": "authorization, content-type, apikey, x-client-info", "vary": "Origin" };
+}
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: { "access-control-allow-origin": "*", "access-control-allow-methods": "POST", "access-control-allow-headers": "authorization, content-type, apikey" } });
-  }
+  const origin = req.headers.get("origin") || "";
+  if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders(origin) });
+  const res = await handle(req);
+  const headers = new Headers(res.headers);
+  for (const [k, v] of Object.entries(corsHeaders(origin))) headers.set(k, v);
+  if (!headers.has("content-type")) headers.set("content-type", "application/json");
+  return new Response(res.body, { status: res.status, headers });
+});
+
+async function handle(req: Request): Promise<Response> {
 
   try {
     const authHeader = req.headers.get("authorization") || "";
@@ -284,4 +297,4 @@ Deno.serve(async (req) => {
   } catch (err: any) {
     return new Response(JSON.stringify({ error: err.message }), { status: 500 });
   }
-});
+}
