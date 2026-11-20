@@ -81,6 +81,7 @@ import Egressos360 from "./Egressos360";
 import Conecta360 from "./Conecta360";
 import Governanca360 from "./Governanca360";
 import Inclusao360 from "./Inclusao360";
+const PlanejamentoProfessor = lazy(() => import("./PlanejamentoProfessor"));
 import AcompanhamentoEspecial360 from "./AcompanhamentoEspecial360";
 import SyncHealth from "./SyncHealth";
 import Aquisicoes360 from "./Aquisicoes360";
@@ -113,7 +114,7 @@ const TAB_GROUPS: {label:string;subtitle:string;icon:string;tabs:Tab[];tier?:'su
   {label:'Governança',subtitle:'Órgãos colegiados, deliberações e fluxos',icon:'⚖',tabs:['governanca'],tier:'both'},
   {label:'Acompanhamento',subtitle:'Inclusão, PEI e regimes especiais',icon:'♿',tabs:['inclusao','acompanhamento-especial'],tier:'both'},
   {label:'Aquisições',subtitle:'Compras, fornecedores e ordens',icon:'🛒',tabs:['aquisicoes'],tier:'both'},
-  {label:'Gestão Escolar',subtitle:'Cadastro, planejamento e consolidação escolar',icon:'🏫',tabs:['cadastro','gestao-escolar','escola-individual','escola-documentos','escola-bi','escola-permanencia','escola-financeiro','escola-dados','escola-projetos','escola-estagio','escola-captacao'],tier:'escolas'},
+  {label:'Gestão Escolar',subtitle:'Cadastro, planejamento e consolidação escolar',icon:'🏫',tabs:['cadastro','gestao-escolar','escola-individual','escola-documentos','escola-bi','escola-permanencia','escola-financeiro','escola-dados','escola-projetos','escola-planejamento-prof','escola-estagio','escola-captacao'],tier:'escolas'},
   {label:'ENEM & Vestibular',subtitle:'Simulados, desempenho por área e metas',icon:'🎯',tabs:['escola-enem'],tier:'escolas'},
   {label:'Egressos Escolar',subtitle:'Destino pós-escola e aprovações',icon:'🎓',tabs:['escola-egressos'],tier:'escolas'},
   {label:'Documentos',subtitle:'Gestão documental e análise por IA',icon:'📄',tabs:['documentos'],tier:'both'},
@@ -133,6 +134,7 @@ const TAB_DETAILS: Partial<Record<Tab,{icon:string;description:string}>> = {
  "escola-financeiro":{icon:"▦",description:"Resultado e Custos Escolares, por etapa, turma e ano letivo"},
  "escola-dados":{icon:"▦",description:"Dados e Importação Escolar, por etapa, turma e ano letivo"},
  "escola-projetos":{icon:"▦",description:"Projetos e Atividades Escolares, por etapa, turma e ano letivo"},
+ "escola-planejamento-prof":{icon:"✎",description:"Planejamento do professor, da educação infantil ao ensino médio, com BNCC"},
  "escola-estagio":{icon:"▦",description:"Estágio Escolar, por etapa, turma e ano letivo"},
  "escola-captacao":{icon:"▦",description:"Captação Escolar, por etapa, turma e ano letivo"},
   "construcao-curricular":{icon:"🧬",description:"Matriz curricular por competências — perfil do egresso, DCNs e disciplinas"},
@@ -201,6 +203,7 @@ const TABS: [Tab, string][] = [
   ["escola-financeiro", "Resultado e Custos Escolares"],
   ["escola-dados", "Dados e Importação Escolar"],
   ["escola-projetos", "Projetos e Atividades Escolares"],
+  ["escola-planejamento-prof", "Planejamento do Professor"],
   ["escola-estagio", "Estágio Escolar"],
   ["escola-captacao", "Captação Escolar"],
   ["gestao-escolar", "Consolidação Escolar"],
@@ -430,7 +433,7 @@ export default function Workspace({
       setModuleSearch(""); setOnlyFavorites(false);
     }
   };
-  const isLocked = (tabKey: string) => tabKey !== "discursiva" && tabKey !== "programas-pdi" && tabKey !== "atividades-ensino" && !["escola-individual","escola-documentos","escola-bi", "escola-permanencia", "escola-financeiro", "escola-dados", "escola-projetos", "escola-estagio", "escola-captacao"].includes(tabKey) && tabKey !== "mercado" && tabKey !== "conecta" && tabKey !== "gestao-escolar" && tabKey !== "planejamento-estrategico" && tabKey !== "planejamento-semestral" && activeTabs.size > 0 && !activeTabs.has(tabKey);
+  const isLocked = (tabKey: string) => tabKey !== "discursiva" && tabKey !== "programas-pdi" && tabKey !== "atividades-ensino" && !["escola-individual","escola-documentos","escola-bi", "escola-permanencia", "escola-financeiro", "escola-dados", "escola-projetos", "escola-planejamento-prof", "escola-estagio", "escola-captacao"].includes(tabKey) && tabKey !== "mercado" && tabKey !== "conecta" && tabKey !== "gestao-escolar" && tabKey !== "planejamento-estrategico" && tabKey !== "planejamento-semestral" && activeTabs.size > 0 && !activeTabs.has(tabKey);
   const isTasting = (tabKey: string) => {
     const mod = findModuleByTab(moduleCatalog, tabKey);
     return mod?.display_status === 'tasting';
@@ -620,6 +623,8 @@ export default function Workspace({
         instTier==='escolas'&&can.viewManagement(role)?<Suspense fallback={<p role="status">Carregando gestão escolar…</p>}><SchoolOperations key={`${id}:financeiro`} institutionId={String(id)} view="financeiro" onGo={choose}/></Suspense>:<p role="alert">Acesso restrito à gestão escolar autorizada.</p>
       ) : tab === "escola-dados" ? (
         instTier==='escolas'&&can.viewManagement(role)?<Suspense fallback={<p role="status">Carregando gestão escolar…</p>}><SchoolOperations key={`${id}:dados`} institutionId={String(id)} view="dados" onGo={choose}/></Suspense>:<p role="alert">Acesso restrito à gestão escolar autorizada.</p>
+      ) : tab === "escola-planejamento-prof" ? (
+        instTier==='escolas'&&role?<Suspense fallback={<p role="status">Carregando planejamento…</p>}><PlanejamentoProfessor key={`${id}:planprof`} institutionId={String(id)} /></Suspense>:<p role="alert">Acesso restrito a membros da escola.</p>
       ) : tab === "escola-projetos" ? (
         instTier==='escolas'&&can.viewManagement(role)?<Suspense fallback={<p role="status">Carregando gestão escolar…</p>}><SchoolOperations key={`${id}:projetos`} institutionId={String(id)} view="projetos" onGo={choose}/></Suspense>:<p role="alert">Acesso restrito à gestão escolar autorizada.</p>
       ) : tab === "escola-estagio" ? (
