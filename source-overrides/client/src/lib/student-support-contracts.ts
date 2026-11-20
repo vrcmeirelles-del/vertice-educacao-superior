@@ -1,6 +1,8 @@
 // Contracts checked against the live public schema on 2026-11-12. No schema changes.
 export const supportOrigins = ['estudante', 'secretaria', 'coordenacao', 'professor', 'fato_e_ordem'];
 export const specialOrigins = ['estudante', 'secretaria', 'coordenacao', 'nucleo_apoio', 'professor', 'representante'];
+export const assessmentStatuses = ['rascunho', 'concluida', 'revisada'];
+export const referralStatuses = ['pendente', 'aceito', 'concluido', 'recusado'];
 export const accommodationCategories = ['metodologica', 'material_acessivel', 'comunicacao', 'tecnologia_assistiva', 'avaliativa', 'acessibilidade_fisica', 'acessibilidade_digital', 'atividade_pratica', 'estagio', 'outra'];
 type Row = { id: string; institution_id: string; student_name?: string; student_matricula?: string; course_id?: string; code?: string; category_code?: string };
 type Context = { institutionId: string; cases: Row[]; plans?: Row[]; categories?: Row[]; role?: string };
@@ -49,6 +51,18 @@ export function buildSupportPayload(kind: string, f: Form, ctx: Context): Record
     case 'supportPlan': {
       const c=caseRow();
       return {...common,case_id:c.id,student_name:required(c.student_name||'','o estudante do caso'),student_matricula:c.student_matricula||null,course_id:c.course_id||null,objectives:text(f,'objectives') ? text(f,'objectives').split(/\n+/).map(x=>x.trim()).filter(Boolean) : [],...planTexts(f),...dates(f,'effective_from','effective_until'),next_review_date:dates(f,'next_review_date','next_review_date').next_review_date,status:'em_elaboracao'};
+    }
+    case 'assessment': {
+      const c = caseRow();
+      const d = text(f, 'assessment_date');
+      if (d) dates(f, 'assessment_date', 'assessment_date');
+      const body = {strengths:text(f,'strengths')||null,educational_needs:text(f,'educational_needs')||null,participation_barriers:text(f,'participation_barriers')||null,strategies_used:text(f,'strategies_used')||null,previous_results:text(f,'previous_results')||null,recommended_support:text(f,'recommended_support')||null};
+      if (!Object.values(body).some(Boolean)) throw new Error('Preencha ao menos um campo da avaliação.');
+      return {...common,case_id:c.id,...body,assessor_name:text(f,'assessor_name')||null,...(d?{assessment_date:d}:{}),status:choice(text(f,'status')||'rascunho',assessmentStatuses)};
+    }
+    case 'referral': {
+      const c = caseRow();
+      return {...common,case_id:c.id,from_sector:required(text(f,'from_sector'),'o setor de origem'),to_sector:required(text(f,'to_sector'),'o setor de destino'),reason:required(text(f,'reason'),'o motivo'),notes:text(f,'notes')||null,status:'pendente'};
     }
     case 'accommodation': return {...common,plan_id:parent(ctx.plans||[],text(f,'plan_id'),institution_id).id,category:choice(text(f,'category'),accommodationCategories),description:description(),responsible:text(f,'responsible')||null,status:'prevista'};
     case 'specialCase': {
