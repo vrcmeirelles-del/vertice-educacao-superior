@@ -95,7 +95,10 @@ export default function Avalia360Studio({institutionId,courses}:Avalia360StudioP
  const save=async()=>{
   if(!courseId){setErrors(['Selecione o curso.']);return;}
   if(!disciplineId.trim()){setErrors(['Informe a disciplina.']);return;}
-  const issues=checkDraft(questions);if(issues.length){setErrors(issues);setPreview(false);return;}
+  const issues=checkDraft(questions);
+  if(title.trim().length<3)issues.unshift('Informe um título com pelo menos 3 caracteres.');
+  if(period.trim().length<3)issues.unshift('Informe o semestre letivo.');
+  if(issues.length){setErrors(issues);setPreview(false);return;}
   setBusy(true);setErrors([]);setStatus('Preparando rascunho…');
   try {
    const grouped:Record<string,Array<{localId:string;receipt:UploadedImageReceipt}>>={};
@@ -113,7 +116,7 @@ export default function Avalia360Studio({institutionId,courses}:Avalia360StudioP
    setStatus('Salvando versão no Supabase…');
    const out=await saveAssessmentDraft({institutionId,courseId,disciplineId,
      ...(receipt?{draftId:receipt.id,expectedRevision:receipt.revision}:{}),
-     questions,uploadedImages:grouped});
+     questions,uploadedImages:grouped,assessmentMeta:{title:title.trim(),semester:period.trim(),purpose}});
    if(!out.ok){setStatus('Falha no salvamento.');setErrors([out.error.message]);return;}
    setReceipt(out.receipt);setStatus('Rascunho salvo na versão '+out.receipt.revision+'.');
    setLoaded(null);
@@ -163,7 +166,7 @@ export default function Avalia360Studio({institutionId,courses}:Avalia360StudioP
    <label style={{...labelStyle,marginTop:12}}>Título da avaliação
     <input style={inputStyle} value={title} onChange={e=>setTitle(e.target.value)} placeholder="Ex.: Avaliação de Direito Civil — AV1"/>
    </label>
-   <p style={{fontSize:12,color:'#64748b',marginBottom:0}}>Título, semestre e finalidade geral são metadados de preparação nesta versão. Não são enviados à RPC de rascunho até que o contrato de prova inclua esses campos.</p>
+   <p style={{fontSize:12,color:'#64748b',marginBottom:0}}>Título, semestre e finalidade são versionados com o rascunho. O vínculo a competências depende de catálogo institucional validado.</p>
   </div>
   <div style={cardStyle}>
    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:10,flexWrap:'wrap'}}>
