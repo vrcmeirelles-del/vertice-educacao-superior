@@ -70,6 +70,7 @@ const SchoolPlanning = lazy(() => import("./SchoolPlanning"));
 const SchoolManagement = lazy(() => import("../bi/SchoolManagement"));
 const MarketIntelligence = lazy(() => import("./MarketIntelligence"));
 const Discursiva360 = lazy(() => import("./Discursiva360"));
+const Avalia360Studio = lazy(() => import("@/lib/avalia360/Avalia360Studio"));
 const CoursePlanning = lazy(() => import("./CoursePlanning"));
 const CurriculumBuilder = lazy(() => import("./CurriculumBuilder"));
 const TrailAnalysis = lazy(() => import("./TrailAnalysis"));
@@ -279,6 +280,7 @@ export default function Workspace({
   onChanged: () => void;
 }) {
   const id = institution.id;
+  const [evaluationView,setEvaluationView] = useState<'discursiva'|'avalia'>('discursiva');
   const instTier = String((institution as any).tier || 'superior');
   const visibleGroups = TAB_GROUPS.filter(g => !g.tier || g.tier === 'both' || g.tier === instTier);
   const [tab, setTab] = useState<Tab>(() => {
@@ -591,8 +593,27 @@ export default function Workspace({
       ) : tab === "mercado" ? (
         <Suspense fallback={<p role="status">Carregando inteligência de mercado…</p>}><MarketIntelligence key={String(id)} institutionId={String(id)} courses={data.courses} goals={data.goals} role={role} onPlanning={()=>choose("planejamento-estrategico")}/></Suspense>
       ) : tab === "discursiva" ? (
- <Suspense fallback={<p role="status">Carregando Discursiva 360°…</p>}><Discursiva360 institutionId={String(id)} courses={data.courses.map(c=>({id:String(c.id),name:String(c.name)}))}/></Suspense>
- ) : tab === "construcao-curricular" ? (
+        <div>
+          {role && role !== 'leitor' && <nav aria-label="Ferramentas de avaliação acadêmica"
+            style={{display:'flex',gap:10,flexWrap:'wrap',margin:'0 0 18px'}}>
+            <button type="button" aria-pressed={evaluationView==='discursiva'}
+              className="corp-button small" onClick={()=>setEvaluationView('discursiva')}>
+              Discursiva 360°
+            </button>
+            <button type="button" aria-pressed={evaluationView==='avalia'}
+              className="corp-button small" onClick={()=>setEvaluationView('avalia')}>
+              Avalia 360° · Estúdio
+            </button>
+          </nav>}
+          <Suspense fallback={<p role="status">Carregando ferramenta de avaliação…</p>}>
+            {evaluationView==='avalia' && role && role!=='leitor'
+              ? <Avalia360Studio key={String(id)} institutionId={String(id)}
+                  courses={data.courses.map(c=>({id:String(c.id),name:String(c.name)}))}/>
+              : <Discursiva360 institutionId={String(id)}
+                  courses={data.courses.map(c=>({id:String(c.id),name:String(c.name)}))}/>}
+          </Suspense>
+        </div>
+      ) : tab === "construcao-curricular" ? (
         <Suspense fallback={<p role="status">Carregando construção curricular…</p>}><CurriculumBuilder institutionId={String(id)} courses={data.courses.map(c=>({id:String(c.id),name:String(c.name),code:String(c.code??"")}))} role={role} /></Suspense>
       ) : tab === "trilhas-enade" ? (
         <Suspense fallback={<p role="status">Carregando trilhas ENADE…</p>}><TrailAnalysis institutionId={String(id)} courses={data.courses.map(c=>({id:String(c.id),name:String(c.name),code:String(c.code??"")}))} role={role} /></Suspense>
