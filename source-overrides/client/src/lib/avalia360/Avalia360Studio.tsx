@@ -331,6 +331,12 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
      </fieldset>:<label style={labelStyle}>Rubrica de correção
       <textarea style={{...inputStyle,minHeight:110}} value={q.rubric} onChange={e=>update({rubric:e.target.value})} placeholder="Critérios, fundamentação e distribuição de pontos"/>
      </label>}
+     {q.kind==='discursiva'&&<label style={labelStyle}>Padrão de resposta esperado
+      <textarea style={{...inputStyle,minHeight:145}} value={q.expectedAnswer||''}
+       onChange={e=>update({expectedAnswer:e.target.value})}
+       placeholder="Resposta-modelo: conceitos, argumentos, fundamentos e elementos essenciais esperados do estudante."/>
+      <span style={{fontSize:12,fontWeight:400,color:'#53677e'}}>Referência reservada ao professor e ao futuro algoritmo de correção. Não será impressa na prova do aluno. É diferente da rubrica de pontuação.</span>
+     </label>}
      <QuestionImageField questionId={q.id} value={q.images} onChange={images=>update({images})}/>
      <RuleCurationPanel key={q.id} question={q} pedagogy={{...pedagogy,purpose}}
       onApply={statement=>update({statement})}
