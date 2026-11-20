@@ -17,21 +17,23 @@ export function AssessmentDraftWorkspace(props:AssessmentDraftWorkspaceProps){
  const [message,setMessage]=useState('');
  const [receipt,setReceipt]=useState<DraftReceipt|null>(null);
  const [question,setQuestion]=useState<QuestionDraft|null>(null);
- const uploaded=useRef(new Map<string,{receipt:UploadedImageReceipt;file:File}>());
+ const uploaded=useRef(new Map<string,{receipt:UploadedImageReceipt;file:File;scopeKey:string}>());
  const prepare=async(next:QuestionDraft)=>{
   if(status==='saving')return;
   setStatus('saving');setMessage('');
   try {
    const media: Array<{localId:string;receipt:UploadedImageReceipt}> = [];
    for(const image of next.images){
+     // Recibos de outro curso, instituição ou questão nunca podem ser reutilizados.
+     const scopeKey=[props.institutionId,props.courseId,props.disciplineId,next.id].join(':');
      const cached=uploaded.current.get(image.localId);
-     let item=cached?.file===image.file?cached.receipt:null;
+     let item=cached?.file===image.file && cached.scopeKey===scopeKey?cached.receipt:null;
      if(!item){
        item=await uploadQuestionImage(image.file,{
          institutionId:props.institutionId,courseId:props.courseId,
          disciplineId:props.disciplineId,questionId:next.id
        });
-       uploaded.current.set(image.localId,{receipt:item,file:image.file});
+       uploaded.current.set(image.localId,{receipt:item,file:image.file,scopeKey});
      }
      media.push({localId:image.localId,receipt:item});
    }
