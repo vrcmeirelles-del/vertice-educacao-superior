@@ -31,3 +31,12 @@ describe('limite diário da demonstração usa IP não forjável',()=>{
   expect(clientIp(r({}))).toBe('unknown');
  });
 });
+describe('conversa guiada aplica o filtro de dados sensíveis e a cota',()=>{
+ it('bloqueia CPF/senha antes de gravar e reserva a cota',async()=>{
+  const ops:string[]=[];vi.stubGlobal('fetch',vi.fn(async(_u:string,init:any)=>{ops.push(JSON.parse(init.body).op);return Response.json({id:'t',profile:{},events:[],conversation:[]});}));
+  expect((await handler(request({action:'chat',token,message:'meu cpf é 123.456.789-09'}))).status).toBe(400);
+  expect(ops).toEqual([]);
+  expect((await handler(request({action:'chat',token,message:'Como funciona?'}))).status).toBe(200);
+  expect(ops).toEqual(['chat_reserve','update']);
+ });
+});
