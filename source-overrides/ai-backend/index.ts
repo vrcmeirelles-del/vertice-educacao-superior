@@ -48,5 +48,5 @@ function makeBackend(authorization:string):Backend{
   async finalize(id,actor,state,hash,usage,code){await rpc('vertice_ai_finalize',{reservation:id,expected_actor:actor,final_state:state,response_hash:hash,input_tokens:usage.input_tokens,output_tokens:usage.output_tokens,error_code:code},true)},
  };
 }
-Deno.serve(createReviewHandler({backend:makeBackend,configured:()=>Boolean(Deno.env.get('OPENAI_API_KEY')?.trim()),apiKey:()=>Deno.env.get('OPENAI_API_KEY')??''}));
+Deno.serve(createReviewHandler({backend:makeBackend,configured:()=>Boolean(Deno.env.get('OPENAI_API_KEY')?.trim()),aiOn:()=>String(Deno.env.get('AI_SUSPENDED')??'true').toLowerCase()==='false',apiKey:()=>Deno.env.get('OPENAI_API_KEY')??''}));
 
