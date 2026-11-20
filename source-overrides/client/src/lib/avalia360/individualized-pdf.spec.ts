@@ -47,6 +47,31 @@ describe('impressão individualizada de prova',()=>{
   expect(text).not.toContain('Resposta-modelo sigilosa');
   expect(bytes.byteLength).toBeGreaterThan(1000);
  });
+ it('incorpora imagem PNG validada ao PDF, em vez de barrar a geração',async()=>{
+  // PNG sintético: nenhum dado pessoal ou imagem da produção entra no teste.
+  const png=Uint8Array.from(Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jU9kAAAAASUVORK5CYII=','base64'));
+  const file=Object.assign(new Blob([png],{type:'image/png'}),{name:'figura-teste.png'}) as File;
+  const question={...q,images:[{localId:'fig1',file,altText:'Figura demonstrativa',
+    caption:'Imagem de teste',placement:'enunciado' as const,rightsStatus:'autoral' as const}]};
+  const ctx={institutionName:'Vértice',courseName:'Direito',discipline:'Civil',
+   title:'AV1',semester:'2027/1',classLabel:'2A',questions:[question]};
+  expect(validatePrintAssessment(ctx)).toEqual([]);
+  const bytes=await buildIndividualizedPdf(ctx,prepareIssues([{id:'s1',name:'Aluno Exemplo',selected:true}],'batch'));
+  const pdf=await PDFDocument.load(bytes);
+  expect(pdf.getPageCount()).toBeGreaterThanOrEqual(1);
+  expect(bytes.byteLength).toBeGreaterThan(3000);
+ });
+ it('impede imprimir imagem sem descrição ou direito de uso',()=>{
+  const file=Object.assign(new Blob([new Uint8Array([1,2,3])],{type:'image/png'}),{name:'teste.png'}) as File;
+  const item={...q,images:[{localId:'f',file,altText:'',caption:'',
+   placement:'enunciado' as const,rightsStatus:'nao_informado' as const}]};
+  const problems=validatePrintAssessment({institutionName:'Vértice',courseName:'Direito',discipline:'Civil',
+    title:'AV1',semester:'2027/1',classLabel:'2A',questions:[item]});
+  expect(problems).toEqual(expect.arrayContaining([
+    'Questão 1: descrição acessível da imagem 1 ausente.',
+    'Questão 1: direito de uso da imagem 1 não confirmado.'
+  ]));
+ });
  it('impede duplicidade de identificador e emissão sem alunos',()=>{
   expect(()=>prepareIssues([], 'batch-demo')).toThrow();
   expect(()=>prepareIssues([
