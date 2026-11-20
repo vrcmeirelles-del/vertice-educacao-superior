@@ -29,7 +29,10 @@ export function validatePrintAssessment(info:PrintAssessment):string[]{
    if(!q.options.some(o=>o.id===q.correctOptionId))issues.push(prefix+'gabarito não selecionado.');
    if(new Set(q.options.map(o=>o.text.trim().normalize('NFKC').toLocaleLowerCase('pt-BR'))).size!==q.options.length)
     issues.push(prefix+'alternativas duplicadas.');
-  }else if(!q.rubric.trim())issues.push(prefix+'rubrica da discursiva ausente.');
+  }else{
+   if(!q.rubric.trim())issues.push(prefix+'rubrica da discursiva ausente.');
+   if(!q.expectedAnswer?.trim())issues.push(prefix+'padrão de resposta esperado ausente.');
+  }
  });
  return issues;
 }
