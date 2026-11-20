@@ -15,7 +15,7 @@ const ids = ['A','B','C','D','E','F','G','H'];
 const createDraft = (disciplineId:string):QuestionDraft => ({
  id:crypto.randomUUID(),disciplineId,kind:'objetiva',statement:'',
  options:ids.slice(0,5).map(id=>({id,text:''})),correctOptionId:'',
- rubric:'',topicIds:[],competencyIds:[],purpose:['formativa'],
+ rubric:'',expectedAnswer:'',topicIds:[],competencyIds:[],purpose:['formativa'],
  estimatedDifficulty:3,points:1,examTags:[],images:[]
 });
 /**
@@ -84,6 +84,11 @@ export function QuestionDraftEditor({
           placeholder="Ex.: identificação do problema — 2 pontos; fundamentação — 3 pontos..."
           style={{display:'block',width:'100%'}}/>
       </label>}
+    {draft.kind==='discursiva'&&<label style={{display:'block',marginTop:10}}>Padrão de resposta esperado
+      <textarea rows={6} value={draft.expectedAnswer||''} onChange={e=>patch({expectedAnswer:e.target.value})}
+       placeholder="Resposta-modelo, argumentos e fundamentos esperados do estudante. Não substitui rubrica."
+       style={{display:'block',width:'100%'}}/>
+    </label>}
     <QuestionImageField questionId={draft.id} value={draft.images}
       onChange={(images:PendingQuestionImage[])=>patch({images})}/>
     <fieldset><legend>Temas e subtemas do catálogo curricular</legend>
