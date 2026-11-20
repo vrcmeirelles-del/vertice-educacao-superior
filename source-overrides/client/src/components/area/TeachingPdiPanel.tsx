@@ -578,9 +578,16 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate, showHeade
       const crsName = courses.find(c => c.id === row.course_id)?.name ?? 'Curso';
       const { data: instRow } = await supabase.from('vertice_institutions').select('name').eq('id', institutionId).maybeSingle();
       const { data: userData } = await supabase.auth.getUser();
+      // Busca logo da IES do Storage (convenção: {id}.png no bucket vertice-institution-logos)
+      let logoBytes: Uint8Array | null = null;
+      try {
+        const { data: logoData } = await supabase.storage.from('vertice-institution-logos').download(`${institutionId}.png`);
+        if (logoData) logoBytes = new Uint8Array(await logoData.arrayBuffer());
+      } catch { /* sem logo, continua sem */ }
       const bytes = await buildTeachingPdf({
         activity: row, institutionName: instRow?.name ?? 'Instituição', courseName: crsName,
         students, goalTitle: goalName, evidenceTitle: evidenceName, author: userData.user?.email ?? 'Não identificado',
+        logoBytes,
       });
       const blob = new Blob([bytes], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
