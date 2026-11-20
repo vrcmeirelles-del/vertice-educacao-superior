@@ -72,6 +72,33 @@ describe('impressão individualizada de prova',()=>{
     'Questão 1: direito de uso da imagem 1 não confirmado.'
   ]));
  });
+ it('emite cartão exclusivo por estudante com variantes distintas no mesmo lote',async()=>{
+  const issues=prepareIssues([
+   {id:'s1',name:'Aluno Exemplo 1',selected:true},
+   {id:'s2',name:'Aluno Exemplo 2',selected:true}
+  ],'batch2');
+  const info={institutionName:'Vértice',courseName:'Direito',discipline:'Civil',
+   title:'AV2',semester:'2027/1',classLabel:'2A',questions:[q],
+   variantCount:2,shuffleMode:'alternativas' as const};
+  const bytes=await buildIndividualizedPdf(info,issues);
+  const doc=await PDFDocument.load(bytes);
+  expect(doc.getPageCount()).toBe(4);
+  expect(issues[0].token).not.toBe(issues[1].token);
+ });
+ it('respeita quantidade de linhas discursivas e rejeita valores fora dos limites',async()=>{
+  const disc={...q,kind:'discursiva' as const,expectedAnswer:'Fundamentação de referência sigilosa.',
+   rubric:'Identificação do instituto e argumentação, com pontuação.',
+   answerLines:18};
+  const ctx={institutionName:'Vértice',courseName:'Direito',discipline:'Civil',
+   title:'AV2',semester:'2027/1',classLabel:'2A',questions:[disc]};
+  expect(validatePrintAssessment(ctx)).toEqual([]);
+  expect(validatePrintAssessment({...ctx,questions:[{...disc,answerLines:61}]}))
+   .toContain('Questão 1: informe de 3 a 60 linhas na discursiva.');
+  const doc=await PDFDocument.load(await buildIndividualizedPdf(ctx,prepareIssues([
+   {id:'student',name:'Aluno Exemplo',selected:true}
+  ],'batch3')));
+  expect(doc.getPageCount()).toBeGreaterThanOrEqual(2);
+ });
  it('impede duplicidade de identificador e emissão sem alunos',()=>{
   expect(()=>prepareIssues([], 'batch-demo')).toThrow();
   expect(()=>prepareIssues([
