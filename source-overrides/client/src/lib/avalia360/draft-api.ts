@@ -45,6 +45,7 @@ function sanitizeQuestion(q:QuestionDraft, uploaded:DraftSaveInput['uploadedImag
   topicIds:q.topicIds,competencyIds:q.competencyIds,
   purpose:q.purpose,estimatedDifficulty:q.estimatedDifficulty,
   points:q.points,examTags:q.examTags,
+  ...(q.spreadsheetMetadata?{spreadsheetMetadata:q.spreadsheetMetadata}:{}),
   pendingImageCount:q.images.length,images:imageMetadata
  };
 }

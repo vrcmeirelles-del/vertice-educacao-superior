@@ -28,6 +28,10 @@ export interface QuestionDraft {
   points: number;
   examTags: string[];
   images: PendingQuestionImage[];
+  spreadsheetMetadata?: {
+    topic:string;subtopic:string;keywords:string;competencies:string;
+    fileName:string;imagePosition:string;caption:string;altText:string;
+  };
 }
 export interface DraftIssue {
   field: string;

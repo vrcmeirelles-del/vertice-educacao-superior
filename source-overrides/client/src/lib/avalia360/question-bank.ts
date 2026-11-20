@@ -36,8 +36,11 @@ export function prepareBankQuestion(args:{
  }
  return {bankId:args.bankId,revision:1,institutionId:args.institutionId,courseId:args.courseId,
   discipline:args.discipline.trim(),createdAt:args.createdAt,status:'rascunho',
-  indexLabels:[...new Set((args.indexLabels??[]).map(label=>label.trim()).filter(Boolean))],
-  question:{...q,id:args.bankId,disciplineId:args.discipline.trim(),
+  indexLabels:[...new Set([
+   ...(args.indexLabels??[]),q.spreadsheetMetadata?.topic??'',q.spreadsheetMetadata?.subtopic??'',
+   ...(q.spreadsheetMetadata?.keywords.split(',')??[])
+  ].map(label=>label.trim()).filter(Boolean))],
+  question:{...q,spreadsheetMetadata:q.spreadsheetMetadata?{...q.spreadsheetMetadata}:undefined,id:args.bankId,disciplineId:args.discipline.trim(),
    options:q.options.map(o=>({...o})),topicIds:[...q.topicIds],
    competencyIds:[...q.competencyIds],purpose:[...q.purpose],examTags:[...q.examTags],images:[]}};
 }
@@ -54,7 +57,7 @@ export function filterBankQuestions(list:BankQuestion[],args:{
 export function reuseBankQuestion(record:BankQuestion,newId:string,discipline:string):QuestionDraft{
  if(!newId.trim()||newId===record.bankId)throw Error('A questão reutilizada exige novo identificador.');
  if(normalized(discipline)!==normalized(record.discipline))throw Error('Disciplina incompatível com o item do banco.');
- return {...record.question,id:newId,disciplineId:discipline,
+ return {...record.question,spreadsheetMetadata:record.question.spreadsheetMetadata?{...record.question.spreadsheetMetadata}:undefined,id:newId,disciplineId:discipline,
   options:record.question.options.map(o=>({...o})),
   topicIds:[...record.question.topicIds],
   competencyIds:[...record.question.competencyIds],

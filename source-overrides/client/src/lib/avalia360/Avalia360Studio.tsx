@@ -1,6 +1,7 @@
 import {useCallback,useEffect,useRef,useState} from 'react';
 import './avalia-wizard.css';
 import {QuestionImageField} from './QuestionImageField';
+import QuestionSpreadsheetImport from './QuestionSpreadsheetImport';
 import ClassBatchPublisher from './ClassBatchPublisher';
 import RuleCurationPanel from './RuleCurationPanel';
 import type {CurationDecision} from './curation-decision';
@@ -317,6 +318,12 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
        Questão {i+1} · {item.kind==='objetiva'?'Objetiva':'Discursiva'}
      </button>)}
     <button type="button" onClick={add}>＋ Adicionar questão</button>
+    <QuestionSpreadsheetImport key={JSON.stringify([institutionId,courseId,disciplineId])}
+     disciplineId={disciplineId} catalog={pedagogy}
+     onImport={items=>{
+      setQuestions(all=>[...all,...items]);setActiveIndex(questions.length);
+      setPreview(false);setLoaded(null);setErrors([]);
+     }}/>
     {!disciplineId.trim()&&<span role="note" style={{alignSelf:'center',fontSize:12,color:'#6D4B14'}}>
      Você pode criar questões agora. Informe a disciplina antes de salvar a avaliação.
     </span>}
@@ -327,6 +334,20 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
       <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}><strong style={{color:'#0a3775',fontSize:19}}>Questão {activeIndex+1}</strong><span className="avalia-pill">{q.kind==='discursiva'?'Discursiva':'Objetiva'}</span><span className="avalia-pill">{q.points} ponto(s)</span></div>
       <button type="button" style={{...btn(false),borderColor:'#B84A4A',color:'#9B3434'}} onClick={()=>remove(activeIndex)}>Excluir questão</button>
      </div>
+     {q.spreadsheetMetadata&&<details>
+      <summary>Dados complementares da planilha</summary>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(190px,1fr))',gap:10,marginTop:8}}>
+       {([
+        ['topic','Tema'],['subtopic','Subtema'],['keywords','Palavras-chave'],
+        ['competencies','Competências indicadas na planilha'],['fileName','Arquivo de imagem a anexar'],
+        ['imagePosition','Posição indicada da imagem'],['caption','Legenda indicada'],['altText','Descrição acessível indicada']
+       ] as const).map(([key,label])=><label key={key} style={labelStyle}>{label}
+        <input style={inputStyle} value={q.spreadsheetMetadata?.[key]??''} onChange={e=>{
+         if(q.spreadsheetMetadata)update({spreadsheetMetadata:{...q.spreadsheetMetadata,[key]:e.target.value}});
+        }}/>
+       </label>)}
+      </div>
+     </details>}
      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))',gap:12}}>
       <label style={labelStyle}>Tipo da questão
        <select style={inputStyle} value={q.kind} onChange={e=>update({kind:e.target.value as QuestionDraft['kind']})}>
