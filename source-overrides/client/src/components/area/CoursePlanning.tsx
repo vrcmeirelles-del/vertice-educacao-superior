@@ -27,7 +27,7 @@ async function loadCrossModuleData(institutionId:string, courseId:string): Promi
       supabase.from('vertice_internship_placements').select('id',{count:'exact',head:true}).eq('institution_id',institutionId).eq('course_id',courseId).in('status',['active','pending']),
       supabase.from('vertice_tcc_works').select('id',{count:'exact',head:true}).eq('institution_id',institutionId).eq('course_id',courseId).in('status',['defense_scheduled','in_progress']),
       supabase.from('vertice_risco_agregado').select('total_risco').eq('institution_id',institutionId).eq('course_id',courseId).maybeSingle(),
-      supabase.from('student_individual_plans').select('id',{count:'exact',head:true}).eq('institution_id',institutionId).in('status',['active','review']),
+      supabase.from('student_individual_plans').select('id',{count:'exact',head:true}).eq('institution_id',institutionId).in('status',['ativo','em_revisao']),
       supabase.from('vertice_eorbit_professores').select('nome,titulacao').eq('instituicao_id',institutionId).limit(50),
     ]);
     return {
