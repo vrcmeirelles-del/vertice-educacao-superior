@@ -1,4 +1,4 @@
-import {managementOverview} from './management.ts';
+import {managementOverview,ruleReview} from './management.ts';
 import {extractDocumentPreview,type ExtractionAdapters} from './extraction.ts';
 import {runDocumentReview,validateSnippets,inspectSensitiveText,ReviewError,type VerifiedSnippet,type ReviewCompletion} from './core.ts';
 export type Scope={actorId:string;institutionId:string;courseId:string};
@@ -15,7 +15,7 @@ export type Backend={
  finalize:(id:string,actor:string,state:'succeeded'|'failed',hash:string|null,usage:{input_tokens:number|null;output_tokens:number|null},code:string|null)=>Promise<void>;
 };
 export class BoundaryError extends Error{constructor(readonly code:string,readonly status:number){super(code)}}
-export type HandlerOptions={backend:(authorization:string)=>Backend;configured:()=>boolean;apiKey:()=>string;review?:typeof runDocumentReview};
+export type HandlerOptions={backend:(authorization:string)=>Backend;configured:()=>boolean;aiOn?:()=>boolean;apiKey:()=>string;review?:typeof runDocumentReview};
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const ORIGINS=new Set(['https://www.verticesuperior.com.br','https://verticesuperior.com.br','https://vertice-educacao-superior-jlri.onrender.com','https://vertice-portal.onrender.com','https://vertice-educacao-superior.onrender.com','https://vertice-educacao-superior-site.onrender.com']);
 export async function hashValue(value:unknown){const bytes=new TextEncoder().encode(JSON.stringify(value));return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('');}
@@ -43,8 +43,10 @@ export function createReviewHandler(options:HandlerOptions){return async(req:Req
   const digest=await hashValue({scope,files:preview.files.map(f=>({id:f.fileId,status:f.status,sha256:f.sha256??null})),chunks:chunks.map(c=>({id:c.id,text:c.text}))});
   if(body.action==='preview')return response({preview_digest:digest,chunks,overview:managementOverview(chunks),unsupported:preview.files.filter(f=>f.status!=='ready').map(f=>({file_id:f.fileId,status:f.status,message:f.message})),reviewRequired:true,providerTransmission:false});
   if(body.privacy_confirmed!==true||typeof body.preview_digest!=='string'||body.preview_digest!==digest)throw new BoundaryError('preview_changed_or_unconfirmed',409);
-  if(!policy.enabled||!options.configured()||!policy.model)throw new BoundaryError('analysis_not_configured',503);
   const snippets:VerifiedSnippet[]=validateSnippets(body.selections);for(const snippet of snippets){const source=chunks.find(c=>c.id===snippet.id);if(!source||!source.text.includes(snippet.text))throw new BoundaryError('unverified_excerpt',400)}
+  // IA suspensa: revisão por regras, sem reserva de cota nem envio a provedor (auditoria V8).
+  if(options.aiOn&&!options.aiOn())return response({analysis_id:null,result:ruleReview(chunks,snippets),usage:{input_tokens:null,output_tokens:null},model:'regras'});
+  if(!policy.enabled||!options.configured()||!policy.model)throw new BoundaryError('analysis_not_configured',503);
   const criteria=files.length?await backend.criteria(scope,files):[];
   const requestHash=await hashValue({version:'integrated-5',scope,digest,snippets,criteria});
   reservation=await backend.reserve(scope,files,requestHash);await backend.claim(reservation.reservation_id,actorId,requestHash);
