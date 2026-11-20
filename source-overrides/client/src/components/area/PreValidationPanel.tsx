@@ -38,7 +38,7 @@ const COMPAT_COLORS: Record<string, { bg: string; border: string; label: string 
 };
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  sugerido: { label: "Sugerido pela IA", color: "#d97706" },
+  sugerido: { label: "Sugerido automaticamente", color: "#d97706" },
   aprovado: { label: "Aprovado", color: "#16a34a" },
   rejeitado: { label: "Rejeitado", color: "#dc2626" },
   revisao_humana: { label: "Em revisão humana", color: "#7c3aed" },
@@ -176,7 +176,7 @@ export default function PreValidationPanel({
       <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
         <div>
           <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: "var(--color-primary, #1e40af)" }}>
-            🤖 PRÉ-VALIDAÇÃO COM IA
+            🔎 PRÉ-VALIDAÇÃO AUTOMÁTICA
           </h3>
           <p style={{ margin: "4px 0 0", fontSize: 13, color: "#64748b" }}>
             {String(file.file_name)}
@@ -191,7 +191,7 @@ export default function PreValidationPanel({
       {prevalidation?.extracted_at&&<div role="status"><p>Texto: {prevalidation.extraction_status==="partial"?"parcialmente extraído":"extraído"} · {prevalidation.extraction_metadata?.characters??"—"} caracteres. Classificação humana preservada.</p><p>Palavras-chave sugeridas: {prevalidation.keyword_suggestions?.join(", ")||"nenhuma"}</p><small>SHA-256 do original: {prevalidation.source_sha256}</small></div>}
       {!loading && prevalidation?.ai_status === "pending" && (
         <button type="button" className="er-btn er-primary er-small" disabled={analyzing} onClick={() => void startPrevalidation("analyze")}>
-          {analyzing ? "Analisando documento…" : "Gerar sugestões de classificação com IA"}
+          {analyzing ? "Analisando documento…" : "Gerar sugestões de classificação"}
         </button>
       )}
       {/* Status atual */}
@@ -200,11 +200,11 @@ export default function PreValidationPanel({
       {!loading && !prevalidation && (
         <div style={{ textAlign: "center", padding: "24px 0" }}>
           <p style={{ fontSize: 15, marginBottom: 12 }}>
-            Este documento ainda não foi pré-validado pela IA.
+            Este documento ainda não foi pré-validado.
           </p>
           <p style={{ fontSize: 13, color: "#64748b", marginBottom: 16 }}>
-            A IA irá ler o documento, identificar indicadores relacionados em todos os instrumentos regulatórios
-            e sugerir onde esta evidência pode ser aproveitada.
+            O sistema lê o texto do documento, localiza os trechos ligados a cada indicador do instrumento
+            e sugere onde esta evidência pode ser aproveitada, citando o trecho encontrado.
           </p>
           <button
             onClick={()=>void startPrevalidation()}
@@ -212,7 +212,7 @@ export default function PreValidationPanel({
             className="er-btn er-primary"
             style={{ fontSize: 16, padding: "12px 32px", fontWeight: 700 }}
           >
-            {analyzing ? "⏳ Analisando documento…" : "🔍 PRÉ-VALIDAR COM IA"}
+            {analyzing ? "⏳ Analisando documento…" : "🔍 PRÉ-VALIDAR"}
           </button>
         </div>
       )}
@@ -220,7 +220,7 @@ export default function PreValidationPanel({
       {prevalidation?.ai_status === "processing" && (
         <div style={{ textAlign: "center", padding: 24 }}>
           <p style={{ fontSize: 16, fontWeight: 600 }}>⏳ Análise em andamento…</p>
-          <p style={{ fontSize: 13, color: "#64748b" }}>A IA está lendo o documento e identificando indicadores.</p>
+          <p style={{ fontSize: 13, color: "#64748b" }}>Lendo o documento e localizando os indicadores.</p>
         </div>
       )}
 
@@ -406,7 +406,7 @@ export default function PreValidationPanel({
 
           {links.length === 0 && (
             <p style={{ color: "#64748b", textAlign: "center", padding: 24 }}>
-              A IA não identificou indicadores relacionados neste documento.
+              Nenhum indicador foi localizado no texto deste documento.
             </p>
           )}
         </>

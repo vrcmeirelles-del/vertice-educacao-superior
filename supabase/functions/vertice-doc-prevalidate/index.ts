@@ -6,6 +6,7 @@ import { unzipSync } from "npm:fflate@0.8.2";
 import {extractDocument,groundedLinks,transmittedEvidence,ExtractionFailure} from "./document-text.mjs";
 import {openTextPdf} from "./pdf-runtime.mjs";
 import {analyzeEvidence} from "./ai-provider.mjs";
+import {analyzeByRules,RULES_VERSION} from "./rule-analysis.mjs";
 // IA suspensa até a plataforma gerar receita (decisão de 19/11/2026). Para religar: secret AI_SUSPENDED=false.
 {const __aiFetch=globalThis.fetch;const __aiHosts=/(^|\.)(api\.anthropic\.com|api\.openai\.com|generativelanguage\.googleapis\.com)$/i;
 globalThis.fetch=((input:any,init?:any)=>{let host="";try{host=new URL(typeof input==="string"?input:input instanceof URL?input.href:input.url).hostname;}catch{}
@@ -285,25 +286,25 @@ Deno.serve(async (request) => {
     const approvedCodes=new Set(objects.map((o:any)=>{const c:any=catalogCodes.get(o.catalog_id);return `${c.instrument_code}/${c.instrument_version}/${o.object_code}`;}));
     const instrumentsSummary=objects.map((o:any)=>{const c:any=catalogCodes.get(o.catalog_id);return `${c.instrument_label} (${c.instrument_code} v${c.instrument_version}) / ${o.object_code}: ${o.object_label} ${o.description??""}`;}).join("\n");
 
-    // 4. AI analysis
-    let result: PrevalidationResult;
-    let modelVersion = "unknown";
+    // 4. Análise por algoritmo (desde 20/11/2026). A IA só entra se religada e pedida
+    // explicitamente (AI_SUSPENDED=false e VERTICE_PREVALIDATION_AI=true); se falhar, ficam as regras.
+    const [{data:instRow},{data:courseRows}]=await Promise.all([
+     admin.from("vertice_institutions").select("name,acronym").eq("id",institutionId).maybeSingle(),
+     admin.from("vertice_courses").select("name").eq("institution_id",institutionId).limit(500),
+    ]);
+    let result: PrevalidationResult = analyzeByRules({extraction,fileName,category,objects,catalogs,institution:instRow,courses:courseRows??[]}) as PrevalidationResult;
+    let modelVersion = RULES_VERSION;
     let providerAttempts:any[]=[];
-    try {
+    let actorType="system";
+    const aiRequested=String(Deno.env.get("AI_SUSPENDED")??"true").toLowerCase()==="false"&&String(Deno.env.get("VERTICE_PREVALIDATION_AI")??"").toLowerCase()==="true";
+    if (aiRequested) {
+     try {
       const analysis=await analyzeWithAI(extractedText,fileName,category,indicators,instrumentsSummary);
-      result=analysis.result;modelVersion=analysis.model;providerAttempts=analysis.attempts;
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
+      result=analysis.result;modelVersion=analysis.model;providerAttempts=analysis.attempts;actorType="ai";
+     } catch (e) {
       providerAttempts=Array.isArray((e as any)?.attempts)?(e as any).attempts:[];
-      modelVersion=providerAttempts.map(a=>a.model).join(" -> ")||"unknown";
-      await admin.from("vertice_mirror_audit_log").insert({institution_id:institutionId,action:"prevalidation_ai_failed",entity_type:"prevalidation",entity_id:pv.id,actor_type:"ai",ai_model:modelVersion,details:{provider_attempts:providerAttempts,source_sha256:extraction.sha256}});
-      await admin.from("vertice_doc_prevalidation").update({
-        ai_status: "failed",
-        ai_error: `Análise IA falhou: ${msg}`,
-        ai_model_version: modelVersion,
-        ai_analyzed_at: new Date().toISOString(),
-      }).eq("id", pv.id);
-      return respond({ error: "ai_analysis_failed", detail: msg }, 500);
+      await admin.from("vertice_mirror_audit_log").insert({institution_id:institutionId,action:"prevalidation_ai_failed",entity_type:"prevalidation",entity_id:pv.id,actor_type:"ai",ai_model:providerAttempts.map(a=>a.model).join(" -> ")||"unknown",details:{provider_attempts:providerAttempts,source_sha256:extraction.sha256,fallback:RULES_VERSION}});
+     }
     }
 
     // 5. Update prevalidation record
@@ -320,7 +321,7 @@ Deno.serve(async (request) => {
     }).eq("id", pv.id);
 
     // 6. Create indicator links
-    const transmitted=transmittedEvidence(extraction);
+    const transmitted=actorType==="ai"?transmittedEvidence(extraction):extraction;
     const links = groundedLinks(result.indicator_links,transmitted)
       .filter((link:IndicatorLink) =>
         approvedCodes.has(`${link.instrument_code}/${link.instrument_version}/${link.object_code}`) &&
@@ -365,7 +366,7 @@ Deno.serve(async (request) => {
       action: "prevalidation_completed",
       entity_type: "prevalidation",
       entity_id: pv.id,
-      actor_type: "ai",
+      actor_type: actorType,
       ai_model: modelVersion,
       details: {
         provider_attempts:providerAttempts,
