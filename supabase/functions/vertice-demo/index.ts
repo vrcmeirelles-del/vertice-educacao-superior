@@ -10,6 +10,28 @@ const tracks=['regulacao','aquisicoes','captacao'];
 const modules=['evidencias','metas','plano','diligencia','ebitda','atendimento','permanencia'];
 const pages=['/','/demonstracao','/servicos','/aquisicoes','/metodo','/caso-real','/fundador','/contato','/reitor','/guia'];
 const catalog={regulacao:'Consultoria independente para regulação, organização de evidências, preparação e plano de melhoria com metas, responsáveis e prazos. Demonstração com dados fictícios, sem nota oficial.',aquisicoes:'Consultoria para compra e venda de IES: due diligence em 10 frentes, 305 requisitos, relação entre declarações e comprovantes, análise de EBITDA e premissas de preço. Operações reais somente em área reservada e com equipe autorizada. A demonstração não avalia nem recomenda uma operação real.',captacao:'Consultoria de jornada, indicadores de captação e permanência, organização do atendimento e planos com responsáveis. Integrações e campanhas exigem avaliação e escopo próprios. Não promete matrículas nem receita.'};
+// Conversa guiada por roteiro (auditoria de 20/11/2026, V2): usada enquanto a IA estiver suspensa.
+// Só usa o catálogo e textos fixos por módulo; uma pergunta por vez; sem promessa de resultado.
+const MODULE_GUIDE:Record<string,{value:string;ask:string}>={
+ evidencias:{value:'Evidências: cada indicador do instrumento ganha o documento esperado, o responsável e o prazo, e a equipe acompanha o que falta comprovar.',ask:'Hoje as evidências da sua instituição ficam reunidas em um só lugar ou espalhadas entre setores?'},
+ metas:{value:'Metas: cada meta tem indicador, linha de base, alvo, prazo e responsável, com semáforo automático de trajetória.',ask:'Quais indicadores a gestão acompanha hoje com periodicidade definida?'},
+ plano:{value:'Plano de ação: as ações seguem o 5W2H, ligadas ao achado ou à meta que as justifica, com prazo e evidência de execução.',ask:'As ações de melhoria hoje têm responsável e prazo registrados?'},
+ diligencia:{value:'Due diligence: 10 frentes e 305 requisitos, relacionando cada declaração ao comprovante correspondente. Operações reais ficam em área reservada.',ask:'Você está avaliando uma compra, uma venda ou a organização prévia da documentação?'},
+ ebitda:{value:'EBITDA: o cálculo separa números declarados e conferidos e deixa explícitas as premissas usadas no preço.',ask:'Os números financeiros que você usa hoje já foram conciliados com a contabilidade?'},
+ atendimento:{value:'Atendimento: organiza a jornada do candidato, os canais e os indicadores de resposta, com responsáveis por etapa.',ask:'Em que etapa da jornada do candidato vocês percebem mais perda hoje?'},
+ permanencia:{value:'Permanência: acompanha sinais de evasão e organiza planos de ação com responsáveis, a partir dos dados da instituição.',ask:'A instituição já mede a evasão por curso e por período?'},
+};
+export function guidedReply(message:string,track:string,module:string){
+ const t=message.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+ const g=MODULE_GUIDE[module]||MODULE_GUIDE.evidencias;
+ if(/preco|valor|custo|quanto custa|orcamento|investimento/.test(t))return 'O valor depende do escopo, do porte da instituição e das frentes contratadas. O caminho é preparar o briefing desta demonstração e enviá-lo pelo contato, para uma proposta específica. Qual frente seria prioritária para vocês?';
+ if(/prazo|quanto tempo|cronograma|quando comec/.test(t))return 'O prazo depende do escopo e da situação de partida, avaliados no diagnóstico inicial. '+g.ask;
+ if(/integra|sistema|erp|api|importa/.test(t))return 'Integrações exigem avaliação e escopo próprios. Quais sistemas a instituição usa hoje para os dados acadêmicos?';
+ if(/garant|aprova|nota (do )?mec|conceito 5|certeza/.test(t))return 'A consultoria apoia a organização, a preparação e o acompanhamento; o resultado da avaliação depende da execução institucional e da análise oficial. '+g.ask;
+ if(/dado|lgpd|privacid|seguranc|sigilo/.test(t))return 'Os dados de cada instituição ficam segregados, com acesso por perfil e segundo fator. Esta demonstração usa somente dados fictícios. '+g.ask;
+ if(/contato|falar com|reuniao|proposta|consultor/.test(t))return 'Você pode preparar o briefing com o que mostrou nesta demonstração e enviá-lo pelo botão de contato; o texto é revisado por você antes do envio. '+g.ask;
+ return `${(catalog as Record<string,string>)[track]||catalog.regulacao} ${g.value} ${g.ask}`;
+}
 class Boundary extends Error{constructor(readonly code:string,readonly status=400){super(code)}}
 const clean=(v:unknown,max=600)=>typeof v==='string'?v.replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g,'').trim().slice(0,max):'';
 function profile(input:any){const p:Record<string,string>={};for(const key of ['pain','goal','urgency','role'])if(input?.[key]!==undefined)p[key]=clean(input[key],key==='pain'||key==='goal'?600:100);if(tracks.includes(input?.track))p.track=input.track;return p;}
@@ -32,7 +54,8 @@ export async function handler(req:Request){
  if(req.method!=='POST')return send({error:'method_not_allowed'},405);
  try{
   const b=await readBody(req);if(!b||typeof b!=='object'||Array.isArray(b))throw new Boundary('invalid_request');
-  if(b.action==='status')return send({ai_configured:Boolean(Deno.env.get('OPENAI_API_KEY')?.trim()),provider:'OpenAI',retention_days:90,session_minutes:60});
+  const aiOn=Boolean(Deno.env.get('OPENAI_API_KEY')?.trim())&&String(Deno.env.get('AI_SUSPENDED')??'true').toLowerCase()==='false';
+  if(b.action==='status')return send({ai_configured:aiOn,guided:!aiOn,provider:aiOn?'OpenAI':'roteiro',retention_days:90,session_minutes:60});
   if(b.action==='start'){
    if(b.notice_version!=='demo-2026-11-02'||typeof b.remember!=='boolean')throw new Boundary('consent_required');
    const token=[...crypto.getRandomValues(new Uint8Array(32))].map(x=>x.toString(16).padStart(2,'0')).join('');
@@ -50,9 +73,17 @@ export async function handler(req:Request){
    const state=await rpc('contact',hash,{contact:{name,email,institution},brief});return send({reference:state.id,state});
   }
   if(b.action==='chat'){
+   const message=clean(b.message,1000);if(!message)throw new Boundary('invalid_message');
+   if(!aiOn){
+    // Conversa guiada por roteiro: nada é enviado a provedor externo.
+    const state=await rpc('read',hash);const track=tracks.includes(b.track)?b.track:'regulacao';const currentModule=modules.includes(b.module)?b.module:'evidencias';
+    const answer=guidedReply(message,track,currentModule);
+    const stored=(Array.isArray(state?.conversation)?state.conversation:[]).slice(-8).filter((m:any)=>['user','assistant'].includes(m.role));
+    const conversation=[...stored,{role:'user',content:message,source:b.trigger==='demo'?'demo':'visitor'},{role:'assistant',content:answer,source:'demo'}].slice(-10);
+    await rpc('update',hash,{profile:profile(b.profile),conversation});return send({answer,provider:'roteiro'});
+   }
    if(b.ai_confirmed!==true)throw new Boundary('ai_consent_required');
    const key=Deno.env.get('OPENAI_API_KEY');if(!key)throw new Boundary('ai_not_configured',503);
-   const message=clean(b.message,1000);if(!message)throw new Boundary('invalid_message');
    if(/\bsk-[\w-]{12,}|\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b|-----BEGIN|(?:senha|password|token|api_key)\s*[:=]/i.test(message))throw new Boundary('sensitive_input');
    const state=await rpc('chat_reserve',hash);const track=tracks.includes(b.track)?b.track:'regulacao';
    const stored=(Array.isArray(state.conversation)?state.conversation:[]).slice(-8).filter((m:any)=>['user','assistant'].includes(m.role)).map((m:any)=>({role:m.role,content:clean(m.content,1600),source:m.source==='demo'?'demo':'visitor'}));
