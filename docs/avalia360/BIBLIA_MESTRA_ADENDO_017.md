@@ -61,3 +61,10 @@ GitHub Actions #44641929603: 60 testes unitários e 18 testes PostgreSQL isolado
 
 ### Critério de relato
 **A camada Storage + deploy da função teve avanço real; a homologação da integração completa continua bloqueada.** O estado `ACTIVE` de uma Edge Function não equivale a sucesso de suas RPCs ou do upload.
+
+### Checklist reprodutível e custo controlado
+- O novo arquivo `docs/avalia360/sql/HOMOLOGACAO_PRECHECK_READONLY.sql` contém consultas **somente leitura** para inspecionar nove pré-requisitos de homologação, sem depender de dados pessoais.
+- Execução direta na branch Supabase `eagkkkclfcedzanuqckj`: **2/9 checks verdadeiros** (`bucket_privado` e `storage_rls_ativo`); sete falsos (`autorizacao_institucional`, `cursos_institucionais`, `lotacao_docente`, `matriz_curricular`, `rpc_finalizacao_imagens`, `rpc_imagens`, `rpc_rascunhos`).
+- A análise de segurança do Supabase para a branch retornou **zero alertas**; isso NÃO supera os sete itens ausentes nem substitui testes reais de autenticação.
+- Para reduzir exposição à cobrança por hora enquanto a clonagem automática permanece bloqueada, foi solicitada a ação `pause_project` **somente para a branch do Avalia 360°**. A ferramenta confirmou `success=true` e a listagem posterior mostrou `preview_project_status=PAUSING` (pausa solicitada; confirmação de `INACTIVE` ainda pendente). **A produção não foi pausada.**
+- Quando o problema de base for resolvido, a branch deverá ser restaurada antes de prosseguir com RPCs/Storage. A fatura efetiva deve ser conferida no Supabase, pois a cotação horária não é comprovante de cobrança.
