@@ -1,4 +1,5 @@
 import {useCallback,useEffect,useRef,useState} from 'react';
+import './avalia-wizard.css';
 import {QuestionImageField} from './QuestionImageField';
 import ClassBatchPublisher from './ClassBatchPublisher';
 import RuleCurationPanel from './RuleCurationPanel';
@@ -101,6 +102,7 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
  const [curriculumMessage,setCurriculumMessage]=useState('');
  const [curriculumBusy,setCurriculumBusy]=useState(false);
  const [analysisVisible,setAnalysisVisible]=useState(false);
+ const [step,setStep]=useState<1|2|3>(1);
  const [questions,setQuestions]=useState<QuestionDraft[]>([]);
  const [curationHistory,setCurationHistory]=useState<CurationDecision[]>([]);
  const [activeIndex,setActiveIndex]=useState(0);
@@ -112,7 +114,7 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
  const [busy,setBusy]=useState(false);
  const [status,setStatus]=useState('');
  const uploads=useRef(new Map<string,ScopedImageReceipt>());
- useEffect(()=>{setReceipt(null);setLoaded(null);setQuestions([]);setCurationHistory([]);setPreview(false);uploads.current.clear();setStatus('');setCurriculumSource(null);setCurriculumMessage('');setPedagogy(p=>({...p,competencies:[],topics:[],requiredCompetencyIds:[],requiredTopicIds:[],relations:[]}));},[institutionId,courseId]);
+ useEffect(()=>{setReceipt(null);setLoaded(null);setQuestions([]);setStep(1);setCurationHistory([]);setPreview(false);uploads.current.clear();setStatus('');setCurriculumSource(null);setCurriculumMessage('');setPedagogy(p=>({...p,competencies:[],topics:[],requiredCompetencyIds:[],requiredTopicIds:[],relations:[]}));},[institutionId,courseId]);
  const update=useCallback((change:Partial<QuestionDraft>)=>{
   setQuestions(all=>all.map((q,i)=>i===activeIndex?{...q,...change}:q));
   setLoaded(null);
@@ -236,21 +238,26 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
  };
  const btn=(primary:boolean)=>({padding:'10px 16px',borderRadius:9,border:'1px solid '+blue,
   background:primary?blue:'#fff',color:primary?'#fff':blue,fontWeight:700,cursor:'pointer'} as const);
- return <section aria-label="Estúdio de Avaliações 360" style={{background:'#F6F9FD',padding:'18px',borderRadius:16,color:'#1B334F'}}>
-  <header style={{marginBottom:18}}>
-   <p style={{margin:'0 0 6px',fontSize:12,fontWeight:800,color:blue,letterSpacing:1}}>VÉRTICE · ENSINO SUPERIOR</p>
-   <h2 style={{margin:'0 0 8px',fontSize:27}}>Avalia 360° — Estúdio de Avaliações</h2>
-   <p style={{margin:'0 0 10px',maxWidth:800}}>Construa avaliações, associe questões, inclua imagens e revise o caderno antes de salvar. O parecer curricular será habilitado somente quando o PPC e as competências estiverem validados.</p>
-   <nav aria-label="Acesso rápido aos campos da avaliação" style={{display:'flex',gap:9,flexWrap:'wrap',margin:'12px 0'}}>
-    <a href="#avalia360-parametros" style={{background:blue,color:'#fff',borderRadius:9,padding:'11px 15px',fontWeight:700,textDecoration:'none'}}>Preencher informações do algoritmo</a>
-    <a href="#avalia360-analise" style={{background:'#fff',color:blue,border:'1px solid '+blue,borderRadius:9,padding:'11px 15px',fontWeight:700,textDecoration:'none'}}>Ver análise pedagógica</a>
+ return <section aria-label="Estúdio de Avaliações 360" className="avalia-wizard">
+  <header className="avalia-hero">
+    <div className="avalia-eyebrow">Vértice · Ensino Superior · Módulos Acadêmicos</div>
+    <h2>Crie sua avaliação com simplicidade</h2>
+    <p>Elabore questões com clareza e acompanhe o progresso. As configurações pedagógicas ficam à disposição quando você precisar.</p>
+   </header>
+   <nav className="avalia-steps" aria-label="Etapas da avaliação">
+    {([{n:1,label:'Preparar avaliação'},{n:2,label:'Elaborar questões'},{n:3,label:'Revisar e finalizar'}] as const).map(x=>
+     <button key={x.n} type="button" className={'avalia-step'+(step===x.n?' active':step>x.n?' done':'')}
+      aria-current={step===x.n?'step':undefined} onClick={()=>setStep(x.n)}>
+      <span className="avalia-step-index">{step>x.n?'✓':x.n}</span><span>{x.label}</span>
+     </button>)}
    </nav>
-   <div role="note" style={{padding:'10px 14px',borderRadius:10,background:'#FFF7E8',color:'#814B08',fontSize:13}}>
-    {previewMode?'PRÉVIA INTERATIVA — dados guardados somente neste navegador. Sem autenticação, Supabase, mídia persistente ou publicação para alunos.':'Ambiente em desenvolvimento — o salvamento depende das RPCs autorizadas, MFA e Storage no Supabase. Nenhuma avaliação é publicada aos alunos por esta tela.'}
-   </div>
-  </header>
-  <div style={cardStyle}>
-   <h3 style={{margin:'0 0 14px'}}>1 · Identificação da avaliação</h3>
+   <p className="avalia-warning" role="note">{previewMode?
+     'Demonstração pública: dados somente neste navegador. Não use nomes reais de alunos nem materiais confidenciais.':
+     'Rascunhos e imagens exigem serviços institucionais autorizados. Esta tela não publica provas aos alunos.'}</p>
+
+  {step===1&&<>
+      <div style={cardStyle}>
+   <h3 style={{margin:'0 0 14px'}}>Preparar avaliação</h3>
    <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(190px,1fr))',gap:12}}>
     <label style={labelStyle}>Curso
      <select style={inputStyle} value={courseId} onChange={e=>setCourseId(e.target.value)}>
@@ -275,12 +282,26 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
    </label>
    <p style={{fontSize:12,color:'#64748b',marginBottom:0}}>Título, semestre e finalidade são versionados com o rascunho. O vínculo a competências depende de catálogo institucional validado.</p>
   </div>
-  <div style={cardStyle}>
+
+    <div className="avalia-actions">
+     <button type="button" className="avalia-action-primary" onClick={()=>{if(!questions.length)add();setStep(2)}}>Começar a elaborar questões →</button>
+    </div>
+   </>}
+   {step===2&&<>
+       <div className="avalia-summary" aria-label="Identificação da avaliação">
+    <div><small>Curso</small><strong>{courses.find(c=>c.id===courseId)?.name||'Não selecionado'}</strong></div>
+    <div><small>Disciplina</small><strong>{disciplineId||'Não informada'}</strong></div>
+    <div><small>Finalidade</small><strong>{purpose==='diagnostica'?'Diagnóstica':purpose==='somativa'?'Somativa':'Formativa'}</strong></div>
+    <div><small>Semestre</small><strong>{period||'Não informado'}</strong></div>
+   </div>
+    <div className="avalia-columns">
+     <main style={{minWidth:0}}>
+        <div style={cardStyle}>
    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:10,flexWrap:'wrap'}}>
-    <h3 style={{margin:0}}>2 · Questões da prova</h3>
+    <h3 style={{margin:0}}>Elaborar questões</h3>
     <strong style={{color:blue}}>{questions.length} questão(ões) · {total.toLocaleString('pt-BR')} pontos</strong>
    </div>
-   <p style={{fontSize:13,color:'#64748b'}}>Questões sem mapeamento curricular podem ser salvas como rascunho. Não recebem parecer de aderência ao PPC até que temas e competências institucionais estejam disponíveis.</p>
+   <p style={{fontSize:13,color:'#64748b'}}>Concentre-se em uma questão por vez. Os recursos pedagógicos avançados ficam disponíveis abaixo.</p>
    <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:16}}>
     {questions.map((item,i)=><button key={item.id} type="button" onClick={()=>{setActiveIndex(i);setPreview(false);}}
      style={{...btn(i===activeIndex),padding:'8px 12px'}} aria-pressed={i===activeIndex}>
@@ -350,8 +371,11 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
       setPreview(false);setLoaded(null);setErrors([]);
      }}/>
   </div>
-  <div style={cardStyle}>
-   <h3 id="avalia360-parametros" style={{margin:'0 0 12px',scrollMarginTop:20}}>3 · Parâmetros para análise longitudinal</h3>
+
+      <details className="avalia-deep-options">
+       <summary>Opções pedagógicas e análise longitudinal</summary>
+       <div style={{marginTop:12}}>  <div style={cardStyle}>
+   <h3 id="avalia360-parametros" style={{margin:'0 0 12px',scrollMarginTop:20}}>Opções pedagógicas e análise longitudinal</h3>
    <div style={{border:'1px solid #c9d9ee',background:'#f3f8ff',borderRadius:11,padding:14,margin:'12px 0'}}>
     <strong>Competências: fonte Construção Curricular</strong>
     <p style={{fontSize:13,margin:'6px 0 11px'}}>O cadastro definitivo de competências e de seus períodos fica no módulo Construção Curricular. Importe os vínculos deste curso e disciplina, em vez de recadastrá-los na prova.</p>
@@ -407,8 +431,49 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
    </section>}
    </div>
   </div>
-  <div style={cardStyle}>
-   <h3 style={{marginTop:0}}>4 · Revisar e salvar</h3>
+</div>
+      </details>
+     </main>
+        <aside className="avalia-sidebar" aria-label="Orientação e verificações">
+    <div className="avalia-side-panel">
+     <h4>Orientação pedagógica</h4>
+     <p>Uma questão de qualidade começa com um enunciado claro.</p>
+     <ul><li>Contextualize o caso e explicite o comando.</li>
+      <li>Na discursiva, informe a resposta esperada e os critérios de correção.</li>
+      <li>Associe as competências quando disponíveis.</li></ul>
+    </div>
+    <div className="avalia-side-panel">
+     <h4>Verificação automática</h4>
+     {q?([
+      {label:'Enunciado preenchido',ok:q.statement.trim().length>=10},
+      {label:'Pontuação válida',ok:Number.isFinite(q.points)&&q.points>0},
+      ...(q.kind==='discursiva'?
+       [{label:'Padrão esperado informado',ok:!!q.expectedAnswer?.trim()},
+        {label:'Rubrica preenchida',ok:!!q.rubric.trim()}]:
+       [{label:'Alternativas preenchidas',ok:q.options.length>=2&&q.options.every(o=>o.text.trim().length>0)},
+        {label:'Gabarito selecionado',ok:q.options.some(o=>o.id===q.correctOptionId)}]),
+      {label:'Competência associada',ok:q.competencyIds.length>0},
+      {label:'Imagens com descrição e direitos',ok:q.images.every(i=>!!i.altText.trim()&&i.rightsStatus!=='nao_informado')}
+     ].map(item=><div key={item.label} className="avalia-checkrow">
+      <span className={item.ok?'avalia-ok':'avalia-pending'} aria-hidden="true">{item.ok?'✓':'!'}</span>{item.label}
+     </div>)):<p>Adicione uma questão para iniciar.</p>}
+     <p className="avalia-help">Verificações estruturais, sem análise jurídica semântica.</p>
+    </div>
+    <div className="avalia-side-panel">
+     <h4>Seu progresso</h4>
+     <p>{questions.length} questão(ões) · {total.toLocaleString('pt-BR')} ponto(s)</p>
+     <p>{receipt?'Rascunho salvo · versão '+receipt.revision:'Ainda não salvo. Salve na etapa final.'}</p>
+    </div>
+   </aside>
+    </div>
+    <div className="avalia-actions">
+     <button className="avalia-action-secondary" type="button" onClick={()=>setStep(1)}>← Preparar avaliação</button>
+     <button className="avalia-action-primary" type="button" onClick={()=>{setPreview(true);setStep(3)}}>Avançar para revisão →</button>
+    </div>
+   </>}
+   {step===3&&<>
+      <div style={cardStyle}>
+   <h3 style={{marginTop:0}}>Revisar e finalizar</h3>
    <div style={{display:'flex',gap:9,flexWrap:'wrap',marginBottom:12}}>
     <button type="button" style={btn(false)} onClick={()=>{setPreview(!preview);setErrors([]);}}>{preview?'Ocultar prévia':'Pré-visualizar caderno'}</button>
     <button type="button" style={btn(true)} disabled={busy} onClick={save}>{busy?'Processando…':previewMode?(receipt?'Atualizar demonstração local':'Guardar demonstração local'):(receipt?'Salvar nova versão':'Salvar rascunho no Supabase')}</button>
@@ -449,7 +514,14 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
    </section>}
    {loaded&&<SavedPreview value={loaded}/>}
   </div>
-  <ClassBatchPublisher previewMode={previewMode} institutionId={institutionId} courseId={courseId} courseName={courses.find(c=>c.id===courseId)?.name||''}
+
+      <ClassBatchPublisher previewMode={previewMode} institutionId={institutionId} courseId={courseId} courseName={courses.find(c=>c.id===courseId)?.name||''}
     discipline={disciplineId} title={title} semester={period} questions={questions}/>
+
+    <div className="avalia-actions">
+     <button className="avalia-action-secondary" type="button" onClick={()=>setStep(2)}>← Editar questões</button>
+     <button className="avalia-action-secondary" type="button" onClick={()=>setStep(1)}>Editar identificação</button>
+    </div>
+   </>}
  </section>;
 }
