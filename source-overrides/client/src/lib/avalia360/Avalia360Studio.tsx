@@ -356,7 +356,7 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
       <textarea className="avalia-answer-area" style={inputStyle} value={q.answerJustification||''}
        onChange={e=>update({answerJustification:e.target.value})}
        placeholder="Indique os fundamentos, conceitos ou critérios que sustentam a alternativa correta."/>
-     </label></>:     <div style={{display:'grid',gap:15}}>
+     </label>}</>: <div style={{display:'grid',gap:15}}>
       <label style={labelStyle}>Padrão de resposta esperado
        <span className="avalia-help">Referência privada do professor. Não aparecerá no PDF dos estudantes.</span>
        <textarea className="avalia-answer-area" style={inputStyle} value={q.expectedAnswer||''}
