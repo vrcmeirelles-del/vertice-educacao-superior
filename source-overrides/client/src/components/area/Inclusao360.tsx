@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { buildSupportPayload, checkedWrite, readableObjectives, accommodationCategories } from "@/lib/student-support-contracts";
 import { planSections, printPei } from "@/lib/pei-print";
+import InclusaoAee from "./InclusaoAee";
 import "./inclusao360.css";
 
 // Aligned with actual Supabase schema
@@ -13,7 +14,7 @@ interface IndividualPlan { id:string; case_id:string; institution_id:string; stu
 interface Accommodation { id:string; plan_id:string; institution_id:string; category:string; description:string; details?:string; responsible?:string; status:string; }
 
 interface StudentHit { student_source:'school'|'registry'; student_id:string; student_name:string; enrollment_code:string; group_label?:string; verified?:boolean; }
-type View = 'casos'|'solicitacoes'|'pei'|'evidencias';
+type View = 'casos'|'solicitacoes'|'pei'|'aee'|'evidencias';
 interface Props { institutionId:string; role:string; }
 
 const emptyPlan={case_id:'',student_name:'',objectives:'',effective_from:'',effective_until:'',next_review_date:'',period:'',strengths:'',educational_needs:'',participation_barriers:'',strategies_used:'',previous_results:'',recommended_support:'',student_preferences:''};
@@ -138,9 +139,9 @@ function Inclusao360Content({institutionId,role}:Props) {
       </div>
 
       <div className="inc-nav">
-        {(['casos','solicitacoes','pei','evidencias'] as View[]).map(v=>(
+        {(['casos','solicitacoes','pei','aee','evidencias'] as View[]).map(v=>(
           <button key={v} className={`inc-nav-btn${view===v?' active':''}`} onClick={()=>setView(v)}>
-            {v==='casos'?'Casos':v==='solicitacoes'?'Solicitações':v==='pei'?'PEI / Planos':'Evidências'}
+            {v==='casos'?'Casos':v==='solicitacoes'?'Solicitações':v==='pei'?'PEI / Planos':v==='aee'?'AEE':'Evidências'}
           </button>
         ))}
       </div>
@@ -247,6 +248,8 @@ function Inclusao360Content({institutionId,role}:Props) {
           </div>
         </div>
       )}
+
+      {view==='aee' && <InclusaoAee institutionId={institutionId} cases={cases} />}
 
       {/* PEI / Planos */}
       {view==='pei' && (
