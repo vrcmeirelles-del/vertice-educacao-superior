@@ -1,6 +1,7 @@
 import {useEffect,useState} from 'react';
 import {buildIndividualizedPdf,downloadPdf,prepareIssues,validatePrintAssessment,type PrintStudent} from './individualized-pdf';
 import type {QuestionDraft} from './question-draft';
+import {createExamVariants,teacherAnswerRows,versioningNotice,type ShuffleMode} from './exam-variants';
 import {loadAuthorizedClassRoster} from './class-roster';
 type Props={institutionId:string;courseId:string;institutionName?:string;courseName:string;discipline:string;title:string;semester:string;questions:QuestionDraft[];previewMode:boolean};
 const field={display:'grid',gap:5,fontWeight:600,fontSize:13} as const;
@@ -16,9 +17,13 @@ export default function ClassBatchPublisher({institutionId,courseId,institutionN
  const [raw,setRaw]=useState('');
  const [status,setStatus]=useState('');
  const [working,setWorking]=useState(false);
+ const [variantCount,setVariantCount]=useState(1);
+ const [shuffleMode,setShuffleMode]=useState<ShuffleMode>('ambos');
+ const [answerKeyUrl,setAnswerKeyUrl]=useState('');
  const [pdfUrl,setPdfUrl]=useState('');
  const [pdfFilename,setPdfFilename]=useState('');
  useEffect(()=>()=>{if(pdfUrl)URL.revokeObjectURL(pdfUrl);},[pdfUrl]);
+ useEffect(()=>()=>{if(answerKeyUrl)URL.revokeObjectURL(answerKeyUrl);},[answerKeyUrl]);
  const chooseExample=()=>{setStudents(demoStudents.map(x=>({...x})));setClassLabel('2A');setStatus('Turma fictícia carregada. Nenhum estudante real foi consultado.');};
  const loadReal=async()=>{
   if(previewMode)return;
@@ -50,25 +55,35 @@ export default function ClassBatchPublisher({institutionId,courseId,institutionN
   if(!previewMode){setStatus('A emissão nominal real depende de autorização e conciliação com o cadastro institucional.');return;}
   const problems=validatePrintAssessment({institutionName,courseName,discipline,title,semester,classLabel,questions});
   if(problems.length){setStatus(problems.join(' '));return;}
+  const variantError=versioningNotice(questions,variantCount,shuffleMode);
+  if(variantError){setStatus(variantError);return;}
   if(!classLabel.trim()){setStatus('Informe a turma.');return;}
   setWorking(true);setStatus('Preparando as folhas individualizadas…');
+  setPdfUrl('');setAnswerKeyUrl('');
   try{
    const issues=prepareIssues(students,crypto.randomUUID());
    const bytes=await buildIndividualizedPdf({institutionName,courseName,discipline,
-    title,semester,classLabel,questions},issues);
+    title,semester,classLabel,questions,variantCount,shuffleMode},issues);
    const filename='Avalia360-'+classLabel+'-'+semester.replace('/','-');
+   const variants=createExamVariants(questions,variantCount,shuffleMode);
+   const rows=teacherAnswerRows(variants);
+   const safeCell=(value:string|number)=>'"'+String(value).replace(/^[\s]*[=+@-]/,'\u0027   const filename='Avalia360-'+classLabel+'-'+semester.replace('/','-');').replace(/"/g,'""')+'"';
+   const csv=['Versão;Questão;Gabarito;ID original;Justificativa docente',
+    ...rows.map(row=>[row.version,row.question,row.correct,row.sourceId,row.justification].map(safeCell).join(';'))].join('\r\n');
+   const keyBlob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
+   setAnswerKeyUrl(URL.createObjectURL(keyBlob));
    const blob=new Blob([new Uint8Array(bytes)],{type:'application/pdf'});
    const url=URL.createObjectURL(blob);
    setPdfUrl(url);setPdfFilename(filename.replace(/[^A-Za-z0-9 _-]/g,'_')+'.pdf');
    // O link explícito abaixo funciona mesmo se o download automático for bloqueado pelo navegador.
    downloadPdf(bytes,filename);
-   setStatus('PDF demonstrativo preparado com '+issues.length+' prova(s) nominal(is). Se não baixar automaticamente, use o link Baixar PDF gerado. Os QR Codes não estão registrados para correção oficial.');
+   setStatus('PDF demonstrativo preparado com '+issues.length+' caderno(s), '+variantCount+' versão(ões) e cartão de respostas com QR por aluno. O gabarito por versão é um arquivo separado, restrito ao professor. QR sem registro no servidor.');
   }catch(e){setStatus(e instanceof Error?e.message:'Não foi possível criar o PDF.');}
   finally{setWorking(false);}
  };
  return <section aria-label="Geração por turma" style={{border:'1px solid #dce7f4',background:'#fff',borderRadius:14,padding:18,marginTop:18}}>
-  <h3 style={{margin:'0 0 10px'}}>5 · Gerar provas individualizadas por turma</h3>
-  <p style={{fontSize:13}}>Emita um único PDF com uma prova por aluno, nome na primeira página e QR individual. O modelo definitivo de cabeçalho será incorporado depois.</p>
+  <h3 style={{margin:'0 0 10px'}}>Gerar provas e cartões de resposta</h3>
+  <p style={{fontSize:13}}>Caderno A4 em duas colunas, cartão objetivo separado com o mesmo QR do aluno e linhas de discursiva com espaçamento 1,5. Você pode embaralhar questões, alternativas ou ambas e gerar até 12 versões diferentes.</p>
   {previewMode?<div role="note" style={{padding:12,background:'#fff4e3',borderRadius:8,fontSize:13}}>
     Modo demonstração: a base oficial de alunos NÃO está conectada. Utilize nomes fictícios; nenhuma matrícula será consultada ou gravada no sistema. O QR é apenas um identificador de demonstração e não está habilitado para correção.
    </div>:<p role="note">A integração com a base oficial de turmas requer autorização no servidor e matrícula conciliada. A geração nominal está bloqueada até a homologação.</p>}
@@ -82,6 +97,22 @@ export default function ClassBatchPublisher({institutionId,courseId,institutionN
      <button type="button" onClick={loadReal} disabled={working||!courseId||!discipline.trim()}>Buscar estudantes autorizados da turma</button>}
    </div>
   </div>
+  <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(210px,1fr))',gap:12,margin:'14px 0'}}>
+   <label style={field}>Quantas versões da mesma avaliação?
+    <select style={style} value={variantCount} onChange={e=>setVariantCount(Number(e.target.value))}>
+     {Array.from({length:12},(_,i)=>i+1).map(n=><option key={n} value={n}>{n} {n===1?'versão':'versões'} ({String.fromCharCode(65+n-1)})</option>)}
+    </select>
+   </label>
+   <label style={field}>O que randomizar?
+    <select style={style} value={shuffleMode} onChange={e=>setShuffleMode(e.target.value as ShuffleMode)}>
+     <option value="ambos">Ordem das questões e alternativas</option>
+     <option value="questoes">Somente ordem das questões</option>
+     <option value="alternativas">Somente alternativas objetivas</option>
+    </select>
+   </label>
+  </div>
+  {versioningNotice(questions,variantCount,shuffleMode)&&<p role="alert" style={{color:'#91620f',fontSize:13}}>{versioningNotice(questions,variantCount,shuffleMode)}</p>}
+  <p style={{fontSize:12,color:'#536b87'}}>As versões são distribuídas alternadamente entre os alunos selecionados. O gabarito objetivo muda de acordo com a posição das alternativas e fica disponível em arquivo docente separado. A randomização não altera o conteúdo das questões.</p>
   {previewMode&&<>
    <details>
     <summary style={{cursor:'pointer',fontWeight:650}}>Inserir lista de teste manualmente (nome; identificação fictícia)</summary>
@@ -106,6 +137,7 @@ export default function ClassBatchPublisher({institutionId,courseId,institutionN
   {pdfUrl&&<a href={pdfUrl} download={pdfFilename} style={{display:'inline-block',marginTop:12,padding:'12px 16px',background:'#164b92',color:'#fff',fontWeight:700,borderRadius:9,textDecoration:'none'}}>
    Baixar PDF gerado
   </a>}
+  {answerKeyUrl&&<a href={answerKeyUrl} download={'Avalia360-Gabarito-Docente-'+classLabel+'.csv'} style={{display:'inline-block',marginTop:12,marginLeft:9,padding:'12px 16px',border:'1px solid #164b92',color:'#164b92',fontWeight:700,borderRadius:9,textDecoration:'none'}}>Baixar gabarito por versão (docente)</a>}
   {status&&<p role="status" style={{fontSize:13,color:'#334155',marginBottom:0}}>{status}</p>}
   <p style={{fontSize:12,color:'#64748b'}}>A correção via leitura do QR Code, exportação de notas e conexão com a turma oficial serão ativadas em etapa segura própria; nenhum resultado é enviado a planilhas ou ao banco nesta prévia.</p>
  </section>;
