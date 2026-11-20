@@ -54,6 +54,16 @@ describe('cliente de rascunhos do Avalia 360°',()=>{
    });
    expect(JSON.stringify(sent)).not.toContain('file');
  });
+ it('envia os dados editoriais da avaliação para o snapshot versionado',async()=>{
+   rpc.mockResolvedValue({data:{id:'d1',revision:1,status:'draft'},error:null});
+   const out=await saveAssessmentDraft({institutionId:'ies-a',courseId:'direito',
+     disciplineId:'civil',questions:[q],
+     assessmentMeta:{title:'Prova de Direito Civil — AV1',semester:'2027/1',purpose:'somativa'}});
+   expect(out.ok).toBe(true);
+   expect(rpc.mock.calls[0][1].p_payload.meta).toEqual({
+     title:'Prova de Direito Civil — AV1',semester:'2027/1',purpose:'somativa'
+   });
+ });
  it('envia token de revisão para atualização',async()=>{
    rpc.mockResolvedValue({data:{id:'d1',revision:2,status:'draft'},error:null});
    await saveAssessmentDraft({institutionId:'ies-a',courseId:'direito',disciplineId:'civil',
