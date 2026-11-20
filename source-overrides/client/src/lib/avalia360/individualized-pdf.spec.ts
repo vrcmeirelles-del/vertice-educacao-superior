@@ -5,7 +5,7 @@ import type {QuestionDraft} from './question-draft';
 
 const q:QuestionDraft={id:'q1',disciplineId:'civil',kind:'objetiva',statement:'Qual alternativa é correta no caso apresentado?',
  options:[{id:'A',text:'Primeira possibilidade'},{id:'B',text:'Segunda possibilidade'}],
- correctOptionId:'A',rubric:'',topicIds:[],competencyIds:[],purpose:['formativa'],
+ correctOptionId:'A',answerJustification:'Justificativa docente: alternativa correta A.',rubric:'',topicIds:[],competencyIds:[],purpose:['formativa'],
  estimatedDifficulty:3,points:2,examTags:[],images:[]};
 
 describe('impressão individualizada de prova',()=>{
@@ -25,7 +25,7 @@ describe('impressão individualizada de prova',()=>{
   },issues);
   expect(bytes.byteLength).toBeGreaterThan(3000);
   const pdf=await PDFDocument.load(bytes);
-  expect(pdf.getPageCount()).toBe(2);
+  expect(pdf.getPageCount()).toBe(4);
  });
  it('não permite PDF com gabarito ausente, alternativas duplicadas ou figuras omitidas',async()=>{
   const info={institutionName:'Vértice',courseName:'Direito',discipline:'Civil',
