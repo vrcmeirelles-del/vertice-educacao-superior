@@ -1,8 +1,8 @@
 import {foQrToken,validateFoSnapshot} from './fo-exchange.ts';
 import {clinicalMetadata,clinicalProfile,CLINICAL_DIMENSIONS,validateClinicalContent,CLINICAL_GENERATION,CLINICAL_GRADING} from '../../../source-overrides/shared/discursiva-clinical.ts';
-import {fail,parse,validateQuestion,validateGrade,signQR,verifyQR,GENERATE_PROMPT,GRADE_PROMPT,OCR_PROMPT,type Obj} from './core.ts';
+import {fail,parse,validateQuestion,validateGrade,ruleGrade,signQR,verifyQR,GENERATE_PROMPT,GRADE_PROMPT,OCR_PROMPT,type Obj} from './core.ts';
 type Completion={content:string;provider:string;model:string};
-export type Deps={authorize:()=>Promise<void>;rpc:(action:string,payload?:Obj)=>Promise<Obj>;sources:(query:string)=>Promise<Obj[]>;image:(path:string)=>Promise<{base64:string;mime:string}>;call:(provider:'openai'|'anthropic',system:string,input:Obj,image?:{base64:string;mime:string})=>Promise<Completion>;secret:string;bridge?:(path:string,payload:Obj)=>Promise<Obj>;foContext?:(submissionId?:string)=>Promise<Obj>;foStore?:(action:string,payload:Obj)=>Promise<Obj>};
+export type Deps={aiOn?:boolean;authorize:()=>Promise<void>;rpc:(action:string,payload?:Obj)=>Promise<Obj>;sources:(query:string)=>Promise<Obj[]>;image:(path:string)=>Promise<{base64:string;mime:string}>;call:(provider:'openai'|'anthropic',system:string,input:Obj,image?:{base64:string;mime:string})=>Promise<Completion>;secret:string;bridge?:(path:string,payload:Obj)=>Promise<Obj>;foContext?:(submissionId?:string)=>Promise<Obj>;foStore?:(action:string,payload:Obj)=>Promise<Obj>};
 export async function runAction(body:Obj,deps:Deps):Promise<Obj>{
  await deps.authorize();
  if(['fo_preview','fo_import','fo_publish'].includes(body.action)){
@@ -55,6 +55,12 @@ export async function runAction(body:Obj,deps:Deps):Promise<Obj>{
   if(submission.reviewed_at)throw fail('already_finalized');
   if(submission.image_path&&!submission.transcription_confirmed)throw fail('confirm_transcription_first');
   try{validateClinicalContent(question.content);}catch(e){throw fail((e as Error).message);}
+  if(deps.aiOn===false){
+   // IA suspensa: pré-nota por regra, provisória, revisão docente obrigatória.
+   const pre={...ruleGrade(question.content,submission.answer),provider:'regras',model:'pre-nota-v1'};
+   const assessment={assessments:[pre],difference:0,suggestedScore:pre.total,requiresHumanReview:true,provisional:true,promptVersion:'pre-nota-regras-v1',evaluatedAt:new Date().toISOString()};
+   await deps.rpc('save_assessment',{id:submission.id,version:submission.version,assessment});return assessment;
+  }
   const assessments=await Promise.all(['openai','anthropic'].map(async provider=>{const c=await deps.call(provider as 'openai'|'anthropic',GRADE_PROMPT+(clinicalProfile(question.content.profile)?'\n'+CLINICAL_GRADING:''),{question:question.content,answer:submission.answer});return {...validateGrade(parse(c.content),question.content,submission.answer),provider:c.provider,model:c.model};}));
   const difference=Math.abs(assessments[0].total-assessments[1].total);
   const assessment={assessments,difference,suggestedScore:Math.round((assessments[0].total+assessments[1].total)*50)/100,requiresHumanReview:true,promptVersion:'discursiva-v2-clinical',evaluatedAt:new Date().toISOString()};
