@@ -1,7 +1,6 @@
 /**
- * teaching-pdf.ts — Gerador de PDF unificado (Projeto + Relatório) para Atividades de Ensino.
- * Layout com tabelas, logo da IES, e todas as seções dos formulários de projeto e relatório.
- * Usa pdf-lib (client-side, sem servidor).
+ * teaching-pdf.ts — PDF unificado (Projeto + Relatório) para Atividades de Ensino.
+ * Layout com tabelas, logo da IES, espaçamento limpo.
  */
 import { PDFDocument, StandardFonts, rgb, type PDFPage, type PDFFont } from 'pdf-lib';
 
@@ -9,20 +8,20 @@ type Activity = Record<string, unknown>;
 type Student = { student_name: string; enrollment_code: string | null; participant_role: string | null; minutes: number | null };
 
 const TYPES: Record<string, string> = {
-  evento: 'Evento formativo: palestra, seminário ou minicurso', pratica: 'Prática, oficina ou laboratório',
-  monitoria: 'Monitoria, tutoria ou grupo de estudos', visita: 'Visita técnica',
-  avaliacao: 'Simulado ou resolução de questões', estudo: 'Estudo de caso, projeto ou produção acadêmica', outra: 'Outra atividade de ensino',
+  evento: 'Evento formativo: palestra, seminario ou minicurso', pratica: 'Pratica, oficina ou laboratorio',
+  monitoria: 'Monitoria, tutoria ou grupo de estudos', visita: 'Visita tecnica',
+  avaliacao: 'Simulado ou resolucao de questoes', estudo: 'Estudo de caso, projeto ou producao academica', outra: 'Outra atividade de ensino',
 };
-const ORGANIZERS: Record<string, string> = { docente: 'Docente', discente: 'Estudantes', coordenacao: 'Coordenação', outro: 'Outro' };
+const ORGANIZERS: Record<string, string> = { docente: 'Docente', discente: 'Estudantes', coordenacao: 'Coordenacao', outro: 'Outro' };
 const ODS = [
-  'Erradicação da pobreza', 'Fome zero', 'Saúde e bem-estar', 'Educação de qualidade', 'Igualdade de gênero',
-  'Água potável', 'Energia limpa', 'Trabalho decente', 'Indústria e inovação', 'Redução das desigualdades',
-  'Cidades sustentáveis', 'Consumo responsável', 'Ação climática', 'Vida na água', 'Vida terrestre',
-  'Paz e justiça', 'Parcerias',
+  'Erradicacao da pobreza', 'Fome zero', 'Saude e bem-estar', 'Educacao de qualidade', 'Igualdade de genero',
+  'Agua potavel', 'Energia limpa', 'Trabalho decente', 'Industria e inovacao', 'Reducao das desigualdades',
+  'Cidades sustentaveis', 'Consumo responsavel', 'Acao climatica', 'Vida na agua', 'Vida terrestre',
+  'Paz e justica', 'Parcerias',
 ];
 
 function fmtDate(date?: string | null) { return date ? date.split('-').reverse().join('/') : ''; }
-function str(v: unknown) { return String(v ?? '').trim(); }
+function s(v: unknown) { return String(v ?? '').trim(); }
 function num(v: unknown) { const n = Number(v); return Number.isFinite(n) ? n : 0; }
 function money(v: unknown) { return `R$ ${num(v).toFixed(2).replace('.', ',')}`; }
 
@@ -37,331 +36,293 @@ export interface TeachingPdfInput {
   logoBytes?: Uint8Array | null;
 }
 
-// ─── PDF Builder ────────────────────────────────────────────────
-const PAGE_W = 595.28, PAGE_H = 841.89;
-const MARGIN_L = 48, MARGIN_R = 48, CONTENT_W = PAGE_W - MARGIN_L - MARGIN_R;
-const NAVY = rgb(.10, .16, .24);
-const DARK = rgb(.20, .24, .30);
-const MUTED = rgb(.40, .44, .50);
-const ACCENT = rgb(.14, .30, .52);
-const LINE_COLOR = rgb(.78, .82, .86);
-const HEADER_BG = rgb(.14, .30, .52);
-const HEADER_TEXT = rgb(1, 1, 1);
-const CELL_BG = rgb(.96, .97, .98);
-const WHITE = rgb(1, 1, 1);
-
-class PdfBuilder {
-  pdf!: PDFDocument;
-  font!: PDFFont;
-  bold!: PDFFont;
-  page!: PDFPage;
-  y = 0;
-
-  async init() {
-    this.pdf = await PDFDocument.create();
-    this.font = await this.pdf.embedFont(StandardFonts.Helvetica);
-    this.bold = await this.pdf.embedFont(StandardFonts.HelveticaBold);
-    this.newPage();
-  }
-
-  newPage() {
-    this.page = this.pdf.addPage([PAGE_W, PAGE_H]);
-    this.y = PAGE_H - 50;
-  }
-
-  ensureSpace(needed: number) { if (this.y < needed + 50) this.newPage(); }
-
-  safe(s: string) {
-    return Array.from(s.normalize('NFC')).map(c => { try { this.font.encodeText(c); return c; } catch { return '?'; } }).join('');
-  }
-
-  // ─── Primitives ───
-
-  text(s: string, x: number, maxW: number, size: number, face: PDFFont, color = DARK) {
-    const txt = this.safe(s);
-    const words = txt.split(/\s+/);
-    let current = '';
-    for (const word of words) {
-      const candidate = current ? current + ' ' + word : word;
-      if (face.widthOfTextAtSize(candidate, size) <= maxW) { current = candidate; continue; }
-      if (current) { this.page.drawText(current, { x, y: this.y, size, font: face, color }); this.y -= size + 4; }
-      current = word;
-    }
-    if (current) { this.page.drawText(current, { x, y: this.y, size, font: face, color }); this.y -= size + 4; }
-  }
-
-  // ─── Section header ───
-
-  sectionHeader(title: string) {
-    this.ensureSpace(30);
-    this.y -= 8;
-    this.page.drawRectangle({ x: MARGIN_L, y: this.y - 4, width: CONTENT_W, height: 22, color: HEADER_BG });
-    this.page.drawText(this.safe(title.toUpperCase()), { x: MARGIN_L + 8, y: this.y, size: 10, font: this.bold, color: HEADER_TEXT });
-    this.y -= 30;
-  }
-
-  // ─── Table row (label: value) ───
-
-  tableRow(label: string, value: string, shade = false) {
-    if (!value) return;
-    const lineH = 16;
-    // Wrap value text
-    const maxValW = CONTENT_W - 160;
-    const valWords = this.safe(value).split(/\s+/);
-    const lines: string[] = [];
-    let cur = '';
-    for (const w of valWords) {
-      const c = cur ? cur + ' ' + w : w;
-      if (this.font.widthOfTextAtSize(c, 9) <= maxValW) { cur = c; continue; }
-      if (cur) lines.push(cur);
-      cur = w;
-    }
-    if (cur) lines.push(cur);
-    if (!lines.length) lines.push('');
-
-    const rowH = Math.max(lineH, lines.length * 13 + 6);
-    this.ensureSpace(rowH);
-
-    if (shade) {
-      this.page.drawRectangle({ x: MARGIN_L, y: this.y - rowH + 12, width: CONTENT_W, height: rowH, color: CELL_BG });
-    }
-    // Border bottom
-    this.page.drawLine({ start: { x: MARGIN_L, y: this.y - rowH + 12 }, end: { x: MARGIN_L + CONTENT_W, y: this.y - rowH + 12 }, thickness: 0.5, color: LINE_COLOR });
-    // Vertical separator
-    this.page.drawLine({ start: { x: MARGIN_L + 155, y: this.y + 12 }, end: { x: MARGIN_L + 155, y: this.y - rowH + 12 }, thickness: 0.5, color: LINE_COLOR });
-
-    this.page.drawText(this.safe(label), { x: MARGIN_L + 6, y: this.y - 2, size: 8.5, font: this.bold, color: ACCENT });
-    for (let i = 0; i < lines.length; i++) {
-      this.page.drawText(lines[i], { x: MARGIN_L + 162, y: this.y - 2 - i * 13, size: 9, font: this.font, color: DARK });
-    }
-    this.y -= rowH - 12;
-  }
-
-  // ─── Multi-line text block ───
-
-  textBlock(label: string, value: string) {
-    if (!value) return;
-    this.ensureSpace(40);
-    this.y -= 4;
-    this.page.drawText(this.safe(label), { x: MARGIN_L + 6, y: this.y, size: 8.5, font: this.bold, color: ACCENT });
-    this.y -= 14;
-    this.page.drawLine({ start: { x: MARGIN_L, y: this.y + 10 }, end: { x: MARGIN_L + CONTENT_W, y: this.y + 10 }, thickness: 0.5, color: LINE_COLOR });
-    const paras = value.split(/\r?\n/);
-    for (const p of paras) {
-      this.text(p || ' ', MARGIN_L + 6, CONTENT_W - 12, 9, this.font, DARK);
-    }
-    this.y -= 6;
-  }
-
-  // ─── Approval/signature row ───
-
-  signatureRow(label: string) {
-    this.ensureSpace(40);
-    this.page.drawLine({ start: { x: MARGIN_L, y: this.y }, end: { x: MARGIN_L + CONTENT_W, y: this.y }, thickness: 0.5, color: LINE_COLOR });
-    this.y -= 14;
-    this.page.drawText(this.safe(label), { x: MARGIN_L + 6, y: this.y, size: 9, font: this.bold, color: DARK });
-    this.y -= 10;
-    this.page.drawText('Assinatura: ____________________________', { x: MARGIN_L + 6, y: this.y, size: 8, font: this.font, color: MUTED });
-    this.page.drawText('Data: ____/____/______', { x: MARGIN_L + 310, y: this.y, size: 8, font: this.font, color: MUTED });
-    this.y -= 18;
-  }
-
-  // ─── Finalize ───
-
-  async finalize(title: string, author: string) {
-    const pages = this.pdf.getPages();
-    pages.forEach((p, i) => {
-      const { width } = p.getSize();
-      p.drawText(`Vertice Educacao Superior | ${i + 1}/${pages.length}`, { x: Math.max(10, width - 180), y: 18, size: 7, font: this.font, color: MUTED });
-    });
-    this.pdf.setTitle(title); this.pdf.setAuthor(author);
-    this.pdf.setSubject('Projeto e relatorio de atividade de ensino');
-    this.pdf.setLanguage('pt-BR');
-    return this.pdf.save();
-  }
-}
-
-// ─── Main export ────────────────────────────────────────────────
+const W = 595.28, H = 841.89, ML = 50, MR = 50, CW = W - ML - MR;
+const LABEL_W = 160;
+const NAVY = rgb(.09, .15, .22);
+const DARK = rgb(.15, .18, .22);
+const MUTED = rgb(.45, .48, .52);
+const ACCENT = rgb(.12, .28, .50);
+const LINE = rgb(.80, .83, .87);
+const HDR_BG = rgb(.12, .28, .50);
+const HDR_FG = rgb(1, 1, 1);
+const ZEBRA = rgb(.95, .96, .97);
 
 export async function buildTeachingPdf(input: TeachingPdfInput): Promise<Uint8Array> {
   const { activity: a, institutionName, courseName, students, goalTitle, evidenceTitle, author, logoBytes } = input;
-  const b = new PdfBuilder();
-  await b.init();
+  const pdf = await PDFDocument.create();
+  const R = await pdf.embedFont(StandardFonts.Helvetica);
+  const B = await pdf.embedFont(StandardFonts.HelveticaBold);
 
-  const phase = str(a.report_phase) || 'projeto';
+  const safe = (t: string) => Array.from(String(t).normalize('NFC')).map(c => { try { R.encodeText(c); return c; } catch { return '?'; } }).join('');
+
+  let pg: PDFPage = pdf.addPage([W, H]);
+  let y = H - 55;
+  const newPg = () => { pg = pdf.addPage([W, H]); y = H - 55; };
+  const need = (n: number) => { if (y < n + 60) newPg(); };
+
+  // ── wrap helper: returns lines ──
+  const wrap = (text: string, font: PDFFont, size: number, maxW: number): string[] => {
+    const result: string[] = [];
+    for (const para of safe(text).split(/\r?\n/)) {
+      if (!para.trim()) { result.push(''); continue; }
+      let cur = '';
+      for (const word of para.split(/\s+/)) {
+        const try_ = cur ? cur + ' ' + word : word;
+        if (font.widthOfTextAtSize(try_, size) <= maxW) { cur = try_; }
+        else { if (cur) result.push(cur); cur = word; }
+      }
+      if (cur) result.push(cur);
+    }
+    return result.length ? result : [''];
+  };
+
+  // ── draw wrapped text ──
+  const drawText = (text: string, x: number, maxW: number, size: number, font: PDFFont, color = DARK) => {
+    for (const line of wrap(text, font, size, maxW)) {
+      need(size + 6);
+      pg.drawText(line, { x, y, size, font, color });
+      y -= size + 6;
+    }
+  };
+
+  // ── section header bar ──
+  const header = (title: string) => {
+    need(36);
+    y -= 12;
+    pg.drawRectangle({ x: ML, y: y - 6, width: CW, height: 24, color: HDR_BG });
+    pg.drawText(safe(title.toUpperCase()), { x: ML + 10, y: y - 1, size: 10, font: B, color: HDR_FG });
+    y -= 32;
+  };
+
+  // ── table row (label | value) ──
+  let rowIdx = 0;
+  const tRow = (label: string, value: string) => {
+    if (!value) return;
+    const lines = wrap(value, R, 9, CW - LABEL_W - 20);
+    const rowH = Math.max(20, lines.length * 14 + 8);
+    need(rowH);
+    // zebra
+    if (rowIdx % 2 === 0) pg.drawRectangle({ x: ML, y: y - rowH + 14, width: CW, height: rowH, color: ZEBRA });
+    // bottom border
+    pg.drawLine({ start: { x: ML, y: y - rowH + 14 }, end: { x: ML + CW, y: y - rowH + 14 }, thickness: .5, color: LINE });
+    // vertical separator
+    pg.drawLine({ start: { x: ML + LABEL_W, y: y + 14 }, end: { x: ML + LABEL_W, y: y - rowH + 14 }, thickness: .5, color: LINE });
+    // label
+    pg.drawText(safe(label), { x: ML + 8, y: y - 1, size: 8.5, font: B, color: ACCENT });
+    // value lines
+    lines.forEach((ln, i) => pg.drawText(ln, { x: ML + LABEL_W + 10, y: y - 1 - i * 14, size: 9, font: R, color: DARK }));
+    y -= rowH - 14;
+    rowIdx++;
+  };
+
+  // ── text block (label above, text below) ──
+  const tBlock = (label: string, value: string) => {
+    if (!value) return;
+    need(50);
+    y -= 8;
+    pg.drawText(safe(label.toUpperCase()), { x: ML + 8, y, size: 8, font: B, color: ACCENT });
+    y -= 4;
+    pg.drawLine({ start: { x: ML, y }, end: { x: ML + CW, y }, thickness: .5, color: LINE });
+    y -= 14;
+    drawText(value, ML + 8, CW - 16, 9, R, DARK);
+    y -= 8;
+  };
+
+  // ── signature row ──
+  const sig = (label: string) => {
+    need(50);
+    pg.drawLine({ start: { x: ML, y: y + 4 }, end: { x: ML + CW, y: y + 4 }, thickness: .5, color: LINE });
+    y -= 2;
+    pg.drawText(safe(label), { x: ML + 8, y, size: 9, font: B, color: DARK });
+    y -= 18;
+    pg.drawText('Assinatura: ________________________________', { x: ML + 8, y, size: 8, font: R, color: MUTED });
+    pg.drawText('Data: ____/____/______', { x: ML + 320, y, size: 8, font: R, color: MUTED });
+    y -= 22;
+  };
+
+  const phase = s(a.report_phase) || 'projeto';
   const isReport = phase === 'relatorio' || phase === 'finalizado';
 
-  // ═══ CAPA ═══
-  // Logo
+  // ════════════════════════════════════════════
+  // CAPA
+  // ════════════════════════════════════════════
+
   if (logoBytes?.length) {
     try {
-      let img;
-      // Detect PNG vs JPG
-      if (logoBytes[0] === 0x89 && logoBytes[1] === 0x50) img = await b.pdf.embedPng(logoBytes);
-      else img = await b.pdf.embedJpg(logoBytes);
-      const scale = Math.min(80 / img.width, 80 / img.height);
-      const imgW = img.width * scale, imgH = img.height * scale;
-      b.page.drawImage(img, { x: (PAGE_W - imgW) / 2, y: b.y - imgH, width: imgW, height: imgH });
-      b.y -= imgH + 12;
-    } catch { /* logo failed, continue without */ }
+      const isPng = logoBytes[0] === 0x89 && logoBytes[1] === 0x50;
+      const img = isPng ? await pdf.embedPng(logoBytes) : await pdf.embedJpg(logoBytes);
+      const sc = Math.min(90 / img.width, 90 / img.height);
+      const iw = img.width * sc, ih = img.height * sc;
+      pg.drawImage(img, { x: (W - iw) / 2, y: y - ih, width: iw, height: ih });
+      y -= ih + 16;
+    } catch { /* skip logo */ }
   }
 
-  b.page.drawText(b.safe(institutionName.toUpperCase()), { x: MARGIN_L, y: b.y, size: 14, font: b.bold, color: ACCENT });
-  b.y -= 20;
-  b.page.drawText(b.safe(courseName), { x: MARGIN_L, y: b.y, size: 11, font: b.font, color: DARK });
-  b.y -= 24;
-  b.page.drawRectangle({ x: MARGIN_L, y: b.y, width: CONTENT_W, height: 2, color: ACCENT });
-  b.y -= 20;
+  pg.drawText(safe(institutionName.toUpperCase()), { x: ML, y, size: 15, font: B, color: ACCENT });
+  y -= 22;
+  pg.drawText(safe(courseName), { x: ML, y, size: 11, font: R, color: DARK });
+  y -= 20;
+  pg.drawRectangle({ x: ML, y, width: CW, height: 3, color: ACCENT });
+  y -= 24;
 
   const docTitle = isReport ? 'PROJETO E RELATORIO FINAL DE ATIVIDADE DE ENSINO' : 'PROJETO DE ATIVIDADE DE ENSINO';
-  b.page.drawText(b.safe(docTitle), { x: MARGIN_L, y: b.y, size: 13, font: b.bold, color: NAVY });
-  b.y -= 22;
-  b.page.drawText(b.safe(str(a.title)), { x: MARGIN_L, y: b.y, size: 12, font: b.bold, color: DARK });
-  b.y -= 18;
-  b.page.drawText(b.safe(`Responsavel: ${author} | Emissao: ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}`), { x: MARGIN_L, y: b.y, size: 8, font: b.font, color: MUTED });
-  b.y -= 10;
-  b.page.drawText(b.safe(`Fase: ${phase === 'projeto' ? 'Projeto' : phase === 'relatorio' ? 'Relatorio em edicao' : 'Finalizado'}`), { x: MARGIN_L, y: b.y, size: 8, font: b.font, color: MUTED });
-  b.y -= 20;
+  pg.drawText(safe(docTitle), { x: ML, y, size: 13, font: B, color: NAVY });
+  y -= 24;
+  pg.drawText(safe(s(a.title)), { x: ML, y, size: 12, font: B, color: DARK });
+  y -= 22;
+  pg.drawText(safe(`Responsavel: ${author}`), { x: ML, y, size: 8, font: R, color: MUTED });
+  y -= 14;
+  pg.drawText(safe(`Emissao: ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}`), { x: ML, y, size: 8, font: R, color: MUTED });
+  y -= 14;
+  pg.drawText(safe(`Fase: ${phase === 'projeto' ? 'Projeto' : phase === 'relatorio' ? 'Relatorio em edicao' : 'Finalizado'}`), { x: ML, y, size: 8, font: R, color: MUTED });
+  y -= 24;
 
-  // ═══ DADOS DO PROJETO ═══
-  b.sectionHeader('Dados do Projeto');
-  let shade = false;
-  const row = (l: string, v: string) => { b.tableRow(l, v, shade); shade = !shade; };
-  row('Titulo da atividade', str(a.title));
-  row('Unidade', str(a.unit_name));
-  row('Curso(s) proponente(s)', str(a.courses_involved) || courseName);
-  row('Tipo de atividade', TYPES[str(a.category)] || str(a.category));
-  row('Docente(s) participante(s)', str(a.teachers_involved));
-  row('Tecnico(s) envolvido(s)', str(a.technicians));
-  row('Periodo / Data', fmtDate(str(a.activity_date)));
-  row('Carga horaria', a.total_minutes ? `${a.total_minutes} minutos` : '');
-  row('Horario', str(a.activity_time));
-  row('Local', str(a.location));
+  // ════════════════════════════════════════════
+  // DADOS DO PROJETO
+  // ════════════════════════════════════════════
+  header('Dados do Projeto');
+  rowIdx = 0;
+  tRow('Titulo', s(a.title));
+  tRow('Unidade', s(a.unit_name));
+  tRow('Curso(s)', s(a.courses_involved) || courseName);
+  tRow('Tipo de atividade', TYPES[s(a.category)] || s(a.category));
+  tRow('Quem organizou', ORGANIZERS[s(a.organizer_role)] || s(a.organizer_role));
+  tRow('Data', fmtDate(s(a.activity_date)));
+  tRow('Carga total', a.total_minutes ? `${a.total_minutes} minutos` : '');
+  tRow('Horario', s(a.activity_time));
+  tRow('Local', s(a.location));
+  tRow('Docente(s)', s(a.teachers_involved));
+  tRow('Tecnico(s)', s(a.technicians));
+  tRow('Alunos envolvidos', s(a.students_involved_desc));
 
-  // Quantidade de pessoas
+  // QUANTIDADES
   if (a.qty_students || a.qty_technicians || a.qty_teachers) {
-    b.sectionHeader('Quantidade de Pessoas Envolvidas');
-    shade = false;
-    row('Alunos', String(num(a.qty_students)));
-    row('Tecnicos', String(num(a.qty_technicians)));
-    row('Professores', String(num(a.qty_teachers)));
+    header('Pessoas Envolvidas');
+    rowIdx = 0;
+    tRow('Alunos', String(num(a.qty_students)));
+    tRow('Tecnicos', String(num(a.qty_technicians)));
+    tRow('Professores', String(num(a.qty_teachers)));
   }
 
-  row('Parcerias / Apoio', str(a.partnerships));
-  row('Confirmacao de presenca', str(a.attendance_method));
-
+  tRow('Parcerias', s(a.partnerships));
+  tRow('Presenca', s(a.attendance_method));
   if (a.proposed_budget || a.approved_budget) {
-    shade = false;
-    row('Valor proposto', money(a.proposed_budget));
-    row('Valor aprovado', money(a.approved_budget));
+    tRow('Valor proposto', money(a.proposed_budget));
+    tRow('Valor aprovado', money(a.approved_budget));
   }
 
-  // ═══ OBJETIVO GERAL ═══
-  b.textBlock('Objetivo geral', str(a.general_objective));
+  // OBJETIVOS
+  tBlock('Objetivo geral', s(a.general_objective));
+  tBlock('Objetivos especificos', s(a.specific_objectives));
+  tBlock('Programacao detalhada', s(a.schedule_detail));
 
-  // ═══ OBJETIVOS ESPECÍFICOS ═══
-  b.textBlock('Objetivos especificos', str(a.specific_objectives));
+  // INFRAESTRUTURA
+  header('Infraestrutura, Avaliacao e Publico');
+  rowIdx = 0;
+  tRow('Infraestrutura', s(a.infrastructure));
+  tRow('Avaliacao', s(a.evaluation_methods));
+  tRow('Publico-alvo', s(a.target_audience));
 
-  // ═══ PROGRAMAÇÃO ═══
-  b.textBlock('Programacao detalhada', str(a.schedule_detail));
+  // DIVULGAÇÃO
+  header('Divulgacao');
+  rowIdx = 0;
+  tRow('Alcance', s(a.marketing_scope));
+  tRow('Canais', s(a.marketing_channels));
 
-  // ═══ INFRAESTRUTURA ═══
-  b.sectionHeader('Infraestrutura e Avaliacao');
-  shade = false;
-  row('Infraestrutura', str(a.infrastructure));
-  row('Formas de avaliacao', str(a.evaluation_methods));
-  row('Publico-alvo', str(a.target_audience));
-  row('Alunos envolvidos', str(a.students_involved_desc));
-
-  // ═══ DIVULGAÇÃO ═══
-  b.sectionHeader('Divulgacao');
-  shade = false;
-  row('Alcance', str(a.marketing_scope));
-  row('Canais', str(a.marketing_channels));
-
-  // ═══ VÍNCULOS ═══
+  // VÍNCULOS
   if (goalTitle || evidenceTitle || a.ods_goal || a.exam_module) {
-    b.sectionHeader('Vinculos Institucionais');
-    shade = false;
-    if (goalTitle) row('Meta do PDI', goalTitle);
-    if (evidenceTitle) row('Evidencia da Mesa Digital', evidenceTitle);
-    if (a.exam_module) row('Exame ou carreira', str(a.exam_module));
-    if (a.ods_goal) row(`ODS ${a.ods_goal}: ${ODS[num(a.ods_goal) - 1] || ''}`, str(a.ods_rationale));
+    header('Vinculos Institucionais');
+    rowIdx = 0;
+    if (goalTitle) tRow('Meta do PDI', goalTitle);
+    if (evidenceTitle) tRow('Evidencia (Mesa Digital)', evidenceTitle);
+    if (a.exam_module) tRow('Exame/carreira', s(a.exam_module));
+    if (a.ods_goal) tRow(`ODS ${a.ods_goal}`, `${ODS[num(a.ods_goal) - 1] || ''} - ${s(a.ods_rationale)}`);
   }
 
-  // ═══ ORGANIZADORES E PARTICIPANTES ═══
+  // ════════════════════════════════════════════
+  // PARTICIPANTES (tabela)
+  // ════════════════════════════════════════════
   if (students.length) {
-    b.sectionHeader(`Organizadores e Participantes (${students.length})`);
-    // Table header
-    b.ensureSpace(20);
-    b.page.drawRectangle({ x: MARGIN_L, y: b.y - 4, width: CONTENT_W, height: 16, color: ACCENT });
-    const cols = [MARGIN_L + 6, MARGIN_L + 220, MARGIN_L + 340, MARGIN_L + 420];
-    const headers = ['Nome', 'Matricula', 'Papel', 'Minutos'];
-    headers.forEach((h, i) => b.page.drawText(b.safe(h), { x: cols[i], y: b.y, size: 8, font: b.bold, color: WHITE }));
-    b.y -= 18;
+    header(`Participantes (${students.length})`);
+    // col header
+    need(22);
+    pg.drawRectangle({ x: ML, y: y - 6, width: CW, height: 20, color: ACCENT });
+    const cx = [ML + 8, ML + 230, ML + 345, ML + 420];
+    ['Nome', 'Matricula', 'Papel', 'Minutos'].forEach((h, i) =>
+      pg.drawText(safe(h), { x: cx[i], y: y - 2, size: 8, font: B, color: HDR_FG }));
+    y -= 24;
 
-    students.forEach((s, i) => {
-      b.ensureSpace(16);
-      if (i % 2 === 0) b.page.drawRectangle({ x: MARGIN_L, y: b.y - 2, width: CONTENT_W, height: 14, color: CELL_BG });
-      b.page.drawText(b.safe(s.student_name.slice(0, 35)), { x: cols[0], y: b.y, size: 8, font: b.font, color: DARK });
-      b.page.drawText(b.safe(s.enrollment_code || '-'), { x: cols[1], y: b.y, size: 8, font: b.font, color: DARK });
-      b.page.drawText(b.safe(s.participant_role === 'organizador' ? 'Organizacao' : 'Participacao'), { x: cols[2], y: b.y, size: 8, font: b.font, color: DARK });
-      b.page.drawText(b.safe(s.minutes != null ? String(s.minutes) : '-'), { x: cols[3], y: b.y, size: 8, font: b.font, color: DARK });
-      b.y -= 14;
+    students.forEach((st, i) => {
+      need(18);
+      if (i % 2 === 0) pg.drawRectangle({ x: ML, y: y - 4, width: CW, height: 16, color: ZEBRA });
+      pg.drawText(safe(st.student_name.slice(0, 38)), { x: cx[0], y, size: 8, font: R, color: DARK });
+      pg.drawText(safe(st.enrollment_code || '-'), { x: cx[1], y, size: 8, font: R, color: DARK });
+      pg.drawText(safe(st.participant_role === 'organizador' ? 'Org.' : 'Part.'), { x: cx[2], y, size: 8, font: R, color: DARK });
+      pg.drawText(safe(st.minutes != null ? String(st.minutes) : '-'), { x: cx[3], y, size: 8, font: R, color: DARK });
+      y -= 16;
     });
-    b.y -= 6;
+    y -= 10;
   }
 
-  // ═══ RELATÓRIO FINAL (só se fase != projeto) ═══
+  // ════════════════════════════════════════════
+  // RELATÓRIO FINAL
+  // ════════════════════════════════════════════
   if (isReport) {
-    b.sectionHeader('Relatorio Final');
-    b.textBlock('Apresentacao do projeto executado', str(a.report_presentation));
-    b.textBlock('Resultados alcancados', str(a.report_results));
-    b.textBlock('Envolvimento dos participantes', str(a.report_engagement));
-
+    header('Relatorio Final');
+    tBlock('Apresentacao do projeto executado', s(a.report_presentation));
+    tBlock('Resultados alcancados', s(a.report_results));
+    tBlock('Envolvimento dos participantes', s(a.report_engagement));
     if (a.report_budget_staff || a.report_budget_materials) {
-      shade = false;
-      b.tableRow('Valor investido: pessoal', money(a.report_budget_staff), shade); shade = !shade;
-      b.tableRow('Valor investido: materiais', money(a.report_budget_materials), shade);
+      rowIdx = 0;
+      tRow('Investido: pessoal', money(a.report_budget_staff));
+      tRow('Investido: materiais', money(a.report_budget_materials));
     }
-    b.tableRow('Descricao dos materiais', str(a.report_materials_desc), false);
-    b.tableRow('Divulgacao efetiva', str(a.report_dissemination), true);
-    b.textBlock('Agradecimentos', str(a.report_thanks));
-    b.textBlock('Consideracoes finais', str(a.final_remarks));
+    tRow('Materiais', s(a.report_materials_desc));
+    tRow('Divulgacao efetiva', s(a.report_dissemination));
+    tBlock('Agradecimentos', s(a.report_thanks));
+    tBlock('Consideracoes finais', s(a.final_remarks));
   }
 
-  // ═══ ANEXOS ═══
+  // ════════════════════════════════════════════
+  // ANEXOS
+  // ════════════════════════════════════════════
   const photos = Array.isArray(a.evidence_photos) ? a.evidence_photos as { name: string }[] : [];
-  const attendance = Array.isArray(a.evidence_attendance) ? a.evidence_attendance as { name: string }[] : [];
-  const clippings = Array.isArray(a.evidence_clippings) ? a.evidence_clippings as { name: string }[] : [];
-  const hasAttachments = photos.length || attendance.length || clippings.length || a.roster_spreadsheet_name;
+  const attend = Array.isArray(a.evidence_attendance) ? a.evidence_attendance as { name: string }[] : [];
+  const clips = Array.isArray(a.evidence_clippings) ? a.evidence_clippings as { name: string }[] : [];
+  const sheet = s(a.roster_spreadsheet_name);
+  const hasAtt = photos.length > 0 || attend.length > 0 || clips.length > 0 || !!sheet;
 
-  if (hasAttachments) {
-    b.sectionHeader('Anexos');
-    shade = false;
-    if (photos.length) {
-      b.tableRow('Registro fotografico', photos.map((f, i) => `${i + 1}. ${f.name}`).join('\n'), shade); shade = !shade;
-    }
-    if (attendance.length) {
-      b.tableRow('Listas de frequencia', attendance.map((f, i) => `${i + 1}. ${f.name}`).join('\n'), shade); shade = !shade;
-    }
-    if (clippings.length) {
-      b.tableRow('Clipagens', clippings.map((f, i) => `${i + 1}. ${f.name}`).join('\n'), shade); shade = !shade;
-    }
-    if (a.roster_spreadsheet_name) {
-      b.tableRow('Planilha de conciliacao (AC)', str(a.roster_spreadsheet_name), shade);
-    }
-    b.y -= 6;
-    b.text('Os arquivos originais permanecem no portal. Este PDF lista as referencias.', MARGIN_L + 6, CONTENT_W - 12, 7, b.font, MUTED);
+  if (hasAtt) {
+    header('Anexos');
+    rowIdx = 0;
+    if (photos.length) tRow('Registro fotografico', photos.map((f, i) => `${i + 1}. ${f.name}`).join(' | '));
+    if (attend.length) tRow('Listas de frequencia', attend.map((f, i) => `${i + 1}. ${f.name}`).join(' | '));
+    if (clips.length) tRow('Clipagens', clips.map((f, i) => `${i + 1}. ${f.name}`).join(' | '));
+    if (sheet) tRow('Planilha conciliacao AC', sheet);
+    y -= 8;
+    drawText('Arquivos originais permanecem no portal. Este PDF lista as referencias.', ML + 8, CW - 16, 7, R, MUTED);
   }
 
-  // ═══ APROVAÇÕES ═══
-  b.sectionHeader('Aprovacoes');
-  b.signatureRow('Aprovacao do Coordenador do Curso');
-  b.signatureRow('Aprovacao do Diretor da Unidade');
-  if (isReport) {
-    b.signatureRow('Recebimento do Relatorio Pos-Evento');
-  }
+  // ════════════════════════════════════════════
+  // APROVAÇÕES
+  // ════════════════════════════════════════════
+  header('Aprovacoes');
+  sig('Coordenador do Curso');
+  sig('Diretor da Unidade');
+  if (isReport) sig('Recebimento do Relatorio');
 
-  return b.finalize(str(a.title) || 'Atividade de Ensino', author);
+  // ── Rodapé ──
+  const pages = pdf.getPages();
+  pages.forEach((p, i) => {
+    const { width } = p.getSize();
+    p.drawText(`Vertice Educacao Superior | ${i + 1}/${pages.length}`, {
+      x: Math.max(10, width - 200), y: 20, size: 7, font: R, color: MUTED,
+    });
+  });
+
+  pdf.setTitle(s(a.title) || 'Atividade de Ensino');
+  pdf.setAuthor(author);
+  pdf.setSubject('Projeto e relatorio - Atividades de Ensino');
+  pdf.setLanguage('pt-BR');
+  return pdf.save();
 }
