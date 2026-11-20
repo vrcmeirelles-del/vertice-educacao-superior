@@ -56,3 +56,6 @@ Reduzir/segregar o bundle de `vertice-source-pdf-preview` no fluxo de clonagem (
 - Após os smoke tests, foi solicitada pausa exclusivamente de `eagkkkclfcedzanuqckj`. A chamada `pause_project` retornou `success=true`; a primeira listagem posterior mostrou `PAUSING`, portanto conclusão da pausa ainda requer confirmação `INACTIVE`.
 - Consulta read-only à produção `qvetbbmviatxxatzzuzc` confirmou `vertice_avalia.assessment_drafts` inexistente, `vertice_avalia.question_media` inexistente e 0 buckets `avalia360-private`. O projeto principal permanece `ACTIVE_HEALTHY`.
 - O estado global `FUNCTIONS_FAILED` da branch ainda reflete a clonagem de função PDF com pacote acima do limite; não corresponde à homologação do Avalia nem deve ser mascarado pelos testes da RPC.
+
+### Confirmação final de custo/estado
+- Nova inspeção de branches confirmou a branch Avalia 360 em `preview_project_status=INACTIVE`; a produção permaneceu `ACTIVE_HEALTHY`. A pausa foi efetivamente concluída. A cotação horária foi autorizada, mas não há confirmação do valor faturado.
