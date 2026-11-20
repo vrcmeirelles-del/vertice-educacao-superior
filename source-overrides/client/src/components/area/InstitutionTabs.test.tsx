@@ -17,6 +17,15 @@ describe('institution navigation', () => {
       expect(MACRO_TABS.filter(macro => macro.tabs.includes(tab))).toHaveLength(1);
     }
   });
+  it('lists Avalia 360° as a separate academic entry without granting unauthorized roles', () => {
+    expect(macroTabFor('avalia360')).toBe('academico');
+    expect(macroTabFor('discursiva')).toBe('academico');
+    expect(MACRO_TABS.filter(m => m.tabs.includes('avalia360'))).toHaveLength(1);
+    for(const role of ['master','gestor','coordenador','nde'] as const)
+      expect(visibleTabs(role)).toContain('avalia360');
+    for(const role of ['leitor','cpa','equipe'] as const)
+      expect(visibleTabs(role)).not.toContain('avalia360');
+  });
   it('does not enter blocked or unauthorized destinations', () => {
     expect(macroDestination('dados', ['cadastro', 'emec'], () => true)).toBeUndefined();
     expect(macroDestination('dados', ['emec'], () => false)).toBe('emec');

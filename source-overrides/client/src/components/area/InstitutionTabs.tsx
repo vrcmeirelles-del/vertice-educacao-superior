@@ -46,7 +46,7 @@ export const MACRO_TABS: MacroTabDef[] = [
     label: 'Módulos Acadêmicos',
     icon: '▥',
     description: 'CPA, egressos, TCC, extensão e estágio',
-    tabs: ['discursiva','escola-individual','escola-documentos','escola-projetos','escola-planejamento-prof','escola-estagio','inclusao', 'acompanhamento-especial', 'construcao-curricular', 'extensao', 'conecta', 'egressos', 'cpa-autoavaliacao', 'tcc', 'atividades-ensino','atividades-complementares', 'estagio'],
+    tabs: ['discursiva','avalia360','escola-individual','escola-documentos','escola-projetos','escola-planejamento-prof','escola-estagio','inclusao', 'acompanhamento-especial', 'construcao-curricular', 'extensao', 'conecta', 'egressos', 'cpa-autoavaliacao', 'tcc', 'atividades-ensino','atividades-complementares', 'estagio'],
   },
   {
     key: 'gestores',
