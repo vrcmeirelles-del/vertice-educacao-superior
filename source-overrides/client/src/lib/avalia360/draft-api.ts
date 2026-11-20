@@ -39,6 +39,8 @@ function sanitizeQuestion(q:QuestionDraft, uploaded:DraftSaveInput['uploadedImag
  return {
   id:q.id,disciplineId:q.disciplineId,kind:q.kind,statement:q.statement,
   options:q.options,correctOptionId:q.correctOptionId,rubric:q.rubric,
+  answerJustification:q.kind==='objetiva'?(q.answerJustification||''):undefined,
+  answerLines:q.kind==='discursiva'?(q.answerLines??8):undefined,
   expectedAnswer:q.kind==='discursiva'?(q.expectedAnswer||''):undefined,
   topicIds:q.topicIds,competencyIds:q.competencyIds,
   purpose:q.purpose,estimatedDifficulty:q.estimatedDifficulty,
