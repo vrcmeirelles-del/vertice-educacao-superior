@@ -53,3 +53,22 @@ test('bloqueia currículo não publicado e não presume mapeamento',async t=>{
  const receipt=await rpc('get',{id:unmapped.id});
  assert.equal(receipt.snapshot.curriculumStatus,'unmapped');
 });
+
+test('estrutura real: rejeita course_id válido com institution_id de outra IES',async t=>{
+ const {db}=await fixture(t);
+ await db.exec('reset role');
+ await assert.rejects(
+   ()=>db.query(`insert into vertice_avalia.assessment_drafts
+     (institution_id,course_id,discipline_code,author_id,snapshot)
+     values ($1,$2,'civil',$3,'{}'::jsonb)`,[id(12),id(21),id(1)]),
+   /Curso pertence a outra instituição/
+ );
+ await assert.rejects(
+   ()=>db.query(`insert into vertice_avalia.question_media
+     (institution_id,course_id,discipline_code,question_id,created_by,
+      storage_path,expected_sha256,mime,size_bytes)
+     values ($1,$2,'civil',$3,$4,'forged/path.png',$5,'image/png',1024)`,
+     [id(12),id(21),id(51),id(1),'a'.repeat(64)]),
+   /Curso pertence a outra instituição/
+ );
+});
