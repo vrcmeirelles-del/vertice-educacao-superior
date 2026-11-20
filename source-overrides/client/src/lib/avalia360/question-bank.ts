@@ -27,7 +27,10 @@ export function prepareBankQuestion(args:{
   if(q.options.length<2||q.options.some(o=>!o.text.trim()))throw Error('Complete todas as alternativas.');
   if(!q.options.some(o=>o.id===q.correctOptionId))throw Error('Selecione o gabarito.');
   if(new Set(q.options.map(o=>normalized(o.text))).size!==q.options.length)throw Error('Há alternativas duplicadas.');
- }else if(!q.rubric.trim())throw Error('Defina a rubrica da questão discursiva.');
+ }else{
+  if(!q.rubric.trim())throw Error('Defina a rubrica da questão discursiva.');
+  if(!q.expectedAnswer?.trim())throw Error('Informe o padrão de resposta esperado antes de arquivar a discursiva.');
+ }
  return {bankId:args.bankId,revision:1,institutionId:args.institutionId,courseId:args.courseId,
   discipline:args.discipline.trim(),createdAt:args.createdAt,status:'rascunho',
   question:{...q,id:args.bankId,disciplineId:args.discipline.trim(),
