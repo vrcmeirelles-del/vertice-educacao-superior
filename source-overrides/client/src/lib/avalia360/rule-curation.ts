@@ -49,6 +49,7 @@ export function curateQuestion(q:QuestionDraft,p:PedagogicalDraft):CurationResul
  }else{
   if(!q.rubric.trim())add('MISSING_RUBRIC','blocked','rubric','Falta rubrica de correção discursiva.','Defina critérios observáveis e distribuição de pontos; a ferramenta não inventa fundamentação.');
   else if(q.rubric.trim().length<35)add('BRIEF_RUBRIC','attention','rubric','Rubrica curta: pode não especificar os critérios.','Descreva os elementos exigidos na resposta, com pontuação verificável.');
+  if(!q.expectedAnswer?.trim())add('MISSING_EXPECTED_ANSWER','blocked','expectedAnswer','Padrão de resposta esperado não informado.','Descreva os elementos de conteúdo esperados, separadamente dos critérios e da pontuação.');
  }
  if(!Number.isFinite(q.points)||q.points<=0)add('INVALID_POINTS','blocked','points','Pontuação inválida.','Informe quantidade positiva de pontos.');
  if(![1,2,3,4,5].includes(q.estimatedDifficulty))add('INVALID_DIFFICULTY','blocked','estimatedDifficulty','Dificuldade fora da escala.','Escolha nível entre 1 e 5.');
