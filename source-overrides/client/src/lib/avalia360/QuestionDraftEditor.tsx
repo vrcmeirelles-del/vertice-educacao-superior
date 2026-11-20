@@ -84,6 +84,16 @@ export function QuestionDraftEditor({
           placeholder="Ex.: identificação do problema — 2 pontos; fundamentação — 3 pontos..."
           style={{display:'block',width:'100%'}}/>
       </label>}
+    {draft.kind==='objetiva'&&<label style={{display:'block',marginTop:10}}>Justificativa do gabarito correto
+      <textarea rows={4} value={draft.answerJustification||''}
+       onChange={e=>patch({answerJustification:e.target.value})}
+       placeholder="Fundamente por que a alternativa selecionada está correta. Informação reservada à curadoria."/>
+    </label>}
+    {draft.kind==='discursiva'&&<label style={{display:'block',marginTop:10}}>Quantidade de linhas para resposta
+      <input type="number" min={3} max={60} step={1} value={draft.answerLines??8}
+       onChange={e=>patch({answerLines:Number(e.target.value)})}/>
+      <span> O PDF apresenta pautas com espaçamento 1,5.</span>
+    </label>}
     {draft.kind==='discursiva'&&<label style={{display:'block',marginTop:10}}>Padrão de resposta esperado
       <textarea rows={6} value={draft.expectedAnswer||''} onChange={e=>patch({expectedAnswer:e.target.value})}
        placeholder="Resposta-modelo, argumentos e fundamentos esperados do estudante. Não substitui rubrica."
