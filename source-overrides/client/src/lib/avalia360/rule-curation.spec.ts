@@ -11,7 +11,7 @@ const config:PedagogicalDraft={
 const base:QuestionDraft={
  id:'q1',disciplineId:'Direito Civil',kind:'objetiva',statement:'  Em uma situação hipotética, analise as alternativas  ',
  options:[{id:'A',text:'Primeira alternativa'},{id:'B',text:'Segunda alternativa'}],
- correctOptionId:'A',rubric:'',topicIds:['t1'],competencyIds:['c1'],
+ correctOptionId:'A',answerJustification:'Justificativa para a alternativa correta A.',rubric:'',topicIds:['t1'],competencyIds:['c1'],
  purpose:['formativa'],estimatedDifficulty:3,points:2,examTags:['oab'],images:[]
 };
 describe('curadoria algorítmica da questão',()=>{
