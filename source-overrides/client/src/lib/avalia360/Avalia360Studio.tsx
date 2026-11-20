@@ -43,6 +43,18 @@ function checkDraft(questions:QuestionDraft[]):string[]{
  });
  return errors;
 }
+function LocalFigure({file,alt,caption}:{file:File;alt:string;caption?:string}){
+ const [src,setSrc]=useState('');
+ useEffect(()=>{
+  const url=URL.createObjectURL(file);
+  setSrc(url);
+  return ()=>URL.revokeObjectURL(url);
+ },[file]);
+ return <figure style={{margin:'12px 0',padding:10,background:'#fff',borderRadius:8}}>
+  {src&&<img src={src} alt={alt||'Figura sem descrição'} style={{display:'block',width:'auto',maxWidth:'100%',maxHeight:340,objectFit:'contain'}}/>}
+  <figcaption style={{fontSize:12,marginTop:5,color:'#41566F'}}>{caption||alt}</figcaption>
+ </figure>;
+}
 function SavedPreview({value}: {value:StoredAssessmentDraft}){
  return <section style={cardStyle} aria-label="Rascunho recuperado do servidor">
   <h3 style={{marginTop:0}}>Caderno recuperado do servidor</h3>
@@ -242,9 +254,17 @@ export default function Avalia360Studio({institutionId,courses}:Avalia360StudioP
     {questions.map((item,i)=><div key={item.id} style={{padding:'12px 0',borderTop:'1px solid '+line}}>
      <strong>{i+1}. {item.statement||'[Enunciado ainda não preenchido]'}</strong>
      <p style={{fontSize:12}}>{item.points} ponto(s) · dificuldade {item.estimatedDifficulty}</p>
-     {item.options&&item.kind==='objetiva'&&item.options.map(o=><div key={o.id} style={{padding:'3px 8px'}}>{o.id}) {o.text||'—'}</div>)}
+     {item.images.filter(img=>img.placement==='enunciado').map(img=>
+       <LocalFigure key={img.localId} file={img.file} alt={img.altText} caption={img.caption}/>)}
+     {item.options&&item.kind==='objetiva'&&item.options.map(o=>
+       <div key={o.id} style={{padding:'3px 8px'}}>
+        {o.id}) {o.text||'—'}
+        {item.images.filter(img=>img.placement==='alternativa'&&img.alternativeId===o.id).map(img=>
+          <LocalFigure key={img.localId} file={img.file} alt={img.altText} caption={img.caption}/>)}
+       </div>)}
      {item.kind==='discursiva'&&<div style={{height:50,borderBottom:'1px solid #97ABC7'}}/>}
-     {item.images.map((img,k)=><p key={img.localId} style={{fontSize:13}}>Imagem {k+1}: {img.caption||img.altText||img.file.name} · posição: {img.placement}</p>)}
+     {item.images.filter(img=>img.placement==='apoio').map(img=>
+       <LocalFigure key={img.localId} file={img.file} alt={img.altText} caption={img.caption}/>)}
     </div>)}
     <p style={{fontSize:12,color:'#64748b'}}>Prévia editorial — não equivale a PDF diagramado, folha QR ou prova publicada.</p>
    </section>}
