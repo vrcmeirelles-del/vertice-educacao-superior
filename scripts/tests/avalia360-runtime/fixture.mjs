@@ -10,7 +10,7 @@ export async function fixture(t){
  CREATE FUNCTION auth.jwt() RETURNS jsonb LANGUAGE sql STABLE AS $$SELECT jsonb_build_object('aal',current_setting('request.jwt.claim.aal',true))$$;
  CREATE FUNCTION vertice_private.member_role(uuid) RETURNS text LANGUAGE sql STABLE
  AS $$SELECT current_setting('test.role',true)$$;
- CREATE TABLE public.vertice_courses(id uuid,institution_id uuid,PRIMARY KEY(id,institution_id));
+ CREATE TABLE public.vertice_courses(id uuid PRIMARY KEY,institution_id uuid);
  CREATE TABLE public.vertice_learning_staff_scope(user_id uuid,institution_id uuid,course_id uuid,subject_code text,active boolean);
  CREATE TABLE vertice_app.curriculum_builds(id uuid PRIMARY KEY,institution_id uuid,course_id uuid,status text);
  GRANT USAGE ON SCHEMA public,auth TO authenticated;
