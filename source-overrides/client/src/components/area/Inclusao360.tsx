@@ -3,18 +3,20 @@ import { HelpLabel } from '@/components/ContextHelp';
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { buildSupportPayload, checkedWrite, readableObjectives, accommodationCategories } from "@/lib/student-support-contracts";
+import { planSections, printPei } from "@/lib/pei-print";
 import "./inclusao360.css";
 
 // Aligned with actual Supabase schema
 interface SupportCase { id:string; institution_id:string; student_name:string; student_matricula?:string; course_id?:string; protocol?:string; priority:string; status:string; summary?:string; assigned_to?:string; created_at:string; closed_at?:string; }
 interface SupportRequest { id:string; case_id:string; institution_id:string; origin:string; needs_type:string; description:string; requester_name:string; urgency?:string; status:string; created_at:string; }
-interface IndividualPlan { id:string; case_id:string; institution_id:string; student_name:string; status:string; effective_from?:string; effective_until?:string; objectives?:unknown; created_at:string; version_number?:number; }
+interface IndividualPlan { id:string; case_id:string; institution_id:string; student_name:string; status:string; effective_from?:string; effective_until?:string; objectives?:unknown; created_at:string; version_number?:number; period?:string; strengths?:string; educational_needs?:string; participation_barriers?:string; strategies_used?:string; previous_results?:string; recommended_support?:string; student_preferences?:string; next_review_date?:string; }
 interface Accommodation { id:string; plan_id:string; institution_id:string; category:string; description:string; details?:string; responsible?:string; status:string; }
 
 interface StudentHit { student_source:'school'|'registry'; student_id:string; student_name:string; enrollment_code:string; group_label?:string; verified?:boolean; }
 type View = 'casos'|'solicitacoes'|'pei'|'evidencias';
 interface Props { institutionId:string; role:string; }
 
+const emptyPlan={case_id:'',student_name:'',objectives:'',effective_from:'',effective_until:'',next_review_date:'',period:'',strengths:'',educational_needs:'',participation_barriers:'',strategies_used:'',previous_results:'',recommended_support:'',student_preferences:''};
 export default function Inclusao360(props:Props) {
   return <Inclusao360Content key={props.institutionId} {...props} />;
 }
@@ -43,7 +45,7 @@ function Inclusao360Content({institutionId,role}:Props) {
   const [pickedGroup,setPickedGroup] = useState('');
   const searchSeq = useRef(0);
   const [formReq,setFormReq] = useState({case_id:'',origin:'coordenacao',needs_type:'apoio_pedagogico',description:'',requester_name:''});
-  const [formPlan,setFormPlan] = useState({case_id:'',student_name:'',objectives:'',effective_from:'',effective_until:''});
+  const [formPlan,setFormPlan] = useState(emptyPlan);
   const [formAccom,setFormAccom] = useState({plan_id:'',category:'metodologica',description:'',responsible:''});
 
   const load = useCallback(async ()=>{
@@ -101,7 +103,7 @@ function Inclusao360Content({institutionId,role}:Props) {
       setShowForm(null);
       setFormCase(emptyCase); setStudentQuery(''); setStudentHits([]); setStudentSearch('idle'); setPickedGroup('');
       setFormReq({case_id:'',origin:'coordenacao',needs_type:'apoio_pedagogico',description:'',requester_name:''});
-      setFormPlan({case_id:'',student_name:'',objectives:'',effective_from:'',effective_until:''});
+      setFormPlan(emptyPlan);
       setFormAccom({plan_id:'',category:'metodologica',description:'',responsible:''});
       await load();
     } catch (failure) {
@@ -263,7 +265,16 @@ function Inclusao360Content({institutionId,role}:Props) {
                 <HelpLabel>Vigência início<input type="date" value={formPlan.effective_from} onChange={e=>setFormPlan({...formPlan,effective_from:e.target.value})} /></HelpLabel>
                 <HelpLabel>Vigência fim<input type="date" value={formPlan.effective_until} onChange={e=>setFormPlan({...formPlan,effective_until:e.target.value})} /></HelpLabel>
               </div>
-              <textarea placeholder="Objetivos do plano" value={formPlan.objectives} onChange={e=>setFormPlan({...formPlan,objectives:e.target.value})} rows={3} />
+              <input placeholder="Período letivo (ex.: 2026.2)" aria-label="Período letivo (ex.: 2026.2)" value={formPlan.period} onChange={e=>setFormPlan({...formPlan,period:e.target.value})} />
+              <textarea placeholder="Potencialidades e interesses do estudante" aria-label="Potencialidades e interesses do estudante" value={formPlan.strengths} onChange={e=>setFormPlan({...formPlan,strengths:e.target.value})} rows={2} />
+              <textarea placeholder="Necessidades educacionais" aria-label="Necessidades educacionais" value={formPlan.educational_needs} onChange={e=>setFormPlan({...formPlan,educational_needs:e.target.value})} rows={2} />
+              <textarea placeholder="Barreiras à participação e aprendizagem" aria-label="Barreiras à participação e aprendizagem" value={formPlan.participation_barriers} onChange={e=>setFormPlan({...formPlan,participation_barriers:e.target.value})} rows={2} />
+              <textarea placeholder="Estratégias já utilizadas" aria-label="Estratégias já utilizadas" value={formPlan.strategies_used} onChange={e=>setFormPlan({...formPlan,strategies_used:e.target.value})} rows={2} />
+              <textarea placeholder="Resultados anteriores" aria-label="Resultados anteriores" value={formPlan.previous_results} onChange={e=>setFormPlan({...formPlan,previous_results:e.target.value})} rows={2} />
+              <textarea placeholder="Apoios recomendados" aria-label="Apoios recomendados" value={formPlan.recommended_support} onChange={e=>setFormPlan({...formPlan,recommended_support:e.target.value})} rows={2} />
+              <textarea placeholder="Preferências do estudante" aria-label="Preferências do estudante" value={formPlan.student_preferences} onChange={e=>setFormPlan({...formPlan,student_preferences:e.target.value})} rows={2} />
+              <HelpLabel>Próxima revisão<input type="date" value={formPlan.next_review_date} onChange={e=>setFormPlan({...formPlan,next_review_date:e.target.value})} /></HelpLabel>
+              <textarea placeholder="Objetivos do plano (um por linha)" aria-label="Objetivos do plano" value={formPlan.objectives} onChange={e=>setFormPlan({...formPlan,objectives:e.target.value})} rows={3} />
               <div className="inc-form-actions">
                 <button className="inc-btn-primary" onClick={savePlan} disabled={saving||!formPlan.case_id}>Criar plano</button>
                 <button className="inc-btn-secondary" onClick={()=>setShowForm(null)}>Cancelar</button>
@@ -284,6 +295,9 @@ function Inclusao360Content({institutionId,role}:Props) {
                   {p.effective_from&&<span>Vigência: {new Date(p.effective_from).toLocaleDateString('pt-BR')}</span>}
                   {p.effective_until&&<span>até {new Date(p.effective_until).toLocaleDateString('pt-BR')}</span>}
                 </div>
+                {planSections.map(([k,l])=>(p as unknown as Record<string,string|undefined>)[k]?<div key={k} className="inc-plan-obj"><strong>{l}:</strong> {(p as unknown as Record<string,string|undefined>)[k]}</div>:null)}
+                {p.next_review_date&&<div className="inc-plan-meta"><span>Próxima revisão: {new Date(p.next_review_date+'T12:00:00').toLocaleDateString('pt-BR')}</span></div>}
+                <button className="inc-btn-small" onClick={()=>{try{printPei(p as never,pa.map(a=>({category:accomCategories.find(t=>t.v===a.category)?.l||a.category,description:a.description,responsible:a.responsible})));}catch(e){setError(e instanceof Error?e.message:'Falha ao gerar PDF.');}}}>Gerar PDF</button>
                 <div className="inc-plan-accoms">
                   <strong>Adaptações ({pa.length})</strong>
                   {pa.map(a=>(

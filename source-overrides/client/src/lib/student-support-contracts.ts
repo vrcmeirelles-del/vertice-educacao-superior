@@ -19,6 +19,12 @@ function dates(f: Form, start: string, end: string) {
   if (a && b && a > b) throw new Error('A data final deve ser igual ou posterior à inicial.');
   return {[start]: a || null, [end]: b || null};
 }
+export const planTextFields = ['period','strengths','educational_needs','participation_barriers','strategies_used','previous_results','recommended_support','student_preferences'] as const;
+function planTexts(f: Form) {
+  const out: Record<string, string | null> = {};
+  for (const k of planTextFields) out[k] = text(f, k) || null;
+  return out;
+}
 export function buildSupportPayload(kind: string, f: Form, ctx: Context): Record<string, unknown> {
   const institution_id = required(ctx.institutionId, 'a instituição');
   const common = {institution_id};
@@ -42,7 +48,7 @@ export function buildSupportPayload(kind: string, f: Form, ctx: Context): Record
     }
     case 'supportPlan': {
       const c=caseRow();
-      return {...common,case_id:c.id,student_name:required(c.student_name||'','o estudante do caso'),student_matricula:c.student_matricula||null,course_id:c.course_id||null,objectives:text(f,'objectives') ? [text(f,'objectives')] : [],...dates(f,'effective_from','effective_until'),status:'em_elaboracao'};
+      return {...common,case_id:c.id,student_name:required(c.student_name||'','o estudante do caso'),student_matricula:c.student_matricula||null,course_id:c.course_id||null,objectives:text(f,'objectives') ? text(f,'objectives').split(/\n+/).map(x=>x.trim()).filter(Boolean) : [],...planTexts(f),...dates(f,'effective_from','effective_until'),next_review_date:dates(f,'next_review_date','next_review_date').next_review_date,status:'em_elaboracao'};
     }
     case 'accommodation': return {...common,plan_id:parent(ctx.plans||[],text(f,'plan_id'),institution_id).id,category:choice(text(f,'category'),accommodationCategories),description:description(),responsible:text(f,'responsible')||null,status:'prevista'};
     case 'specialCase': {
