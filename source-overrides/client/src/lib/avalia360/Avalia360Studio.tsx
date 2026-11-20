@@ -328,10 +328,19 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
        <input style={inputStyle} type="number" min=".01" step=".25" value={q.points} onChange={e=>update({points:Number(e.target.value)})}/>
       </label>
      </div>
-     <TeacherQuestionComposer key={q.id} onApply={statement=>update({statement})}/>
-     <label style={labelStyle}>Enunciado
-      <textarea style={{...inputStyle,minHeight:105}} value={q.statement} onChange={e=>update({statement:e.target.value})} placeholder="Escreva o enunciado ou cole o texto da questão"/>
+     <label style={labelStyle}>Enunciado da questão
+      <textarea style={{...inputStyle,minHeight:138}} value={q.statement} onChange={e=>update({statement:e.target.value})}
+       placeholder="Apresente o caso e formule claramente o que o estudante deve responder."/>
+      <small className="avalia-help">{q.statement.length} caracteres · Seja específico sobre a tarefa a ser realizada.</small>
      </label>
+     <details className="avalia-deep-options">
+      <summary>Precisa de ajuda para estruturar o enunciado?</summary>
+      <div style={{marginTop:12}}><TeacherQuestionComposer key={q.id} onApply={statement=>update({statement})}/></div>
+     </details>
+     <details className="avalia-deep-options">
+      <summary>Adicionar imagem ou material de apoio {q.images.length?'· '+q.images.length+' anexo(s)':'(opcional)'}</summary>
+      <div style={{marginTop:12}}><QuestionImageField questionId={q.id} value={q.images} onChange={images=>update({images})}/></div>
+     </details>
      {q.kind==='objetiva'?<fieldset style={{border:'1px solid '+line,borderRadius:10}}>
       <legend style={{fontWeight:700}}>Alternativas e gabarito</legend>
       {q.options.map(o=><div key={o.id} style={{display:'grid',gridTemplateColumns:'50px 1fr 90px',gap:8,alignItems:'center',marginBottom:8}}>
@@ -339,20 +348,57 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
        <input style={inputStyle} value={o.text} onChange={e=>update({options:q.options.map(a=>a.id===o.id?{...a,text:e.target.value}:a)})} aria-label={'Alternativa '+o.id}/>
        <label style={{fontSize:12}}><input type="radio" name={'correct-'+q.id} checked={q.correctOptionId===o.id} onChange={()=>update({correctOptionId:o.id})}/> Correta</label>
       </div>)}
-     </fieldset>:<label style={labelStyle}>Rubrica de correção
-      <textarea style={{...inputStyle,minHeight:110}} value={q.rubric} onChange={e=>update({rubric:e.target.value})} placeholder="Critérios, fundamentação e distribuição de pontos"/>
-     </label>}
-     {q.kind==='discursiva'&&<label style={labelStyle}>Padrão de resposta esperado
-      <textarea style={{...inputStyle,minHeight:145}} value={q.expectedAnswer||''}
-       onChange={e=>update({expectedAnswer:e.target.value})}
-       placeholder="Resposta-modelo: conceitos, argumentos, fundamentos e elementos essenciais esperados do estudante."/>
-      <span style={{fontSize:12,fontWeight:400,color:'#53677e'}}>Referência reservada ao professor e ao futuro algoritmo de correção. Não será impressa na prova do aluno. É diferente da rubrica de pontuação.</span>
-     </label>}
-     <QuestionImageField questionId={q.id} value={q.images} onChange={images=>update({images})}/>
+     </fieldset>:
+     <div style={{display:'grid',gap:15}}>
+      <label style={labelStyle}>Padrão de resposta esperado
+       <span className="avalia-help">Referência privada do professor. Não aparecerá no PDF dos estudantes.</span>
+       <textarea className="avalia-answer-area" style={inputStyle} value={q.expectedAnswer||''}
+        onChange={e=>update({expectedAnswer:e.target.value})}
+        placeholder="Quais conceitos, argumentos, fundamentos e elementos são esperados?"/>
+      </label>
+      <label style={labelStyle}>Critérios de correção
+       <span className="avalia-help">Informe os critérios e a distribuição dos pontos.</span>
+       <textarea className="avalia-answer-area" style={inputStyle} value={q.rubric}
+        onChange={e=>update({rubric:e.target.value})}
+        placeholder="Ex.: identificação do instituto (0,3), fundamentação (0,4), conclusão (0,3)."/>
+      </label>
+     </div>}
+     <div className="avalia-panel" style={{background:'#f8fbff',padding:14,boxShadow:'none'}}>
+      <div style={{display:'flex',gap:18,flexWrap:'wrap',alignItems:'end'}}>
+       <label style={labelStyle}>Dificuldade
+        <span className="avalia-levels">{([1,2,3,4,5] as Difficulty[]).map(n=><button key={n} type="button"
+         aria-pressed={q.estimatedDifficulty===n} onClick={()=>update({estimatedDifficulty:n})}>{n}</button>)}</span>
+       </label>
+       <label style={{...labelStyle,flex:'1 1 170px'}}>Finalidade
+        <select style={inputStyle} value={q.purpose[0]||'formativa'} onChange={e=>update({purpose:[e.target.value as Purpose]})}>
+         <option value="diagnostica">Diagnóstica</option><option value="formativa">Formativa</option><option value="somativa">Somativa</option>
+        </select>
+       </label>
+      </div>
+      <div style={{marginTop:12}}>
+       <strong style={{fontSize:13}}>Competências associadas</strong>
+       <p className="avalia-help">Selecione competências cadastradas ou importadas da Construção Curricular.</p>
+       {pedagogy.competencies.length?
+        <div style={{display:'flex',gap:10,flexWrap:'wrap'}}>
+         {pedagogy.competencies.map(c=><label key={c.id} style={{fontSize:13}}>
+          <input type="checkbox" checked={q.competencyIds.includes(c.id)} onChange={e=>update({
+           competencyIds:e.target.checked?[...new Set([...q.competencyIds,c.id])]:q.competencyIds.filter(id=>id!==c.id)
+          })}/>
+          {' '+c.code+' · '+c.title}
+         </label>)}
+        </div>:
+        <p className="avalia-help">Nenhuma competência carregada. Abra as opções pedagógicas para importar ou declarar competências.</p>}
+      </div>
+     </div>
+     <details className="avalia-deep-options">
+      <summary>Curadoria pedagógica detalhada</summary>
+      <div style={{marginTop:12}}>
      <RuleCurationPanel key={q.id} question={q} pedagogy={{...pedagogy,purpose}}
       onApply={statement=>update({statement})}
       onDecision={decision=>setCurationHistory(history=>[...history,decision].slice(-150))}/>
-     <div style={{background:light,padding:12,borderRadius:10,fontSize:13}}>Vínculo com o PPC: <strong>não validado</strong>. Os vínculos demonstrativos são declarados pelo professor e não representam aprovação institucional.</div>
+      </div>
+     </details>
+     <p className="avalia-help">Vínculos curriculares declarados, ainda sem homologação do PPC.</p>
     </div>}
     <QuestionBankPanel previewMode={previewMode}
      institutionId={institutionId} courseId={courseId} discipline={disciplineId}
