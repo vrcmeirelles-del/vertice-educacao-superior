@@ -7,7 +7,7 @@ export type DocCategory = { code: string; label: string; regulatory_basis: strin
 export type Finding = { type: string; severity: string; title: string; message: string; regulatory_reference?: string; suggestion?: string };
 export type AnalysisResult = { summary: string; compliance_score: number; findings: Finding[] };
 
-const fold = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+const fold = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 type Item = [label: string, re: RegExp, severity: "high" | "medium" | "low"];
 
 const GENERIC: Item[] = [

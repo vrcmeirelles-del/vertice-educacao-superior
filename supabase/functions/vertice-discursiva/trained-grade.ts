@@ -22,7 +22,7 @@ export type TrainingRow={question:Obj;answer:string;score:number};
 export type TrainedModel={version:string;weights:number[];n:number;ruleMae:number;cvMae:number;cvCorr:number};
 export type TrainingReport={ready:boolean;n:number;reason:string;ruleMae?:number;cvMae?:number;cvCorr?:number;model?:TrainedModel};
 
-const fold=(s:string)=>String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+const fold=(s:string)=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
 const stems=(s:string)=>new Set((fold(s).match(/[a-z]{5,}/g)||[]).map(w=>w.slice(0,6)));
 
 /** Sinais da resposta, todos em [0,1], mais o termo constante. */
