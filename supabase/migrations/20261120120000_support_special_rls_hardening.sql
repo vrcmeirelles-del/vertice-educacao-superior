@@ -14,13 +14,13 @@
 --   1. Remove todas as policies atuais dessas tabelas.
 --   2. Cria policies por comando, TO authenticated, via vertice_private.member_role()
 --      (exige aal2 e devolve 'master' para administradores globais):
---        SELECT/INSERT/UPDATE: master e gestor.   DELETE: somente master.
+--        SELECT/INSERT/UPDATE: master, gestor e equipe (fase inicial: acesso amplo aos papéis internos, a restringir após a curadoria).   DELETE: somente master.
 --      Tabelas de auditoria (*_audit): SELECT e INSERT para master/gestor; sem UPDATE; DELETE só master.
 --      student_special_plan_versions não tem institution_id: segue a instituição do plano pai.
 --   3. Revoga todos os privilégios de anon e TRUNCATE/TRIGGER/REFERENCES de authenticated.
 --
 -- Impacto (conferir antes de rodar):
---   * Papel 'equipe' perde acesso, e quem não tiver MFA ativo (aal2) também, inclusive gestor.
+--   * Papéis internos (master, gestor, equipe) mantêm acesso; quem não tiver MFA ativo (aal2) perde, inclusive gestor. Anon perde tudo.
 --   * Telas de Acompanhamento Especial passam a listar vazio (não erro) para quem perdeu acesso.
 --   * service_role não é afetado. Contagem em 20/11/2026: tabelas praticamente vazias
 --     (student_special_cases 1, student_special_plans 1, demais 0).
@@ -40,7 +40,9 @@ DECLARE
     'student_special_requests','student_special_return_plans','student_special_reviews',
     'student_special_teacher_logs','student_support_assessments','student_support_audit',
     'student_support_documents','student_support_referrals','student_support_regulatory_evidence',
-    'student_support_reviews','student_teacher_support_logs'
+    'student_support_reviews','student_teacher_support_logs',
+    -- PEI e cadastro de estudantes: recriadas para incluir 'equipe' (fase inicial, antes da curadoria)
+    'student_support_cases','student_support_requests','student_individual_plans','student_plan_accommodations'
   ];
   gate text;
 BEGIN
@@ -56,16 +58,28 @@ BEGIN
       gate := 'vertice_private.member_role(institution_id)';
     END IF;
 
-    EXECUTE format('CREATE POLICY %I ON public.%I FOR SELECT TO authenticated USING (%s IN (''master'',''gestor''))', tbl||'_select', tbl, gate);
-    EXECUTE format('CREATE POLICY %I ON public.%I FOR INSERT TO authenticated WITH CHECK (%s IN (''master'',''gestor''))', tbl||'_insert', tbl, gate);
+    EXECUTE format('CREATE POLICY %I ON public.%I FOR SELECT TO authenticated USING (%s IN (''master'',''gestor'',''equipe''))', tbl||'_select', tbl, gate);
+    EXECUTE format('CREATE POLICY %I ON public.%I FOR INSERT TO authenticated WITH CHECK (%s IN (''master'',''gestor'',''equipe''))', tbl||'_insert', tbl, gate);
     IF NOT (tbl = ANY(audit_tbls)) THEN
-      EXECUTE format('CREATE POLICY %I ON public.%I FOR UPDATE TO authenticated USING (%s IN (''master'',''gestor'')) WITH CHECK (%s IN (''master'',''gestor''))', tbl||'_update', tbl, gate, gate);
+      EXECUTE format('CREATE POLICY %I ON public.%I FOR UPDATE TO authenticated USING (%s IN (''master'',''gestor'',''equipe'')) WITH CHECK (%s IN (''master'',''gestor'',''equipe''))', tbl||'_update', tbl, gate, gate);
     END IF;
     EXECUTE format('CREATE POLICY %I ON public.%I FOR DELETE TO authenticated USING (%s = ''master'')', tbl||'_delete', tbl, gate);
 
     EXECUTE format('REVOKE ALL ON public.%I FROM anon', tbl);
     EXECUTE format('REVOKE TRUNCATE, TRIGGER, REFERENCES ON public.%I FROM authenticated', tbl);
   END LOOP;
+END $$;
+
+-- Cadastro de estudantes: inclui 'equipe' em INSERT/UPDATE (importação), mantendo DELETE só master.
+DO $$
+BEGIN
+  DROP POLICY IF EXISTS student_reg_insert ON public.vertice_student_registry;
+  DROP POLICY IF EXISTS student_reg_update ON public.vertice_student_registry;
+  CREATE POLICY student_reg_insert ON public.vertice_student_registry FOR INSERT TO authenticated
+    WITH CHECK (vertice_private.member_role(institution_id) IN ('master','gestor','equipe'));
+  CREATE POLICY student_reg_update ON public.vertice_student_registry FOR UPDATE TO authenticated
+    USING (vertice_private.member_role(institution_id) IN ('master','gestor','equipe'))
+    WITH CHECK (vertice_private.member_role(institution_id) IN ('master','gestor','equipe'));
 END $$;
 
 COMMIT;
