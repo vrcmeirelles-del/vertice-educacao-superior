@@ -54,6 +54,17 @@ export function buildSupportPayload(kind: string, f: Form, ctx: Context): Record
       const c=caseRow();
       return {...common,case_id:c.id,student_name:required(c.student_name||'','o estudante do caso'),student_matricula:c.student_matricula||null,course_id:c.course_id||null,objectives:text(f,'objectives') ? text(f,'objectives').split(/\n+/).map(x=>x.trim()).filter(Boolean) : [],...planTexts(f),...dates(f,'effective_from','effective_until'),next_review_date:dates(f,'next_review_date','next_review_date').next_review_date,status:'em_elaboracao'};
     }
+    case 'familyShare': {
+      const plan = parent(ctx.plans || [], text(f, 'plan_id'), institution_id);
+      if (!plan.case_id) throw new Error('Plano sem caso vinculado.');
+      const summary = required(text(f, 'summary'), 'o resumo para a família');
+      if (summary.length < 20) throw new Error('O resumo para a família precisa ter ao menos 20 caracteres.');
+      const days = Number(text(f, 'validity_days'));
+      if (![7, 30, 60].includes(days)) throw new Error('Escolha a validade do link: 7, 30 ou 60 dias.');
+      const token_hash = text(f, 'token_hash');
+      if (!/^[0-9a-f]{64}$/.test(token_hash)) throw new Error('Token inválido.');
+      return {...common,plan_id:plan.id,case_id:plan.case_id,token_hash,summary,show_accommodations:f.show_accommodations!==false,expires_at:new Date(Date.now()+days*86400000-60000).toISOString()};
+    }
     case 'courseAction': {
       const plan = parent(ctx.plans || [], text(f, 'plan_id'), institution_id);
       if (!plan.case_id) throw new Error('Plano sem caso vinculado.');
