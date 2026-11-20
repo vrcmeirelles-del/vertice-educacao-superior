@@ -26,8 +26,10 @@ export function prepareBankQuestion(args:{
  if(q.kind==='objetiva'){
   if(q.options.length<2||q.options.some(o=>!o.text.trim()))throw Error('Complete todas as alternativas.');
   if(!q.options.some(o=>o.id===q.correctOptionId))throw Error('Selecione o gabarito.');
+  if(!q.answerJustification?.trim())throw Error('Justifique a resposta correta antes de arquivar a objetiva.');
   if(new Set(q.options.map(o=>normalized(o.text))).size!==q.options.length)throw Error('Há alternativas duplicadas.');
  }else{
+  if(!Number.isInteger(q.answerLines??8)||(q.answerLines??8)<3||(q.answerLines??8)>60)throw Error('Informe de 3 a 60 linhas na discursiva.');
   if(!q.rubric.trim())throw Error('Defina a rubrica da questão discursiva.');
   if(!q.expectedAnswer?.trim())throw Error('Informe o padrão de resposta esperado antes de arquivar a discursiva.');
  }
