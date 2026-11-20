@@ -51,3 +51,8 @@ Consulta inicial em pg_constraint mostrava apenas PK(id) de `public.vertice_cour
 
 ### Próxima decisão técnica
 Reduzir/segregar o bundle de `vertice-source-pdf-preview` no fluxo de clonagem (sem alterar sua funcionalidade em produção), sincronizar migrações fonte↔produção e criar credenciais Auth de homologação por perfil, com MFA. Depois testar a Edge Function e o Storage por HTTP em ambiente isolado. Pausar a branch após os testes enquanto a etapa HTTP depender de credenciais/provisionamento, para controlar cobrança por hora.
+
+### Encerramento da execução e verificação de produção
+- Após os smoke tests, foi solicitada pausa exclusivamente de `eagkkkclfcedzanuqckj`. A chamada `pause_project` retornou `success=true`; a primeira listagem posterior mostrou `PAUSING`, portanto conclusão da pausa ainda requer confirmação `INACTIVE`.
+- Consulta read-only à produção `qvetbbmviatxxatzzuzc` confirmou `vertice_avalia.assessment_drafts` inexistente, `vertice_avalia.question_media` inexistente e 0 buckets `avalia360-private`. O projeto principal permanece `ACTIVE_HEALTHY`.
+- O estado global `FUNCTIONS_FAILED` da branch ainda reflete a clonagem de função PDF com pacote acima do limite; não corresponde à homologação do Avalia nem deve ser mascarado pelos testes da RPC.
