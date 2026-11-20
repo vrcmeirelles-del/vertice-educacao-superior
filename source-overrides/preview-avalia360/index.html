@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+ <meta charset="utf-8"/>
+ <meta name="viewport" content="width=device-width,initial-scale=1"/>
+ <meta name="robots" content="noindex,nofollow"/>
+ <meta name="theme-color" content="#164B92"/>
+ <title>Vértice Avalia 360° · Prévia Interativa</title>
+ <style>
+  *{box-sizing:border-box}
+  html{font-family:Cambria,Georgia,serif;background:#f5f8fc;color:#18314d}
+  body{margin:0}
+  header.preview-bar{background:#103f82;color:white;padding:14px max(20px,calc((100vw - 1180px)/2));font-family:Arial,sans-serif;font-size:14px}
+  header.preview-bar strong{font-size:15px}
+  .preview-notice{display:block;font-size:12px;opacity:.92;margin-top:4px}
+  #root{max-width:1180px;margin:26px auto;padding:0 15px 32px}
+  button,select,input,textarea{font-family:inherit}
+  button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid #f59e0b;outline-offset:2px}
+  @media(max-width:640px){header.preview-bar{padding:14px 16px}#root{margin:14px auto}}
+ </style>
+</head>
+<body>
+ <header class="preview-bar">
+  <strong>VÉRTICE · AVALIA 360° · HOMOLOGAÇÃO VISUAL</strong>
+  <span class="preview-notice">Demonstração pública isolada • somente armazenamento local deste navegador • sem envio a Supabase ou à produção</span>
+ </header>
+ <div id="root"></div>
+ <script type="module" src="/main.tsx"></script>
+</body>
+</html>

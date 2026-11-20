@@ -1,0 +1,8 @@
+{
+  "name": "avalia360-postgres-staging",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@electric-sql/pglite": "0.5.16"
+  }
+}
