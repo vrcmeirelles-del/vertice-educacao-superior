@@ -2,6 +2,7 @@ import {useCallback,useEffect,useRef,useState} from 'react';
 import {QuestionImageField} from './QuestionImageField';
 import ClassBatchPublisher from './ClassBatchPublisher';
 import RuleCurationPanel from './RuleCurationPanel';
+import type {CurationDecision} from './curation-decision';
 import TeacherQuestionComposer from './TeacherQuestionComposer';
 import type {QuestionDraft} from './question-draft';
 import {saveAssessmentDraft,loadAssessmentDraft,type DraftReceipt,type StoredAssessmentDraft} from './draft-api';
@@ -67,6 +68,7 @@ function SavedPreview({value}: {value:StoredAssessmentDraft}){
   <h3 style={{marginTop:0}}>Caderno recuperado do servidor</h3>
   <p><strong>{value.snapshot.meta?.title||'Avaliação'}</strong> · {value.snapshot.meta?.semester||'sem semestre informado'} · {value.snapshot.meta?.purpose||'sem finalidade informada'}</p>
   <p>Versão {value.revision} · {value.snapshot.curriculumStatus==='linked'?'Matriz associada':'Aguardando vinculação ao PPC'}</p>
+  <p style={{fontSize:13}}>Decisões docentes declaradas neste rascunho: {value.snapshot.meta?.curationHistory?.length||0}. Este histórico não equivale à auditoria autenticada do servidor.</p>
   {value.snapshot.meta?.declaredPedagogy&&<p style={{fontSize:13}}>Metadados pedagógicos declarados preservados: {value.snapshot.meta.declaredPedagogy.competencies.length} competências e {value.snapshot.meta.declaredPedagogy.topics.length} temas. Sem homologação curricular.</p>}
   {value.snapshot.questions.map((q,i)=><div key={String(q.id||i)} style={{padding:'12px 0',borderTop:'1px solid '+line}}>
    <strong>{i+1}. {String(q.statement||'Enunciado indisponível')}</strong>
@@ -90,6 +92,7 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
  });
  const [analysisVisible,setAnalysisVisible]=useState(false);
  const [questions,setQuestions]=useState<QuestionDraft[]>([]);
+ const [curationHistory,setCurationHistory]=useState<CurationDecision[]>([]);
  const [activeIndex,setActiveIndex]=useState(0);
  const [preview,setPreview]=useState(false);
  const [receipt,setReceipt]=useState<DraftReceipt|null>(null);
@@ -99,7 +102,7 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
  const [busy,setBusy]=useState(false);
  const [status,setStatus]=useState('');
  const uploads=useRef(new Map<string,ScopedImageReceipt>());
- useEffect(()=>{setReceipt(null);setLoaded(null);setQuestions([]);setPreview(false);uploads.current.clear();setStatus('');},[institutionId,courseId]);
+ useEffect(()=>{setReceipt(null);setLoaded(null);setQuestions([]);setCurationHistory([]);setPreview(false);uploads.current.clear();setStatus('');},[institutionId,courseId]);
  const update=useCallback((change:Partial<QuestionDraft>)=>{
   setQuestions(all=>all.map((q,i)=>i===activeIndex?{...q,...change}:q));
   setLoaded(null);
@@ -150,7 +153,7 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
    setStatus(previewMode?'Guardando demonstração neste navegador…':'Salvando versão no Supabase…');
    const out=await saveAssessmentDraft({institutionId,courseId,disciplineId,
      ...(receipt?{draftId:receipt.id,expectedRevision:receipt.revision}:{}),
-     questions,uploadedImages:grouped,assessmentMeta:{title:title.trim(),semester:period.trim(),purpose,declaredPedagogy:{...pedagogy,purpose}}});
+     questions,uploadedImages:grouped,assessmentMeta:{title:title.trim(),semester:period.trim(),purpose,declaredPedagogy:{...pedagogy,purpose},curationHistory:curationHistory.slice(-150)}});
    if(!out.ok){setStatus('Falha no salvamento.');setErrors([out.error.message]);return;}
    setReceipt(out.receipt);setStatus((previewMode?'Demonstração local salva':'Rascunho salvo')+' na versão '+out.receipt.revision+'.');
    setLoaded(null);
@@ -265,7 +268,8 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
      </label>}
      <QuestionImageField questionId={q.id} value={q.images} onChange={images=>update({images})}/>
      <RuleCurationPanel key={q.id} question={q} pedagogy={{...pedagogy,purpose}}
-      onApply={statement=>update({statement})}/>
+      onApply={statement=>update({statement})}
+      onDecision={decision=>setCurationHistory(history=>[...history,decision].slice(-150))}/>
      <div style={{background:light,padding:12,borderRadius:10,fontSize:13}}>Vínculo com o PPC: <strong>não validado</strong>. Os vínculos demonstrativos são declarados pelo professor e não representam aprovação institucional.</div>
     </div>}
   </div>
