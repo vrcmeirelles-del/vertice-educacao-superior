@@ -1,0 +1,11 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';
+import {reconcile} from '../../enade360-reconcile-ocr.mjs';
+const file={file_id:'file',sha256:'hash'};
+const row={id:'pv',repository_file_id:'file',source_sha256:'hash',extraction_method:'tesseract_local_ocr',extraction_status:'partial',characters:100};
+const audit={file_id:'file',entity_id:'pv',source_sha256:'hash',action:'document_local_ocr_imported'};
+const run=(rows=[row],audits=[audit],files=[file])=>reconcile({ocr_imported:files.length,files},{prevalidations:rows,audits});
+test('receipt and audit alone cannot establish persistence',()=>{const r=run([]);assert.equal(r.complete,false);assert.equal(r.verified_files,0);assert.equal(r.findings[0].issue,'audit_target_missing');});
+test('matching content, source and audit reconcile without approving OCR',()=>{const r=run();assert.equal(r.complete,true);assert.equal(r.verified_files,1);assert.match(r.limits[0],/no OCR fidelity approval/);});
+test('wrong source, hash or empty text never reconcile',()=>{for(const change of [{repository_file_id:'other'},{source_sha256:'other'},{characters:0},{extraction_status:'ready'}])assert.equal(run([{...row,...change}]).complete,false);});
+test('audit is required and duplicate declarations do not inflate coverage',()=>{assert.equal(run([row],[]).findings[0].issue,'missing_import_audit');const r=run([row],[audit],[file,file]);assert.equal(r.receipt_files,1);assert.equal(r.complete,false);});
+test('seven missing records out of 65 are reported per identifier',()=>{const files=Array.from({length:65},(_,i)=>({file_id:`f${i}`,sha256:`h${i}`}));const audits=files.map((f,i)=>({...audit,file_id:f.file_id,entity_id:`p${i}`,source_sha256:f.sha256}));const rows=files.slice(0,58).map((f,i)=>({...row,id:`p${i}`,repository_file_id:f.file_id,source_sha256:f.sha256}));const r=run(rows,audits,files);assert.equal(r.verified_files,58);assert.equal(r.affected_files,7);assert.equal(r.findings.length,7);});

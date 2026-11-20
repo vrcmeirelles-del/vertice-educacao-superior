@@ -1,0 +1,48 @@
+{
+  "mode": "local_dry_run_on_real_indexed_text",
+  "checked_at": "2026-11-20T15:38:05.977Z",
+  "rows": [
+    {
+      "file_id": "181481a5-4564-4cff-9393-806ceff3edb3",
+      "prevalidation_id": "29550893-7c91-4aa3-b18f-c9b2f33ff1b9",
+      "source_sha256": "d10e87edaeb2c38d8717aa8d1907856e03f16d57763b461c5c959fc2d04ad007",
+      "algorithm": "regras-bm25@2026-11-20",
+      "nature": "Horário",
+      "suggested_codes": [
+        "1.6"
+      ],
+      "suggestions": 1,
+      "provider_calls": 0,
+      "persistent_writes": 0,
+      "human_review_required": true
+    },
+    {
+      "file_id": "715a7ab9-5b5c-4ffd-b82c-e4f1273ff6a5",
+      "prevalidation_id": "5bbc59a8-a1f6-43de-a357-154530f1864b",
+      "source_sha256": "d10e87edaeb2c38d8717aa8d1907856e03f16d57763b461c5c959fc2d04ad007",
+      "algorithm": "regras-bm25@2026-11-20",
+      "nature": "Horário",
+      "suggested_codes": [
+        "1.6"
+      ],
+      "suggestions": 1,
+      "provider_calls": 0,
+      "persistent_writes": 0,
+      "human_review_required": true
+    },
+    {
+      "file_id": "f1aab368-2dce-4aac-948c-dbc68410d5d6",
+      "prevalidation_id": "0f41a87d-60ad-46fd-b4f3-3c45a070cd7d",
+      "source_sha256": "d10e87edaeb2c38d8717aa8d1907856e03f16d57763b461c5c959fc2d04ad007",
+      "algorithm": "regras-bm25@2026-11-20",
+      "nature": "Horário",
+      "suggested_codes": [
+        "1.6"
+      ],
+      "suggestions": 1,
+      "provider_calls": 0,
+      "persistent_writes": 0,
+      "human_review_required": true
+    }
+  ]
+}

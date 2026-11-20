@@ -1,0 +1,827 @@
+{
+  "checked_at": "2026-11-20T15:36:57.93676+00:00",
+  "production_execution": false,
+  "approval_required_before_persistence": true,
+  "lots": {
+    "no_text": [
+      {
+        "file_id": "3447c6ac-a9bc-5d6b-b14a-e11edf11a439",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "d6922a41e892d58979fc4b8df7843fd452a299ef2b7956ae2edcd6fd6a7846e8",
+        "status": "failed",
+        "method": "pdfjs_text_layer"
+      },
+      {
+        "file_id": "376e6b9e-e9fe-5481-8583-4269178abd3b",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "8e612db475039357e9b1e0921ef30a9df8e9449b894a36e943257af6605cd359",
+        "status": "failed",
+        "method": null
+      },
+      {
+        "file_id": "41b00f61-1789-5ce2-b7eb-e80e922b32f0",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "94eefcc45a9ecf09da11bf55f48671454169284677cffb07e0b371ffd8c80ad5",
+        "status": "failed",
+        "method": "pdfjs_text_layer"
+      },
+      {
+        "file_id": "5d443aa8-bb7e-5563-9ee8-552ecf2f4520",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "aa99763a6e55a1c520fc92b3a00c902d5bfe103e77bc138804fed7f583cb7de5",
+        "status": "failed",
+        "method": "pdfjs_text_layer"
+      },
+      {
+        "file_id": "892cd4b3-c51f-561f-813b-67e08d691952",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "eec126c5c805b6b687a91a0327c38816cc6944b1199809511557f5c7a2b17281",
+        "status": "failed",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "8d44f34f-9f8c-5cb1-be91-a407d2857d4f",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "7089c55bf253c76ba00204e6ad1d8d61bbb6b923ce73a76acc4873424ff2ca67",
+        "status": "failed",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "ae44a229-a141-5024-91a2-838e754f4a6c",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "d45a5c367f363eb39ea65bfe5bea49337276468028d427374b1f703acf138de2",
+        "status": "failed",
+        "method": "pdfjs_text_layer"
+      },
+      {
+        "file_id": "bf6cf1b0-9dd3-533b-b76d-01011a0d25ea",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "d2b6d4fd3f5cad1a4d780f017356131c296e0b771a06240c627a35adac623ec0",
+        "status": "failed",
+        "method": "pdfjs_text_layer"
+      },
+      {
+        "file_id": "de8a8c60-ebce-5f62-b887-e490559e1ff6",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "3e7272e06c84c8133a539a4841482765f55222ce7298b65c0acde3caa277527c",
+        "status": "failed",
+        "method": "pdfjs_text_layer"
+      },
+      {
+        "file_id": "fa34d17e-9bfa-55d3-b0a4-b4b06a4be69f",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "4e74418be3c4187e53b5a4a135d014ec09a0e5d9fe2442bf9e0606f387f4c1b3",
+        "status": "failed",
+        "method": null
+      }
+    ],
+    "original_partial_33": [
+      {
+        "file_id": "072417d7-52c8-5cdb-939e-eb1a6b78f08a",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "784db509aecfeea46a6dd727fc75899742cac167d6850048228f0274dca2c9f6",
+        "status": "partial",
+        "method": "docx_xml"
+      },
+      {
+        "file_id": "0db2a98e-7370-5df8-9525-6da8647bbdaa",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "bbac97390a8f7a878fda6b50e92aa41e3f19d2cb3657fe05009050980aa77768",
+        "status": "partial",
+        "method": "pdfjs_text_layer"
+      },
+      {
+        "file_id": "125e89e0-9a47-502b-be87-69111caff741",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "279eaf6d261fb579ad897acacb179798c02dfc660a72a4e882f9927990b9642f",
+        "status": "partial",
+        "method": "docx_xml"
+      },
+      {
+        "file_id": "13ced947-ebbe-5a44-b7b0-fbac531db3fc",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "8183eabda568080fb21e2f7d8a00feafb60af157ff3eda574009e9f50aea4cd4",
+        "status": "partial",
+        "method": "xlsx_xml"
+      },
+      {
+        "file_id": "2814b29e-d1ca-5fce-85c7-98f91910e8e1",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "ec860ee1031009812510817559f452de49c18778abfd4930ec92dbac3630f72c",
+        "status": "partial",
+        "method": "pdfjs_text_layer"
+      },
+      {
+        "file_id": "29099935-052d-5443-8af9-e89b7114ae67",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "df9b7079b61a9fb3db6adc23c060cc2608bfc0199edc10ef6d4dd380796f3f6f",
+        "status": "partial",
+        "method": "xlsx_xml"
+      },
+      {
+        "file_id": "29c547d4-d23c-51e7-9734-11e7a6930bf3",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "a2047508d344a4ad57d5ae6518ee2dd970943602ab5f54ad4dc45feb0562dc1b",
+        "status": "partial",
+        "method": "xlsx_xml"
+      },
+      {
+        "file_id": "2ac8b541-9cf4-5ebc-8f22-9d489135c6d4",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "61ea67657fe32ccf3452e4c0d8bf729d9ada36a8c57a29a3f792ca66cd37e0e5",
+        "status": "partial",
+        "method": "docx_xml"
+      },
+      {
+        "file_id": "3579616b-b2dd-5f77-ae8f-8e4164ed4436",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "d95cb7ce6fabbfde32869cf85a0ba544f46eeeb9a7cd69303220d74f3854fbb6",
+        "status": "partial",
+        "method": "docx_xml"
+      },
+      {
+        "file_id": "3fd73753-7e68-5248-8d31-15ce6a85cf98",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "5b90f93f660de37b8681ce5121d3e91d5446fac8a168310bc22024fc79ff8eee",
+        "status": "partial",
+        "method": "pdfjs_text_layer"
+      },
+      {
+        "file_id": "46b63d98-060b-5b49-be7d-03ec403dddc7",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "f9016e45e0570e48bbffc02324e8a53845bc685a0cae434554527f8279ea7787",
+        "status": "partial",
+        "method": "pdfjs_text_layer"
+      },
+      {
+        "file_id": "480d0f19-7294-51f9-af13-54d0909ff75c",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "fb1c877010d7fdb659ab6a78df221484546923766e9d0880eeb42817080aba6f",
+        "status": "partial",
+        "method": "docx_xml"
+      },
+      {
+        "file_id": "5078fc1a-9dc5-509e-b0dd-f648e5677fc7",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "db280cb8c051376d86c1247941461fc5195dde524088640a90bbacb75c32576d",
+        "status": "partial",
+        "method": "pdfjs_text_layer"
+      },
+      {
+        "file_id": "59624610-51e7-5550-8ed3-3a2a04df5fde",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "12fde4e9a5ea79ea0ae496c8f21ddd39431f5bfec7703d6b4f607b498b34d2ba",
+        "status": "partial",
+        "method": "pdfjs_text_layer"
+      },
+      {
+        "file_id": "6554be94-5a4e-5a8a-a12a-36f66ad50382",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "0d1714575a8bd1253af570eaa462d87d4225ca4c2e34258a0db8bb8a0935a39b",
+        "status": "partial",
+        "method": "docx_xml"
+      },
+      {
+        "file_id": "716d2fa2-272a-53ae-9f43-772d22ce11d8",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "ce65a88be7a29d9ccab8c1127d73a25c356d8c6c61de38dfadeee0dda4409302",
+        "status": "partial",
+        "method": "pdfjs_text_layer"
+      },
+      {
+        "file_id": "71d53db3-02e2-597f-b015-84850728667b",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "fa946a273c9516f8664d01045e0844bb3b1eb79f858bfaf85df430311a50d447",
+        "status": "partial",
+        "method": "pdfjs_text_layer"
+      },
+      {
+        "file_id": "7a8389d6-ad3d-5ea0-a5af-65b2d0c767d5",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "eb61a12cb81e13f2c4655df5cb44eee2967c405cda56d9702f8bce26145f0659",
+        "status": "partial",
+        "method": "pdfjs_text_layer"
+      },
+      {
+        "file_id": "9f8938fb-cead-50f5-be16-e419b009d0e3",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "d2061b1fdb2804e6b820d6fc52e67a74d10d4b908ecb03d049f42a655a2ddc3d",
+        "status": "partial",
+        "method": "docx_xml"
+      },
+      {
+        "file_id": "a7207d0d-426c-5a00-ac0a-9f98536c7caf",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "40bd8e06be96c9c843cc07729a746b302e7f370d9e4de3f14972b7c7b4a8f5d0",
+        "status": "partial",
+        "method": "pdfjs_text_layer"
+      },
+      {
+        "file_id": "afa46f19-2fcc-5deb-b4e6-c248449f8662",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "e49e998ed450ce65a7b0315105ee57d931d920822d6916250bbdd03bfc93484d",
+        "status": "partial",
+        "method": "pdfjs_text_layer"
+      },
+      {
+        "file_id": "b9021206-6734-59a5-b264-281f940269d9",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "8bc025c78504d9f73979ddb54c867a22c53a1f8a4fb4d15a09475a13316d4be6",
+        "status": "partial",
+        "method": "docx_xml"
+      },
+      {
+        "file_id": "ba29b901-5ee0-58ed-a115-4f356f861833",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "d2e3a5269c4971bf74da9ab88800165812b80727bf682610f31dbf4c443e22f4",
+        "status": "partial",
+        "method": "docx_xml"
+      },
+      {
+        "file_id": "bb4d866b-2fc0-579e-8dc1-b860ca9d6688",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "2c79d63a71020b28446019799688d80ad46e5db30c687d0cc7708cce8f5c0713",
+        "status": "partial",
+        "method": "docx_xml"
+      },
+      {
+        "file_id": "bd9cc4d0-1d67-522b-a4f8-9aa3c2a9cde3",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "b25042bdd2196dc98b8d5f00d7fe11fbee343d461f6d4e397fd2182b197e4f09",
+        "status": "partial",
+        "method": "pdfjs_text_layer"
+      },
+      {
+        "file_id": "db13d421-2ade-59da-a9b6-839969411cd8",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "e39f01b4643cc4f8b4a22c24a14d1a9fa9a3c60005f220d91698aada913403ff",
+        "status": "partial",
+        "method": "docx_xml"
+      },
+      {
+        "file_id": "dc770fdb-029b-50e9-9e9c-df5d72d83d36",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "95b62c50742029fafd10102479e91cf6255b8dd17d37d9f990a3f42f0a3296af",
+        "status": "partial",
+        "method": "docx_xml"
+      },
+      {
+        "file_id": "e5c063fa-6203-51ea-94fc-82b80e537136",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "7d246e8aef6bffc16305e2ee2bc76cc8a8c706fceabc4c78be1114c08c50adbc",
+        "status": "partial",
+        "method": "pdfjs_text_layer"
+      },
+      {
+        "file_id": "ebbb99ae-85e8-5de1-a3bc-4e703c754bbd",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "390681b5affef854aa3ab6f16e2e653093466c773606518984cb8555accd4f0a",
+        "status": "partial",
+        "method": "pdfjs_text_layer"
+      },
+      {
+        "file_id": "ef5a4877-74e7-5958-9840-41c0bb77e852",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "02af2bcf39db97a1f49c2ed80a4f376220c208697de3def5fa1dfe5fabcc5324",
+        "status": "partial",
+        "method": "pdfjs_text_layer"
+      },
+      {
+        "file_id": "f49154ed-9e83-5fc2-8593-867289d267a5",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "8d8b8331cb108785322e56efa4f4d9a0e3d5b134c420a5ff987ab3b3efe67834",
+        "status": "partial",
+        "method": "docx_xml"
+      },
+      {
+        "file_id": "f5060af8-2470-5fc1-8a48-c88b34e32757",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "62b8f65b84840edd3cb59566685970d0682428c13c33b596d3222d30ffe289f6",
+        "status": "partial",
+        "method": "pdfjs_text_layer"
+      },
+      {
+        "file_id": "ff4d3fe2-6c51-5c77-8b89-abdea3295321",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "8860ecd499c0598c7c66201cd9ddc0636469a9f2b126ddb0be400be64cc525d0",
+        "status": "partial",
+        "method": "pdfjs_text_layer"
+      }
+    ],
+    "ocr_fidelity_review": [
+      {
+        "file_id": "01ba5b88-3cf3-5354-b216-d094bff59246",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "99901460fd3986992c81aac0535e07df11bbf520a2b8db1f388d21193899103e",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "022c7a35-c96e-5929-ac1f-81fee084d9d3",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "bd6899580e100b1081f0523fb85c81cc9a2c259fa9820221482a3e2642cad8b3",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "10f2434b-e049-5f1f-af87-a8c851ddbe00",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "03bfe0df4f3437970cb03304bcb2d7dd3f55b3a1b75c1c817c4b153c0232c324",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "12288921-d795-5a5a-b0a4-459cfbff4bfa",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "d2cff2af5f47a447d07edb5b5425dda8a48b7083c1a2c7b1bb38824b5354f4ae",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "15c29f36-5372-52fc-84a2-7d1b1571500f",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "ee71ac3debb49501e02ca1ca20b041d3f924708f795f949fa7a399389783ffee",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "16226b28-f24f-5e60-aac5-b9e6a9d9ff6d",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "4f505bc311c165b1bbdc01838d9cc6a0a9e79f2aa77be33f1fe855be311d27ec",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "1983a00e-8770-5036-9f80-a8ee3abc4c7a",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "9f7a3d32e5931a888f4805ed1da9094c4f19a88c9b541c7d8cc9a5dd7018512d",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "1ec78de5-4d17-5d65-9111-d8909eff47c7",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "8df4f31079c0c2c877da2bbf26de7b81076a23aa6ce81ff9349d489138e88103",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "213392b2-0e44-5bf9-bc93-06005eec3d32",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "c583e65c4a682febbb58ee2575538a170b1a471d1e4c74125c502e4253b48f66",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "2229c14a-9c02-5c70-978d-ff4b5d459c1c",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "c6db846879538f9bfde768cb9bfce5552099b608c20629df312ebf2867e3f1f7",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "29429d48-2306-519d-ba28-51ca4ed6c1b3",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "61696719229e4ce4f8d4ffb956396020d8e3aac54aca4ec524a0e186174062be",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "2ca275dc-0fee-5c45-a027-a3190bb9ac7e",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "f066f8db9cf2f1d6ccb309b34a9e7e20e245e05cfc93f0561a43cd4860ec35ea",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "2e2ccda1-3b71-5f4f-a071-38b337a069c5",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "c45050899eaf825613856c60653ed18b558eacb0859eab35373a86eb1ad704bc",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "33cbd18b-9888-5f9b-9b2c-60ab8296ab00",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "11f368d874d2f8080f5b9f47125c95a24fb4c05d852675b6d69278792e5ee819",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "399cf556-6d84-5740-9839-1a2b1f926aaa",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "d9d5ea9926345b689b55b2112fc61c8fbdadffd0aeece8074923c17b7e8081d4",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "39ab3b71-2b0a-572c-846c-3515daacb2d9",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "ad51681028a791843860bc374454b74f42bdb91fe1e424dcc7056b44b9a68b1e",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "3c891097-1ec8-5749-ae6a-16c449adf354",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "847836fecab4be8303ea0c4a53f4a3e48e34e419e3d758e6340513428888a918",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "403594b7-c78f-5484-81c6-9da7d05e2673",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "3aba7129ba0166ea4313c4e986854f953ecbf30387edf55262e34d7b11863206",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "416ea257-aa6e-57aa-9e90-8706125bd92f",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "7ed3e99ddd5f0cbe32d6ee14813c30a29114b02619a6f0c1e20b38234aaa6527",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "424b7818-c0a3-575f-ba58-cb2c9208d7b5",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "b760f73d422e1869e5be21faf5c0a9da2f16c1ea4a07105e2c376e2f4d05de9d",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "445f1b25-1bba-5e15-b224-f9d93ae42a07",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "a870a66c6ce70b880c7cf6894955f9c565bf0b3f826c5c77332602ea84bf6045",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "4927622b-2ad7-580b-887a-fa218f90ade0",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "88881e200f72ad9dc6f5833d8673d7d5f7ea27e8f0bfe426ca8cf8f7a9e1c1f0",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "4de85998-4733-5f75-842e-76bc326a91fa",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "7a092b001c5afdc4f8c1469c2a05df5c4567d1759109e02de89c58eb22e38c24",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "508a3761-5739-5abc-ac69-2512bc9aeda5",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "43a1bc3563de48e95da99e17a76269ccfc9267dab4f4106b865f2e389f7988d6",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "5093c144-4f6d-59e9-ae91-a1458300f198",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "c51c60c4c75b53744b307fe41cbc70a60005091dbbfc0752c62030cb16938868",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "5a40d55e-8df1-5208-a833-2dbafacffa09",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "a9c0c681584f502e8d8846cea8ac57f3b1e12c4960a2866a06a214dc5a3e0764",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "5a4e7b4b-eaff-5bc2-bbf0-396edd6af3a5",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "7092392a66afb96f469272f403d92f30480cf0f509a88aaf8e5f0b18a4b9ee7f",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "5af75bc1-3f5d-540a-b7b4-765692388e48",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "8975e65e8dce11799482fbd6e20045395305a83823b5d90c08f5ac6559f50900",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "5dc6ce2c-8f2f-5f1f-9a5e-857b69eebcca",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "a9948b29c72bf06fab01dce96872bf855ca95cd1bdfbda874b43cafb03e93ce1",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "639614c1-2801-5027-9605-abd689d8f30c",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "d7e72e1b8b1fe867be261a904c8c68a49e27ce9693b832a91a0a27163b9d596f",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "6efde67b-9b85-5202-b557-58a7793827a3",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "bbbabd27fef0e74ea8c3f333c01a91a2de33da7e9d64b04d7e643c9976c5335a",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "76481be9-d9e6-5778-b0e2-bf74c2b99704",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "b83b92c585370fbf557c8db89541a11eeebf66cdab67143078c574d30e607bd4",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "7888885d-1cfd-52e9-bdb0-603bb0e1bceb",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "cd5240d6a6e06382cb98b0cb8602056c7d22e7717417637715bbff585427a751",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "7c838ca7-c923-5388-bb63-f870602d986b",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "82ca96c4607c1677621a2b2bf78da83020a37cea49d6cf18840586b02f986699",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "7ff6bd46-9d2c-5654-92aa-634ed1d0454a",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "5aa834ea914b2e0fa357aa466e7ae8c88e52f5f9b1ee726fba117b10713a4ac3",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "80976541-8344-5c5a-899b-c8b88f50b22f",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "e42b860f8709e683fff47b53c5a8508a6108060c1ac0773c09deaba874577e4e",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "81b1d562-9e49-5124-94f9-0295026d71a8",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "02eb743ffdb537396a0b90744ae917edb125e4187283307520ee722a24a56026",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "8504d271-2a76-5d88-9947-8b40f80d5336",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "e01547a7bb3752117d0e1d2be4cb129d497f48734c129194c7dd9dfb092085d4",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "86c44a09-0761-5eb4-8fff-52248c902b9f",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "65ab801031ba733a5491774e3165ea571b3a518b4bc5a67edba504e105eb7986",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "8f1314f2-abe3-5778-bf7f-1c369df0c5d9",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "5d8dcbc1e24a45b12d00594c7791973db4ff173b71ee0d930769c27ff13a2b7f",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "92129c61-5027-5070-ab07-8b4a48e83c59",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "3fb5ede0cf7df5c636a12d4457f826d99a74a5c14e9c7555e6c01dcdd6966080",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "92fa1568-3798-5200-a60c-d865afe0ddd8",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "3fda35e2030ba75a65f1b272662663bc81085ffeda4c7f865fedbd95990d22d0",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "94fd618e-79a3-53ae-aa4c-84064f28ff27",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "26b4c427c858ff840c5fb48686e7502277295098731b46f5b6de5c1a36a8dde4",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "9be59f3e-6a98-5bcd-a02d-48ffbb3af68b",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "3c9d3ed3d86eb85f8a96f17eeb470a066ef18fd28c93b51a7ae11a7d3ae71694",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "9bf368b6-5a07-518a-8775-285f22810fec",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "ef73a56cc22764f06562f1e7dcaf8db1e6d59e462f48c8ac596bf357fc2c02d2",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "a1a41d74-097b-5b76-bfa4-ffd402d38d6d",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "25e95576263ee0660b86f4c69c9cea0c42bae583c149f1914996d65128c1aa1b",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "a2c2d524-9e97-5cdf-ad2a-5462a35ce152",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "9cf7b7d156e914581ae04daf4b469d3bac0a9c6f6190e7364717c8ec0519ba12",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "ac8004c7-e4d3-5b5a-8808-6901ec0c44c0",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "05271ac928be3cbaebe631f358c826c01a4908bb8ff504298e26b8c04148b34a",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "b34b5231-79d5-5160-8a4e-802af0a815ce",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "912db48638360abbd12179619ca65cbaa519779980efd8e7c085c8d6324170ec",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "b926395c-fc3c-5447-b26b-b8d87ef77194",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "9cf354450a25da392a647e54abd5808bf3291f080db8d961ebaa8de5f4266e63",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "bee3d659-0fd6-54cd-a96f-5c4f9e9d694d",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "cc0a8b136c1e2a0c868938b35df0b84ff9179e3caeb6b8d55589b755a2151f75",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "c42de2e1-172d-5efe-add0-d4d5af3ac087",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "db97e085a14703decd6d4e74fe0296681a6958b869f636495a0c0d571ae13508",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "ce8f698b-c1e8-551b-b77e-70b7e75af7cc",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "74dabeb1bdb21579ec52831c98c628332752391e60c8e0bb294239cee2d5d93b",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "cfd2a341-da47-5322-887c-5ba1680995e7",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "e2e38979761e89aee93eb1b35a477a00dc70b3b9e26e8a62e71613b8cf937a64",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "d1ae4d7c-8e00-5d9b-86ad-508ec383367f",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "215547560f93a6afc4e8ed782eebeca505b342f4a21abb0e5e06902fc4eacd69",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "d4751836-2c7b-5f67-89ef-34797f6dc7b3",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "7cddbd1ce928dc1fea6ed6ff5f27fde7e429b73ca81ce0040b3797699d1686f8",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "ee02bf72-3944-572d-b92f-01daa99c7a0c",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "1179fe5a851c2c7237ff456fe083a03babab01c22977d170bc279bc894570e41",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      },
+      {
+        "file_id": "f11e44b1-3819-51a5-ba0d-6a0c28db855b",
+        "institution_id": "1f5fd5b4-93c6-4626-834d-136884915587",
+        "course_id": "dfca6d07-fef6-4fa0-9475-3a85eaf4baa6",
+        "expected_sha256": "c787bc616f48eb93f4ebc80ef4e9cf720b2c5d1fa59994febd217804333fca1c",
+        "status": "partial",
+        "method": "tesseract_local_ocr"
+      }
+    ]
+  },
+  "conditions": [
+    "Download original through authenticated authorized session; validate original SHA-256 before processing.",
+    "OCR locally; never transmit documents to an external provider.",
+    "Persist only after explicit approval of the resulting batch; preserve previous attempts and audit atomically.",
+    "Keep OCR partial and fidelity review mandatory; do not approve evidence or indicator links."
+  ]
+}
