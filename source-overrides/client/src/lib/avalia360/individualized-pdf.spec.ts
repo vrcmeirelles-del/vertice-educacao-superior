@@ -38,6 +38,15 @@ describe('impressão individualizada de prova',()=>{
   const batch=prepareIssues([{id:'s1',name:'Aluno Exemplo',selected:true}],'batch');
   await expect(buildIndividualizedPdf(info,batch)).rejects.toThrow(/gabarito não selecionado/);
  });
+ it('não inclui o padrão de resposta esperado no PDF e exige preenchimento para emitir discursiva',async()=>{
+  const required={...q,kind:'discursiva' as const,rubric:'Critérios de correção de fundamentação e conclusão.',expectedAnswer:'Resposta-modelo sigilosa do professor.'};
+  const ctx={institutionName:'Vértice',courseName:'Direito',discipline:'Civil',title:'AV1',semester:'2027/1',classLabel:'2A',questions:[required]};
+  expect(validatePrintAssessment({...ctx,questions:[{...required,expectedAnswer:''}]})).toContain('Questão 1: padrão de resposta esperado ausente.');
+  const bytes=await buildIndividualizedPdf(ctx,prepareIssues([{id:'s1',name:'Aluno Exemplo',selected:true}],'batch'));
+  const text=new TextDecoder('latin1').decode(bytes);
+  expect(text).not.toContain('Resposta-modelo sigilosa');
+  expect(bytes.byteLength).toBeGreaterThan(1000);
+ });
  it('impede duplicidade de identificador e emissão sem alunos',()=>{
   expect(()=>prepareIssues([], 'batch-demo')).toThrow();
   expect(()=>prepareIssues([
