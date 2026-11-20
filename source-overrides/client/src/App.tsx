@@ -15,6 +15,7 @@ import { publicPages } from "./lib/consultancy";
 import { passwordCallback } from "./lib/supabase";
 import ResetPassword from "./pages/public/ResetPassword";
 const IntegracaoPage = lazy(() => import("./pages/IntegracaoPage"));
+const RedePage = lazy(() => import("./pages/RedePage"));
 const OwnerDashboard = lazy(() => import("./pages/OwnerDashboard"));
 const VerticeMobileBI = lazy(() => import("./components/bi/VerticeMobileBI"));
 const VerticeMobilePublicPreview = lazy(() => import("./components/bi/VerticeMobilePublicPreview"));
@@ -52,7 +53,7 @@ export default function App() {
   useEffect(() => {
     const page = publicPages.find(p => p.path === normalized);
     document.title =
-      (normalized === "/integracao" ? "Integração Fato & Ordem × Vértice | Acompanhamento Master" : normalized === "/command" ? "Vértice Command | Sala de Decisão Executiva" : normalized === "/experience" ? "Vértice Experience | Visita demonstrativa" : normalized === "/master/experience" ? "Vértice Experience | Administração Master" : iesActive ? "Cadastro institucional | Vértice Educação Superior" : normalized === "/mobile/apresentacao" ? "Vértice Mobile | Demonstração sem login" : normalized === "/mobile" ? "Vértice Mobile | Inteligência executiva" : ["/master","/gestor","/admin-ies","/painel-real"].includes(normalized) ? "Painel institucional | Vértice Educação Superior" : normalized === "/master/aquisicoes" ? "Aquisições e incorporações | Vértice" : normalized === "/redefinir-senha" || passwordCallback ? "Definir nova senha | Vértice Educação Superior" : normalized === "/reitor/reservado" ? "Área reservada do reitor | Vértice Educação Superior" : normalized === "/conecta-parceiros" ? "Empresas e parceiros | Portal institucional" : normalized === "/acesso-estudante" ? "Acesso do estudante | Portal institucional" : normalized === "/entrar" ? "Entrar | Vértice Educação Superior" : page?.title) ??
+      (normalized === "/rede" ? "Rede · indicadores de inclusão | Vértice" : normalized === "/integracao" ? "Integração Fato & Ordem × Vértice | Acompanhamento Master" : normalized === "/command" ? "Vértice Command | Sala de Decisão Executiva" : normalized === "/experience" ? "Vértice Experience | Visita demonstrativa" : normalized === "/master/experience" ? "Vértice Experience | Administração Master" : iesActive ? "Cadastro institucional | Vértice Educação Superior" : normalized === "/mobile/apresentacao" ? "Vértice Mobile | Demonstração sem login" : normalized === "/mobile" ? "Vértice Mobile | Inteligência executiva" : ["/master","/gestor","/admin-ies","/painel-real"].includes(normalized) ? "Painel institucional | Vértice Educação Superior" : normalized === "/master/aquisicoes" ? "Aquisições e incorporações | Vértice" : normalized === "/redefinir-senha" || passwordCallback ? "Definir nova senha | Vértice Educação Superior" : normalized === "/reitor/reservado" ? "Área reservada do reitor | Vértice Educação Superior" : normalized === "/conecta-parceiros" ? "Empresas e parceiros | Portal institucional" : normalized === "/acesso-estudante" ? "Acesso do estudante | Portal institucional" : normalized === "/entrar" ? "Entrar | Vértice Educação Superior" : page?.title) ??
       (demoPaths.has(normalized)
         ? "Demonstração de gestão | Vértice Educação Superior"
         : "Página não encontrada | Vértice Educação Superior");
@@ -70,6 +71,7 @@ export default function App() {
       if (description) description.content = page.description;
     }
   }, [path, normalized, isPublic, iesActive]);
+  if (normalized === "/rede") return <ErrorBoundary><Suspense fallback={<main role="status">Verificando acesso à rede…</main>}><PortalSurface><RedePage /></PortalSurface></Suspense></ErrorBoundary>;
   if (normalized === "/integracao") return <ErrorBoundary><Suspense fallback={<main role="status">Verificando acesso à integração…</main>}><PortalSurface><IntegracaoPage /></PortalSurface></Suspense></ErrorBoundary>;
   if (normalized === "/conecta-parceiros") return <ErrorBoundary><IesBrandedLayout><Suspense fallback={<main style={{padding:40}} role="status">Carregando cadastro de parceiros…</main>}><ConectaPartnerPortal /></Suspense></IesBrandedLayout></ErrorBoundary>;
   if (normalized === "/acesso-estudante") return <ErrorBoundary><IesBrandedLayout><Suspense fallback={<main style={{padding:40}} role="status">Carregando acesso do estudante…</main>}><StudentAccess /></Suspense></IesBrandedLayout></ErrorBoundary>;
