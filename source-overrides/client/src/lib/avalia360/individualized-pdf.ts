@@ -150,7 +150,10 @@ export async function buildIndividualizedPdf(info:PrintAssessment,issues:PrintIs
  for(let studentIndex=0;studentIndex<issues.length;studentIndex++){
   const issue=issues[studentIndex],variant=variants[studentIndex%variants.length];
   let page=doc.addPage([W,H]),col=0,y=651;
-  const qrData=await QRCode.toDataURL('VA360:'+issue.token,{errorCorrectionLevel:'M',margin:2,width:220});
+  // Versionamento no QR sem expor nome, matrícula ou identificador acadêmico.
+  // O token é demonstrativo: falta registro autenticado de emissão e conferência no backend.
+  const qrPayload='VA360-DEMO:1:'+variant.code+':'+issue.token;
+  const qrData=await QRCode.toDataURL(qrPayload,{errorCorrectionLevel:'M',margin:2,width:220});
   const qr=await doc.embedPng(qrData);
   const bookHeader=()=>{
    lineText(page,info.institutionName||'Instituição demonstrativa',margin,top,13,true);
