@@ -55,118 +55,79 @@ const send = (body: unknown, status = 200, origin = "") =>
     },
   });
 
-const BRIEFING_PROMPTS: Record<string, string> = {
-  morning: `Você é o Vértice Sapiens, sistema de inteligência institucional. Gere o briefing MATINAL para o coordenador.
-
-FOCO: panorama do dia — riscos ativos, metas fora da trajetória, ações pendentes, agenda regulatória.
-TOM: direto, executivo, prático. O coordenador começa o dia lendo este briefing.
-FORMATO JSON: {summary: string (300-1000 chars), sections: [{title, severity: "critical"|"high"|"medium"|"low"|"info", items: [{text, action_required: boolean}]}]}`,
-
-  midday: `Você é o Vértice Sapiens. Gere o briefing do MEIO-DIA.
-
-FOCO: atualização operacional — novos dados desde a manhã, alertas disparados, status das ações em andamento, decisões pendentes de aprovação.
-TOM: objetivo, focado no que mudou.
-FORMATO JSON: {summary: string, sections: [{title, severity, items: [{text, action_required: boolean}]}]}`,
-
-  evening: `Você é o Vértice Sapiens. Gere o briefing de ENCERRAMENTO do dia.
-
-FOCO: consolidação — o que foi resolvido, o que ficou pendente, riscos que surgiram ou se agravaram, preparação para o dia seguinte.
-TOM: conclusivo, preparatório.
-FORMATO JSON: {summary: string, sections: [{title, severity, items: [{text, action_required: boolean}]}]}`,
-
-  weekly_audit: `Você é o Vértice Sapiens. Gere a AUDITORIA SEMANAL TOTAL.
-
-ESTA É A ANÁLISE MAIS COMPLETA. Cobre:
-1. Balanço da semana: dados ingressados, decisões tomadas, ações executadas, pendências
-2. Revisão de metas: no rumo / atenção / fora da trajetória / crítica
-3. Revisão de ações 5W2H: concluída / em andamento / atrasada / não iniciada / bloqueada
-4. Mapa de riscos: novos, agravados, mitigados, eliminados
-5. Plano de ação semanal: prioridades reordenadas, novas ações recomendadas
-
-TOM: analítico, estratégico, completo. O coordenador abre a segunda-feira com visão total.
-FORMATO JSON: {summary: string (500-2000 chars), sections: [{title, severity, items: [{text, action_required: boolean}]}]}`,
+// ================================================================
+// BRIEFING POR ALGORITMO (20/11/2026): montado diretamente dos dados já
+// consultados; nenhuma chamada de IA. Cada item é um fato do banco.
+// ================================================================
+type Row = Record<string, unknown>;
+type Item = { text: string; action_required: boolean };
+type Section = { title: string; severity: "critical" | "high" | "medium" | "low" | "info"; items: Item[] };
+export type BriefingData = {
+  institution: string; briefingType: string;
+  diagnoses: Row[]; interventions: Row[]; findings: Row[]; goals: Row[]; actions: Row[];
+  counters: { activeRisks: number; offTrackGoals: number; pendingActions: number; pendingApprovals: number; inProgress: number };
+  now?: Date;
 };
+const TITLES: Record<string, string> = {
+  morning: "Briefing matinal", midday: "Atualização do meio-dia", evening: "Encerramento do dia", weekly_audit: "Auditoria semanal",
+};
+const RISK_ORDER: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };
+const SEV: Record<string, Section["severity"]> = { critical: "critical", high: "high", medium: "medium", low: "low" };
+const MODULES: Record<string, string> = { oab: "OAB", enade: "ENADE", enamed: "ENAMED", residencia: "Residência", enem: "ENEM", cfc: "CFC" };
+const date = (v: unknown) => { const raw = String(v || ""); const only = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/); if (only) return `${only[3]}/${only[2]}/${only[1]}`; const d = new Date(raw); return Number.isFinite(d.getTime()) ? d.toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" }) : "sem data"; };
+const short = (v: unknown, n = 160) => { const t = String(v ?? "").replace(/\s+/g, " ").trim(); return t.length > n ? t.slice(0, n - 1) + "…" : t; };
+const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
-// ================================================================
-// DUAL-LLM BRIEFING: OpenAI gera, Anthropic revisa (e vice-versa)
-// ================================================================
-
-async function callOpenAI(system: string, user: string): Promise<{ content: string; model: string } | null> {
-  const key = env("OPENAI_API_KEY");
-  if (!key) return null;
-  const r = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
-    body: JSON.stringify({
-      model: "gpt-4o",
-      messages: [{ role: "system", content: system }, { role: "user", content: user }],
-      max_tokens: 4000, temperature: 0.3,
-      response_format: { type: "json_object" },
-    }),
-    signal: AbortSignal.timeout(120000),
+export function buildBriefing(d: BriefingData): { summary: string; sections: Section[] } {
+  const now = d.now || new Date();
+  const c = d.counters;
+  const sections: Section[] = [];
+  const findings = [...d.findings].sort((a, b) => (RISK_ORDER[String(a.risk_level)] ?? 9) - (RISK_ORDER[String(b.risk_level)] ?? 9));
+  const highRisks = findings.filter((f) => f.risk_level === "critical" || f.risk_level === "high");
+  if (highRisks.length) sections.push({
+    title: "Riscos críticos e altos", severity: highRisks.some((f) => f.risk_level === "critical") ? "critical" : "high",
+    items: highRisks.slice(0, 8).map((f) => ({ text: `${short(f.finding_ref, 40)}: ${short(f.recommendation)} (prazo ${date(f.due_date)}; ${f.resolution_status === "in_progress" ? "em andamento" : "aberto"})`, action_required: true })),
   });
-  if (!r.ok) return null;
-  const d = await r.json();
-  return { content: d.choices?.[0]?.message?.content || "{}", model: "gpt-4o" };
-}
-
-async function callAnthropic(system: string, user: string): Promise<{ content: string; model: string } | null> {
-  const key = env("ANTHROPIC_API_KEY");
-  if (!key) return null;
-  const r = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
-    body: JSON.stringify({
-      model: "claude-sonnet-4-20250514", max_tokens: 4000, system,
-      messages: [{ role: "user", content: user + "\n\nResponda APENAS com JSON válido." }],
-    }),
-    signal: AbortSignal.timeout(120000),
+  const offTrack = d.goals.filter((g) => g.trajectory === "off_track" || g.trajectory === "critical");
+  const attention = d.goals.filter((g) => g.trajectory === "attention");
+  if (offTrack.length || attention.length) sections.push({
+    title: "Metas fora da trajetória", severity: offTrack.some((g) => g.trajectory === "critical") ? "critical" : offTrack.length ? "high" : "medium",
+    items: [...offTrack, ...attention].slice(0, 8).map((g) => ({ text: `${short(g.title, 100)}: atual ${g.current_value ?? "—"} de meta ${g.target_value ?? "—"} (prazo ${date(g.due_at)})`, action_required: g.trajectory !== "attention" })),
   });
-  if (!r.ok) return null;
-  const d = await r.json();
-  return { content: d.content?.[0]?.text || "{}", model: "claude-sonnet-4" };
-}
+  if (c.pendingApprovals) sections.push({
+    title: "Intervenções aguardando aprovação", severity: "medium",
+    items: d.interventions.filter((i) => i.status === "proposed").slice(0, 8).map((i) => ({ text: `${short(i.title, 120)} (${MODULES[String(i.module)] || String(i.module || "geral")})`, action_required: true })),
+  });
+  const overdue = d.actions.filter((a) => a.status !== "blocked" && a.planned_date && new Date(String(a.planned_date)).getTime() < now.getTime());
+  const blocked = d.actions.filter((a) => a.status === "blocked");
+  if (overdue.length || blocked.length) sections.push({
+    title: "Ações 5W2H atrasadas ou bloqueadas", severity: blocked.length ? "high" : "medium",
+    items: [...blocked.map((a) => ({ text: `Bloqueada: ${short(a.what, 140)}`, action_required: true })),
+            ...overdue.map((a) => ({ text: `Atrasada desde ${date(a.planned_date)}: ${short(a.what, 120)}`, action_required: true }))].slice(0, 10),
+  });
+  const diag = d.diagnoses.filter((x) => x.severity === "critical" || x.severity === "high");
+  if (diag.length) sections.push({
+    title: "Diagnósticos de maior severidade", severity: diag.some((x) => x.severity === "critical") ? "critical" : "high",
+    items: diag.slice(0, 6).map((x) => ({ text: `${MODULES[String(x.module)] || String(x.module || "")}: ${short(x.summary)}`, action_required: x.status === "draft" })),
+  });
+  if (d.briefingType === "weekly_audit") sections.push({
+    title: "Balanço da semana", severity: "info",
+    items: [
+      { text: `Metas ativas: ${d.goals.length} (${plural(offTrack.length, "fora da trajetória", "fora da trajetória")}, ${attention.length} em atenção)`, action_required: false },
+      { text: `Ações abertas: ${d.actions.length} (${c.pendingActions} não iniciadas, ${blocked.length} bloqueadas, ${overdue.length} atrasadas)`, action_required: false },
+      { text: `Achados de auditoria abertos: ${findings.length} (${highRisks.length} críticos ou altos)`, action_required: false },
+      { text: `Intervenções: ${c.pendingApprovals} aguardando aprovação, ${c.inProgress} em execução`, action_required: false },
+    ],
+  });
+  if (!sections.length) sections.push({ title: "Situação", severity: "info", items: [{ text: "Nenhum risco alto, meta fora da trajetória, ação atrasada ou aprovação pendente nos dados atuais.", action_required: false }] });
 
-async function generateBriefing(system: string, user: string): Promise<{ content: string; model: string }> {
-  const oai = await callOpenAI(system, user);
-  if (oai) return oai;
-  const anth = await callAnthropic(system, user);
-  if (anth) return anth;
-  throw new Error("No LLM configured");
-}
-
-async function reviewBriefing(
-  briefing: Record<string, unknown>,
-  context: string,
-  generatorModel: string
-): Promise<{ adjustments: string; reviewer: string }> {
-  const reviewSystem = `Você é um revisor executivo independente. Outra IA (${generatorModel}) gerou um briefing institucional. Revise-o:
-
-1. Algum risco foi subestimado ou omitido?
-2. Alguma conclusão foi inflada sem base nos dados?
-3. Alguma ação pendente ficou de fora?
-4. O tom é adequado para o coordenador?
-
-Responda APENAS em JSON: {"adjustments": "string com correções ou 'Briefing aprovado sem ressalvas.'", "issues": ["lista se houver"]}`;
-
-  const reviewUser = `BRIEFING GERADO:\n${JSON.stringify(briefing, null, 2)}\n\nDADOS ORIGINAIS:\n${context}`;
-
-  let result: { content: string; model: string } | null = null;
-  if (generatorModel.startsWith("gpt")) {
-    result = await callAnthropic(reviewSystem, reviewUser);
-    if (!result) result = await callOpenAI(reviewSystem, reviewUser);
-  } else {
-    result = await callOpenAI(reviewSystem, reviewUser);
-    if (!result) result = await callAnthropic(reviewSystem, reviewUser);
-  }
-
-  if (!result) return { adjustments: "", reviewer: "none" };
-  try {
-    const parsed = JSON.parse(result.content);
-    return { adjustments: String(parsed.adjustments || ""), reviewer: result.model };
-  } catch {
-    return { adjustments: result.content.slice(0, 500), reviewer: result.model };
-  }
+  const parts = [
+    `${TITLES[d.briefingType] || "Briefing"} — ${d.institution}, ${now.toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" })}.`,
+    `${plural(c.activeRisks, "risco crítico ou alto ativo", "riscos críticos ou altos ativos")}, ${plural(c.offTrackGoals, "meta fora da trajetória", "metas fora da trajetória")}, ${plural(c.pendingActions, "ação não iniciada", "ações não iniciadas")}, ${plural(c.pendingApprovals, "intervenção aguardando aprovação", "intervenções aguardando aprovação")} e ${plural(c.inProgress, "intervenção em execução", "intervenções em execução")}.`,
+  ];
+  const first = sections.find((s) => s.severity === "critical") || sections.find((s) => s.severity === "high");
+  if (first) parts.push(`Prioridade: ${first.title.toLowerCase()} — ${first.items[0]?.text || ""}`);
+  return { summary: parts.join(" ").slice(0, 5000), sections };
 }
 
 Deno.serve(async (req: Request) => {
@@ -261,62 +222,16 @@ Deno.serve(async (req: Request) => {
       i.status === "sent"
     ).length;
 
-    // Build context for LLM
-    const context = JSON.stringify({
-      institution: inst.name,
-      briefingType,
-      timestamp: now,
-      diagnoses: (diagnoses || []).map((d: Record<string, unknown>) => ({
-        module: d.module, severity: d.severity, summary: String(d.summary || "").slice(0, 200),
-        status: d.status, age: d.created_at,
-      })),
-      interventions: (interventions || []).map((i: Record<string, unknown>) => ({
-        title: i.title, status: i.status, module: i.module,
-      })),
-      findings: (findings || []).map((f: Record<string, unknown>) => ({
-        ref: f.finding_ref, risk: f.risk_level, status: f.resolution_status,
-        recommendation: String(f.recommendation || "").slice(0, 200), due: f.due_date,
-      })),
-      goals: (goals || []).map((g: Record<string, unknown>) => ({
-        title: g.title, trajectory: g.trajectory, current: g.current_value,
-        target: g.target_value, due: g.due_at,
-      })),
-      pendingActions: (actions || []).map((a: Record<string, unknown>) => ({
-        what: a.what, status: a.status, date: a.planned_date,
-      })),
+    // Briefing por algoritmo, a partir dos dados acima (sem IA).
+    const built = buildBriefing({
+      institution: String(inst.name || ""), briefingType,
+      diagnoses: diagnoses || [], interventions: interventions || [], findings: findings || [],
+      goals: goals || [], actions: actions || [],
       counters: { activeRisks, offTrackGoals, pendingActions, pendingApprovals, inProgress },
     });
-
-    const systemPrompt = BRIEFING_PROMPTS[briefingType] || BRIEFING_PROMPTS.morning;
-    const contextStr = `DADOS ATUAIS DA INSTITUIÇÃO:\n${context}`;
-
-    // Step 1: GENERATE briefing
-    const generated = await generateBriefing(systemPrompt, contextStr);
-
-    let parsed: Record<string, unknown>;
-    try {
-      parsed = JSON.parse(generated.content);
-    } catch {
-      parsed = { summary: generated.content.slice(0, 5000), sections: [] };
-    }
-
-    // Step 2: REVIEW — the other LLM checks the briefing
-    const review = await reviewBriefing(parsed, contextStr, generated.model);
-    const llmModel = review.reviewer !== "none"
-      ? `${generated.model}+${review.reviewer}`
-      : generated.model;
-
-    let summary = String(parsed.summary || "Briefing gerado sem resumo.").slice(0, 5000);
-    const sections = Array.isArray(parsed.sections) ? parsed.sections : [];
-
-    // If reviewer had adjustments, append as a review section
-    if (review.adjustments && review.adjustments !== "Briefing aprovado sem ressalvas.") {
-      sections.push({
-        title: "📋 Revisão independente",
-        severity: "info",
-        items: [{ text: review.adjustments, action_required: false }],
-      });
-    }
+    const summary = built.summary;
+    const sections = built.sections;
+    const llmModel = "algoritmo";
 
     // Save briefing
     const { data: briefing, error: saveError } = await admin
