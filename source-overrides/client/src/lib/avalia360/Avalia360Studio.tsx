@@ -9,6 +9,8 @@ import type {Difficulty,Purpose} from './longitudinal-engine';
 export interface Avalia360StudioProps {
  institutionId:string;
  courses:Array<{id:string;name:string}>;
+ /** No modo demonstração, o adaptador da prévia usa apenas dados locais. */
+ previewMode?:boolean;
 }
 const blue='#164B92',light='#EFF5FC',line='#DCE7F4';
 const labelStyle={display:'grid',gap:5,fontWeight:600,fontSize:13} as const;
@@ -70,7 +72,7 @@ function SavedPreview({value}: {value:StoredAssessmentDraft}){
   <p style={{fontSize:12,color:'#64748b'}}>O acesso visual às imagens armazenadas requer URL autenticada temporária. A presença do vínculo não comprova acesso ao binário.</p>
  </section>;
 }
-export default function Avalia360Studio({institutionId,courses}:Avalia360StudioProps){
+export default function Avalia360Studio({institutionId,courses,previewMode=false}:Avalia360StudioProps){
  const [courseId,setCourseId]=useState('');
  const [disciplineId,setDisciplineId]=useState('');
  const [title,setTitle]=useState('');
@@ -127,12 +129,12 @@ export default function Avalia360Studio({institutionId,courses}:Avalia360StudioP
      grouped[question.id].push({localId:image.localId,receipt:actual});
     }
    }
-   setStatus('Salvando versão no Supabase…');
+   setStatus(previewMode?'Guardando demonstração neste navegador…':'Salvando versão no Supabase…');
    const out=await saveAssessmentDraft({institutionId,courseId,disciplineId,
      ...(receipt?{draftId:receipt.id,expectedRevision:receipt.revision}:{}),
      questions,uploadedImages:grouped,assessmentMeta:{title:title.trim(),semester:period.trim(),purpose}});
    if(!out.ok){setStatus('Falha no salvamento.');setErrors([out.error.message]);return;}
-   setReceipt(out.receipt);setStatus('Rascunho salvo na versão '+out.receipt.revision+'.');
+   setReceipt(out.receipt);setStatus((previewMode?'Demonstração local salva':'Rascunho salvo')+' na versão '+out.receipt.revision+'.');
    setLoaded(null);
   }catch(e){setStatus('Salvamento não concluído.');setErrors([e instanceof Error?e.message:'Falha ao conectar ao armazenamento privado.']);}
   finally{setBusy(false);}
@@ -141,11 +143,11 @@ export default function Avalia360Studio({institutionId,courses}:Avalia360StudioP
   const id=(draftId||receipt?.id||'').trim();
   if(!id){setErrors(['Informe o identificador do rascunho.']);return;}
   if(!courseId||!disciplineId){setErrors(['Selecione curso e disciplina do rascunho.']);return;}
-  setBusy(true);setErrors([]);setStatus('Reabrindo rascunho autorizado…');
+  setBusy(true);setErrors([]);setStatus(previewMode?'Consultando rascunho local…':'Reabrindo rascunho autorizado…');
   const found=await loadAssessmentDraft({institutionId,courseId,disciplineId,draftId:id});
   if(found.ok){
    setLoaded(found.draft);
-   setStatus('Rascunho recuperado do Supabase em modo de consulta.');
+   setStatus(previewMode?'Rascunho local recuperado em modo de consulta.':'Rascunho recuperado do Supabase em modo de consulta.');
   }else{setStatus('Não foi possível reabrir.');setErrors([found.error.message]);}
   setBusy(false);
  };
@@ -157,7 +159,7 @@ export default function Avalia360Studio({institutionId,courses}:Avalia360StudioP
    <h2 style={{margin:'0 0 8px',fontSize:27}}>Avalia 360° — Estúdio de Avaliações</h2>
    <p style={{margin:'0 0 10px',maxWidth:800}}>Construa avaliações, associe questões, inclua imagens e revise o caderno antes de salvar. O parecer curricular será habilitado somente quando o PPC e as competências estiverem validados.</p>
    <div role="note" style={{padding:'10px 14px',borderRadius:10,background:'#FFF7E8',color:'#814B08',fontSize:13}}>
-    Ambiente em desenvolvimento — o salvamento depende das RPCs autorizadas, MFA e Storage no Supabase. Nenhuma avaliação é publicada aos alunos por esta tela.
+    {previewMode?'PRÉVIA INTERATIVA — dados guardados somente neste navegador. Sem autenticação, Supabase, mídia persistente ou publicação para alunos.':'Ambiente em desenvolvimento — o salvamento depende das RPCs autorizadas, MFA e Storage no Supabase. Nenhuma avaliação é publicada aos alunos por esta tela.'}
    </div>
   </header>
   <div style={cardStyle}>
@@ -246,7 +248,7 @@ export default function Avalia360Studio({institutionId,courses}:Avalia360StudioP
    <h3 style={{marginTop:0}}>3 · Revisar e salvar</h3>
    <div style={{display:'flex',gap:9,flexWrap:'wrap',marginBottom:12}}>
     <button type="button" style={btn(false)} onClick={()=>{setPreview(!preview);setErrors([]);}}>{preview?'Ocultar prévia':'Pré-visualizar caderno'}</button>
-    <button type="button" style={btn(true)} disabled={busy} onClick={save}>{busy?'Processando…':receipt?'Salvar nova versão':'Salvar rascunho no Supabase'}</button>
+    <button type="button" style={btn(true)} disabled={busy} onClick={save}>{busy?'Processando…':previewMode?(receipt?'Atualizar demonstração local':'Guardar demonstração local'):(receipt?'Salvar nova versão':'Salvar rascunho no Supabase')}</button>
     {receipt&&<button type="button" style={btn(false)} disabled={busy} onClick={()=>reopen()}>Reabrir do servidor</button>}
    </div>
    <div style={{display:'flex',gap:8,alignItems:'end',flexWrap:'wrap',margin:'12px 0'}}>
@@ -261,7 +263,7 @@ export default function Avalia360Studio({institutionId,courses}:Avalia360StudioP
     <strong>Corrija antes de salvar:</strong><ul>{errors.map((e,i)=><li key={i}>{e}</li>)}</ul>
    </div>}
    {status&&<p role="status" aria-live="polite">{status}</p>}
-   {receipt&&<p style={{color:blue,fontWeight:600}}>Identificador do rascunho: {receipt.id} · revisão {receipt.revision}</p>}
+   {receipt&&<p style={{color:blue,fontWeight:600}}>Identificador {previewMode?'local':''} do rascunho: {receipt.id} · revisão {receipt.revision}</p>}
    {preview&&<section style={{background:light,padding:16,borderRadius:11}}>
     <h3 style={{textAlign:'center',margin:'0 0 4px'}}>{title||'Avaliação sem título'}</h3>
     <p style={{textAlign:'center',fontSize:13}}>{courses.find(c=>c.id===courseId)?.name||'Curso não selecionado'} · {disciplineId||'Disciplina'} · {period} · {purpose}</p>
