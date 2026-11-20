@@ -298,16 +298,16 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
      <main style={{minWidth:0}}>
         <div style={cardStyle}>
    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:10,flexWrap:'wrap'}}>
-    <h3 style={{margin:0}}>Elaborar questões</h3>
+    <h3 className="avalia-review-header">Elaborar questões</h3>
     <strong style={{color:blue}}>{questions.length} questão(ões) · {total.toLocaleString('pt-BR')} pontos</strong>
    </div>
    <p style={{fontSize:13,color:'#64748b'}}>Concentre-se em uma questão por vez. Os recursos pedagógicos avançados ficam disponíveis abaixo.</p>
-   <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:16}}>
+   <div className="avalia-question-counter">
     {questions.map((item,i)=><button key={item.id} type="button" onClick={()=>{setActiveIndex(i);setPreview(false);}}
      style={{...btn(i===activeIndex),padding:'8px 12px'}} aria-pressed={i===activeIndex}>
        Questão {i+1} · {item.kind==='objetiva'?'Objetiva':'Discursiva'}
      </button>)}
-    <button type="button" style={btn(false)} onClick={add}>+ Adicionar questão</button>
+    <button type="button" onClick={add}>＋ Adicionar questão</button>
     {!disciplineId.trim()&&<span role="note" style={{alignSelf:'center',fontSize:12,color:'#6D4B14'}}>
      Você pode criar questões agora. Informe a disciplina antes de salvar a avaliação.
     </span>}
@@ -315,27 +315,17 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
    {!q?<p>Adicione a primeira questão para começar.</p>:
     <div style={{display:'grid',gap:12}}>
      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:12}}>
-      <strong>Questão {activeIndex+1}</strong>
+      <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}><strong style={{color:'#0a3775',fontSize:19}}>Questão {activeIndex+1}</strong><span className="avalia-pill">{q.kind==='discursiva'?'Discursiva':'Objetiva'}</span><span className="avalia-pill">{q.points} ponto(s)</span></div>
       <button type="button" style={{...btn(false),borderColor:'#B84A4A',color:'#9B3434'}} onClick={()=>remove(activeIndex)}>Excluir questão</button>
      </div>
-     <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(170px,1fr))',gap:12}}>
-      <label style={labelStyle}>Tipo
+     <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))',gap:12}}>
+      <label style={labelStyle}>Tipo da questão
        <select style={inputStyle} value={q.kind} onChange={e=>update({kind:e.target.value as QuestionDraft['kind']})}>
         <option value="objetiva">Objetiva</option><option value="discursiva">Discursiva</option>
        </select>
       </label>
-      <label style={labelStyle}>Dificuldade estimada (1 a 5)
-       <select style={inputStyle} value={q.estimatedDifficulty} onChange={e=>update({estimatedDifficulty:Number(e.target.value) as Difficulty})}>
-        {[1,2,3,4,5].map(n=><option key={n} value={n}>Nível {n}</option>)}
-       </select>
-      </label>
       <label style={labelStyle}>Pontos
        <input style={inputStyle} type="number" min=".01" step=".25" value={q.points} onChange={e=>update({points:Number(e.target.value)})}/>
-      </label>
-      <label style={labelStyle}>Finalidade da questão
-       <select style={inputStyle} value={q.purpose[0]||'formativa'} onChange={e=>update({purpose:[e.target.value as Purpose]})}>
-        <option value="diagnostica">Diagnóstica</option><option value="formativa">Formativa</option><option value="somativa">Somativa</option>
-       </select>
       </label>
      </div>
      <TeacherQuestionComposer key={q.id} onApply={statement=>update({statement})}/>
