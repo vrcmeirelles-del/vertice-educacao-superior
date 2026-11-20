@@ -78,10 +78,12 @@ export async function handler(req:Request){
   if(b.action==='chat'){
    const message=clean(b.message,1000);if(!message)throw new Boundary('invalid_message');
    if(!aiOn){
-    // Conversa guiada por roteiro: nada é enviado a provedor externo.
-    const state=await rpc('read',hash);const track=tracks.includes(b.track)?b.track:'regulacao';const currentModule=modules.includes(b.module)?b.module:'evidencias';
+    // Conversa guiada por roteiro: nada é enviado a provedor externo. Mesmo filtro de dados sensíveis
+    // e mesma cota de conversa do caminho com IA, antes de gravar a mensagem.
+    if(/\bsk-[\w-]{12,}|\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b|-----BEGIN|(?:senha|password|token|api_key)\s*[:=]/i.test(message))throw new Boundary('sensitive_input');
+    const state=await rpc('chat_reserve',hash);const track=tracks.includes(b.track)?b.track:'regulacao';const currentModule=modules.includes(b.module)?b.module:'evidencias';
     const answer=guidedReply(message,track,currentModule);
-    const stored=(Array.isArray(state?.conversation)?state.conversation:[]).slice(-8).filter((m:any)=>['user','assistant'].includes(m.role));
+    const stored=(Array.isArray(state?.conversation)?state.conversation:[]).slice(-8).filter((m:any)=>['user','assistant'].includes(m.role)).map((m:any)=>({role:m.role,content:clean(m.content,1600),source:m.source==='demo'?'demo':'visitor'}));
     const conversation=[...stored,{role:'user',content:message,source:b.trigger==='demo'?'demo':'visitor'},{role:'assistant',content:answer,source:'demo'}].slice(-10);
     await rpc('update',hash,{profile:profile(b.profile),conversation});return send({answer,provider:'roteiro'});
    }
