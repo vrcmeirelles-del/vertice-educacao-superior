@@ -5,6 +5,8 @@ import {saveAssessmentDraft,loadAssessmentDraft,type DraftReceipt,type StoredAss
 import {uploadQuestionImage,type UploadedImageReceipt} from './private-image-upload';
 import {receiptScopeKey,reusableReceipt,type ScopedImageReceipt} from './receipt-cache';
 import type {Difficulty,Purpose} from './longitudinal-engine';
+import {analyzeDeclaredDraft,type PedagogicalDraft} from './declared-analysis';
+import PedagogicalParameters from './PedagogicalParameters';
 
 export interface Avalia360StudioProps {
  institutionId:string;
@@ -78,6 +80,11 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
  const [title,setTitle]=useState('');
  const [period,setPeriod]=useState('2027/1');
  const [purpose,setPurpose]=useState<Purpose>('formativa');
+ const [pedagogy,setPedagogy]=useState<PedagogicalDraft>({
+  currentPeriod:1,targetDifficulty:3,purpose:'formativa',examFocus:'',
+  requiredCompetencyIds:[],requiredTopicIds:[],competencies:[],topics:[],relations:[]
+ });
+ const [analysisVisible,setAnalysisVisible]=useState(false);
  const [questions,setQuestions]=useState<QuestionDraft[]>([]);
  const [activeIndex,setActiveIndex]=useState(0);
  const [preview,setPreview]=useState(false);
@@ -107,11 +114,18 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
   if(questions.length) setQuestions(all=>all.map(q=>({...q,disciplineId:value})));
  };
  const q=questions[activeIndex];
+ const previewAnalysis=analysisVisible?analyzeDeclaredDraft({
+  institutionId,courseId,disciplineId,questions,
+  config:{...pedagogy,purpose}
+ }):null;
+ const invalidCatalog=pedagogy.competencies.some(c=>!c.code.trim()||!c.title.trim()||!Number.isInteger(c.period)||c.period<1)
+  ||pedagogy.topics.some(t=>!t.title.trim()||!Number.isInteger(t.period)||t.period<1);
  const total=questions.reduce((s,x)=>s+x.points,0);
  const save=async()=>{
   if(!courseId){setErrors(['Selecione o curso.']);return;}
   if(!disciplineId.trim()){setErrors(['Informe a disciplina.']);return;}
   const issues=checkDraft(questions);
+  if(invalidCatalog)issues.push('Complete os códigos, títulos e períodos dos dados pedagógicos declarados.');
   if(title.trim().length<3)issues.unshift('Informe um título com pelo menos 3 caracteres.');
   if(period.trim().length<3)issues.unshift('Informe o semestre letivo.');
   if(issues.length){setErrors(issues);setPreview(false);return;}
@@ -241,11 +255,44 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
       <textarea style={{...inputStyle,minHeight:110}} value={q.rubric} onChange={e=>update({rubric:e.target.value})} placeholder="Critérios, fundamentação e distribuição de pontos"/>
      </label>}
      <QuestionImageField questionId={q.id} value={q.images} onChange={images=>update({images})}/>
-     <div style={{background:light,padding:12,borderRadius:10,fontSize:13}}>Vínculo com o PPC: <strong>pendente</strong>. As competências e os temas serão selecionados do catálogo institucional validado; não serão criados automaticamente a partir do enunciado.</div>
+     <div style={{background:light,padding:12,borderRadius:10,fontSize:13}}>Vínculo com o PPC: <strong>não validado</strong>. Os vínculos demonstrativos são declarados pelo professor e não representam aprovação institucional.</div>
     </div>}
   </div>
   <div style={cardStyle}>
-   <h3 style={{marginTop:0}}>3 · Revisar e salvar</h3>
+   <h3 style={{margin:'0 0 12px'}}>3 · Parâmetros para análise longitudinal</h3>
+   <p style={{fontSize:13,color:'#475569'}}>Informe as competências, os temas, seus períodos de origem e as relações curriculares. Relacione-os às questões no quadro final. Estes dados são declarados e não substituem um PPC homologado.</p>
+   <PedagogicalParameters value={{...pedagogy,purpose}} onChange={setPedagogy}
+    questions={questions} activeIndex={activeIndex} updateQuestion={update}/>
+   <div style={{marginTop:16,display:'flex',gap:12,alignItems:'center',flexWrap:'wrap'}}>
+    <button type="button" style={btn(false)} onClick={()=>setAnalysisVisible(true)}
+      disabled={!questions.length||invalidCatalog}>Analisar metadados declarados</button>
+    <span style={{fontSize:12,color:'#64748b'}}>Cálculo determinístico, sem IA e sem julgamento semântico.</span>
+   </div>
+   {previewAnalysis&&<section aria-label="Devolutiva preliminar do algoritmo" style={{background:'#f1f7fe',padding:16,borderRadius:10,marginTop:16}}>
+     <h4 style={{margin:'0 0 8px'}}>Resultado preliminar — não homologado</h4>
+     <p style={{fontSize:13}}>{previewAnalysis.notice}</p>
+     <div style={{display:'flex',gap:16,flexWrap:'wrap',fontWeight:650}}>
+       <span>{previewAnalysis.analysis.totals.items} questões</span>
+       <span>{previewAnalysis.analysis.totals.points} pontos</span>
+       <span>Dificuldade média estimada: {previewAnalysis.analysis.totals.meanEstimatedDifficulty??'—'}</span>
+     </div>
+     <h5 style={{marginBottom:6}}>Cobertura declarada</h5>
+     {previewAnalysis.analysis.coverage.competencies.length===0&&<p>Nenhuma competência obrigatória definida.</p>}
+     {previewAnalysis.analysis.coverage.competencies.map(c=><p key={c.id} style={{margin:'4px 0'}}>
+       {pedagogy.competencies.find(x=>x.id===c.id)?.title||c.id}: {c.items} questão(ões) · 0 vínculos verificados por PPC
+     </p>)}
+     {previewAnalysis.analysis.coverage.topics.map(t=><p key={t.id} style={{margin:'4px 0'}}>
+       Tema {pedagogy.topics.find(x=>x.id===t.id)?.title||t.id}: {t.items} questão(ões)
+     </p>)}
+     <h5 style={{marginBottom:6}}>Alertas pedagógicos do motor</h5>
+     {previewAnalysis.analysis.findings.length===0?<p>Sem alertas estruturais para os metadados informados.</p>:
+       <ul>{previewAnalysis.analysis.findings.map((f,i)=><li key={i}>
+         <strong>{f.level==='blocked'?'Bloqueio':f.level==='attention'?'Atenção':'Informação'}:</strong> {f.message}
+       </li>)}</ul>}
+   </section>}
+  </div>
+  <div style={cardStyle}>
+   <h3 style={{marginTop:0}}>4 · Revisar e salvar</h3>
    <div style={{display:'flex',gap:9,flexWrap:'wrap',marginBottom:12}}>
     <button type="button" style={btn(false)} onClick={()=>{setPreview(!preview);setErrors([]);}}>{preview?'Ocultar prévia':'Pré-visualizar caderno'}</button>
     <button type="button" style={btn(true)} disabled={busy} onClick={save}>{busy?'Processando…':previewMode?(receipt?'Atualizar demonstração local':'Guardar demonstração local'):(receipt?'Salvar nova versão':'Salvar rascunho no Supabase')}</button>
