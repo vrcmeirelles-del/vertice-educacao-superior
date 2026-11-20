@@ -5,6 +5,33 @@ if(__aiHosts.test(host)&&String(Deno.env.get("AI_SUSPENDED")??"true").toLowerCas
  return Promise.resolve(new Response(JSON.stringify({error:{type:"ai_suspended",message:"IA suspensa temporariamente."}}),{status:503,headers:{"content-type":"application/json"}}));
 return __aiFetch(input,init);}) as typeof fetch;}
 declare const Deno: { env: { get: (key: string) => string | undefined }; serve: (fn: (req: Request) => Promise<Response>) => void };
+import { extractCertificate } from "./certificate.ts";
+
+// Leitura do certificado por algoritmo desde 20/11/2026 (sem IA): camada de texto do PDF
+// via pdfjs e regras em certificate.ts. Imagem ou PDF digitalizado: sem leitura automática.
+const PDFJS_VERSION = "6.5.438";
+async function pdfText(bytes: Uint8Array): Promise<string> {
+  const pdfjs: any = await import("npm:pdfjs-dist@6.5.438/legacy/build/pdf.mjs");
+  const task = pdfjs.getDocument({ data: bytes, useSystemFonts: false, disableFontFace: true, isEvalSupported: false, useWorkerFetch: false, stopAtErrors: true });
+  try {
+    const doc = await task.promise;
+    const pages: string[] = [];
+    for (let n = 1; n <= Math.min(doc.numPages, 5); n++) {
+      const content = await (await doc.getPage(n)).getTextContent();
+      let line = ""; let lastY: number | null = null; const out: string[] = [];
+      for (const item of content.items as { str?: string; transform?: number[]; hasEOL?: boolean }[]) {
+        const y = item.transform ? Math.round(item.transform[5]) : lastY;
+        if (lastY !== null && y !== null && Math.abs(y - lastY) > 2 && line) { out.push(line); line = ""; }
+        line += (line && !line.endsWith(" ") ? " " : "") + (item.str || "");
+        if (item.hasEOL) { out.push(line); line = ""; }
+        lastY = y;
+      }
+      if (line) out.push(line);
+      pages.push(out.join("\n"));
+    }
+    return pages.join("\n");
+  } finally { await task.destroy(); }
+}
 
 const origins = new Set([
   'https://www.verticesuperior.com.br', 'https://verticesuperior.com.br',
@@ -33,7 +60,6 @@ Deno.serve(async (req: Request) => {
     const url = Deno.env.get('SUPABASE_URL')!;
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const apikey = Deno.env.get('SUPABASE_ANON_KEY') || JSON.parse(Deno.env.get('SUPABASE_PUBLISHABLE_KEYS') || '{}').default;
-    const openaiKey = Deno.env.get('OPENAI_API_KEY');
 
     // Auth check
     const authHeaders = { Authorization: authorization, apikey };
@@ -46,8 +72,16 @@ Deno.serve(async (req: Request) => {
     if (!UUID.test(submission_id || '') || !UUID.test(institution_id || ''))
       return send({ error: 'invalid_request' }, 400);
 
-    // Check membership
     const serviceHeaders = { Authorization: `Bearer ${serviceKey}`, apikey: serviceKey, 'Content-Type': 'application/json' };
+
+    // Acesso: administrador da Vértice ou vínculo com a instituição da submissão.
+    const [adminRes, memberRes] = await Promise.all([
+      fetch(`${url}/rest/v1/vertice_admins?user_id=eq.${user.id}&select=user_id`, { headers: serviceHeaders, signal: AbortSignal.timeout(10000) }),
+      fetch(`${url}/rest/v1/vertice_memberships?user_id=eq.${user.id}&institution_id=eq.${institution_id}&select=role`, { headers: serviceHeaders, signal: AbortSignal.timeout(10000) }),
+    ]);
+    if (!adminRes.ok || !memberRes.ok) return send({ error: 'authorization_unavailable' }, 503);
+    const [admins, members] = await Promise.all([adminRes.json(), memberRes.json()]);
+    if (!(Array.isArray(admins) && admins.length) && !(Array.isArray(members) && members.length)) return send({ error: 'forbidden' }, 403);
 
     // Fetch submission with document path
     const subRes = await fetch(
@@ -95,118 +129,39 @@ Deno.serve(async (req: Request) => {
     );
     if (!fileRes.ok) return send({ error: 'file_download_failed' }, 500);
 
-    const fileBytes = await fileRes.arrayBuffer();
-    const contentType = fileRes.headers.get('content-type') || 'application/pdf';
-    const base64 = btoa(String.fromCharCode(...new Uint8Array(fileBytes)));
-    const isImage = contentType.startsWith('image/');
-    const isPdf = contentType.includes('pdf');
+    const fileBytes = new Uint8Array(await fileRes.arrayBuffer());
+    if (fileBytes.byteLength > 15 * 1024 * 1024) return send({ error: 'file_too_large' }, 413);
+    const contentType = fileRes.headers.get('content-type') || '';
+    const isPdf = contentType.includes('pdf') || /\.pdf$/i.test(docPath) || (fileBytes[0] === 0x25 && fileBytes[1] === 0x50 && fileBytes[2] === 0x44 && fileBytes[3] === 0x46);
 
-    if (!openaiKey) return send({ error: 'ai_not_configured', message: 'Chave de IA não configurada.' }, 503);
+    let text = '';
+    let readError = '';
+    if (isPdf) { try { text = await pdfText(fileBytes); } catch (e) { readError = (e as Error).message || 'pdf_unreadable'; } }
 
-    // Fetch categories for context
-    let categoriesContext = '';
+    // Categorias da regra e nome do aluno no cadastro, para comparação.
+    let categories: { id: string; code?: string; label: string; description?: string; max_per_item_minutes?: number }[] = [];
     if (sub.rule_id) {
       const catRes = await fetch(
-        `${url}/rest/v1/vertice_ac_categories?rule_id=eq.${sub.rule_id}&select=id,label,description,max_per_item_minutes,max_category_minutes`,
+        `${url}/rest/v1/vertice_ac_categories?rule_id=eq.${sub.rule_id}&select=id,code,label,description,max_per_item_minutes`,
         { headers: serviceHeaders, signal: AbortSignal.timeout(10000) }
       );
       const cats = await catRes.json();
-      if (Array.isArray(cats) && cats.length > 0) {
-        categoriesContext = '\n\nCategorias disponíveis:\n' + cats.map((c: { id: string; label: string; description?: string; max_per_item_minutes?: number }) =>
-          `- ${c.label} (id: ${c.id})${c.description ? ': ' + c.description : ''}${c.max_per_item_minutes ? ' [máx ' + (c.max_per_item_minutes / 60) + 'h/item]' : ''}`
-        ).join('\n');
-      }
+      if (Array.isArray(cats)) categories = cats;
+    }
+    let studentName: string | null = null;
+    if (sub.student_id) {
+      const stRes = await fetch(`${url}/rest/v1/vertice_student_registry?id=eq.${sub.student_id}&select=full_name`, { headers: serviceHeaders, signal: AbortSignal.timeout(10000) });
+      const st = await stRes.json();
+      if (Array.isArray(st) && st[0]?.full_name) studentName = st[0].full_name;
     }
 
-    // Build AI prompt
-    const systemPrompt = `Você é um assistente especializado em análise de certificados de atividades complementares para cursos de graduação em Direito no Brasil.
-
-Analise o documento enviado e extraia as seguintes informações:
-1. **participant_name**: Nome completo do participante
-2. **issuer**: Instituição/entidade que emitiu o certificado
-3. **event_title**: Nome do evento, curso, palestra ou atividade
-4. **starts_at**: Data de início (formato YYYY-MM-DD, se disponível)
-5. **ends_at**: Data de término (formato YYYY-MM-DD, se disponível)
-6. **documentary_minutes**: Carga horária em MINUTOS (converta horas para minutos: 1h = 60min)
-7. **extraction_quality**: "high" se todos os campos foram extraídos com confiança, "medium" se alguns campos foram inferidos, "low" se há muita incerteza
-8. **warnings**: Lista de avisos relevantes (ex: "carga horária não informada no documento", "nome do participante difere do cadastro", "documento sem assinatura visível")
-9. **suggested_category_id**: Se houver categorias disponíveis, sugira o ID da mais adequada
-10. **suggested_justification**: Justificativa breve para a categorização sugerida
-${categoriesContext}
-
-O aluno declarou:
-- Título: ${sub.title || 'não informado'}
-- Emissor: ${sub.issuer || 'não informado'}
-- Carga horária declarada: ${sub.documentary_minutes ? (sub.documentary_minutes / 60) + 'h' : 'não informada'}
-
-Compare o que está no documento com o que o aluno declarou e inclua discrepâncias nos warnings.
-
-Responda APENAS com JSON válido, sem markdown, sem código, sem explicações fora do JSON:
-{
-  "participant_name": "...",
-  "issuer": "...",
-  "event_title": "...",
-  "starts_at": "YYYY-MM-DD ou null",
-  "ends_at": "YYYY-MM-DD ou null",
-  "documentary_minutes": número_inteiro_ou_null,
-  "extraction_quality": "high|medium|low",
-  "warnings": ["..."],
-  "suggested_category_id": "uuid ou null",
-  "suggested_justification": "..."
-}`;
-
-    // Call OpenAI with vision
-    const messages: unknown[] = [
-      { role: 'system', content: systemPrompt },
-    ];
-
-    if (isImage) {
-      messages.push({
-        role: 'user',
-        content: [
-          { type: 'text', text: 'Analise este certificado:' },
-          { type: 'image_url', image_url: { url: `data:${contentType};base64,${base64}`, detail: 'high' } },
-        ],
-      });
-    } else if (isPdf) {
-      // For PDF: send as file input
-      messages.push({
-        role: 'user',
-        content: [
-          { type: 'text', text: 'Analise este certificado em PDF:' },
-          { type: 'file', file: { filename: 'certificado.pdf', file_data: `data:application/pdf;base64,${base64}` } },
-        ],
-      });
-    }
-
-    const aiRes = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${openaiKey}` },
-      body: JSON.stringify({
-        model: 'gpt-4o',
-        messages,
-        max_tokens: 1500,
-        temperature: 0.1,
-      }),
-      signal: AbortSignal.timeout(60000),
+    const extracted = extractCertificate(text, {
+      studentName,
+      declared: { title: sub.title, issuer: sub.issuer, minutes: sub.documentary_minutes },
+      categories,
     });
-
-    if (!aiRes.ok) {
-      const aiErr = await aiRes.text();
-      return send({ error: 'ai_request_failed', detail: aiErr }, 502);
-    }
-
-    const aiData = await aiRes.json();
-    const content = aiData.choices?.[0]?.message?.content || '';
-
-    // Parse JSON from AI response
-    let extracted;
-    try {
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
-      extracted = JSON.parse(jsonMatch ? jsonMatch[0] : content);
-    } catch {
-      return send({ error: 'ai_parse_failed', raw: content }, 502);
-    }
+    if (!isPdf) extracted.warnings.unshift('Arquivo em imagem: leitura automática disponível só para PDF com texto; conferir manualmente.');
+    if (readError) extracted.warnings.unshift('Não foi possível ler o PDF: conferir manualmente.');
 
     // Save extraction
     const insertRes = await fetch(`${url}/rest/v1/vertice_ac_extractions`, {
@@ -220,12 +175,12 @@ Responda APENAS com JSON válido, sem markdown, sem código, sem explicações f
         starts_at: extracted.starts_at || null,
         ends_at: extracted.ends_at || null,
         documentary_minutes: extracted.documentary_minutes || null,
-        extraction_quality: extracted.extraction_quality || 'medium',
+        extraction_quality: extracted.extraction_quality,
         suggested_category_id: UUID.test(extracted.suggested_category_id || '') ? extracted.suggested_category_id : null,
         suggested_justification: extracted.suggested_justification || null,
         warnings: extracted.warnings || [],
-        provider: 'openai',
-        model: 'gpt-4o',
+        provider: 'algoritmo',
+        model: `pdfjs-dist@${PDFJS_VERSION}+regras`,
       }),
       signal: AbortSignal.timeout(10000),
     });
@@ -305,7 +260,7 @@ Responda APENAS com JSON válido, sem markdown, sem código, sem explicações f
               },
               submissions_involved: allSubmissions,
               students_involved: allStudents,
-              detected_by: 'ai',
+              detected_by: 'algoritmo',
               visible_to_superior: true,
             };
 
