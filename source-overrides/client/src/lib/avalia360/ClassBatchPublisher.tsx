@@ -48,8 +48,14 @@ export default function ClassBatchPublisher({institutionId,courseId,institutionN
   if(!courseName||!discipline.trim()||!title.trim()||!questions.length){
    setStatus('Informe curso, disciplina, título e ao menos uma questão antes de gerar.');return;
   }
-  if(questions.some(q=>q.statement.trim().length<10||(q.kind==='objetiva'&&q.options.some(o=>!o.text.trim())))){
-   setStatus('Complete o enunciado e as alternativas de todas as questões.');return;
+  if(questions.some(q=>q.statement.trim().length<10
+   ||!Number.isFinite(q.points)||q.points<=0
+   ||(q.kind==='objetiva'&&(
+    q.options.length<2||q.options.some(o=>!o.text.trim())
+    ||!q.options.some(o=>o.id===q.correctOptionId)
+    ||new Set(q.options.map(o=>o.text.trim().toLocaleLowerCase('pt-BR'))).size!==q.options.length))
+   ||(q.kind==='discursiva'&&!q.rubric.trim()))){
+   setStatus('Revise as questões: complete os enunciados, confirme pontuação, gabarito sem alternativas duplicadas e rubrica das discursivas.');return;
   }
   if(questions.some(q=>q.images.length>0)){setStatus('Esta primeira emissão PDF não suporta imagens anexadas. Retire as imagens ou aguarde a versão de PDF com figuras.');return;}
   if(!classLabel.trim()){setStatus('Informe a turma.');return;}
