@@ -5,13 +5,13 @@ import './planning/planning.css';
 
 type Course = { id: string; name: string; code?: string | null };
 type Discipline = { id?: string; discipline_name: string; category: 'profissional' | 'instrumental' | 'basica'; sort_order: number };
-type Competency = { id?: string; code: string; title: string; description: string; sort_order: number; disciplines: Discipline[] };
+type Competency = { id?: string; code: string; title: string; description: string; sort_order: number; origin_period?: number|null; period_status?: 'proposed'|'validated'; disciplines: Discipline[] };
 type Build = { id?: string; version: number; status: 'draft' | 'published' | 'archived'; graduate_profile: string; graduate_profile_source: string; dcn_reference: string; dcn_document_url: string; competencies: Competency[] };
 
 const EMPTY_BUILD: Build = {
   version: 1, status: 'draft', graduate_profile: '', graduate_profile_source: '', dcn_reference: '', dcn_document_url: '',
   competencies: Array.from({ length: 6 }, (_, i) => ({
-    code: `C${i + 1}`, title: '', description: '', sort_order: i, disciplines: [],
+    code: `C${i + 1}`, title: '', description: '', sort_order: i, origin_period:null, period_status:'proposed', disciplines: [],
   })),
 };
 
@@ -102,7 +102,7 @@ function BuildEditor({ institutionId, courseId, courseName, canWrite, onDirty }:
           const competencies: Competency[] = [];
           for (const c of (comps || [])) {
             const { data: links } = await supabase.from('curriculum_discipline_links').select('*').eq('competency_id', c.id).order('sort_order');
-            competencies.push({ id: c.id, code: c.code, title: c.title, description: c.description || '', sort_order: c.sort_order, disciplines: (links || []).map((l: Record<string, unknown>) => ({ id: String(l.id), discipline_name: String(l.discipline_name), category: String(l.category) as Discipline['category'], sort_order: Number(l.sort_order) })) });
+            competencies.push({ id: c.id, code: c.code, title: c.title, description: c.description || '', sort_order: c.sort_order, origin_period:typeof c.origin_period==='number'?c.origin_period:null, period_status:c.period_status==='validated'?'validated':'proposed', disciplines: (links || []).map((l: Record<string, unknown>) => ({ id: String(l.id), discipline_name: String(l.discipline_name), category: String(l.category) as Discipline['category'], sort_order: Number(l.sort_order) })) });
           }
           if (active) setBuild({ id: b.id, version: b.version, status: b.status, graduate_profile: b.graduate_profile || '', graduate_profile_source: b.graduate_profile_source || '', dcn_reference: b.dcn_reference || '', dcn_document_url: b.dcn_document_url || '', competencies: competencies.length > 0 ? competencies : EMPTY_BUILD.competencies });
         }
@@ -205,14 +205,40 @@ Formato: texto estruturado, direto, prático. Sem floreio.`
         }).eq('id', buildId);
         if (err) throw new Error(err.message);
       }
-      await supabase.from('curriculum_competencies').delete().eq('build_id', buildId);
-      for (const comp of build.competencies) {
-        const { data: compData, error: compErr } = await supabase.from('curriculum_competencies').insert({ build_id: buildId, code: comp.code, title: comp.title || comp.code, description: comp.description, sort_order: comp.sort_order }).select('id').single();
-        if (compErr) throw new Error(compErr.message);
-        const discRows = comp.disciplines.filter(d => d.discipline_name.trim()).map((d, i) => ({ competency_id: compData.id, discipline_name: d.discipline_name.trim(), category: d.category, sort_order: i }));
-        if (discRows.length > 0) { const { error: discErr } = await supabase.from('curriculum_discipline_links').insert(discRows); if (discErr) throw new Error(discErr.message); }
+      // IDs estáveis: não apagar/recriar todas as competências a cada edição da matriz.
+      const {data:previous,error:prevError}=await supabase.from('curriculum_competencies')
+        .select('id').eq('build_id',buildId);
+      if(prevError)throw new Error(prevError.message);
+      const persistent:Competency[]=[];
+      for(const comp of build.competencies){
+        if(comp.origin_period!=null&&(!Number.isInteger(comp.origin_period)||comp.origin_period<1||comp.origin_period>12))
+          throw new Error('Período de origem deve ser de 1 a 12.');
+        const payload={build_id:buildId,code:comp.code.trim(),title:comp.title.trim()||comp.code.trim(),
+          description:comp.description,sort_order:comp.sort_order,origin_period:comp.origin_period??null,
+          period_status:comp.period_status==='validated'?'validated':'proposed'};
+        const query=comp.id
+          ? supabase.from('curriculum_competencies').update(payload).eq('id',comp.id).eq('build_id',buildId)
+          : supabase.from('curriculum_competencies').insert(payload);
+        const {data:saved,error:saveError}=await query.select('id').single();
+        if(saveError||!saved)throw new Error(saveError?.message||'Competência não gravada.');
+        const {error:linkRemove}=await supabase.from('curriculum_discipline_links').delete().eq('competency_id',saved.id);
+        if(linkRemove)throw new Error(linkRemove.message);
+        const newLinks=comp.disciplines.filter(d=>d.discipline_name.trim()).map((d,i)=>({
+          competency_id:saved.id,discipline_name:d.discipline_name.trim(),category:d.category,sort_order:i
+        }));
+        if(newLinks.length){
+          const {error:linkSave}=await supabase.from('curriculum_discipline_links').insert(newLinks);
+          if(linkSave)throw new Error(linkSave.message);
+        }
+        persistent.push({...comp,id:saved.id});
       }
-      setBuild(prev => ({ ...prev, id: buildId }));
+      const kept=new Set(persistent.map(x=>x.id));
+      for(const old of previous||[])if(!kept.has(old.id)){
+        const {error:removeError}=await supabase.from('curriculum_competencies')
+          .delete().eq('id',old.id).eq('build_id',buildId);
+        if(removeError)throw new Error(removeError.message);
+      }
+      setBuild(prev=>({...prev,id:buildId,competencies:persistent}));
       onDirty(false);
       setNotice('Matriz curricular salva com sucesso.');
     } catch (e) { setError(e instanceof Error ? e.message : 'Erro ao salvar'); }
@@ -261,7 +287,7 @@ Formato: texto estruturado, direto, prático. Sem floreio.`
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 28, flexWrap: 'wrap', gap: 8 }}>
         <div>
           <h3 style={{ margin: 0 }}>🎯 Competências Centrais</h3>
-          <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: '4px 0 0' }}>Cada competência representa uma grande área de capacidade profissional. Para cada uma, vincule as disciplinas em três categorias.</p>
+          <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: '4px 0 0' }}>Registre competências, períodos de origem e disciplinas vinculadas. O Avalia 360° poderá importá-las conforme a versão da matriz.</p>
         </div>
       </div>
       <div style={{ marginTop: 16 }}>
@@ -269,7 +295,7 @@ Formato: texto estruturado, direto, prático. Sem floreio.`
           <CompetencyCard key={ci} comp={comp} index={ci} onChange={updated => { const next = [...build.competencies]; next[ci] = updated; update({ competencies: next }); }} onRemove={() => update({ competencies: build.competencies.filter((_, i) => i !== ci) })} canWrite={canWrite} />
         ))}
       </div>
-      <button type="button" className="btn-ghost" onClick={() => update({ competencies: [...build.competencies, { code: `C${build.competencies.length + 1}`, title: '', description: '', sort_order: build.competencies.length, disciplines: [] }] })}>+ Adicionar Competência</button>
+      <button type="button" className="btn-ghost" onClick={() => update({ competencies: [...build.competencies, { code: `C${build.competencies.length + 1}`, title: '', description: '', sort_order: build.competencies.length, origin_period:null, period_status:'proposed', disciplines: [] }] })}>+ Adicionar Competência</button>
     </fieldset>
 
     {/* ── Toolbar: Save + Sapiens ── */}
@@ -309,6 +335,15 @@ function CompetencyCard({ comp, index, onChange, onRemove, canWrite }: { comp: C
         <div className="row">
           <label className="planning-field"><span>Código</span><input value={comp.code} onChange={e => onChange({ ...comp, code: e.target.value })} placeholder="C1" style={{ maxWidth: 100 }} /></label>
           <label className="planning-field" style={{ flex: 3 }}><span>Título da Competência</span><input value={comp.title} onChange={e => onChange({ ...comp, title: e.target.value })} placeholder="Ex: Interpretação e Aplicação do Direito" /></label>
+        </div>
+        <div className="row">
+          <label className="planning-field"><span>Período de origem</span>
+            <input type="number" min={1} max={12} value={comp.origin_period??''} disabled={!canWrite}
+              placeholder="Ex.: 3" onChange={e=>onChange({...comp,origin_period:e.target.value?Number(e.target.value):null,period_status:'proposed'})}/>
+          </label>
+          <p role="note" style={{fontSize:12,alignSelf:'center'}}>
+            {comp.period_status==='validated'?'Período validado':'Período proposto · requer validação curricular'}
+          </p>
         </div>
         <label className="planning-field"><span>Descrição</span><textarea rows={3} value={comp.description} onChange={e => onChange({ ...comp, description: e.target.value })} placeholder="Descreva o que o aluno deve ser capaz de fazer ao desenvolver esta competência…" /></label>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16, marginTop: 16 }}>
