@@ -5,7 +5,7 @@ const q:QuestionDraft={
  id:'questao-1',disciplineId:'Direito Civil',kind:'objetiva',
  statement:'Em caso hipotético, qual das alternativas corresponde ao enunciado?',
  options:[{id:'A',text:'Alternativa primeira'},{id:'B',text:'Alternativa segunda'}],
- correctOptionId:'A',rubric:'',topicIds:['tema-a'],competencyIds:['c1'],
+ correctOptionId:'A',answerJustification:'A alternativa A é correta segundo o caso.',rubric:'',topicIds:['tema-a'],competencyIds:['c1'],
  purpose:['formativa'],estimatedDifficulty:3,points:1,examTags:['oab'],images:[]
 };
 const mk=(institutionId='ies',courseId='dir',discipline='Direito Civil')=>
