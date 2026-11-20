@@ -9,7 +9,16 @@ export default function RuleCurationPanel({question,pedagogy,onApply}:Props){
  const [report,setReport]=useState<CurationResult|null>(null);
  const [decisions,setDecisions]=useState<Decision[]>([]);
  const [open,setOpen]=useState(false);
- useEffect(()=>{setReport(null);setOpen(false)},[question.id]);
+ const signature=JSON.stringify({
+  questionId:question.id,statement:question.statement,options:question.options,
+  key:question.correctOptionId,rubric:question.rubric,topics:question.topicIds,
+  competencies:question.competencyIds,purpose:question.purpose,points:question.points,
+  estimatedDifficulty:question.estimatedDifficulty,examTags:question.examTags,
+  images:question.images.map(m=>({id:m.localId,altText:m.altText,rightsStatus:m.rightsStatus})),
+  parameters:{currentPeriod:pedagogy.currentPeriod,assessmentPurpose:pedagogy.purpose,
+   examFocus:pedagogy.examFocus,topics:pedagogy.topics,competencies:pedagogy.competencies}
+ });
+ useEffect(()=>{setReport(null);setOpen(false)},[signature]);
  // Não é um parecer silencioso: resultado só exibido depois da submissão explícita.
  const submit=()=>{setReport(curateQuestion(question,pedagogy));setOpen(true)};
  const decide=(action:'accepted'|'rejected')=>{
