@@ -13,6 +13,7 @@
  */
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { ruleFindings } from "./impacto-rules.ts";
 // IA suspensa até a plataforma gerar receita (decisão de 19/11/2026). Para religar: secret AI_SUSPENDED=false.
 {const __aiFetch=globalThis.fetch;const __aiHosts=/(^|\.)(api\.anthropic\.com|api\.openai\.com|generativelanguage\.googleapis\.com)$/i;
 globalThis.fetch=((input:any,init?:any)=>{let host="";try{host=new URL(typeof input==="string"?input:input instanceof URL?input.href:input.url).hostname;}catch{}
@@ -79,22 +80,33 @@ Responda APENAS em JSON: { "findings": [{ "type", "title", "description", "confi
 // ============================================================
 
 async function extractText(bytes: Uint8Array, mimeType: string): Promise<string> {
-  // PDF: extrair text layer básico
+  // PDF: camada de texto com pdfjs (mesma versão de vertice-doc-prevalidate). A leitura anterior,
+  // por regex entre parênteses, só funcionava em PDF sem compressão.
   if (mimeType === "application/pdf") {
-    const text = new TextDecoder("utf-8", { fatal: false }).decode(bytes);
-    // Extrair strings entre parênteses do PDF (text layer simplificado)
-    const matches = text.match(/\(([^)]{2,})\)/g) || [];
-    const extracted = matches.map(m => m.slice(1, -1)).join(" ");
-    if (extracted.length > 50) return extracted.slice(0, MAX_CHARS);
-    return "[PDF sem text layer acessível — necessita OCR para análise completa]";
+    try {
+      const pdfjs: any = await import("npm:pdfjs-dist@6.5.438/legacy/build/pdf.mjs");
+      const task = pdfjs.getDocument({ data: bytes, useSystemFonts: false, disableFontFace: true, isEvalSupported: false, useWorkerFetch: false, stopAtErrors: true });
+      try {
+        const doc = await task.promise; const pages: string[] = [];
+        for (let n = 1; n <= Math.min(doc.numPages, 60); n++) {
+          const c = await (await doc.getPage(n)).getTextContent();
+          pages.push(c.items.map((x: any) => (x.str || "") + (x.hasEOL ? "\n" : " ")).join(""));
+          if (pages.join("").length > MAX_CHARS) break;
+        }
+        const text = pages.join("\n").trim();
+        return text.length > 50 ? text.slice(0, MAX_CHARS) : "[PDF sem camada de texto — necessita OCR para análise]";
+      } finally { await task.destroy(); }
+    } catch { return "[PDF ilegível pelo extrator]"; }
   }
 
-  // DOCX: extrair do document.xml dentro do ZIP
+  // DOCX: o arquivo é um ZIP; descompacta word/document.xml (fflate, como em vertice-doc-prevalidate).
   if (mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
-    // Fallback: extrair strings legíveis do binário
-    const text = new TextDecoder("utf-8", { fatal: false }).decode(bytes);
-    const xmlParts = text.match(/<w:t[^>]*>([^<]+)<\/w:t>/g) || [];
-    return xmlParts.map(p => p.replace(/<[^>]+>/g, "")).join(" ").slice(0, MAX_CHARS);
+    try {
+      const { unzipSync } = await import("npm:fflate@0.8.2");
+      const z = unzipSync(bytes, { filter: (f: any) => f.name === "word/document.xml" });
+      const xml = new TextDecoder("utf-8").decode(z["word/document.xml"] || new Uint8Array());
+      return xml.replace(/<\/w:p>/g, "\n").replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/[ \t]+/g, " ").trim().slice(0, MAX_CHARS);
+    } catch { return "[DOCX ilegível pelo extrator]"; }
   }
 
   // CSV/TXT
@@ -212,9 +224,13 @@ Deno.serve(async (req) => {
       `=== DOCUMENTO ${i + 1}: ${d.name} ===\n${d.text.slice(0, Math.floor(MAX_CHARS / document_paths.length))}`
     ).join("\n\n");
 
-    // Chamar Claude
+    // IA suspensa (padrão desde 19/11/2026): achados por regras (auditoria V7).
+    const aiOn = String(Deno.env.get("AI_SUSPENDED") ?? "true").toLowerCase() === "false";
     let result: any;
-    try {
+    if (!aiOn) {
+      result = { findings: ruleFindings(analysis_type, docTexts) };
+      await supabase.from("vertice_ai_analyses").update({ model_used: "regras" }).eq("id", analysis.id);
+    } else try {
       result = await callClaude(systemPrompt, userPrompt);
     } catch (aiError: any) {
       await supabase.from("vertice_ai_analyses").update({
