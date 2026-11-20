@@ -353,7 +353,7 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
    </section>}
    {loaded&&<SavedPreview value={loaded}/>}
   </div>
-  <ClassBatchPublisher previewMode={previewMode} courseName={courses.find(c=>c.id===courseId)?.name||''}
+  <ClassBatchPublisher previewMode={previewMode} institutionId={institutionId} courseId={courseId} courseName={courses.find(c=>c.id===courseId)?.name||''}
     discipline={disciplineId} title={title} semester={period} questions={questions}/>
  </section>;
 }
