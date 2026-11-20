@@ -363,6 +363,11 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
         onChange={e=>update({expectedAnswer:e.target.value})}
         placeholder="Quais conceitos, argumentos, fundamentos e elementos são esperados?"/>
       </label>
+      <label style={labelStyle}>Linhas disponíveis para a resposta
+       <span className="avalia-help">O PDF terá pautas espaçadas em 1,5 (18 pontos entre linhas). Cada questão pode ter quantidade diferente.</span>
+       <input style={{...inputStyle,maxWidth:160}} type="number" min="3" max="60" step="1"
+        value={q.answerLines??8} onChange={e=>update({answerLines:e.target.value?Number(e.target.value):0})}/>
+      </label>
       <label style={labelStyle}>Critérios de correção
        <span className="avalia-help">Informe os critérios e a distribuição dos pontos.</span>
        <textarea className="avalia-answer-area" style={inputStyle} value={q.rubric}
@@ -492,9 +497,11 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
       {label:'Pontuação válida',ok:Number.isFinite(q.points)&&q.points>0},
       ...(q.kind==='discursiva'?
        [{label:'Padrão esperado informado',ok:!!q.expectedAnswer?.trim()},
-        {label:'Rubrica preenchida',ok:!!q.rubric.trim()}]:
+        {label:'Rubrica preenchida',ok:!!q.rubric.trim()},
+        {label:'Linhas de resposta configuradas',ok:Number.isInteger(q.answerLines??8)&&(q.answerLines??8)>=3&&(q.answerLines??8)<=60}]:
        [{label:'Alternativas preenchidas',ok:q.options.length>=2&&q.options.every(o=>o.text.trim().length>0)},
-        {label:'Gabarito selecionado',ok:q.options.some(o=>o.id===q.correctOptionId)}]),
+        {label:'Gabarito selecionado',ok:q.options.some(o=>o.id===q.correctOptionId)},
+        {label:'Justificativa do gabarito',ok:!!q.answerJustification?.trim()}]),
       {label:'Competência associada',ok:q.competencyIds.length>0},
       {label:'Imagens com descrição e direitos',ok:q.images.every(i=>!!i.altText.trim()&&i.rightsStatus!=='nao_informado')}
      ].map(item=><div key={item.label} className="avalia-checkrow">
