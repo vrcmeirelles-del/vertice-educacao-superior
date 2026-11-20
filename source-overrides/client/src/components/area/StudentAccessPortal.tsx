@@ -163,7 +163,7 @@ export default function StudentAccessPortal({ institutionId, institutionName, pu
           </div>
         )}
         {step === 'dashboard' && data && session && (
-          <StudentDashboard data={data} session={session} purpose={purpose} onLogout={logout} onChanged={refresh} />
+          <StudentDashboard data={data} session={session} institutionId={institutionId} purpose={purpose} onLogout={logout} onChanged={refresh} />
         )}
       </div>
       <p style={{ fontSize: '.6875rem', color: 'var(--vx-muted,#94a3b8)', textAlign: 'center', marginTop: 16 }}>
@@ -234,7 +234,7 @@ function RequestForm({ institutionId, module, notice, onLogin }: { institutionId
   );
 }
 
-function StudentDashboard({ data, session, purpose, onLogout, onChanged }: { data: Dashboard; session: string; purpose: Purpose; onLogout: () => void; onChanged: () => Promise<void> }) {
+function StudentDashboard({ data, session, institutionId, purpose, onLogout, onChanged }: { data: Dashboard; session: string; institutionId: string; purpose: Purpose; onLogout: () => void; onChanged: () => Promise<void> }) {
   const required = data.rule?.total_required_minutes ?? 0;
   const remaining = Math.max(0, required - data.credited_minutes);
   const pending = data.submissions.filter(s => ['submitted', 'extracting', 'suggestion_ready', 'under_review'].includes(s.status)).length;

@@ -592,7 +592,7 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate, showHeade
         students, goalTitle: goalName, evidenceTitle: evidenceName, author: userData.user?.email ?? 'Não identificado',
         logoBytes,
       });
-      const blob = new Blob([bytes], { type: 'application/pdf' });
+      const blob = new Blob([new Uint8Array(bytes)], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url; a.download = `atividade-ensino-${row.title?.replace(/\s+/g, '-').slice(0, 40) || row.id}.pdf`;
