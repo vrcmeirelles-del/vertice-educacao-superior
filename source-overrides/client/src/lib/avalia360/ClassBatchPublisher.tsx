@@ -1,7 +1,8 @@
 import {useState} from 'react';
 import {buildIndividualizedPdf,downloadPdf,prepareIssues,type PrintStudent} from './individualized-pdf';
 import type {QuestionDraft} from './question-draft';
-type Props={institutionName?:string;courseName:string;discipline:string;title:string;semester:string;questions:QuestionDraft[];previewMode:boolean};
+import {loadAuthorizedClassRoster} from './class-roster';
+type Props={institutionId:string;courseId:string;institutionName?:string;courseName:string;discipline:string;title:string;semester:string;questions:QuestionDraft[];previewMode:boolean};
 const field={display:'grid',gap:5,fontWeight:600,fontSize:13} as const;
 const style={padding:'10px 12px',border:'1px solid #cbd5e1',borderRadius:8,width:'100%'} as const;
 const demoStudents=[
@@ -9,13 +10,25 @@ const demoStudents=[
  {id:'demo-2a-2',name:'Bruno Exemplo',registration:'DEMO-002',selected:true},
  {id:'demo-2a-3',name:'Carla Exemplo',registration:'DEMO-003',selected:true}
 ];
-export default function ClassBatchPublisher({institutionName='Vértice · Demonstração',courseName,discipline,title,semester,questions,previewMode}:Props){
+export default function ClassBatchPublisher({institutionId,courseId,institutionName='Vértice · Demonstração',courseName,discipline,title,semester,questions,previewMode}:Props){
  const [classLabel,setClassLabel]=useState('2A');
  const [students,setStudents]=useState<PrintStudent[]>([]);
  const [raw,setRaw]=useState('');
  const [status,setStatus]=useState('');
  const [working,setWorking]=useState(false);
  const chooseExample=()=>{setStudents(demoStudents.map(x=>({...x})));setClassLabel('2A');setStatus('Turma fictícia carregada. Nenhum estudante real foi consultado.');};
+ const loadReal=async()=>{
+  if(previewMode)return;
+  setWorking(true);setStatus('Consultando lista de alunos autorizada…');
+  try{
+   const roster=await loadAuthorizedClassRoster({
+    institutionId,courseId,disciplineId:discipline,classLabel
+   });
+   setStudents(roster.students);
+   setStatus('Lista carregada: '+roster.students.length+' registro(s). Matrícula não conferida: valide com a secretaria antes da emissão oficial.');
+  }catch(e){setStudents([]);setStatus(e instanceof Error?e.message:'Consulta não concluída.');}
+  finally{setWorking(false);}
+ };
  const parse=()=>{
   const lines=raw.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
   if(!lines.length){setStatus('Informe ao menos um aluno.');return;}
@@ -61,7 +74,9 @@ export default function ClassBatchPublisher({institutionName='Vértice · Demons
     <input style={style} value={classLabel} onChange={e=>{setClassLabel(e.target.value);setStudents([])}} placeholder="Ex.: 2A"/>
    </label>
    <div style={{alignSelf:'end'}}>
-    <button type="button" onClick={chooseExample} disabled={!previewMode}>Carregar turma fictícia 2A</button>
+    {previewMode?
+     <button type="button" onClick={chooseExample}>Carregar turma fictícia 2A</button>:
+     <button type="button" onClick={loadReal} disabled={working||!courseId||!discipline.trim()}>Buscar estudantes autorizados da turma</button>}
    </div>
   </div>
   {previewMode&&<>
