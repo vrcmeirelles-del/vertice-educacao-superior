@@ -17,11 +17,14 @@ describe('formulário docente Avalia 360°',()=>{
  it('recusa gabarito não relacionado às alternativas',()=>{
    expect(validate({...base,correctOptionId:'C'}).map(e=>e.code)).toContain('INVALID_KEY');
  });
+ it('exige padrão de resposta esperado separadamente da rubrica',()=>{
+   expect(validate({...base,kind:'discursiva',rubric:'Critérios e pontuação',expectedAnswer:''}).map(e=>e.code)).toContain('MISSING_EXPECTED_ANSWER');
+ });
  it('exige rubrica para questão discursiva',()=>{
    expect(validate({...base,kind:'discursiva',rubric:''}).map(e=>e.code)).toContain('MISSING_RUBRIC');
  });
  it('não exige gabarito objetivo para discursivas com rubrica',()=>{
-   expect(validate({...base,kind:'discursiva',correctOptionId:'',rubric:'Critério 1 — 2 pontos'})).toEqual([]);
+   expect(validate({...base,kind:'discursiva',correctOptionId:'',rubric:'Critério 1 — 2 pontos',expectedAnswer:'Resposta fundamentada pelo aluno contendo pressupostos da responsabilidade civil.'})).toEqual([]);
  });
  it('exige descrição da imagem e declaração de direitos',()=>{
    const image={localId:'tmp',file:{size:1024,type:'image/png'} as File,altText:'',caption:'',
