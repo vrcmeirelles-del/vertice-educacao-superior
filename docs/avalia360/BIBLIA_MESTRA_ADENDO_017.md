@@ -38,3 +38,26 @@ GitHub Actions #44641929603: 60 testes unitários e 18 testes PostgreSQL isolado
 - [ ] Apenas depois aplicar RPC/bucket/Edge Function no ambiente isolado.
 - [ ] Upload de imagem real com JWT/MFA por docente e validação multi-IES/curso.
 - [ ] Homologação de prova real com PPC e imagens e publicação controlada.
+
+### Atualização de recuperação, Storage e Edge Function — evidência efetiva
+- Após o reset controlado, o Supabase informou `FUNCTIONS_FAILED` na branch. Consulta ao log `workflow_run_logs` revelou falha ao tentar publicar uma função existente, `vertice-source-pdf-preview`: `script_size=35.78MB`, rejeitada com **HTTP 413 request entity too large**. Essa função não pertence ao Avalia 360°.
+- A sequência de logs também informou `Pulling migrations from database` e `All migrations are up to date`, embora consultas posteriores confirmassem **zero migrações na branch** e ausência das tabelas institucionais `public.vertice_courses`, `vertice_app.curriculum_builds` e `public.vertice_learning_staff_scope`. Assim, a restauração do contexto de autorização está incompleta e não pode ser considerada homologada.
+- Foi aplicada **exclusivamente na branch `eagkkkclfcedzanuqckj`** a migração `avalia360_private_storage_bucket_staging`. Consulta subsequente a `storage.buckets` confirmou o bucket `avalia360-private`, `public=false`, máximo de `10485760` bytes e MIME permitidos `image/png`, `image/jpeg`, `image/webp`.
+- Foi implantada **exclusivamente na branch** a Edge Function `vertice-avalia-media`, status `ACTIVE`, versão 1, `verify_jwt=true`. Isso demonstra implantação, **não execução autenticada bem-sucedida**.
+- Consulta posterior a `to_regprocedure` confirmou que `public.vertice_avalia_media` e `public.vertice_avalia_draft` **não existem na branch**. As RPCs de autorização e persistência não foram aplicadas; a função não consegue completar a preparação/confirmacão de upload.
+- Não foram realizados testes reais com usuário MFA/AAL2 nem envio de imagens ao Storage. Uma tentativa externa de acesso à URL da função via ambiente de terminal falhou por indisponibilidade de resolução DNS, não constituindo resposta HTTP da função.
+- **Não houve alterações no projeto de produção `qvetbbmviatxxatzzuzc`.**
+
+### Novo status dos itens
+- [x] Branch criada com custo expressamente aprovado de US$ 0,01344/hora.
+- [x] Bucket privado criado e conferido na branch real.
+- [x] Edge Function de imagem implantada na branch, JWT obrigatório.
+- [x] Falha da clonagem automática localizada em função de 35,78 MB, HTTP 413.
+- [ ] Restaurar tabelas institucionais e autorizações de forma fiel, sem criar ambiente artificial que falseie a homologação.
+- [ ] Aplicar SQL das RPCs de rascunho/imagens somente após restabelecer dependências.
+- [ ] Testar fluxo real em Supabase Auth/Storage com MFA, perfis/curso e imagens.
+- [ ] Avaliar redução do pacote `vertice-source-pdf-preview` ou exclusão seletiva dessa função **apenas na configuração de homologação**, sem tocar produção.
+- [ ] Controlar custo horário e decidir manutenção ou encerramento da branch se o bloqueio perdurar.
+
+### Critério de relato
+**A camada Storage + deploy da função teve avanço real; a homologação da integração completa continua bloqueada.** O estado `ACTIVE` de uma Edge Function não equivale a sucesso de suas RPCs ou do upload.
