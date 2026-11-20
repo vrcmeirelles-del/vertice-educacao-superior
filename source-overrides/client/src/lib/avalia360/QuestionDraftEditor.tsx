@@ -15,7 +15,7 @@ const ids = ['A','B','C','D','E','F','G','H'];
 const createDraft = (disciplineId:string):QuestionDraft => ({
  id:crypto.randomUUID(),disciplineId,kind:'objetiva',statement:'',
  options:ids.slice(0,5).map(id=>({id,text:''})),correctOptionId:'',
- rubric:'',expectedAnswer:'',topicIds:[],competencyIds:[],purpose:['formativa'],
+ rubric:'',expectedAnswer:'',answerJustification:'',answerLines:8,topicIds:[],competencyIds:[],purpose:['formativa'],
  estimatedDifficulty:3,points:1,examTags:[],images:[]
 });
 /**
