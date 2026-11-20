@@ -35,6 +35,11 @@ describe('curadoria algorítmica da questão',()=>{
   expect(out.findings.map(f=>f.code)).toEqual(expect.arrayContaining(['NO_COMPETENCIES','NO_TOPICS','EXAM_NOT_MAPPED']));
   expect(out.version).toBe('rules-curation-1.0');
  });
+ it('sinaliza ausência do padrão de resposta esperado sem inventar resposta-modelo',()=>{
+  const result=curateQuestion({...base,kind:'discursiva',rubric:'Fundamentação jurídica e conclusão, dois pontos.',expectedAnswer:''},config);
+  expect(result.findings.map(x=>x.code)).toContain('MISSING_EXPECTED_ANSWER');
+  expect(result.substantiveReview).toBe('not-performed');
+ });
  it('exige rubrica para questão discursiva',()=>{
   const out=curateQuestion({...base,kind:'discursiva',rubric:''},config);
   expect(out.findings.map(f=>f.code)).toContain('MISSING_RUBRIC');
