@@ -39,6 +39,7 @@ export function curateQuestion(q:QuestionDraft,p:PedagogicalDraft):CurationResul
   }
  }
  if(q.kind==='objetiva'){
+  if(!q.answerJustification?.trim())add('MISSING_KEY_JUSTIFICATION','blocked','answerJustification','A justificativa do gabarito não foi informada.','Registre os fundamentos que sustentam a alternativa correta, com revisão docente.');
   if(q.options.length<2||q.options.length>8)add('OPTIONS_COUNT','blocked','options','Quantidade de alternativas fora do intervalo de 2 a 8.','Complete o conjunto de alternativas antes da aplicação.');
   const texts=q.options.map(o=>comparable(o.text));
   const duplicates=texts.filter((v,i)=>v!==''&&texts.indexOf(v)<i);
@@ -47,6 +48,7 @@ export function curateQuestion(q:QuestionDraft,p:PedagogicalDraft):CurationResul
   if(!q.options.some(o=>o.id===q.correctOptionId))
     add('NO_KEY','blocked','correctOptionId','Gabarito não foi marcado.','Selecione a alternativa correta e valide a fundamentação jurídica.');
  }else{
+  if(!Number.isInteger(q.answerLines??8)||(q.answerLines??8)<3||(q.answerLines??8)>60)add('INVALID_ANSWER_LINES','blocked','answerLines','Quantidade de linhas inválida.','Defina entre 3 e 60 linhas.');
   if(!q.rubric.trim())add('MISSING_RUBRIC','blocked','rubric','Falta rubrica de correção discursiva.','Defina critérios observáveis e distribuição de pontos; a ferramenta não inventa fundamentação.');
   else if(q.rubric.trim().length<35)add('BRIEF_RUBRIC','attention','rubric','Rubrica curta: pode não especificar os critérios.','Descreva os elementos exigidos na resposta, com pontuação verificável.');
   if(!q.expectedAnswer?.trim())add('MISSING_EXPECTED_ANSWER','blocked','expectedAnswer','Padrão de resposta esperado não informado.','Descreva os elementos de conteúdo esperados, separadamente dos critérios e da pontuação.');
