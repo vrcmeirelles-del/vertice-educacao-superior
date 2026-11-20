@@ -82,6 +82,22 @@ BEGIN
           AND m.state IN ('pending','confirmed'))>=12 THEN
      RAISE EXCEPTION 'Limite de imagens da questão atingido' USING ERRCODE='22023';
    END IF;
+   -- Limites acumulados de tickets por docente/IES/curso, inclusive se o
+   -- solicitante variar livremente os UUIDs das questões. Controles por
+   -- questão isoladamente não limitam abuso de Storage e tickets órfãos.
+   IF (SELECT count(*) FROM vertice_avalia.question_media m
+       WHERE m.institution_id=p_institution AND m.course_id=p_course
+         AND m.created_by=actor AND m.state='pending'
+         AND m.created_at>=now()-interval '2 hours')>=24 THEN
+     RAISE EXCEPTION 'Limite de tickets pendentes atingido'
+       USING ERRCODE='22023';
+   END IF;
+   IF (SELECT count(*) FROM vertice_avalia.question_media m
+       WHERE m.institution_id=p_institution AND m.course_id=p_course
+         AND m.created_by=actor AND m.created_at>=now()-interval '24 hours')>=100 THEN
+     RAISE EXCEPTION 'Limite diário de imagens atingido'
+       USING ERRCODE='22023';
+   END IF;
    file_extension:=CASE declared_mime WHEN 'image/png' THEN 'png'
      WHEN 'image/jpeg' THEN 'jpg' ELSE 'webp' END;
    media_id:=gen_random_uuid();
