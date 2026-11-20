@@ -51,6 +51,7 @@ import RepositoryDocuments, {
   type RepositoryProps,
 } from "./RepositoryDocuments";
 import "./repository-evidence.css";
+import RitmoRepositorio from "./RitmoRepositorio";
 
 const COR_VALIDADO = "#4f9a76";
 const COR_AGUARDA = "#d1a54a";
@@ -574,6 +575,7 @@ export default function RepositoryTab(props: RepositoryProps) {
             )}
           </div>
         </header>
+        {courseId === null && <RitmoRepositorio requests={requests as any} files={files as any} courses={courses as any} />}
         <div className="er-toolbar">
           <HelpLabel>
             Semestre de referência

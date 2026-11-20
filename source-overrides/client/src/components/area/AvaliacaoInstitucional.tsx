@@ -1,4 +1,5 @@
 import { HelpLabel } from '@/components/ContextHelp';
+import SimuladorTitulacao from "./SimuladorTitulacao";
 import { useMemo, useState } from "react";
 import {
   NIVEIS,
@@ -63,6 +64,7 @@ function Indicador({ indicador, institutionId, role, documents }: { indicador: I
       </summary>
       <div className="aval-corpo">
         <Recred2017IndicatorDocs institutionId={institutionId} role={role} indicador={indicador} state={documents}/>
+        {indicador.code === "4.1" && <SimuladorTitulacao institutionId={institutionId} indicador={indicador} />}
         {indicador.applicability && (
           <p className="aval-nota">
             <strong>Aplicabilidade.</strong> {indicador.applicability}
