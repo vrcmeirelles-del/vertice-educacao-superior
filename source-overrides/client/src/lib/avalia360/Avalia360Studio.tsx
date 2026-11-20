@@ -173,6 +173,10 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
    <p style={{margin:'0 0 6px',fontSize:12,fontWeight:800,color:blue,letterSpacing:1}}>VÉRTICE · ENSINO SUPERIOR</p>
    <h2 style={{margin:'0 0 8px',fontSize:27}}>Avalia 360° — Estúdio de Avaliações</h2>
    <p style={{margin:'0 0 10px',maxWidth:800}}>Construa avaliações, associe questões, inclua imagens e revise o caderno antes de salvar. O parecer curricular será habilitado somente quando o PPC e as competências estiverem validados.</p>
+   <nav aria-label="Acesso rápido aos campos da avaliação" style={{display:'flex',gap:9,flexWrap:'wrap',margin:'12px 0'}}>
+    <a href="#avalia360-parametros" style={{background:blue,color:'#fff',borderRadius:9,padding:'11px 15px',fontWeight:700,textDecoration:'none'}}>Preencher informações do algoritmo</a>
+    <a href="#avalia360-analise" style={{background:'#fff',color:blue,border:'1px solid '+blue,borderRadius:9,padding:'11px 15px',fontWeight:700,textDecoration:'none'}}>Ver análise pedagógica</a>
+   </nav>
    <div role="note" style={{padding:'10px 14px',borderRadius:10,background:'#FFF7E8',color:'#814B08',fontSize:13}}>
     {previewMode?'PRÉVIA INTERATIVA — dados guardados somente neste navegador. Sem autenticação, Supabase, mídia persistente ou publicação para alunos.':'Ambiente em desenvolvimento — o salvamento depende das RPCs autorizadas, MFA e Storage no Supabase. Nenhuma avaliação é publicada aos alunos por esta tela.'}
    </div>
@@ -260,15 +264,28 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
     </div>}
   </div>
   <div style={cardStyle}>
-   <h3 style={{margin:'0 0 12px'}}>3 · Parâmetros para análise longitudinal</h3>
+   <h3 id="avalia360-parametros" style={{margin:'0 0 12px',scrollMarginTop:20}}>3 · Parâmetros para análise longitudinal</h3>
    <p style={{fontSize:13,color:'#475569'}}>Informe as competências, os temas, seus períodos de origem e as relações curriculares. Relacione-os às questões no quadro final. Estes dados são declarados e não substituem um PPC homologado.</p>
    <PedagogicalParameters value={{...pedagogy,purpose}} onChange={setPedagogy}
     questions={questions} activeIndex={activeIndex} updateQuestion={update}/>
    <div style={{marginTop:16,display:'flex',gap:12,alignItems:'center',flexWrap:'wrap'}}>
-    <button type="button" style={btn(false)} onClick={()=>setAnalysisVisible(true)}
-      disabled={!questions.length||invalidCatalog}>Analisar metadados declarados</button>
+    <button type="button" style={btn(true)} onClick={()=>{
+       const pending:string[]=[];
+       if(!questions.length)pending.push('Adicione pelo menos uma questão na seção 2.');
+       if(invalidCatalog)pending.push('Complete código, nome e período de todas as competências e temas cadastrados.');
+       if(!courseId)pending.push('Selecione o curso na seção 1.');
+       if(!disciplineId.trim())pending.push('Informe a disciplina na seção 1.');
+       if(pending.length){setErrors(pending);setAnalysisVisible(false);return;}
+       setErrors([]);setAnalysisVisible(true);
+      }}>Analisar metadados declarados</button>
     <span style={{fontSize:12,color:'#64748b'}}>Cálculo determinístico, sem IA e sem julgamento semântico.</span>
    </div>
+   <div id="avalia360-analise" style={{scrollMarginTop:20}}>
+    <p style={{fontSize:12,color:'#64748b',margin:'10px 0'}}>O botão fica disponível mesmo antes do preenchimento. Se faltar alguma informação, a tela informa o que cadastrar.</p>
+    {errors.length>0&&<div role="alert" style={{background:'#FFF0F0',padding:12,borderRadius:9,color:'#982F2F'}}>
+      <strong>Informações necessárias:</strong>
+      <ul>{errors.map((e,i)=><li key={i}>{e}</li>)}</ul>
+    </div>}
    {previewAnalysis&&<section aria-label="Devolutiva preliminar do algoritmo" style={{background:'#f1f7fe',padding:16,borderRadius:10,marginTop:16}}>
      <h4 style={{margin:'0 0 8px'}}>Resultado preliminar — não homologado</h4>
      <p style={{fontSize:13}}>{previewAnalysis.notice}</p>
@@ -291,6 +308,7 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
          <strong>{f.level==='blocked'?'Bloqueio':f.level==='attention'?'Atenção':'Informação'}:</strong> {f.message}
        </li>)}</ul>}
    </section>}
+   </div>
   </div>
   <div style={cardStyle}>
    <h3 style={{marginTop:0}}>4 · Revisar e salvar</h3>
