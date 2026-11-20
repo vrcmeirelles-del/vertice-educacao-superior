@@ -44,3 +44,9 @@ Permanecem íntegros os adendos 001–019. O Estúdio é uma camada de experiên
 - [ ] Aprovação pedagógica, publicação controlada e testes de produção.
 
 **Regra:** código implementado NÃO significa serviço publicado; não atribuir nota ou parecer de aderência antes de fonte curricular validada.
+
+### Evidência após a integração da tela
+- GitHub Actions **#44651373137**: **65 testes unitários + 20 testes PostgreSQL (PGlite) aprovados**, com verificação TypeScript isolada do Avalia 360° concluída com sucesso.
+- Evidência: https://github.com/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44651373137
+- O pipeline TypeScript global/Aprendizagem Conectada da mesma rodada aparece como `cancelled`, não como aprovado; não usar o teste isolado como prova da compilação do portal integral.
+- O Estúdio está **integrado em código**, mas não publicado nem homologado em navegador; a branch de homologação Supabase permanece pausada.
