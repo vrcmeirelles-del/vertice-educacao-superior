@@ -3,6 +3,7 @@ import {QuestionDraftEditor, type QuestionOption} from './QuestionDraftEditor';
 import {saveAssessmentDraft, type DraftReceipt} from './draft-api';
 import type {QuestionDraft} from './question-draft';
 import {uploadQuestionImage,type UploadedImageReceipt} from './private-image-upload';
+import {receiptScopeKey,reusableReceipt,type ScopedImageReceipt} from './receipt-cache';
 
 export interface AssessmentDraftWorkspaceProps {
  institutionId:string;courseId:string;disciplineId:string;
@@ -17,7 +18,7 @@ export function AssessmentDraftWorkspace(props:AssessmentDraftWorkspaceProps){
  const [message,setMessage]=useState('');
  const [receipt,setReceipt]=useState<DraftReceipt|null>(null);
  const [question,setQuestion]=useState<QuestionDraft|null>(null);
- const uploaded=useRef(new Map<string,{receipt:UploadedImageReceipt;file:File;scopeKey:string}>());
+ const uploaded=useRef(new Map<string,ScopedImageReceipt>());
  const prepare=async(next:QuestionDraft)=>{
   if(status==='saving')return;
   setStatus('saving');setMessage('');
@@ -25,14 +26,12 @@ export function AssessmentDraftWorkspace(props:AssessmentDraftWorkspaceProps){
    const media: Array<{localId:string;receipt:UploadedImageReceipt}> = [];
    for(const image of next.images){
      // Recibos de outro curso, instituição ou questão nunca podem ser reutilizados.
-     const scopeKey=[props.institutionId,props.courseId,props.disciplineId,next.id].join(':');
-     const cached=uploaded.current.get(image.localId);
-     let item=cached?.file===image.file && cached.scopeKey===scopeKey?cached.receipt:null;
+     const mediaContext={institutionId:props.institutionId,courseId:props.courseId,
+       disciplineId:props.disciplineId,questionId:next.id};
+     const scopeKey=receiptScopeKey(mediaContext);
+     let item=reusableReceipt(uploaded.current.get(image.localId),image.file,mediaContext);
      if(!item){
-       item=await uploadQuestionImage(image.file,{
-         institutionId:props.institutionId,courseId:props.courseId,
-         disciplineId:props.disciplineId,questionId:next.id
-       });
+       item=await uploadQuestionImage(image.file,mediaContext);
        uploaded.current.set(image.localId,{receipt:item,file:image.file,scopeKey});
      }
      media.push({localId:image.localId,receipt:item});
