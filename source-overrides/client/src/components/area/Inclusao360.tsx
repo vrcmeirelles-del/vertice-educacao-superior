@@ -11,6 +11,7 @@ interface SupportRequest { id:string; case_id:string; institution_id:string; ori
 interface IndividualPlan { id:string; case_id:string; institution_id:string; student_name:string; status:string; effective_from?:string; effective_until?:string; objectives?:unknown; created_at:string; version_number?:number; }
 interface Accommodation { id:string; plan_id:string; institution_id:string; category:string; description:string; details?:string; responsible?:string; status:string; }
 
+interface StudentHit { student_source:'school'|'registry'; student_id:string; student_name:string; enrollment_code:string; group_label?:string; verified?:boolean; }
 type View = 'casos'|'solicitacoes'|'pei'|'evidencias';
 interface Props { institutionId:string; role:string; }
 
@@ -34,7 +35,13 @@ function Inclusao360Content({institutionId,role}:Props) {
   useEffect(()=>{ mounted.current=true; return ()=>{mounted.current=false}; },[]);
   const [showForm,setShowForm] = useState<'case'|'request'|'plan'|'accommodation'|null>(null);
 
-  const [formCase,setFormCase] = useState({student_name:'',student_matricula:'',priority:'normal',summary:''});
+  const emptyCase = {student_name:'',student_matricula:'',priority:'normal',summary:'',student_ref_source:'',student_ref_id:''};
+  const [formCase,setFormCase] = useState(emptyCase);
+  const [studentQuery,setStudentQuery] = useState('');
+  const [studentHits,setStudentHits] = useState<StudentHit[]>([]);
+  const [studentSearch,setStudentSearch] = useState<'idle'|'loading'|'done'|'error'>('idle');
+  const [pickedGroup,setPickedGroup] = useState('');
+  const searchSeq = useRef(0);
   const [formReq,setFormReq] = useState({case_id:'',origin:'coordenacao',needs_type:'apoio_pedagogico',description:'',requester_name:''});
   const [formPlan,setFormPlan] = useState({case_id:'',student_name:'',objectives:'',effective_from:'',effective_until:''});
   const [formAccom,setFormAccom] = useState({plan_id:'',category:'metodologica',description:'',responsible:''});
@@ -62,6 +69,24 @@ function Inclusao360Content({institutionId,role}:Props) {
 
   useEffect(()=>{load()},[load]);
 
+  const searchStudents = (text:string)=>{
+    setStudentQuery(text);
+    const seq=++searchSeq.current;
+    if(text.trim().length<2){ setStudentHits([]); setStudentSearch('idle'); return; }
+    setStudentSearch('loading');
+    window.setTimeout(async ()=>{
+      if(!mounted.current || seq!==searchSeq.current) return;
+      const {data,error:rpcError} = await supabase.rpc('vertice_support_student_search',{p_institution:institutionId,p_query:text.trim()});
+      if(!mounted.current || seq!==searchSeq.current) return;
+      if(rpcError){ setStudentHits([]); setStudentSearch('error'); return; }
+      setStudentHits((data as StudentHit[])||[]); setStudentSearch('done');
+    },300);
+  };
+  const pickStudent = (h:StudentHit)=>{
+    setFormCase(f=>({...f,student_name:h.student_name,student_matricula:h.enrollment_code||'',student_ref_source:h.student_source,student_ref_id:h.student_id}));
+    setPickedGroup(h.group_label||''); setStudentQuery(''); setStudentHits([]); setStudentSearch('idle');
+  };
+  const clearPicked = ()=>{ setFormCase(f=>({...f,student_ref_source:'',student_ref_id:''})); setPickedGroup(''); };
   const origins = [{v:'estudante',l:'Estudante'},{v:'professor',l:'Professor'},{v:'coordenacao',l:'Coordenação'},{v:'secretaria',l:'Secretaria'},{v:'fato_e_ordem',l:'Fato & Ordem'}];
   const needsTypes = [{v:'apoio_pedagogico',l:'Apoio Pedagógico'},{v:'acessibilidade',l:'Acessibilidade'},{v:'apoio_psicologico',l:'Apoio Psicológico'},{v:'adaptacao_curricular',l:'Adaptação Curricular'},{v:'recurso_assistivo',l:'Recurso Assistivo'},{v:'interprete_libras',l:'Intérprete de Libras'},{v:'outro',l:'Outro'}];
   const accomCategories = accommodationCategories.map(v=>({v,l:v.replaceAll('_',' ')}));
@@ -74,7 +99,7 @@ function Inclusao360Content({institutionId,role}:Props) {
       await checkedWrite(supabase.from(table).insert(payload));
       if (!mounted.current) return;
       setShowForm(null);
-      setFormCase({student_name:'',student_matricula:'',priority:'normal',summary:''});
+      setFormCase(emptyCase); setStudentQuery(''); setStudentHits([]); setStudentSearch('idle'); setPickedGroup('');
       setFormReq({case_id:'',origin:'coordenacao',needs_type:'apoio_pedagogico',description:'',requester_name:''});
       setFormPlan({case_id:'',student_name:'',objectives:'',effective_from:'',effective_until:''});
       setFormAccom({plan_id:'',category:'metodologica',description:'',responsible:''});
@@ -124,9 +149,19 @@ function Inclusao360Content({institutionId,role}:Props) {
           <div className="inc-header"><h3>Casos de Apoio</h3><button className="inc-btn-primary" onClick={()=>setShowForm('case')}>+ Novo caso</button></div>
           {showForm==='case' && (
             <div className="inc-form">
+              <input type="search" aria-label="Buscar aluno na base por nome ou matrícula" placeholder="Buscar aluno na base (nome ou matrícula)" value={studentQuery} onChange={e=>searchStudents(e.target.value)} />
+              {studentSearch==='loading'&&<div role="status" className="inc-search-note">Buscando…</div>}
+              {studentSearch==='error'&&<div className="inc-search-note">Não foi possível consultar a base agora. Informe o aluno manualmente abaixo.</div>}
+              {studentSearch==='done'&&studentHits.length===0&&<div className="inc-search-note">Nenhum aluno encontrado na base. Informe manualmente abaixo.</div>}
+              {studentHits.length>0&&<ul className="inc-search-list" aria-label="Resultados da busca">
+                {studentHits.map(h=><li key={h.student_source+h.student_id}><button type="button" className="inc-search-hit" onClick={()=>pickStudent(h)}>
+                  <strong>{h.student_name}</strong><span className="inc-mono"> · {h.enrollment_code}</span>{h.group_label&&<span> · {h.group_label}</span>}{h.student_source==='registry'&&h.verified===false&&<span className="inc-search-flag"> · cadastro não verificado</span>}
+                </button></li>)}
+              </ul>}
+              {formCase.student_ref_id&&<div className="inc-search-picked" role="status">Vinculado à base{pickedGroup?` · ${pickedGroup}`:''} <button type="button" className="inc-btn-small" onClick={clearPicked}>Desvincular</button></div>}
               <div className="inc-form-row">
-                <input placeholder="Nome do estudante" value={formCase.student_name} onChange={e=>setFormCase({...formCase,student_name:e.target.value})} />
-                <input placeholder="Matrícula (opcional)" value={formCase.student_matricula} onChange={e=>setFormCase({...formCase,student_matricula:e.target.value})} />
+                <input placeholder="Nome do estudante" value={formCase.student_name} onChange={e=>setFormCase({...formCase,student_name:e.target.value,student_ref_source:'',student_ref_id:''})} />
+                <input placeholder="Matrícula (opcional)" value={formCase.student_matricula} onChange={e=>setFormCase({...formCase,student_matricula:e.target.value,student_ref_source:'',student_ref_id:''})} />
               </div>
               <div className="inc-form-row">
                 <select value={formCase.priority} onChange={e=>setFormCase({...formCase,priority:e.target.value})}>

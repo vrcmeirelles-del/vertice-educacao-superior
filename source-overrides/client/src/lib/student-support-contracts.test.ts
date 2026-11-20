@@ -6,6 +6,19 @@ describe('student support schema contracts',()=>{
  it('uses valid initial case state and preserves server-generated inclusion protocol',()=>{expect(build('supportCase',{student_name:' TESTE ',priority:'normal'},ctx)).toMatchObject({student_name:'TESTE',status:'solicitacao_recebida'});expect(build('supportCase',{student_name:'TESTE',priority:'normal'},ctx)).not.toHaveProperty('protocol');});
  it.each(['baixa','normal','alta','urgente'])('accepts case priority %s allowed by the database check',priority=>{expect(build('supportCase',{student_name:'TESTE',priority},ctx)).toMatchObject({priority});});
  it('rejects case priority outside the database check, such as critico',()=>{expect(()=>build('supportCase',{student_name:'TESTE',priority:'critico'},ctx)).toThrow();});
+ it('links a support case to the school or registry student only when chosen from the base',()=>{
+  expect(build('supportCase',{student_name:'TESTE',priority:'normal',student_ref_source:'school',student_ref_id:'sch-1'},ctx)).toMatchObject({school_student_id:'sch-1'});
+  expect(build('supportCase',{student_name:'TESTE',priority:'normal',student_ref_source:'registry',student_ref_id:'reg-1'},ctx)).toMatchObject({registry_student_id:'reg-1'});
+  const manual=build('supportCase',{student_name:'TESTE',priority:'normal',student_ref_source:'',student_ref_id:''},ctx);
+  expect(manual).not.toHaveProperty('school_student_id');expect(manual).not.toHaveProperty('registry_student_id');
+ });
+ it('never sets both student links and rejects an unknown or incomplete link',()=>{
+  const linked=build('supportCase',{student_name:'TESTE',priority:'normal',student_ref_source:'school',student_ref_id:'sch-1'},ctx);
+  expect(linked).not.toHaveProperty('registry_student_id');
+  expect(()=>build('supportCase',{student_name:'TESTE',priority:'normal',student_ref_source:'outra',student_ref_id:'x'},ctx)).toThrow();
+  expect(()=>build('supportCase',{student_name:'TESTE',priority:'normal',student_ref_source:'school',student_ref_id:''},ctx)).toThrow();
+  expect(()=>build('supportCase',{student_name:'TESTE',priority:'normal',student_ref_source:'',student_ref_id:'x'},ctx)).toThrow();
+ });
  it('generates unique special protocols and copies category code',()=>{const a=build('specialCase',{student_name:'TESTE',category_id:'cat-a'},ctx),b=build('specialCase',{student_name:'TESTE'},ctx);expect(a.protocol).toMatch(/^AE-[a-f0-9-]{36}$/);expect(a.protocol).not.toBe(b.protocol);expect(a.category_code).toBe('TESTE');});
  it.each(['supportPlan','specialPlan','specialRequest','specialDecision'])('%s requires a valid case from current institution',kind=>{expect(()=>build(kind,{case_id:''},ctx)).toThrow();expect(()=>build(kind,{case_id:c.id},{...ctx,institutionId:'ies-b'})).toThrow();});
  it('does not let free text replace the linked student or UUID author',()=>{expect(build('specialPlan',{case_id:c.id,student_name:'other',elaborated_by:'Someone'},ctx)).toMatchObject({student_name:c.student_name,status:'rascunho'});expect(build('specialPlan',{case_id:c.id,elaborated_by:'Someone'},ctx)).not.toHaveProperty('elaborated_by');});
