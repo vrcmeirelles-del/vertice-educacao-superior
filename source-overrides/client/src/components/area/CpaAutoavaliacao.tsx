@@ -997,15 +997,15 @@ ${sections.map(s => `<h2>${s.title}</h2><p>${(s.content || '').replace(/\n/g, '<
         <h3>📄 Relatórios de Autoavaliação</h3>
         {(role === 'master' || role === 'gestor') && !generating && (
           <div style={{ display: 'flex', gap: 6 }}>
-            <button className="alumni-btn-primary" onClick={() => generate('parcial', String(new Date().getFullYear()))}>🤖 Gerar relatório parcial</button>
-            <button className="alumni-btn-primary" style={{ background: '#7c3aed' }} onClick={() => generate('integral', String(new Date().getFullYear()))}>🤖 Gerar relatório integral</button>
+            <button className="alumni-btn-primary" onClick={() => generate('parcial', String(new Date().getFullYear()))}>Gerar relatório parcial</button>
+            <button className="alumni-btn-primary" style={{ background: '#7c3aed' }} onClick={() => generate('integral', String(new Date().getFullYear()))}>Gerar relatório integral</button>
           </div>
         )}
-        {generating && <span style={{ color: '#2563eb', fontWeight: 600 }}>⏳ Gerando com IA (pode levar 1-2 minutos)…</span>}
+        {generating && <span style={{ color: '#2563eb', fontWeight: 600 }}>Gerando minuta do relatório…</span>}
       </div>
 
       {/* Lista de relatórios */}
-      {reports.length === 0 && !generating ? <EmptyState msg="Nenhum relatório gerado. Clique em 'Gerar relatório' para criar a minuta com IA." /> : (
+      {reports.length === 0 && !generating ? <EmptyState msg="Nenhum relatório gerado. Clique em 'Gerar relatório' para criar a minuta a partir dos dados institucionais." /> : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
           {reports.map(r => {
             const st = STATUS_L[r.status] || { l: r.status, bg: '#94a3b8' };
