@@ -6,6 +6,7 @@ import { MODULE_HELP } from "@/lib/module-help";
 import { HelpLabel } from '@/components/ContextHelp';
 import InstitutionSubTabs, { orderAcademicModules } from "./InstitutionSubTabs";
 import InstitutionTabs, { MACRO_TABS, macroTabFor, macroDestination, type MacroTab } from "./InstitutionTabs";
+import Avalia360AcademicEntry from "./Avalia360AcademicEntry";
 import {actionDraftKey,parseActionDraft,storeActionDraft,validateActionLinks,changeActionScope} from "@/lib/portal-integration";
 import ActionCockpit from "./ActionCockpit";
 import ActionKanban from "./ActionKanban";
@@ -104,7 +105,7 @@ const TAB_GROUPS: {label:string;subtitle:string;icon:string;tabs:Tab[];tier?:'su
   {label:'Gestão',subtitle:'Planejamento, metas e governança',icon:'▦',tabs:['planejamento-estrategico','planejamento-semestral','base','metas','plano','diagnostico','equipe','cpa-autoavaliacao'],tier:'both'},
   {label:'Gestão Institucional',subtitle:'Programas e metas do PDI',icon:'◎',tabs:['programas-pdi'],tier:'superior'},
   {label:'Regulação',subtitle:'Instrumentos e evidências MEC/INEP',icon:'◇',tabs:['emec','repositorio','validacao','avaliacao','novo_instrumento','biblioteca'],tier:'superior'},
-  {label:'Acadêmico',sortByLabel:true,subtitle:'Currículo, desempenho e avaliação',icon:'▤',tabs:['discursiva','geral','cadastro','visao','construcao-curricular','trilhas-enade','enade','atividades-ensino','eorbit','backups','auditoria'],tier:'superior'},
+  {label:'Acadêmico',sortByLabel:true,subtitle:'Currículo, desempenho e avaliação',icon:'▤',tabs:['discursiva','avalia360','geral','cadastro','visao','construcao-curricular','trilhas-enade','enade','atividades-ensino','eorbit','backups','auditoria'],tier:'superior'},
   {label:'Inteligência',subtitle:'Análises, integrações e decisões',icon:'◎',tabs:['mercado','analise','ia','fontes','conexoes','reitor','resultado-curso','simulador','raio-x-direito','vitrine-curso','aprendizagem'],tier:'superior'},
   {label:'Carreiras e Egressos',subtitle:'Relacionamento, desenvolvimento e empregabilidade',icon:'🎓',tabs:['conecta','egressos'],tier:'superior'},
   {label:'Extensão',subtitle:'Projetos de extensão, participantes e cobertura',icon:'🤝',tabs:['extensao'],tier:'superior'},
@@ -126,6 +127,7 @@ const TAB_DETAILS: Partial<Record<Tab,{icon:string;description:string}>> = {
  'programas-pdi':{icon:'◎',description:'Programas, metas, indicadores e contribuições acadêmicas do PDI'},
  'atividades-ensino':{icon:'▤',description:'Eventos formativos, práticas e simulados com evidências da Mesa Digital'},
  "discursiva":{icon:"✍",description:"Casos práticos, provas com QR e correção assistida por rubrica"},
+ "avalia360":{icon:"▤",description:"Estúdio de avaliações e curadoria pedagógica — versão demonstrativa independente"},
  mercado:{icon:"◎",description:"Movimentações de mercado, fontes, exposição e decisões estratégicas"},
  "escola-individual":{icon:"▤",description:"Acompanhamento Individual com fontes, histórico e revisão da direção"},
  "escola-documentos":{icon:"▤",description:"Documentos e Assinaturas com fontes, histórico e revisão da direção"},
@@ -196,6 +198,7 @@ const TABS: [Tab, string][] = [
   ["programas-pdi", "Programas e metas do PDI"],
   ["atividades-ensino", "Atividades de Ensino"],
  ["discursiva", "Discursiva 360°"],
+ ["avalia360", "Avalia 360°"],
   ["escola-individual","Acompanhamento Individual"],
   ["escola-documentos","Documentos e Assinaturas"],
   ["escola-bi", "Desempenho Escolar"],
@@ -433,7 +436,7 @@ export default function Workspace({
       setModuleSearch(""); setOnlyFavorites(false);
     }
   };
-  const isLocked = (tabKey: string) => tabKey !== "discursiva" && tabKey !== "programas-pdi" && tabKey !== "atividades-ensino" && !["escola-individual","escola-documentos","escola-bi", "escola-permanencia", "escola-financeiro", "escola-dados", "escola-projetos", "escola-planejamento-prof", "escola-estagio", "escola-captacao"].includes(tabKey) && tabKey !== "mercado" && tabKey !== "conecta" && tabKey !== "gestao-escolar" && tabKey !== "planejamento-estrategico" && tabKey !== "planejamento-semestral" && activeTabs.size > 0 && !activeTabs.has(tabKey);
+  const isLocked = (tabKey: string) => tabKey !== "discursiva" && tabKey !== "avalia360" && tabKey !== "programas-pdi" && tabKey !== "atividades-ensino" && !["escola-individual","escola-documentos","escola-bi", "escola-permanencia", "escola-financeiro", "escola-dados", "escola-projetos", "escola-planejamento-prof", "escola-estagio", "escola-captacao"].includes(tabKey) && tabKey !== "mercado" && tabKey !== "conecta" && tabKey !== "gestao-escolar" && tabKey !== "planejamento-estrategico" && tabKey !== "planejamento-semestral" && activeTabs.size > 0 && !activeTabs.has(tabKey);
   const isTasting = (tabKey: string) => {
     const mod = findModuleByTab(moduleCatalog, tabKey);
     return mod?.display_status === 'tasting';
@@ -593,6 +596,10 @@ export default function Workspace({
         <p role="status">Carregando…</p>
       ) : tab === "mercado" ? (
         <Suspense fallback={<p role="status">Carregando inteligência de mercado…</p>}><MarketIntelligence key={String(id)} institutionId={String(id)} courses={data.courses} goals={data.goals} role={role} onPlanning={()=>choose("planejamento-estrategico")}/></Suspense>
+      ) : tab === "avalia360" ? (
+        role && allowedTabs.includes("avalia360") && instTier==="superior"
+          ? <Avalia360AcademicEntry/>
+          : <p role="alert">Acesso restrito aos perfis acadêmicos autorizados.</p>
       ) : tab === "discursiva" ? (
  <Suspense fallback={<p role="status">Carregando Discursiva 360°…</p>}><Discursiva360 institutionId={String(id)} courses={data.courses.map(c=>({id:String(c.id),name:String(c.name)}))}/></Suspense>
  ) : tab === "construcao-curricular" ? (
