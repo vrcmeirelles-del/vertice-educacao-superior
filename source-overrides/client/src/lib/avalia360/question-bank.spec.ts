@@ -27,6 +27,14 @@ describe('banco de questões Avalia 360°',()=>{
   expect(bank.status).toBe('rascunho');
   expect(bank.revision).toBe(1);
  });
+ it('guarda e recupera o padrão esperado da questão discursiva sem alterar o original',()=>{
+  const disc={...q,kind:'discursiva' as const,rubric:'Análise do caso e pontuação',expectedAnswer:'Elementos essenciais e fundamentação jurídica esperados.'};
+  const original=prepareBankQuestion({institutionId:'ies',courseId:'dir',discipline:'Direito Civil',question:disc,bankId:'id-banco',createdAt:'2026-11-20T16:00:00.000Z'});
+  const copy=reuseBankQuestion(original,'id-novo','Direito Civil');
+  expect(copy.expectedAnswer).toBe(disc.expectedAnswer);
+  copy.expectedAnswer='Nova redação da resposta esperada';
+  expect(original.question.expectedAnswer).toBe(disc.expectedAnswer);
+ });
  it('filtra por IES, curso, disciplina e busca textual',()=>{
   const records=[mk('ies','dir'),mk('ies2','dir'),mk('ies','ped'),mk('ies','dir','Direito Penal')];
   expect(filterBankQuestions(records,{institutionId:'ies',courseId:'dir',discipline:'  DIREITO CIVIL ',query:'alternativas'})).toHaveLength(1);
