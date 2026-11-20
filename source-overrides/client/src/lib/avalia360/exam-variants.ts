@@ -37,7 +37,7 @@ export function createExamVariants(questions:QuestionDraft[],count:number,mode:S
  const available=maxDistinctVariants(questions,mode);
  if(count>available)throw Error('Esta avaliação permite no máximo '+available+' versão(ões) diferentes com o modo de randomização selecionado.');
  const seen=new Set<string>();
- const shuffleQuestions=mode!=='alternativas',shuffleOptions=mode!=='questoes';
+ const shuffleQuestions=count>1&&mode!=='alternativas',shuffleOptions=count>1&&mode!=='questoes';
  return Array.from({length:count},(_,v)=>{
   for(let attempt=0;attempt<2000;attempt++){
    const order=shuffleQuestions?
