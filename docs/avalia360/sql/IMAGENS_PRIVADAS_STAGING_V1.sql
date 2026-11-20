@@ -17,10 +17,13 @@ CREATE TABLE vertice_avalia.question_media (
   state text NOT NULL DEFAULT 'pending' CHECK (state IN ('pending','confirmed','rejected')),
   created_at timestamptz NOT NULL DEFAULT now(),
   confirmed_at timestamptz,
-  FOREIGN KEY (course_id,institution_id)
-    REFERENCES public.vertice_courses(id,institution_id),
+  FOREIGN KEY (course_id) REFERENCES public.vertice_courses(id) ON DELETE RESTRICT,
   CHECK ((state='confirmed') = (actual_sha256 IS NOT NULL AND confirmed_at IS NOT NULL))
 );
+CREATE TRIGGER avalia_media_course_scope
+ BEFORE INSERT OR UPDATE OF institution_id,course_id
+ ON vertice_avalia.question_media
+ FOR EACH ROW EXECUTE FUNCTION vertice_avalia.guard_course_scope();
 CREATE INDEX avalia_question_media_scope ON vertice_avalia.question_media
  (institution_id,course_id,created_by,question_id,state);
 ALTER TABLE vertice_avalia.question_media ENABLE ROW LEVEL SECURITY;
