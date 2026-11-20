@@ -9,13 +9,14 @@ export type BankStatus='rascunho'|'em_curadoria'|'validada';
 export interface BankQuestion {
  bankId:string;revision:number;institutionId:string;courseId:string;discipline:string;
  createdAt:string;status:BankStatus;sourceAssessmentId?:string;
+ indexLabels?:string[];
  question:Omit<QuestionDraft,'images'> & {images:[]};
 }
 const normalized=(v:string)=>v.normalize('NFKC').trim().toLocaleLowerCase('pt-BR').replace(/\s+/g,' ');
 /** O mesmo ID e a mesma versão não devem ser modificados quando reutilizados. */
 export function prepareBankQuestion(args:{
  institutionId:string;courseId:string;discipline:string;
- question:QuestionDraft;createdAt:string;bankId:string;
+ question:QuestionDraft;createdAt:string;bankId:string;indexLabels?:string[];
 }):BankQuestion{
  const {question:q}=args;
  if(!args.institutionId||!args.courseId||!args.discipline.trim())throw Error('Selecione instituição, curso e disciplina.');
@@ -35,6 +36,7 @@ export function prepareBankQuestion(args:{
  }
  return {bankId:args.bankId,revision:1,institutionId:args.institutionId,courseId:args.courseId,
   discipline:args.discipline.trim(),createdAt:args.createdAt,status:'rascunho',
+  indexLabels:[...new Set((args.indexLabels??[]).map(label=>label.trim()).filter(Boolean))],
   question:{...q,id:args.bankId,disciplineId:args.discipline.trim(),
    options:q.options.map(o=>({...o})),topicIds:[...q.topicIds],
    competencyIds:[...q.competencyIds],purpose:[...q.purpose],examTags:[...q.examTags],images:[]}};
@@ -42,10 +44,11 @@ export function prepareBankQuestion(args:{
 export function filterBankQuestions(list:BankQuestion[],args:{
  institutionId:string;courseId:string;discipline?:string;query?:string
 }):BankQuestion[]{
- const disc=normalized(args.discipline||''),search=normalized(args.query||'');
+ const normalizeSearch=(value:string)=>normalized(value).normalize('NFD').replace(/\p{M}/gu,'');
+ const disc=normalized(args.discipline||''),search=normalizeSearch(args.query||'');
  return list.filter(q=>q.institutionId===args.institutionId&&q.courseId===args.courseId
   &&(!disc||normalized(q.discipline)===disc)
-  &&(!search||normalized([q.question.statement,q.discipline,...q.question.topicIds,...q.question.competencyIds,...q.question.examTags].join(' ')).includes(search)))
+  &&(!search||normalizeSearch([q.question.statement,q.discipline,...(q.indexLabels??[]),...q.question.topicIds,...q.question.competencyIds,...q.question.examTags].join(' ')).includes(search)))
   .sort((a,b)=>b.createdAt.localeCompare(a.createdAt));
 }
 export function reuseBankQuestion(record:BankQuestion,newId:string,discipline:string):QuestionDraft{

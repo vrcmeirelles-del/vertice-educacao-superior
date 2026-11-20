@@ -40,6 +40,14 @@ describe('banco de questões Avalia 360°',()=>{
   expect(filterBankQuestions(records,{institutionId:'ies',courseId:'dir',discipline:'  DIREITO CIVIL ',query:'alternativas'})).toHaveLength(1);
   expect(filterBankQuestions(records,{institutionId:'ies',courseId:'dir',discipline:'Direito Civil',query:'inexistente'})).toHaveLength(0);
  });
+ it('indexa os nomes curriculares e encontra termos sem acento',()=>{
+  const labels=['Responsabilidade civil', 'Abuso de direito', 'C1', 'Análise jurídica'];
+  const record=prepareBankQuestion({institutionId:'ies',courseId:'dir',discipline:'Direito Civil',
+   question:q,indexLabels:labels,bankId:'item',createdAt:'2026-11-20T16:00:00Z'});
+  labels.length=0;
+  for(const query of ['responsabilidade civil','abuso de direito','analise juridica','oab'])
+   expect(filterBankQuestions([record],{institutionId:'ies',courseId:'dir',query})).toEqual([record]);
+ });
  it('bloqueia itens inválidos, anexos sem Storage e cópia na disciplina errada',()=>{
   expect(()=>prepareBankQuestion({institutionId:'ies',courseId:'dir',discipline:'Civil',
    question:{...q,correctOptionId:''},bankId:'item',createdAt:'2026-11-20T16:00:00Z'})).toThrow(/gabarito/);

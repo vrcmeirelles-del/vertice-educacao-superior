@@ -414,7 +414,12 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
     </div>}
     <QuestionBankPanel previewMode={previewMode}
      institutionId={institutionId} courseId={courseId} discipline={disciplineId}
-     currentQuestion={q} onReuse={item=>{
+     currentQuestion={q}
+     indexLabels={[
+      ...pedagogy.topics.filter(t=>q?.topicIds.includes(t.id)).map(t=>t.title),
+      ...pedagogy.competencies.filter(c=>q?.competencyIds.includes(c.id)).flatMap(c=>[c.code,c.title])
+     ]}
+     onReuse={item=>{
       setQuestions(all=>[...all,item]);setActiveIndex(questions.length);
       setPreview(false);setLoaded(null);setErrors([]);
      }}/>
