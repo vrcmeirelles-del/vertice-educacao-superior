@@ -4,7 +4,7 @@ const base:QuestionDraft={
  id:'q1',disciplineId:'civil',kind:'objetiva',
  statement:'Considere a situação descrita e indique a resposta correta.',
  options:[{id:'A',text:'Alternativa 1'},{id:'B',text:'Alternativa 2'}],
- correctOptionId:'A',rubric:'',topicIds:['responsabilidade'],
+ correctOptionId:'A',answerJustification:'A alternativa A se sustenta pelo enunciado da questão.',rubric:'',topicIds:['responsabilidade'],
  competencyIds:['c1'],purpose:['formativa'],estimatedDifficulty:3,points:2,
  examTags:['oab'],images:[]
 };
