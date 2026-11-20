@@ -67,7 +67,7 @@ export default function ClassBatchPublisher({institutionId,courseId,institutionN
    const filename='Avalia360-'+classLabel+'-'+semester.replace('/','-');
    const variants=createExamVariants(questions,variantCount,shuffleMode);
    const rows=teacherAnswerRows(variants);
-   const safeCell=(value:string|number)=>'"'+String(value).replace(/^[\s]*[=+@-]/,'\u0027   const filename='Avalia360-'+classLabel+'-'+semester.replace('/','-');').replace(/"/g,'""')+'"';
+   const safeCell=(value:string|number)=>{const raw=String(value);const safe=/^\s*[=+@-]/.test(raw)?"'"+raw:raw;return '"'+safe.replace(/"/g,'""')+'"';};
    const csv=['Versão;Questão;Gabarito;ID original;Justificativa docente',
     ...rows.map(row=>[row.version,row.question,row.correct,row.sourceId,row.justification].map(safeCell).join(';'))].join('\r\n');
    const keyBlob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
