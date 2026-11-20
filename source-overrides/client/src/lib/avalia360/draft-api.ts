@@ -17,6 +17,7 @@ export interface DraftSaveInput {
  draftId?:string;expectedRevision?:number;buildId?:string;
  questions:QuestionDraft[];
  uploadedImages?: Record<string, Array<{localId:string;receipt:UploadedImageReceipt}>>;
+ assessmentMeta?: {title:string;semester:string;purpose:'diagnostica'|'formativa'|'somativa'};
 }
 function sanitizeQuestion(q:QuestionDraft, uploaded:DraftSaveInput['uploadedImages']) {
  // Os metadados de mídia dependem de upload privado validado e
@@ -60,6 +61,7 @@ export async function saveAssessmentDraft(input:DraftSaveInput):Promise<DraftApi
     ...(input.draftId?{id:input.draftId}:{}),
     ...(input.expectedRevision?{expectedRevision:input.expectedRevision}:{}),
     ...(input.buildId?{buildId:input.buildId}:{}),
+    ...(input.assessmentMeta?{meta:input.assessmentMeta}:{}),
     questions:input.questions.map(q=>sanitizeQuestion(q,input.uploadedImages))
    }
   });
