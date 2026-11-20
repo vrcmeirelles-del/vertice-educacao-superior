@@ -3,9 +3,11 @@ export const supportOrigins = ['estudante', 'secretaria', 'coordenacao', 'profes
 export const specialOrigins = ['estudante', 'secretaria', 'coordenacao', 'nucleo_apoio', 'professor', 'representante'];
 export const assessmentStatuses = ['rascunho', 'concluida', 'revisada'];
 export const referralStatuses = ['pendente', 'aceito', 'concluido', 'recusado'];
+export const teacherLogTypes = ['adaptacao_metodologica', 'adaptacao_avaliativa', 'material_disponibilizado', 'recurso_utilizado', 'dificuldade_encontrada', 'resultado_observado', 'solicitacao_orientacao', 'registro_geral'];
+export const courseActionStatuses = ['pendente_atribuicao', 'atribuida', 'ciencia_registrada', 'em_execucao', 'aguardando_evidencia', 'aguardando_validacao', 'validada', 'devolvida_ajuste', 'concluida', 'cancelada'];
 export const accommodationCategories = ['metodologica', 'material_acessivel', 'comunicacao', 'tecnologia_assistiva', 'avaliativa', 'acessibilidade_fisica', 'acessibilidade_digital', 'atividade_pratica', 'estagio', 'outra'];
-type Row = { id: string; institution_id: string; student_name?: string; student_matricula?: string; course_id?: string; code?: string; category_code?: string };
-type Context = { institutionId: string; cases: Row[]; plans?: Row[]; categories?: Row[]; role?: string };
+type Row = { id: string; institution_id: string; case_id?: string; student_name?: string; student_matricula?: string; course_id?: string; code?: string; category_code?: string };
+type Context = { institutionId: string; cases: Row[]; plans?: Row[]; actions?: Row[]; categories?: Row[]; role?: string };
 type Form = Record<string, string | boolean>;
 const text = (f: Form, key: string) => String(f[key] ?? '').trim();
 const required = (value: string, label: string) => { if (!value) throw new Error(`Informe ${label}.`); return value; };
@@ -51,6 +53,18 @@ export function buildSupportPayload(kind: string, f: Form, ctx: Context): Record
     case 'supportPlan': {
       const c=caseRow();
       return {...common,case_id:c.id,student_name:required(c.student_name||'','o estudante do caso'),student_matricula:c.student_matricula||null,course_id:c.course_id||null,objectives:text(f,'objectives') ? text(f,'objectives').split(/\n+/).map(x=>x.trim()).filter(Boolean) : [],...planTexts(f),...dates(f,'effective_from','effective_until'),next_review_date:dates(f,'next_review_date','next_review_date').next_review_date,status:'em_elaboracao'};
+    }
+    case 'courseAction': {
+      const plan = parent(ctx.plans || [], text(f, 'plan_id'), institution_id);
+      if (!plan.case_id) throw new Error('Plano sem caso vinculado.');
+      return {...common,plan_id:plan.id,case_id:plan.case_id,course_id:plan.course_id||null,discipline_name:required(text(f,'discipline_name'),'a disciplina'),professor_name:required(text(f,'professor_name'),'o professor'),instructions:required(text(f,'instructions'),'as orientações'),adaptations_planned:text(f,'adaptations_planned')||null,resources_needed:text(f,'resources_needed')||null,semester_label:text(f,'semester_label')||null,...dates(f,'start_date','due_date'),status:'atribuida'};
+    }
+    case 'teacherLog': {
+      const action = parent(ctx.actions || [], text(f, 'action_id'), institution_id);
+      if (!action.case_id) throw new Error('Ação sem caso vinculado.');
+      const d = text(f, 'action_date');
+      if (d) dates(f, 'action_date', 'action_date');
+      return {...common,action_id:action.id,case_id:action.case_id,log_type:choice(text(f,'log_type'),teacherLogTypes),description:description(),evidence_note:text(f,'evidence_note')||null,professor_name:text(f,'professor_name')||null,...(d?{action_date:d}:{})};
     }
     case 'assessment': {
       const c = caseRow();
