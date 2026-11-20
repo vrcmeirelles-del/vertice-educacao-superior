@@ -920,7 +920,11 @@ function RelatoriosCPA({ institutionId, role }: { institutionId: string; role: s
         if (rep) { setReports(prev => [rep, ...prev.filter(r => r.id !== rep.id)]); setViewReport(rep); }
       }
       alert(`Relatório gerado com ${data?.sections?.length || 0} seções!`);
-    } catch (err) { alert('Erro: ' + (err as Error).message); }
+    } catch (err) {
+      let message = (err as Error).message;
+      try { const detail = await (err as { context?: Response }).context?.json(); if (detail?.message) message = detail.message; } catch { /* mantém a mensagem original */ }
+      alert('Erro: ' + message);
+    }
     finally { setGenerating(false); }
   };
 
