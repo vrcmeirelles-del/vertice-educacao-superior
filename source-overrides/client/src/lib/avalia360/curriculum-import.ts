@@ -27,6 +27,7 @@ export function mapCurriculumToAssessment(args:{
  const candidates=new Set(args.links.filter(l=>normalizeDiscipline(l.discipline_name)===normalizeDiscipline(args.disciplineName)).map(l=>l.competency_id));
  const own=args.competencies.filter(c=>c.build_id===build.id&&candidates.has(c.id));
  const missingPeriods:string[]=[];
+ const proposedPeriods:string[]=[];
  const codes=new Set<string>(),ids=new Set<string>();
  const competencies:PedagogicalDraft['competencies']=[];
  for(const c of own){
@@ -36,14 +37,16 @@ export function mapCurriculumToAssessment(args:{
   if(!code||!title)throw new Error('Competência sem código ou título.');
   if(codes.has(code.toLocaleLowerCase('pt-BR')))throw new Error('Código de competência duplicado.');
   codes.add(code.toLocaleLowerCase('pt-BR'));
-  if(!Number.isInteger(c.origin_period)||!c.origin_period||c.origin_period<1||c.origin_period>12||c.period_status!=='validated'){
+  if(!Number.isInteger(c.origin_period)||!c.origin_period||c.origin_period<1||c.origin_period>12){
    missingPeriods.push(c.code);
    continue;
   }
+  if(c.period_status!=='validated')proposedPeriods.push(c.code);
   competencies.push({id:c.id,code,title,period:c.origin_period});
  }
  if(!candidates.size)warnings.push('Nenhuma competência dessa matriz está vinculada à disciplina selecionada.');
- if(missingPeriods.length)warnings.push('Competências sem período validado na Construção Curricular: '+missingPeriods.join(', ')+'.');
- return {ready:missingPeriods.length===0&&competencies.length>0,buildId:build.id,
+ if(missingPeriods.length)warnings.push('Competências sem período informado na Construção Curricular: '+missingPeriods.join(', ')+'.');
+ if(proposedPeriods.length)warnings.push('Períodos ainda não homologados no PPC: '+proposedPeriods.join(', ')+'. Os vínculos continuam declarados.');
+ return {ready:missingPeriods.length===0&&proposedPeriods.length===0&&competencies.length>0,buildId:build.id,
   buildVersion:build.version,competencies,warnings,missingPeriods};
 }
