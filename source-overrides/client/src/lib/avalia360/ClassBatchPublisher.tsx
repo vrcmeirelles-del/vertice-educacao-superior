@@ -1,5 +1,5 @@
 import {useState} from 'react';
-import {buildIndividualizedPdf,downloadPdf,prepareIssues,type PrintStudent} from './individualized-pdf';
+import {buildIndividualizedPdf,downloadPdf,prepareIssues,validatePrintAssessment,type PrintStudent} from './individualized-pdf';
 import type {QuestionDraft} from './question-draft';
 import {loadAuthorizedClassRoster} from './class-roster';
 type Props={institutionId:string;courseId:string;institutionName?:string;courseName:string;discipline:string;title:string;semester:string;questions:QuestionDraft[];previewMode:boolean};
@@ -45,19 +45,8 @@ export default function ClassBatchPublisher({institutionId,courseId,institutionN
  };
  const generate=async()=>{
   if(!previewMode){setStatus('A emissão nominal real depende de autorização e conciliação com o cadastro institucional.');return;}
-  if(!courseName||!discipline.trim()||!title.trim()||!questions.length){
-   setStatus('Informe curso, disciplina, título e ao menos uma questão antes de gerar.');return;
-  }
-  if(questions.some(q=>q.statement.trim().length<10
-   ||!Number.isFinite(q.points)||q.points<=0
-   ||(q.kind==='objetiva'&&(
-    q.options.length<2||q.options.some(o=>!o.text.trim())
-    ||!q.options.some(o=>o.id===q.correctOptionId)
-    ||new Set(q.options.map(o=>o.text.trim().toLocaleLowerCase('pt-BR'))).size!==q.options.length))
-   ||(q.kind==='discursiva'&&!q.rubric.trim()))){
-   setStatus('Revise as questões: complete os enunciados, confirme pontuação, gabarito sem alternativas duplicadas e rubrica das discursivas.');return;
-  }
-  if(questions.some(q=>q.images.length>0)){setStatus('Esta primeira emissão PDF não suporta imagens anexadas. Retire as imagens ou aguarde a versão de PDF com figuras.');return;}
+  const problems=validatePrintAssessment({institutionName,courseName,discipline,title,semester,classLabel,questions});
+  if(problems.length){setStatus(problems.join(' '));return;}
   if(!classLabel.trim()){setStatus('Informe a turma.');return;}
   setWorking(true);setStatus('Preparando as folhas individualizadas…');
   try{
