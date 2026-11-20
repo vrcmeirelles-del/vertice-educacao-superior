@@ -20,9 +20,9 @@ CREATE TABLE vertice_avalia.assessment_drafts (
   FOREIGN KEY(course_id) REFERENCES public.vertice_courses(id) ON DELETE RESTRICT
 );
 -- Realidade confirmada da Vértice: public.vertice_courses tem PRIMARY KEY (id),
--- NÃO UNIQUE(id,institution_id). A segregação composta depende de trigger.
+-- e índices únicos de (id,institution_id). O trigger reforça o escopo.
 CREATE OR REPLACE FUNCTION vertice_avalia.guard_course_scope()
-RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $guard_scope$
 BEGIN
  IF NOT EXISTS (
    SELECT 1 FROM public.vertice_courses c
@@ -31,7 +31,7 @@ BEGIN
    RAISE EXCEPTION 'Curso pertence a outra instituição' USING ERRCODE='23514';
  END IF;
  RETURN NEW;
-END $;
+END $guard_scope$;
 REVOKE ALL ON FUNCTION vertice_avalia.guard_course_scope() FROM PUBLIC,anon,authenticated;
 CREATE TRIGGER avalia_draft_course_scope
  BEFORE INSERT OR UPDATE OF institution_id,course_id
