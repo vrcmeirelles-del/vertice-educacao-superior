@@ -5,7 +5,7 @@ import {createExamVariants,teacherAnswerRows,versioningNotice,type ShuffleMode} 
 import {loadAuthorizedClassRoster} from './class-roster';
 import unitopLogo from './unitop-logo.png';
 
-type Props={institutionId:string;courseId:string;institutionName?:string;courseName:string;discipline:string;title:string;semester:string;questions:QuestionDraft[];previewMode:boolean};
+type Props={institutionId:string;courseId:string;institutionName?:string;courseName:string;discipline:string;title:string;instructions:string;semester:string;questions:QuestionDraft[];previewMode:boolean};
 const field={display:'grid',gap:5,fontWeight:600,fontSize:13} as const;
 const style={padding:'10px 12px',border:'1px solid #cbd5e1',borderRadius:8,width:'100%'} as const;
 const demoStudents=[
@@ -13,7 +13,7 @@ const demoStudents=[
  {id:'demo-2a-2',name:'Bruno Exemplo',registration:'DEMO-002',selected:true},
  {id:'demo-2a-3',name:'Carla Exemplo',registration:'DEMO-003',selected:true}
 ];
-export default function ClassBatchPublisher({institutionId,courseId,institutionName,courseName,discipline,title,semester,questions,previewMode}:Props){
+export default function ClassBatchPublisher({institutionId,courseId,institutionName,courseName,discipline,title,instructions,semester,questions,previewMode}:Props){
  const printInstitutionName=institutionName ?? (previewMode ? 'Centro Universitário UNITOP' : 'Instituição demonstrativa');
  const [classLabel,setClassLabel]=useState('2A');
  const [students,setStudents]=useState<PrintStudent[]>([]);
@@ -29,7 +29,7 @@ export default function ClassBatchPublisher({institutionId,courseId,institutionN
  useEffect(()=>()=>{if(answerKeyUrl)URL.revokeObjectURL(answerKeyUrl);},[answerKeyUrl]);
  // Invalidar documentos gerados quando conteúdo, turma ou configuração mudarem.
  useEffect(()=>{setPdfUrl('');setAnswerKeyUrl('');},
-  [questions,students,variantCount,shuffleMode,classLabel,courseName,discipline,title,semester,printInstitutionName]);
+  [questions,students,variantCount,shuffleMode,classLabel,courseName,discipline,title,instructions,semester,printInstitutionName]);
  const chooseExample=()=>{setStudents(demoStudents.map(x=>({...x})));setClassLabel('2A');setStatus('Turma fictícia carregada. Nenhum estudante real foi consultado.');};
  const loadReal=async()=>{
   if(previewMode)return;
@@ -59,7 +59,7 @@ export default function ClassBatchPublisher({institutionId,courseId,institutionN
  };
  const generate=async()=>{
   if(!previewMode){setStatus('A emissão nominal real depende de autorização e conciliação com o cadastro institucional.');return;}
-  const problems=validatePrintAssessment({institutionName:printInstitutionName,courseName,discipline,title,semester,classLabel,questions});
+  const problems=validatePrintAssessment({institutionName:printInstitutionName,courseName,discipline,title,instructions,semester,classLabel,questions});
   if(problems.length){setStatus(problems.join(' '));return;}
   const variantError=versioningNotice(questions,variantCount,shuffleMode);
   if(variantError){setStatus(variantError);return;}
@@ -72,7 +72,7 @@ export default function ClassBatchPublisher({institutionId,courseId,institutionN
    if(logoResponse && !logoResponse.ok)throw Error('Não foi possível carregar a logo da UNITOP.');
    const institutionLogo=logoResponse ? await logoResponse.arrayBuffer() : undefined;
    const bytes=await buildIndividualizedPdf({institutionName:printInstitutionName,institutionLogo,courseName,discipline,
-    title,semester,classLabel,questions,variantCount,shuffleMode},issues);
+    title,instructions,semester,classLabel,questions,variantCount,shuffleMode},issues);
    const filename='Avalia360-'+classLabel+'-'+semester.replace('/','-');
    const variants=createExamVariants(questions,variantCount,shuffleMode);
    const rows=teacherAnswerRows(variants);
@@ -92,7 +92,7 @@ export default function ClassBatchPublisher({institutionId,courseId,institutionN
  };
  return <section aria-label="Geração por turma" style={{border:'1px solid #dce7f4',background:'#fff',borderRadius:14,padding:18,marginTop:18}}>
   <h3 style={{margin:'0 0 10px'}}>Gerar provas e cartões de resposta</h3>
-  <p style={{fontSize:13}}>Caderno A4 em duas colunas, cartão objetivo separado com o mesmo QR do aluno e linhas de discursiva com espaçamento 1,5. Você pode embaralhar questões, alternativas ou ambas e gerar até 12 versões diferentes.</p>
+  <p style={{fontSize:13}}>Caderno A4 com objetivas em duas colunas, discursivas em largura total com linhas de espaçamento 1,5 e cartão objetivo separado com o mesmo QR do aluno. Você pode embaralhar questões, alternativas ou ambas e gerar até 12 versões diferentes.</p>
   {previewMode?<div role="note" style={{padding:12,background:'#fff4e3',borderRadius:8,fontSize:13}}>
     Modo demonstração: a base oficial de alunos NÃO está conectada. Utilize nomes fictícios; nenhuma matrícula será consultada ou gravada no sistema. O QR é apenas um identificador de demonstração e não está habilitado para correção.
    </div>:<p role="note">A integração com a base oficial de turmas requer autorização no servidor e matrícula conciliada. A geração nominal está bloqueada até a homologação.</p>}

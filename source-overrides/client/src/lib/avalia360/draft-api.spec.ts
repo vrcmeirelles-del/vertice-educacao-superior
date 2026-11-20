@@ -67,10 +67,10 @@ describe('cliente de rascunhos do Avalia 360°',()=>{
    rpc.mockResolvedValue({data:{id:'d1',revision:1,status:'draft'},error:null});
    const out=await saveAssessmentDraft({institutionId:'ies-a',courseId:'direito',
      disciplineId:'civil',questions:[q],
-     assessmentMeta:{title:'Prova de Direito Civil — AV1',semester:'2027/1',purpose:'somativa'}});
+     assessmentMeta:{title:'Prova de Direito Civil — AV1',instructions:'Leia antes de responder.\nPreencha o cartão.',semester:'2027/1',purpose:'somativa'}});
    expect(out.ok).toBe(true);
    expect(rpc.mock.calls[0][1].p_payload.meta).toEqual({
-     title:'Prova de Direito Civil — AV1',semester:'2027/1',purpose:'somativa'
+     title:'Prova de Direito Civil — AV1',instructions:'Leia antes de responder.\nPreencha o cartão.',semester:'2027/1',purpose:'somativa'
    });
  });
  it('envia token de revisão para atualização',async()=>{

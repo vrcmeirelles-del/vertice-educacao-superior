@@ -11,7 +11,7 @@ import {createExamVariants,versioningNotice,type ShuffleMode} from './exam-varia
 
 export interface PrintStudent { id:string;name:string;registration?:string;selected:boolean; }
 export interface PrintAssessment {
- institutionName:string;institutionLogo?:ArrayBuffer;courseName:string;discipline:string;title:string;
+ institutionName:string;institutionLogo?:ArrayBuffer;courseName:string;discipline:string;title:string;instructions?:string;
  semester:string;classLabel:string;questions:QuestionDraft[];
  variantCount?:number;shuffleMode?:ShuffleMode;
 }
@@ -101,7 +101,7 @@ function figureSize(width:number,height:number,maxWidth:number,maxHeight:number)
  * QR é 'VA360:' + token aleatório, não contém matrícula ou CPF.
  * O QR precisa ser registrado pelo backend autenticado antes de uso real.
  */
-/** Prova A4 em duas colunas e cartão de respostas em página separada.
+/** Prova A4 com largura variável por questão e cartão de respostas em página separada.
  * A mesma identificação opaca aparece no caderno e no cartão.
  * Nenhum gabarito/justificativa/padrão docente é impresso no material discente.
  */
@@ -205,31 +205,40 @@ export async function buildIndividualizedPdf(info:PrintAssessment,issues:PrintIs
    return rowTop-19;
   };
   const captionY=drawHeader(page,info.title,true);
-  lineText(page,'CADERNO EM DUAS COLUNAS - QR DEMONSTRATIVO SEM REGISTRO',margin,captionY,7);
-  const firstPage=page;
-  const firstPageStart=captionY-20;
-  y=firstPageStart;
-  const advance=()=>{
-   if(col===0){col=1;y=page===firstPage?firstPageStart:top;}
-   else{
-    page=doc.addPage([W,H]);col=0;y=top;
-    lineText(page,'Continuação · '+issue.student.name+' · Versão '+variant.code,margin,top+20,8,true);
-   }
+  lineText(page,'CADERNO DE QUESTÕES - QR DEMONSTRATIVO SEM REGISTRO',margin,captionY,7);
+  y=captionY-20;
+  let fullWidth=true;
+  let bandTop=y;
+  const nextPage=()=>{
+   page=doc.addPage([W,H]);col=0;y=top;bandTop=top;
+   lineText(page,'Continuação · '+issue.student.name+' · Versão '+variant.code,margin,top+20,8,true);
   };
-  const space=(needed:number)=>{if(y-needed<bottom)advance();};
+  const space=(needed:number)=>{
+   if(y-needed>=bottom)return;
+   if(!fullWidth&&col===0&&bandTop-needed>=bottom){col=1;y=bandTop;}
+   else nextPage();
+  };
+  const width=()=>fullWidth?W-margin*2:colWidth;
   const write=(text:string,size=9.5,leading=14,strong=false,indent=0)=>{
-   for(const t of wrapMeasured(text,size,colWidth-indent,strong)){
+   for(const t of wrapMeasured(text,size,width()-indent,strong)){
     space(leading);
     lineText(page,t,columns[col]+indent,y,size,strong);
     y-=leading;
    }
   };
+  const instructions=info.instructions?.trim();
+  if(instructions){
+   space(30);
+   write('Instruções da avaliação',10,16,true);
+   write(instructions,9.5,14);
+   y-=12;
+  }
   const renderFigure=async(figure:PendingQuestionImage)=>{
    let fig=images.get(figure.localId);
    if(!fig){fig=await embedFigure(doc,figure);images.set(figure.localId,fig);}
-   const dims=figureSize(fig.width,fig.height,colWidth-12,190);
-   const captions=wrapMeasured(figure.caption.trim()||figure.altText.trim(),7.5,colWidth-10);
-   space(dims.height+captions.length*11+21);
+   const dims=figureSize(fig.width,fig.height,width()-12,190);
+   const captions=wrapMeasured(figure.caption.trim()||figure.altText.trim(),7.5,width()-10);
+   space(dims.height+23);
    page.drawImage(fig,{x:columns[col]+6,y:y-dims.height,width:dims.width,height:dims.height});
    y-=dims.height+12;
    for(const caption of captions){write(caption,7.5,11,false,6);}
@@ -237,6 +246,14 @@ export async function buildIndividualizedPdf(info:PrintAssessment,issues:PrintIs
   };
   for(const item of variant.items){
    const q=item.question;
+   const needsFullWidth=q.kind==='discursiva';
+   if(needsFullWidth!==fullWidth){
+    // A segunda coluna só é usada depois de esgotar a primeira.
+    // Se já a usamos, começamos a discursiva em uma nova página.
+    if(needsFullWidth&&col===1)nextPage();
+    fullWidth=needsFullWidth;
+    bandTop=y;
+   }
    space(60);
    write('QUESTÃO '+item.displayNumber+'  ·  '+q.points+' ponto(s)',9.5,16,true);
    write(q.statement,9,13,false);
@@ -257,7 +274,7 @@ export async function buildIndividualizedPdf(info:PrintAssessment,issues:PrintIs
     // 12 pt de referência e 18 pt entre pautas: entrelinha 1,5.
     for(let j=0;j<lines;j++){
      space(18);
-     page.drawLine({start:{x:columns[col]+3,y:y-3},end:{x:columns[col]+colWidth-4,y:y-3},
+     page.drawLine({start:{x:columns[col]+3,y:y-3},end:{x:columns[col]+width()-4,y:y-3},
       thickness:.48,color:pale});
      y-=18;
     }
