@@ -77,7 +77,7 @@ export async function saveAssessmentDraft(input:DraftSaveInput):Promise<DraftApi
 
 export interface StoredAssessmentDraft {
  id:string;revision:number;status:'draft'|'submitted'|'validated'|'archived';
- snapshot:{questions:Array<Record<string,unknown>>;curriculumStatus?:string};
+ snapshot:{questions:Array<Record<string,unknown>>;curriculumStatus?:string;meta?:{title?:string;semester?:string;purpose?:string}};
 }
 export type DraftReadResult={ok:true;draft:StoredAssessmentDraft}|{ok:false;error:DraftApiFailure};
 /** Lê apenas o rascunho pertencente ao usuário autorizado; a RPC protege IES/curso/disciplinas. */
