@@ -11,6 +11,8 @@ import {receiptScopeKey,reusableReceipt,type ScopedImageReceipt} from './receipt
 import type {Difficulty,Purpose} from './longitudinal-engine';
 import {analyzeDeclaredDraft,type PedagogicalDraft} from './declared-analysis';
 import PedagogicalParameters from './PedagogicalParameters';
+import {importOfficialCurriculum} from './curriculum-import-api';
+import {mapCurriculumToAssessment,type CurriculumImport} from './curriculum-import';
 
 export interface Avalia360StudioProps {
  institutionId:string;
@@ -90,6 +92,9 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
   currentPeriod:1,targetDifficulty:3,purpose:'formativa',examFocus:'',
   requiredCompetencyIds:[],requiredTopicIds:[],competencies:[],topics:[],relations:[]
  });
+ const [curriculumSource,setCurriculumSource]=useState<{buildId:string;version:number;ready:boolean}|null>(null);
+ const [curriculumMessage,setCurriculumMessage]=useState('');
+ const [curriculumBusy,setCurriculumBusy]=useState(false);
  const [analysisVisible,setAnalysisVisible]=useState(false);
  const [questions,setQuestions]=useState<QuestionDraft[]>([]);
  const [curationHistory,setCurationHistory]=useState<CurationDecision[]>([]);
@@ -102,7 +107,7 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
  const [busy,setBusy]=useState(false);
  const [status,setStatus]=useState('');
  const uploads=useRef(new Map<string,ScopedImageReceipt>());
- useEffect(()=>{setReceipt(null);setLoaded(null);setQuestions([]);setCurationHistory([]);setPreview(false);uploads.current.clear();setStatus('');},[institutionId,courseId]);
+ useEffect(()=>{setReceipt(null);setLoaded(null);setQuestions([]);setCurationHistory([]);setPreview(false);uploads.current.clear();setStatus('');setCurriculumSource(null);setCurriculumMessage('');setPedagogy(p=>({...p,competencies:[],requiredCompetencyIds:[],relations:[]}));},[institutionId,courseId]);
  const update=useCallback((change:Partial<QuestionDraft>)=>{
   setQuestions(all=>all.map((q,i)=>i===activeIndex?{...q,...change}:q));
   setLoaded(null);
@@ -121,7 +126,52 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
  };
  const setDiscipline=(value:string)=>{
   setDisciplineId(value);
-  if(questions.length) setQuestions(all=>all.map(q=>({...q,disciplineId:value})));
+  setCurriculumSource(null);
+  setCurriculumMessage('');
+  setPedagogy(p=>({...p,competencies:[],requiredCompetencyIds:[],relations:[]}));
+  if(questions.length) setQuestions(all=>all.map(q=>({...q,disciplineId:value,competencyIds:[]})));
+ };
+ const importCurriculum=async()=>{
+  if(!courseId||!disciplineId.trim()){
+   setCurriculumMessage('Selecione curso e disciplina antes de importar.');return;
+  }
+  setCurriculumBusy(true);setCurriculumMessage('');
+  try{
+   let result:CurriculumImport;
+   if(previewMode){
+    const buildId='demo-matriz-curricular';
+    result=mapCurriculumToAssessment({
+     institutionId,courseId,disciplineName:disciplineId,
+     build:{id:buildId,institution_id:institutionId,course_id:courseId,version:1,status:'published'},
+     competencies:[
+      {id:'demo-competencia-1',build_id:buildId,code:'C1',title:'Interpretar e aplicar conhecimentos da disciplina',origin_period:1,period_status:'validated'},
+      {id:'demo-competencia-2',build_id:buildId,code:'C2',title:'Analisar situações-problema e fundamentar decisões',origin_period:2,period_status:'proposed'}
+     ],
+     links:[
+      {competency_id:'demo-competencia-1',discipline_name:disciplineId},
+      {competency_id:'demo-competencia-2',discipline_name:disciplineId}
+     ]
+    });
+   }else result=await importOfficialCurriculum({institutionId,courseId,disciplineName:disciplineId});
+   if(!result.competencies.length){
+    setCurriculumMessage(result.warnings.join(' ')||'Nenhuma competência vinculada a esta disciplina.');return;
+   }
+   const ids=new Set(result.competencies.map(c=>c.id));
+   setPedagogy(p=>({...p,competencies:result.competencies,
+    requiredCompetencyIds:result.competencies.map(c=>c.id),
+    relations:p.relations.filter(r=>ids.has(r.sourceCompetencyId)&&ids.has(r.targetCompetencyId))
+   }));
+   setQuestions(all=>all.map(q=>({...q,competencyIds:q.competencyIds.filter(id=>ids.has(id))})));
+   setCurriculumSource({buildId:result.buildId,version:result.buildVersion,ready:result.ready});
+   setAnalysisVisible(false);
+   setCurriculumMessage(
+    (previewMode?'Exemplo fictício, sem consulta à base da Vértice. ':'')+
+    result.competencies.length+' competência(s) importada(s), matriz versão '+result.buildVersion+'. '+
+    (result.ready?'Períodos de origem marcados como validados no catálogo.':'Importação provisória; não equivale à homologação do PPC. ')+
+    result.warnings.join(' ')
+   );
+  }catch(e){setCurriculumMessage(e instanceof Error?e.message:'Não foi possível importar a matriz.');}
+  finally{setCurriculumBusy(false);}
  };
  const q=questions[activeIndex];
  const previewAnalysis=analysisVisible?analyzeDeclaredDraft({
@@ -281,9 +331,19 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
   </div>
   <div style={cardStyle}>
    <h3 id="avalia360-parametros" style={{margin:'0 0 12px',scrollMarginTop:20}}>3 · Parâmetros para análise longitudinal</h3>
+   <div style={{border:'1px solid #c9d9ee',background:'#f3f8ff',borderRadius:11,padding:14,margin:'12px 0'}}>
+    <strong>Competências: fonte Construção Curricular</strong>
+    <p style={{fontSize:13,margin:'6px 0 11px'}}>O cadastro definitivo de competências e de seus períodos fica no módulo Construção Curricular. Importe os vínculos deste curso e disciplina, em vez de recadastrá-los na prova.</p>
+    <button type="button" onClick={importCurriculum} disabled={curriculumBusy||!courseId||!disciplineId.trim()}
+     style={btn(true)}>{curriculumBusy?'Importando…':previewMode?'Importar exemplo da Construção Curricular':'Importar competências da Construção Curricular'}</button>
+    {!disciplineId.trim()&&<p style={{fontSize:12,marginTop:8}}>Informe a disciplina na seção 1 para habilitar a importação.</p>}
+    {curriculumSource&&<p style={{fontSize:12}}>Fonte: matriz {curriculumSource.buildId} · versão {curriculumSource.version} · {curriculumSource.ready?'períodos validados no catálogo':'períodos pendentes de validação'}</p>}
+    {curriculumMessage&&<p role="status" style={{fontSize:13,marginBottom:0}}>{curriculumMessage}</p>}
+   </div>
    <p style={{fontSize:13,color:'#475569'}}>Informe as competências, os temas, seus períodos de origem e as relações curriculares. Relacione-os às questões no quadro final. Estes dados são declarados e não substituem um PPC homologado.</p>
    <PedagogicalParameters value={{...pedagogy,purpose}} onChange={setPedagogy}
-    questions={questions} activeIndex={activeIndex} updateQuestion={update}/>
+    questions={questions} activeIndex={activeIndex} updateQuestion={update}
+    imported={!!curriculumSource}/>
    <div style={{marginTop:16,display:'flex',gap:12,alignItems:'center',flexWrap:'wrap'}}>
     <button type="button" style={btn(true)} onClick={()=>{
        const pending:string[]=[];
