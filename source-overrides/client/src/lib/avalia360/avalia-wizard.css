@@ -1,0 +1,56 @@
+/* Avalia 360° — experiência docente progressiva, clara e acessível */
+.avalia-wizard {background:#f4f8fd;color:#183451;border-radius:20px;padding:clamp(12px,2vw,25px);font-family:inherit}
+.avalia-wizard * {box-sizing:border-box}
+.avalia-wizard button,.avalia-wizard select,.avalia-wizard input,.avalia-wizard textarea {font:inherit}
+.avalia-wizard button:focus-visible,.avalia-wizard input:focus-visible,.avalia-wizard select:focus-visible,.avalia-wizard textarea:focus-visible,.avalia-wizard summary:focus-visible {outline:3px solid #0b71d8;outline-offset:3px}
+.avalia-hero {padding:14px 8px 18px}
+.avalia-eyebrow {color:#1259a6;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.avalia-hero h2 {font-size:clamp(23px,3vw,32px);letter-spacing:-.035em;color:#0d3269;margin:7px 0}
+.avalia-hero p {color:#4a6380;max-width:850px;line-height:1.5;margin:0}
+.avalia-steps {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;border:1px solid #d7e5f8;background:#fff;padding:9px;border-radius:15px;margin-bottom:16px}
+.avalia-step {display:flex;align-items:center;justify-content:center;gap:10px;background:transparent;border:0;border-radius:11px;color:#57708c;padding:12px 6px;cursor:pointer;font-weight:700}
+.avalia-step.active {background:#e2f0ff;color:#064a9a;box-shadow:inset 0 0 0 1px #b8d3fa}
+.avalia-step-index {width:29px;height:29px;border-radius:50%;background:#e6edf6;color:#526782;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.avalia-step.active .avalia-step-index {background:#0956b2;color:#fff}
+.avalia-step.done .avalia-step-index {background:#ddf6e8;color:#08794b}
+.avalia-panel {background:#fff;border:1px solid #dfebf8;border-radius:17px;padding:clamp(15px,2vw,24px);box-shadow:0 5px 20px rgba(29,65,113,.045)}
+.avalia-summary {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;margin:0 0 16px;padding:12px 14px;border-radius:14px;border:1px solid #d9e5f4;background:#fff}
+.avalia-summary div {padding:4px 14px;border-right:1px solid #dde7f2}
+.avalia-summary div:last-child {border-right:0}
+.avalia-summary small {display:block;color:#67809b;margin-bottom:3px}
+.avalia-summary strong {color:#173b71;font-size:14px;overflow-wrap:anywhere}
+.avalia-columns {display:grid;grid-template-columns:minmax(0,1fr) minmax(245px,300px);align-items:start;gap:17px}
+.avalia-question-top {display:flex;align-items:center;flex-wrap:wrap;justify-content:space-between;gap:10px;margin-bottom:14px}
+.avalia-pill {display:inline-flex;align-items:center;border-radius:100px;padding:5px 12px;background:#e2f0ff;color:#0b55a6;font-size:12px;font-weight:750}
+.avalia-muted {color:#61768f;font-size:13px}
+.avalia-editor-grid {display:grid;gap:15px}
+.avalia-answer-area {min-height:120px!important}
+.avalia-deep-options {margin-top:15px;border:1px solid #dce7f2;border-radius:13px;background:#f8fbff;padding:12px 14px}
+.avalia-deep-options summary {font-weight:750;color:#174c91;cursor:pointer}
+.avalia-actions {display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between;margin-top:16px}
+.avalia-action-primary {background:#0753b1;color:#fff;border:1px solid #0753b1;padding:13px 19px;border-radius:11px;font-weight:750;cursor:pointer}
+.avalia-action-secondary {background:#fff;color:#16519a;border:1px solid #bed4ef;padding:12px 17px;border-radius:11px;font-weight:750;cursor:pointer}
+.avalia-action-primary:disabled {opacity:.55;cursor:not-allowed}
+.avalia-sidebar {display:grid;gap:13px}
+.avalia-side-panel {padding:16px;border:1px solid #d9e6f4;background:#fff;border-radius:15px;box-shadow:0 4px 17px rgba(22,66,130,.04)}
+.avalia-side-panel h4 {color:#174686;font-size:15px;margin:0 0 12px;padding:7px 10px;background:#ecf4ff;border-radius:9px}
+.avalia-side-panel p,.avalia-side-panel li {font-size:12px;line-height:1.55;color:#435973}
+.avalia-side-panel ul {padding-left:19px;margin:8px 0}
+.avalia-checkrow {display:flex;gap:8px;align-items:start;border-bottom:1px solid #edf0f6;padding:8px 0;font-size:13px}
+.avalia-checkrow:last-child {border-bottom:0}
+.avalia-ok {color:#098352;font-weight:bold}
+.avalia-pending {color:#b07616;font-weight:bold}
+.avalia-levels {display:flex;gap:6px;flex-wrap:wrap}
+.avalia-levels button {min-width:38px;padding:8px 12px;border:1px solid #c9d9ed;background:white;color:#29527c;border-radius:9px;cursor:pointer}
+.avalia-levels button[aria-pressed=true] {color:#fff;background:#0753b1;border-color:#0753b1}
+.avalia-help {font-size:12px;color:#657d94;font-weight:400}
+.avalia-warning {border-left:4px solid #bd862e;background:#fff7e9;padding:10px 12px;border-radius:9px;font-size:12px;color:#65491c}
+.avalia-status {font-size:13px;border:1px solid #c9dfed;padding:11px;border-radius:9px;margin-top:10px}
+.avalia-question-counter {display:flex;gap:7px;flex-wrap:wrap;max-height:130px;overflow:auto}
+.avalia-question-counter button {border:1px solid #cad9ec;border-radius:8px;background:#fff;padding:8px 10px;color:#174d91;cursor:pointer}
+.avalia-question-counter button[aria-pressed=true] {background:#e3f1ff;border-color:#4b87ce;font-weight:750}
+.avalia-wizard details > summary {cursor:pointer}
+.avalia-wizard textarea {line-height:1.55}
+.avalia-review-header {font-weight:750;color:#0d3778;font-size:19px;margin:0 0 10px}
+@media(max-width:890px){.avalia-columns {grid-template-columns:1fr}.avalia-sidebar {grid-template-columns:repeat(2,minmax(0,1fr))}.avalia-summary {grid-template-columns:repeat(2,minmax(0,1fr))}.avalia-summary div:nth-child(2){border-right:0}.avalia-summary div:nth-child(-n+2){border-bottom:1px solid #dde7f2}}
+@media(max-width:590px){.avalia-wizard {padding:10px}.avalia-step {flex-direction:column;gap:5px;font-size:11px;text-align:center}.avalia-sidebar {grid-template-columns:1fr}.avalia-summary {grid-template-columns:1fr}.avalia-summary div {border-right:0!important;border-bottom:1px solid #dde7f2;padding:9px}.avalia-summary div:last-child {border-bottom:0}.avalia-actions button {flex:1 1 100%}}
