@@ -4,7 +4,7 @@
 // do indicador mais um vocabulário curado. Cada vínculo cita literalmente o trecho de maior
 // pontuação, o que satisfaz groundedLinks. É sugestão: a validação continua humana.
 
-export const RULES_VERSION = 'regras-bm25@2026-11-20';
+export const RULES_VERSION = 'regras-bm25@2026-11-20.2';
 export const fold = s => String(s || '').normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
 const STOP = new Set('a o e de da do das dos em no na nos nas para por pela pelo pelas pelos com sem sob sobre entre ao aos as os um uma uns umas que se ou como mais menos ser sao seu sua seus suas este esta isto esse essa isso aquele aquela ja nao sim tambem quando onde qual quais cada todo toda todos todas outro outra deve devem pode podem sera serao foi foram tem ter ha caso forma meio ambito curso cursos processo processos relacao'.split(' '));
 const stem = w => { w = w.replace(/(oes|aes|ais|eis|is|es|s)$/, m => m === 'oes' || m === 'aes' ? 'ao' : m === 'ais' ? 'al' : m === 'eis' ? 'el' : ''); return w.length > 7 ? w.slice(0, 7) : w; };
@@ -145,7 +145,7 @@ export function rankIndicators(pages, objects, { k1 = 1.2, b = 0.75, max = 8 } =
     is_primary: i === 0,
     matched: r.hit,
     phrase: r.phraseHit,
-    excerpt: { page: r.passage.page, section: r.passage.section || '', text: r.passage.text.slice(0, 500) },
+    excerpt: { page: r.passage.page, section: r.passage.section || '', text: r.passage.text },
   }));
 }
 
