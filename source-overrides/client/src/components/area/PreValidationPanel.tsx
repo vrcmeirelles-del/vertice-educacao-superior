@@ -28,6 +28,7 @@ interface Prevalidation {
   ai_model_version: string;
   ai_analyzed_at: string;
   ai_error: string;
+  lease_until?: string; processing_stage?:string; attempt_number?:number;
   extraction_status?:string; extracted_at?:string; source_sha256?:string; keyword_suggestions?:string[]; extraction_metadata?:{characters?:number;partial?:boolean};
 }
 
@@ -46,7 +47,7 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
 
 const INSTRUMENT_LABELS: Record<string, string> = {
   reconhecimento_curso: "Reconhecimento de Curso (2017)",
-  novo_instrumento_2026: "Novo Instrumento (2026)",
+  novo_instrumento_2026: "Proposta de Instrumento (2026) · experimental",
   recredenciamento_2017: "Recredenciamento (2017)",
 };
 
@@ -109,6 +110,12 @@ export default function PreValidationPanel({
 
   useEffect(() => { void loadExisting(); }, [loadExisting]);
 
+  useEffect(() => {
+    if (prevalidation?.ai_status !== "processing") return;
+    const timer = setInterval(() => { void loadExisting(); }, 10000);
+    return () => clearInterval(timer);
+  }, [prevalidation?.ai_status, loadExisting]);
+
   async function startPrevalidation(action:"index"|"analyze"="analyze") {
     setAnalyzing(true);
     setError("");
@@ -117,7 +124,7 @@ export default function PreValidationPanel({
         body: { institution_id: institutionId, source_table: sourceTable, file_id: fileId, action },
       });
       if (fnErr) throw new Error(fnErr.message);
-      if (data?.error) throw new Error(data.detail || data.error);
+      if (data?.error || data?.status === "retry_limit") throw new Error(data.detail || data.error || "Limite de tentativas atingido.");
       await loadExisting();
     } catch (e) {
       setError(explain(e));
@@ -187,13 +194,14 @@ export default function PreValidationPanel({
 
       {error && <p role="alert" className="er-alert error" style={{ marginBottom: 12 }}>{error}</p>}
 
-      <button type="button" className="er-btn er-small" disabled={analyzing} onClick={()=>void startPrevalidation("index")}>{analyzing?"Processando arquivo…":"Extrair texto e sugerir palavras-chave, sem enviar à IA"}</button>
+      <button type="button" className="er-btn er-small" disabled={analyzing || (prevalidation?.ai_status === "processing" && Boolean(prevalidation.lease_until) && Date.parse(prevalidation.lease_until!) > Date.now())} onClick={()=>void startPrevalidation("index")}>{analyzing?"Processando arquivo…":"Extrair texto e sugerir palavras-chave por algoritmo"}</button>
       {prevalidation?.extracted_at&&<div role="status"><p>Texto: {prevalidation.extraction_status==="partial"?"parcialmente extraído":"extraído"} · {prevalidation.extraction_metadata?.characters??"—"} caracteres. Classificação humana preservada.</p><p>Palavras-chave sugeridas: {prevalidation.keyword_suggestions?.join(", ")||"nenhuma"}</p><small>SHA-256 do original: {prevalidation.source_sha256}</small></div>}
       {!loading && prevalidation?.ai_status === "pending" && (
         <button type="button" className="er-btn er-primary er-small" disabled={analyzing} onClick={() => void startPrevalidation("analyze")}>
           {analyzing ? "Analisando documento…" : "Gerar sugestões de classificação"}
         </button>
       )}
+      {prevalidation?.processing_stage === "human_review" && <p role="status">Pré-análise por algoritmo concluída. Conferência do original e decisão do gestor pendentes.</p>}
       {/* Status atual */}
       {loading && <p style={{ color: "#64748b" }}>Carregando análises anteriores…</p>}
 
@@ -220,7 +228,8 @@ export default function PreValidationPanel({
       {prevalidation?.ai_status === "processing" && (
         <div style={{ textAlign: "center", padding: 24 }}>
           <p style={{ fontSize: 16, fontWeight: 600 }}>⏳ Análise em andamento…</p>
-          <p style={{ fontSize: 13, color: "#64748b" }}>Lendo o documento e localizando os indicadores.</p>
+          <p style={{ fontSize: 13, color: "#64748b" }}>Lendo o documento e localizando os indicadores por algoritmo.</p>
+          {(!prevalidation.lease_until || Date.parse(prevalidation.lease_until) <= Date.now()) && <button className="er-btn er-small" disabled={analyzing} onClick={()=>void startPrevalidation()}>Retomar processamento interrompido</button>}
         </div>
       )}
 
@@ -298,7 +307,7 @@ export default function PreValidationPanel({
             return (
               <div key={key} style={{ marginBottom: 16, border: "1px solid #e2e8f0", borderRadius: 8, overflow: "hidden" }}>
                 <div style={{ background: "#f8fafc", padding: "10px 16px", borderBottom: "1px solid #e2e8f0", fontWeight: 600, fontSize: 14 }}>
-                  📋 {INSTRUMENT_LABELS[code] ?? code}
+                  📋 {INSTRUMENT_LABELS[code] ?? code} · versão {instrumentLinks[0]?.instrument_version}
                   <span style={{ float: "right", fontSize: 12, color: "#64748b" }}>
                     {instrumentLinks.length} indicador(es)
                   </span>

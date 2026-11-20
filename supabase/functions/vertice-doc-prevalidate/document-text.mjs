@@ -54,7 +54,7 @@ export async function extractDocument(bytes,name,a){
 }
 export function groundedLinks(links,extracted){
  const norm=s=>s.normalize('NFC').replace(/\s+/g,' ').trim();
- return (Array.isArray(links)?links:[]).map(l=>({...l,evidence_excerpts:(Array.isArray(l.evidence_excerpts)?l.evidence_excerpts:[]).filter(e=>typeof e.text==='string'&&e.text.length>=20&&extracted.pages.some(p=>(e.page==null||e.page===p.page)&&norm(p.text).includes(norm(e.text))))})).filter(l=>l.evidence_excerpts.length>0);
+ return (Array.isArray(links)?links:[]).map(l=>({...l,evidence_excerpts:(Array.isArray(l.evidence_excerpts)?l.evidence_excerpts:[]).filter(e=>typeof e.text==='string'&&e.text.length>=20&&extracted.pages.some(p=>(e.page==null||e.page===p.page)&&(!e.section||e.section===p.section)&&norm(p.text).includes(norm(e.text))))})).filter(l=>l.evidence_excerpts.length>0);
 }
 
 // Preserve the exact prefix actually sent, including a partially transmitted page.

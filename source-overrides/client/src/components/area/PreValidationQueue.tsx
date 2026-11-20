@@ -1,6 +1,6 @@
 /**
  * PreValidationQueue.tsx — Fila de pré-validação e espelhamento
- * Central de documentos pendentes de validação por IA e aprovação humana.
+ * Central de documentos pendentes de pré-análise por algoritmo e aprovação humana.
  */
 import { useState, useEffect, useCallback, lazy, Suspense } from "react";
 import { supabase } from "@/lib/supabase";
@@ -54,7 +54,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; 
 
 const INSTRUMENT_LABELS: Record<string, string> = {
   reconhecimento_curso: "Reconhecimento",
-  novo_instrumento_2026: "Novo Instrumento 2026",
+  novo_instrumento_2026: "Proposta 2026 · experimental",
   recredenciamento_2017: "Recredenciamento",
 };
 
@@ -75,13 +75,16 @@ export default function PreValidationQueue({ institutionId, role }: { institutio
     setError("");
     try {
       // Load all prevalidations for this institution
-      const { data: pvs, error: pvErr } = await supabase
+      const { data: attempts, error: pvErr } = await supabase
         .from("vertice_doc_prevalidation")
         .select("*")
         .eq("institution_id", institutionId)
         .order("created_at", { ascending: false });
       if (pvErr) throw pvErr;
-      if (!pvs?.length) { setItems([]); return; }
+      // Attempts remain in the audit history; each source counts once in the operational queue.
+      const seen=new Set<string>();
+      const pvs=(attempts??[]).filter((p:PrevalidationRow)=>{const key=p.source_table+":"+(p.repository_file_id??p.document_id??p.id);if(seen.has(key))return false;seen.add(key);return true;});
+      if (!pvs.length) { setItems([]); return; }
 
       // Load all indicator links
       const pvIds = pvs.map((p: PrevalidationRow) => p.id);
@@ -176,14 +179,17 @@ export default function PreValidationQueue({ institutionId, role }: { institutio
   async function bulkApproveHigh() {
     setAnalyzing(true);
     try {
+      const {data:actor,error:actorError}=await supabase.auth.getUser();
+      if(actorError||!actor.user)throw Error("Sessão necessária para revisar vínculos.");
       const highLinks = items
         .flatMap((i) => i.links)
         .filter((l) => l.status === "sugerido" && l.compatibility === "alta");
       for (const link of highLinks) {
-        await supabase
+        const {error:reviewError}=await supabase
           .from("vertice_doc_indicator_links")
-          .update({ status: "aprovado", reviewed_at: new Date().toISOString() })
-          .eq("id", link.id);
+          .update({ status: "aprovado", reviewed_by:actor.user.id, reviewed_at: new Date().toISOString() })
+          .eq("id", link.id).eq("institution_id",institutionId);
+        if(reviewError)throw reviewError;
       }
       await loadQueue();
     } catch (e) {
