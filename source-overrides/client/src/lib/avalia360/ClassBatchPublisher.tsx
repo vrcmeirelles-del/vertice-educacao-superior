@@ -24,6 +24,9 @@ export default function ClassBatchPublisher({institutionId,courseId,institutionN
  const [pdfFilename,setPdfFilename]=useState('');
  useEffect(()=>()=>{if(pdfUrl)URL.revokeObjectURL(pdfUrl);},[pdfUrl]);
  useEffect(()=>()=>{if(answerKeyUrl)URL.revokeObjectURL(answerKeyUrl);},[answerKeyUrl]);
+ // Invalidar documentos gerados quando conteúdo, turma ou configuração mudarem.
+ useEffect(()=>{setPdfUrl('');setAnswerKeyUrl('');},
+  [questions,students,variantCount,shuffleMode,classLabel,courseName,discipline,title,semester]);
  const chooseExample=()=>{setStudents(demoStudents.map(x=>({...x})));setClassLabel('2A');setStatus('Turma fictícia carregada. Nenhum estudante real foi consultado.');};
  const loadReal=async()=>{
   if(previewMode)return;
