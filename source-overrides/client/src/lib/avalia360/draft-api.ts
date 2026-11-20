@@ -72,3 +72,32 @@ export async function saveAssessmentDraft(input:DraftSaveInput):Promise<DraftApi
   return {ok:false,error:{code:'NETWORK_ERROR',message:err instanceof Error?err.message:'Erro de conexão.'}};
  }
 }
+
+export interface StoredAssessmentDraft {
+ id:string;revision:number;status:'draft'|'submitted'|'validated'|'archived';
+ snapshot:{questions:Array<Record<string,unknown>>;curriculumStatus?:string};
+}
+export type DraftReadResult={ok:true;draft:StoredAssessmentDraft}|{ok:false;error:DraftApiFailure};
+/** Lê apenas o rascunho pertencente ao usuário autorizado; a RPC protege IES/curso/disciplinas. */
+export async function loadAssessmentDraft(args:{
+ institutionId:string;courseId:string;disciplineId:string;draftId:string
+}):Promise<DraftReadResult>{
+ if(!args.institutionId||!args.courseId||!args.disciplineId||!args.draftId)
+  return {ok:false,error:{code:'INVALID_INPUT',message:'Dados da consulta incompletos.'}};
+ try{
+  const {data,error}=await supabase.rpc('vertice_avalia_draft',{
+   p_institution:args.institutionId,p_course:args.courseId,
+   p_discipline:args.disciplineId,p_action:'get',p_payload:{id:args.draftId}
+  });
+  if(error)return {ok:false,error:{code:error.code||'READ_FAILED',message:error.message}};
+  if(!data||typeof data!=='object'||!('snapshot' in data)||!('id' in data)||
+     !('revision' in data))
+   return {ok:false,error:{code:'INVALID_RECEIPT',message:'Rascunho não confirmado pelo servidor.'}};
+  const draft=data as StoredAssessmentDraft;
+  if(!draft.snapshot||!Array.isArray(draft.snapshot.questions))
+   return {ok:false,error:{code:'INVALID_SNAPSHOT',message:'Snapshot incompleto.'}};
+  return {ok:true,draft};
+ }catch(e){
+  return {ok:false,error:{code:'NETWORK_ERROR',message:e instanceof Error?e.message:'Falha de rede.'}};
+ }
+}
