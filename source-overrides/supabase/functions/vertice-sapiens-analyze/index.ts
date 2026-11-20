@@ -2,8 +2,8 @@
  * vertice-sapiens-analyze
  *
  * Diagnostic engine: reads learning events + metrics, aggregates by competency,
- * classifies severity, generates LLM-based diagnosis with mandatory contradictory,
- * and proposes pedagogical interventions.
+ * classifies severity, builds the diagnosis by rule (no AI since 20/11/2026)
+ * and proposes pedagogical interventions from a severity × module table.
  *
  * Invoked by sapiens-sync when new data is detected, or manually by coordinator.
  */
@@ -15,6 +15,7 @@ declare const Deno: {
 
 import { analyzePlanning } from "./planning.ts";
 import { reviewThematic } from "./thematic.ts";
+import { buildDiagnosis } from "./diagnosis.ts";
 
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
 // IA suspensa até a plataforma gerar receita (decisão de 19/11/2026). Para religar: secret AI_SUSPENDED=false.
@@ -143,81 +144,6 @@ async function callAnthropic(
   return { content: data.content?.[0]?.text || "{}", model: data.model || model };
 }
 
-// Generate: OpenAI primary, Anthropic fallback
-async function generateDiagnosis(
-  systemPrompt: string,
-  userPrompt: string
-): Promise<{ content: string; model: string }> {
-  const oai = await callOpenAI(systemPrompt, userPrompt);
-  if (oai) return oai;
-  const anth = await callAnthropic(systemPrompt, userPrompt);
-  if (anth) return anth;
-  throw new Error("No LLM API key configured (OPENAI_API_KEY or ANTHROPIC_API_KEY)");
-}
-
-// Contradictory review: Anthropic primary (different LLM reviews), OpenAI fallback
-async function reviewContradictory(
-  diagnosis: Record<string, unknown>,
-  context: string,
-  generatorModel: string
-): Promise<{ notes: string; reviewer: string; divergence: "none" | "minor" | "major" }> {
-  const reviewSystem = `Você é um auditor crítico independente. Sua função é REVISAR um diagnóstico pedagógico produzido por outra IA (${generatorModel}).
-
-VOCÊ NÃO GEROU ESTE DIAGNÓSTICO. Sua tarefa é encontrar furos nele.
-
-Seja rigoroso. Procure:
-1. Conclusões que os dados NÃO sustentam
-2. Vieses de seleção ignorados (apenas alunos do Fato & Ordem, não a turma inteira)
-3. Amostra insuficiente tratada como conclusiva
-4. Intervenção desproporcional ao problema
-5. Confusão entre dificuldade do instrumento e deficiência de aprendizagem
-6. Hipóteses apresentadas como fatos
-
-Responda APENAS em JSON:
-{
-  "contradictory_notes": "string — sua análise crítica do diagnóstico (200-800 chars)",
-  "issues_found": ["lista de problemas identificados"],
-  "divergence": "none | minor | major",
-  "recommendation": "proceed | revise | reject_for_human_review"
-}`;
-
-  const reviewUser = `DIAGNÓSTICO SENDO REVISADO:
-${JSON.stringify(diagnosis, null, 2)}
-
-DADOS ORIGINAIS:
-${context}
-
-Revise criticamente. Se o diagnóstico for sólido, diga — mas não concorde por cortesia.`;
-
-  // Use the OTHER LLM for review — if generator was OpenAI, reviewer is Anthropic
-  let result: { content: string; model: string } | null = null;
-
-  if (generatorModel.startsWith("gpt")) {
-    // Generator was OpenAI → reviewer is Anthropic
-    result = await callAnthropic(reviewSystem, reviewUser);
-    if (!result) result = await callOpenAI(reviewSystem, reviewUser); // same-LLM fallback
-  } else {
-    // Generator was Anthropic → reviewer is OpenAI
-    result = await callOpenAI(reviewSystem, reviewUser);
-    if (!result) result = await callAnthropic(reviewSystem, reviewUser); // same-LLM fallback
-  }
-
-  if (!result) {
-    return { notes: "Contraditório não executado: nenhuma LLM disponível para revisão.", reviewer: "none", divergence: "none" };
-  }
-
-  try {
-    const parsed = JSON.parse(result.content);
-    return {
-      notes: String(parsed.contradictory_notes || "Revisão sem observações."),
-      reviewer: result.model,
-      divergence: (["none", "minor", "major"].includes(parsed.divergence) ? parsed.divergence : "none") as "none" | "minor" | "major",
-    };
-  } catch {
-    return { notes: result.content.slice(0, 800), reviewer: result.model, divergence: "minor" };
-  }
-}
-
 Deno.serve(async (req: Request) => {
   const origin = req.headers.get("origin") || "";
   if (req.method === "OPTIONS") return send({ ok: true }, 204, origin);
@@ -344,15 +270,18 @@ Deno.serve(async (req: Request) => {
     // Get previous diagnoses for cycle tracking
     const { data: prevDiagnoses } = await admin
       .from("vertice_sapiens_diagnoses")
-      .select("id, course_id, module, sapiens_cycle")
+      .select("id, course_id, module, sapiens_cycle, accuracy_rate")
       .eq("institution_id", institutionId)
       .eq("status", "published")
       .order("created_at", { ascending: false })
       .limit(100);
 
-    const prevMap = new Map(
-      (prevDiagnoses || []).map((d: Record<string, unknown>) => [`${d.course_id}:${d.module}`, d])
-    );
+    // Mais recente primeiro: mantém só o primeiro de cada curso/módulo.
+    const prevMap = new Map<string, Record<string, unknown>>();
+    for (const d of (prevDiagnoses || []) as Record<string, unknown>[]) {
+      const k = `${d.course_id}:${d.module}`;
+      if (!prevMap.has(k)) prevMap.set(k, d);
+    }
 
     const semester = currentSemester();
     const diagnosisIds: string[] = [];
@@ -363,70 +292,20 @@ Deno.serve(async (req: Request) => {
 
       const severity = classifySeverity(agg.accuracy, agg.avgPKnow || agg.accuracy);
 
-      // For critical/warning: generate LLM diagnosis
-      let summary = "";
-      let detailedAnalysis = {};
-      let recommendedActions: unknown[] = [];
-      let contradictoryNotes = "";
-      let llmModel = "rule-based";
-
-      if (severity === "critical" || severity === "warning") {
-        const courseName = courseNames.get(agg.courseId) || "Curso";
-        const prev = prevMap.get(`${agg.courseId}:${agg.module}`);
-
-        // STEP 1: GENERATE — OpenAI produces the diagnosis
-        const generatePrompt = `Você é um auditor pedagógico institucional sênior. Analise dados de desempenho acadêmico e produza diagnóstico fundamentado. Responda APENAS em JSON válido com os campos: summary (string, 50-500 chars), detailed_analysis (object com campos: main_findings, possible_causes, methodology_notes), recommended_actions (array de {type, title, description, priority}).
-
-NÃO inclua contraditório — outra IA fará a revisão crítica do seu diagnóstico.`;
-
-        const dataContext = `
-Instituição: ${inst.name}
-Curso: ${courseName}
-Módulo: ${agg.module}
-Semestre: ${agg.semester}
-Amostra: ${agg.studentCount} estudantes
-Tentativas totais: ${agg.attempts}
-Taxa de acerto: ${(agg.accuracy * 100).toFixed(1)}%
-Severidade classificada: ${severity}
-${prev ? `Ciclo anterior: #${(prev as Record<string, unknown>).sapiens_cycle} — havia diagnóstico prévio publicado.` : "Primeiro diagnóstico para este módulo."}`;
-
-        try {
-          // Step 1: Generate diagnosis
-          const generated = await generateDiagnosis(generatePrompt, dataContext);
-          llmModel = generated.model;
-          const parsed = JSON.parse(generated.content);
-          summary = String(parsed.summary || "").slice(0, 2000);
-          detailedAnalysis = parsed.detailed_analysis || {};
-          recommendedActions = Array.isArray(parsed.recommended_actions) ? parsed.recommended_actions : [];
-
-          // Step 2: REVIEW — the OTHER LLM reviews the diagnosis
-          const review = await reviewContradictory(parsed, dataContext, generated.model);
-          contradictoryNotes = review.notes;
-          llmModel = `${generated.model}+${review.reviewer}`;
-
-          // Enrich the detailed analysis with review metadata
-          (detailedAnalysis as Record<string, unknown>).contradictory_review = {
-            reviewer_model: review.reviewer,
-            generator_model: generated.model,
-            divergence: review.divergence,
-            notes: review.notes,
-          };
-
-          // If major divergence, flag for human review
-          if (review.divergence === "major") {
-            summary = `⚠️ DIVERGÊNCIA ENTRE IAs — ${summary}`;
-            (detailedAnalysis as Record<string, unknown>).requires_human_review = true;
-            (detailedAnalysis as Record<string, unknown>).divergence_reason =
-              "O diagnóstico gerado e a revisão crítica chegaram a conclusões significativamente diferentes. Revisão humana obrigatória.";
-          }
-        } catch (llmError) {
-          console.error("[sapiens-analyze] LLM error:", llmError);
-          summary = `Competência ${agg.module} com taxa de acerto de ${(agg.accuracy * 100).toFixed(1)}% (${severity}). Diagnóstico automatizado requer revisão.`;
-          llmModel = "fallback-rule";
-        }
-      } else {
-        summary = `Competência ${agg.module}: taxa de acerto ${(agg.accuracy * 100).toFixed(1)}% — classificação: ${severity}. ${agg.studentCount} estudantes avaliados.`;
-      }
+      // Diagnóstico por algoritmo (sem IA): texto dos números e ações por tabela.
+      const prevForText = prevMap.get(`${agg.courseId}:${agg.module}`);
+      const built = buildDiagnosis({
+        courseName: String(courseNames.get(agg.courseId) || "Curso"), module: agg.module, competency: agg.competency,
+        semester: agg.semester, severity, accuracy: agg.accuracy, graded: agg.graded, attempts: agg.attempts,
+        studentCount: agg.studentCount,
+        previousAccuracy: prevForText && prevForText.accuracy_rate != null ? Number(prevForText.accuracy_rate) : null,
+        previousCycle: prevForText ? Number(prevForText.sapiens_cycle || 0) || null : null,
+      });
+      let summary = built.summary;
+      const detailedAnalysis: Record<string, unknown> = built.detailedAnalysis;
+      const recommendedActions: unknown[] = built.recommendedActions;
+      const contradictoryNotes = "";
+      const llmModel = "algoritmo";
 
       if (summary.length < 10) summary = `Diagnóstico ${severity} para ${agg.module} — ${agg.studentCount} estudantes, ${(agg.accuracy * 100).toFixed(1)}% acerto.`;
 
