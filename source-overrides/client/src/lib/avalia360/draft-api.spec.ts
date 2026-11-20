@@ -21,6 +21,15 @@ describe('cliente de rascunhos do Avalia 360°',()=>{
    expect(parameters.p_payload.questions[0].pendingImageCount).toBe(0);
    expect(parameters.p_payload.questions[0].images).toEqual([]);
  });
+ it('preserva resposta esperada da discursiva no snapshot privado e separado da rubrica',async()=>{
+   rpc.mockResolvedValue({data:{id:'d1',revision:1,status:'draft'},error:null});
+   const question={...q,kind:'discursiva' as const,rubric:'Critério 1: fundamentação (2 pontos)',expectedAnswer:'O estudante deverá identificar os pressupostos jurídicos do caso.'};
+   const result=await saveAssessmentDraft({institutionId:'ies-a',courseId:'direito',disciplineId:'civil',questions:[question]});
+   expect(result.ok).toBe(true);
+   const saved=rpc.mock.calls[0][1].p_payload.questions[0];
+   expect(saved.expectedAnswer).toBe(question.expectedAnswer);
+   expect(saved.rubric).toBe(question.rubric);
+ });
  it('não declara sucesso sem confirmação válida da RPC',async()=>{
    rpc.mockResolvedValue({data:null,error:null});
    const r=await saveAssessmentDraft({institutionId:'ies-a',courseId:'direito',disciplineId:'civil',questions:[q]});
