@@ -15,6 +15,8 @@ export interface QuestionDraft {
   options: AnswerOption[];
   correctOptionId: string;
   rubric: string;
+  /** Resposta-modelo docente: referência, não nota automática nem texto para o PDF do aluno. */
+  expectedAnswer?: string;
   topicIds: string[];
   competencyIds: string[];
   purpose: Purpose[];
@@ -60,8 +62,10 @@ export function validateQuestionDraft(
       add('options','INVALID_OPTIONS','As alternativas precisam de identificadores distintos e texto.');
     if (!identifiers.has(draft.correctOptionId))
       add('correctOptionId','INVALID_KEY','Selecione o gabarito da questão.');
-  } else if (!draft.rubric.trim())
-    add('rubric','MISSING_RUBRIC','Questão discursiva exige rubrica de correção.');
+  } else {
+    if (!draft.rubric.trim()) add('rubric','MISSING_RUBRIC','Questão discursiva exige rubrica de correção.');
+    if (!draft.expectedAnswer?.trim()) add('expectedAnswer','MISSING_EXPECTED_ANSWER','Informe o padrão de resposta esperado para orientar a correção.');
+  }
   if (draft.images.length>12) add('images','TOO_MANY_IMAGES','Máximo de 12 figuras por questão.');
   for (const im of draft.images) {
     if (!im.file || im.file.size<=0 || im.file.size>10*1024*1024 ||
