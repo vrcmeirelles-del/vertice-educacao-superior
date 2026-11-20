@@ -14,7 +14,7 @@ export type Mix = Record<Degree, number>;
 
 // Arredonda para cima tolerando erro de ponto flutuante (4 / 0,2 = 20,000000000000004 deve dar 20).
 const ceil = (v: number) => Math.ceil(v - 1e-9);
-const fold = (s: unknown) => String(s ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+const fold = (s: unknown) => String(s ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
 
 export function degreeOf(v: unknown): Degree {
   const s = fold(v);
