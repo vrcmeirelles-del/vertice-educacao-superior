@@ -28,6 +28,9 @@ BEGIN
  WITH last_completed AS (
   SELECT ri.id FROM public.vertice_roster_imports ri
   WHERE ri.institution_id=p_institution AND ri.course_id=p_course AND ri.status='done'
+    AND EXISTS(SELECT 1 FROM public.vertice_roster_entries e0
+      WHERE e0.import_id=ri.id AND e0.institution_id=p_institution
+        AND lower(btrim(e0.turma))=lower(btrim(p_class)) AND e0.status='matched')
   ORDER BY ri.completed_at DESC NULLS LAST,ri.created_at DESC
   LIMIT 1
  ), students AS (
