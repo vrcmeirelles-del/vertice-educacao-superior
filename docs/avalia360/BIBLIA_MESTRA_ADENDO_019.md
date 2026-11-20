@@ -29,3 +29,11 @@ Os adendos 001–018 são preservados integralmente: matriz curricular, avaliaç
 **Aprovado nesta etapa:** módulo determinístico + contratos PGlite (60/60 unitários e 20/20 Postgres).
 **Ainda não aprovado:** funcionamento real Auth/MFA, Edge Function/Storage, interface, PPC publicado, política de acesso curricular com paridade, QR/OMR e publicação.
 **Ação seguinte:** implantar o patch de quota somente após reativação autorizada da branch, validar autenticação e Storage real, corrigir clonagem PDF em frente separada, rever SECURITY DEFINER e só então homologar uso docente.
+
+### Atualização: cache testado e bloqueio PDF separado
+- O contrato de cache de recibos foi extraído para `source-overrides/client/src/lib/avalia360/receipt-cache.ts`; o formulário `AssessmentDraftWorkspace.tsx` passou a utilizá-lo.
+- Quatro testes unitários foram adicionados em `receipt-cache.spec.ts`: reutilização legítima, escopo diferente, arquivo diferente com mesmo nome e path diferente da IES.
+- GitHub Actions **#44649834054**: **64/64 testes unitários e 20/20 testes PostgreSQL isolados aprovados**, com TypeScript específico concluído com sucesso. Evidência: https://github.com/vrcmeirelles-del/vertice-educacao-superior/actions/runs/44649834054
+- Bloqueio `vertice-source-pdf-preview` separado na **issue #213**: https://github.com/vrcmeirelles-del/vertice-educacao-superior/issues/213, com critérios para medir bundle, reduzir dependência PDF, preservar autorização e confirmar nova clonagem sem HTTP 413.
+- A função PDF não foi alterada/desabilitada na produção. A correção exige medição e testes; trocar somente o método de empacotamento não resolve o bundle de 35,78 MB, acima dos limites documentados.
+- A evidência de **84 testes aprovados em CI** não comprova sessão Auth/MFA real nem upload/recuperação de imagem via Storage HTTP.
