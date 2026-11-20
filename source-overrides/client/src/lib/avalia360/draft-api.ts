@@ -19,7 +19,7 @@ export interface DraftSaveInput {
  draftId?:string;expectedRevision?:number;buildId?:string;
  questions:QuestionDraft[];
  uploadedImages?: Record<string, Array<{localId:string;receipt:UploadedImageReceipt}>>;
- assessmentMeta?: {title:string;semester:string;purpose:'diagnostica'|'formativa'|'somativa';declaredPedagogy?:PedagogicalDraft;curationHistory?:CurationDecision[]};
+ assessmentMeta?: {title:string;semester:string;purpose:'diagnostica'|'formativa'|'somativa';declaredPedagogy?:PedagogicalDraft;curationHistory?:CurationDecision[];curriculumSource?:{buildId:string;version:number;ready:boolean}};
 }
 function sanitizeQuestion(q:QuestionDraft, uploaded:DraftSaveInput['uploadedImages']) {
  // Os metadados de mídia dependem de upload privado validado e
