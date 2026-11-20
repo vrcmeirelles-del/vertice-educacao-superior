@@ -21,6 +21,12 @@ describe('motor de versões distintas',()=>{
   expect(q.options.map(x=>x.id)).toEqual(['A','B','C','D','E']);
   expect(q.correctOptionId).toBe('C');
  });
+ it('uma única versão preserva a ordem original e a alternativa correta',()=>{
+  const variant=createExamVariants([q],1,'ambos')[0];
+  expect(variant.code).toBe('A');
+  expect(variant.items[0].options.map(x=>x.sourceOptionId)).toEqual(['A','B','C','D','E']);
+  expect(variant.items[0].correctLabel).toBe('C');
+ });
  it('mantém o mesmo resultado quando os parâmetros são os mesmos',()=>{
   expect(createExamVariants([q],4,'ambos').map(v=>v.items[0].correctLabel))
    .toEqual(createExamVariants([q],4,'ambos').map(v=>v.items[0].correctLabel));
