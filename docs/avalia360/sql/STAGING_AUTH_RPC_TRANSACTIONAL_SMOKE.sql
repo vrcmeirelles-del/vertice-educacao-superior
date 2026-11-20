@@ -17,9 +17,8 @@ INSERT INTO public.vertice_learning_staff_scope(institution_id,course_id,subject
  'civil','00000000-0000-4000-8000-000000000001'::uuid,true
  );
 SET LOCAL ROLE authenticated;
-SELECT set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000001',true);
-SELECT set_config('request.jwt.claims',
- '{"sub":"00000000-0000-4000-8000-000000000001","aal":"aal2","role":"authenticated"}',true);
+SET LOCAL request.jwt.claim.sub='00000000-0000-4000-8000-000000000001';
+SET LOCAL request.jwt.claims='{"sub":"00000000-0000-4000-8000-000000000001","aal":"aal2","role":"authenticated"}';
 DO $avalia_smoke$
 DECLARE
  draft jsonb; result jsonb; questions jsonb;
@@ -85,4 +84,5 @@ BEGIN
  END;
 END $avalia_smoke$;
 RESET ROLE;
+SELECT 'PASS' AS transactional_smoke, (SELECT count(*) FROM vertice_avalia.assessment_drafts WHERE institution_id='00000000-0000-4000-8000-000000000011') AS drafts_before_rollback;
 ROLLBACK;
