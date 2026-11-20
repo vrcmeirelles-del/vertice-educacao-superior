@@ -1,6 +1,6 @@
 import {beforeEach,describe,expect,it,vi} from 'vitest';
 import {buildDemoBrief} from '../client/src/lib/commercial-demo';
-vi.stubGlobal('Deno',{env:{get:(key:string)=>key==='OPENAI_API_KEY'?'test-server-secret':key==='AI_SUSPENDED'?'false':key==='SUPABASE_SERVICE_ROLE_KEY'?'test-service-key':key==='SUPABASE_URL'?'https://backend.test':undefined},serve:vi.fn()});
+vi.stubGlobal('Deno',{env:{get:(key:string)=>key==='OPENAI_API_KEY'?'test-server-secret':key==='AI_SUSPENDED'?'false':key==='AI_FEATURES'?'demo.chat':key==='SUPABASE_SERVICE_ROLE_KEY'?'test-service-key':key==='SUPABASE_URL'?'https://backend.test':undefined},serve:vi.fn()});
 const {handler}=await import('../supabase/functions/vertice-demo/index');
 const origin='https://verticesuperior.com.br',token='a'.repeat(64);
 function request(body:any,source=origin){return new Request('https://demo.test',{method:'POST',headers:{origin:source,'Content-Type':'application/json'},body:JSON.stringify(body)});}

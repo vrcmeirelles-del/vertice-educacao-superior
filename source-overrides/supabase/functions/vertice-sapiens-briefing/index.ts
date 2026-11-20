@@ -16,10 +16,16 @@ declare const Deno: {
 };
 
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
-// IA suspensa até a plataforma gerar receita (decisão de 19/11/2026). Para religar: secret AI_SUSPENDED=false.
+// Política de IA (20/11/2026): o algoritmo é o padrão em todo o portal. A IA só é chamada para as funções
+// listadas em AI_FEATURES (padrão: transcrição de manuscrito, geração de questões, segunda opinião na
+// correção e redação analítica da CPA) e com a chave geral AI_SUSPENDED=false (suspensa desde 19/11/2026).
+const AI_FEATURES_DEFAULT="discursiva.transcribe,discursiva.generate,discursiva.second_opinion,cpa.analysis";
+const aiPolicy=(get:(k:string)=>string|undefined)=>(feature:string)=>String(get("AI_SUSPENDED")??"true").toLowerCase()==="false"&&String(get("AI_FEATURES")??AI_FEATURES_DEFAULT).split(",").map(x=>x.trim()).includes(feature);
+const aiAllowed=aiPolicy(k=>Deno.env.get(k));
+const __AI_FN_FEATURES:string[]=[];
 {const __aiFetch=globalThis.fetch;const __aiHosts=/(^|\.)(api\.anthropic\.com|api\.openai\.com|generativelanguage\.googleapis\.com)$/i;
 globalThis.fetch=((input:any,init?:any)=>{let host="";try{host=new URL(typeof input==="string"?input:input instanceof URL?input.href:input.url).hostname;}catch{}
-if(__aiHosts.test(host)&&String(Deno.env.get("AI_SUSPENDED")??"true").toLowerCase()!=="false")
+if(__aiHosts.test(host)&&!__AI_FN_FEATURES.some(aiAllowed))
  return Promise.resolve(new Response(JSON.stringify({error:{type:"ai_suspended",message:"IA suspensa temporariamente."}}),{status:503,headers:{"content-type":"application/json"}}));
 return __aiFetch(input,init);}) as typeof fetch;}
 
