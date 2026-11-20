@@ -28,7 +28,7 @@ const cardStyle={background:'#fff',border:'1px solid '+line,borderRadius:14,padd
 const initial=(disciplineId:string):QuestionDraft=>({
  id:crypto.randomUUID(),disciplineId,kind:'objetiva',statement:'',
  options:['A','B','C','D','E'].map(id=>({id,text:''})),correctOptionId:'',
- rubric:'',topicIds:[],competencyIds:[],purpose:['formativa'],
+ rubric:'',expectedAnswer:'',topicIds:[],competencyIds:[],purpose:['formativa'],
  estimatedDifficulty:3,points:1,examTags:[],images:[]
 });
 function checkDraft(questions:QuestionDraft[]):string[]{
@@ -44,7 +44,10 @@ function checkDraft(questions:QuestionDraft[]):string[]{
     errors.push(ref+'preencha todas as alternativas.');
    if(!q.options.some(o=>o.id===q.correctOptionId))
     errors.push(ref+'defina uma alternativa correta.');
-  }else if(!q.rubric.trim())errors.push(ref+'informe a rubrica da discursiva.');
+  }else{
+   if(!q.rubric.trim())errors.push(ref+'informe a rubrica da discursiva.');
+   if(!q.expectedAnswer?.trim())errors.push(ref+'informe o padrão de resposta esperado.');
+  }
   q.images.forEach((m,j)=>{
    if(!m.altText.trim())errors.push(ref+'a imagem '+(j+1)+' exige descrição acessível.');
    if(m.rightsStatus==='nao_informado')errors.push(ref+'declare o direito de uso da imagem '+(j+1)+'.');
