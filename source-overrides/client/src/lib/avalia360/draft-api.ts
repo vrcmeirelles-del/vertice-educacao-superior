@@ -6,6 +6,7 @@
 import {supabase} from '@/lib/supabase';
 import type {QuestionDraft} from './question-draft';
 import type {UploadedImageReceipt} from './private-image-upload';
+import type {PedagogicalDraft} from './declared-analysis';
 
 export interface DraftReceipt {
  id:string;revision:number;status:'draft'|'submitted'|'validated'|'archived';
@@ -17,7 +18,7 @@ export interface DraftSaveInput {
  draftId?:string;expectedRevision?:number;buildId?:string;
  questions:QuestionDraft[];
  uploadedImages?: Record<string, Array<{localId:string;receipt:UploadedImageReceipt}>>;
- assessmentMeta?: {title:string;semester:string;purpose:'diagnostica'|'formativa'|'somativa'};
+ assessmentMeta?: {title:string;semester:string;purpose:'diagnostica'|'formativa'|'somativa';declaredPedagogy?:PedagogicalDraft};
 }
 function sanitizeQuestion(q:QuestionDraft, uploaded:DraftSaveInput['uploadedImages']) {
  // Os metadados de mídia dependem de upload privado validado e
@@ -77,7 +78,7 @@ export async function saveAssessmentDraft(input:DraftSaveInput):Promise<DraftApi
 
 export interface StoredAssessmentDraft {
  id:string;revision:number;status:'draft'|'submitted'|'validated'|'archived';
- snapshot:{questions:Array<Record<string,unknown>>;curriculumStatus?:string;meta?:{title?:string;semester?:string;purpose?:string}};
+ snapshot:{questions:Array<Record<string,unknown>>;curriculumStatus?:string;meta?:{title?:string;semester?:string;purpose?:string;declaredPedagogy?:PedagogicalDraft}};
 }
 export type DraftReadResult={ok:true;draft:StoredAssessmentDraft}|{ok:false;error:DraftApiFailure};
 /** Lê apenas o rascunho pertencente ao usuário autorizado; a RPC protege IES/curso/disciplinas. */
