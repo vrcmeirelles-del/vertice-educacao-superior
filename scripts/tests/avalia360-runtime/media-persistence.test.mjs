@@ -48,3 +48,16 @@ test('não lê metadados privados diretamente como autenticado',async t=>{
  const {db}=await fixture(t);
  await assert.rejects(()=>db.query('select * from vertice_avalia.question_media'),/permission denied/);
 });
+
+test('bloqueia excesso de tickets pendentes mesmo variando a questão',async t=>{
+ const {db,session}=await fixture(t);
+ await db.exec('reset role');
+ await db.query(`INSERT INTO vertice_avalia.question_media
+  (institution_id,course_id,discipline_code,question_id,created_by,
+   storage_path,expected_sha256,mime,size_bytes)
+ SELECT $1,$2,'civil',gen_random_uuid(),$3,
+   'synthetic/pending/'||g::text||'.png',repeat('a',64),'image/png',1024
+ FROM generate_series(1,24) g`,[id(11),id(21),id(1)]);
+ await session(id(1),'equipe','aal2');
+ await assert.rejects(()=>media(db),/Limite de tickets pendentes atingido/);
+});
