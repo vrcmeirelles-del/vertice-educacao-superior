@@ -6,6 +6,7 @@
 import {PDFDocument,StandardFonts,rgb} from 'pdf-lib';
 import QRCode from 'qrcode';
 import type {QuestionDraft} from './question-draft';
+import type {PendingQuestionImage} from './QuestionImageField';
 
 export interface PrintStudent { id:string;name:string;registration?:string;selected:boolean; }
 export interface PrintAssessment {
@@ -23,7 +24,14 @@ export function validatePrintAssessment(info:PrintAssessment):string[]{
   const prefix='Questão '+(i+1)+': ';
   if(q.statement.trim().length<10)issues.push(prefix+'enunciado incompleto.');
   if(!Number.isFinite(q.points)||q.points<=0)issues.push(prefix+'pontuação inválida.');
-  if(q.images.length)issues.push(prefix+'a emissão PDF ainda não incorpora imagens.');
+  for(const [j,figure] of q.images.entries()){
+   if(!figure.altText.trim())issues.push(prefix+'descrição acessível da imagem '+(j+1)+' ausente.');
+   if(figure.rightsStatus==='nao_informado')issues.push(prefix+'direito de uso da imagem '+(j+1)+' não confirmado.');
+   if(!['image/png','image/jpeg','image/webp'].includes(figure.file?.type||''))
+    issues.push(prefix+'formato de imagem '+(j+1)+' não suportado.');
+   if(figure.placement==='alternativa'&&(!figure.alternativeId||!q.options.some(o=>o.id===figure.alternativeId)))
+    issues.push(prefix+'imagem vinculada a alternativa inexistente.');
+  }
   if(q.kind==='objetiva'){
    if(q.options.length<2||q.options.some(o=>!o.text.trim()))issues.push(prefix+'alternativas incompletas.');
    if(!q.options.some(o=>o.id===q.correctOptionId))issues.push(prefix+'gabarito não selecionado.');
@@ -62,6 +70,29 @@ function wrap(text:string,max=91):string[]{
 function safeName(name:string){return name.normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Za-z0-9 -]/g,'').slice(0,140);}
 function safePrint(value:string){return value.normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^\x20-\x7e]/g,'?');}
 
+/** Converte apenas WebP em PNG via canvas do navegador; PNG/JPEG permanecem intactos. */
+async function embedFigure(pdf:PDFDocument,figure:PendingQuestionImage){
+ const bytes=new Uint8Array(await figure.file.arrayBuffer());
+ if(figure.file.type==='image/png')return pdf.embedPng(bytes);
+ if(figure.file.type==='image/jpeg')return pdf.embedJpg(bytes);
+ if(figure.file.type!=='image/webp')throw Error('Formato de imagem não suportado.');
+ if(typeof createImageBitmap!=='function'||typeof document==='undefined')
+  throw Error('Este navegador não suporta conversão de WebP para PDF. Use PNG ou JPEG.');
+ const bitmap=await createImageBitmap(figure.file);
+ try{
+  const canvas=document.createElement('canvas');canvas.width=bitmap.width;canvas.height=bitmap.height;
+  const ctx=canvas.getContext('2d');
+  if(!ctx)throw Error('Conversão da imagem indisponível neste navegador.');
+  ctx.drawImage(bitmap,0,0);
+  return pdf.embedPng(canvas.toDataURL('image/png'));
+ }finally{bitmap.close();}
+}
+/** Protege o desenho e a proporção da figura, preservando o enunciado e as alternativas. */
+function figureSize(width:number,height:number,maxWidth:number,maxHeight:number){
+ const factor=Math.min(maxWidth/width,maxHeight/height,1);
+ return {width:width*factor,height:height*factor};
+}
+
 /** Cada aluno recebe prova independente, identificada só por token aleatório no QR.
  * QR é 'VA360:' + token aleatório, não contém matrícula ou CPF.
  * O QR precisa ser registrado pelo backend autenticado antes de uso real.
@@ -92,16 +123,31 @@ export async function buildIndividualizedPdf(info:PrintAssessment,issues:PrintIs
   page.drawImage(img,{x:438,y:height-170,width:92,height:92});
   text(page,'QR de identificação local',436,height-176,6);
   text(page,'ID da folha: '+issue.paperId.slice(0,13),left,y,9);y-=24;
+  const renderFigure=async(figure:PendingQuestionImage)=>{
+   const img=await embedFigure(doc,figure);
+   const dims=figureSize(img.width,img.height,415,220);
+   const captionLines=wrap(figure.caption.trim()||figure.altText.trim(),88);
+   const required=dims.height+captionLines.length*12+19;
+   if(y-required<52){page=doc.addPage([width,height]);y=793;}
+   page.drawImage(img,{x:left+6,y:y-dims.height,width:dims.width,height:dims.height});
+   y-=dims.height+14;
+   for(const line of captionLines){text(page,line,left+6,y,8);y-=12;}
+   y-=10;
+  };
   for(const [i,q] of info.questions.entries()){
    newline(150);
    const lines=wrap((i+1)+'. '+q.statement,94);
    for(const ln of lines){newline(60);text(page,ln,left,y,10,true);y-=15;}
    text(page,'Valor: '+q.points+' ponto(s)',left,y,8);y-=17;
+   for(const fig of q.images.filter(x=>x.placement==='enunciado'||x.placement==='apoio'))
+    await renderFigure(fig);
    if(q.kind==='objetiva'){
     for(const option of q.options){
      for(const ln of wrap(option.id+') '+option.text,95)){
       newline(52);text(page,ln,left+14,y,9);y-=13;
      }
+     for(const fig of q.images.filter(x=>x.placement==='alternativa'&&x.alternativeId===option.id))
+      await renderFigure(fig);
     }
     y-=15;
    }else{
