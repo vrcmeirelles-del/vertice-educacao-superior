@@ -99,6 +99,22 @@ describe('impressão individualizada de prova',()=>{
   ],'batch3')));
   expect(doc.getPageCount()).toBeGreaterThanOrEqual(2);
  });
+ it('começa cada caderno em página ímpar após um conjunto de tamanho ímpar',async()=>{
+  const disc={...q,kind:'discursiva' as const,expectedAnswer:'Fundamentação de referência.',
+   rubric:'Identificação do instituto e argumentação.',answerLines:42};
+  const info={institutionName:'UNITOP',courseName:'Direito',discipline:'Civil',
+   title:'AV2',semester:'2026/2',classLabel:'2A',questions:[disc]};
+  const students=[
+   {id:'a',name:'Estudante A',selected:true},
+   {id:'b',name:'Estudante B',selected:true}
+  ];
+  const issues=prepareIssues(students,'batch-duplex');
+  const pdf=await PDFDocument.load(await buildIndividualizedPdf(info,issues));
+  expect(pdf.getPageCount()).toBe(7);
+  expect(pdf.getPage(3).node.Contents()).toBeUndefined();
+  expect(pdf.getPage(4).node.Contents()).toBeDefined();
+  expect(pdf.getPage(6).node.Contents()).toBeDefined();
+ });
  it('impede duplicidade de identificador e emissão sem alunos',()=>{
   expect(()=>prepareIssues([], 'batch-demo')).toThrow();
   expect(()=>prepareIssues([

@@ -150,6 +150,8 @@ export async function buildIndividualizedPdf(info:PrintAssessment,issues:PrintIs
  const images=new Map<string,Awaited<ReturnType<typeof embedFigure>>>();
  for(let studentIndex=0;studentIndex<issues.length;studentIndex++){
   const issue=issues[studentIndex],variant=variants[studentIndex%variants.length];
+  // Uma página par livre separa os alunos quando o conjunto anterior termina na frente da folha.
+  if(doc.getPageCount()%2===1)doc.addPage([W,H]);
   let page=doc.addPage([W,H]),col=0,y=top;
   // Versionamento no QR sem expor nome, matrícula ou identificador acadêmico.
   // O token é demonstrativo: falta registro autenticado de emissão e conferência no backend.
