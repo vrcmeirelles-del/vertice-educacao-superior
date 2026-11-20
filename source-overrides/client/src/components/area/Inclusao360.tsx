@@ -130,7 +130,7 @@ function Inclusao360Content({institutionId,role}:Props) {
               </div>
               <div className="inc-form-row">
                 <select value={formCase.priority} onChange={e=>setFormCase({...formCase,priority:e.target.value})}>
-                  <option value="normal">Normal</option><option value="urgente">Urgente</option><option value="critico">Crítico</option>
+                  <option value="baixa">Baixa</option><option value="normal">Normal</option><option value="alta">Alta</option><option value="urgente">Urgente</option>
                 </select>
               </div>
               <textarea placeholder="Resumo da situação" value={formCase.summary} onChange={e=>setFormCase({...formCase,summary:e.target.value})} rows={3} />
@@ -293,7 +293,7 @@ function Inclusao360Content({institutionId,role}:Props) {
             </div>
             <div className="inc-ev-card">
               <div className="inc-ev-label">Planos em execução</div>
-              <div className="inc-ev-n">{plans.filter(p=>p.status==='em_execucao'||p.status==='em_elaboracao').length}</div>
+              <div className="inc-ev-n">{plans.filter(p=>p.status==='ativo'||p.status==='em_revisao').length}</div>
             </div>
             <div className="inc-ev-card">
               <div className="inc-ev-label">Adaptações registradas</div>
