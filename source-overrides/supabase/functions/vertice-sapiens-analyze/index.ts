@@ -14,7 +14,7 @@ declare const Deno: {
 };
 
 import { analyzePlanning } from "./planning.ts";
-import { reviewThematic } from "./thematic.ts";
+import { reviewThematic, precheckThematic } from "./thematic.ts";
 import { buildDiagnosis } from "./diagnosis.ts";
 
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
@@ -175,6 +175,12 @@ Deno.serve(async (req: Request) => {
       const master = await admin.from("vertice_admins").select("user_id").eq("user_id",actorId).maybeSingle();
       if (master.error) return send({error:"authorization_unavailable"},503,origin);
       if (!master.data) return send({error:"master_required"},403,origin);
+      if (Object.keys(body).some(k=>!["action","question"].includes(k))) return send({error:"invalid_review_request"},400,origin);
+      // IA suspensa (padrão): devolve só a pré-checagem por regras (auditoria V14).
+      if (String(Deno.env.get("AI_SUSPENDED") ?? "true").toLowerCase() !== "false") {
+        try { return send(await precheckThematic(body.question),200,origin); }
+        catch(e) { const err=e as Error&{status?:number}; return send({error:err.status===400?err.message:"invalid_review_request"},400,origin); }
+      }
       if (!env("OPENAI_API_KEY") || !env("ANTHROPIC_API_KEY")) return send({error:"two_providers_required"},503,origin);
       if (Object.keys(body).some(k=>!["action","question"].includes(k))) return send({error:"invalid_review_request"},400,origin);
       try {

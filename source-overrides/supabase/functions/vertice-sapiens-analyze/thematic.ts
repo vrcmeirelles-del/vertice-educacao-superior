@@ -88,3 +88,16 @@ export async function reviewThematic(raw: Obj, openai: Call, anthropic: Call) {
     independentProviders: reviews.every(r => r.review !== null), decision: thematicDecision(input, reviews[0].review, reviews[1].review),
     proposed: input.proposed, reviews, sourceWrites: 0, publicationAllowed: false, persistence: "returned_receipt_only" };
 }
+// Pré-checagem por regra (auditoria de 20/11/2026, V14), usada com a IA suspensa: aplica as regras
+// determinísticas da decisão (mídia, anulada, gabarito ausente, referência temporal) sem revisões de IA.
+// Nunca aprova: sem as duas revisões independentes, o resultado fica sempre bloqueado para publicação.
+export async function precheckThematic(raw: Obj) {
+  const input = validateThematic(raw);
+  const snapshotHash = await hash(JSON.stringify(input));
+  const full = thematicDecision(input, null, null);
+  const ruleReasons = full.reasons.filter((r: string) => !["independent_provider_review_missing", "references_not_used_by_both"].includes(r));
+  return { command: "thematic_precheck", version: THEMATIC_VERSION, snapshotHash, sourceKey: input.sourceKey, sourceVersion: input.sourceVersion,
+    decision: { status: ruleReasons.length ? "blocked" : "awaiting_ai_review", reasons: ruleReasons, publicationAllowed: false },
+    note: "Pré-checagem por regras com a IA suspensa. A revisão temática exige as duas revisões independentes; nada é publicado.",
+    proposed: input.proposed, reviews: [], sourceWrites: 0, publicationAllowed: false, persistence: "returned_receipt_only" };
+}
