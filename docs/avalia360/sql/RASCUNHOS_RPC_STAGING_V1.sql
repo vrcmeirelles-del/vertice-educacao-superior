@@ -78,6 +78,7 @@ DECLARE
  v_revision integer;
  v_build uuid;
  v_item jsonb;
+ v_meta jsonb;
  v_media jsonb;
  v_image jsonb;
  v_image_count integer;
@@ -123,6 +124,17 @@ BEGIN
  END IF;
  IF p_action NOT IN ('create','update') THEN
    RAISE EXCEPTION 'Ação não permitida' USING ERRCODE='22023';
+ END IF;
+ v_meta:=coalesce(p_payload->'meta','{}'::jsonb);
+ IF jsonb_typeof(v_meta) IS DISTINCT FROM 'object' THEN
+   RAISE EXCEPTION 'Metadados de avaliação inválidos' USING ERRCODE='22023';
+ END IF;
+ IF v_meta <> '{}'::jsonb AND (
+   length(btrim(coalesce(v_meta->>'title',''))) NOT BETWEEN 3 AND 180 OR
+   length(btrim(coalesce(v_meta->>'semester',''))) NOT BETWEEN 3 AND 30 OR
+   coalesce(v_meta->>'purpose','') NOT IN ('diagnostica','formativa','somativa')
+ ) THEN
+   RAISE EXCEPTION 'Título, semestre e finalidade obrigatórios' USING ERRCODE='22023';
  END IF;
  v_questions:=p_payload->'questions';
  IF jsonb_typeof(v_questions) IS DISTINCT FROM 'array'
@@ -203,7 +215,7 @@ BEGIN
    RAISE EXCEPTION 'Currículo não vinculado ou não publicado'
     USING ERRCODE='22023';
  END IF;
- v_snapshot:=jsonb_build_object('questions',v_questions,'curriculumStatus',
+ v_snapshot:=jsonb_build_object('questions',v_questions,'meta',v_meta,'curriculumStatus',
     CASE WHEN v_build IS NULL THEN 'unmapped' ELSE 'linked' END);
  IF p_action='create' THEN
    IF p_payload ? 'id' OR p_payload ? 'expectedRevision' THEN
