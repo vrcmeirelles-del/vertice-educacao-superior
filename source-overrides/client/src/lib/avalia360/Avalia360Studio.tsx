@@ -108,9 +108,12 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
   setLoaded(null);
  },[activeIndex]);
  const add=()=>{
-  if(!disciplineId.trim()){setErrors(['Informe a disciplina antes de adicionar questões.']);return;}
-  const q=initial(disciplineId.trim());
-  setQuestions(all=>[...all,q]);setActiveIndex(questions.length);setErrors([]);setPreview(false);
+  // É permitido começar um rascunho sem disciplina; o salvamento exige associação posterior.
+  const newQuestion=initial(disciplineId.trim());
+  setQuestions(all=>[...all,newQuestion]);
+  setActiveIndex(questions.length);
+  setErrors([]);
+  setPreview(false);
  };
  const remove=(index:number)=>{
   setQuestions(all=>all.filter((_,i)=>i!==index));
@@ -225,6 +228,9 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
        Questão {i+1} · {item.kind==='objetiva'?'Objetiva':'Discursiva'}
      </button>)}
     <button type="button" style={btn(false)} onClick={add}>+ Adicionar questão</button>
+    {!disciplineId.trim()&&<span role="note" style={{alignSelf:'center',fontSize:12,color:'#6D4B14'}}>
+     Você pode criar questões agora. Informe a disciplina antes de salvar a avaliação.
+    </span>}
    </div>
    {!q?<p>Adicione a primeira questão para começar.</p>:
     <div style={{display:'grid',gap:12}}>
