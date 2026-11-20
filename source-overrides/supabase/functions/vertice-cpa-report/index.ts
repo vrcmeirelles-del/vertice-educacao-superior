@@ -35,6 +35,10 @@ Deno.serve(async (req: Request) => {
     if (!UUID.test(institution_id||'')) return send({error:'invalid'},400);
     const svc = {Authorization:`Bearer ${sk}`,apikey:sk,'Content-Type':'application/json'};
     const get = async (path: string) => (await fetch(`${url}/rest/v1/${path}`,{headers:svc,signal:AbortSignal.timeout(15000)})).json();
+    // Só administrador geral ou membro da própria instituição gera ou altera o relatório da CPA.
+    const isAdmin = await get(`vertice_admins?user_id=eq.${encodeURIComponent(user.id)}&select=user_id`);
+    const membership = await get(`vertice_memberships?user_id=eq.${encodeURIComponent(user.id)}&institution_id=eq.${institution_id}&select=role`);
+    if (!(Array.isArray(isAdmin) && isAdmin.length) && !(Array.isArray(membership) && membership.length)) return send({error:'forbidden'},403);
     const inst = (await get(`vertice_institutions?id=eq.${institution_id}&select=name,code_emec`))?.[0];
     if (!inst) return send({error:'not_found'},404);
     const members = await get(`vertice_cpa_members?institution_id=eq.${institution_id}&active=eq.true&select=full_name,role,segment`);
@@ -49,13 +53,22 @@ Deno.serve(async (req: Request) => {
     const ctx = JSON.stringify({inst,members_list:(members||[]).map((m:any)=>`${m.full_name}(${m.role}/${m.segment})`),camps_count:(camps||[]).length,total_resp:results.reduce((s:number,r:any)=>s+(r.total_responses||0),0),results:results.map((r:any)=>({aud:r.target_audience,n:r.total_responses,avg:r.institutional_avg,top2:r.top2_pct,axes:r.by_axis,dims:r.by_dimension,best:(r.questions||[]).filter((q:any)=>q.avg_score).sort((a:any,b:any)=>b.avg_score-a.avg_score).slice(0,5).map((q:any)=>({c:q.stable_code,t:q.question_text,a:q.avg_score})),worst:(r.questions||[]).filter((q:any)=>q.avg_score).sort((a:any,b:any)=>a.avg_score-b.avg_score).slice(0,5).map((q:any)=>({c:q.stable_code,t:q.question_text,a:q.avg_score})),open:(r.questions||[]).filter((q:any)=>q.open_answers?.length).flatMap((q:any)=>q.open_answers.filter(Boolean).slice(0,5))})),findings:(findings||[]).map((f:any)=>({t:f.finding_type,title:f.title,dim:f.dimension})),actions:(actions||[]).map((a:any)=>({title:a.title,status:a.status}))});
     const secs = secParam ? [secParam] : SECTIONS;
     const gen: Record<string,{title:string;content:string;ai_notes:string}> = {};
+    const failed: string[] = [];
     for (const sec of secs) {
       if (!PROMPTS[sec]) continue;
       const r = await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${oai}`},body:JSON.stringify({model:'gpt-4o',messages:[{role:'system',content:`Redator acadêmico SINAES. NÃO invente dados. Se ausente: "Não informado". Português formal.\nDADOS:\n${ctx}`},{role:'user',content:PROMPTS[sec]}],max_tokens:2000,temperature:0.3}),signal:AbortSignal.timeout(90000)});
-      gen[sec] = {title:TITLES[sec]||sec,content:r.ok?(await r.json()).choices?.[0]?.message?.content||'[vazio]':'[erro]',ai_notes:'Gerado por IA — requer aprovação CPA'};
+      const content = r.ok ? String((await r.json().catch(()=>null))?.choices?.[0]?.message?.content||'').trim() : '';
+      if (!content) failed.push(sec);
+      else gen[sec] = {title:TITLES[sec]||sec,content,ai_notes:'Gerado por IA — requer aprovação CPA'};
     }
+    // Falha de geração (IA suspensa, indisponível ou resposta vazia): nada é gravado como minuta.
+    if (failed.length) return send({error:'ai_unavailable',message:'A geração por IA está indisponível no momento. Nenhuma minuta foi gravada.',failed_sections:failed},503);
     if (report_id && UUID.test(report_id)) {
-      await fetch(`${url}/rest/v1/vertice_cpa_reports?id=eq.${report_id}`,{method:'PATCH',headers:svc,body:JSON.stringify({content_json:gen,status:'minuta_gerada',generated_at:new Date().toISOString(),generated_by:'ai',updated_at:new Date().toISOString()})});
+      // Regerar uma seção não apaga as demais: mescla com o conteúdo já salvo.
+      const current = await get(`vertice_cpa_reports?id=eq.${report_id}&institution_id=eq.${institution_id}&select=content_json`);
+      if (!Array.isArray(current) || !current[0]) return send({error:'not_found'},404);
+      const merged = {...(current[0].content_json||{}), ...gen};
+      await fetch(`${url}/rest/v1/vertice_cpa_reports?id=eq.${report_id}&institution_id=eq.${institution_id}`,{method:'PATCH',headers:svc,body:JSON.stringify({content_json:merged,status:'minuta_gerada',generated_at:new Date().toISOString(),generated_by:'ai',updated_at:new Date().toISOString()})});
       return send({ok:true,report_id,sections:Object.keys(gen)});
     }
     const saved = await (await fetch(`${url}/rest/v1/vertice_cpa_reports`,{method:'POST',headers:{...svc,Prefer:'return=representation'},body:JSON.stringify({institution_id,title:`Relatório CPA ${new Date().getFullYear()}`,report_type:body.report_type||'parcial',year_base:body.year_base||String(new Date().getFullYear()),content_json:gen,campaigns_included:(camps||[]).map((c:any)=>c.id),status:'minuta_gerada',generated_at:new Date().toISOString(),generated_by:'ai'})})).json();
