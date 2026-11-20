@@ -26,3 +26,8 @@ O usuário determinou separar Avalia 360° da Discursiva 360° e posicionar **Av
 
 ### Próxima entrega
 Homologar a macro-aba e o acesso por perfil no build completo; em seguida, testar numa prévia da Vértice que contenha o menu acadêmico e os dados de instituição com autenticação válida. Não fazer merge nem publicar em produção sem comprovação de segurança.
+
+### Correção após testes de compilação
+- O primeiro workflow global detectou **TS2741** em `ProfileSimulator.tsx`: a tabela exaustiva `Record<Tab,string>` ainda não apresentava o rótulo `avalia360`.
+- A lacuna foi corrigida no commit `2584d858c4b0fb292476d60013ea96234f56d0a4`; preservados os demais rótulos e controles de perfil.
+- Novo ciclo de testes globais solicitado, separado dos testes específicos (não declarar build completo aprovado antes de seu término).
