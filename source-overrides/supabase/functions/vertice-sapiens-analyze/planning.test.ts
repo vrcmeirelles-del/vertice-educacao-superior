@@ -357,6 +357,24 @@ describe("Sapiens interpretation and traceability", () => {
     expect(f.saved.reviewer_model).toBeNull();
     expect(other).toHaveBeenCalledTimes(1);
   });
+  it("sem nenhum provedor (IA suspensa), grava relatório por regras com as verificações, sem falhar", async () => {
+    const f = adminFixture();
+    const response = await analyzePlanning(
+      { rpc: async () => ({ data: { id: "j", context } }) },
+      f.admin,
+      "i",
+      {},
+      async () => null,
+      async () => null,
+    );
+    expect(response.status).toBe(200);
+    expect(f.saved.status).toBe("pending_review");
+    expect(f.saved.generator_model).toBe("regras");
+    expect(f.saved.result.summary).toMatch(/Relatório por regras/);
+    expect(f.saved.result.checks.length).toBeGreaterThanOrEqual(0);
+    for (const r of f.saved.result.recommendations) expect(r.finding_ids[0]).toMatch(/^check-/);
+    expect(f.saved.review.available).toBe(false);
+  });
   it("fails closed on invented citations and oversized context, before a false success or extra provider cost", async () => {
     const f = adminFixture();
     const bad = {
