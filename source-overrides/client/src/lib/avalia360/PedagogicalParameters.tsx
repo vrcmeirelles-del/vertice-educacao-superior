@@ -8,6 +8,7 @@ type Props={
  onChange:Dispatch<SetStateAction<PedagogicalDraft>>;
  questions:QuestionDraft[];
  activeIndex:number;
+ imported?:boolean;
  updateQuestion:(change:Partial<QuestionDraft>)=>void;
 };
 const field={display:'grid',gap:6,fontSize:13,fontWeight:650} as const;
@@ -18,7 +19,7 @@ const relations:{id:Relation;label:string}[]=[
  {id:'aprofundamento',label:'Aprofundamento'},
  {id:'interdisciplinar',label:'Interdisciplinar'}
 ];
-export default function PedagogicalParameters({value,onChange,questions,activeIndex,updateQuestion}:Props){
+export default function PedagogicalParameters({value,onChange,questions,activeIndex,updateQuestion,imported=false}:Props){
  const selected=questions[activeIndex];
  const change=(patch:Partial<PedagogicalDraft>)=>onChange(c=>({...c,...patch}));
  const addCompetency=()=>change({competencies:[...value.competencies,{
@@ -34,7 +35,7 @@ export default function PedagogicalParameters({value,onChange,questions,activeIn
  const competencyName=(id:string)=>value.competencies.find(c=>c.id===id)?.title||'Competência sem título';
  return <section aria-label="Parâmetros pedagógicos do algoritmo">
   <div style={{background:'#eef5fc',borderLeft:'4px solid #164b92',borderRadius:8,padding:12,fontSize:13}}>
-   <strong>Metadados declarados pelo docente.</strong> Nesta prévia, período, competências, temas e relações são preenchidos manualmente para experimentar o algoritmo. Não representam PPC aprovado, habilidade validada ou julgamento semântico das questões.
+   <strong>{imported?'Competências originadas da Construção Curricular.':'Metadados declarados pelo docente.'}</strong> O motor recebe os vínculos estruturados. A importação não comprova, por si só, validação do PPC ou correção semântica das questões.
   </div>
   <div style={{...card,display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(170px,1fr))',gap:12}}>
    <label style={field}>Período do curso avaliado (1–12)
@@ -56,21 +57,21 @@ export default function PedagogicalParameters({value,onChange,questions,activeIn
   <div style={card}>
    <div style={{display:'flex',justifyContent:'space-between',gap:8,alignItems:'center',flexWrap:'wrap'}}>
     <h4 style={{margin:0}}>Competências esperadas e períodos de origem</h4>
-    <button type="button" onClick={addCompetency}>+ Cadastrar competência declarada</button>
+    {!imported&&<button type="button" onClick={addCompetency}>+ Cadastrar competência declarada</button>}
    </div>
-   <p style={{fontSize:12}}>Associe competências com o período em que foram desenvolvidas. A cobertura será calculada pela presença dessas referências nas questões.</p>
+   <p style={{fontSize:12}}>{imported?'Competências importadas da Construção Curricular: edição de código, texto e período deve ocorrer no módulo de origem.':'Cadastre competências provisórias para a demonstração. A fonte definitiva é Construção Curricular.'} A cobertura será calculada pelos vínculos nas questões.</p>
    {value.competencies.map((c,i)=><div key={c.id} style={{display:'grid',gridTemplateColumns:'minmax(70px,100px) 1fr 80px auto',gap:7,alignItems:'center',margin:'9px 0'}}>
-    <input aria-label={'Código da competência '+(i+1)} style={input} value={c.code} placeholder="C1"
+    <input aria-label={'Código da competência '+(i+1)} style={input} readOnly={imported} value={c.code} placeholder="C1"
      onChange={e=>change({competencies:value.competencies.map(x=>x.id===c.id?{...x,code:e.target.value}:x)})}/>
-    <input aria-label={'Descrição da competência '+(i+1)} style={input} value={c.title} placeholder="Ex.: Interpretar normas e justificar soluções"
+    <input aria-label={'Descrição da competência '+(i+1)} style={input} readOnly={imported} value={c.title} placeholder="Ex.: Interpretar normas e justificar soluções"
      onChange={e=>change({competencies:value.competencies.map(x=>x.id===c.id?{...x,title:e.target.value}:x)})}/>
-    <input aria-label={'Período de origem da competência '+(i+1)} style={input} type="number" min={1} max={12} value={c.period}
+    <input aria-label={'Período de origem da competência '+(i+1)} style={input} readOnly={imported} type="number" min={1} max={12} value={c.period}
      onChange={e=>change({competencies:value.competencies.map(x=>x.id===c.id?{...x,period:Number(e.target.value)}:x)})}/>
-    <button type="button" onClick={()=>{
+    {!imported&&<button type="button" onClick={()=>{
       change({competencies:value.competencies.filter(x=>x.id!==c.id),
         requiredCompetencyIds:value.requiredCompetencyIds.filter(id=>id!==c.id),
         relations:value.relations.filter(x=>x.sourceCompetencyId!==c.id&&x.targetCompetencyId!==c.id)});
-    }}>Remover</button>
+    }}>Remover</button>}
    </div>)}
    <strong style={{fontSize:13}}>Competências que a avaliação deve contemplar</strong>
    <div style={{display:'flex',flexWrap:'wrap',gap:14,marginTop:9}}>
