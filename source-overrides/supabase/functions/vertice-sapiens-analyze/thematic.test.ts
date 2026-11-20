@@ -38,7 +38,7 @@ test("o endpoint real exige usuário Master com MFA antes da revisão e não exi
  const source=readFileSync(new URL("./index.ts",import.meta.url),"utf8").replace(/^import .*;\s*$/gm,"");
  const code=stripTypeScriptTypes(source);let handler:any,calls=0,master=true,valid=true;
  const admin={auth:{getUser:async()=>({data:{user:valid?{id:"actor"}:null},error:null})},from:()=>({select:()=>({eq:()=>({maybeSingle:async()=>({data:master?{user_id:"actor"}:null,error:null})})})})};
- const fakeEnv={SUPABASE_URL:"https://example.invalid",SUPABASE_SERVICE_ROLE_KEY:"test-fixture-only",AI_SUSPENDED:"false",OPENAI_API_KEY:"test-fixture-only",ANTHROPIC_API_KEY:"test-fixture-only"};
+ const fakeEnv={SUPABASE_URL:"https://example.invalid",SUPABASE_SERVICE_ROLE_KEY:"test-fixture-only",AI_SUSPENDED:"false",AI_FEATURES:"sapiens.analyze",OPENAI_API_KEY:"test-fixture-only",ANTHROPIC_API_KEY:"test-fixture-only"};
  new Function("createClient","analyzePlanning","reviewThematic","Deno",code)(()=>admin,()=>{},async()=>{calls++;return {sourceWrites:0};},{env:{get:(k:string)=>(fakeEnv as any)[k]},serve:(fn:any)=>handler=fn});
  const token=(aal:string)=>"header."+btoa(JSON.stringify({aal}))+".signature";
  const req=(t:string)=>new Request("https://example.invalid",{method:"POST",headers:{authorization:"Bearer "+t},body:JSON.stringify({action:"thematic_review",question:input()})});

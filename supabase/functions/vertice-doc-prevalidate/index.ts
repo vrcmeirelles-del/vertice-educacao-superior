@@ -7,10 +7,16 @@ import {extractDocument,groundedLinks,transmittedEvidence,ExtractionFailure} fro
 import {openTextPdf} from "./pdf-runtime.mjs";
 import {analyzeEvidence} from "./ai-provider.mjs";
 import {analyzeByRules,RULES_VERSION} from "./rule-analysis.mjs";
-// IA suspensa até a plataforma gerar receita (decisão de 19/11/2026). Para religar: secret AI_SUSPENDED=false.
+// Política de IA (20/11/2026): o algoritmo é o padrão em todo o portal. A IA só é chamada para as funções
+// listadas em AI_FEATURES (padrão: transcrição de manuscrito, geração de questões, segunda opinião na
+// correção e redação analítica da CPA) e com a chave geral AI_SUSPENDED=false (suspensa desde 19/11/2026).
+const AI_FEATURES_DEFAULT="discursiva.transcribe,discursiva.generate,discursiva.second_opinion,cpa.analysis";
+const aiPolicy=(get:(k:string)=>string|undefined)=>(feature:string)=>String(get("AI_SUSPENDED")??"true").toLowerCase()==="false"&&String(get("AI_FEATURES")??AI_FEATURES_DEFAULT).split(",").map(x=>x.trim()).includes(feature);
+const aiAllowed=aiPolicy(k=>Deno.env.get(k));
+const __AI_FN_FEATURES:string[]=["doc.prevalidate"];
 {const __aiFetch=globalThis.fetch;const __aiHosts=/(^|\.)(api\.anthropic\.com|api\.openai\.com|generativelanguage\.googleapis\.com)$/i;
 globalThis.fetch=((input:any,init?:any)=>{let host="";try{host=new URL(typeof input==="string"?input:input instanceof URL?input.href:input.url).hostname;}catch{}
-if(__aiHosts.test(host)&&String(Deno.env.get("AI_SUSPENDED")??"true").toLowerCase()!=="false")
+if(__aiHosts.test(host)&&!__AI_FN_FEATURES.some(aiAllowed))
  return Promise.resolve(new Response(JSON.stringify({error:{type:"ai_suspended",message:"IA suspensa temporariamente."}}),{status:503,headers:{"content-type":"application/json"}}));
 return __aiFetch(input,init);}) as typeof fetch;}
 
@@ -287,7 +293,7 @@ Deno.serve(async (request) => {
     const instrumentsSummary=objects.map((o:any)=>{const c:any=catalogCodes.get(o.catalog_id);return `${c.instrument_label} (${c.instrument_code} v${c.instrument_version}) / ${o.object_code}: ${o.object_label} ${o.description??""}`;}).join("\n");
 
     // 4. Análise por algoritmo (desde 20/11/2026). A IA só entra se religada e pedida
-    // explicitamente (AI_SUSPENDED=false e VERTICE_PREVALIDATION_AI=true); se falhar, ficam as regras.
+    // explicitamente (função "doc.prevalidate" em AI_FEATURES e AI_SUSPENDED=false); se falhar, ficam as regras.
     const [{data:instRow},{data:courseRows}]=await Promise.all([
      admin.from("vertice_institutions").select("name,acronym").eq("id",institutionId).maybeSingle(),
      admin.from("vertice_courses").select("name").eq("institution_id",institutionId).limit(500),
@@ -296,7 +302,7 @@ Deno.serve(async (request) => {
     let modelVersion = RULES_VERSION;
     let providerAttempts:any[]=[];
     let actorType="system";
-    const aiRequested=String(Deno.env.get("AI_SUSPENDED")??"true").toLowerCase()==="false"&&String(Deno.env.get("VERTICE_PREVALIDATION_AI")??"").toLowerCase()==="true";
+    const aiRequested=aiAllowed("doc.prevalidate");
     if (aiRequested) {
      try {
       const analysis=await analyzeWithAI(extractedText,fileName,category,indicators,instrumentsSummary);

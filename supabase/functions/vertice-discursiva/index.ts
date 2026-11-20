@@ -1,10 +1,16 @@
 import {createClient} from 'npm:@supabase/supabase-js@2.45.4';
 import {runAction} from './handler.ts';
 import {fail,type Obj} from './core.ts';
-// IA suspensa até a plataforma gerar receita (decisão de 19/11/2026). Para religar: secret AI_SUSPENDED=false.
+// Política de IA (20/11/2026): o algoritmo é o padrão em todo o portal. A IA só é chamada para as funções
+// listadas em AI_FEATURES (padrão: transcrição de manuscrito, geração de questões, segunda opinião na
+// correção e redação analítica da CPA) e com a chave geral AI_SUSPENDED=false (suspensa desde 19/11/2026).
+const AI_FEATURES_DEFAULT="discursiva.transcribe,discursiva.generate,discursiva.second_opinion,cpa.analysis";
+const aiPolicy=(get:(k:string)=>string|undefined)=>(feature:string)=>String(get("AI_SUSPENDED")??"true").toLowerCase()==="false"&&String(get("AI_FEATURES")??AI_FEATURES_DEFAULT).split(",").map(x=>x.trim()).includes(feature);
+const aiAllowed=aiPolicy(k=>Deno.env.get(k));
+const __AI_FN_FEATURES:string[]=["discursiva.transcribe","discursiva.generate","discursiva.second_opinion"];
 {const __aiFetch=globalThis.fetch;const __aiHosts=/(^|\.)(api\.anthropic\.com|api\.openai\.com|generativelanguage\.googleapis\.com)$/i;
 globalThis.fetch=((input:any,init?:any)=>{let host="";try{host=new URL(typeof input==="string"?input:input instanceof URL?input.href:input.url).hostname;}catch{}
-if(__aiHosts.test(host)&&String(Deno.env.get("AI_SUSPENDED")??"true").toLowerCase()!=="false")
+if(__aiHosts.test(host)&&!__AI_FN_FEATURES.some(aiAllowed))
  return Promise.resolve(new Response(JSON.stringify({error:{type:"ai_suspended",message:"IA suspensa temporariamente."}}),{status:503,headers:{"content-type":"application/json"}}));
 return __aiFetch(input,init);}) as typeof fetch;}
 const env=(s:string)=>Deno.env.get(s)||'';
@@ -42,10 +48,9 @@ Deno.serve(async(req:Request)=>{
   };
   const foContext=async(submissionId?:string)=>{const {data,error}=await client.rpc('vertice_discursiva_fo_context',{p_institution_id:body.institutionId,p_course_id:body.courseId,p_submission_id:submissionId??null});if(error)throw fail(error.message,403);return data;};
   const foStore=async(action:string,payload:Obj)=>{const {data,error}=await admin.rpc('vertice_discursiva_fo_store',{p_institution_id:body.institutionId,p_course_id:body.courseId,p_actor:user.data.user.id,p_action:action,p_payload:payload});if(error)throw fail(error.message);return data;};
-  const aiOn=env('AI_SUSPENDED').toLowerCase()==='false';
   // Conjunto de treino: respostas homologadas do curso (mesma autorização e MFA da RPC principal).
   const trainingSet=async()=>{const {data,error}=await client.rpc('vertice_discursiva_training_set',{p_institution_id:body.institutionId,p_course_id:body.courseId});if(error)return [];return Array.isArray(data)?data:[];};
-  const result=await runAction(body,{aiOn,trainingSet,secret,call,rpc,bridge,foContext,foStore,authorize:async()=>{await rpc('list');},sources:async query=>(await rpc('sources',{query})).sources,image:async path=>{
+  const result=await runAction(body,{ai:aiAllowed,trainingSet,secret,call,rpc,bridge,foContext,foStore,authorize:async()=>{await rpc('list');},sources:async query=>(await rpc('sources',{query})).sources,image:async path=>{
    if(!path.startsWith(`${body.institutionId}/${body.courseId}/${user.data.user.id}/`))throw fail('image_scope_denied',403);
    const {data,error}=await client.storage.from('discursiva-responses').download(path);if(error||!data)throw fail('image_not_found');
    if(data.size>6291456||!['image/jpeg','image/png','image/webp'].includes(data.type))throw fail('invalid_image');

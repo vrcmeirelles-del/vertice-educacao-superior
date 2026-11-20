@@ -20,9 +20,9 @@ test('QR signature detects altered metadata and wrong signing key',async()=>{
  assert.deepEqual(await verifyQR(token,secret),p);await assert.rejects(verifyQR(token,secret+'x'));
  await assert.rejects(verifyQR(token.replace(/.$/,'!'),secret));
 });
-test('grade independently calls both providers and saves suggestion with optimistic version, never finalizes',async()=>{
+test('second opinion (on request) calls both providers next to the algorithm and saves with optimistic version, never finalizes',async()=>{
  const actions=[],calls=[];const deps={authorize:async()=>{},rpc:async(a,p)=>{actions.push([a,p]);return {submission:{id:id(5),answer:'Resposta fundamentada',version:3},question:{content:q}};},call:async p=>{calls.push(p);return{content:JSON.stringify(grade(p==='openai'?10:8)),provider:p,model:'synthetic'};}};
- const r=await runAction({action:'grade',submissionId:id(5)},deps);assert.deepEqual(calls,['openai','anthropic']);assert.equal(r.suggestedScore,9);assert.equal(r.requiresHumanReview,true);assert.equal(actions[1][0],'save_assessment');assert.equal(actions[1][1].version,3);assert(!actions.some(([a])=>a==='finalize'));
+ const r=await runAction({action:'grade',submissionId:id(5),secondOpinion:true},deps);assert.deepEqual(calls,['openai','anthropic']);assert.equal(r.secondOpinion.suggestedScore,9);assert.equal(r.assessments[0].provider,'regras');assert.equal(r.requiresHumanReview,true);assert.equal(actions[1][0],'save_assessment');assert.equal(actions[1][1].version,3);assert(!actions.some(([a])=>a==='finalize'));
 });
 test('no provider call when course authorization or transcription confirmation fails',async()=>{
  let calls=0;const deps={authorize:async()=>{throw Error('denied');},call:async()=>calls++};await assert.rejects(runAction({action:'grade'},deps));assert.equal(calls,0);
@@ -102,5 +102,5 @@ test('PostgreSQL validates clinical RPC submissions, blocks ungrounded approval 
 });
 test('clinical grading uses frozen case-specific clinical criteria and preserves mandatory review',async()=>{
  const c=clinicalQ();let prompt;const deps={authorize:async()=>{},rpc:async a=>a==='get_submission'?{submission:{id:id(10),answer:'Resposta fundamentada',version:1},question:{content:c}}:{},call:async(provider,p,input)=>{prompt=p;assert.deepEqual(input.question.clinicalExpected,c.clinicalExpected);return {provider,model:'synthetic',content:JSON.stringify({criteria:c.rubric.map((r,index)=>({index,score:r.points,reason:'Critério atendido no texto.',evidence:['Resposta']})),feedback:'Devolutiva clínica de teste.'})};}};
- const result=await runAction({action:'grade',submissionId:id(10)},deps);assert(prompt.includes('Avaliação clínica educacional'));assert.equal(result.suggestedScore,10);assert.equal(result.requiresHumanReview,true);
+ const result=await runAction({action:'grade',submissionId:id(10),secondOpinion:true},deps);assert(prompt.includes('Avaliação clínica educacional'));assert.equal(result.secondOpinion.suggestedScore,10);assert.equal(result.requiresHumanReview,true);
 });

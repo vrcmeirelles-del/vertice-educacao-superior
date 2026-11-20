@@ -1,7 +1,13 @@
-// IA suspensa até a plataforma gerar receita (decisão de 19/11/2026). Para religar: secret AI_SUSPENDED=false.
+// Política de IA (20/11/2026): o algoritmo é o padrão em todo o portal. A IA só é chamada para as funções
+// listadas em AI_FEATURES (padrão: transcrição de manuscrito, geração de questões, segunda opinião na
+// correção e redação analítica da CPA) e com a chave geral AI_SUSPENDED=false (suspensa desde 19/11/2026).
+const AI_FEATURES_DEFAULT="discursiva.transcribe,discursiva.generate,discursiva.second_opinion,cpa.analysis";
+const aiPolicy=(get:(k:string)=>string|undefined)=>(feature:string)=>String(get("AI_SUSPENDED")??"true").toLowerCase()==="false"&&String(get("AI_FEATURES")??AI_FEATURES_DEFAULT).split(",").map(x=>x.trim()).includes(feature);
+const aiAllowed=aiPolicy(k=>Deno.env.get(k));
+const __AI_FN_FEATURES:string[]=["cpa.analysis"];
 {const __aiFetch=globalThis.fetch;const __aiHosts=/(^|\.)(api\.anthropic\.com|api\.openai\.com|generativelanguage\.googleapis\.com)$/i;
 globalThis.fetch=((input:any,init?:any)=>{let host="";try{host=new URL(typeof input==="string"?input:input instanceof URL?input.href:input.url).hostname;}catch{}
-if(__aiHosts.test(host)&&String(Deno.env.get("AI_SUSPENDED")??"true").toLowerCase()!=="false")
+if(__aiHosts.test(host)&&!__AI_FN_FEATURES.some(aiAllowed))
  return Promise.resolve(new Response(JSON.stringify({error:{type:"ai_suspended",message:"IA suspensa temporariamente."}}),{status:503,headers:{"content-type":"application/json"}}));
 return __aiFetch(input,init);}) as typeof fetch;}
 declare const Deno: { env: { get: (key: string) => string | undefined }; serve: (fn: (req: Request) => Promise<Response>) => void };
@@ -9,10 +15,10 @@ const origins = new Set(['https://www.verticesuperior.com.br','https://verticesu
 const UUID = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
 import { buildCpaSections, ANALYTIC, TITLES } from "./report.ts";
 // Desde 20/11/2026 as seções saem dos dados por modelo de texto (report.ts). A IA, se religada
-// (AI_SUSPENDED=false e OPENAI_API_KEY), só redige as seções analíticas 9, 10 e 12; se falhar,
+// (função "cpa.analysis" liberada e OPENAI_API_KEY), só redige as seções analíticas 9, 10 e 12; se falhar,
 // fica o roteiro com os dados. Nada é inventado: dado ausente aparece como "Não informado".
 const AI_PROMPTS: Record<string,string> = {diagnostico:'Análise integrada e diagnóstico — relacione achados, potencialidades e fragilidades ao PDI e aos eixos SINAES.',sensibilizacao:'Sensibilização e devolutivas à comunidade, só com o que os dados mostram.',consideracoes:'Considerações finais — síntese do ciclo e limitações.'};
-const aiOn = () => String(Deno.env.get('AI_SUSPENDED') ?? 'true').toLowerCase() === 'false' && !!Deno.env.get('OPENAI_API_KEY');
+const aiOn = () => aiAllowed('cpa.analysis') && !!Deno.env.get('OPENAI_API_KEY');
 
 Deno.serve(async (req: Request) => {
   const origin = req.headers.get('origin') || '';

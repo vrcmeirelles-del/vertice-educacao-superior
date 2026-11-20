@@ -42,7 +42,7 @@ describe('relatório da CPA por modelo de texto',()=>{
  it('a função só usa IA nas seções analíticas e com a IA religada; corrige a coluna emec_code',()=>{
   const index=readFileSync(dir+'index.ts','utf8');
   expect(index).not.toContain('code_emec');
-  expect(index).toContain("AI_SUSPENDED') ?? 'true').toLowerCase() === 'false'");
+  expect(index).toContain("aiAllowed('cpa.analysis')");
   expect(index).not.toMatch(/ai_not_configured|ai_unavailable/);
  });
 });
