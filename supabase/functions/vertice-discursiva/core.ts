@@ -34,7 +34,7 @@ export const OCR_PROMPT=`Transcreva literalmente a resposta manuscrita da imagem
 // Pré-nota por regra (auditoria de 20/11/2026, V5), usada com a IA suspensa: cobertura dos termos de
 // cada critério da rubrica na resposta, com trechos literais da resposta como evidência. Sempre
 // provisória e com revisão docente obrigatória; a nota final é do professor.
-const foldTxt=(s:string)=>String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+const foldTxt=(s:string)=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
 const STOP_RULE=new Set('item itens para pela pelo como deve esta este essa esse sobre entre quando qual quais forma modo apresentado apresentada indicado indicada descrito descritos descritas explicado explicados explicadas correta corretamente adequada adequado resposta aluno candidato'.split(' '));
 const ruleTerms=(s:string)=>[...new Set((foldTxt(s).replace(/^item\s+[a-z]\)\s*/,'').match(/[a-z]{5,}/g)||[]).filter(w=>!STOP_RULE.has(w)).map(w=>w.slice(0,6)))];
 export function ruleGrade(q:Obj,answer:string){

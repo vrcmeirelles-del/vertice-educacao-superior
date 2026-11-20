@@ -43,7 +43,9 @@ Deno.serve(async(req:Request)=>{
   const foContext=async(submissionId?:string)=>{const {data,error}=await client.rpc('vertice_discursiva_fo_context',{p_institution_id:body.institutionId,p_course_id:body.courseId,p_submission_id:submissionId??null});if(error)throw fail(error.message,403);return data;};
   const foStore=async(action:string,payload:Obj)=>{const {data,error}=await admin.rpc('vertice_discursiva_fo_store',{p_institution_id:body.institutionId,p_course_id:body.courseId,p_actor:user.data.user.id,p_action:action,p_payload:payload});if(error)throw fail(error.message);return data;};
   const aiOn=env('AI_SUSPENDED').toLowerCase()==='false';
-  const result=await runAction(body,{aiOn,secret,call,rpc,bridge,foContext,foStore,authorize:async()=>{await rpc('list');},sources:async query=>(await rpc('sources',{query})).sources,image:async path=>{
+  // Conjunto de treino: respostas homologadas do curso (mesma autorização e MFA da RPC principal).
+  const trainingSet=async()=>{const {data,error}=await client.rpc('vertice_discursiva_training_set',{p_institution_id:body.institutionId,p_course_id:body.courseId});if(error)return [];return Array.isArray(data)?data:[];};
+  const result=await runAction(body,{aiOn,trainingSet,secret,call,rpc,bridge,foContext,foStore,authorize:async()=>{await rpc('list');},sources:async query=>(await rpc('sources',{query})).sources,image:async path=>{
    if(!path.startsWith(`${body.institutionId}/${body.courseId}/${user.data.user.id}/`))throw fail('image_scope_denied',403);
    const {data,error}=await client.storage.from('discursiva-responses').download(path);if(error||!data)throw fail('image_not_found');
    if(data.size>6291456||!['image/jpeg','image/png','image/webp'].includes(data.type))throw fail('invalid_image');
