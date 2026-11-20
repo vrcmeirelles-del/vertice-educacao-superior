@@ -14,7 +14,11 @@ export interface QuestionDraft {
   statement: string;
   options: AnswerOption[];
   correctOptionId: string;
+  /** Fundamentação fornecida pelo docente; nunca impressa no caderno discente. */
+  answerJustification?: string;
   rubric: string;
+  /** Número de pautas com espaçamento de linha 1,5 na prova (3–60). */
+  answerLines?: number;
   /** Resposta-modelo docente: referência, não nota automática nem texto para o PDF do aluno. */
   expectedAnswer?: string;
   topicIds: string[];
@@ -60,9 +64,13 @@ export function validateQuestionDraft(
     const identifiers = new Set(draft.options.map(x=>x.id));
     if (identifiers.size!==draft.options.length || draft.options.some(x=>!x.id.trim() || !x.text.trim()))
       add('options','INVALID_OPTIONS','As alternativas precisam de identificadores distintos e texto.');
+    if (!draft.answerJustification?.trim())
+      add('answerJustification','MISSING_JUSTIFICATION','Justifique a alternativa correta para curadoria e calibração.');
     if (!identifiers.has(draft.correctOptionId))
       add('correctOptionId','INVALID_KEY','Selecione o gabarito da questão.');
   } else {
+    if (!Number.isInteger(draft.answerLines??8)||(draft.answerLines??8)<3||(draft.answerLines??8)>60)
+      add('answerLines','INVALID_RESPONSE_LINES','Informe entre 3 e 60 linhas de resposta.');
     if (!draft.rubric.trim()) add('rubric','MISSING_RUBRIC','Questão discursiva exige rubrica de correção.');
     if (!draft.expectedAnswer?.trim()) add('expectedAnswer','MISSING_EXPECTED_ANSWER','Informe o padrão de resposta esperado para orientar a correção.');
   }
