@@ -8,7 +8,7 @@ export interface AcExtraction { id: string; submission_id: string; participant_n
 export interface AcDecision { id: string; submission_id: string; decision: string; awarded_minutes: number|null; reviewer_name: string; reason: string|null; decided_at: string; }
 export interface AcStudentBalance { institution_id: string; student_id: string; full_name: string; enrollment_code: string; course_id: string; rule_id: string; total_required_minutes: number; credited_minutes: number; remaining_minutes: number; submissions_total: number; submissions_pending: number; }
 export interface AcCourseSummary { institution_id: string; course_id: string; course_name: string; students_with_rule: number; students_with_submissions: number; submissions_total: number; submissions_pending: number; submissions_approved: number; total_credited_minutes: number; }
-export interface StudentRegistryEntry { id: string; institution_id: string; course_id: string; enrollment_code: string; full_name: string; email: string; academic_status: string; verified: boolean; }
+export interface StudentRegistryEntry { id: string; institution_id: string; course_id: string; enrollment_code: string; full_name: string; academic_status: string; verified: boolean; }
 
 export const AC_STATUS_LABELS: Record<string,string> = {
   draft:'Rascunho', submitted:'Submetido', extracting:'Extraindo', suggestion_ready:'Sugestão pronta',
@@ -46,8 +46,10 @@ export async function fetchAcCourseSummary(instId: string) {
   const { data } = await supabase.from('v_ac_course_summary').select('*').eq('institution_id', instId);
   return (data ?? []) as AcCourseSummary[];
 }
+// Sem cpf_hash e email: o painel não precisa e não deve trafegar dados de identificação.
+const STUDENT_REGISTRY_COLUMNS = 'id, institution_id, course_id, enrollment_code, full_name, academic_status, verified';
 export async function fetchStudentRegistry(instId: string, courseId?: string) {
-  let q = supabase.from('vertice_student_registry').select('*').eq('institution_id', instId);
+  let q = supabase.from('vertice_student_registry').select(STUDENT_REGISTRY_COLUMNS).eq('institution_id', instId);
   if (courseId) q = q.eq('course_id', courseId);
   const { data } = await q.order('full_name').limit(500);
   return (data ?? []) as StudentRegistryEntry[];
