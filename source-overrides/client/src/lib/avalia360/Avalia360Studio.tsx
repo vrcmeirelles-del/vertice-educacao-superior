@@ -343,15 +343,20 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
       <summary>Adicionar imagem ou material de apoio {q.images.length?'· '+q.images.length+' anexo(s)':'(opcional)'}</summary>
       <div style={{marginTop:12}}><QuestionImageField questionId={q.id} value={q.images} onChange={images=>update({images})}/></div>
      </details>
-     {q.kind==='objetiva'?<fieldset style={{border:'1px solid '+line,borderRadius:10}}>
+     {q.kind==='objetiva'?<> <fieldset style={{border:'1px solid '+line,borderRadius:10}}>
       <legend style={{fontWeight:700}}>Alternativas e gabarito</legend>
       {q.options.map(o=><div key={o.id} style={{display:'grid',gridTemplateColumns:'50px 1fr 90px',gap:8,alignItems:'center',marginBottom:8}}>
        <strong>{o.id}</strong>
        <input style={inputStyle} value={o.text} onChange={e=>update({options:q.options.map(a=>a.id===o.id?{...a,text:e.target.value}:a)})} aria-label={'Alternativa '+o.id}/>
        <label style={{fontSize:12}}><input type="radio" name={'correct-'+q.id} checked={q.correctOptionId===o.id} onChange={()=>update({correctOptionId:o.id})}/> Correta</label>
       </div>)}
-     </fieldset>:
-     <div style={{display:'grid',gap:15}}>
+     </fieldset> 
+     {q.kind==='objetiva'&&<label style={labelStyle}>Justificativa da alternativa correta
+      <span className="avalia-help">Explique por que o gabarito está correto. Este texto integra a curadoria algorítmica e não será mostrado aos alunos.</span>
+      <textarea className="avalia-answer-area" style={inputStyle} value={q.answerJustification||''}
+       onChange={e=>update({answerJustification:e.target.value})}
+       placeholder="Indique os fundamentos, conceitos ou critérios que sustentam a alternativa correta."/>
+     </label></>:     <div style={{display:'grid',gap:15}}>
       <label style={labelStyle}>Padrão de resposta esperado
        <span className="avalia-help">Referência privada do professor. Não aparecerá no PDF dos estudantes.</span>
        <textarea className="avalia-answer-area" style={inputStyle} value={q.expectedAnswer||''}
