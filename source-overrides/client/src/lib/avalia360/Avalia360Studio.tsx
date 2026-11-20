@@ -2,6 +2,7 @@ import {useCallback,useEffect,useRef,useState} from 'react';
 import {QuestionImageField} from './QuestionImageField';
 import ClassBatchPublisher from './ClassBatchPublisher';
 import RuleCurationPanel from './RuleCurationPanel';
+import TeacherQuestionComposer from './TeacherQuestionComposer';
 import type {QuestionDraft} from './question-draft';
 import {saveAssessmentDraft,loadAssessmentDraft,type DraftReceipt,type StoredAssessmentDraft} from './draft-api';
 import {uploadQuestionImage,type UploadedImageReceipt} from './private-image-upload';
@@ -248,6 +249,7 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
        </select>
       </label>
      </div>
+     <TeacherQuestionComposer key={q.id} onApply={statement=>update({statement})}/>
      <label style={labelStyle}>Enunciado
       <textarea style={{...inputStyle,minHeight:105}} value={q.statement} onChange={e=>update({statement:e.target.value})} placeholder="Escreva o enunciado ou cole o texto da questão"/>
      </label>
