@@ -9,18 +9,16 @@ export default function RuleCurationPanel({question,pedagogy,onApply}:Props){
  const [report,setReport]=useState<CurationResult|null>(null);
  const [decisions,setDecisions]=useState<Decision[]>([]);
  const [open,setOpen]=useState(false);
- const [changed,setChanged]=useState(false);
- useEffect(()=>{setReport(null);setOpen(false);setChanged(false)},[question.id]);
+ useEffect(()=>{setReport(null);setOpen(false)},[question.id]);
  // Não é um parecer silencioso: resultado só exibido depois da submissão explícita.
- const submit=()=>{setReport(curateQuestion(question,pedagogy));setOpen(true);setChanged(false)};
+ const submit=()=>{setReport(curateQuestion(question,pedagogy));setOpen(true)};
  const decide=(action:'accepted'|'rejected')=>{
   if(!report?.suggestedStatement)return;
   const before=question.statement,after=report.suggestedStatement;
   setDecisions(x=>[...x,{action,at:new Date().toISOString(),ruleVersion:report.version,questionId:question.id,before,after}]);
   if(action==='accepted')onApply(after);
-  setReport(null);setChanged(false);
+  setReport(null);
  };
- const stale=report!==null&&changed;
  return <section aria-label="Curadoria algorítmica da questão" style={{border:'1px solid #bdd2eb',borderRadius:12,padding:14,marginTop:8}}>
   <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,flexWrap:'wrap'}}>
    <div><strong>Curadoria pedagógica por regras</strong>
