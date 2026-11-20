@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { BookOpen, CircleCheck, Clock3, GraduationCap, Info, Link2, Paperclip, Save, Target, Upload, UsersRound } from 'lucide-react';
+import { BookOpen, CircleCheck, Clock3, Download, GraduationCap, Info, Link2, Paperclip, Save, Target, Upload, UsersRound } from 'lucide-react';
 import PortalPageHeader from '../PortalPageHeader';
 import { supabase } from '@/lib/supabase';
 import { isFullAccess, visibleTabs, GOAL_STATUS, DIRECTION, type Role } from '@/lib/area';
@@ -563,6 +563,35 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate, showHeade
     );
   }
 
+  async function exportPdf(row: Activity) {
+    if (busyGuard.current) return;
+    busyGuard.current = true; setBusy(true); setActionError(''); setNotice('');
+    try {
+      const { buildTeachingPdf } = await import('@/lib/teaching-pdf');
+      const rosterResult = await supabase.rpc('vertice_teaching_roster', {
+        p_institution: institutionId, p_course: row.course_id, p_activity: row.id, p_query: '',
+      });
+      const students = ((rosterResult.data ?? []) as { student_name: string; enrollment_code: string | null; participant_role: string | null; minutes: number | null }[])
+        .filter(s => s.participant_role);
+      const goalName = row.goal_id ? goals.find(g => g.id === row.goal_id)?.title : undefined;
+      const evidenceName = row.evidence_doc_id ? knownEvidence.find(d => d.id === row.evidence_doc_id)?.title : undefined;
+      const crsName = courses.find(c => c.id === row.course_id)?.name ?? 'Curso';
+      const { data: instRow } = await supabase.from('vertice_institutions').select('name').eq('id', institutionId).maybeSingle();
+      const { data: userData } = await supabase.auth.getUser();
+      const bytes = await buildTeachingPdf({
+        activity: row, institutionName: instRow?.name ?? 'Instituição', courseName: crsName,
+        students, goalTitle: goalName, evidenceTitle: evidenceName, author: userData.user?.email ?? 'Não identificado',
+      });
+      const blob = new Blob([bytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `atividade-ensino-${row.title?.replace(/\s+/g, '-').slice(0, 40) || row.id}.pdf`;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+      setNotice('PDF gerado e baixado.');
+    } catch (err) { setActionError(err instanceof Error ? err.message : 'Erro ao gerar PDF.'); }
+    finally { busyGuard.current = false; setBusy(false); }
+  }
+
   const availableGoals = goals.filter(goal => goal.status !== 'cancelada' || goal.id === activityDraft.goal_id);
   const displayedActivities = activities.filter(row => mode === 'gestao' || row.course_id === courseId);
   const nameOfCourse = (courseId: string) => courses.find(c => c.id === courseId)?.name ?? 'Curso vinculado';
@@ -910,9 +939,12 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate, showHeade
           enabled={!!row.evidence_doc_id}
           onOpenAc={canOpenAc ? () => onNavigate?.('atividades-complementares') : undefined}
         />}
-        {row.status === 'rascunho' && (canValidate || (role === 'equipe' && !!staffId && row.created_by === staffId)) && <div className="teaching-pdi-actions">
-          <button type="button" className="btn-secondary" disabled={busy} onClick={() => editActivity(row)}>Editar rascunho</button>
-          {canValidate && <button type="button" className="btn-secondary" disabled={busy} onClick={() => setConfirmActivity(row)}>Revisar validação</button>}
+        {canEditActivity && <div className="teaching-pdi-actions">
+          <button type="button" className="btn-secondary" disabled={busy} onClick={() => exportPdf(row)}><Download size={15} aria-hidden="true" /> Exportar PDF</button>
+          {row.status === 'rascunho' && (canValidate || (role === 'equipe' && !!staffId && row.created_by === staffId)) && <>
+            <button type="button" className="btn-secondary" disabled={busy} onClick={() => editActivity(row)}>Editar rascunho</button>
+            {canValidate && <button type="button" className="btn-secondary" disabled={busy} onClick={() => setConfirmActivity(row)}>Revisar validação</button>}
+          </>}
         </div>}
         {confirmActivity?.id === row.id && row.status === 'rascunho' && canValidate && <div className="card">
           <p>Confirme o registro de execução da atividade. A validação encerra a edição, não comprova o resultado da meta e não credita horas complementares.</p>
