@@ -6,6 +6,7 @@ import "./auditoria-permanencia-bi.css";
 import ResultadoInstitucionalOfertas from "./ResultadoInstitucionalOfertas";
 import PrimeiraMatriculaTodosCursos from "./PrimeiraMatriculaTodosCursos";
 import EvasaoAlertaBI from "./EvasaoAlertaBI";
+import DisciplinasGargaloBI from "./DisciplinasGargaloBI";
 
 type Report={id:string;kind:string;course_id:string|null;payload:Record<string,any>;source_report_at:string|null};
 type Course={id:string;name:string;code:string|null};
@@ -45,7 +46,7 @@ export default function AuditoriaPermanenciaBI({institutionId,institutionName}:{
   const [subjectSearch,setSubjectSearch]=useState("");
   const [selectedTeacher,setSelectedTeacher]=useState<string|null>(null);
   const [selectedSubject,setSelectedSubject]=useState<string|null>(null);
-  const [tab,setTab]=useState<"ofertas"|"coortes"|"alerta"|"cursos"|"professores"|"disciplinas">("ofertas");
+  const [tab,setTab]=useState<"ofertas"|"coortes"|"alerta"|"gargalos"|"cursos"|"professores"|"disciplinas">("ofertas");
   const [refresh,setRefresh]=useState(0);
 
   useEffect(()=>{
@@ -129,12 +130,13 @@ export default function AuditoriaPermanenciaBI({institutionId,institutionName}:{
     {error&&<p role="alert" className="vxa-error">{error}</p>}
     {loading?<p role="status">Consultando dados disponíveis…</p>:<>
       <nav className="vxa-tabs" aria-label="Análises de permanência">
-        {([["ofertas","Todos os cursos · ofertas"],["coortes","Primeira matrícula · Todos os cursos"],["alerta","Alerta de evasão"],["cursos","Séries consolidadas"],["disciplinas","Ranking geral disciplinas"],["professores","Ranking geral professores"]] as const).map(([id,label])=>
+        {([["ofertas","Todos os cursos · ofertas"],["coortes","Primeira matrícula · Todos os cursos"],["alerta","Alerta de evasão"],["gargalos","Disciplinas-gargalo"],["cursos","Séries consolidadas"],["disciplinas","Ranking geral disciplinas"],["professores","Ranking geral professores"]] as const).map(([id,label])=>
           <button type="button" key={id} className={tab===id?"vxa-selected":""} onClick={()=>setTab(id)} aria-current={tab===id?"page":undefined}>{label}</button>)}
       </nav>
       {tab==="ofertas"&&<ResultadoInstitucionalOfertas institutionId={institutionId}/>}
       {tab==="coortes"&&<PrimeiraMatriculaTodosCursos courses={courses} reports={reports}/>}
       {tab==="alerta"&&<EvasaoAlertaBI institutionId={institutionId}/>}
+      {tab==="gargalos"&&<DisciplinasGargaloBI institutionId={institutionId} courses={courses}/>}
       {tab==="cursos"&&<div className="vxa-card">
         <h3>Reprovações por curso e semestre — recorte analítico</h3>
         <div className="vxa-filters">
