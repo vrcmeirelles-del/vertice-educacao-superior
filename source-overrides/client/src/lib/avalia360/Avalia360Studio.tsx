@@ -1,6 +1,7 @@
 import {useCallback,useEffect,useRef,useState} from 'react';
 import {QuestionImageField} from './QuestionImageField';
 import ClassBatchPublisher from './ClassBatchPublisher';
+import RuleCurationPanel from './RuleCurationPanel';
 import type {QuestionDraft} from './question-draft';
 import {saveAssessmentDraft,loadAssessmentDraft,type DraftReceipt,type StoredAssessmentDraft} from './draft-api';
 import {uploadQuestionImage,type UploadedImageReceipt} from './private-image-upload';
@@ -261,6 +262,8 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
       <textarea style={{...inputStyle,minHeight:110}} value={q.rubric} onChange={e=>update({rubric:e.target.value})} placeholder="Critérios, fundamentação e distribuição de pontos"/>
      </label>}
      <QuestionImageField questionId={q.id} value={q.images} onChange={images=>update({images})}/>
+     <RuleCurationPanel key={q.id} question={q} pedagogy={{...pedagogy,purpose}}
+      onApply={statement=>update({statement})}/>
      <div style={{background:light,padding:12,borderRadius:10,fontSize:13}}>Vínculo com o PPC: <strong>não validado</strong>. Os vínculos demonstrativos são declarados pelo professor e não representam aprovação institucional.</div>
     </div>}
   </div>
