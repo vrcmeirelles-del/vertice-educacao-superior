@@ -22,3 +22,12 @@ describe('demonstração comercial com a IA suspensa: conversa guiada por roteir
   expect(guidedReply('Como funciona?','aquisicoes','diligencia')).toMatch(/305 requisitos/);
  });
 });
+describe('limite diário da demonstração usa IP não forjável',()=>{
+ it('prefere cf-connecting-ip; nunca o primeiro valor de x-forwarded-for',async()=>{
+  const {clientIp}=await import('../supabase/functions/vertice-demo/index');
+  const r=(h:Record<string,string>)=>new Request('https://x.test',{headers:h});
+  expect(clientIp(r({'cf-connecting-ip':'1.1.1.1','x-forwarded-for':'9.9.9.9, 2.2.2.2'}))).toBe('1.1.1.1');
+  expect(clientIp(r({'x-forwarded-for':'9.9.9.9, 2.2.2.2'}))).toBe('2.2.2.2');
+  expect(clientIp(r({}))).toBe('unknown');
+ });
+});

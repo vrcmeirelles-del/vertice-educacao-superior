@@ -38,6 +38,9 @@ function profile(input:any){const p:Record<string,string>={};for(const key of ['
 function events(input:any){if(!Array.isArray(input)||input.length>10)throw new Boundary('invalid_events');return input.map(e=>{if(!e||!['track','module','page','simulation','dwell'].includes(e.type))throw new Boundary('invalid_event');const value=clean(e.value,60);if(!(tracks.includes(value)||modules.includes(value)||pages.includes(value)))throw new Boundary('invalid_event');return {type:e.type,value,at:new Date().toISOString(),...(e.type==='dwell'?{seconds:Math.max(0,Math.min(300,Number(e.seconds)||0))}:{})};});}
 export async function digest(value:string){return [...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(value)))].map(b=>b.toString(16).padStart(2,'0')).join('');}
 function serviceKey(){const raw=Deno.env.get('SUPABASE_SECRET_KEYS');if(raw){try{const v=JSON.parse(raw).default;if(v)return String(v)}catch{}}return Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')??'';}
+// IP confiável: cf-connecting-ip (Cloudflare sobrescreve); x-real-ip como alternativa; nunca o 1º valor de x-forwarded-for (controlado pelo cliente).
+// v17 (13/11/2026), aplicado direto no Supabase e trazido ao repositório em 20/11/2026.
+export function clientIp(req:Request){const cf=req.headers.get('cf-connecting-ip')?.trim();if(cf)return cf;const real=req.headers.get('x-real-ip')?.trim();if(real)return real;const xff=req.headers.get('x-forwarded-for');if(xff){const parts=xff.split(',').map(s=>s.trim()).filter(Boolean);if(parts.length)return parts[parts.length-1];}return 'unknown';}
 async function rpc(op:string,hash:string,p:unknown={},rate=''){
  const key=serviceKey();if(!key)throw new Boundary('backend_unavailable',503);
  const r=await fetch(`${Deno.env.get('SUPABASE_URL')}/rest/v1/rpc/vertice_demo_mutate`,{method:'POST',headers:{apikey:key,'Content-Type':'application/json',...(!key.startsWith('sb_secret_')?{Authorization:`Bearer ${key}`}:{})},body:JSON.stringify({op,secret_hash:hash,p,rate_key:rate}),signal:AbortSignal.timeout(10000)});
@@ -59,7 +62,7 @@ export async function handler(req:Request){
   if(b.action==='start'){
    if(b.notice_version!=='demo-2026-11-02'||typeof b.remember!=='boolean')throw new Boundary('consent_required');
    const token=[...crypto.getRandomValues(new Uint8Array(32))].map(x=>x.toString(16).padStart(2,'0')).join('');
-   const day=new Date().toISOString().slice(0,10),ip=req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()??'unknown';
+   const day=new Date().toISOString().slice(0,10),ip=clientIp(req);
    const rate=await digest(`${day}|${ip}|${serviceKey()}`);const state=await rpc('start',await digest(token),{remember:b.remember},rate);return send({token,state});
   }
   if(!/^[a-f0-9]{64}$/.test(b.token??''))throw new Boundary('invalid_token',401);
