@@ -80,6 +80,7 @@ export default function Avalia360Studio({institutionId,courses}:Avalia360StudioP
  const [preview,setPreview]=useState(false);
  const [receipt,setReceipt]=useState<DraftReceipt|null>(null);
  const [loaded,setLoaded]=useState<StoredAssessmentDraft|null>(null);
+ const [lookupId,setLookupId]=useState('');
  const [errors,setErrors]=useState<string[]>([]);
  const [busy,setBusy]=useState(false);
  const [status,setStatus]=useState('');
@@ -135,12 +136,16 @@ export default function Avalia360Studio({institutionId,courses}:Avalia360StudioP
   }catch(e){setStatus('Salvamento não concluído.');setErrors([e instanceof Error?e.message:'Falha ao conectar ao armazenamento privado.']);}
   finally{setBusy(false);}
  };
- const reopen=async()=>{
-  if(!receipt)return;
+ const reopen=async(draftId?:string)=>{
+  const id=(draftId||receipt?.id||'').trim();
+  if(!id){setErrors(['Informe o identificador do rascunho.']);return;}
+  if(!courseId||!disciplineId){setErrors(['Selecione curso e disciplina do rascunho.']);return;}
   setBusy(true);setErrors([]);setStatus('Reabrindo rascunho autorizado…');
-  const found=await loadAssessmentDraft({institutionId,courseId,disciplineId,draftId:receipt.id});
-  if(found.ok){setLoaded(found.draft);setStatus('Rascunho recuperado do Supabase.');}
-  else{setStatus('Não foi possível reabrir.');setErrors([found.error.message]);}
+  const found=await loadAssessmentDraft({institutionId,courseId,disciplineId,draftId:id});
+  if(found.ok){
+   setLoaded(found.draft);
+   setStatus('Rascunho recuperado do Supabase em modo de consulta.');
+  }else{setStatus('Não foi possível reabrir.');setErrors([found.error.message]);}
   setBusy(false);
  };
  const btn=(primary:boolean)=>({padding:'10px 16px',borderRadius:9,border:'1px solid '+blue,
@@ -241,7 +246,15 @@ export default function Avalia360Studio({institutionId,courses}:Avalia360StudioP
    <div style={{display:'flex',gap:9,flexWrap:'wrap',marginBottom:12}}>
     <button type="button" style={btn(false)} onClick={()=>{setPreview(!preview);setErrors([]);}}>{preview?'Ocultar prévia':'Pré-visualizar caderno'}</button>
     <button type="button" style={btn(true)} disabled={busy} onClick={save}>{busy?'Processando…':receipt?'Salvar nova versão':'Salvar rascunho no Supabase'}</button>
-    {receipt&&<button type="button" style={btn(false)} disabled={busy} onClick={reopen}>Reabrir do servidor</button>}
+    {receipt&&<button type="button" style={btn(false)} disabled={busy} onClick={()=>reopen()}>Reabrir do servidor</button>}
+   </div>
+   <div style={{display:'flex',gap:8,alignItems:'end',flexWrap:'wrap',margin:'12px 0'}}>
+     <label style={{...labelStyle,flex:'1 1 230px'}}>Consultar rascunho existente por ID
+       <input value={lookupId} onChange={e=>setLookupId(e.target.value)} style={inputStyle}
+         placeholder="Cole o identificador do rascunho salvo"/>
+     </label>
+     <button type="button" style={btn(false)} disabled={busy||!lookupId.trim()}
+       onClick={()=>reopen(lookupId)}>Consultar versão salva</button>
    </div>
    {errors.length>0&&<div role="alert" style={{background:'#FFF0F0',padding:12,borderRadius:9,color:'#982F2F'}}>
     <strong>Corrija antes de salvar:</strong><ul>{errors.map((e,i)=><li key={i}>{e}</li>)}</ul>
