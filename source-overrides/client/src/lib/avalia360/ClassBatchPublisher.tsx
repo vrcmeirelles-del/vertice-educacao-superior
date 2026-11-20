@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import {useEffect,useState} from 'react';
 import {buildIndividualizedPdf,downloadPdf,prepareIssues,validatePrintAssessment,type PrintStudent} from './individualized-pdf';
 import type {QuestionDraft} from './question-draft';
 import {loadAuthorizedClassRoster} from './class-roster';
@@ -16,6 +16,9 @@ export default function ClassBatchPublisher({institutionId,courseId,institutionN
  const [raw,setRaw]=useState('');
  const [status,setStatus]=useState('');
  const [working,setWorking]=useState(false);
+ const [pdfUrl,setPdfUrl]=useState('');
+ const [pdfFilename,setPdfFilename]=useState('');
+ useEffect(()=>()=>{if(pdfUrl)URL.revokeObjectURL(pdfUrl);},[pdfUrl]);
  const chooseExample=()=>{setStudents(demoStudents.map(x=>({...x})));setClassLabel('2A');setStatus('Turma fictícia carregada. Nenhum estudante real foi consultado.');};
  const loadReal=async()=>{
   if(previewMode)return;
@@ -53,8 +56,13 @@ export default function ClassBatchPublisher({institutionId,courseId,institutionN
    const issues=prepareIssues(students,crypto.randomUUID());
    const bytes=await buildIndividualizedPdf({institutionName,courseName,discipline,
     title,semester,classLabel,questions},issues);
-   downloadPdf(bytes,'Avalia360-'+classLabel+'-'+semester.replace('/','-'));
-   setStatus('PDF demonstrativo gerado com '+issues.length+' prova(s) nominal(is). Os QR Codes NÃO estão cadastrados no sistema; não usar para correção oficial.');
+   const filename='Avalia360-'+classLabel+'-'+semester.replace('/','-');
+   const blob=new Blob([new Uint8Array(bytes)],{type:'application/pdf'});
+   const url=URL.createObjectURL(blob);
+   setPdfUrl(url);setPdfFilename(filename.replace(/[^A-Za-z0-9 _-]/g,'_')+'.pdf');
+   // O link explícito abaixo funciona mesmo se o download automático for bloqueado pelo navegador.
+   downloadPdf(bytes,filename);
+   setStatus('PDF demonstrativo preparado com '+issues.length+' prova(s) nominal(is). Se não baixar automaticamente, use o link Baixar PDF gerado. Os QR Codes não estão registrados para correção oficial.');
   }catch(e){setStatus(e instanceof Error?e.message:'Não foi possível criar o PDF.');}
   finally{setWorking(false);}
  };
@@ -95,6 +103,9 @@ export default function ClassBatchPublisher({institutionId,courseId,institutionN
    onClick={generate} style={{background:'#164b92',color:'#fff',border:'none',borderRadius:9,padding:'12px 18px',fontWeight:700,cursor:'pointer'}}>
    {working?'Gerando PDF…':'Gerar PDF individualizado da turma'}
   </button>
+  {pdfUrl&&<a href={pdfUrl} download={pdfFilename} style={{display:'inline-block',marginTop:12,padding:'12px 16px',background:'#164b92',color:'#fff',fontWeight:700,borderRadius:9,textDecoration:'none'}}>
+   Baixar PDF gerado
+  </a>}
   {status&&<p role="status" style={{fontSize:13,color:'#334155',marginBottom:0}}>{status}</p>}
   <p style={{fontSize:12,color:'#64748b'}}>A correção via leitura do QR Code, exportação de notas e conexão com a turma oficial serão ativadas em etapa segura própria; nenhum resultado é enviado a planilhas ou ao banco nesta prévia.</p>
  </section>;
