@@ -2,12 +2,12 @@ import {useEffect,useState} from 'react';
 import {curateQuestion,type CurationResult} from './rule-curation';
 import type {QuestionDraft} from './question-draft';
 import type {PedagogicalDraft} from './declared-analysis';
-type Props={question:QuestionDraft;pedagogy:PedagogicalDraft;onApply:(statement:string)=>void};
-type Decision={action:'accepted'|'rejected';at:string;ruleVersion:string;questionId:string;before:string;after:string};
+import {createCurationDecision,type CurationDecision} from './curation-decision';
+type Props={question:QuestionDraft;pedagogy:PedagogicalDraft;onApply:(statement:string)=>void;onDecision?:(decision:CurationDecision)=>void};
 const noteStyle={padding:12,borderRadius:9,background:'#f0f6ff',fontSize:13} as const;
-export default function RuleCurationPanel({question,pedagogy,onApply}:Props){
+export default function RuleCurationPanel({question,pedagogy,onApply,onDecision}:Props){
  const [report,setReport]=useState<CurationResult|null>(null);
- const [decisions,setDecisions]=useState<Decision[]>([]);
+ const [decisions,setDecisions]=useState<CurationDecision[]>([]);
  const [open,setOpen]=useState(false);
  const signature=JSON.stringify({
   questionId:question.id,statement:question.statement,options:question.options,
@@ -21,12 +21,19 @@ export default function RuleCurationPanel({question,pedagogy,onApply}:Props){
  useEffect(()=>{setReport(null);setOpen(false)},[signature]);
  // Não é um parecer silencioso: resultado só exibido depois da submissão explícita.
  const submit=()=>{setReport(curateQuestion(question,pedagogy));setOpen(true)};
- const decide=(action:'accepted'|'rejected')=>{
-  if(!report?.suggestedStatement)return;
-  const before=question.statement,after=report.suggestedStatement;
-  setDecisions(x=>[...x,{action,at:new Date().toISOString(),ruleVersion:report.version,questionId:question.id,before,after}]);
-  if(action==='accepted')onApply(after);
-  setReport(null);
+ const decide=(action:'accepted'|'rejected'|'acknowledged')=>{
+  if(!report)return;
+  const suggestion=report.suggestedStatement;
+  if(action!=='acknowledged'&&!suggestion)return;
+  const event=createCurationDecision({
+   questionId:question.id,action,original:question.statement,
+   proposal:action==='acknowledged'?null:suggestion,
+   findings:report.findings.map(f=>f.code),timestamp:new Date().toISOString()
+  });
+  setDecisions(x=>[...x,event]);
+  onDecision?.(event);
+  if(action==='accepted'&&suggestion)onApply(suggestion);
+  setReport(null);setOpen(false);
  };
  return <section aria-label="Curadoria algorítmica da questão" style={{border:'1px solid #bdd2eb',borderRadius:12,padding:14,marginTop:8}}>
   <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,flexWrap:'wrap'}}>
@@ -46,6 +53,9 @@ export default function RuleCurationPanel({question,pedagogy,onApply}:Props){
      <div>{f.message}</div>
      <div style={{color:'#475569',fontSize:13}}>Providência: {f.recommendation}</div>
     </li>)}</ul>}
+   {!report.suggestedStatement&&<button type="button" onClick={()=>decide('acknowledged')}>
+    Registrar ciência dos apontamentos (sem alterar a questão)
+   </button>}
    {report.suggestedStatement&&<div style={{marginTop:14}}>
     <strong>Proposta de ajuste exclusivamente formal</strong>
     <p style={{fontSize:12}}>Compare antes de aceitar. Não é reescrita jurídica.</p>
@@ -61,8 +71,8 @@ export default function RuleCurationPanel({question,pedagogy,onApply}:Props){
   </div>}
   {decisions.length>0&&<details style={{marginTop:12}}>
    <summary>Histórico local de decisões ({decisions.length})</summary>
-   <p style={{fontSize:12}}>Registro apenas nesta sessão do navegador. Não equivale à trilha de auditoria institucional.</p>
-   <ul>{decisions.map((d,i)=><li key={i}>{d.at} · {d.action==='accepted'?'Ajuste aceito':'Redação mantida'} · {d.ruleVersion}</li>)}</ul>
+   <p style={{fontSize:12}}>Registro desta sessão. Se salvar o rascunho, o histórico poderá acompanhar o snapshot; não substitui auditoria autenticada no backend.</p>
+   <ul>{decisions.map((d,i)=><li key={i}>{d.at} · {d.action==='accepted'?'Ajuste aceito':d.action==='rejected'?'Redação mantida':'Ciência registrada'} · {d.ruleVersion}</li>)}</ul>
   </details>}
  </section>;
 }
