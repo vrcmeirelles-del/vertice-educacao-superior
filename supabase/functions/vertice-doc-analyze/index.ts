@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
 import { JSZip } from "https://esm.sh/jszip@3.10.1";
+import { ruleAnalysis } from "./doc-rules.ts";
 // IA suspensa até a plataforma gerar receita (decisão de 19/11/2026). Para religar: secret AI_SUSPENDED=false.
 {const __aiFetch=globalThis.fetch;const __aiHosts=/(^|\.)(api\.anthropic\.com|api\.openai\.com|generativelanguage\.googleapis\.com)$/i;
 globalThis.fetch=((input:any,init?:any)=>{let host="";try{host=new URL(typeof input==="string"?input:input instanceof URL?input.href:input.url).hostname;}catch{}
@@ -8,6 +9,8 @@ if(__aiHosts.test(host)&&String(Deno.env.get("AI_SUSPENDED")??"true").toLowerCas
  return Promise.resolve(new Response(JSON.stringify({error:{type:"ai_suspended",message:"IA suspensa temporariamente."}}),{status:503,headers:{"content-type":"application/json"}}));
 return __aiFetch(input,init);}) as typeof fetch;}
 
+// v4 (21/11/2026): com a IA suspensa (padrão), a análise sai por regras (doc-rules.ts) em vez de falhar;
+// PDF lido pela camada de texto com pdfjs (mesma versão de vertice-doc-prevalidate e do Impacto).
 // v3 (12/11/2026) — correção de segurança:
 // - exige usuário autenticado e verifica, pelo RLS do próprio usuário, que ele enxerga o documento
 //   (isolamento por IES) antes de qualquer operação privilegiada;
@@ -17,7 +20,7 @@ return __aiFetch(input,init);}) as typeof fetch;}
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
-const ANTHROPIC_KEY = Deno.env.get("ANTHROPIC_API_KEY")!;
+const ANTHROPIC_KEY = Deno.env.get("ANTHROPIC_API_KEY") || "";
 const DAILY_LIMIT_PER_INSTITUTION = Number(Deno.env.get("DOC_ANALYZE_DAILY_LIMIT") || "40");
 
 const supabase = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
@@ -59,6 +62,24 @@ async function extractTextFromDocx(buffer: ArrayBuffer): Promise<string> {
 }
 
 async function extractTextFromPdf(buffer: ArrayBuffer): Promise<string> {
+  try {
+    const pdfjs: any = await import("npm:pdfjs-dist@6.5.438/legacy/build/pdf.mjs");
+    const task = pdfjs.getDocument({ data: new Uint8Array(buffer.slice(0)), useSystemFonts: false, disableFontFace: true, isEvalSupported: false, useWorkerFetch: false, stopAtErrors: true });
+    try {
+      const doc = await task.promise; const pages: string[] = [];
+      for (let n = 1; n <= Math.min(doc.numPages, 120); n++) {
+        const c = await (await doc.getPage(n)).getTextContent();
+        pages.push(c.items.map((x: any) => (x.str || "") + (x.hasEOL ? "\n" : " ")).join(""));
+        if (pages.join("").length > 200000) break;
+      }
+      const text = pages.join("\n").trim();
+      if (text.length >= 50) return text;
+    } finally { await task.destroy(); }
+  } catch (_) { /* cai na leitura simples abaixo */ }
+  return extractTextFromPdfRaw(buffer);
+}
+
+function extractTextFromPdfRaw(buffer: ArrayBuffer): string {
   const bytes = new Uint8Array(buffer);
   const text = new TextDecoder("latin1").decode(bytes);
   const textBlocks: string[] = [];
@@ -226,7 +247,10 @@ serve(async (req: Request) => {
     }
 
     const category: DocCategory = doc.vertice_doc_categories;
-    const analysis = await analyzeWithClaude(extractedText, category, tier);
+    // IA suspensa (padrão desde 19/11/2026): análise por regras, sem provedor externo.
+    const aiOn = String(Deno.env.get("AI_SUSPENDED") ?? "true").toLowerCase() === "false" && Boolean(ANTHROPIC_KEY);
+    const analysis = aiOn ? await analyzeWithClaude(extractedText, category, tier) : ruleAnalysis(extractedText, category);
+    const modelVersion = aiOn ? "claude-sonnet-4-20250514" : "regras-doc-v1";
 
     await supabase.from("vertice_documents").update({
       ai_status: "completed",
@@ -234,7 +258,7 @@ serve(async (req: Request) => {
       ai_compliance_score: analysis.compliance_score,
       ai_findings: analysis.findings,
       ai_analyzed_at: new Date().toISOString(),
-      ai_model_version: "claude-sonnet-4-20250514",
+      ai_model_version: modelVersion,
       updated_at: new Date().toISOString(),
     }).eq("id", documentId);
 
