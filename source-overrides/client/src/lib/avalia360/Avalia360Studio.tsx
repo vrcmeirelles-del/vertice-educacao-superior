@@ -1,5 +1,6 @@
 import {useCallback,useEffect,useRef,useState} from 'react';
 import {QuestionImageField} from './QuestionImageField';
+import ClassBatchPublisher from './ClassBatchPublisher';
 import type {QuestionDraft} from './question-draft';
 import {saveAssessmentDraft,loadAssessmentDraft,type DraftReceipt,type StoredAssessmentDraft} from './draft-api';
 import {uploadQuestionImage,type UploadedImageReceipt} from './private-image-upload';
@@ -352,5 +353,7 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
    </section>}
    {loaded&&<SavedPreview value={loaded}/>}
   </div>
+  <ClassBatchPublisher previewMode={previewMode} courseName={courses.find(c=>c.id===courseId)?.name||''}
+    discipline={disciplineId} title={title} semester={period} questions={questions}/>
  </section>;
 }
