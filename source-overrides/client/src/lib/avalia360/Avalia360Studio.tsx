@@ -4,6 +4,7 @@ import ClassBatchPublisher from './ClassBatchPublisher';
 import RuleCurationPanel from './RuleCurationPanel';
 import type {CurationDecision} from './curation-decision';
 import TeacherQuestionComposer from './TeacherQuestionComposer';
+import QuestionBankPanel from './QuestionBankPanel';
 import type {QuestionDraft} from './question-draft';
 import {saveAssessmentDraft,loadAssessmentDraft,type DraftReceipt,type StoredAssessmentDraft} from './draft-api';
 import {uploadQuestionImage,type UploadedImageReceipt} from './private-image-upload';
@@ -333,6 +334,12 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
       onDecision={decision=>setCurationHistory(history=>[...history,decision].slice(-150))}/>
      <div style={{background:light,padding:12,borderRadius:10,fontSize:13}}>Vínculo com o PPC: <strong>não validado</strong>. Os vínculos demonstrativos são declarados pelo professor e não representam aprovação institucional.</div>
     </div>}
+    <QuestionBankPanel previewMode={previewMode}
+     institutionId={institutionId} courseId={courseId} discipline={disciplineId}
+     currentQuestion={q} onReuse={item=>{
+      setQuestions(all=>[...all,item]);setActiveIndex(questions.length);
+      setPreview(false);setLoaded(null);setErrors([]);
+     }}/>
   </div>
   <div style={cardStyle}>
    <h3 id="avalia360-parametros" style={{margin:'0 0 12px',scrollMarginTop:20}}>3 · Parâmetros para análise longitudinal</h3>
