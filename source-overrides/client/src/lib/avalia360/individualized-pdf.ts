@@ -13,6 +13,26 @@ export interface PrintAssessment {
  semester:string;classLabel:string;questions:QuestionDraft[];
 }
 export interface PrintIssue { student:PrintStudent;token:string;paperId:string; }
+/** Bloqueios de emissão — nenhuma prova incompleta é considerada pronta. */
+export function validatePrintAssessment(info:PrintAssessment):string[]{
+ const issues:string[]=[];
+ if(!info.courseName.trim()||!info.discipline.trim()||!info.title.trim()||!info.classLabel.trim())
+  issues.push('Curso, disciplina, título e turma são obrigatórios.');
+ if(!info.questions.length)issues.push('A avaliação precisa conter questões.');
+ info.questions.forEach((q,i)=>{
+  const prefix='Questão '+(i+1)+': ';
+  if(q.statement.trim().length<10)issues.push(prefix+'enunciado incompleto.');
+  if(!Number.isFinite(q.points)||q.points<=0)issues.push(prefix+'pontuação inválida.');
+  if(q.images.length)issues.push(prefix+'a emissão PDF ainda não incorpora imagens.');
+  if(q.kind==='objetiva'){
+   if(q.options.length<2||q.options.some(o=>!o.text.trim()))issues.push(prefix+'alternativas incompletas.');
+   if(!q.options.some(o=>o.id===q.correctOptionId))issues.push(prefix+'gabarito não selecionado.');
+   if(new Set(q.options.map(o=>o.text.trim().normalize('NFKC').toLocaleLowerCase('pt-BR'))).size!==q.options.length)
+    issues.push(prefix+'alternativas duplicadas.');
+  }else if(!q.rubric.trim())issues.push(prefix+'rubrica da discursiva ausente.');
+ });
+ return issues;
+}
 
 export function prepareIssues(students:PrintStudent[],batchId:string):PrintIssue[]{
  const selected=students.filter(s=>s.selected);
@@ -44,7 +64,8 @@ function safePrint(value:string){return value.normalize('NFKD').replace(/[\u0300
  * O QR precisa ser registrado pelo backend autenticado antes de uso real.
  */
 export async function buildIndividualizedPdf(info:PrintAssessment,issues:PrintIssue[]):Promise<Uint8Array>{
- if(!info.questions.length)throw new Error('Avaliação sem questões.');
+ const invalid=validatePrintAssessment(info);
+ if(invalid.length)throw new Error(invalid.join(' '));
  if(!issues.length)throw new Error('Lote vazio.');
  if(issues.length>120)throw new Error('Limite demonstrativo de 120 provas por lote.');
  const doc=await PDFDocument.create();
