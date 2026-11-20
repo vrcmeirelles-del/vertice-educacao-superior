@@ -1,3 +1,4 @@
+import {supabase} from '@/lib/supabase';
 import {useCallback,useEffect,useRef,useState} from 'react';
 import './avalia-wizard.css';
 import {QuestionImageField} from './QuestionImageField';
@@ -78,6 +79,7 @@ function SavedPreview({value}: {value:StoredAssessmentDraft}){
   <h3 style={{marginTop:0}}>Caderno recuperado do servidor</h3>
   <p><strong>{value.snapshot.meta?.title||'Avaliação'}</strong> · {value.snapshot.meta?.semester||'sem semestre informado'} · {value.snapshot.meta?.purpose||'sem finalidade informada'}</p>
   <p>Versão {value.revision} · {value.snapshot.curriculumStatus==='linked'?'Matriz associada':'Aguardando vinculação ao PPC'}</p>
+  {value.snapshot.meta?.teacherName&&<p>Professor: {value.snapshot.meta.teacherName}</p>}
   {value.snapshot.meta?.instructions&&<div><strong>Instruções da avaliação</strong>
    <div style={{whiteSpace:'pre-wrap'}}>{value.snapshot.meta.instructions}</div></div>}
   <p style={{fontSize:13}}>Decisões docentes declaradas neste rascunho: {value.snapshot.meta?.curationHistory?.length||0}. Este histórico não equivale à auditoria autenticada do servidor.</p>
@@ -98,6 +100,20 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
  const [disciplineId,setDisciplineId]=useState('');
  const [title,setTitle]=useState('');
  const [instructions,setInstructions]=useState('');
+ const [accountName,setAccountName]=useState('');
+ const [editedTeacherName,setEditedTeacherName]=useState<string|null>(null);
+ const teacherName=editedTeacherName??accountName;
+ useEffect(()=>{
+  if(previewMode)return;
+  let active=true;
+  void supabase.auth.getUser().then(({data})=>{
+   if(!active)return;
+   const metadata=data.user?.user_metadata;
+   const name=[metadata?.full_name,metadata?.name].find(value=>typeof value==='string'&&value.trim());
+   if(typeof name==='string')setAccountName(name.trim());
+  }).catch(()=>{/* O campo continua disponível para preenchimento manual. */});
+  return()=>{active=false;};
+ },[previewMode]);
  const [period,setPeriod]=useState('2027/1');
  const [purpose,setPurpose]=useState<Purpose>('formativa');
  const [pedagogy,setPedagogy]=useState<PedagogicalDraft>({
@@ -221,7 +237,7 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
      ...(receipt?{draftId:receipt.id,expectedRevision:receipt.revision}:{}),
      questions,uploadedImages:grouped,
      ...(curriculumSource&&!previewMode?{buildId:curriculumSource.buildId}:{}),
-     assessmentMeta:{title:title.trim(),instructions:instructions.trim(),semester:period.trim(),purpose,
+     assessmentMeta:{title:title.trim(),teacherName:teacherName.trim(),instructions:instructions.trim(),semester:period.trim(),purpose,
       declaredPedagogy:{...pedagogy,purpose},curationHistory:curationHistory.slice(-150),
       ...(curriculumSource?{curriculumSource}: {})}});
    if(!out.ok){setStatus('Falha no salvamento.');setErrors([out.error.message]);return;}
@@ -285,6 +301,10 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
    </div>
    <label style={{...labelStyle,marginTop:12}}>Título da avaliação
     <input style={inputStyle} value={title} onChange={e=>setTitle(e.target.value)} placeholder="Ex.: Avaliação de Direito Civil — AV1"/>
+   </label>
+   <label style={{...labelStyle,marginTop:12}}>Nome do professor
+    <input style={inputStyle} value={teacherName} onChange={e=>setEditedTeacherName(e.target.value)}
+     placeholder="Informe o nome que deve aparecer na prova"/>
    </label>
    <label style={{...labelStyle,marginTop:12}}>Instruções da avaliação
     <textarea style={inputStyle} rows={4} value={instructions} onChange={e=>setInstructions(e.target.value)}
@@ -578,7 +598,8 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
    {preview&&<section style={{background:light,padding:16,borderRadius:11}}>
     <h3 style={{textAlign:'center',margin:'0 0 4px'}}>{title||'Avaliação sem título'}</h3>
     <p style={{textAlign:'center',fontSize:13}}>{courses.find(c=>c.id===courseId)?.name||'Curso não selecionado'} · {disciplineId||'Disciplina'} · {period} · {purpose}</p>
-    {instructions.trim()&&<div style={{marginBottom:14}}><strong>Instruções da avaliação</strong>
+    {teacherName.trim()&&<p>Professor: {teacherName.trim()}</p>}
+    {instructions.trim()&&<div style={{marginBottom:14,border:'1px solid '+blue,borderRadius:6,padding:12}}><strong>Instruções da avaliação</strong>
      <div style={{whiteSpace:'pre-wrap'}}>{instructions.trim()}</div></div>}
     {questions.map((item,i)=><div key={item.id} style={{padding:'12px 0',borderTop:'1px solid '+line}}>
      <strong>{i+1}. {item.statement||'[Enunciado ainda não preenchido]'}</strong>
@@ -601,7 +622,7 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
   </div>
 
       <ClassBatchPublisher previewMode={previewMode} institutionId={institutionId} courseId={courseId} courseName={courses.find(c=>c.id===courseId)?.name||''}
-    discipline={disciplineId} title={title} instructions={instructions} semester={period} questions={questions}/>
+    discipline={disciplineId} title={title} teacherName={teacherName} instructions={instructions} semester={period} questions={questions}/>
 
     <div className="avalia-actions">
      <button className="avalia-action-secondary" type="button" onClick={()=>setStep(2)}>← Editar questões</button>

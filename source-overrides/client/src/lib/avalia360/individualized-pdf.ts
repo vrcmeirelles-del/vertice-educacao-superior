@@ -11,7 +11,7 @@ import {createExamVariants,versioningNotice,type ShuffleMode} from './exam-varia
 
 export interface PrintStudent { id:string;name:string;registration?:string;selected:boolean; }
 export interface PrintAssessment {
- institutionName:string;institutionLogo?:ArrayBuffer;courseName:string;discipline:string;title:string;instructions?:string;
+ institutionName:string;institutionLogo?:ArrayBuffer;courseName:string;discipline:string;title:string;teacherName?:string;instructions?:string;
  semester:string;classLabel:string;questions:QuestionDraft[];
  variantCount?:number;shuffleMode?:ShuffleMode;
 }
@@ -192,6 +192,7 @@ export async function buildIndividualizedPdf(info:PrintAssessment,issues:PrintIs
    let rowTop=detailsTop;
    rowTop-=cell('Avaliação',heading,margin,rowTop,detailsWidth);
    rowTop-=cell('Curso / Disciplina',info.courseName+' / '+info.discipline,margin,rowTop,detailsWidth);
+   if(info.teacherName?.trim())rowTop-=cell('Professor',info.teacherName.trim(),margin,rowTop,detailsWidth);
    rowTop-=cell('Estudante / Identificação',issue.student.name+' / '+(issue.student.registration||'demonstração'),
     margin,rowTop,detailsWidth);
    const gradeWidth=showGrade?92:0;
@@ -232,10 +233,22 @@ export async function buildIndividualizedPdf(info:PrintAssessment,issues:PrintIs
   };
   const instructions=info.instructions?.trim();
   if(instructions){
-   space(30);
-   write('Instruções da avaliação',10,16,true);
-   write(instructions,9.5,14);
-   y-=12;
+   const padding=10, leading=14, headingHeight=16;
+   const lines=wrapMeasured(instructions,9.5,width()-padding*2);
+   let offset=0;
+   while(offset<lines.length){
+    space(padding*2+headingHeight+leading);
+    const count=Math.min(lines.length-offset,Math.floor((y-bottom-padding*2-headingHeight)/leading));
+    const height=padding*2+headingHeight+count*leading;
+    page.drawRectangle({x:margin,y:y-height,width:width(),height,borderWidth:.8,borderColor:muted});
+    lineText(page,offset?'Instruções da avaliação (continuação)':'Instruções da avaliação',
+     margin+padding,y-padding-8,10,true);
+    lines.slice(offset,offset+count).forEach((line,i)=>{
+     lineText(page,line,margin+padding,y-padding-headingHeight-8-i*leading,9.5);
+    });
+    offset+=count;
+    y-=height+15;
+   }
   }
   const renderFigure=async(figure:PendingQuestionImage)=>{
    let fig=images.get(figure.localId);
