@@ -23,23 +23,43 @@ export function shuffleIndices(length:number,seed:number):number[]{
 }
 const hash=(value:string)=>{let h=2166136261;for(const c of value){h^=c.charCodeAt(0);h=Math.imul(h,16777619);}return h>>>0};
 const rotate=<T,>(arr:T[],by:number):T[]=>arr.length?arr.slice(by%arr.length).concat(arr.slice(0,by%arr.length)):[];
+/** Uma assinatura diferente por versão: sem versões repetidas sob o mesmo modo. */
+export function maxDistinctVariants(questions:QuestionDraft[],mode:ShuffleMode):number{
+ let count=1;
+ const multiply=(n:number)=>{for(let i=2;i<=n;i++){count*=i;if(count>=12)return;}};
+ if(mode!=='alternativas')multiply(questions.length);
+ if(mode!=='questoes')for(const q of questions.filter(q=>q.kind==='objetiva'))multiply(q.options.length);
+ return Math.min(count,12);
+}
 export function createExamVariants(questions:QuestionDraft[],count:number,mode:ShuffleMode='ambos'):ExamVariant[]{
  if(!Number.isInteger(count)||count<1||count>12)throw Error('Quantidade de versões deve estar entre 1 e 12.');
  if(!['questoes','alternativas','ambos'].includes(mode))throw Error('Modo de randomização inválido.');
+ const available=maxDistinctVariants(questions,mode);
+ if(count>available)throw Error('Esta avaliação permite no máximo '+available+' versão(ões) diferentes com o modo de randomização selecionado.');
+ const seen=new Set<string>();
  const shuffleQuestions=mode!=='alternativas',shuffleOptions=mode!=='questoes';
- const baseOrder=shuffleIndices(questions.length,hash(questions.map(x=>x.id).join('|')));
  return Array.from({length:count},(_,v)=>{
-  const order=shuffleQuestions?rotate(baseOrder,v):questions.map((_,i)=>i);
-  const items=order.map((qi,i)=>{
-   const q=questions[qi];
-   if(q.kind!=='objetiva')return {sourceId:q.id,displayNumber:i+1,question:q,options:[],correctLabel:null};
-   const base=shuffleIndices(q.options.length,hash(q.id+'#options'));
-   const indices=shuffleOptions?rotate(base,v):q.options.map((_,j)=>j);
-   const options=indices.map((idx,j)=>({sourceOptionId:q.options[idx].id,label:letters[j],text:q.options[idx].text}));
-   const correctLabel=options.find(o=>o.sourceOptionId===q.correctOptionId)?.label??null;
-   return {sourceId:q.id,displayNumber:i+1,question:q,options,correctLabel};
-  });
-  return {code:letters[v],index:v,items};
+  for(let attempt=0;attempt<2000;attempt++){
+   const order=shuffleQuestions?
+    shuffleIndices(questions.length,hash(questions.map(x=>x.id).join('|')+'|questoes|'+v+'|'+attempt)):
+    questions.map((_,i)=>i);
+   const items=order.map((qi,i)=>{
+    const q=questions[qi];
+    if(q.kind!=='objetiva')return {sourceId:q.id,displayNumber:i+1,question:q,options:[],correctLabel:null};
+    const indices=shuffleOptions?
+     shuffleIndices(q.options.length,hash(q.id+'|alternativas|'+v+'|'+attempt)):
+     q.options.map((_,j)=>j);
+    const options=indices.map((idx,j)=>({sourceOptionId:q.options[idx].id,label:letters[j],text:q.options[idx].text}));
+    const correctLabel=options.find(o=>o.sourceOptionId===q.correctOptionId)?.label??null;
+    return {sourceId:q.id,displayNumber:i+1,question:q,options,correctLabel};
+   });
+   const signature=JSON.stringify(items.map(i=>[i.sourceId,...i.options.map(o=>o.sourceOptionId)]));
+   if(!seen.has(signature)){
+    seen.add(signature);
+    return {code:letters[v],index:v,items};
+   }
+  }
+  throw Error('Não foi possível criar versões distintas com os parâmetros escolhidos.');
  });
 }
 export function teacherAnswerRows(variants:ExamVariant[]){
@@ -55,5 +75,7 @@ export function versioningNotice(questions:QuestionDraft[],count:number,mode:Shu
   return 'Sem questões objetivas, não há alternativas para randomizar.';
  if(mode==='ambos'&&questions.length<2&&!questions.some(q=>q.kind==='objetiva'&&q.options.length>1))
   return 'A avaliação possui apenas uma discursiva. Não é possível produzir variantes substantivamente diferentes por permutação.';
+ const max=maxDistinctVariants(questions,mode);
+ if(count>max)return 'Com estas questões e o modo escolhido, há somente '+max+' versão(ões) distintas. Reduza a quantidade ou adicione questões/alternativas.';
  return null;
 }
