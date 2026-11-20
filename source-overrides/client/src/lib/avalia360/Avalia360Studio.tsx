@@ -108,7 +108,7 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
  const [busy,setBusy]=useState(false);
  const [status,setStatus]=useState('');
  const uploads=useRef(new Map<string,ScopedImageReceipt>());
- useEffect(()=>{setReceipt(null);setLoaded(null);setQuestions([]);setCurationHistory([]);setPreview(false);uploads.current.clear();setStatus('');setCurriculumSource(null);setCurriculumMessage('');setPedagogy(p=>({...p,competencies:[],requiredCompetencyIds:[],relations:[]}));},[institutionId,courseId]);
+ useEffect(()=>{setReceipt(null);setLoaded(null);setQuestions([]);setCurationHistory([]);setPreview(false);uploads.current.clear();setStatus('');setCurriculumSource(null);setCurriculumMessage('');setPedagogy(p=>({...p,competencies:[],topics:[],requiredCompetencyIds:[],requiredTopicIds:[],relations:[]}));},[institutionId,courseId]);
  const update=useCallback((change:Partial<QuestionDraft>)=>{
   setQuestions(all=>all.map((q,i)=>i===activeIndex?{...q,...change}:q));
   setLoaded(null);
@@ -129,8 +129,8 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
   setDisciplineId(value);
   setCurriculumSource(null);
   setCurriculumMessage('');
-  setPedagogy(p=>({...p,competencies:[],requiredCompetencyIds:[],relations:[]}));
-  if(questions.length) setQuestions(all=>all.map(q=>({...q,disciplineId:value,competencyIds:[]})));
+  setPedagogy(p=>({...p,competencies:[],topics:[],requiredCompetencyIds:[],requiredTopicIds:[],relations:[]}));
+  if(questions.length) setQuestions(all=>all.map(q=>({...q,disciplineId:value,competencyIds:[],topicIds:[]})));
  };
  const importCurriculum=async()=>{
   if(!courseId||!disciplineId.trim()){
