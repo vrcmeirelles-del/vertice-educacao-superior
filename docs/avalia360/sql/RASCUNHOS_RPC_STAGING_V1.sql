@@ -17,8 +17,27 @@ CREATE TABLE vertice_avalia.assessment_drafts (
   snapshot jsonb NOT NULL CHECK(jsonb_typeof(snapshot)='object'),
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
-  FOREIGN KEY(course_id,institution_id) REFERENCES public.vertice_courses(id,institution_id)
+  FOREIGN KEY(course_id) REFERENCES public.vertice_courses(id) ON DELETE RESTRICT
 );
+-- Realidade confirmada da Vértice: public.vertice_courses tem PRIMARY KEY (id),
+-- NÃO UNIQUE(id,institution_id). A segregação composta depende de trigger.
+CREATE OR REPLACE FUNCTION vertice_avalia.guard_course_scope()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $
+BEGIN
+ IF NOT EXISTS (
+   SELECT 1 FROM public.vertice_courses c
+   WHERE c.id=NEW.course_id AND c.institution_id=NEW.institution_id
+ ) THEN
+   RAISE EXCEPTION 'Curso pertence a outra instituição' USING ERRCODE='23514';
+ END IF;
+ RETURN NEW;
+END $;
+REVOKE ALL ON FUNCTION vertice_avalia.guard_course_scope() FROM PUBLIC,anon,authenticated;
+CREATE TRIGGER avalia_draft_course_scope
+ BEFORE INSERT OR UPDATE OF institution_id,course_id
+ ON vertice_avalia.assessment_drafts
+ FOR EACH ROW EXECUTE FUNCTION vertice_avalia.guard_course_scope();
+
 CREATE INDEX avalia_draft_author_idx ON vertice_avalia.assessment_drafts
  (institution_id,course_id,author_id,updated_at DESC);
 CREATE TABLE vertice_avalia.assessment_draft_events (
@@ -33,6 +52,10 @@ CREATE TABLE vertice_avalia.assessment_draft_events (
   created_at timestamptz NOT NULL DEFAULT now(),
   UNIQUE(draft_id,revision)
 );
+CREATE TRIGGER avalia_draft_events_course_scope
+ BEFORE INSERT OR UPDATE OF institution_id,course_id
+ ON vertice_avalia.assessment_draft_events
+ FOR EACH ROW EXECUTE FUNCTION vertice_avalia.guard_course_scope();
 ALTER TABLE vertice_avalia.assessment_drafts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE vertice_avalia.assessment_draft_events ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON vertice_avalia.assessment_drafts,vertice_avalia.assessment_draft_events FROM PUBLIC,anon,authenticated;
