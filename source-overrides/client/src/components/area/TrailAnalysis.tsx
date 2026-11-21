@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { diagnoseCourse, TRAIL_DIAGNOSIS_RULES } from '@/lib/trail-diagnosis';
 import { addTrailQuestion, deleteTrail as rpcDeleteTrail, deleteTrailQuestion, importTrailsFromCurriculum, loadTrails, saveTrail, saveTrailSnapshot, type TrailState } from '@/lib/trails-api';
 import { supabase } from '@/lib/supabase';
 import { createClient } from '@supabase/supabase-js';
@@ -30,7 +31,7 @@ const HELP_TEXT = `As Trilhas de Formação agrupam disciplinas de uma mesma ár
 Fluxo completo:
 1. Defina as trilhas (ou importe da Construção Curricular)
 2. Importe questões ENADE do Fato & Ordem por disciplina/tema
-3. O Sapiens gera o diagnóstico qualitativo automaticamente
+3. O diagnóstico por regras aponta prioridades, padrão, tendência e ações (sem IA)
 4. Ações corretivas viram 5W2H no Plano de Ação do portal`;
 
 function HelpPopup({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -68,9 +69,9 @@ export default function TrailAnalysis({ institutionId, courses }: { institutionI
   const [foQuestions, setFoQuestions] = useState<FoQuestion[]>([]);
   const [foSyncing, setFoSyncing] = useState(false);
 
-  /* ── Sapiens diagnostic state ── */
-  const [sapiensLoading, setSapiensLoading] = useState(false);
-  const [sapiensReport, setSapiensReport] = useState<string | null>(null);
+  /* ── Diagnóstico por regras ── */
+  const [diagLoading, setDiagLoading] = useState(false);
+  const [diagReport, setDiagReport] = useState<string | null>(null);
 
   async function loadAll() {
     if (!courseId) return;
@@ -130,7 +131,7 @@ export default function TrailAnalysis({ institutionId, courses }: { institutionI
   const foMatched = foQuestions.filter(q => matchTrail(q, trails));
   const foUnmatched = foQuestions.filter(q => !matchTrail(q, trails));
 
-  useEffect(() => { loadAll(); setSapiensReport(null); }, [courseId, institutionId]);
+  useEffect(() => { loadAll(); setDiagReport(null); }, [courseId, institutionId]);
 
   // ── Trail CRUD (pela RPC; edição local e gravação ao sair do campo) ──
   async function addTrail() {
@@ -158,45 +159,15 @@ export default function TrailAnalysis({ institutionId, courses }: { institutionI
       s => s.imported ? `${s.imported} competência(s) importada(s) como trilhas.` : 'Todas as competências da matriz já têm trilha.');
   }
 
-  // ── Sapiens diagnostic ──
-  async function runSapiensDiagnostic() {
+  // ── Diagnóstico por regras (sem IA): lib/trail-diagnosis.ts, limiares versionados ──
+  async function runRulesDiagnostic() {
     if (!diagnostic.length) return;
-    setSapiensLoading(true);
-    setSapiensReport(null);
-    try {
-      const payload = {
-        institutionId,
-        courseId,
-        context: 'enade_trail_diagnostic',
-        diagnostic: diagnostic.map(d => ({
-          trail: `${d.code} — ${d.name}`,
-          questions: d.question_count,
-          avg_national: d.avg_national_pct,
-          avg_ies: d.avg_ies_pct,
-          discrepancy: d.avg_discrepancy,
-          status: d.status,
-        })),
-        prompt: `Analise as trilhas de formação ENADE deste curso de Direito. Para cada trilha em estado crítico ou de atenção, identifique:
-1. Possíveis causas da discrepância
-2. Fragilidades curriculares prováveis
-3. Recomendações pedagógicas concretas (ementa, metodologia, avaliação)
-4. Ações prioritárias com impacto no próximo ciclo
-
-Seja direto, técnico e estratégico. Use os dados fornecidos. Não repita dados — interprete.`,
-      };
-      const { data, error } = await supabase.functions.invoke('vertice-sapiens-analyze', { body: payload });
-      if (error) throw error;
-      setSapiensReport(data?.report || data?.analysis || data?.text || JSON.stringify(data));
-
-      // Save snapshot with Sapiens report
-      const rankings = diagnostic.map(d => ({ trail_id: d.trail_id, name: d.name, total_discrepancy: d.total_discrepancy, avg_discrepancy: d.avg_discrepancy, question_count: d.question_count, status: d.status }));
-      const weakest = diagnostic.filter(d => d.status === 'critico' || d.status === 'atencao').map(d => ({ trail: d.name, discrepancy: d.avg_discrepancy, suggested_action: d.status === 'critico' ? 'Oficina de retomada urgente' : 'Revisão de ementa e materiais' }));
-      void rankings; void weakest; // o servidor recalcula ranking e fragilidades a partir do diagnóstico
-      if (canWrite) await saveTrailSnapshot(institutionId, courseId, String(data?.report || ''));
-    } catch (e: any) {
-      setSapiensReport(`⚠️ Sapiens indisponível no momento. Erro: ${e.message}\n\nO diagnóstico quantitativo está disponível abaixo.`);
-    }
-    setSapiensLoading(false);
+    setDiagLoading(true);
+    const result = diagnoseCourse(trails, questions);
+    setDiagReport(result.text);
+    try { if (canWrite) await saveTrailSnapshot(institutionId, courseId, result.text); }
+    catch (e) { setNotice(e instanceof Error ? `Diagnóstico gerado, mas não foi salvo: ${e.message}` : 'Diagnóstico gerado, mas não foi salvo.'); }
+    setDiagLoading(false);
   }
 
   // ── Promote to 5W2H (linked to ENADE goal + enters BI pipeline) ──
@@ -246,7 +217,7 @@ Seja direto, técnico e estratégico. Use os dados fornecidos. Não repita dados
   const tabs_list: { key: typeof tab; icon: string; label: string }[] = [
     { key: 'trails', icon: '🧬', label: 'Trilhas' },
     { key: 'questions', icon: '📝', label: 'Questões' },
-    { key: 'diagnostic', icon: '🤖', label: 'Diagnóstico Sapiens' },
+    { key: 'diagnostic', icon: '📊', label: 'Diagnóstico' },
     { key: 'actions', icon: '⚡', label: 'Ações → 5W2H' },
   ];
 
@@ -383,11 +354,11 @@ Seja direto, técnico e estratégico. Use os dados fornecidos. Não repita dados
         </div>
       </div>}
 
-      {/* ═══ Tab 3: Diagnóstico Sapiens ═══ */}
+      {/* ═══ Tab 3: Diagnóstico por regras ═══ */}
       {tab === 'diagnostic' && <div>
         {!diagnostic.length || !questions.length ? <div className="card" style={{ textAlign: 'center', padding: 32 }}>
-          <p style={{ fontSize: 16, fontWeight: 600 }}>🤖 Sem dados para diagnóstico</p>
-          <p style={{ color: '#64748b' }}>Cadastre trilhas e mapeie questões ENADE para o Sapiens analisar.</p>
+          <p style={{ fontSize: 16, fontWeight: 600 }}>📊 Sem dados para diagnóstico</p>
+          <p style={{ color: '#64748b' }}>Cadastre trilhas e mapeie questões ENADE com as taxas de acerto da IES e nacional.</p>
         </div> : <>
           {/* Summary bar */}
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 20 }}>
@@ -399,19 +370,20 @@ Seja direto, técnico e estratégico. Use os dados fornecidos. Não repita dados
               </div>;
             })}
             <div style={{ marginLeft: 'auto' }}>
-              <button className="planning-primary" style={{ padding: '10px 20px', display: 'flex', alignItems: 'center', gap: 8 }} onClick={runSapiensDiagnostic} disabled={sapiensLoading}>
-                {sapiensLoading ? '🔄 Sapiens analisando…' : '🤖 Gerar Diagnóstico Sapiens'}
+              <button className="planning-primary" style={{ padding: '10px 20px', display: 'flex', alignItems: 'center', gap: 8 }} onClick={runRulesDiagnostic} disabled={diagLoading}>
+                {diagLoading ? 'Calculando…' : '📊 Gerar diagnóstico'}
               </button>
             </div>
           </div>
 
-          {/* Sapiens report */}
-          {sapiensReport && <div className="card" style={{ marginBottom: 20, padding: 24, borderLeft: '5px solid #6366f1', background: '#faf5ff' }}>
+          {/* Relatório do diagnóstico por regras */}
+          {diagReport && <div className="card" style={{ marginBottom: 20, padding: 24, borderLeft: '5px solid #6366f1', background: '#faf5ff' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-              <span style={{ fontSize: 20 }}>🤖</span>
-              <strong style={{ fontSize: 15, color: '#4338ca' }}>Parecer Sapiens</strong>
+              <span style={{ fontSize: 20 }}>📊</span>
+              <strong style={{ fontSize: 15, color: '#4338ca' }}>Diagnóstico por regras</strong>
+              <small style={{ color: '#64748b' }}>versão {TRAIL_DIAGNOSIS_RULES.version} · sem IA · mesma entrada, mesmo resultado</small>
             </div>
-            <div style={{ whiteSpace: 'pre-wrap', fontSize: 14, lineHeight: 1.7, color: '#1e293b' }}>{sapiensReport}</div>
+            <div style={{ whiteSpace: 'pre-wrap', fontSize: 14, lineHeight: 1.7, color: '#1e293b' }}>{diagReport}</div>
           </div>}
 
           {/* Trail ranking cards */}

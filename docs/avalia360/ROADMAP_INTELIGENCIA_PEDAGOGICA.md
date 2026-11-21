@@ -165,6 +165,11 @@ sem recriar tabela, regra ou tela paralela.
   import_curriculum, add_question, delete_question, save_snapshot, institution_diagnostic). Gravação: gestão ou
   coordenação/NDE do curso; discrepância e ranking do instantâneo calculados no servidor; importação lê a matriz
   publicada vigente. Cliente: `lib/trails-api.ts` (TrailAnalysis, SapiensPanel, Governança 360°).
+- Diagnóstico das Trilhas por regras (sem IA): `lib/trail-diagnosis.ts` (`TRAIL_DIAGNOSIS_RULES` 2026.11-1) —
+  evidência mínima de 3 questões, discrepância média (limiares da visão), padrão sistêmico × pontual (desvio ≥ 10 pp),
+  tendência por mínimos quadrados (± 2 pp/ano), lacuna de base (nacional ≥ 60% e IES ≤ −10 pp), prioridade
+  max(0,−discrepância)·√n com fatores de piora (1,25) e lacuna de base (1,2); recomendações por tabela fixa.
+  Substituiu a chamada à função `vertice-sapiens-analyze` nesta tela.
 
 ## Coordenação e NDE por curso (2026-11)
 - `vertice_memberships` só admite gestor/equipe/leitor; 106 políticas reconhecem "equipe" sem "coordenador".
