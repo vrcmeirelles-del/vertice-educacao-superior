@@ -108,6 +108,7 @@ export default function PedagogicalParameters({value,onChange,questions,activeIn
   </div>
   <div style={card}>
    <h4 style={{margin:'0 0 9px'}}>Relações longitudinais (declaradas)</h4>
+   <p style={{fontSize:12,color:'#41566F',margin:'0 0 8px'}}>Leia como “origem → relação → destino”. Em pré-requisito, a origem é base para o destino: o diagnóstico usa essa direção para apontar a causa provável de uma dificuldade.</p>
    <p style={{fontSize:12}}>Registre relações explícitas entre competências. Sem vínculo validado, o motor somente apontará lacunas de progressão.</p>
    {value.relations.map((r,i)=><div key={i} style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr auto',gap:7,marginBottom:8}}>
     <select aria-label={'Competência de origem da relação '+(i+1)} style={input} value={r.sourceCompetencyId} onChange={e=>change({relations:value.relations.map((x,j)=>j===i?{...x,sourceCompetencyId:e.target.value}:x)})}>

@@ -39,3 +39,19 @@ describe('importação de referências da Construção Curricular',()=>{
   expect(r.competencies).toEqual([{id:'c1',code:'C1',title:'Competência civil',period:2}]);
  });
 });
+
+describe('período assumido (opcional e explícito)',()=>{
+ it('sem a opção, competência sem período continua fora',()=>{
+  expect(mapCurriculumToAssessment(input).assumedPeriods).toEqual([]);
+ });
+ it('com a opção, entra com o período da avaliação, sinalizada e sem prontidão',()=>{
+  const r=mapCurriculumToAssessment({...input,assumedPeriod:4});
+  expect(r.competencies.find(c=>c.id==='c3')).toEqual({id:'c3',code:'C3',title:'Competência sem período',period:4});
+  expect(r.assumedPeriods).toEqual(['C3']);
+  expect(r.ready).toBe(false);
+  expect(r.warnings.join(' ')).toMatch(/período desta avaliação \(4º\)/);
+ });
+ it('período assumido fora de 1–12 é ignorado',()=>{
+  expect(mapCurriculumToAssessment({...input,assumedPeriod:0}).assumedPeriods).toEqual([]);
+ });
+});

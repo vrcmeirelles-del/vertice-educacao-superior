@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
+import { diagnoseCourse, TRAIL_DIAGNOSIS_RULES } from '@/lib/trail-diagnosis';
+import { addTrailQuestion, deleteTrail as rpcDeleteTrail, deleteTrailQuestion, importTrailsFromCurriculum, loadTrails, saveTrail, saveTrailSnapshot, type TrailState } from '@/lib/trails-api';
 import { supabase } from '@/lib/supabase';
 import { createClient } from '@supabase/supabase-js';
-import { isFullAccess, type Role } from '@/lib/area';
+import { type Role } from '@/lib/area';
 import { storeActionDraft } from '@/lib/portal-integration';
 import './planning/planning.css';
 
@@ -29,7 +31,7 @@ const HELP_TEXT = `As Trilhas de Formação agrupam disciplinas de uma mesma ár
 Fluxo completo:
 1. Defina as trilhas (ou importe da Construção Curricular)
 2. Importe questões ENADE do Fato & Ordem por disciplina/tema
-3. O Sapiens gera o diagnóstico qualitativo automaticamente
+3. O diagnóstico por regras aponta prioridades, padrão, tendência e ações (sem IA)
 4. Ações corretivas viram 5W2H no Plano de Ação do portal`;
 
 function HelpPopup({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -49,11 +51,13 @@ function discColor(d: number | null): string {
   return '#16a34a';
 }
 
-export default function TrailAnalysis({ institutionId, courses, role }: { institutionId: string; courseId?: string; courses: Course[]; role: Role | null }) {
+export default function TrailAnalysis({ institutionId, courses }: { institutionId: string; courseId?: string; courses: Course[]; role: Role | null }) {
   const [courseId, setCourseId] = useState('');
   const [tab, setTab] = useState<'trails' | 'questions' | 'diagnostic' | 'actions'>('trails');
   const [helpOpen, setHelpOpen] = useState(false);
-  const canWrite = isFullAccess(role) || role === 'coordenador' || role === 'nde';
+  // O servidor decide quem grava: gestão da IES ou coordenação/NDE do curso.
+  const [serverCanWrite, setServerCanWrite] = useState(false);
+  const canWrite = serverCanWrite;
 
   const [trails, setTrails] = useState<Trail[]>([]);
   const [questions, setQuestions] = useState<QuestionLink[]>([]);
@@ -65,31 +69,31 @@ export default function TrailAnalysis({ institutionId, courses, role }: { instit
   const [foQuestions, setFoQuestions] = useState<FoQuestion[]>([]);
   const [foSyncing, setFoSyncing] = useState(false);
 
-  /* ── Sapiens diagnostic state ── */
-  const [sapiensLoading, setSapiensLoading] = useState(false);
-  const [sapiensReport, setSapiensReport] = useState<string | null>(null);
+  /* ── Diagnóstico por regras ── */
+  const [diagLoading, setDiagLoading] = useState(false);
+  const [diagReport, setDiagReport] = useState<string | null>(null);
 
   async function loadAll() {
     if (!courseId) return;
     setLoading(true);
     try {
-      const [t, q, d] = await Promise.all([
-        supabase.from('formation_trails').select('*').eq('institution_id', institutionId).eq('course_id', courseId).order('code'),
-        supabase.from('trail_question_links').select('*').order('enade_year', { ascending: false }),
-        supabase.from('v_trail_diagnostic').select('*').eq('institution_id', institutionId).eq('course_id', courseId).order('total_discrepancy'),
-      ]);
-      const loadedTrails: Trail[] = t.data || [];
-      setTrails(loadedTrails);
-      const trailIds = new Set(loadedTrails.map((x: Trail) => x.id));
-      setQuestions((q.data || []).filter((x: QuestionLink) => trailIds.has(x.trail_id)));
-      setDiagnostic(d.data || []);
+      const loadedTrails = applyState(await loadTrails(institutionId, courseId));
 
       // ── Auto-sync: buscar questões do Fato & Ordem pelas keywords das trilhas ──
       if (loadedTrails.length > 0) {
         syncFatoEOrdem(loadedTrails);
       }
-    } catch { /* ignore */ }
+    } catch (e) { setNotice(e instanceof Error ? e.message : 'Não foi possível carregar as trilhas.'); }
     setLoading(false);
+  }
+
+  function applyState(state: TrailState): Trail[] {
+    setTrails(state.trails); setQuestions(state.questions); setDiagnostic(state.diagnostic); setServerCanWrite(state.canWrite);
+    return state.trails;
+  }
+  async function run(op: () => Promise<TrailState>, ok?: (s: TrailState) => string) {
+    try { const s = await op(); applyState(s); if (ok) setNotice(ok(s)); return true; }
+    catch (e) { setNotice(e instanceof Error ? e.message : 'Operação recusada.'); return false; }
   }
 
   /** Busca automática no Fato & Ordem por keywords de todas as trilhas */
@@ -127,88 +131,43 @@ export default function TrailAnalysis({ institutionId, courses, role }: { instit
   const foMatched = foQuestions.filter(q => matchTrail(q, trails));
   const foUnmatched = foQuestions.filter(q => !matchTrail(q, trails));
 
-  useEffect(() => { loadAll(); setSapiensReport(null); }, [courseId, institutionId]);
+  useEffect(() => { loadAll(); setDiagReport(null); }, [courseId, institutionId]);
 
-  // ── Trail CRUD ──
+  // ── Trail CRUD (pela RPC; edição local e gravação ao sair do campo) ──
   async function addTrail() {
     if (!courseId) return;
-    await supabase.from('formation_trails').insert({ institution_id: institutionId, course_id: courseId, code: `T${trails.length + 1}`, name: '', description: '', keywords: [] });
-    loadAll();
+    let n = trails.length + 1; while (trails.some(t => t.code.toLowerCase() === `t${n}`)) n++;
+    await run(() => saveTrail(institutionId, courseId, { code: `T${n}`, name: 'Nova trilha', keywords: [] }));
   }
 
-  async function updateTrail(id: string, patch: Partial<Trail>) {
-    await supabase.from('formation_trails').update({ ...patch, updated_at: new Date().toISOString() }).eq('id', id);
+  function editTrail(id: string, patch: Partial<Trail>) {
     setTrails(prev => prev.map(t => t.id === id ? { ...t, ...patch } : t));
+  }
+  async function persistTrail(id: string) {
+    const t = trails.find(x => x.id === id); if (!t) return;
+    await run(() => saveTrail(institutionId, courseId, { id: t.id, code: t.code, name: t.name, description: t.description, keywords: t.keywords || [] }));
   }
 
   async function deleteTrail(id: string) {
     if (!confirm('Remover esta trilha e todas as questões vinculadas?')) return;
-    await supabase.from('formation_trails').delete().eq('id', id);
-    loadAll();
+    await run(() => rpcDeleteTrail(institutionId, courseId, id));
   }
 
   async function importFromCurriculum() {
     if (!courseId) return;
-    const { data: builds } = await supabase.from('curriculum_builds').select('id').eq('institution_id', institutionId).eq('course_id', courseId).order('version', { ascending: false }).limit(1);
-    if (!builds?.length) { setNotice('Nenhuma versão da Construção Curricular encontrada para este curso.'); return; }
-    const { data: comps } = await supabase.from('curriculum_competencies').select('id, code, title, description').eq('build_id', builds[0].id).order('sort_order');
-    if (!comps?.length) { setNotice('Nenhuma competência cadastrada nesta versão.'); return; }
-    for (const c of comps) {
-      const exists = trails.find(t => t.curriculum_competency_id === c.id);
-      if (!exists) {
-        await supabase.from('formation_trails').insert({
-          institution_id: institutionId, course_id: courseId,
-          code: c.code, name: c.title, description: c.description,
-          curriculum_competency_id: c.id, keywords: [],
-        });
-      }
-    }
-    setNotice(`${comps.length} competências importadas como trilhas.`);
-    loadAll();
+    await run(() => importTrailsFromCurriculum(institutionId, courseId),
+      s => s.imported ? `${s.imported} competência(s) importada(s) como trilhas.` : 'Todas as competências da matriz já têm trilha.');
   }
 
-  // ── Sapiens diagnostic ──
-  async function runSapiensDiagnostic() {
+  // ── Diagnóstico por regras (sem IA): lib/trail-diagnosis.ts, limiares versionados ──
+  async function runRulesDiagnostic() {
     if (!diagnostic.length) return;
-    setSapiensLoading(true);
-    setSapiensReport(null);
-    try {
-      const payload = {
-        institutionId,
-        courseId,
-        context: 'enade_trail_diagnostic',
-        diagnostic: diagnostic.map(d => ({
-          trail: `${d.code} — ${d.name}`,
-          questions: d.question_count,
-          avg_national: d.avg_national_pct,
-          avg_ies: d.avg_ies_pct,
-          discrepancy: d.avg_discrepancy,
-          status: d.status,
-        })),
-        prompt: `Analise as trilhas de formação ENADE deste curso de Direito. Para cada trilha em estado crítico ou de atenção, identifique:
-1. Possíveis causas da discrepância
-2. Fragilidades curriculares prováveis
-3. Recomendações pedagógicas concretas (ementa, metodologia, avaliação)
-4. Ações prioritárias com impacto no próximo ciclo
-
-Seja direto, técnico e estratégico. Use os dados fornecidos. Não repita dados — interprete.`,
-      };
-      const { data, error } = await supabase.functions.invoke('vertice-sapiens-analyze', { body: payload });
-      if (error) throw error;
-      setSapiensReport(data?.report || data?.analysis || data?.text || JSON.stringify(data));
-
-      // Save snapshot with Sapiens report
-      const rankings = diagnostic.map(d => ({ trail_id: d.trail_id, name: d.name, total_discrepancy: d.total_discrepancy, avg_discrepancy: d.avg_discrepancy, question_count: d.question_count, status: d.status }));
-      const weakest = diagnostic.filter(d => d.status === 'critico' || d.status === 'atencao').map(d => ({ trail: d.name, discrepancy: d.avg_discrepancy, suggested_action: d.status === 'critico' ? 'Oficina de retomada urgente' : 'Revisão de ementa e materiais' }));
-      await supabase.from('trail_analysis_snapshots').insert({
-        institution_id: institutionId, course_id: courseId,
-        trail_rankings: rankings, weakest_disciplines: weakest,
-        summary: (data?.report || '').slice(0, 2000),
-      });
-    } catch (e: any) {
-      setSapiensReport(`⚠️ Sapiens indisponível no momento. Erro: ${e.message}\n\nO diagnóstico quantitativo está disponível abaixo.`);
-    }
-    setSapiensLoading(false);
+    setDiagLoading(true);
+    const result = diagnoseCourse(trails, questions);
+    setDiagReport(result.text);
+    try { if (canWrite) await saveTrailSnapshot(institutionId, courseId, result.text); }
+    catch (e) { setNotice(e instanceof Error ? `Diagnóstico gerado, mas não foi salvo: ${e.message}` : 'Diagnóstico gerado, mas não foi salvo.'); }
+    setDiagLoading(false);
   }
 
   // ── Promote to 5W2H (linked to ENADE goal + enters BI pipeline) ──
@@ -247,27 +206,18 @@ Seja direto, técnico e estratégico. Use os dados fornecidos. Não repita dados
 
   async function addQuestion() {
     if (!newQ.trail_id) return;
-    await supabase.from('trail_question_links').insert({
-      trail_id: newQ.trail_id,
-      enade_year: newQ.enade_year ? Number(newQ.enade_year) : null,
-      question_number: newQ.question_number ? Number(newQ.question_number) : null,
-      question_text: newQ.question_text || null,
-      national_correct_pct: newQ.national_correct_pct ? Number(newQ.national_correct_pct) : null,
-      ies_correct_pct: newQ.ies_correct_pct ? Number(newQ.ies_correct_pct) : null,
-    });
-    setNewQ({ trail_id: '', enade_year: '', question_number: '', question_text: '', national_correct_pct: '', ies_correct_pct: '' });
-    loadAll();
+    if (await run(() => addTrailQuestion(institutionId, courseId, newQ)))
+      setNewQ({ trail_id: '', enade_year: '', question_number: '', question_text: '', national_correct_pct: '', ies_correct_pct: '' });
   }
 
   async function deleteQuestion(id: string) {
-    await supabase.from('trail_question_links').delete().eq('id', id);
-    loadAll();
+    await run(() => deleteTrailQuestion(institutionId, courseId, id));
   }
 
   const tabs_list: { key: typeof tab; icon: string; label: string }[] = [
     { key: 'trails', icon: '🧬', label: 'Trilhas' },
     { key: 'questions', icon: '📝', label: 'Questões' },
-    { key: 'diagnostic', icon: '🤖', label: 'Diagnóstico Sapiens' },
+    { key: 'diagnostic', icon: '📊', label: 'Diagnóstico' },
     { key: 'actions', icon: '⚡', label: 'Ações → 5W2H' },
   ];
 
@@ -311,12 +261,12 @@ Seja direto, técnico e estratégico. Use os dados fornecidos. Não repita dados
               <div style={{ padding: 20 }}>
                 <fieldset disabled={!canWrite} style={{ border: 0, padding: 0, margin: 0 }}>
                   <div className="row">
-                    <label className="planning-field"><span>Código</span><input value={t.code} onChange={e => updateTrail(t.id, { code: e.target.value })} /></label>
-                    <label className="planning-field"><span>Nome da Trilha</span><input value={t.name} onChange={e => updateTrail(t.id, { name: e.target.value })} /></label>
+                    <label className="planning-field"><span>Código</span><input value={t.code} onChange={e => editTrail(t.id, { code: e.target.value })} onBlur={() => void persistTrail(t.id)} /></label>
+                    <label className="planning-field"><span>Nome da Trilha</span><input value={t.name} onChange={e => editTrail(t.id, { name: e.target.value })} onBlur={() => void persistTrail(t.id)} /></label>
                   </div>
-                  <label className="planning-field"><span>Descrição</span><textarea rows={2} value={t.description || ''} onChange={e => updateTrail(t.id, { description: e.target.value })} /></label>
+                  <label className="planning-field"><span>Descrição</span><textarea rows={2} value={t.description || ''} onChange={e => editTrail(t.id, { description: e.target.value })} onBlur={() => void persistTrail(t.id)} /></label>
                   <label className="planning-field"><span>Palavras-chave (separadas por vírgula — usadas para vincular questões ENADE)</span>
-                    <input value={(t.keywords || []).join(', ')} onChange={e => updateTrail(t.id, { keywords: e.target.value.split(',').map(k => k.trim()).filter(Boolean) })} placeholder="direito civil, obrigações, contratos" />
+                    <input value={(t.keywords || []).join(', ')} onChange={e => editTrail(t.id, { keywords: e.target.value.split(',').map(k => k.trim()).filter(Boolean) })} onBlur={() => void persistTrail(t.id)} placeholder="direito civil, obrigações, contratos" />
                   </label>
                   {t.curriculum_competency_id && <p style={{ fontSize: 12, color: '#64748b', margin: '8px 0 0' }}>🔗 Vinculada à competência da Construção Curricular</p>}
                 </fieldset>
@@ -404,11 +354,11 @@ Seja direto, técnico e estratégico. Use os dados fornecidos. Não repita dados
         </div>
       </div>}
 
-      {/* ═══ Tab 3: Diagnóstico Sapiens ═══ */}
+      {/* ═══ Tab 3: Diagnóstico por regras ═══ */}
       {tab === 'diagnostic' && <div>
         {!diagnostic.length || !questions.length ? <div className="card" style={{ textAlign: 'center', padding: 32 }}>
-          <p style={{ fontSize: 16, fontWeight: 600 }}>🤖 Sem dados para diagnóstico</p>
-          <p style={{ color: '#64748b' }}>Cadastre trilhas e mapeie questões ENADE para o Sapiens analisar.</p>
+          <p style={{ fontSize: 16, fontWeight: 600 }}>📊 Sem dados para diagnóstico</p>
+          <p style={{ color: '#64748b' }}>Cadastre trilhas e mapeie questões ENADE com as taxas de acerto da IES e nacional.</p>
         </div> : <>
           {/* Summary bar */}
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 20 }}>
@@ -420,19 +370,20 @@ Seja direto, técnico e estratégico. Use os dados fornecidos. Não repita dados
               </div>;
             })}
             <div style={{ marginLeft: 'auto' }}>
-              <button className="planning-primary" style={{ padding: '10px 20px', display: 'flex', alignItems: 'center', gap: 8 }} onClick={runSapiensDiagnostic} disabled={sapiensLoading}>
-                {sapiensLoading ? '🔄 Sapiens analisando…' : '🤖 Gerar Diagnóstico Sapiens'}
+              <button className="planning-primary" style={{ padding: '10px 20px', display: 'flex', alignItems: 'center', gap: 8 }} onClick={runRulesDiagnostic} disabled={diagLoading}>
+                {diagLoading ? 'Calculando…' : '📊 Gerar diagnóstico'}
               </button>
             </div>
           </div>
 
-          {/* Sapiens report */}
-          {sapiensReport && <div className="card" style={{ marginBottom: 20, padding: 24, borderLeft: '5px solid #6366f1', background: '#faf5ff' }}>
+          {/* Relatório do diagnóstico por regras */}
+          {diagReport && <div className="card" style={{ marginBottom: 20, padding: 24, borderLeft: '5px solid #6366f1', background: '#faf5ff' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-              <span style={{ fontSize: 20 }}>🤖</span>
-              <strong style={{ fontSize: 15, color: '#4338ca' }}>Parecer Sapiens</strong>
+              <span style={{ fontSize: 20 }}>📊</span>
+              <strong style={{ fontSize: 15, color: '#4338ca' }}>Diagnóstico por regras</strong>
+              <small style={{ color: '#64748b' }}>versão {TRAIL_DIAGNOSIS_RULES.version} · sem IA · mesma entrada, mesmo resultado</small>
             </div>
-            <div style={{ whiteSpace: 'pre-wrap', fontSize: 14, lineHeight: 1.7, color: '#1e293b' }}>{sapiensReport}</div>
+            <div style={{ whiteSpace: 'pre-wrap', fontSize: 14, lineHeight: 1.7, color: '#1e293b' }}>{diagReport}</div>
           </div>}
 
           {/* Trail ranking cards */}

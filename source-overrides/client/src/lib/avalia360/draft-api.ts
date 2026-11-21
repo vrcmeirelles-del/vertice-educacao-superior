@@ -21,6 +21,15 @@ export interface DraftSaveInput {
  uploadedImages?: Record<string, Array<{localId:string;receipt:UploadedImageReceipt}>>;
  assessmentMeta?: {title:string;teacherName?:string;instructions?:string;semester:string;purpose:'diagnostica'|'formativa'|'somativa';declaredPedagogy?:PedagogicalDraft;curationHistory?:CurationDecision[];curriculumSource?:{buildId:string;version:number;ready:boolean}};
 }
+/** Só alternativas erradas existentes, texto aparado e curto. */
+export function cleanDistractorNotes(q:Pick<QuestionDraft,'options'|'correctOptionId'|'distractorNotes'>):Record<string,string>{
+ const out:Record<string,string>={};
+ for(const o of q.options){
+  const note=(q.distractorNotes?.[o.id]||'').trim().replace(/\s+/g,' ').slice(0,200);
+  if(o.id!==q.correctOptionId&&note)out[o.id]=note;
+ }
+ return out;
+}
 function sanitizeQuestion(q:QuestionDraft, uploaded:DraftSaveInput['uploadedImages']) {
  // Os metadados de mídia dependem de upload privado validado e
  // não podem ser fabricados a partir de File ou IDs locais.
@@ -46,6 +55,10 @@ function sanitizeQuestion(q:QuestionDraft, uploaded:DraftSaveInput['uploadedImag
   purpose:q.purpose,estimatedDifficulty:q.estimatedDifficulty,
   points:q.points,examTags:q.examTags,
   ...(q.spreadsheetMetadata?{spreadsheetMetadata:q.spreadsheetMetadata}:{}),
+  ...(q.sourceBankId?{sourceBankId:q.sourceBankId}:{}),
+  ...(q.kind==='objetiva'?{distractorNotes:cleanDistractorNotes(q)}:{}),
+  ...(q.bloomLevel&&q.bloomLevel>=1&&q.bloomLevel<=6?{bloomLevel:q.bloomLevel}:{}),
+  ...(q.kind==='discursiva'&&q.rubricCriteria?.length?{rubricCriteria:q.rubricCriteria.map(c=>({id:c.id,label:c.label.trim().slice(0,200),points:c.points}))}:{}),
   pendingImageCount:q.images.length,images:imageMetadata
  };
 }
@@ -83,7 +96,7 @@ export async function saveAssessmentDraft(input:DraftSaveInput):Promise<DraftApi
 
 export interface StoredAssessmentDraft {
  id:string;revision:number;status:'draft'|'submitted'|'validated'|'archived';
- snapshot:{questions:Array<Record<string,unknown>>;curriculumStatus?:string;meta?:{title?:string;teacherName?:string;instructions?:string;semester?:string;purpose?:string;declaredPedagogy?:PedagogicalDraft}};
+ snapshot:{questions:Array<Record<string,unknown>>;curriculumStatus?:string;meta?:{title?:string;teacherName?:string;instructions?:string;semester?:string;purpose?:string;declaredPedagogy?:PedagogicalDraft;curationHistory?:CurationDecision[];curriculumSource?:{buildId:string;version:number;ready:boolean}}};
 }
 export type DraftReadResult={ok:true;draft:StoredAssessmentDraft}|{ok:false;error:DraftApiFailure};
 /** Lê apenas o rascunho pertencente ao usuário autorizado; a RPC protege IES/curso/disciplinas. */
@@ -108,4 +121,84 @@ export async function loadAssessmentDraft(args:{
  }catch(e){
   return {ok:false,error:{code:'NETWORK_ERROR',message:e instanceof Error?e.message:'Falha de rede.'}};
  }
+}
+
+export interface DraftSummary {
+ id:string;revision:number;status:StoredAssessmentDraft['status'];title:string;semester:string;questionCount:number;updatedAt:string;
+}
+/** Lista os cadernos da disciplina: os do próprio docente; a coordenação vê todos do curso. */
+export async function listAssessmentDrafts(args:{institutionId:string;courseId:string;disciplineId:string}):
+ Promise<{ok:true;drafts:DraftSummary[]}|{ok:false;error:DraftApiFailure}>{
+ if(!args.institutionId||!args.courseId||!args.disciplineId.trim())
+  return {ok:false,error:{code:'INVALID_INPUT',message:'Selecione curso e disciplina.'}};
+ try{
+  const {data,error}=await supabase.rpc('vertice_avalia_draft',{
+   p_institution:args.institutionId,p_course:args.courseId,p_discipline:args.disciplineId,p_action:'list',p_payload:{}
+  });
+  if(error)return {ok:false,error:{code:error.code||'READ_FAILED',message:error.message}};
+  if(!Array.isArray(data))return {ok:false,error:{code:'INVALID_RECEIPT',message:'Lista não confirmada pelo servidor.'}};
+  return {ok:true,drafts:data as DraftSummary[]};
+ }catch(e){
+  return {ok:false,error:{code:'NETWORK_ERROR',message:e instanceof Error?e.message:'Falha de rede.'}};
+ }
+}
+
+const strings=(v:unknown)=>Array.isArray(v)?v.filter((x):x is string=>typeof x==='string'):[];
+export const snapshotHasImages=(snapshot:StoredAssessmentDraft['snapshot'])=>
+ snapshot.questions.some(q=>Array.isArray(q.images)&&q.images.length>0);
+type Placement=QuestionDraft['images'][number]['placement'];
+type Rights=QuestionDraft['images'][number]['rightsStatus'];
+/**
+ * Reconstrói as questões editáveis de um snapshot salvo. As imagens são
+ * religadas aos arquivos recuperados do armazenamento privado (`restored`,
+ * por imageId), preservando o comprovante para não reenviar o arquivo.
+ * Se faltar alguma imagem, retorna null e o caderno fica em modo de consulta.
+ */
+export function editableQuestionsFromSnapshot(snapshot:StoredAssessmentDraft['snapshot'],
+ restored?:Map<string,{file:File;receipt:UploadedImageReceipt;questionId:string}>,
+ newLocalId:()=>string=()=>crypto.randomUUID()):
+ {questions:QuestionDraft[];receipts:Array<{localId:string;file:File;receipt:UploadedImageReceipt;questionId:string}>}|null{
+ const out:QuestionDraft[]=[];
+ const receipts:Array<{localId:string;file:File;receipt:UploadedImageReceipt;questionId:string}>=[];
+ for(const raw of snapshot.questions){
+  const images:QuestionDraft['images']=[];
+  if(Array.isArray(raw.images)){
+   const sorted=[...(raw.images as Array<Record<string,unknown>>)].sort((a,b)=>Number(a.order??0)-Number(b.order??0));
+   for(const im of sorted){
+    const found=typeof im.imageId==='string'?restored?.get(im.imageId):undefined;
+    if(!found||found.questionId!==raw.id)return null;
+    const localId=newLocalId();
+    const placement=(['enunciado','alternativa','apoio'].includes(String(im.placement))?im.placement:'enunciado') as Placement;
+    images.push({localId,file:found.file,altText:typeof im.altText==='string'?im.altText:'',
+     caption:typeof im.caption==='string'?im.caption:'',placement,
+     ...(placement==='alternativa'&&typeof im.alternativeId==='string'?{alternativeId:im.alternativeId}:{}),
+     rightsStatus:(['autoral','licenciado','uso_autorizado'].includes(String(im.rightsStatus))?im.rightsStatus:'nao_informado') as Rights});
+    receipts.push({localId,file:found.file,receipt:found.receipt,questionId:raw.id as string});
+   }
+  }
+  if(typeof raw.id!=='string'||typeof raw.statement!=='string'||(raw.kind!=='objetiva'&&raw.kind!=='discursiva'))return null;
+  const options=Array.isArray(raw.options)?(raw.options as Array<{id?:unknown;text?:unknown}>)
+   .filter(o=>typeof o.id==='string'&&typeof o.text==='string').map(o=>({id:o.id as string,text:o.text as string})):[];
+  out.push({
+   id:raw.id,disciplineId:typeof raw.disciplineId==='string'?raw.disciplineId:'',kind:raw.kind,statement:raw.statement,
+   options,correctOptionId:typeof raw.correctOptionId==='string'?raw.correctOptionId:'',
+   answerJustification:typeof raw.answerJustification==='string'?raw.answerJustification:'',
+   rubric:typeof raw.rubric==='string'?raw.rubric:'',
+   answerLines:typeof raw.answerLines==='number'?raw.answerLines:8,
+   expectedAnswer:typeof raw.expectedAnswer==='string'?raw.expectedAnswer:'',
+   topicIds:strings(raw.topicIds),competencyIds:strings(raw.competencyIds),
+   purpose:strings(raw.purpose) as QuestionDraft['purpose'],
+   estimatedDifficulty:(typeof raw.estimatedDifficulty==='number'?raw.estimatedDifficulty:3) as QuestionDraft['estimatedDifficulty'],
+   points:typeof raw.points==='number'?raw.points:1,examTags:strings(raw.examTags),images,
+   ...(typeof raw.sourceBankId==='string'&&raw.sourceBankId?{sourceBankId:raw.sourceBankId}:{}),
+   ...(typeof raw.bloomLevel==='number'?{bloomLevel:raw.bloomLevel}:{}),
+   ...(Array.isArray(raw.rubricCriteria)?{rubricCriteria:(raw.rubricCriteria as Array<Record<string,unknown>>)
+     .filter(c=>typeof c.id==='string'&&typeof c.label==='string'&&typeof c.points==='number')
+     .map(c=>({id:c.id as string,label:c.label as string,points:c.points as number}))}:{}),
+   ...(raw.distractorNotes&&typeof raw.distractorNotes==='object'?{distractorNotes:Object.fromEntries(Object.entries(raw.distractorNotes as Record<string,unknown>)
+     .filter((e):e is [string,string]=>typeof e[1]==='string'))}:{}),
+   ...(raw.spreadsheetMetadata&&typeof raw.spreadsheetMetadata==='object'?{spreadsheetMetadata:raw.spreadsheetMetadata as QuestionDraft['spreadsheetMetadata']}:{})
+  });
+ }
+ return {questions:out,receipts};
 }

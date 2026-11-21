@@ -59,18 +59,20 @@ const TITLES = {
   both: { heading: 'Planejamento Estratégico e Semestral do Curso', description: 'Defina a direção do curso e organize as atividades de cada semestre. Os planos utilizam o cadastro institucional e o acesso do portal.' },
 } as const;
 
-export default function CoursePlanning({institutionId,courses,role,initialCourseId,kind='both'}:{institutionId:string;courses:Course[];role:Role|null;initialCourseId?:string;kind?:'strategic'|'semester'|'both'}) {
+export default function CoursePlanning({institutionId,courses,role,initialCourseId,kind='both',courseFunctionIds=[]}:{institutionId:string;courses:Course[];role:Role|null;initialCourseId?:string;kind?:'strategic'|'semester'|'both';courseFunctionIds?:string[]}) {
   const [portfolioOpen,setPortfolioOpen]=useState(false);
   const [selection,setSelection]=useState(initialCourseId??'');
   const [unsaved,setUnsaved]=useState(false);
   const selected=courses.find(c=>c.id===selection);
   const canWrite=isFullAccess(role)||role==='coordenador'||role==='nde';
+  // Coordenação/NDE atribuída pela gestão vale só no curso indicado (o servidor confere).
+  const canWriteCourse=(courseId:string)=>canWrite||courseFunctionIds.includes(courseId);
   const title=TITLES[kind];
   return <section className="course-planning" aria-label={title.heading}>
     {isFullAccess(role)&&<div><button type="button" aria-expanded={portfolioOpen} onClick={()=>setPortfolioOpen(!portfolioOpen)}>Consolidação da alta gestão</button>{portfolioOpen&&<PlanningManagement key={institutionId} institutionId={institutionId}/>}</div>}
     <header><h2>{title.heading}</h2><p>{title.description}</p></header>
     <label className="planning-field"><span>Curso</span><select aria-label="Curso do planejamento" value={selected?.id??''} onChange={e=>{if(!unsaved||window.confirm('Há alterações não salvas. Deseja trocar de curso?')){setSelection(e.target.value);setUnsaved(false);}}}><option value="">Selecione um curso</option>{courses.map(c=><option key={c.id} value={c.id}>{c.code?`${c.code} · `:''}{c.name}</option>)}</select></label>
-    {!courses.length?<p role="status">Nenhum curso disponível neste cadastro.</p>:!selected?<p role="status">Selecione o curso para consultar seus planejamentos.</p>:<PlanningEditor key={`${institutionId}:${selected.id}:${kind}`} institutionId={institutionId} courseId={selected.id} canAnalyze={isFullAccess(role)||role==='coordenador'||role==='nde'} canWrite={canWrite} onDirty={setUnsaved} kind={kind}/>}
+    {!courses.length?<p role="status">Nenhum curso disponível neste cadastro.</p>:!selected?<p role="status">Selecione o curso para consultar seus planejamentos.</p>:<PlanningEditor key={`${institutionId}:${selected.id}:${kind}`} institutionId={institutionId} courseId={selected.id} canAnalyze={canWriteCourse(selected.id)} canWrite={canWriteCourse(selected.id)} onDirty={setUnsaved} kind={kind}/>}
   </section>;
 }
 

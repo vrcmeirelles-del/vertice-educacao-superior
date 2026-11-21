@@ -4,19 +4,22 @@
  * Guarda versões originais imutáveis: reutilizar sempre cria nova ID na avaliação.
  */
 import type {QuestionDraft} from './question-draft';
+import type {CompetencyDescriptor} from './competency-key';
 
 export type BankStatus='rascunho'|'em_curadoria'|'validada';
 export interface BankQuestion {
  bankId:string;revision:number;institutionId:string;courseId:string;discipline:string;
  createdAt:string;status:BankStatus;sourceAssessmentId?:string;
  indexLabels?:string[];
+ /** Código, título e período das competências da questão: permitem cruzar pela chave estável. */
+ competencies?:CompetencyDescriptor[];
  question:Omit<QuestionDraft,'images'> & {images:[]};
 }
 const normalized=(v:string)=>v.normalize('NFKC').trim().toLocaleLowerCase('pt-BR').replace(/\s+/g,' ');
 /** O mesmo ID e a mesma versão não devem ser modificados quando reutilizados. */
 export function prepareBankQuestion(args:{
  institutionId:string;courseId:string;discipline:string;
- question:QuestionDraft;createdAt:string;bankId:string;indexLabels?:string[];
+ question:QuestionDraft;createdAt:string;bankId:string;indexLabels?:string[];competencies?:CompetencyDescriptor[];
 }):BankQuestion{
  const {question:q}=args;
  if(!args.institutionId||!args.courseId||!args.discipline.trim())throw Error('Selecione instituição, curso e disciplina.');
@@ -34,13 +37,15 @@ export function prepareBankQuestion(args:{
   if(!q.rubric.trim())throw Error('Defina a rubrica da questão discursiva.');
   if(!q.expectedAnswer?.trim())throw Error('Informe o padrão de resposta esperado antes de arquivar a discursiva.');
  }
- return {bankId:args.bankId,revision:1,institutionId:args.institutionId,courseId:args.courseId,
+ const competencies=(args.competencies??[]).filter(c=>q.competencyIds.includes(c.id)&&c.code.trim()&&c.title.trim())
+  .map(c=>({id:c.id,code:c.code.trim(),title:c.title.trim(),period:c.period}));
+ return {bankId:args.bankId,revision:1,institutionId:args.institutionId,courseId:args.courseId,competencies,
   discipline:args.discipline.trim(),createdAt:args.createdAt,status:'rascunho',
   indexLabels:[...new Set([
    ...(args.indexLabels??[]),q.spreadsheetMetadata?.topic??'',q.spreadsheetMetadata?.subtopic??'',
    ...(q.spreadsheetMetadata?.keywords.split(',')??[])
   ].map(label=>label.trim()).filter(Boolean))],
-  question:{...q,spreadsheetMetadata:q.spreadsheetMetadata?{...q.spreadsheetMetadata}:undefined,id:args.bankId,disciplineId:args.discipline.trim(),
+  question:{...q,spreadsheetMetadata:q.spreadsheetMetadata?{...q.spreadsheetMetadata}:undefined,id:args.bankId,sourceBankId:undefined,disciplineId:args.discipline.trim(),
    options:q.options.map(o=>({...o})),topicIds:[...q.topicIds],
    competencyIds:[...q.competencyIds],purpose:[...q.purpose],examTags:[...q.examTags],images:[]}};
 }
@@ -58,6 +63,7 @@ export function reuseBankQuestion(record:BankQuestion,newId:string,discipline:st
  if(!newId.trim()||newId===record.bankId)throw Error('A questão reutilizada exige novo identificador.');
  if(normalized(discipline)!==normalized(record.discipline))throw Error('Disciplina incompatível com o item do banco.');
  return {...record.question,spreadsheetMetadata:record.question.spreadsheetMetadata?{...record.question.spreadsheetMetadata}:undefined,id:newId,disciplineId:discipline,
+  sourceBankId:record.bankId,
   options:record.question.options.map(o=>({...o})),
   topicIds:[...record.question.topicIds],
   competencyIds:[...record.question.competencyIds],

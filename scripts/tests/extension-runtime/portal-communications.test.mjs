@@ -36,7 +36,7 @@ before(async () => {
   await db.exec(
     readFileSync(
       new URL(
-        "../../../supabase/migrations/20261118125840_portal_communications.sql",
+        "../../../supabase/migrations/20261118140255_portal_communications.sql",
         import.meta.url,
       ),
       "utf8",

@@ -8,12 +8,12 @@ const actor=(n,aal='aal2')=>sql("select set_config('request.jwt.claim.sub',$1,fa
 const move=(action,version=0,student=41,project=31)=>value('select public.vertice_extension_student_lifecycle($1,$2,$3,$4,$5) value',id(student),id(project),action,version,'Alteração sintética para teste de permissão');
 before(async()=>{
  db=new PGlite();await db.exec(read('./fixture.sql'));
- for(const name of ['20261114122806_extension_electronic_forms.sql','20261117193500_extension_project_workspace.sql','20261117193600_extension_student_invites.sql'])await db.exec(read('../../../supabase/migrations/'+name));
+ for(const name of ['20261114124054_extension_electronic_forms.sql','20261117193500_extension_project_workspace.sql','20261117193600_extension_student_invites.sql'])await db.exec(read('../../../supabase/migrations/'+name));
  await db.exec(`create table public.vertice_extension_students(id uuid primary key,institution_id uuid,project_id uuid,full_name text,email text,status text default 'ativo',hours_completed numeric default 0);
  create table public.vertice_extension_hour_entries(id uuid,student_id uuid references public.vertice_extension_students(id) on delete cascade,minutes int);
  create table public.vertice_extension_activity_participation(id uuid,student_id uuid references public.vertice_extension_students(id) on delete cascade);
  grant select,insert,update,delete on public.vertice_extension_students to authenticated;`);
- await db.exec(read('../../../supabase/migrations/20261118092827_extension_student_lifecycle.sql'));
+ await db.exec(read('../../../supabase/migrations/20261118113412_extension_student_lifecycle.sql'));
  await sql("insert into auth.users(id,email,email_confirmed_at) values($1,'owner@example.org',now()),($2,'viewer@example.org',now()),($3,'outsider@example.org',now()),($4,'student@example.org',now())",id(1),id(2),id(3),id(4));
  await sql("insert into vertice_institutions values($1,'IES A'),($2,'IES B')",id(11),id(12));
  await sql("insert into vertice_memberships values($1,$2,'equipe'),($3,$2,'equipe'),($4,$5,'gestor')",id(1),id(11),id(2),id(3),id(12));

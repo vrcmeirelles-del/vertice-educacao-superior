@@ -27,7 +27,7 @@ por nome, nem exclusão global por e-mail, CPF ou matrícula.
 
 ## Banco e segurança
 
-Migração gerada pelo CLI: `20261118092827_extension_student_lifecycle.sql`.
+Migração gerada pelo CLI: `20261118113412_extension_student_lifecycle.sql`.
 Adiciona versão de concorrência e marcadores recuperáveis, um trigger de proteção
 e a RPC `vertice_extension_student_lifecycle`.
 

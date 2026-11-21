@@ -123,7 +123,7 @@ export function QuestionDraftEditor({
     </fieldset>
     <label>Dificuldade estimada
       <select value={draft.estimatedDifficulty} onChange={e=>patch({estimatedDifficulty:Number(e.target.value) as Difficulty})}>
-        {[1,2,3,4,5].map(level=><option key={level} value={level}>Nível {level}</option>)}
+        {[1,2,3,4,5].map(level=><option key={level} value={level}>Nível {level} · {['muito fácil','fácil','média','difícil','muito difícil'][level-1]}</option>)}
       </select>
     </label>{' '}
     <label>Pontuação

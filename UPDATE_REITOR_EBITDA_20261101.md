@@ -10,7 +10,7 @@ A função `vertice-ebitda` autentica via `auth.getUser`, verifica o vínculo/MF
 
 DREs no bucket privado `vertice-dre`, até 15 MB, PDF/XLSX/DOCX/CSV. Caminhos por instituição e usuário; sem acesso anônimo, substituição ou exclusão pelo cliente. Downloads autorizados recebem URL de 60 segundos e auditoria. Cálculos possuem trilha de auditoria e versões anteriores preservadas. A autenticação do site é independente da senha do módulo local de DD.
 
-Migração aditiva gerada pela CLI: `20261101235047_reitor_ebitda_reserved.sql`. Aplicada e verificada por testes transacionais com rollback. O teste cobre tenant, MFA, Master/Gestor, bloqueio Equipe/Leitor, arquivo privado, upload inválido, instituição arquivada e imutabilidade. Testes da aplicação: 99 aprovados; validação TypeScript, build estático e preenchimento no navegador com dados fictícios. A área pública não possui input de upload; a reservada o possui.
+Migração aditiva gerada pela CLI: `20261101235538_reitor_ebitda_reserved.sql`. Aplicada e verificada por testes transacionais com rollback. O teste cobre tenant, MFA, Master/Gestor, bloqueio Equipe/Leitor, arquivo privado, upload inválido, instituição arquivada e imutabilidade. Testes da aplicação: 99 aprovados; validação TypeScript, build estático e preenchimento no navegador com dados fictícios. A área pública não possui input de upload; a reservada o possui.
 
 O motor não é avaliação de preço nem IA e não extrai valores da DRE. CPC 06/IFRS 16 e projeções são identificados; períodos parciais não são anualizados. A margem depende de receita líquida positiva. O detalhamento gerencial não substitui silenciosamente a conciliação pela DRE.
 

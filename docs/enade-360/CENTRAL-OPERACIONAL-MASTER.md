@@ -52,7 +52,7 @@ homologam o banco atual.
 
 ## Migração preparada, não aplicada
 
-`20261118013000_enade360_master_operations.sql` adiciona apenas o diário privado e
+`20261118092152_enade360_master_operations.sql` adiciona apenas o diário privado e
 a RPC `vertice_enade360_operations`; não reescreve registros acadêmicos existentes.
 Sem a migração, a interface apresenta indisponibilidade e bloqueia gravações.
 Aplicação somente no projeto/ambiente explicitamente autorizado. Projeto de produção

@@ -28,6 +28,14 @@ export interface QuestionDraft {
   points: number;
   examTags: string[];
   images: PendingQuestionImage[];
+  /** Origem no Banco de Questões, para que a estatística observada volte ao item. */
+  sourceBankId?: string;
+  /** Erro conceitual que cada alternativa errada revela (id da alternativa → descrição curta). */
+  distractorNotes?: Record<string, string>;
+  /** Nível de Bloom definido pelo professor (1 Lembrar … 6 Criar); prevalece sobre a sugestão por verbo. */
+  bloomLevel?: number;
+  /** Rubrica estruturada da discursiva: a soma dos critérios deve ser igual à pontuação da questão. */
+  rubricCriteria?: Array<{ id: string; label: string; points: number }>;
   spreadsheetMetadata?: {
     topic:string;subtopic:string;keywords:string;competencies:string;
     fileName:string;imagePosition:string;caption:string;altText:string;

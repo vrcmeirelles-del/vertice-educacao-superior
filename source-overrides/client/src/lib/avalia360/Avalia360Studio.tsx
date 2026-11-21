@@ -1,5 +1,5 @@
 import {supabase} from '@/lib/supabase';
-import {useCallback,useEffect,useRef,useState} from 'react';
+import {useCallback,useEffect,useMemo,useRef,useState} from 'react';
 import './avalia-wizard.css';
 import {QuestionImageField} from './QuestionImageField';
 import QuestionSpreadsheetImport from './QuestionSpreadsheetImport';
@@ -9,12 +9,24 @@ import type {CurationDecision} from './curation-decision';
 import TeacherQuestionComposer from './TeacherQuestionComposer';
 import QuestionBankPanel from './QuestionBankPanel';
 import type {QuestionDraft} from './question-draft';
-import {saveAssessmentDraft,loadAssessmentDraft,type DraftReceipt,type StoredAssessmentDraft} from './draft-api';
-import {uploadQuestionImage,type UploadedImageReceipt} from './private-image-upload';
+import {saveAssessmentDraft,loadAssessmentDraft,listAssessmentDrafts,editableQuestionsFromSnapshot,snapshotHasImages,type DraftReceipt,type DraftSummary,type StoredAssessmentDraft} from './draft-api';
+import {uploadQuestionImage,downloadDraftImages,type RestoredImage,type UploadedImageReceipt} from './private-image-upload';
 import {receiptScopeKey,reusableReceipt,type ScopedImageReceipt} from './receipt-cache';
 import type {Difficulty,Purpose} from './longitudinal-engine';
 import {analyzeDeclaredDraft,type PedagogicalDraft} from './declared-analysis';
 import PedagogicalParameters from './PedagogicalParameters';
+import SavedPreview from './SavedDraftPreview';
+import ChecklistPanel from './ChecklistPanel';
+import CollegiateReviewPanel,{ReviewHistory} from './CollegiateReviewPanel';
+import ApplicationPanel from './ApplicationPanel';
+import CompetencyDiagnosisPanel from './CompetencyDiagnosisPanel';
+import {mergeIntoCatalog} from './competency-key';
+import {BLOOM_LABELS,classifyBloom} from './bloom';
+import AssemblyPanel from './AssemblyPanel';
+import RecoveryPanel from './RecoveryPanel';
+import ReadinessRiskPanel from './ReadinessRiskPanel';
+import {checkAssessment} from './item-checklist';
+import {loadReviewHistory,submitForReview,type ReviewEvent} from './review-api';
 import {importOfficialCurriculum} from './curriculum-import-api';
 import {mapCurriculumToAssessment,type CurriculumImport} from './curriculum-import';
 
@@ -50,7 +62,7 @@ function checkDraft(questions:QuestionDraft[]):string[]{
     errors.push(ref+'defina uma alternativa correta.');
    if(!q.answerJustification?.trim())errors.push(ref+'justifique o gabarito da objetiva.');
   }else{
-   if(!q.rubric.trim())errors.push(ref+'informe a rubrica da discursiva.');
+   if(!q.rubric.trim()&&!q.rubricCriteria?.length)errors.push(ref+'informe a rubrica da discursiva.');
    if(!Number.isInteger(q.answerLines??8)||(q.answerLines??8)<3||(q.answerLines??8)>60)errors.push(ref+'informe entre 3 e 60 linhas de resposta.');
    if(!q.expectedAnswer?.trim())errors.push(ref+'informe o padrão de resposta esperado.');
   }
@@ -75,27 +87,12 @@ function LocalFigure({file,alt,caption}:{file:File;alt:string;caption?:string}){
   <figcaption style={{fontSize:12,marginTop:5,color:'#41566F'}}>{caption||alt}</figcaption>
  </figure>;
 }
-function SavedPreview({value}: {value:StoredAssessmentDraft}){
- return <section style={cardStyle} aria-label="Rascunho recuperado do servidor">
-  <h3 style={{marginTop:0}}>Caderno recuperado do servidor</h3>
-  <p><strong>{value.snapshot.meta?.title||'Avaliação'}</strong> · {value.snapshot.meta?.semester||'sem semestre informado'} · {value.snapshot.meta?.purpose||'sem finalidade informada'}</p>
-  <p>Versão {value.revision} · {value.snapshot.curriculumStatus==='linked'?'Matriz associada':'Aguardando vinculação ao PPC'}</p>
-  {value.snapshot.meta?.teacherName&&<p>Professor: {value.snapshot.meta.teacherName}</p>}
-  {value.snapshot.meta?.instructions&&<div><strong>Instruções da avaliação</strong>
-   <div style={{whiteSpace:'pre-wrap'}}>{value.snapshot.meta.instructions}</div></div>}
-  <p style={{fontSize:13}}>Decisões docentes declaradas neste rascunho: {value.snapshot.meta?.curationHistory?.length||0}. Este histórico não equivale à auditoria autenticada do servidor.</p>
-  {value.snapshot.meta?.curriculumSource&&<p style={{fontSize:13}}>Matriz importada: versão {value.snapshot.meta.curriculumSource.version} · {value.snapshot.meta.curriculumSource.ready?'períodos validados no cadastro':'períodos ainda não homologados'}</p>}
-  {value.snapshot.meta?.declaredPedagogy&&<p style={{fontSize:13}}>Metadados pedagógicos declarados preservados: {value.snapshot.meta.declaredPedagogy.competencies.length} competências e {value.snapshot.meta.declaredPedagogy.topics.length} temas. Sem homologação curricular.</p>}
-  {value.snapshot.questions.map((q,i)=><div key={String(q.id||i)} style={{padding:'12px 0',borderTop:'1px solid '+line}}>
-   <strong>{i+1}. {String(q.statement||'Enunciado indisponível')}</strong>
-   {Array.isArray(q.options)&&(q.options as Array<{id:string;text:string}>).map(o=>
-    <p key={o.id} style={{margin:'5px 0',paddingLeft:14}}>{o.id}) {o.text}</p>)}
-   {Array.isArray(q.images)&&(q.images as Array<{altText:string;caption?:string}>).map((m,k)=>
-    <p key={k} style={{fontSize:13}}>Figura {k+1}: {m.caption||m.altText} (arquivo privado associado)</p>)}
-  </div>)}
-  <p style={{fontSize:12,color:'#64748b'}}>O acesso visual às imagens armazenadas requer URL autenticada temporária. A presença do vínculo não comprova acesso ao binário.</p>
- </section>;
+/** Impressão digital do que é salvo: indica alterações ainda não gravadas. */
+function fingerprintOf(v:{questions:QuestionDraft[];title:string;period:string;purpose:string;instructions:string;teacherName:string;pedagogy:PedagogicalDraft}){
+ return JSON.stringify({...v,title:v.title.trim(),period:v.period.trim(),instructions:v.instructions.trim(),teacherName:v.teacherName.trim(),
+  questions:v.questions.map(q=>({...q,images:q.images.map(({file:_file,...meta})=>meta)}))});
 }
+const statusLabel={draft:'rascunho',submitted:'enviado para validação',validated:'validado',archived:'arquivado'} as const;
 export default function Avalia360Studio({institutionId,courses,previewMode=false,institutionalPersistence=true}:Avalia360StudioProps){
  const persistenceAvailable=previewMode||institutionalPersistence;
  const [courseId,setCourseId]=useState('');
@@ -134,11 +131,19 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
  const [receipt,setReceipt]=useState<DraftReceipt|null>(null);
  const [loaded,setLoaded]=useState<StoredAssessmentDraft|null>(null);
  const [lookupId,setLookupId]=useState('');
+ const [drafts,setDrafts]=useState<DraftSummary[]|null>(null);
+ const [savedFingerprint,setSavedFingerprint]=useState<string|null>(null);
+ const [reviewEvents,setReviewEvents]=useState<ReviewEvent[]|null>(null);
+ const [applying,setApplying]=useState<string|null>(null);
+ const [diagnosisFor,setDiagnosisFor]=useState<string|null>(null);
+ const [assembling,setAssembling]=useState(false);
+ const [recoveryFor,setRecoveryFor]=useState<string|null>(null);
+ const [readinessOpen,setReadinessOpen]=useState(false);
  const [errors,setErrors]=useState<string[]>([]);
  const [busy,setBusy]=useState(false);
  const [status,setStatus]=useState('');
  const uploads=useRef(new Map<string,ScopedImageReceipt>());
- useEffect(()=>{setReceipt(null);setLoaded(null);setQuestions([]);setInstructions('');setStep(1);setCurationHistory([]);setPreview(false);uploads.current.clear();setStatus('');setCurriculumSource(null);setCurriculumMessage('');setPedagogy(p=>({...p,competencies:[],topics:[],requiredCompetencyIds:[],requiredTopicIds:[],relations:[]}));},[institutionId,courseId]);
+ useEffect(()=>{setReceipt(null);setLoaded(null);setQuestions([]);setInstructions('');setStep(1);setCurationHistory([]);setPreview(false);uploads.current.clear();setStatus('');setDrafts(null);setSavedFingerprint(null);setReviewEvents(null);setApplying(null);setCurriculumSource(null);setCurriculumMessage('');setPedagogy(p=>({...p,competencies:[],topics:[],requiredCompetencyIds:[],requiredTopicIds:[],relations:[]}));},[institutionId,courseId]);
  const update=useCallback((change:Partial<QuestionDraft>)=>{
   setQuestions(all=>all.map((q,i)=>i===activeIndex?{...q,...change}:q));
   setLoaded(null);
@@ -157,6 +162,8 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
  };
  const setDiscipline=(value:string)=>{
   setDisciplineId(value);
+  // Rascunhos são gravados por disciplina: trocar a disciplina inicia um novo caderno.
+  setReceipt(null);setDrafts(null);setLoaded(null);setSavedFingerprint(null);setReviewEvents(null);
   setCurriculumSource(null);
   setCurriculumMessage('');
   setPedagogy(p=>({...p,competencies:[],topics:[],requiredCompetencyIds:[],requiredTopicIds:[],relations:[]}));
@@ -183,7 +190,7 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
       {competency_id:'demo-competencia-2',discipline_name:disciplineId}
      ]
     });
-   }else result=await importOfficialCurriculum({institutionId,courseId,disciplineName:disciplineId});
+   }else result=await importOfficialCurriculum({institutionId,courseId,disciplineName:disciplineId,assumedPeriod:pedagogy.currentPeriod});
    if(!result.competencies.length){
     setCurriculumMessage(result.warnings.join(' ')||'Nenhuma competência vinculada a esta disciplina.');return;
    }
@@ -220,6 +227,7 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
   if(title.trim().length<3)issues.unshift('Informe um título com pelo menos 3 caracteres.');
   if(period.trim().length<3)issues.unshift('Informe o semestre letivo.');
   if(issues.length){setErrors(issues);setPreview(false);return;}
+  const fingerprintAtSave=fingerprintOf({questions,title,period,purpose,instructions,teacherName,pedagogy});
   setBusy(true);setErrors([]);setStatus('Preparando rascunho…');
   try {
    const grouped:Record<string,Array<{localId:string;receipt:UploadedImageReceipt}>>={};
@@ -243,7 +251,7 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
       declaredPedagogy:{...pedagogy,purpose},curationHistory:curationHistory.slice(-150),
       ...(curriculumSource?{curriculumSource}: {})}});
    if(!out.ok){setStatus('Falha no salvamento.');setErrors([out.error.message]);return;}
-   setReceipt(out.receipt);setStatus((previewMode?'Demonstração local salva':'Rascunho salvo')+' na versão '+out.receipt.revision+'.');
+   setReceipt(out.receipt);setSavedFingerprint(fingerprintAtSave);setStatus((previewMode?'Demonstração local salva':'Rascunho salvo')+' na versão '+out.receipt.revision+'.');
    setLoaded(null);
   }catch(e){setStatus('Salvamento não concluído.');setErrors([e instanceof Error?e.message:'Falha ao conectar ao armazenamento privado.']);}
   finally{setBusy(false);}
@@ -259,6 +267,81 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
    setStatus(previewMode?'Rascunho local recuperado em modo de consulta.':'Rascunho recuperado do Supabase em modo de consulta.');
   }else{setStatus('Não foi possível reabrir.');setErrors([found.error.message]);}
   setBusy(false);
+ };
+ const listDrafts=async()=>{
+  if(!courseId||!disciplineId.trim()){setErrors(['Selecione curso e disciplina para listar os rascunhos.']);return;}
+  setBusy(true);setErrors([]);setStatus('Consultando rascunhos salvos…');
+  const found=await listAssessmentDrafts({institutionId,courseId,disciplineId});
+  if(found.ok){setDrafts(found.drafts);setStatus(found.drafts.length?found.drafts.length+' rascunho(s) encontrado(s) nesta disciplina.':'Nenhum rascunho salvo nesta disciplina.');}
+  else{setStatus('Não foi possível listar.');setErrors([found.error.message]);}
+  setBusy(false);
+ };
+ const continueEditing=async(id:string)=>{
+  if(!courseId||!disciplineId){setErrors(['Selecione curso e disciplina do rascunho.']);return;}
+  setBusy(true);setErrors([]);setStatus('Carregando rascunho para edição…');
+  const found=await loadAssessmentDraft({institutionId,courseId,disciplineId,draftId:id});
+  if(!found.ok){setBusy(false);setStatus('Não foi possível reabrir.');setErrors([found.error.message]);return;}
+  if(found.draft.status!=='draft'){
+   setBusy(false);setLoaded(found.draft);setStatus('Caderno já encaminhado: aberto em modo de consulta.');return;
+  }
+  let restored:Map<string,RestoredImage>|undefined;
+  if(snapshotHasImages(found.draft.snapshot)){
+   setStatus('Recuperando e conferindo as imagens do armazenamento privado…');
+   try{restored=await downloadDraftImages({institutionId,courseId,disciplineId,draftId:id});}
+   catch{
+    setBusy(false);setLoaded(found.draft);
+    setStatus('Caderno aberto em modo de consulta.');
+    setErrors(['Não foi possível recuperar as imagens com integridade conferida. Tente novamente; o caderno salvo não foi alterado.']);
+    return;
+   }
+  }
+  setBusy(false);
+  const rebuilt=editableQuestionsFromSnapshot(found.draft.snapshot,restored);
+  if(!rebuilt){
+   setLoaded(found.draft);setStatus('Caderno aberto em modo de consulta.');
+   setErrors(['Alguma imagem citada no caderno não está mais disponível no armazenamento privado.']);
+   return;
+  }
+  const editable=rebuilt.questions;
+  const meta=found.draft.snapshot.meta||{};
+  uploads.current.clear();
+  // Comprovantes recuperados: ao salvar, a imagem é reaproveitada sem novo envio.
+  for(const r of rebuilt.receipts)uploads.current.set(r.localId,{file:r.file,receipt:r.receipt,
+   scopeKey:receiptScopeKey({institutionId,courseId,disciplineId,questionId:r.questionId})});
+  setQuestions(editable);setActiveIndex(0);
+  setTitle(meta.title||'');setPeriod(meta.semester||'');setInstructions(meta.instructions||'');
+  if(meta.teacherName)setEditedTeacherName(meta.teacherName);
+  if(meta.purpose==='diagnostica'||meta.purpose==='formativa'||meta.purpose==='somativa')setPurpose(meta.purpose);
+  if(meta.declaredPedagogy)setPedagogy(meta.declaredPedagogy);
+  setCurationHistory(Array.isArray(meta.curationHistory)?meta.curationHistory:[]);
+  setCurriculumSource(meta.curriculumSource||null);
+  setReceipt({id:found.draft.id,revision:found.draft.revision,status:found.draft.status});
+  const restoredPurpose=(meta.purpose==='diagnostica'||meta.purpose==='formativa'||meta.purpose==='somativa')?meta.purpose:purpose;
+  setSavedFingerprint(fingerprintOf({questions:editable,title:meta.title||'',period:meta.semester||'',purpose:restoredPurpose,
+   instructions:meta.instructions||'',teacherName:meta.teacherName||teacherName,pedagogy:meta.declaredPedagogy||pedagogy}));
+  setReviewEvents(null);
+  void loadReviewHistory(institutionId,courseId,found.draft.id).then(setReviewEvents).catch(()=>setReviewEvents(null));
+  setLoaded(null);setPreview(false);setStep(2);
+  setStatus('Rascunho carregado na versão '+found.draft.revision+'. Ao salvar, será gravada a versão '+(found.draft.revision+1)+'.');
+ };
+ const checklist=useMemo(()=>checkAssessment(questions,{
+  requiredCompetencyIds:pedagogy.requiredCompetencyIds,requiredTopicIds:pedagogy.requiredTopicIds,
+  competencyLabels:Object.fromEntries(pedagogy.competencies.map(c=>[c.id,c.code+' '+c.title])),
+  topicLabels:Object.fromEntries(pedagogy.topics.map(t=>[t.id,t.title])),
+ },{purpose,period:pedagogy.currentPeriod}),[questions,pedagogy,purpose]);
+ const dirty=!receipt||savedFingerprint!==fingerprintOf({questions,title,period,purpose,instructions,teacherName,pedagogy});
+ const locked=Boolean(receipt&&receipt.status!=='draft');
+ const lastReturn=reviewEvents?.filter(e=>e.action==='returned').slice(-1)[0];
+ const submit=async()=>{
+  if(!receipt||locked)return;
+  if(dirty){setErrors(['Salve a versão atual antes de enviar: o colegiado analisa exatamente a versão gravada.']);return;}
+  if(!checklist.canSubmit){setErrors(['Corrija os bloqueios do checklist antes de enviar.']);return;}
+  setBusy(true);setErrors([]);setStatus('Enviando para validação…');
+  try{
+   const out=await submitForReview(institutionId,courseId,receipt,checklist);
+   setReceipt(out);setStatus('Versão '+out.revision+' enviada ao colegiado. A edição fica bloqueada até a decisão.');
+  }catch(e){setStatus('Envio não concluído.');setErrors([e instanceof Error?e.message:'Falha no envio.']);}
+  finally{setBusy(false);}
  };
  const btn=(primary:boolean)=>({padding:'10px 16px',borderRadius:9,border:'1px solid '+blue,
   background:primary?blue:'#fff',color:primary?'#fff':blue,fontWeight:700,cursor:'pointer'} as const);
@@ -277,7 +360,7 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
    </nav>
    <p className="avalia-warning" role="note">{previewMode?
      'Demonstração pública: dados somente neste navegador. Não use nomes reais de alunos nem materiais confidenciais.':
-     persistenceAvailable?'Rascunhos e imagens exigem serviços institucionais autorizados.':
+     persistenceAvailable?'Estúdio institucional: rascunhos, imagens e Banco de Questões são gravados no Supabase da Vértice, com acesso restrito à equipe autorizada do curso (MFA obrigatório). Gabaritos não aparecem no caderno do aluno.':
      'Estúdio institucional. Você pode elaborar e revisar nesta sessão. O salvamento institucional, a consulta de turmas e a emissão oficial aguardam habilitação no servidor. Ao sair da página, os dados desta sessão são descartados.'}</p>
 
   {step===1&&<>
@@ -315,6 +398,33 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
    </label>
    <p style={{fontSize:12,color:'#64748b',marginBottom:0}}>Título, instruções, semestre e finalidade são versionados com o rascunho. O vínculo a competências depende de catálogo institucional validado.</p>
   </div>
+  {!previewMode&&courseId&&<CollegiateReviewPanel institutionId={institutionId} courseId={courseId}/>}
+  {!previewMode&&courseId&&<div style={{margin:'0 0 12px'}}><button type="button" style={btn(readinessOpen)} onClick={()=>setReadinessOpen(v=>!v)}>
+   {readinessOpen?'Fechar prontidão e risco':'Prontidão ENADE/OAB e risco acadêmico do curso'}</button></div>}
+  {!previewMode&&courseId&&readinessOpen&&<ReadinessRiskPanel key={courseId} institutionId={institutionId} courseId={courseId} courseName={courses.find(c=>c.id===courseId)?.name||''}/>}
+  {!previewMode&&courseId&&disciplineId.trim()&&<div style={{margin:'0 0 12px'}}>
+   <button type="button" style={btn(assembling)} onClick={()=>setAssembling(v=>!v)}>{assembling?'Fechar montagem automática':'Montar prova a partir do banco'}</button>{' '}
+   <button type="button" style={btn(recoveryFor===disciplineId.trim())} onClick={()=>setRecoveryFor(v=>v===disciplineId.trim()?null:disciplineId.trim())}>
+    {recoveryFor===disciplineId.trim()?'Fechar recuperação':'Recuperação personalizada'}</button>
+  </div>}
+  {!previewMode&&courseId&&disciplineId.trim()&&recoveryFor===disciplineId.trim()&&<RecoveryPanel institutionId={institutionId} courseId={courseId} discipline={disciplineId.trim()}/>}
+  {!previewMode&&courseId&&disciplineId.trim()&&assembling&&<AssemblyPanel institutionId={institutionId} courseId={courseId} discipline={disciplineId.trim()}
+   catalog={pedagogy.competencies} defaultTarget={pedagogy.targetDifficulty}
+   onAssemble={(assembled,catalog,requiredIds)=>{
+    if(questions.length&&!window.confirm('Substituir as '+questions.length+' questão(ões) em edição pela prova montada? O rascunho atual salvo no servidor não é alterado.'))return;
+    uploads.current.clear();setReceipt(null);setSavedFingerprint(null);setReviewEvents(null);setLoaded(null);setApplying(null);
+    setQuestions(assembled);setActiveIndex(0);setCurationHistory([]);
+    setPedagogy(p=>({...p,competencies:catalog,requiredCompetencyIds:[...new Set([...p.requiredCompetencyIds.filter(id=>catalog.some(c=>c.id===id)),...requiredIds])]}));
+    setAssembling(false);setStep(2);
+    setStatus('Prova montada com '+assembled.length+' questão(ões) do banco. Revise, salve e envie ao colegiado: a montagem não dispensa a validação.');
+   }}/>}
+  {!previewMode&&courseId&&disciplineId.trim()&&<div style={{margin:'0 0 16px'}}>
+   {diagnosisFor!==disciplineId.trim()
+    ?<button type="button" style={btn(false)} onClick={()=>setDiagnosisFor(disciplineId.trim())}>Diagnóstico por competência da disciplina</button>
+    :<><button type="button" style={btn(false)} onClick={()=>setDiagnosisFor(null)}>Ocultar diagnóstico</button>
+      <CompetencyDiagnosisPanel institutionId={institutionId} courseId={courseId} scope={{discipline:disciplineId.trim()}}
+       title={'Diagnóstico por competência · '+disciplineId.trim()+' (aplicações encerradas)'}/></>}
+  </div>}
 
     <div className="avalia-actions">
      <button type="button" className="avalia-action-primary" onClick={()=>{if(!questions.length)add();setStep(2)}}>Começar a elaborar questões →</button>
@@ -401,6 +511,15 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
        <input style={inputStyle} value={o.text} onChange={e=>update({options:q.options.map(a=>a.id===o.id?{...a,text:e.target.value}:a)})} aria-label={'Alternativa '+o.id}/>
        <label style={{fontSize:12}}><input type="radio" name={'correct-'+q.id} checked={q.correctOptionId===o.id} onChange={()=>update({correctOptionId:o.id})}/> Correta</label>
       </div>)}
+      <details style={{marginTop:6}}>
+       <summary style={{fontSize:13,fontWeight:600,cursor:'pointer'}}>Mapa de erros: o que cada alternativa errada revela (opcional)</summary>
+       <p className="avalia-help" style={{margin:'6px 0'}}>Descreva em poucas palavras o equívoco de quem escolhe a alternativa (ex.: “confunde prescrição com decadência”). Use a mesma redação em questões diferentes para o sistema somar o mesmo erro. Não aparece no caderno do aluno.</p>
+       {q.options.filter(o=>o.id!==q.correctOptionId).map(o=><label key={o.id} style={{display:'grid',gridTemplateColumns:'50px 1fr',gap:8,alignItems:'center',marginBottom:6,fontSize:13}}>
+        <strong>{o.id}</strong>
+        <input style={inputStyle} maxLength={200} value={q.distractorNotes?.[o.id]||''} placeholder="Erro conceitual revelado"
+         onChange={e=>update({distractorNotes:{...(q.distractorNotes||{}),[o.id]:e.target.value}})} aria-label={'Erro conceitual da alternativa '+o.id}/>
+       </label>)}
+      </details>
      </fieldset> 
      {q.kind==='objetiva'&&<label style={labelStyle}>Justificativa da alternativa correta
       <span className="avalia-help">Explique por que o gabarito está correto. Este texto integra a curadoria algorítmica e não será mostrado aos alunos.</span>
@@ -425,12 +544,32 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
         onChange={e=>update({rubric:e.target.value})}
         placeholder="Ex.: identificação do instituto (0,3), fundamentação (0,4), conclusão (0,3)."/>
       </label>
+      <fieldset style={{border:'1px solid '+line,borderRadius:10,padding:10}}>
+       <legend style={{fontWeight:700,fontSize:13}}>Rubrica estruturada (critérios e pontos)</legend>
+       <span className="avalia-help">A soma dos critérios deve ser igual à pontuação da questão ({String(q.points).replace('.',',')}). Permite a dupla correção e a análise por critério.</span>
+       {(q.rubricCriteria||[]).map((c,i)=><div key={c.id} style={{display:'grid',gridTemplateColumns:'1fr 100px auto',gap:6,margin:'6px 0'}}>
+        <input style={inputStyle} value={c.label} maxLength={200} placeholder={'Critério '+(i+1)} aria-label={'Critério '+(i+1)}
+         onChange={e=>update({rubricCriteria:(q.rubricCriteria||[]).map(x=>x.id===c.id?{...x,label:e.target.value}:x)})}/>
+        <input style={inputStyle} type="number" min="0.01" step="0.05" value={c.points} aria-label={'Pontos do critério '+(i+1)}
+         onChange={e=>update({rubricCriteria:(q.rubricCriteria||[]).map(x=>x.id===c.id?{...x,points:Number(e.target.value)}:x)})}/>
+        <button type="button" onClick={()=>update({rubricCriteria:(q.rubricCriteria||[]).filter(x=>x.id!==c.id)})} aria-label={'Remover critério '+(i+1)}>×</button>
+       </div>)}
+       <button type="button" onClick={()=>update({rubricCriteria:[...(q.rubricCriteria||[]),{id:crypto.randomUUID(),label:'',points:0}]})}>Adicionar critério</button>
+       {(q.rubricCriteria||[]).length>0&&<span className="avalia-help"> Soma atual: {String(Math.round((q.rubricCriteria||[]).reduce((s,c)=>s+(Number(c.points)||0),0)*100)/100).replace('.',',')}</span>}
+      </fieldset>
      </div>}
      <div className="avalia-panel" style={{background:'#f8fbff',padding:14,boxShadow:'none'}}>
       <div style={{display:'flex',gap:18,flexWrap:'wrap',alignItems:'end'}}>
        <label style={labelStyle}>Dificuldade
         <span className="avalia-levels">{([1,2,3,4,5] as Difficulty[]).map(n=><button key={n} type="button"
          aria-pressed={q.estimatedDifficulty===n} onClick={()=>update({estimatedDifficulty:n})}>{n}</button>)}</span>
+       </label>
+       <label style={{...labelStyle,flex:'1 1 200px'}}>Nível cognitivo (Bloom)
+        {(()=>{const s=classifyBloom(q.statement);return <span className="avalia-help">Sugestão pelo verbo de comando: {s.level?BLOOM_LABELS[s.level]+' ('+s.verbs.join(', ')+')':'nenhum verbo de comando reconhecido'}</span>;})()}
+        <select style={inputStyle} value={q.bloomLevel||''} onChange={e=>update({bloomLevel:e.target.value?Number(e.target.value):undefined})}>
+         <option value="">Usar a sugestão pelo verbo</option>
+         {([1,2,3,4,5,6] as const).map(l=><option key={l} value={l}>{l} · {BLOOM_LABELS[l]}</option>)}
+        </select>
        </label>
        <label style={{...labelStyle,flex:'1 1 170px'}}>Finalidade
         <select style={inputStyle} value={q.purpose[0]||'formativa'} onChange={e=>update({purpose:[e.target.value as Purpose]})}>
@@ -470,7 +609,12 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
       ...pedagogy.topics.filter(t=>q?.topicIds.includes(t.id)).map(t=>t.title),
       ...pedagogy.competencies.filter(c=>q?.competencyIds.includes(c.id)).flatMap(c=>[c.code,c.title])
      ]}
-     onReuse={item=>{
+     competencyCatalog={pedagogy.competencies}
+     onReuse={(item,record)=>{
+      // Religa as competências da questão do banco ao catálogo deste caderno pela chave estável.
+      const merged=mergeIntoCatalog(pedagogy.competencies,record.competencies??[],item.competencyIds);
+      setPedagogy(p=>({...p,competencies:merged.catalog}));
+      item={...item,competencyIds:merged.ids};
       setQuestions(all=>[...all,item]);setActiveIndex(questions.length);
       setPreview(false);setLoaded(null);setErrors([]);
      }}/>
@@ -553,7 +697,7 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
       {label:'Pontuação válida',ok:Number.isFinite(q.points)&&q.points>0},
       ...(q.kind==='discursiva'?
        [{label:'Padrão esperado informado',ok:!!q.expectedAnswer?.trim()},
-        {label:'Rubrica preenchida',ok:!!q.rubric.trim()},
+        {label:'Rubrica preenchida',ok:!!q.rubric.trim()||Boolean(q.rubricCriteria?.length)},
         {label:'Linhas de resposta configuradas',ok:Number.isInteger(q.answerLines??8)&&(q.answerLines??8)>=3&&(q.answerLines??8)<=60}]:
        [{label:'Alternativas preenchidas',ok:q.options.length>=2&&q.options.every(o=>o.text.trim().length>0)},
         {label:'Gabarito selecionado',ok:q.options.some(o=>o.id===q.correctOptionId)},
@@ -582,9 +726,21 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
    <h3 style={{marginTop:0}}>Revisar e finalizar</h3>
    <div style={{display:'flex',gap:9,flexWrap:'wrap',marginBottom:12}}>
     <button type="button" style={btn(false)} onClick={()=>{setPreview(!preview);setErrors([]);}}>{preview?'Ocultar prévia':'Pré-visualizar caderno'}</button>
-    <button type="button" style={btn(true)} disabled={busy||!persistenceAvailable} onClick={save}>{busy?'Processando…':previewMode?(receipt?'Atualizar demonstração local':'Guardar demonstração local'):(receipt?'Salvar nova versão':'Salvar rascunho no Supabase')}</button>
+    <button type="button" style={btn(true)} disabled={busy||!persistenceAvailable||locked} onClick={save}>{busy?'Processando…':previewMode?(receipt?'Atualizar demonstração local':'Guardar demonstração local'):(receipt?'Salvar nova versão':'Salvar rascunho no Supabase')}</button>
     {receipt&&<button type="button" style={btn(false)} disabled={busy} onClick={()=>reopen()}>Reabrir do servidor</button>}
+    {!previewMode&&<button type="button" style={btn(true)} disabled={busy||!receipt||locked||dirty||!checklist.canSubmit}
+      onClick={()=>void submit()}>Enviar para validação do colegiado</button>}
    </div>
+   {!previewMode&&receipt&&<p role="status" style={{fontSize:13,margin:'0 0 8px'}}>Situação: <strong>{statusLabel[receipt.status]}</strong>
+    {locked?' · edição bloqueada enquanto o colegiado analisa ou após a validação.':dirty?' · há alterações não salvas.':' · versão salva pronta para envio.'}</p>}
+   {lastReturn&&receipt?.status==='draft'&&<div role="note" style={{background:'#FFF7E6',border:'1px solid #F2C46B',borderRadius:9,padding:'10px 12px',fontSize:13,marginBottom:10}}>
+    <strong>Caderno devolvido pelo colegiado (versão {lastReturn.revision}).</strong> Corrija, salve e envie de novo.
+    {reviewEvents&&<ReviewHistory events={reviewEvents}/>}
+   </div>}
+   {!previewMode&&receipt?.status==='validated'&&applying!==receipt.id&&<button type="button" style={{...btn(true),marginBottom:8}} onClick={()=>setApplying(receipt.id)}>Aplicar e lançar respostas</button>}
+   {!previewMode&&applying&&courseId&&<ApplicationPanel key={applying} institutionId={institutionId} courseId={courseId} discipline={disciplineId}
+     draftId={applying} onClose={()=>setApplying(null)}/>}
+   <ChecklistPanel result={checklist}/>
    {persistenceAvailable&&<div style={{display:'flex',gap:8,alignItems:'end',flexWrap:'wrap',margin:'12px 0'}}>
      <label style={{...labelStyle,flex:'1 1 230px'}}>Consultar rascunho existente por ID
        <input value={lookupId} onChange={e=>setLookupId(e.target.value)} style={inputStyle}
@@ -592,7 +748,19 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
      </label>
      <button type="button" style={btn(false)} disabled={busy||!lookupId.trim()}
        onClick={()=>reopen(lookupId)}>Consultar versão salva</button>
+     {!previewMode&&<button type="button" style={btn(false)} disabled={busy||!courseId||!disciplineId.trim()}
+       onClick={()=>void listDrafts()}>Meus rascunhos desta disciplina</button>}
    </div>}
+   {!previewMode&&drafts&&drafts.length>0&&<ul aria-label="Rascunhos salvos" style={{listStyle:'none',padding:0,margin:'0 0 12px',display:'grid',gap:8}}>
+    {drafts.map(d=><li key={d.id} style={{border:'1px solid '+line,borderRadius:9,padding:'10px 12px',display:'flex',gap:10,alignItems:'center',flexWrap:'wrap',justifyContent:'space-between'}}>
+     <span><strong>{d.title}</strong> · {d.semester} · {d.questionCount} questão(ões) · versão {d.revision} · {new Date(d.updatedAt).toLocaleString('pt-BR')}{d.status!=='draft'?' · '+d.status:''}</span>
+     <span style={{display:'flex',gap:6}}>
+      <button type="button" style={btn(false)} disabled={busy} onClick={()=>void reopen(d.id)}>Consultar</button>
+      {d.status==='draft'&&<button type="button" style={btn(true)} disabled={busy} onClick={()=>void continueEditing(d.id)}>Continuar editando</button>}
+      {d.status==='validated'&&<button type="button" style={btn(true)} disabled={busy} onClick={()=>setApplying(d.id)}>Aplicar e lançar respostas</button>}
+     </span>
+    </li>)}
+   </ul>}
    {errors.length>0&&<div role="alert" style={{background:'#FFF0F0',padding:12,borderRadius:9,color:'#982F2F'}}>
     <strong>Corrija antes de salvar:</strong><ul>{errors.map((e,i)=><li key={i}>{e}</li>)}</ul>
    </div>}

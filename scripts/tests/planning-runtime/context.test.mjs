@@ -19,18 +19,18 @@ async function fixture(t, { beforeMigration = false } = {}) {
   await db.exec(area.slice(start, end + 3));
   await db.exec(
     await read(
-      "../../../supabase/migrations/20261115185813_planning_management_previous_period_guard.sql",
+      "../../../supabase/migrations/20261115185827_planning_management_previous_period_guard.sql",
     ),
   );
   await db.exec(
     await read(
-      "../../../supabase/migrations/20261115201528_sapiens_planning_analysis.sql",
+      "../../../supabase/migrations/20261115201833_sapiens_planning_analysis.sql",
     ),
   );
   // Replay the existing school-context integration before the proposed replacement.
   // Only the data-producing functions are synthetic; the integration DO block is real.
   const schoolIntegration = await read(
-    "../../../supabase/migrations/20261115203758_school_operations_validation_context.sql",
+    "../../../supabase/migrations/20261115203849_school_operations_validation_context.sql",
   );
   const integrationStart = schoolIntegration.indexOf(
     "DO $$ DECLARE definition text;",

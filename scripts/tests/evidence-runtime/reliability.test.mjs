@@ -29,7 +29,7 @@ test('real PostgreSQL functions: claim, duplicate, rollback, lease, retry limit,
  insert into vertice_instrument_catalog(id,institution_id,instrument_code,instrument_label) values('${A}','${I}','reconhecimento_curso','IACG');
  insert into vertice_instrument_objects(catalog_id,object_code,object_label) values('${A}','2.1','NDE');`);
  await db.exec(read('supabase/migrations/20261117113047_enade360_evidence_text_index.sql').split('create index')[0]);
- await db.exec(read('supabase/migrations/20261120153725_documentary_rules_reliability.sql'));
+ await db.exec(read('supabase/migrations/20261120154403_documentary_rules_reliability.sql'));
  const claim=async(action='analyze')=>(await db.query('select vertice_doc_claim_rules($1,$2,$3,$4,$5,$6) j',[I,'vertice_documents',F,A,action,'regras-test'])).rows[0].j;
  let c=await claim();assert.equal(c.status,'claimed');const id=c.prevalidation_id;
  assert.equal((await claim()).prevalidation_id,id);assert.equal((await claim()).status,'processing');

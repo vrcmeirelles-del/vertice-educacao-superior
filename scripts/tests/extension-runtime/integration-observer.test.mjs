@@ -4,7 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 const a='00000000-0000-4000-8000-000000000001',b='00000000-0000-4000-8000-000000000002',fake='00000000-0000-4000-8000-000000000003',school='00000000-0000-4000-8000-000000000004';
 const master='00000000-0000-4000-8000-000000000005',other='00000000-0000-4000-8000-000000000006';
-const migration=await readFile(new URL('../../../supabase/migrations/20261115010939_integration_observations.sql',import.meta.url),'utf8');
+const migration=await readFile(new URL('../../../supabase/migrations/20261115012658_integration_observations.sql',import.meta.url),'utf8');
 const db=new PGlite();
 await db.exec(`create role anon;create role authenticated;create role service_role bypassrls;
  create schema auth;create schema vertice_private;create schema cron;

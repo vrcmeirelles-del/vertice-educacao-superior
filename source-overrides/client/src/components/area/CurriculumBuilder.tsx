@@ -1,11 +1,13 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { isFullAccess, type Role } from '@/lib/area';
+import { loadCurriculum, publishCurriculum, saveCurriculum, type CurriculumState } from '@/lib/curriculum-api';
+import { buildCurriculumModel, CURRICULUM_MODEL_RULES } from '@/lib/curriculum-model';
 import './planning/planning.css';
 
 type Course = { id: string; name: string; code?: string | null };
 type Discipline = { id?: string; discipline_name: string; category: 'profissional' | 'instrumental' | 'basica'; sort_order: number };
-type Competency = { id?: string; code: string; title: string; description: string; sort_order: number; disciplines: Discipline[] };
+type Competency = { id?: string; code: string; title: string; description: string; sort_order: number; origin_period?: number | null; period_status?: 'proposed' | 'validated' | null; disciplines: Discipline[] };
 type Build = { id?: string; version: number; status: 'draft' | 'published' | 'archived'; graduate_profile: string; graduate_profile_source: string; dcn_reference: string; dcn_document_url: string; competencies: Competency[] };
 
 const EMPTY_BUILD: Build = {
@@ -68,7 +70,7 @@ function HelpBanner() {
         <p style={{ marginBottom: 14 }}><strong>Disciplinas Profissionais:</strong> Diretamente ligadas à prática da profissão.</p>
         <p style={{ marginBottom: 14 }}><strong>Disciplinas Instrumentais:</strong> Habilidades técnicas de apoio.</p>
         <p style={{ marginBottom: 14 }}><strong>Disciplinas Básicas:</strong> Fundamentação científica e humanística.</p>
-        <p><strong>Sapiens:</strong> A IA pode gerar um modelo replicável desta construção para outros cursos, adaptando competências e disciplinas às DCNs de cada área.</p>
+        <p><strong>Modelo replicável:</strong> o portal gera, por regras e sem IA, a estrutura desta construção (competências, categorias e períodos), os critérios de classificação e uma lista de verificação, para servir de referência a outros cursos.</p>
       </div>
     </div>}
   </>;
@@ -80,9 +82,13 @@ function BuildEditor({ institutionId, courseId, courseName, canWrite, onDirty }:
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
-  const [sapiensLoading, setSapiensLoading] = useState(false);
+  const sapiensLoading = false; // cálculo local e síncrono
   const [sapiensResult, setSapiensResult] = useState<string | null>(null);
   const [ppcLoading, setPpcLoading] = useState(false);
+  const [publishedVersion, setPublishedVersion] = useState<number | null>(null);
+  // O servidor decide: papel na IES ou função no curso (coordenação/NDE) atribuída pela gestão.
+  const [serverCanWrite, setServerCanWrite] = useState(false);
+  const writable = serverCanWrite;
 
   const update = useCallback((patch: Partial<Build>) => {
     setBuild(prev => ({ ...prev, ...patch }));
@@ -90,27 +96,27 @@ function BuildEditor({ institutionId, courseId, courseName, canWrite, onDirty }:
     setNotice('');
   }, [onDirty]);
 
+  const apply = useCallback((state: CurriculumState) => {
+    setPublishedVersion(state.publishedVersion);
+    setServerCanWrite(state.canWrite);
+    if (!state.build) { setBuild({ ...EMPTY_BUILD }); return; }
+    const b = state.build;
+    setBuild({ id: b.id, version: b.version, status: b.status, graduate_profile: b.graduate_profile, graduate_profile_source: b.graduate_profile_source,
+      dcn_reference: b.dcn_reference, dcn_document_url: b.dcn_document_url,
+      competencies: state.competencies.length > 0 ? state.competencies.map(c => ({ ...c, disciplines: c.disciplines.map(d => ({ ...d })) })) : EMPTY_BUILD.competencies });
+  }, []);
+
   useEffect(() => {
     let active = true;
     (async () => {
       try {
-        const { data: builds } = await supabase.from('curriculum_builds').select('*').eq('institution_id', institutionId).eq('course_id', courseId).order('version', { ascending: false }).limit(1);
-        if (!active) return;
-        if (builds && builds.length > 0) {
-          const b = builds[0];
-          const { data: comps } = await supabase.from('curriculum_competencies').select('*').eq('build_id', b.id).order('sort_order');
-          const competencies: Competency[] = [];
-          for (const c of (comps || [])) {
-            const { data: links } = await supabase.from('curriculum_discipline_links').select('*').eq('competency_id', c.id).order('sort_order');
-            competencies.push({ id: c.id, code: c.code, title: c.title, description: c.description || '', sort_order: c.sort_order, disciplines: (links || []).map((l: Record<string, unknown>) => ({ id: String(l.id), discipline_name: String(l.discipline_name), category: String(l.category) as Discipline['category'], sort_order: Number(l.sort_order) })) });
-          }
-          if (active) setBuild({ id: b.id, version: b.version, status: b.status, graduate_profile: b.graduate_profile || '', graduate_profile_source: b.graduate_profile_source || '', dcn_reference: b.dcn_reference || '', dcn_document_url: b.dcn_document_url || '', competencies: competencies.length > 0 ? competencies : EMPTY_BUILD.competencies });
-        }
+        const state = await loadCurriculum(institutionId, courseId);
+        if (active) apply(state);
       } catch (e) { if (active) setError(e instanceof Error ? e.message : 'Erro ao carregar'); }
       finally { if (active) setLoading(false); }
     })();
     return () => { active = false; };
-  }, [institutionId, courseId]);
+  }, [institutionId, courseId, apply]);
 
   /* ── Buscar perfil do egresso no PPC (repositório) ── */
   async function fetchProfileFromPPC() {
@@ -133,89 +139,45 @@ function BuildEditor({ institutionId, courseId, courseName, canWrite, onDirty }:
     setPpcLoading(false);
   }
 
-  /* ── Sapiens: gerar modelo replicável ── */
-  async function generateSapiensModel() {
-    if (!build.competencies.some(c => c.title)) {
-      setNotice('Preencha pelo menos as competências antes de gerar o modelo Sapiens.');
+  /* ── Modelo replicável por regras (sem IA): lib/curriculum-model.ts ── */
+  function generateSapiensModel() {
+    if (!build.competencies.some(c => c.code.trim() || c.title.trim())) {
+      setNotice('Preencha pelo menos as competências antes de gerar o modelo.');
       return;
     }
-    setSapiensLoading(true);
-    setSapiensResult(null);
-    try {
-      const payload = {
-        institutionId, courseId,
-        context: 'curriculum_model_generation',
-        curriculum: {
-          course: courseName,
-          graduate_profile: build.graduate_profile,
-          dcn_reference: build.dcn_reference,
-          competencies: build.competencies.map(c => ({
-            code: c.code, title: c.title, description: c.description,
-            disciplines: {
-              profissional: c.disciplines.filter(d => d.category === 'profissional').map(d => d.discipline_name),
-              instrumental: c.disciplines.filter(d => d.category === 'instrumental').map(d => d.discipline_name),
-              basica: c.disciplines.filter(d => d.category === 'basica').map(d => d.discipline_name),
-            }
-          }))
-        },
-        prompt: `A partir desta construção curricular do curso de ${courseName}, gere um MODELO REPLICÁVEL que possa ser usado como template para outros cursos. O modelo deve:
-
-1. ESTRUTURA GENÉRICA: Transforme cada competência em um padrão abstrato (ex: C1 "Interpretação e Aplicação do Direito" vira "[COMPETÊNCIA TÉCNICA CENTRAL]") com instruções sobre como adaptar para qualquer área.
-
-2. CRITÉRIOS DE CLASSIFICAÇÃO: Defina regras claras para classificar disciplinas como profissional, instrumental ou básica em qualquer curso.
-
-3. GUIA POR ÁREA: Para as áreas mais comuns (Administração, Pedagogia, Enfermagem, Engenharia Civil, Contabilidade), sugira as competências-tipo e exemplos de disciplinas baseados nas DCNs de cada área.
-
-4. CHECKLIST DE VALIDAÇÃO: O que verificar para saber se a construção está coerente com as DCNs.
-
-Formato: texto estruturado, direto, prático. Sem floreio.`
-      };
-      const { data, error: err } = await supabase.functions.invoke('vertice-sapiens-analyze', { body: payload });
-      if (err) throw err;
-      setSapiensResult(data?.report || data?.analysis || data?.text || JSON.stringify(data));
-      setNotice('Modelo Sapiens gerado. Pode ser usado como referência para construção curricular de outros cursos.');
-    } catch (e: any) {
-      setSapiensResult(`⚠️ Sapiens indisponível no momento: ${e.message}`);
-    }
-    setSapiensLoading(false);
+    const model = buildCurriculumModel({ course: courseName, graduate_profile: build.graduate_profile, dcn_reference: build.dcn_reference,
+      dcn_document_url: build.dcn_document_url, competencies: build.competencies });
+    setSapiensResult(model.text);
+    setNotice(`Modelo gerado por regras: ${model.checks.filter(c => c.ok).length} de ${model.checks.length} itens da lista de verificação atendidos.`);
   }
 
   const save = async () => {
     setSaving(true); setError(''); setNotice('');
     try {
-      let buildId = build.id;
-      if (!buildId) {
-        const { data, error: err } = await supabase.from('curriculum_builds').insert({
-          institution_id: institutionId, course_id: courseId,
-          graduate_profile: build.graduate_profile,
-          graduate_profile_source: build.graduate_profile_source || null,
-          dcn_reference: build.dcn_reference,
-          dcn_document_url: build.dcn_document_url || null,
-          created_by: (await supabase.auth.getUser()).data.user?.id,
-        }).select('id').single();
-        if (err) throw new Error(err.message);
-        buildId = data.id;
-      } else {
-        const { error: err } = await supabase.from('curriculum_builds').update({
-          graduate_profile: build.graduate_profile,
-          graduate_profile_source: build.graduate_profile_source || null,
-          dcn_reference: build.dcn_reference,
-          dcn_document_url: build.dcn_document_url || null,
-          updated_at: new Date().toISOString(),
-        }).eq('id', buildId);
-        if (err) throw new Error(err.message);
-      }
-      await supabase.from('curriculum_competencies').delete().eq('build_id', buildId);
-      for (const comp of build.competencies) {
-        const { data: compData, error: compErr } = await supabase.from('curriculum_competencies').insert({ build_id: buildId, code: comp.code, title: comp.title || comp.code, description: comp.description, sort_order: comp.sort_order }).select('id').single();
-        if (compErr) throw new Error(compErr.message);
-        const discRows = comp.disciplines.filter(d => d.discipline_name.trim()).map((d, i) => ({ competency_id: compData.id, discipline_name: d.discipline_name.trim(), category: d.category, sort_order: i }));
-        if (discRows.length > 0) { const { error: discErr } = await supabase.from('curriculum_discipline_links').insert(discRows); if (discErr) throw new Error(discErr.message); }
-      }
-      setBuild(prev => ({ ...prev, id: buildId }));
+      const wasPublished = build.status !== 'draft' && Boolean(build.id);
+      const state = await saveCurriculum(institutionId, courseId, {
+        ...(build.id && build.status === 'draft' ? { buildId: build.id } : {}),
+        graduate_profile: build.graduate_profile, graduate_profile_source: build.graduate_profile_source,
+        dcn_reference: build.dcn_reference, dcn_document_url: build.dcn_document_url, competencies: build.competencies,
+      });
+      apply(state);
       onDirty(false);
-      setNotice('Matriz curricular salva com sucesso.');
+      setNotice(wasPublished
+        ? `Alterações salvas como nova versão (${state.build?.version}) em rascunho. A versão publicada continua valendo até você publicar a nova.`
+        : 'Matriz curricular salva em rascunho.');
     } catch (e) { setError(e instanceof Error ? e.message : 'Erro ao salvar'); }
+    finally { setSaving(false); }
+  };
+
+  const publish = async () => {
+    if (!build.id || build.status !== 'draft') return;
+    if (!window.confirm(`Publicar a versão ${build.version} da matriz? Ela passa a ser a referência oficial para o Avalia 360° e a versão publicada anterior é arquivada.`)) return;
+    setSaving(true); setError(''); setNotice('');
+    try {
+      const state = await publishCurriculum(institutionId, courseId, build.id);
+      apply(state); onDirty(false);
+      setNotice(`Versão ${state.build?.version} publicada.`);
+    } catch (e) { setError(e instanceof Error ? e.message : 'Erro ao publicar'); }
     finally { setSaving(false); }
   };
 
@@ -224,8 +186,10 @@ Formato: texto estruturado, direto, prático. Sem floreio.`
   return <>
     {error && <p role="alert" className="planning-error">{error}</p>}
     {notice && <p role="status" className="planning-success">{notice}</p>}
-    <div className="planning-toolbar"><p>{STATUS_LABELS[build.status]} · versão {build.version}</p></div>
-    <fieldset disabled={!canWrite || saving}>
+    <div className="planning-toolbar"><p>{build.id ? `${STATUS_LABELS[build.status]} · versão ${build.version}` : 'Nenhuma matriz salva ainda'}
+      {publishedVersion !== null && build.status === 'draft' ? ` · versão publicada em vigor: ${publishedVersion}` : ''}</p></div>
+    {!serverCanWrite && <p role="note" style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Leitura apenas: a matriz é editada pela gestão, pela coordenação ou pelo NDE.</p>}
+    <fieldset disabled={!writable || saving}>
       <legend className="planning-sr">Construção curricular</legend>
 
       {/* ── Perfil do Egresso ── */}
@@ -266,25 +230,27 @@ Formato: texto estruturado, direto, prático. Sem floreio.`
       </div>
       <div style={{ marginTop: 16 }}>
         {build.competencies.map((comp, ci) => (
-          <CompetencyCard key={ci} comp={comp} index={ci} onChange={updated => { const next = [...build.competencies]; next[ci] = updated; update({ competencies: next }); }} onRemove={() => update({ competencies: build.competencies.filter((_, i) => i !== ci) })} canWrite={canWrite} />
+          <CompetencyCard key={comp.id || ci} comp={comp} index={ci} onChange={updated => { const next = [...build.competencies]; next[ci] = updated; update({ competencies: next }); }} onRemove={() => update({ competencies: build.competencies.filter((_, i) => i !== ci) })} canWrite={writable} />
         ))}
       </div>
       <button type="button" className="btn-ghost" onClick={() => update({ competencies: [...build.competencies, { code: `C${build.competencies.length + 1}`, title: '', description: '', sort_order: build.competencies.length, disciplines: [] }] })}>+ Adicionar Competência</button>
     </fieldset>
 
     {/* ── Toolbar: Save + Sapiens ── */}
-    {canWrite && <div className="planning-toolbar" style={{ marginTop: 24, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+    {writable && <div className="planning-toolbar" style={{ marginTop: 24, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
       <button type="button" className="planning-primary" disabled={saving} onClick={save}>{saving ? 'Salvando…' : '💾 Salvar Matriz Curricular'}</button>
+      {build.id && build.status === 'draft' && <button type="button" className="btn-ghost" style={{ width: 'auto', padding: '12px 20px' }} disabled={saving} onClick={() => void publish()}>📢 Publicar versão {build.version}</button>}
       <button type="button" className="btn-ghost" style={{ width: 'auto', padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 8 }} disabled={sapiensLoading} onClick={generateSapiensModel}>
-        {sapiensLoading ? '🔄 Sapiens gerando…' : '🤖 Gerar Modelo Replicável (Sapiens)'}
+        {sapiensLoading ? 'Gerando…' : '📐 Gerar modelo replicável'}
       </button>
     </div>}
 
     {/* ── Sapiens result ── */}
     {sapiensResult && <div className="card" style={{ marginTop: 20, padding: 24, borderLeft: '5px solid #6366f1', background: '#faf5ff' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-        <span style={{ fontSize: 20 }}>🤖</span>
-        <strong style={{ fontSize: 15, color: '#4338ca' }}>Modelo Replicável — Sapiens</strong>
+        <span style={{ fontSize: 20 }}>📐</span>
+        <strong style={{ fontSize: 15, color: '#4338ca' }}>Modelo replicável — por regras</strong>
+        <small style={{ color: '#64748b' }}> versão {CURRICULUM_MODEL_RULES.version} · sem IA</small>
       </div>
       <p style={{ fontSize: 12, color: '#64748b', margin: '0 0 12px' }}>Este modelo pode ser usado como template para construção curricular de outros cursos. Adapte as competências e disciplinas conforme as DCNs de cada área.</p>
       <div style={{ whiteSpace: 'pre-wrap', fontSize: 14, lineHeight: 1.7, color: '#1e293b' }}>{sapiensResult}</div>
@@ -311,6 +277,17 @@ function CompetencyCard({ comp, index, onChange, onRemove, canWrite }: { comp: C
           <label className="planning-field" style={{ flex: 3 }}><span>Título da Competência</span><input value={comp.title} onChange={e => onChange({ ...comp, title: e.target.value })} placeholder="Ex: Interpretação e Aplicação do Direito" /></label>
         </div>
         <label className="planning-field"><span>Descrição</span><textarea rows={3} value={comp.description} onChange={e => onChange({ ...comp, description: e.target.value })} placeholder="Descreva o que o aluno deve ser capaz de fazer ao desenvolver esta competência…" /></label>
+        <div className="row">
+          <label className="planning-field"><span>Período de origem</span>
+            <select value={comp.origin_period ?? ''} onChange={e => onChange({ ...comp, origin_period: e.target.value ? Number(e.target.value) : null, period_status: e.target.value ? (comp.period_status ?? 'proposed') : null })} style={{ maxWidth: 160 }}>
+              <option value="">Não informado</option>
+              {Array.from({ length: 12 }, (_, i) => i + 1).map(n => <option key={n} value={n}>{n}º período</option>)}
+            </select></label>
+          <label className="planning-field"><span>Situação do período</span>
+            <select value={comp.period_status ?? 'proposed'} disabled={!comp.origin_period} onChange={e => onChange({ ...comp, period_status: e.target.value as 'proposed' | 'validated' })} style={{ maxWidth: 220 }}>
+              <option value="proposed">Proposto</option><option value="validated">Homologado no PPC</option>
+            </select></label>
+        </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16, marginTop: 16 }}>
           {(['profissional', 'instrumental', 'basica'] as const).map(cat => (
             <div key={cat} className="card" style={{ margin: 0, borderTop: `3px solid ${cat === 'profissional' ? '#145b8c' : cat === 'instrumental' ? '#d97706' : '#059669'}` }}>

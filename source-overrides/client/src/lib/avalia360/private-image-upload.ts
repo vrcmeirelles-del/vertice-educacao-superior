@@ -45,3 +45,35 @@ export async function uploadQuestionImage(file:File,ctx:UploadContext):Promise<U
  return {imageId:data.imageId,path:data.path,sha256:data.sha256,
    mime:data.mime,sizeBytes:data.sizeBytes};
 }
+
+export type RestoredImage={file:File;receipt:UploadedImageReceipt;questionId:string};
+type ReadRow={questionId?:unknown;imageId?:unknown;path?:unknown;sha256?:unknown;mime?:unknown;sizeBytes?:unknown;url?:unknown};
+/**
+ * Recupera as imagens de um caderno salvo para reabrir em edição.
+ * URLs curtas emitidas pelo servidor; cada arquivo é conferido localmente
+ * (SHA-256, assinatura e tamanho) antes de ser aceito.
+ */
+export async function downloadDraftImages(ctx:{institutionId:string;courseId:string;disciplineId:string;draftId:string},
+ fetcher:typeof fetch=fetch):Promise<Map<string,RestoredImage>>{
+ const res=await supabase.functions.invoke('vertice-avalia-media',{body:{action:'read',...ctx}});
+ if(res.error)throw new Error('IMAGE_READ_FAILED');
+ const rows=(res.data as {images?:unknown})?.images;
+ if(!Array.isArray(rows))throw new Error('INVALID_MEDIA_RESPONSE');
+ const out=new Map<string,RestoredImage>();
+ for(const raw of rows as ReadRow[]){
+  if(typeof raw.imageId!=='string'||typeof raw.path!=='string'||typeof raw.sha256!=='string'||
+     typeof raw.mime!=='string'||typeof raw.sizeBytes!=='number'||typeof raw.url!=='string'||typeof raw.questionId!=='string'||
+     !raw.path.startsWith(ctx.institutionId+'/'+ctx.courseId+'/'))
+   throw new Error('INVALID_MEDIA_RESPONSE');
+  const response=await fetcher(raw.url);
+  if(!response.ok)throw new Error('IMAGE_DOWNLOAD_FAILED');
+  const blob=await response.blob();
+  const file=new File([blob],raw.path.split('/').pop()||raw.imageId,{type:raw.mime});
+  const inspection=await inspectLocalImage(file);
+  if(inspection.sha256!==raw.sha256||inspection.sizeBytes!==raw.sizeBytes||inspection.mime!==raw.mime)
+   throw new Error('UPLOAD_INTEGRITY_MISMATCH');
+  out.set(raw.imageId,{file,questionId:raw.questionId,
+   receipt:{imageId:raw.imageId,path:raw.path,sha256:raw.sha256,mime:raw.mime,sizeBytes:raw.sizeBytes}});
+ }
+ return out;
+}
