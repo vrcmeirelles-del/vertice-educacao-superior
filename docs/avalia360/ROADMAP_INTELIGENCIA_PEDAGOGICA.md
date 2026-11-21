@@ -31,7 +31,7 @@ sem recriar tabela, regra ou tela paralela.
 | Importação da Construção Curricular | `20261122050000` | `vertice_avalia_curriculum_import` | `curriculum-import-api.ts`, `curriculum-import.ts` |
 | **Bloco 2 — montagem automática de prova** | `20261122070000` | `vertice_avalia_bank` (com descritores de competência), `vertice_avalia_bank_exposure` | `exam-assembly.ts`, `competency-key.ts`, `AssemblyPanel.tsx` |
 | **Bloco 3 — mapa de erros e recuperação** | `20261122090000` | `vertice_avalia_error_evidence`, `vertice_avalia_recovery` (tabela `vertice_avalia_recovery_plans`) | `error-map.ts`, `recovery.ts`, `recovery-api.ts`, `ErrorMapPanel.tsx`, `RecoveryPanel.tsx` |
-| **Bloco 5 — prontidão e risco** | `20261122130000` (**pendente em produção**) | evidência com escopo `course`, `vertice_avalia_exam_matrix`, `vertice_avalia_score_series`, `vertice_avalia_risk_publish`; colunas novas em `v_student_evasion_risk` | `readiness.ts`, `academic-risk.ts`, `readiness-api.ts`, `ReadinessRiskPanel.tsx`, `EvasionRiskPanel.tsx` |
+| **Bloco 5 — prontidão e risco** | `20261122130000` | evidência com escopo `course`, `vertice_avalia_exam_matrix`, `vertice_avalia_score_series`, `vertice_avalia_risk_publish`; colunas novas em `v_student_evasion_risk` | `readiness.ts`, `academic-risk.ts`, `readiness-api.ts`, `ReadinessRiskPanel.tsx`, `EvasionRiskPanel.tsx` |
 | **Bloco 4 — justiça e qualidade** | `20261122110000` | `vertice_avalia_response_matrix`, `vertice_avalia_double_scoring` (tabela `vertice_avalia_second_scores`); bloqueios de rubrica em `avalia_blocking_issues` | `bloom.ts`, `fairness.ts`, `agreement.ts`, `quality-api.ts`, `QualityPanel.tsx` |
 
 ### Bloco 1 — decisões
@@ -129,10 +129,10 @@ sem recriar tabela, regra ou tela paralela.
 - **Reutilizar no bloco 5:** domínio por competência (bloco 1), `effectiveBloom`, matriz
   anonimizada e o padrão de RPC por escopo.
 
-### Bloco 5 — prontidão ENADE/OAB e risco (CÓDIGO PRONTO; migração pendente em produção)
-- **Status em 21/11/2026:** a migração `20261122130000_avalia360_readiness_risk.sql` foi testada
-  localmente, mas **não foi aplicada**: o Supabase pediu confirmação (substituição da view
-  `v_student_evasion_risk`) e a pergunta expirou. Aplicar antes de mesclar o PR.
+### Bloco 5 — prontidão ENADE/OAB e risco (PRONTO)
+- **Aplicada em produção em 21/11/2026**, após confirmação do usuário (a substituição da view
+  `v_student_evasion_risk` exige aprovação no Supabase). Conferido: `security_invoker` mantido,
+  251 linhas na view (igual ao cadastro), 3 colunas novas no final, RPCs recusam sem sessão.
 - **Matriz do exame** (`vertice_avalia_exam_matrices`): áreas com peso e competências (`cmp:`),
   com edição e fonte (edital/portaria) obrigatórias; só o colegiado cadastra; quem cadastrou não
   valida; validar uma nova arquiva a anterior do mesmo exame. ENADE tem modelo editável
@@ -151,7 +151,6 @@ sem recriar tabela, regra ou tela paralela.
   `risk_level`; `EvasionRiskPanel` mostra a coluna "Desempenho (Avalia 360°)".
 
 ## Próximos passos possíveis
-- Aplicar a migração do bloco 5 em produção (pendente).
 - Correção por critério também na 1ª correção das discursivas.
 - Recuperação respondida pelo aluno no Portal do Aluno (outro módulo; decisão do usuário).
 - Corrigir a gravação da Construção Curricular (outro módulo).
