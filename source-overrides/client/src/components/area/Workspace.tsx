@@ -26,6 +26,7 @@ import {
   ACTION_STATUS, COURSE_STATUS, DEGREE, DIMENSIONS, DIRECTION, FINDING_STATUS, FREQUENCY, GOAL_STATUS, MODALITY, PRIORITY, ROLE_LABEL, TABLES, UF,
   can, deleteRow, explain, fmtDate, fmtNum, goalProgress, isLate, label, listByInstitution, saveRow, today,
   visibleTabs,
+  isFullAccess,
   type Field, type Role, type Row, type Tab,
 } from "@/lib/area";
 import RecordForm from "./RecordForm";
@@ -96,6 +97,8 @@ import IntegrationSettings from "./IntegrationSettings";
 import ModulePreview from "./ModulePreview";
 import { getActiveTabs, isTabActive, getModuleCatalog, findModuleByTab, type CatalogModule } from "@/lib/modules";
 import ModuleOffer from "./ModuleOffer";
+import CourseStaffFunctions from "./CourseStaffFunctions";
+import { myCourseFunctions, tabsForCourseFunctions, type MyCourseFunction } from "@/lib/course-staff-api";
 const Extensao360 = lazy(() => import("./Extensao360"));
 const CpaAutoavaliacao = lazy(() => import("./CpaAutoavaliacao"));
 const ExtensaoDashboard = lazy(() => import("./ExtensaoDashboard"));
@@ -325,6 +328,14 @@ export default function Workspace({
   const [favoriteTabs,setFavoriteTabs]=useState<Tab[]>([]);
   const [onlyFavorites,setOnlyFavorites]=useState(false);
   const [activeTabs,setActiveTabs]=useState<Set<string>>(new Set());
+  // Função no curso (coordenação/NDE) atribuída pela gestão: libera as abas acadêmicas correspondentes.
+  const [courseFunctions,setCourseFunctions]=useState<MyCourseFunction[]>([]);
+  useEffect(()=>{
+    if(!role||isFullAccess(role)){setCourseFunctions([]);return;}
+    let active=true;
+    myCourseFunctions(String(id)).then(f=>{if(active)setCourseFunctions(f);}).catch(()=>{if(active)setCourseFunctions([]);});
+    return ()=>{active=false;};
+  },[id,role]);
   const [moduleCatalog,setModuleCatalog]=useState<CatalogModule[]>([]);
   const [offerModule,setOfferModule]=useState<CatalogModule|null>(null);
   const [autoMeasures,setAutoMeasures]=useState<Map<string,{auto_current_value:number|null;progress_pct:number|null}>>(new Map());
@@ -442,7 +453,7 @@ export default function Workspace({
   const late = data.actions.filter(a => isLate(a.due_date, a.status)).length;
   const openFindings = data.diagnosis.filter(d => d.status !== "resolvido").length;
   const activeGoals = data.goals.filter(g => g.status === "ativa" || g.status === "planejada").length;
-  const allowedTabs = visibleTabs(role);
+  const allowedTabs = [...new Set<Tab>([...visibleTabs(role), ...(role ? tabsForCourseFunctions(courseFunctions) : [])])];
   // Mostrar TODAS as tabs permitidas pelo role, incluindo bloqueadas (com badge)
   const visible = TABS.filter(([k]) => allowedTabs.includes(k));
   const availableWorkspaceTabs = visible.filter(([key]) => visibleGroups.some(group => group.tabs.includes(key)));
@@ -780,7 +791,7 @@ export default function Workspace({
       ) : tab === "diagnostico" ? (
         <DiagnosisTab institutionId={id} role={role} data={data} reload={reload} onPlan={() => choose("plano")} />
       ) : (
-        <><RegistryContacts institutionId={id} courses={data.courses} manage={can.manageTeam(role)}/><TeamTab institutionId={id} role={role} panelTabs={TABS.filter(([key]) => visibleGroups.some(group => group.tabs.includes(key)))} /></>
+        <><RegistryContacts institutionId={id} courses={data.courses} manage={can.manageTeam(role)}/><TeamTab institutionId={id} role={role} panelTabs={TABS.filter(([key]) => visibleGroups.some(group => group.tabs.includes(key)))} />{isFullAccess(role) && instTier === "superior" && <CourseStaffFunctions institutionId={String(id)} courses={data.courses.map(c => ({ id: String(c.id), name: String(c.display_name ?? c.name) }))} />}</>
       )}
       {TAB_FAQ[tab] && <TabFaq id={tab} />}
       </div>

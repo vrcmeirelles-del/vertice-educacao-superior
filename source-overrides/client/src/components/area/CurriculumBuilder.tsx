@@ -85,8 +85,9 @@ function BuildEditor({ institutionId, courseId, courseName, canWrite, onDirty }:
   const [sapiensResult, setSapiensResult] = useState<string | null>(null);
   const [ppcLoading, setPpcLoading] = useState(false);
   const [publishedVersion, setPublishedVersion] = useState<number | null>(null);
-  const [serverCanWrite, setServerCanWrite] = useState(true);
-  const writable = canWrite && serverCanWrite;
+  // O servidor decide: papel na IES ou função no curso (coordenação/NDE) atribuída pela gestão.
+  const [serverCanWrite, setServerCanWrite] = useState(false);
+  const writable = serverCanWrite;
 
   const update = useCallback((patch: Partial<Build>) => {
     setBuild(prev => ({ ...prev, ...patch }));

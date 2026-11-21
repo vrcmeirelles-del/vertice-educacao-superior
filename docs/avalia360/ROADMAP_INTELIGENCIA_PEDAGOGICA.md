@@ -162,3 +162,14 @@ sem recriar tabela, regra ou tela paralela.
 - Período de origem (1–12) e situação (proposto/homologado) por competência — alimentam a importação do Avalia 360°.
 - Cliente: `client/src/lib/curriculum-api.ts`; `CurriculumBuilder.tsx` e a importação de `TrailAnalysis.tsx` usam a RPC.
 - Pendente: tabelas de trilhas (`formation_trails`, `trail_*`, `v_trail_diagnostic`) também estão em `vertice_app` sem acesso pelo navegador.
+
+## Coordenação e NDE por curso (2026-11)
+- `vertice_memberships` só admite gestor/equipe/leitor; 106 políticas reconhecem "equipe" sem "coordenador".
+  Por isso a função no curso é uma camada própria: `public.vertice_course_staff_functions` (migração `20261122170000`).
+- Gestão (master/gestor/reitor/direções/procurador) atribui e encerra por `vertice_course_staff(inst,'list'|'grant'|'revoke')`;
+  cada membro lê as próprias com `'mine'`. Encerrar preserva histórico (revoked_by/revoked_at).
+- `vertice_private.course_function(inst,course)` (MFA + vínculo institucional) entra em `teaching_access`:
+  coordenação = acesso completo (inclui validar); NDE = leitura. Construção Curricular: coordenação e NDE editam.
+- Interface: painel "Coordenação e NDE por curso" na aba Equipe; abas Avalia 360° e Construção Curricular liberadas
+  para quem tem função; a edição da matriz é decidida pelo servidor (`canWrite`).
+- Pendente: Planejamento e demais módulos que checam `member_role='coordenador'` ainda não leem a função no curso.
