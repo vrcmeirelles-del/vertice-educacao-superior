@@ -277,8 +277,7 @@ function PlanningAnalysis({
       {loading && <p role="status">Consultando Sapiens…</p>}
       {busy && (
         <p role="status">
-          Aguarde a conclusão. A geração e a revisão por IA podem levar alguns
-          minutos.
+          Aguarde a conclusão das verificações por regras.
         </p>
       )}
       {fresh && links?.plan && (
@@ -492,7 +491,9 @@ function PlanningAnalysis({
                   <>
                     <p className="pm-note">
                       <strong>
-                        Parecer de IA — sujeito à verificação humana.
+                        {row.generator_model === "regras"
+                          ? "Parecer por regras (sem IA) — sujeito à verificação humana."
+                          : "Parecer anterior gerado por IA — sujeito à verificação humana."}
                       </strong>{" "}
                       Referência: {result.reference_date || "formato anterior"}.
                       Referência encontrada no snapshot não comprova que a
@@ -571,11 +572,13 @@ function PlanningAnalysis({
                         <li key={j}>{l}</li>
                       ))}
                     </ul>
-                    <h3>Revisão crítica por IA</h3>
+                    <h3>{row.generator_model === "regras" ? "Revisão" : "Revisão crítica por IA (parecer anterior)"}</h3>
                     <p>
-                      {row.review?.available
-                        ? `Revisor: ${row.reviewer_model}`
-                        : "Segunda IA indisponível — sem revisão independente confirmada."}
+                      {row.generator_model === "regras"
+                        ? "Sem revisão automática: o parecer por regras exige revisão humana."
+                        : row.review?.available
+                          ? `Revisor: ${row.reviewer_model}`
+                          : "Segunda IA indisponível — sem revisão independente confirmada."}
                     </p>
                     <p>{row.review?.notes}</p>
                     <ul>
@@ -665,8 +668,7 @@ function PlanningAnalysis({
                 )}
                 {row.status === "failed" && (
                   <p>
-                    Não houve parecer concluído. Verifique os provedores e tente
-                    novamente.
+                    Não houve parecer concluído. Tente novamente.
                   </p>
                 )}
               </details>

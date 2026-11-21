@@ -14,22 +14,12 @@ declare const Deno: {
 };
 
 import { analyzePlanning } from "./planning.ts";
-import { reviewThematic, precheckThematic } from "./thematic.ts";
+import { reviewThematic } from "./thematic.ts";
 import { buildDiagnosis } from "./diagnosis.ts";
 
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
-// Política de IA (20/11/2026): o algoritmo é o padrão em todo o portal. A IA só é chamada para as funções
-// listadas em AI_FEATURES (padrão: transcrição de manuscrito, geração de questões, segunda opinião na
-// correção e redação analítica da CPA) e com a chave geral AI_SUSPENDED=false (suspensa desde 19/11/2026).
-const AI_FEATURES_DEFAULT="discursiva.transcribe,discursiva.generate,discursiva.second_opinion,cpa.analysis";
-const aiPolicy=(get:(k:string)=>string|undefined)=>(feature:string)=>String(get("AI_SUSPENDED")??"true").toLowerCase()==="false"&&String(get("AI_FEATURES")??AI_FEATURES_DEFAULT).split(",").map(x=>x.trim()).includes(feature);
-const aiAllowed=aiPolicy(k=>Deno.env.get(k));
-const __AI_FN_FEATURES:string[]=["sapiens.analyze"];
-{const __aiFetch=globalThis.fetch;const __aiHosts=/(^|\.)(api\.anthropic\.com|api\.openai\.com|generativelanguage\.googleapis\.com)$/i;
-globalThis.fetch=((input:any,init?:any)=>{let host="";try{host=new URL(typeof input==="string"?input:input instanceof URL?input.href:input.url).hostname;}catch{}
-if(__aiHosts.test(host)&&!__AI_FN_FEATURES.some(aiAllowed))
- return Promise.resolve(new Response(JSON.stringify({error:{type:"ai_suspended",message:"IA suspensa temporariamente."}}),{status:503,headers:{"content-type":"application/json"}}));
-return __aiFetch(input,init);}) as typeof fetch;}
+// Política (21/11/2026): o Sapiens não chama IA. Diagnóstico, planejamento e revisão temática são
+// calculados por regras determinísticas; não há chaves nem provedores de IA nesta função.
 
 const env = (k: string) => String(Deno.env.get(k) || "");
 const UUID = /^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
@@ -92,64 +82,6 @@ interface CompetencyAgg {
   studentCount: number;
 }
 
-// ================================================================
-// DUAL-LLM ENGINE: OpenAI gera, Anthropic revisa (e vice-versa)
-// Se apenas uma key estiver configurada, ela faz ambos os papéis.
-// ================================================================
-
-async function callOpenAI(
-  systemPrompt: string,
-  userPrompt: string,
-  model = env("OPENAI_MODEL") || "gpt-4o",
-  maxTokens = 3000
-): Promise<{ content: string; model: string } | null> {
-  const key = env("OPENAI_API_KEY");
-  if (!key) return null;
-  const r = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
-    body: JSON.stringify({
-      model,
-      messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }],
-      max_tokens: maxTokens,
-      temperature: 0.3,
-      response_format: { type: "json_object" },
-    }),
-    signal: AbortSignal.timeout(90000),
-  });
-  if (!r.ok) return null;
-  const data = await r.json();
-  return { content: data.choices?.[0]?.message?.content || "{}", model: data.model || model };
-}
-
-async function callAnthropic(
-  systemPrompt: string,
-  userPrompt: string,
-  model = env("ANTHROPIC_MODEL") || "claude-sonnet-4-6",
-  maxTokens = 3000
-): Promise<{ content: string; model: string } | null> {
-  const key = env("ANTHROPIC_API_KEY");
-  if (!key) return null;
-  const r = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": key,
-      "anthropic-version": "2023-06-01",
-    },
-    body: JSON.stringify({
-      model,
-      max_tokens: maxTokens,
-      system: systemPrompt,
-      messages: [{ role: "user", content: userPrompt + "\n\nResponda APENAS com JSON válido." }],
-    }),
-    signal: AbortSignal.timeout(90000),
-  });
-  if (!r.ok) return null;
-  const data = await r.json();
-  return { content: data.content?.[0]?.text || "{}", model: data.model || model };
-}
-
 Deno.serve(async (req: Request) => {
   const origin = req.headers.get("origin") || "";
   if (req.method === "OPTIONS") return send({ ok: true }, 204, origin);
@@ -182,20 +114,8 @@ Deno.serve(async (req: Request) => {
       if (master.error) return send({error:"authorization_unavailable"},503,origin);
       if (!master.data) return send({error:"master_required"},403,origin);
       if (Object.keys(body).some(k=>!["action","question"].includes(k))) return send({error:"invalid_review_request"},400,origin);
-      // IA suspensa (padrão): devolve só a pré-checagem por regras (auditoria V14).
-      if (!aiAllowed("sapiens.analyze")) {
-        try { return send(await precheckThematic(body.question),200,origin); }
-        catch(e) { const err=e as Error&{status?:number}; return send({error:err.status===400?err.message:"invalid_review_request"},400,origin); }
-      }
-      if (!env("OPENAI_API_KEY") || !env("ANTHROPIC_API_KEY")) return send({error:"two_providers_required"},503,origin);
-      if (Object.keys(body).some(k=>!["action","question"].includes(k))) return send({error:"invalid_review_request"},400,origin);
-      try {
-        const result = await reviewThematic(body.question,callOpenAI,callAnthropic);
-        return send(result,200,origin);
-      } catch(e) {
-        const err=e as Error & {status?:number};
-        return send({error:err.status===400?err.message:"thematic_review_failed"},err.status===400?400:503,origin);
-      }
+      try { return send(await reviewThematic(body.question),200,origin); }
+      catch(e) { const err=e as Error&{status?:number}; return send({error:err.status===400?err.message:"invalid_review_request"},400,origin); }
     }
     const institutionId = String(body.institutionId || "").trim().toLowerCase();
     if (!UUID.test(institutionId)) return send({ error: "invalid_institution" }, 400, origin);
@@ -204,7 +124,7 @@ Deno.serve(async (req: Request) => {
       if (isService || !actorId) return send({error:"user_auth_required"},403,origin);
       const pk = env("SUPABASE_ANON_KEY") || (()=>{try{return JSON.parse(env("SUPABASE_PUBLISHABLE_KEYS")||"{}").default;}catch{return "";}})();
       const userClient = createClient(url, pk || sk, {global:{headers:{Authorization:auth}},auth:{persistSession:false}});
-      const output = await analyzePlanning(userClient,admin,institutionId,body,callOpenAI,callAnthropic);
+      const output = await analyzePlanning(userClient,admin,institutionId,body);
       return send(output.body,output.status,origin);
     }
 

@@ -11,3 +11,5 @@ Validação: testes de formato da IA, autorização antes de chamada externa e a
 ## Evolução proposta para revisão
 
 A camada gerencial com vínculos explícitos objetivo–meta, fontes estruturadas, séries longitudinais e acesso por curso está descrita em [INTERPRETACAO_GERENCIAL.md](INTERPRETACAO_GERENCIAL.md). Essa evolução depende de autorização para integração e publicação; sua presença nesta branch não comprova ativação em produção.
+
+> **21/11/2026:** a IA foi retirada do Sapiens. Este documento descreve o desenho anterior com IA; o comportamento vigente é por regras — ver `UPDATE_POLITICA_IA_20261120.md`.

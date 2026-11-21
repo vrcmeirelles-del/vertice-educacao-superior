@@ -34,3 +34,13 @@ Para usar IA também numa tarefa rotineira, é preciso incluí-la de forma expl�
 No Supabase, em Edge Functions > Secrets, defina `AI_SUSPENDED=false`. Para restringir a lista, defina também `AI_FEATURES`, por exemplo `discursiva.transcribe,discursiva.generate`. As chaves `OPENAI_API_KEY` e `ANTHROPIC_API_KEY` precisam estar configuradas.
 
 Situação em 20/11/2026: tudo desligado, por decisão do responsável, até a plataforma gerar receita.
+
+## Atualização de 21/11/2026 — Sapiens sem IA
+- `vertice-sapiens-analyze` (versão 18 em produção) não tem mais nenhum caminho de IA: foram removidos os
+  clientes OpenAI/Anthropic, a chave `sapiens.analyze` deixou de existir e a função não lê chaves de IA.
+  - Diagnóstico por competência: já era por regras (`diagnosis.ts`).
+  - Planejamento: sempre o relatório por regras (`rulePlanning` sobre `checkPlanning`), `generator_model = "regras"`.
+  - Revisão temática: decisão por regras (`thematicDecision`), nunca publica; status `rules_passed_proposal_only` ou `blocked`.
+- Construção Curricular: o "Modelo replicável" é gerado no portal por regras (`client/src/lib/curriculum-model.ts`).
+- Trilhas de Formação: diagnóstico por regras (`client/src/lib/trail-diagnosis.ts`).
+- Pareceres antigos de planejamento gerados por IA continuam identificados como tal na tela.

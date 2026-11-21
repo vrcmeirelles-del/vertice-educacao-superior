@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { isFullAccess, type Role } from '@/lib/area';
 import { loadCurriculum, publishCurriculum, saveCurriculum, type CurriculumState } from '@/lib/curriculum-api';
+import { buildCurriculumModel, CURRICULUM_MODEL_RULES } from '@/lib/curriculum-model';
 import './planning/planning.css';
 
 type Course = { id: string; name: string; code?: string | null };
@@ -69,7 +70,7 @@ function HelpBanner() {
         <p style={{ marginBottom: 14 }}><strong>Disciplinas Profissionais:</strong> Diretamente ligadas à prática da profissão.</p>
         <p style={{ marginBottom: 14 }}><strong>Disciplinas Instrumentais:</strong> Habilidades técnicas de apoio.</p>
         <p style={{ marginBottom: 14 }}><strong>Disciplinas Básicas:</strong> Fundamentação científica e humanística.</p>
-        <p><strong>Sapiens:</strong> A IA pode gerar um modelo replicável desta construção para outros cursos, adaptando competências e disciplinas às DCNs de cada área.</p>
+        <p><strong>Modelo replicável:</strong> o portal gera, por regras e sem IA, a estrutura desta construção (competências, categorias e períodos), os critérios de classificação e uma lista de verificação, para servir de referência a outros cursos.</p>
       </div>
     </div>}
   </>;
@@ -81,7 +82,7 @@ function BuildEditor({ institutionId, courseId, courseName, canWrite, onDirty }:
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
-  const [sapiensLoading, setSapiensLoading] = useState(false);
+  const sapiensLoading = false; // cálculo local e síncrono
   const [sapiensResult, setSapiensResult] = useState<string | null>(null);
   const [ppcLoading, setPpcLoading] = useState(false);
   const [publishedVersion, setPublishedVersion] = useState<number | null>(null);
@@ -138,51 +139,16 @@ function BuildEditor({ institutionId, courseId, courseName, canWrite, onDirty }:
     setPpcLoading(false);
   }
 
-  /* ── Sapiens: gerar modelo replicável ── */
-  async function generateSapiensModel() {
-    if (!build.competencies.some(c => c.title)) {
-      setNotice('Preencha pelo menos as competências antes de gerar o modelo Sapiens.');
+  /* ── Modelo replicável por regras (sem IA): lib/curriculum-model.ts ── */
+  function generateSapiensModel() {
+    if (!build.competencies.some(c => c.code.trim() || c.title.trim())) {
+      setNotice('Preencha pelo menos as competências antes de gerar o modelo.');
       return;
     }
-    setSapiensLoading(true);
-    setSapiensResult(null);
-    try {
-      const payload = {
-        institutionId, courseId,
-        context: 'curriculum_model_generation',
-        curriculum: {
-          course: courseName,
-          graduate_profile: build.graduate_profile,
-          dcn_reference: build.dcn_reference,
-          competencies: build.competencies.map(c => ({
-            code: c.code, title: c.title, description: c.description,
-            disciplines: {
-              profissional: c.disciplines.filter(d => d.category === 'profissional').map(d => d.discipline_name),
-              instrumental: c.disciplines.filter(d => d.category === 'instrumental').map(d => d.discipline_name),
-              basica: c.disciplines.filter(d => d.category === 'basica').map(d => d.discipline_name),
-            }
-          }))
-        },
-        prompt: `A partir desta construção curricular do curso de ${courseName}, gere um MODELO REPLICÁVEL que possa ser usado como template para outros cursos. O modelo deve:
-
-1. ESTRUTURA GENÉRICA: Transforme cada competência em um padrão abstrato (ex: C1 "Interpretação e Aplicação do Direito" vira "[COMPETÊNCIA TÉCNICA CENTRAL]") com instruções sobre como adaptar para qualquer área.
-
-2. CRITÉRIOS DE CLASSIFICAÇÃO: Defina regras claras para classificar disciplinas como profissional, instrumental ou básica em qualquer curso.
-
-3. GUIA POR ÁREA: Para as áreas mais comuns (Administração, Pedagogia, Enfermagem, Engenharia Civil, Contabilidade), sugira as competências-tipo e exemplos de disciplinas baseados nas DCNs de cada área.
-
-4. CHECKLIST DE VALIDAÇÃO: O que verificar para saber se a construção está coerente com as DCNs.
-
-Formato: texto estruturado, direto, prático. Sem floreio.`
-      };
-      const { data, error: err } = await supabase.functions.invoke('vertice-sapiens-analyze', { body: payload });
-      if (err) throw err;
-      setSapiensResult(data?.report || data?.analysis || data?.text || JSON.stringify(data));
-      setNotice('Modelo Sapiens gerado. Pode ser usado como referência para construção curricular de outros cursos.');
-    } catch (e: any) {
-      setSapiensResult(`⚠️ Sapiens indisponível no momento: ${e.message}`);
-    }
-    setSapiensLoading(false);
+    const model = buildCurriculumModel({ course: courseName, graduate_profile: build.graduate_profile, dcn_reference: build.dcn_reference,
+      dcn_document_url: build.dcn_document_url, competencies: build.competencies });
+    setSapiensResult(model.text);
+    setNotice(`Modelo gerado por regras: ${model.checks.filter(c => c.ok).length} de ${model.checks.length} itens da lista de verificação atendidos.`);
   }
 
   const save = async () => {
@@ -275,15 +241,16 @@ Formato: texto estruturado, direto, prático. Sem floreio.`
       <button type="button" className="planning-primary" disabled={saving} onClick={save}>{saving ? 'Salvando…' : '💾 Salvar Matriz Curricular'}</button>
       {build.id && build.status === 'draft' && <button type="button" className="btn-ghost" style={{ width: 'auto', padding: '12px 20px' }} disabled={saving} onClick={() => void publish()}>📢 Publicar versão {build.version}</button>}
       <button type="button" className="btn-ghost" style={{ width: 'auto', padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 8 }} disabled={sapiensLoading} onClick={generateSapiensModel}>
-        {sapiensLoading ? '🔄 Sapiens gerando…' : '🤖 Gerar Modelo Replicável (Sapiens)'}
+        {sapiensLoading ? 'Gerando…' : '📐 Gerar modelo replicável'}
       </button>
     </div>}
 
     {/* ── Sapiens result ── */}
     {sapiensResult && <div className="card" style={{ marginTop: 20, padding: 24, borderLeft: '5px solid #6366f1', background: '#faf5ff' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-        <span style={{ fontSize: 20 }}>🤖</span>
-        <strong style={{ fontSize: 15, color: '#4338ca' }}>Modelo Replicável — Sapiens</strong>
+        <span style={{ fontSize: 20 }}>📐</span>
+        <strong style={{ fontSize: 15, color: '#4338ca' }}>Modelo replicável — por regras</strong>
+        <small style={{ color: '#64748b' }}> versão {CURRICULUM_MODEL_RULES.version} · sem IA</small>
       </div>
       <p style={{ fontSize: 12, color: '#64748b', margin: '0 0 12px' }}>Este modelo pode ser usado como template para construção curricular de outros cursos. Adapte as competências e disciplinas conforme as DCNs de cada área.</p>
       <div style={{ whiteSpace: 'pre-wrap', fontSize: 14, lineHeight: 1.7, color: '#1e293b' }}>{sapiensResult}</div>

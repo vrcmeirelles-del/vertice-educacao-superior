@@ -98,3 +98,5 @@ www.verticesuperior.com.br respondeu HTTP 200. Dez testes locais foram aprovados
 Não houve nova chamada paga nem alteração de questões. Esses checks não comprovam
 uma revisão autenticada real com os dois provedores. O recibo usa o modelo retornado
 pela API, quando disponível, e preserva o identificador configurado como fallback.
+
+> **21/11/2026:** a IA foi retirada do Sapiens. Este documento descreve o desenho anterior com IA; o comportamento vigente é por regras — ver `UPDATE_POLITICA_IA_20261120.md`.
