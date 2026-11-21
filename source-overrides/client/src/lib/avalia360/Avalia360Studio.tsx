@@ -1,5 +1,5 @@
 import {supabase} from '@/lib/supabase';
-import {useCallback,useEffect,useRef,useState} from 'react';
+import {useCallback,useEffect,useMemo,useRef,useState} from 'react';
 import './avalia-wizard.css';
 import {QuestionImageField} from './QuestionImageField';
 import QuestionSpreadsheetImport from './QuestionSpreadsheetImport';
@@ -15,6 +15,11 @@ import {receiptScopeKey,reusableReceipt,type ScopedImageReceipt} from './receipt
 import type {Difficulty,Purpose} from './longitudinal-engine';
 import {analyzeDeclaredDraft,type PedagogicalDraft} from './declared-analysis';
 import PedagogicalParameters from './PedagogicalParameters';
+import SavedPreview from './SavedDraftPreview';
+import ChecklistPanel from './ChecklistPanel';
+import CollegiateReviewPanel,{ReviewHistory} from './CollegiateReviewPanel';
+import {checkAssessment} from './item-checklist';
+import {loadReviewHistory,submitForReview,type ReviewEvent} from './review-api';
 import {importOfficialCurriculum} from './curriculum-import-api';
 import {mapCurriculumToAssessment,type CurriculumImport} from './curriculum-import';
 
@@ -75,27 +80,12 @@ function LocalFigure({file,alt,caption}:{file:File;alt:string;caption?:string}){
   <figcaption style={{fontSize:12,marginTop:5,color:'#41566F'}}>{caption||alt}</figcaption>
  </figure>;
 }
-function SavedPreview({value}: {value:StoredAssessmentDraft}){
- return <section style={cardStyle} aria-label="Rascunho recuperado do servidor">
-  <h3 style={{marginTop:0}}>Caderno recuperado do servidor</h3>
-  <p><strong>{value.snapshot.meta?.title||'Avaliação'}</strong> · {value.snapshot.meta?.semester||'sem semestre informado'} · {value.snapshot.meta?.purpose||'sem finalidade informada'}</p>
-  <p>Versão {value.revision} · {value.snapshot.curriculumStatus==='linked'?'Matriz associada':'Aguardando vinculação ao PPC'}</p>
-  {value.snapshot.meta?.teacherName&&<p>Professor: {value.snapshot.meta.teacherName}</p>}
-  {value.snapshot.meta?.instructions&&<div><strong>Instruções da avaliação</strong>
-   <div style={{whiteSpace:'pre-wrap'}}>{value.snapshot.meta.instructions}</div></div>}
-  <p style={{fontSize:13}}>Decisões docentes declaradas neste rascunho: {value.snapshot.meta?.curationHistory?.length||0}. Este histórico não equivale à auditoria autenticada do servidor.</p>
-  {value.snapshot.meta?.curriculumSource&&<p style={{fontSize:13}}>Matriz importada: versão {value.snapshot.meta.curriculumSource.version} · {value.snapshot.meta.curriculumSource.ready?'períodos validados no cadastro':'períodos ainda não homologados'}</p>}
-  {value.snapshot.meta?.declaredPedagogy&&<p style={{fontSize:13}}>Metadados pedagógicos declarados preservados: {value.snapshot.meta.declaredPedagogy.competencies.length} competências e {value.snapshot.meta.declaredPedagogy.topics.length} temas. Sem homologação curricular.</p>}
-  {value.snapshot.questions.map((q,i)=><div key={String(q.id||i)} style={{padding:'12px 0',borderTop:'1px solid '+line}}>
-   <strong>{i+1}. {String(q.statement||'Enunciado indisponível')}</strong>
-   {Array.isArray(q.options)&&(q.options as Array<{id:string;text:string}>).map(o=>
-    <p key={o.id} style={{margin:'5px 0',paddingLeft:14}}>{o.id}) {o.text}</p>)}
-   {Array.isArray(q.images)&&(q.images as Array<{altText:string;caption?:string}>).map((m,k)=>
-    <p key={k} style={{fontSize:13}}>Figura {k+1}: {m.caption||m.altText} (arquivo privado associado)</p>)}
-  </div>)}
-  <p style={{fontSize:12,color:'#64748b'}}>O acesso visual às imagens armazenadas requer URL autenticada temporária. A presença do vínculo não comprova acesso ao binário.</p>
- </section>;
+/** Impressão digital do que é salvo: indica alterações ainda não gravadas. */
+function fingerprintOf(v:{questions:QuestionDraft[];title:string;period:string;purpose:string;instructions:string;teacherName:string;pedagogy:PedagogicalDraft}){
+ return JSON.stringify({...v,title:v.title.trim(),period:v.period.trim(),instructions:v.instructions.trim(),teacherName:v.teacherName.trim(),
+  questions:v.questions.map(q=>({...q,images:q.images.map(({file:_file,...meta})=>meta)}))});
 }
+const statusLabel={draft:'rascunho',submitted:'enviado para validação',validated:'validado',archived:'arquivado'} as const;
 export default function Avalia360Studio({institutionId,courses,previewMode=false,institutionalPersistence=true}:Avalia360StudioProps){
  const persistenceAvailable=previewMode||institutionalPersistence;
  const [courseId,setCourseId]=useState('');
@@ -135,11 +125,13 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
  const [loaded,setLoaded]=useState<StoredAssessmentDraft|null>(null);
  const [lookupId,setLookupId]=useState('');
  const [drafts,setDrafts]=useState<DraftSummary[]|null>(null);
+ const [savedFingerprint,setSavedFingerprint]=useState<string|null>(null);
+ const [reviewEvents,setReviewEvents]=useState<ReviewEvent[]|null>(null);
  const [errors,setErrors]=useState<string[]>([]);
  const [busy,setBusy]=useState(false);
  const [status,setStatus]=useState('');
  const uploads=useRef(new Map<string,ScopedImageReceipt>());
- useEffect(()=>{setReceipt(null);setLoaded(null);setQuestions([]);setInstructions('');setStep(1);setCurationHistory([]);setPreview(false);uploads.current.clear();setStatus('');setDrafts(null);setCurriculumSource(null);setCurriculumMessage('');setPedagogy(p=>({...p,competencies:[],topics:[],requiredCompetencyIds:[],requiredTopicIds:[],relations:[]}));},[institutionId,courseId]);
+ useEffect(()=>{setReceipt(null);setLoaded(null);setQuestions([]);setInstructions('');setStep(1);setCurationHistory([]);setPreview(false);uploads.current.clear();setStatus('');setDrafts(null);setSavedFingerprint(null);setReviewEvents(null);setCurriculumSource(null);setCurriculumMessage('');setPedagogy(p=>({...p,competencies:[],topics:[],requiredCompetencyIds:[],requiredTopicIds:[],relations:[]}));},[institutionId,courseId]);
  const update=useCallback((change:Partial<QuestionDraft>)=>{
   setQuestions(all=>all.map((q,i)=>i===activeIndex?{...q,...change}:q));
   setLoaded(null);
@@ -159,7 +151,7 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
  const setDiscipline=(value:string)=>{
   setDisciplineId(value);
   // Rascunhos são gravados por disciplina: trocar a disciplina inicia um novo caderno.
-  setReceipt(null);setDrafts(null);setLoaded(null);
+  setReceipt(null);setDrafts(null);setLoaded(null);setSavedFingerprint(null);setReviewEvents(null);
   setCurriculumSource(null);
   setCurriculumMessage('');
   setPedagogy(p=>({...p,competencies:[],topics:[],requiredCompetencyIds:[],requiredTopicIds:[],relations:[]}));
@@ -223,6 +215,7 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
   if(title.trim().length<3)issues.unshift('Informe um título com pelo menos 3 caracteres.');
   if(period.trim().length<3)issues.unshift('Informe o semestre letivo.');
   if(issues.length){setErrors(issues);setPreview(false);return;}
+  const fingerprintAtSave=fingerprintOf({questions,title,period,purpose,instructions,teacherName,pedagogy});
   setBusy(true);setErrors([]);setStatus('Preparando rascunho…');
   try {
    const grouped:Record<string,Array<{localId:string;receipt:UploadedImageReceipt}>>={};
@@ -246,7 +239,7 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
       declaredPedagogy:{...pedagogy,purpose},curationHistory:curationHistory.slice(-150),
       ...(curriculumSource?{curriculumSource}: {})}});
    if(!out.ok){setStatus('Falha no salvamento.');setErrors([out.error.message]);return;}
-   setReceipt(out.receipt);setStatus((previewMode?'Demonstração local salva':'Rascunho salvo')+' na versão '+out.receipt.revision+'.');
+   setReceipt(out.receipt);setSavedFingerprint(fingerprintAtSave);setStatus((previewMode?'Demonstração local salva':'Rascunho salvo')+' na versão '+out.receipt.revision+'.');
    setLoaded(null);
   }catch(e){setStatus('Salvamento não concluído.');setErrors([e instanceof Error?e.message:'Falha ao conectar ao armazenamento privado.']);}
   finally{setBusy(false);}
@@ -311,8 +304,32 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
   setCurationHistory(Array.isArray(meta.curationHistory)?meta.curationHistory:[]);
   setCurriculumSource(meta.curriculumSource||null);
   setReceipt({id:found.draft.id,revision:found.draft.revision,status:found.draft.status});
+  const restoredPurpose=(meta.purpose==='diagnostica'||meta.purpose==='formativa'||meta.purpose==='somativa')?meta.purpose:purpose;
+  setSavedFingerprint(fingerprintOf({questions:editable,title:meta.title||'',period:meta.semester||'',purpose:restoredPurpose,
+   instructions:meta.instructions||'',teacherName:meta.teacherName||teacherName,pedagogy:meta.declaredPedagogy||pedagogy}));
+  setReviewEvents(null);
+  void loadReviewHistory(institutionId,courseId,found.draft.id).then(setReviewEvents).catch(()=>setReviewEvents(null));
   setLoaded(null);setPreview(false);setStep(2);
   setStatus('Rascunho carregado na versão '+found.draft.revision+'. Ao salvar, será gravada a versão '+(found.draft.revision+1)+'.');
+ };
+ const checklist=useMemo(()=>checkAssessment(questions,{
+  requiredCompetencyIds:pedagogy.requiredCompetencyIds,requiredTopicIds:pedagogy.requiredTopicIds,
+  competencyLabels:Object.fromEntries(pedagogy.competencies.map(c=>[c.id,c.code+' '+c.title])),
+  topicLabels:Object.fromEntries(pedagogy.topics.map(t=>[t.id,t.title])),
+ }),[questions,pedagogy]);
+ const dirty=!receipt||savedFingerprint!==fingerprintOf({questions,title,period,purpose,instructions,teacherName,pedagogy});
+ const locked=Boolean(receipt&&receipt.status!=='draft');
+ const lastReturn=reviewEvents?.filter(e=>e.action==='returned').slice(-1)[0];
+ const submit=async()=>{
+  if(!receipt||locked)return;
+  if(dirty){setErrors(['Salve a versão atual antes de enviar: o colegiado analisa exatamente a versão gravada.']);return;}
+  if(!checklist.canSubmit){setErrors(['Corrija os bloqueios do checklist antes de enviar.']);return;}
+  setBusy(true);setErrors([]);setStatus('Enviando para validação…');
+  try{
+   const out=await submitForReview(institutionId,courseId,receipt,checklist);
+   setReceipt(out);setStatus('Versão '+out.revision+' enviada ao colegiado. A edição fica bloqueada até a decisão.');
+  }catch(e){setStatus('Envio não concluído.');setErrors([e instanceof Error?e.message:'Falha no envio.']);}
+  finally{setBusy(false);}
  };
  const btn=(primary:boolean)=>({padding:'10px 16px',borderRadius:9,border:'1px solid '+blue,
   background:primary?blue:'#fff',color:primary?'#fff':blue,fontWeight:700,cursor:'pointer'} as const);
@@ -369,6 +386,7 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
    </label>
    <p style={{fontSize:12,color:'#64748b',marginBottom:0}}>Título, instruções, semestre e finalidade são versionados com o rascunho. O vínculo a competências depende de catálogo institucional validado.</p>
   </div>
+  {!previewMode&&courseId&&<CollegiateReviewPanel institutionId={institutionId} courseId={courseId}/>}
 
     <div className="avalia-actions">
      <button type="button" className="avalia-action-primary" onClick={()=>{if(!questions.length)add();setStep(2)}}>Começar a elaborar questões →</button>
@@ -636,9 +654,18 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
    <h3 style={{marginTop:0}}>Revisar e finalizar</h3>
    <div style={{display:'flex',gap:9,flexWrap:'wrap',marginBottom:12}}>
     <button type="button" style={btn(false)} onClick={()=>{setPreview(!preview);setErrors([]);}}>{preview?'Ocultar prévia':'Pré-visualizar caderno'}</button>
-    <button type="button" style={btn(true)} disabled={busy||!persistenceAvailable} onClick={save}>{busy?'Processando…':previewMode?(receipt?'Atualizar demonstração local':'Guardar demonstração local'):(receipt?'Salvar nova versão':'Salvar rascunho no Supabase')}</button>
+    <button type="button" style={btn(true)} disabled={busy||!persistenceAvailable||locked} onClick={save}>{busy?'Processando…':previewMode?(receipt?'Atualizar demonstração local':'Guardar demonstração local'):(receipt?'Salvar nova versão':'Salvar rascunho no Supabase')}</button>
     {receipt&&<button type="button" style={btn(false)} disabled={busy} onClick={()=>reopen()}>Reabrir do servidor</button>}
+    {!previewMode&&<button type="button" style={btn(true)} disabled={busy||!receipt||locked||dirty||!checklist.canSubmit}
+      onClick={()=>void submit()}>Enviar para validação do colegiado</button>}
    </div>
+   {!previewMode&&receipt&&<p role="status" style={{fontSize:13,margin:'0 0 8px'}}>Situação: <strong>{statusLabel[receipt.status]}</strong>
+    {locked?' · edição bloqueada enquanto o colegiado analisa ou após a validação.':dirty?' · há alterações não salvas.':' · versão salva pronta para envio.'}</p>}
+   {lastReturn&&receipt?.status==='draft'&&<div role="note" style={{background:'#FFF7E6',border:'1px solid #F2C46B',borderRadius:9,padding:'10px 12px',fontSize:13,marginBottom:10}}>
+    <strong>Caderno devolvido pelo colegiado (versão {lastReturn.revision}).</strong> Corrija, salve e envie de novo.
+    {reviewEvents&&<ReviewHistory events={reviewEvents}/>}
+   </div>}
+   <ChecklistPanel result={checklist}/>
    {persistenceAvailable&&<div style={{display:'flex',gap:8,alignItems:'end',flexWrap:'wrap',margin:'12px 0'}}>
      <label style={{...labelStyle,flex:'1 1 230px'}}>Consultar rascunho existente por ID
        <input value={lookupId} onChange={e=>setLookupId(e.target.value)} style={inputStyle}
