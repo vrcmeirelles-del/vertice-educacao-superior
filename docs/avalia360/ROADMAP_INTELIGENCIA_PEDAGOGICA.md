@@ -172,4 +172,7 @@ sem recriar tabela, regra ou tela paralela.
   coordenação = acesso completo (inclui validar); NDE = leitura. Construção Curricular: coordenação e NDE editam.
 - Interface: painel "Coordenação e NDE por curso" na aba Equipe; abas Avalia 360° e Construção Curricular liberadas
   para quem tem função; a edição da matriz é decidida pelo servidor (`canWrite`).
-- Pendente: Planejamento e demais módulos que checam `member_role='coordenador'` ainda não leem a função no curso.
+- Planejamento (migração `20261122190000`): `course_planning` (gravar/publicar), `can_interpret` (interpretação,
+  inteligência competitiva, portfólio, recortes do Sapiens) e a porta institucional de `sapiens` reconhecem a função.
+  Abas de planejamento liberadas para quem tem função; edição só no curso da função.
+- Pendente: Discursiva 360°, Conecta, Mercado e PDI ainda checam `member_role in ('coordenador','nde')`.

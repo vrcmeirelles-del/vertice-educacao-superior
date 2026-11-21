@@ -659,9 +659,9 @@ export default function Workspace({
           </Suspense>
         ) : <p role="alert">Área restrita aos perfis autorizados no ensino superior.</p>
       ) : tab === "planejamento-estrategico" ? (
-        <Suspense fallback={<p role="status">Carregando planejamento estratégico…</p>}>{instTier==='escolas'?<SchoolPlanning key={`${id}:strategic`} institutionId={String(id)} role={role} kind="strategic"/>:<CoursePlanning institutionId={String(id)} courses={data.courses.map(c=>({id:String(c.id),name:String(c.name),code:String(c.code??"")}))} role={role} kind="strategic" />}</Suspense>
+        <Suspense fallback={<p role="status">Carregando planejamento estratégico…</p>}>{instTier==='escolas'?<SchoolPlanning key={`${id}:strategic`} institutionId={String(id)} role={role} kind="strategic"/>:<CoursePlanning courseFunctionIds={courseFunctions.map(f=>f.course_id)} institutionId={String(id)} courses={data.courses.map(c=>({id:String(c.id),name:String(c.name),code:String(c.code??"")}))} role={role} kind="strategic" />}</Suspense>
       ) : tab === "planejamento-semestral" ? (
-        <Suspense fallback={<p role="status">Carregando planejamento semestral…</p>}>{instTier==='escolas'?<SchoolPlanning key={`${id}:semester`} institutionId={String(id)} role={role} kind="semester"/>:<CoursePlanning institutionId={String(id)} courses={data.courses.map(c=>({id:String(c.id),name:String(c.name),code:String(c.code??"")}))} role={role} kind="semester" />}</Suspense>
+        <Suspense fallback={<p role="status">Carregando planejamento semestral…</p>}>{instTier==='escolas'?<SchoolPlanning key={`${id}:semester`} institutionId={String(id)} role={role} kind="semester"/>:<CoursePlanning courseFunctionIds={courseFunctions.map(f=>f.course_id)} institutionId={String(id)} courses={data.courses.map(c=>({id:String(c.id),name:String(c.name),code:String(c.code??"")}))} role={role} kind="semester" />}</Suspense>
       ) : tab === "escola-individual" ? (
         instTier==='escolas'&&can.viewManagement(role)?<Suspense fallback={<p role="status">Carregando acompanhamento escolar…</p>}><SchoolIndividual key={`${id}:students`} institutionId={String(id)} view="students"/></Suspense>:<p role="alert">Acesso restrito à direção escolar autorizada.</p>
       ) : tab === "escola-documentos" ? (
