@@ -1,3 +1,4 @@
+import MasterLayout from '@/components/MasterLayout';
 import NativeInvitationEmail from "@/components/communications/NativeInvitationEmail";
 import PortalPageHeader from '@/components/PortalPageHeader';
 import { ContextHelp } from '@/components/ContextHelp';
@@ -80,7 +81,7 @@ export default function ExperienceAdmin({embedded=false}:{embedded?:boolean}={})
    <p>Esta página exige e-mail confirmado, autenticação multifator e autorização global de Master. Nenhum convite foi criado.</p>
    <Link href="/entrar" className="corp-button">Entrar ou confirmar segundo fator</Link>
  </Frame>;
- return <Frame id="convites-demonstrativos" className={embedded?"":"corp-container corp-section"} style={{maxWidth:1350,margin:'0 auto',padding:embedded?'18px 0 36px':'32px 18px 60px'}}>
+ const dashboard = <Frame id="convites-demonstrativos" className={embedded?"":"corp-container corp-section"} style={{maxWidth:1350,margin:'0 auto',padding:embedded?'18px 0 36px':'32px 18px 60px'}}>
    <PortalPageHeader title="Convites e inteligência comercial" eyebrow="Vértice Experience · Master" level={1} icon={ShieldCheck} description="Ambientes fictícios por perfil, com validade, revogação e acompanhamento da visita.">
      {!embedded&&<Link href="/master" className="corp-button">Voltar ao painel Master<ExternalLink size={16}/></Link>}
    </PortalPageHeader>
@@ -149,4 +150,5 @@ export default function ExperienceAdmin({embedded=false}:{embedded?:boolean}={})
    {error&&<p role="alert" style={{color:'#ad2634',marginTop:20}}>{error}</p>}
    {notice&&<p role="status" style={{marginTop:20}}>{notice}</p>}
  </Frame>;
+ return embedded ? dashboard : <MasterLayout>{dashboard}</MasterLayout>;
 }
