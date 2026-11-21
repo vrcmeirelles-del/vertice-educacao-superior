@@ -6,12 +6,17 @@ import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import ResetPassword from './ResetPassword';
 
-export default function Login({institutionPath}:{institutionPath?:string} = {}) {
+export default function Login({institutionPath, institutionalOnly = false, extensionEntry = false}: {
+  institutionPath?: string;
+  institutionalOnly?: boolean;
+  extensionEntry?: boolean;
+} = {}) {
   const destination = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("destino") : null;
   const conviteId = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("convite") : null;
-  const dashboard = institutionPath ?? ( destination === "reitor" ? "/reitor/reservado" : destination === "mobile" ? "/mobile" : destination === "integracao" ? "/integracao" : destination === "rede" ? "/rede" : "/master");
+  const dashboard = institutionPath ?? ( destination === "reitor" ? "/reitor/reservado" : destination === "mobile" ? "/mobile" : destination === "integracao" ? "/integracao" : destination === "rede" ? "/rede" : null);
   // Se veio com convite, armazenar para aceitar após login
   useEffect(() => { if (conviteId) { try { localStorage.setItem("vertice_pending_invite", conviteId); } catch {} } }, [conviteId]);
+  const specificDestination = institutionPath ?? (institutionalOnly ? null : dashboard);
   const [session, setSession] = useState<Session | null>(null);
   const [checking, setChecking] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -61,7 +66,9 @@ export default function Login({institutionPath}:{institutionPath?:string} = {}) 
   return <section className="corp-section corp-login-section"><div className="corp-container corp-login-grid">
     <div className="corp-login-intro"><span className="corp-eyebrow">ÁREA RESTRITA</span><h1>Seu espaço<br/>de gestão.</h1><p>Acesse as instituições autorizadas para sua conta.</p><div className="corp-login-trust"><ShieldCheck size={24}/><p>A autenticação é feita pelo Supabase. O acesso aos dados depende das permissões da conta.</p></div><Link href="/demonstracao">Conhecer a demonstração</Link></div>
     <div className="corp-login-card"><LockKeyhole size={30}/><h2>{resetting ? 'Definir nova senha' : factor ? 'Confirme seu acesso' : recovery ? 'Recuperar acesso' : 'Entrar no Vértice'}</h2>
-    {checking ? <p role="status">Verificando sessão…</p> : session && !factor && !resetting ? <><p>Conectado como <strong>{session.user.email}</strong>.</p><a className="corp-button" href={dashboard}>Abrir minha área</a><button className="corp-login-text-button" onClick={()=>{setMessage('');setResetting(true);setPassword('');}}>Definir ou alterar minha senha</button><button className="corp-login-text-button" onClick={async()=>{const {error}=await supabase.auth.signOut(); setMessage(error?'Não foi possível sair. Tente novamente.':'Sessão encerrada.');}}>Sair</button></> : <form onSubmit={submit} className="access-form">
+    {(checking || (busy && session && !factor)) ? <p role="status">Verificando sessão…</p> : session && !factor && !resetting ? <><p>Conectado como <strong>{session.user.email}</strong>.</p>{specificDestination
+      ? <a className="corp-button" href={specificDestination}>Abrir minha área</a>
+      : <InstitutionDestinations key={session.user.id} userId={session.user.id} showMaster={!institutionalOnly} extensionEntry={extensionEntry} />}<button className="corp-login-text-button" onClick={()=>{setMessage('');setResetting(true);setPassword('');}}>Definir ou alterar minha senha</button><button className="corp-login-text-button" onClick={async()=>{const {error}=await supabase.auth.signOut(); setMessage(error?'Não foi possível sair. Tente novamente.':'Sessão encerrada.');}}>Sair</button></> : <form onSubmit={submit} className="access-form">
     {factor ? <HelpLabel>Código do autenticador<input autoComplete="one-time-code" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} required value={code} onChange={e=>setCode(e.target.value)}/></HelpLabel> : <>
     <HelpLabel>E-mail<input type="email" autoComplete="username" required maxLength={254} value={email} onChange={e=>setEmail(e.target.value)}/></HelpLabel>
     {!recovery && <HelpLabel>Senha<input type="password" autoComplete="current-password" required maxLength={256} value={password} onChange={e=>setPassword(e.target.value)}/></HelpLabel>}
@@ -75,4 +82,52 @@ export default function Login({institutionPath}:{institutionPath?:string} = {}) 
     <p className="corp-login-privacy">Acesso por convite. Cadastros públicos permanecem fechados durante a organização do serviço. A sessão é armazenada nesta aba. Use Sair ao concluir, especialmente em computadores compartilhados.</p>
     <Link href="/privacidade.html">Privacidade e uso dos dados</Link>
     </div></div></section>;
+}
+
+
+function InstitutionDestinations({userId, showMaster, extensionEntry}: {
+  userId: string;
+  showMaster: boolean;
+  extensionEntry: boolean;
+}) {
+  const [links, setLinks] = useState<{href: string; label: string}[]>([]);
+  const [status, setStatus] = useState<'loading'|'ready'|'error'>('loading');
+
+  useEffect(() => {
+    let active = true;
+    async function resolve() {
+      await supabase.rpc('vertice_accept_invites');
+      const [memberships, admin] = await Promise.all([
+        supabase.from('vertice_memberships').select('institution_id').eq('user_id', userId),
+        showMaster ? supabase.from('vertice_admins').select('user_id').eq('user_id', userId).maybeSingle() : Promise.resolve({data:null,error:null}),
+      ]);
+      if (memberships.error || admin.error) throw new Error('Acesso indisponível');
+      const ids = [...new Set((memberships.data ?? []).map(row => row.institution_id))];
+      const addresses = ids.length
+        ? await supabase.from('vertice_institution_addresses').select('institution_id,slug,display_name').eq('active',true).in('institution_id',ids).order('display_name')
+        : {data:[],error:null};
+      if (addresses.error) throw new Error('Endereços indisponíveis');
+      if (!active) return;
+      const previousRoute = new URLSearchParams(window.location.hash.slice(1));
+      const previousSection = previousRoute.get('aba');
+      const previousInstitution = previousRoute.get('instituicao');
+      const destinations = (addresses.data ?? []).filter(row => /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(row.slug)).map(row => ({
+        href: '/' + row.slug + (extensionEntry ? '/extensao-360' :
+          row.institution_id === previousInstitution && previousSection && /^[a-z0-9_]+(?:-[a-z0-9_]+)*$/.test(previousSection)
+            ? '/' + (previousSection === 'extensao' ? 'extensao-360' : previousSection)
+            : ''),
+        label: row.display_name,
+      }));
+      if (admin.data) destinations.push({href:'/master',label:'Administração da Vértice'});
+      setLinks(destinations);
+      setStatus('ready');
+    }
+    void resolve().catch(() => { if (active) setStatus('error'); });
+    return () => { active = false; };
+  }, [userId, showMaster, extensionEntry]);
+
+  if (status === 'loading') return <p role="status">Localizando suas instituições…</p>;
+  if (status === 'error') return <p role="alert">Não foi possível localizar sua área. Recarregue a página para tentar novamente.</p>;
+  if (!links.length) return <p role="status">Sua conta ainda não possui um endereço institucional disponível.</p>;
+  return <nav aria-label="Áreas disponíveis"><ul>{links.map(link => <li key={link.href}><a className="corp-button" href={link.href}>{link.label}</a></li>)}</ul></nav>;
 }
