@@ -159,6 +159,6 @@ export default function ClassBatchPublisher({institutionId,courseId,institutionN
   </a>}
   {answerKeyUrl&&<a href={answerKeyUrl} download={'Avalia360-Gabarito-Docente-'+classLabel+'.csv'} style={{display:'inline-block',marginTop:12,marginLeft:9,padding:'12px 16px',border:'1px solid #164b92',color:'#164b92',fontWeight:700,borderRadius:9,textDecoration:'none'}}>Baixar gabarito por versão (docente)</a>}
   {status&&<p role="status" style={{fontSize:13,color:'#334155',marginBottom:0}}>{status}</p>}
-  <p style={{fontSize:12,color:'#64748b'}}>A correção via leitura do QR Code, exportação de notas e conexão com a turma oficial serão ativadas em etapa segura própria; nenhum resultado é enviado a planilhas ou ao banco nesta prévia.</p>
+  <p style={{fontSize:12,color:'#64748b'}}>Esta geração é uma prévia: o QR não é registrado e nenhum resultado vai ao banco. Para cadernos com QR registrado (aluno e versão reconhecidos na correção), valide o caderno e use "Aplicação e respostas" → "Cadernos com QR registrado".</p>
  </section>;
 }

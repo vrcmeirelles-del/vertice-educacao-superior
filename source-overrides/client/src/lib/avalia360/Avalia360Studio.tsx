@@ -34,6 +34,8 @@ import {mapCurriculumToAssessment,type CurriculumImport} from './curriculum-impo
 export interface Avalia360StudioProps {
  institutionId:string;
  courses:Array<{id:string;name:string}>;
+ /** Nome impresso nos cadernos registrados. */
+ institutionName?:string;
  /** No modo demonstração, o adaptador da prévia usa apenas dados locais. */
  previewMode?:boolean;
  institutionalPersistence?:boolean;
@@ -94,7 +96,7 @@ function fingerprintOf(v:{questions:QuestionDraft[];title:string;period:string;p
   questions:v.questions.map(q=>({...q,images:q.images.map(({file:_file,...meta})=>meta)}))});
 }
 const statusLabel={draft:'rascunho',submitted:'enviado para validação',validated:'validado',archived:'arquivado'} as const;
-export default function Avalia360Studio({institutionId,courses,previewMode=false,institutionalPersistence=true}:Avalia360StudioProps){
+export default function Avalia360Studio({institutionId,courses,institutionName,previewMode=false,institutionalPersistence=true}:Avalia360StudioProps){
  const persistenceAvailable=previewMode||institutionalPersistence;
  const [courseId,setCourseId]=useState('');
  const [disciplineId,setDisciplineId]=useState('');
@@ -772,7 +774,7 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
    </div>}
    {!previewMode&&receipt?.status==='validated'&&applying!==receipt.id&&<button type="button" style={{...btn(true),marginBottom:8}} onClick={()=>setApplying(receipt.id)}>Aplicar e lançar respostas</button>}
    {!previewMode&&applying&&courseId&&<ApplicationPanel key={applying} institutionId={institutionId} courseId={courseId} discipline={disciplineId}
-     draftId={applying} onClose={()=>setApplying(null)}/>}
+     draftId={applying} onClose={()=>setApplying(null)} courseName={courses.find(c=>c.id===courseId)?.name||''} institutionName={institutionName}/>}
    <ChecklistPanel result={checklist}/>
    {persistenceAvailable&&<div style={{display:'flex',gap:8,alignItems:'end',flexWrap:'wrap',margin:'12px 0'}}>
      <label style={{...labelStyle,flex:'1 1 230px'}}>Consultar rascunho existente por ID

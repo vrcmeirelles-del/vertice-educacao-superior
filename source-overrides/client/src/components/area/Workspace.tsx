@@ -641,7 +641,7 @@ export default function Workspace({
         <Suspense fallback={<p role="status">Carregando inteligência de mercado…</p>}><MarketIntelligence key={String(id)} institutionId={String(id)} courses={data.courses} goals={data.goals} role={role} onPlanning={()=>choose("planejamento-estrategico")}/></Suspense>
       ) : tab === "avalia360" ? (
         role && allowedTabs.includes("avalia360") && instTier==="superior"
-          ? <Avalia360AcademicEntry key={String(id)} institutionId={String(id)}
+          ? <Avalia360AcademicEntry key={String(id)} institutionId={String(id)} institutionName={String(institution.name??'')}
             courses={data.courses.map(course => ({ id: String(course.id), name: String(course.display_name ?? course.name) }))} />
           : <p role="alert">Acesso restrito aos perfis acadêmicos autorizados.</p>
       ) : tab === "discursiva" ? (

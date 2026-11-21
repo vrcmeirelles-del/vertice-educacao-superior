@@ -11,6 +11,8 @@ import ItemAnalysisPanel from './ItemAnalysisPanel';
 import CompetencyDiagnosisPanel from './CompetencyDiagnosisPanel';
 import ErrorMapPanel from './ErrorMapPanel';
 import QualityPanel from './QualityPanel';
+import IssuedPapersPanel from './IssuedPapersPanel';
+import type {StoredAssessmentDraft} from './draft-api';
 
 const blue='#164B92',line='#DCE7F4';
 const btn=(primary:boolean)=>({padding:'9px 14px',borderRadius:9,border:'1px solid '+blue,background:primary?blue:'#fff',
@@ -27,9 +29,10 @@ function rowsFromDetail(d:ApplicationDetail):Row[]{
 }
 
 /** Aplicação de caderno validado e lançamento de respostas. O servidor corrige. */
-export default function ApplicationPanel({institutionId,courseId,discipline,draftId,onClose}:{
- institutionId:string;courseId:string;discipline:string;draftId:string;onClose:()=>void;
+export default function ApplicationPanel({institutionId,courseId,discipline,draftId,onClose,courseName='',institutionName=''}:{
+ institutionId:string;courseId:string;discipline:string;draftId:string;onClose:()=>void;courseName?:string;institutionName?:string;
 }){
+ const [draft,setDraft]=useState<StoredAssessmentDraft|null>(null);
  const [questions,setQuestions]=useState<SnapshotQuestion[]|null>(null);
  const [revision,setRevision]=useState(0);
  const [title,setTitle]=useState('');
@@ -56,7 +59,7 @@ export default function ApplicationPanel({institutionId,courseId,discipline,draf
     if(!found.ok)throw new Error(found.error.message);
     if(found.draft.status!=='validated')throw new Error('Somente caderno validado pelo colegiado pode ser aplicado.');
     if(!live)return;
-    setQuestions(snapshotQuestions(found.draft.snapshot.questions));setRevision(found.draft.revision);
+    setQuestions(snapshotQuestions(found.draft.snapshot.questions));setRevision(found.draft.revision);setDraft(found.draft);
     setTitle(found.draft.snapshot.meta?.title||'Avaliação');
     await refreshList();
    }catch(e){if(live)setMsg(e instanceof Error?e.message:'Não foi possível abrir o caderno.');}
@@ -220,6 +223,9 @@ export default function ApplicationPanel({institutionId,courseId,discipline,draf
   {detail&&questions&&<div>
    <p style={{fontSize:13}}><strong>{detail.classLabel}</strong> · {new Date(detail.appliedOn+'T12:00:00').toLocaleDateString('pt-BR')} · {detail.variantCount} versão(ões) · {detail.sheets.length} folha(s)
     {mean!==null&&<> · média {mean.toFixed(2)} de {Number(detail.sheets[0]?.max??0).toFixed(2)}</>}{!editable&&' · encerrada'}</p>
+   {draft&&<IssuedPapersPanel key={detail.id} institutionId={institutionId} courseId={courseId} discipline={discipline}
+     courseName={courseName} institutionName={institutionName||'Instituição'} detail={detail} draft={draft}
+     onSaved={async()=>{const d=await getApplication(institutionId,courseId,detail.id);setDetail(d);setRows(rowsFromDetail(d));await refreshList();}}/>}
    <p style={{fontSize:12,color:'#41566F'}}>Digite as letras na ordem do cartão da versão do aluno (ex.: ABDCA). Use "-" para branco e "*" para dupla marcação. Planilha: colunas Aluno, Versão, Respostas (ou Q1, Q2…) e D&lt;n&gt; para as notas das discursivas pelo número impresso.</p>
    {editable&&<div style={{display:'flex',gap:8,flexWrap:'wrap',margin:'8px 0'}}>
     <button type="button" style={btn(false)} disabled={busy} onClick={()=>void loadRoster()}>Carregar alunos do período</button>
