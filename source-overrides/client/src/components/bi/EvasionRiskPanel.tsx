@@ -18,6 +18,9 @@ interface RiskStudent {
   estagio_completed: number;
   risk_score: number;
   risk_level: string;
+  /** Sinal acadêmico publicado pelo Avalia 360° (tendência das notas e competências críticas). */
+  academic_risk_level?: 'alto' | 'atencao' | null;
+  academic_risk_reasons?: string[] | null;
 }
 
 const RISK_COLORS: Record<string, string> = { critical: '#dc2626', high: '#ef4444', medium: '#f59e0b', low: '#22c55e' };
@@ -89,6 +92,7 @@ export default function EvasionRiskPanel({ institutionId, courses }: { instituti
                 <th style={{ textAlign: 'center', padding: '6px 8px' }}>TCC</th>
                 <th style={{ textAlign: 'center', padding: '6px 8px' }}>Estágio</th>
                 <th style={{ textAlign: 'center', padding: '6px 8px' }}>Flags</th>
+                <th style={{ textAlign: 'left', padding: '6px 8px' }}>Desempenho (Avalia 360°)</th>
               </tr>
             </thead>
             <tbody>
@@ -126,6 +130,12 @@ export default function EvasionRiskPanel({ institutionId, courses }: { instituti
                       {s.estagio_active === 0 && s.estagio_completed === 0 && <span style={{ fontSize: '.625rem', padding: '1px 4px', borderRadius: 3, background: '#fff7ed', color: '#f59e0b' }}>Sem estágio</span>}
                       {s.academic_status === 'trancado' && <span style={{ fontSize: '.625rem', padding: '1px 4px', borderRadius: 3, background: '#f1f5f9', color: '#64748b' }}>Trancado</span>}
                     </div>
+                  </td>
+                  <td style={{ padding: '6px 8px', fontSize: '.75rem' }} title={(s.academic_risk_reasons ?? []).join('; ')}>
+                    {s.academic_risk_level
+                      ? <><strong style={{ color: s.academic_risk_level === 'alto' ? '#dc2626' : '#d97706' }}>{s.academic_risk_level === 'alto' ? 'Alto' : 'Atenção'}</strong>
+                          {s.academic_risk_reasons?.[0] && <span style={{ color: '#64748b' }}> · {s.academic_risk_reasons[0]}</span>}</>
+                      : <span style={{ color: '#94a3b8' }}>—</span>}
                   </td>
                 </tr>
               ))}

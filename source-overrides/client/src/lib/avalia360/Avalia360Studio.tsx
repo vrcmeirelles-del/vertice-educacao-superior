@@ -24,6 +24,7 @@ import {mergeIntoCatalog} from './competency-key';
 import {BLOOM_LABELS,classifyBloom} from './bloom';
 import AssemblyPanel from './AssemblyPanel';
 import RecoveryPanel from './RecoveryPanel';
+import ReadinessRiskPanel from './ReadinessRiskPanel';
 import {checkAssessment} from './item-checklist';
 import {loadReviewHistory,submitForReview,type ReviewEvent} from './review-api';
 import {importOfficialCurriculum} from './curriculum-import-api';
@@ -137,6 +138,7 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
  const [diagnosisFor,setDiagnosisFor]=useState<string|null>(null);
  const [assembling,setAssembling]=useState(false);
  const [recoveryFor,setRecoveryFor]=useState<string|null>(null);
+ const [readinessOpen,setReadinessOpen]=useState(false);
  const [errors,setErrors]=useState<string[]>([]);
  const [busy,setBusy]=useState(false);
  const [status,setStatus]=useState('');
@@ -397,6 +399,9 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
    <p style={{fontSize:12,color:'#64748b',marginBottom:0}}>Título, instruções, semestre e finalidade são versionados com o rascunho. O vínculo a competências depende de catálogo institucional validado.</p>
   </div>
   {!previewMode&&courseId&&<CollegiateReviewPanel institutionId={institutionId} courseId={courseId}/>}
+  {!previewMode&&courseId&&<div style={{margin:'0 0 12px'}}><button type="button" style={btn(readinessOpen)} onClick={()=>setReadinessOpen(v=>!v)}>
+   {readinessOpen?'Fechar prontidão e risco':'Prontidão ENADE/OAB e risco acadêmico do curso'}</button></div>}
+  {!previewMode&&courseId&&readinessOpen&&<ReadinessRiskPanel key={courseId} institutionId={institutionId} courseId={courseId} courseName={courses.find(c=>c.id===courseId)?.name||''}/>}
   {!previewMode&&courseId&&disciplineId.trim()&&<div style={{margin:'0 0 12px'}}>
    <button type="button" style={btn(assembling)} onClick={()=>setAssembling(v=>!v)}>{assembling?'Fechar montagem automática':'Montar prova a partir do banco'}</button>{' '}
    <button type="button" style={btn(recoveryFor===disciplineId.trim())} onClick={()=>setRecoveryFor(v=>v===disciplineId.trim()?null:disciplineId.trim())}>
