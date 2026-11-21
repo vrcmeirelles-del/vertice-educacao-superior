@@ -18,6 +18,7 @@ import PedagogicalParameters from './PedagogicalParameters';
 import SavedPreview from './SavedDraftPreview';
 import ChecklistPanel from './ChecklistPanel';
 import CollegiateReviewPanel,{ReviewHistory} from './CollegiateReviewPanel';
+import ApplicationPanel from './ApplicationPanel';
 import {checkAssessment} from './item-checklist';
 import {loadReviewHistory,submitForReview,type ReviewEvent} from './review-api';
 import {importOfficialCurriculum} from './curriculum-import-api';
@@ -127,11 +128,12 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
  const [drafts,setDrafts]=useState<DraftSummary[]|null>(null);
  const [savedFingerprint,setSavedFingerprint]=useState<string|null>(null);
  const [reviewEvents,setReviewEvents]=useState<ReviewEvent[]|null>(null);
+ const [applying,setApplying]=useState<string|null>(null);
  const [errors,setErrors]=useState<string[]>([]);
  const [busy,setBusy]=useState(false);
  const [status,setStatus]=useState('');
  const uploads=useRef(new Map<string,ScopedImageReceipt>());
- useEffect(()=>{setReceipt(null);setLoaded(null);setQuestions([]);setInstructions('');setStep(1);setCurationHistory([]);setPreview(false);uploads.current.clear();setStatus('');setDrafts(null);setSavedFingerprint(null);setReviewEvents(null);setCurriculumSource(null);setCurriculumMessage('');setPedagogy(p=>({...p,competencies:[],topics:[],requiredCompetencyIds:[],requiredTopicIds:[],relations:[]}));},[institutionId,courseId]);
+ useEffect(()=>{setReceipt(null);setLoaded(null);setQuestions([]);setInstructions('');setStep(1);setCurationHistory([]);setPreview(false);uploads.current.clear();setStatus('');setDrafts(null);setSavedFingerprint(null);setReviewEvents(null);setApplying(null);setCurriculumSource(null);setCurriculumMessage('');setPedagogy(p=>({...p,competencies:[],topics:[],requiredCompetencyIds:[],requiredTopicIds:[],relations:[]}));},[institutionId,courseId]);
  const update=useCallback((change:Partial<QuestionDraft>)=>{
   setQuestions(all=>all.map((q,i)=>i===activeIndex?{...q,...change}:q));
   setLoaded(null);
@@ -665,6 +667,9 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
     <strong>Caderno devolvido pelo colegiado (versão {lastReturn.revision}).</strong> Corrija, salve e envie de novo.
     {reviewEvents&&<ReviewHistory events={reviewEvents}/>}
    </div>}
+   {!previewMode&&receipt?.status==='validated'&&applying!==receipt.id&&<button type="button" style={{...btn(true),marginBottom:8}} onClick={()=>setApplying(receipt.id)}>Aplicar e lançar respostas</button>}
+   {!previewMode&&applying&&courseId&&<ApplicationPanel key={applying} institutionId={institutionId} courseId={courseId} discipline={disciplineId}
+     draftId={applying} onClose={()=>setApplying(null)}/>}
    <ChecklistPanel result={checklist}/>
    {persistenceAvailable&&<div style={{display:'flex',gap:8,alignItems:'end',flexWrap:'wrap',margin:'12px 0'}}>
      <label style={{...labelStyle,flex:'1 1 230px'}}>Consultar rascunho existente por ID
@@ -682,6 +687,7 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
      <span style={{display:'flex',gap:6}}>
       <button type="button" style={btn(false)} disabled={busy} onClick={()=>void reopen(d.id)}>Consultar</button>
       {d.status==='draft'&&<button type="button" style={btn(true)} disabled={busy} onClick={()=>void continueEditing(d.id)}>Continuar editando</button>}
+      {d.status==='validated'&&<button type="button" style={btn(true)} disabled={busy} onClick={()=>setApplying(d.id)}>Aplicar e lançar respostas</button>}
      </span>
     </li>)}
    </ul>}
