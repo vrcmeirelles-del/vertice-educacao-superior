@@ -104,12 +104,18 @@ function InstitutionDestinations({userId, showMaster, extensionEntry}: {
       if (memberships.error || admin.error) throw new Error('Acesso indisponível');
       const ids = [...new Set((memberships.data ?? []).map(row => row.institution_id))];
       const addresses = ids.length
-        ? await supabase.from('vertice_institution_addresses').select('slug,display_name').eq('active',true).in('institution_id',ids).order('display_name')
+        ? await supabase.from('vertice_institution_addresses').select('institution_id,slug,display_name').eq('active',true).in('institution_id',ids).order('display_name')
         : {data:[],error:null};
       if (addresses.error) throw new Error('Endereços indisponíveis');
       if (!active) return;
+      const previousRoute = new URLSearchParams(window.location.hash.slice(1));
+      const previousSection = previousRoute.get('aba');
+      const previousInstitution = previousRoute.get('instituicao');
       const destinations = (addresses.data ?? []).filter(row => /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(row.slug)).map(row => ({
-        href: '/' + row.slug + (extensionEntry ? '/extensao-360' : ''),
+        href: '/' + row.slug + (extensionEntry ? '/extensao-360' :
+          row.institution_id === previousInstitution && previousSection && /^[a-z0-9_]+(?:-[a-z0-9_]+)*$/.test(previousSection)
+            ? '/' + (previousSection === 'extensao' ? 'extensao-360' : previousSection)
+            : ''),
         label: row.display_name,
       }));
       if (admin.data) destinations.push({href:'/master',label:'Administração da Vértice'});
