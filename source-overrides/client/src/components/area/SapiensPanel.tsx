@@ -1,4 +1,5 @@
 import EvidenceSearch from "./EvidenceSearch";
+import { loadInstitutionTrails } from "@/lib/trails-api";
 import ModuleSourceStatus from '../bi/ModuleSourceStatus';
 import SapiensPlanning from './SapiensPlanning';
 import { useCallback, useEffect, useState } from "react";
@@ -111,7 +112,8 @@ export default function SapiensPanel({ institutionId, role }: Props) {
         supabase.from("vertice_sapiens_action_plans").select("*")
           .eq("institution_id", institutionId).order("sort_order").limit(100),
         supabase.from("vertice_sapiens_effectiveness").select("id,intervention_id,measured_at,current_sample_size,attempts_since_baseline,p_know_change,sample_overlap,effectiveness").eq("institution_id", institutionId).order("measured_at", { ascending: false }).limit(100),
-        supabase.from("v_trail_diagnostic").select("*").eq("institution_id", institutionId),
+        // Trilhas pela RPC (tabelas em vertice_app); recorte pelos cursos que a pessoa pode ler.
+        loadInstitutionTrails(institutionId).then(r => ({ data: r.diagnostic, error: null }), (err: Error) => ({ data: null, error: err })),
       ]);
       for (const result of [d,i,b,g,a,e]) if (result.error) throw result.error;
       if (e.data) setEffectiveness(e.data as Effectiveness[]);

@@ -1,4 +1,5 @@
 import {useCallback,useEffect,useState} from "react";
+import { loadInstitutionTrails } from "@/lib/trails-api";
 import {supabase} from "@/lib/supabase";
 import "./governanca-360-auditoria.css";
 
@@ -46,6 +47,8 @@ export default function Governanca360Auditoria({institutionId}:{institutionId:st
      if(r.error)throw new Error(table+": "+r.error.message);
      return r.count??null;
    };
+   // Trilhas ficam em vertice_app: contagem pela RPC, no recorte de cursos que a pessoa pode ler.
+   const trailCounts=loadInstitutionTrails(institutionId);
    const counts=await Promise.allSettled([
     count("vertice_courses"),
     count("vertice_actions"),
@@ -65,8 +68,8 @@ export default function Governanca360Auditoria({institutionId}:{institutionId:st
     count("vertice_ebitda_calculations"),
     count("vertice_cost_parameters"),
     count("vertice_inep_library"),
-    count("formation_trails"),
-    count("trail_question_links")
+    trailCounts.then(r=>r.trails),
+    trailCounts.then(r=>r.questions)
    ]);
    const metric=(i:number,name:string,source:string):Metric=>{
     const r=counts[i];

@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { loadCurriculum } from '@/lib/curriculum-api';
+import { addTrailQuestion, deleteTrail as rpcDeleteTrail, deleteTrailQuestion, importTrailsFromCurriculum, loadTrails, saveTrail, saveTrailSnapshot, type TrailState } from '@/lib/trails-api';
 import { supabase } from '@/lib/supabase';
 import { createClient } from '@supabase/supabase-js';
-import { isFullAccess, type Role } from '@/lib/area';
+import { type Role } from '@/lib/area';
 import { storeActionDraft } from '@/lib/portal-integration';
 import './planning/planning.css';
 
@@ -50,11 +50,13 @@ function discColor(d: number | null): string {
   return '#16a34a';
 }
 
-export default function TrailAnalysis({ institutionId, courses, role }: { institutionId: string; courseId?: string; courses: Course[]; role: Role | null }) {
+export default function TrailAnalysis({ institutionId, courses }: { institutionId: string; courseId?: string; courses: Course[]; role: Role | null }) {
   const [courseId, setCourseId] = useState('');
   const [tab, setTab] = useState<'trails' | 'questions' | 'diagnostic' | 'actions'>('trails');
   const [helpOpen, setHelpOpen] = useState(false);
-  const canWrite = isFullAccess(role) || role === 'coordenador' || role === 'nde';
+  // O servidor decide quem grava: gestão da IES ou coordenação/NDE do curso.
+  const [serverCanWrite, setServerCanWrite] = useState(false);
+  const canWrite = serverCanWrite;
 
   const [trails, setTrails] = useState<Trail[]>([]);
   const [questions, setQuestions] = useState<QuestionLink[]>([]);
@@ -74,23 +76,23 @@ export default function TrailAnalysis({ institutionId, courses, role }: { instit
     if (!courseId) return;
     setLoading(true);
     try {
-      const [t, q, d] = await Promise.all([
-        supabase.from('formation_trails').select('*').eq('institution_id', institutionId).eq('course_id', courseId).order('code'),
-        supabase.from('trail_question_links').select('*').order('enade_year', { ascending: false }),
-        supabase.from('v_trail_diagnostic').select('*').eq('institution_id', institutionId).eq('course_id', courseId).order('total_discrepancy'),
-      ]);
-      const loadedTrails: Trail[] = t.data || [];
-      setTrails(loadedTrails);
-      const trailIds = new Set(loadedTrails.map((x: Trail) => x.id));
-      setQuestions((q.data || []).filter((x: QuestionLink) => trailIds.has(x.trail_id)));
-      setDiagnostic(d.data || []);
+      const loadedTrails = applyState(await loadTrails(institutionId, courseId));
 
       // ── Auto-sync: buscar questões do Fato & Ordem pelas keywords das trilhas ──
       if (loadedTrails.length > 0) {
         syncFatoEOrdem(loadedTrails);
       }
-    } catch { /* ignore */ }
+    } catch (e) { setNotice(e instanceof Error ? e.message : 'Não foi possível carregar as trilhas.'); }
     setLoading(false);
+  }
+
+  function applyState(state: TrailState): Trail[] {
+    setTrails(state.trails); setQuestions(state.questions); setDiagnostic(state.diagnostic); setServerCanWrite(state.canWrite);
+    return state.trails;
+  }
+  async function run(op: () => Promise<TrailState>, ok?: (s: TrailState) => string) {
+    try { const s = await op(); applyState(s); if (ok) setNotice(ok(s)); return true; }
+    catch (e) { setNotice(e instanceof Error ? e.message : 'Operação recusada.'); return false; }
   }
 
   /** Busca automática no Fato & Ordem por keywords de todas as trilhas */
@@ -130,45 +132,30 @@ export default function TrailAnalysis({ institutionId, courses, role }: { instit
 
   useEffect(() => { loadAll(); setSapiensReport(null); }, [courseId, institutionId]);
 
-  // ── Trail CRUD ──
+  // ── Trail CRUD (pela RPC; edição local e gravação ao sair do campo) ──
   async function addTrail() {
     if (!courseId) return;
-    await supabase.from('formation_trails').insert({ institution_id: institutionId, course_id: courseId, code: `T${trails.length + 1}`, name: '', description: '', keywords: [] });
-    loadAll();
+    let n = trails.length + 1; while (trails.some(t => t.code.toLowerCase() === `t${n}`)) n++;
+    await run(() => saveTrail(institutionId, courseId, { code: `T${n}`, name: 'Nova trilha', keywords: [] }));
   }
 
-  async function updateTrail(id: string, patch: Partial<Trail>) {
-    await supabase.from('formation_trails').update({ ...patch, updated_at: new Date().toISOString() }).eq('id', id);
+  function editTrail(id: string, patch: Partial<Trail>) {
     setTrails(prev => prev.map(t => t.id === id ? { ...t, ...patch } : t));
+  }
+  async function persistTrail(id: string) {
+    const t = trails.find(x => x.id === id); if (!t) return;
+    await run(() => saveTrail(institutionId, courseId, { id: t.id, code: t.code, name: t.name, description: t.description, keywords: t.keywords || [] }));
   }
 
   async function deleteTrail(id: string) {
     if (!confirm('Remover esta trilha e todas as questões vinculadas?')) return;
-    await supabase.from('formation_trails').delete().eq('id', id);
-    loadAll();
+    await run(() => rpcDeleteTrail(institutionId, courseId, id));
   }
 
   async function importFromCurriculum() {
     if (!courseId) return;
-    let comps: { id?: string; code: string; title: string; description: string }[];
-    try {
-      const state = await loadCurriculum(institutionId, courseId);
-      if (!state.build) { setNotice('Nenhuma versão da Construção Curricular encontrada para este curso.'); return; }
-      comps = state.competencies;
-    } catch (e) { setNotice(e instanceof Error ? e.message : 'Não foi possível ler a Construção Curricular.'); return; }
-    if (!comps.length) { setNotice('Nenhuma competência cadastrada nesta versão.'); return; }
-    for (const c of comps) {
-      const exists = trails.find(t => t.curriculum_competency_id === c.id);
-      if (!exists) {
-        await supabase.from('formation_trails').insert({
-          institution_id: institutionId, course_id: courseId,
-          code: c.code, name: c.title, description: c.description,
-          curriculum_competency_id: c.id, keywords: [],
-        });
-      }
-    }
-    setNotice(`${comps.length} competências importadas como trilhas.`);
-    loadAll();
+    await run(() => importTrailsFromCurriculum(institutionId, courseId),
+      s => s.imported ? `${s.imported} competência(s) importada(s) como trilhas.` : 'Todas as competências da matriz já têm trilha.');
   }
 
   // ── Sapiens diagnostic ──
@@ -204,11 +191,8 @@ Seja direto, técnico e estratégico. Use os dados fornecidos. Não repita dados
       // Save snapshot with Sapiens report
       const rankings = diagnostic.map(d => ({ trail_id: d.trail_id, name: d.name, total_discrepancy: d.total_discrepancy, avg_discrepancy: d.avg_discrepancy, question_count: d.question_count, status: d.status }));
       const weakest = diagnostic.filter(d => d.status === 'critico' || d.status === 'atencao').map(d => ({ trail: d.name, discrepancy: d.avg_discrepancy, suggested_action: d.status === 'critico' ? 'Oficina de retomada urgente' : 'Revisão de ementa e materiais' }));
-      await supabase.from('trail_analysis_snapshots').insert({
-        institution_id: institutionId, course_id: courseId,
-        trail_rankings: rankings, weakest_disciplines: weakest,
-        summary: (data?.report || '').slice(0, 2000),
-      });
+      void rankings; void weakest; // o servidor recalcula ranking e fragilidades a partir do diagnóstico
+      if (canWrite) await saveTrailSnapshot(institutionId, courseId, String(data?.report || ''));
     } catch (e: any) {
       setSapiensReport(`⚠️ Sapiens indisponível no momento. Erro: ${e.message}\n\nO diagnóstico quantitativo está disponível abaixo.`);
     }
@@ -251,21 +235,12 @@ Seja direto, técnico e estratégico. Use os dados fornecidos. Não repita dados
 
   async function addQuestion() {
     if (!newQ.trail_id) return;
-    await supabase.from('trail_question_links').insert({
-      trail_id: newQ.trail_id,
-      enade_year: newQ.enade_year ? Number(newQ.enade_year) : null,
-      question_number: newQ.question_number ? Number(newQ.question_number) : null,
-      question_text: newQ.question_text || null,
-      national_correct_pct: newQ.national_correct_pct ? Number(newQ.national_correct_pct) : null,
-      ies_correct_pct: newQ.ies_correct_pct ? Number(newQ.ies_correct_pct) : null,
-    });
-    setNewQ({ trail_id: '', enade_year: '', question_number: '', question_text: '', national_correct_pct: '', ies_correct_pct: '' });
-    loadAll();
+    if (await run(() => addTrailQuestion(institutionId, courseId, newQ)))
+      setNewQ({ trail_id: '', enade_year: '', question_number: '', question_text: '', national_correct_pct: '', ies_correct_pct: '' });
   }
 
   async function deleteQuestion(id: string) {
-    await supabase.from('trail_question_links').delete().eq('id', id);
-    loadAll();
+    await run(() => deleteTrailQuestion(institutionId, courseId, id));
   }
 
   const tabs_list: { key: typeof tab; icon: string; label: string }[] = [
@@ -315,12 +290,12 @@ Seja direto, técnico e estratégico. Use os dados fornecidos. Não repita dados
               <div style={{ padding: 20 }}>
                 <fieldset disabled={!canWrite} style={{ border: 0, padding: 0, margin: 0 }}>
                   <div className="row">
-                    <label className="planning-field"><span>Código</span><input value={t.code} onChange={e => updateTrail(t.id, { code: e.target.value })} /></label>
-                    <label className="planning-field"><span>Nome da Trilha</span><input value={t.name} onChange={e => updateTrail(t.id, { name: e.target.value })} /></label>
+                    <label className="planning-field"><span>Código</span><input value={t.code} onChange={e => editTrail(t.id, { code: e.target.value })} onBlur={() => void persistTrail(t.id)} /></label>
+                    <label className="planning-field"><span>Nome da Trilha</span><input value={t.name} onChange={e => editTrail(t.id, { name: e.target.value })} onBlur={() => void persistTrail(t.id)} /></label>
                   </div>
-                  <label className="planning-field"><span>Descrição</span><textarea rows={2} value={t.description || ''} onChange={e => updateTrail(t.id, { description: e.target.value })} /></label>
+                  <label className="planning-field"><span>Descrição</span><textarea rows={2} value={t.description || ''} onChange={e => editTrail(t.id, { description: e.target.value })} onBlur={() => void persistTrail(t.id)} /></label>
                   <label className="planning-field"><span>Palavras-chave (separadas por vírgula — usadas para vincular questões ENADE)</span>
-                    <input value={(t.keywords || []).join(', ')} onChange={e => updateTrail(t.id, { keywords: e.target.value.split(',').map(k => k.trim()).filter(Boolean) })} placeholder="direito civil, obrigações, contratos" />
+                    <input value={(t.keywords || []).join(', ')} onChange={e => editTrail(t.id, { keywords: e.target.value.split(',').map(k => k.trim()).filter(Boolean) })} onBlur={() => void persistTrail(t.id)} placeholder="direito civil, obrigações, contratos" />
                   </label>
                   {t.curriculum_competency_id && <p style={{ fontSize: 12, color: '#64748b', margin: '8px 0 0' }}>🔗 Vinculada à competência da Construção Curricular</p>}
                 </fieldset>

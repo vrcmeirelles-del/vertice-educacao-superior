@@ -161,7 +161,10 @@ sem recriar tabela, regra ou tela paralela.
 - Rascunho atualizado no lugar (ids estáveis); editar matriz publicada abre nova versão; publicar arquiva a anterior.
 - Período de origem (1–12) e situação (proposto/homologado) por competência — alimentam a importação do Avalia 360°.
 - Cliente: `client/src/lib/curriculum-api.ts`; `CurriculumBuilder.tsx` e a importação de `TrailAnalysis.tsx` usam a RPC.
-- Pendente: tabelas de trilhas (`formation_trails`, `trail_*`, `v_trail_diagnostic`) também estão em `vertice_app` sem acesso pelo navegador.
+- Trilhas de Formação (migração `20261122250000`): RPC `vertice_formation_trails` (get, save_trail, delete_trail,
+  import_curriculum, add_question, delete_question, save_snapshot, institution_diagnostic). Gravação: gestão ou
+  coordenação/NDE do curso; discrepância e ranking do instantâneo calculados no servidor; importação lê a matriz
+  publicada vigente. Cliente: `lib/trails-api.ts` (TrailAnalysis, SapiensPanel, Governança 360°).
 
 ## Coordenação e NDE por curso (2026-11)
 - `vertice_memberships` só admite gestor/equipe/leitor; 106 políticas reconhecem "equipe" sem "coordenador".
