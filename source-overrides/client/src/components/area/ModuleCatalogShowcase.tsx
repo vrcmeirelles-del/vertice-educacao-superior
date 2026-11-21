@@ -57,10 +57,10 @@ interface CatalogItem {
 interface PkgPricing {
   package: string;
   package_label: string;
-  monthly_floor?: string;
-  setup_fee?: string;
-  addon_activation?: string;
-  addon_monthly?: string;
+  monthly_floor: string;
+  setup_fee: string;
+  addon_activation: string;
+  addon_monthly: string;
 }
 
 export default function ModuleCatalogShowcase({
@@ -101,13 +101,17 @@ export default function ModuleCatalogShowcase({
       .map((m: any) => ({ ...m, pkg: m.package }));
     setCatalog(filtered);
 
-    // Pricing
-    const { data: pr } = await supabase
-      .from("vertice_package_pricing")
-      .select(isMaster ? "package, package_label, monthly_floor, setup_fee, addon_activation, addon_monthly" : "package, package_label")
-      .eq("tier", tier)
-      .order("sort_order");
-    setPricing(pr ?? []);
+    // Pricing — só o master consulta valores comerciais (RLS de vertice_package_pricing restringe ao master).
+    if (isMaster) {
+      const { data: pr } = await supabase
+        .from("vertice_package_pricing")
+        .select("package, package_label, monthly_floor, setup_fee, addon_activation, addon_monthly")
+        .eq("tier", tier)
+        .order("sort_order");
+      setPricing(pr ?? []);
+    } else {
+      setPricing([]);
+    }
 
     // Activations
     const { data: acts } = await supabase
@@ -217,14 +221,8 @@ export default function ModuleCatalogShowcase({
                 <span className="mcs-pricing-icon" style={{ background: t.bg, color: t.accent }}>{t.icon}</span>
                 <strong style={{ color: t.accent }}>{p.package_label}</strong>
                 <span className="mcs-pricing-count">{count} módulo{count !== 1 ? "s" : ""}</span>
-                {isMaster ? (
-                  <>
-                    <span className="mcs-pricing-value">a partir de <strong>R$ {Number(p.monthly_floor).toLocaleString("pt-BR")}</strong>/mês</span>
-                    <span className="mcs-pricing-setup">Implantação: R$ {Number(p.setup_fee).toLocaleString("pt-BR")}</span>
-                  </>
-                ) : (
-                  <span className="mcs-pricing-setup">Valores sob proposta da equipe Vértice</span>
-                )}
+                <span className="mcs-pricing-value">a partir de <strong>R$ {Number(p.monthly_floor).toLocaleString("pt-BR")}</strong>/mês</span>
+                <span className="mcs-pricing-setup">Implantação: R$ {Number(p.setup_fee).toLocaleString("pt-BR")}</span>
               </button>
             );
           })}
