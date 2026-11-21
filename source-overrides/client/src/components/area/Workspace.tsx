@@ -764,7 +764,7 @@ export default function Workspace({
       ) : tab === "diagnostico" ? (
         <DiagnosisTab institutionId={id} role={role} data={data} reload={reload} onPlan={() => choose("plano")} />
       ) : (
-        <><RegistryContacts institutionId={id} courses={data.courses} manage={can.manageTeam(role)}/><TeamTab institutionId={id} role={role} /></>
+        <><RegistryContacts institutionId={id} courses={data.courses} manage={can.manageTeam(role)}/><TeamTab institutionId={id} role={role} panelTabs={TABS.filter(([key]) => visibleGroups.some(group => group.tabs.includes(key)))} /></>
       )}
       {TAB_FAQ[tab] && <TabFaq id={tab} />}
       </div>
@@ -1510,7 +1510,83 @@ function DiagnosisTab({ institutionId, role, data, reload, onPlan }: { instituti
 // ================================================================ equipe
 type Member = { user_id: string; email: string; role: Role; created_at: string };
 
-function TeamTab({ institutionId, role }: { institutionId: string; role: Role | null }) {
+function PanelAccessDraft({ institutionId, member, panelTabs, onClose }: {
+  institutionId: string;
+  member: Member;
+  panelTabs: [Tab, string][];
+  onClose: () => void;
+}) {
+  const [selected, setSelected] = useState<string[]>([]);
+  const [status, setStatus] = useState<"loading" | "ready" | "saving" | "error">("loading");
+  const [message, setMessage] = useState("");
+  const params = { p_institution: institutionId, p_member: member.user_id };
+
+  useEffect(() => {
+    let active = true;
+    async function loadDraft() {
+      try {
+        const { data, error } = await supabase.rpc("vertice_panel_access_draft", {
+          p_institution: institutionId, p_member: member.user_id,
+        });
+        if (error) throw error;
+        if (active) { setSelected(data ?? []); setStatus("ready"); }
+      } catch {
+        if (active) setStatus("error");
+      }
+    }
+    void loadDraft();
+    return () => { active = false; };
+  }, [institutionId, member.user_id]);
+
+  async function saveDraft() {
+    setStatus("saving");
+    setMessage("");
+    try {
+      const { data, error } = await supabase.rpc("vertice_panel_access_draft", {
+        ...params, p_tabs: selected,
+      });
+      if (error) throw error;
+      setSelected(data ?? []);
+      setMessage("Rascunho salvo.");
+    } catch {
+      setMessage("Não foi possível salvar o rascunho. Tente novamente.");
+    } finally {
+      setStatus("ready");
+    }
+  }
+
+  return <section className="area-panel" aria-label="Permissões por seção do painel">
+    <h4>Acessos de {member.email}</h4>
+    <p>Rascunho para a nova matriz. O acesso atual da conta continua valendo até a ativação da nova política.</p>
+    {status === "loading" && <p role="status">Carregando seleção…</p>}
+    {status === "error" && <p role="alert">Não foi possível carregar a seleção.</p>}
+    {(status === "ready" || status === "saving") && <>
+      {MACRO_TABS.map(section => {
+        const tabs = panelTabs.filter(([key]) => macroTabFor(key) === section.key);
+        if (!tabs.length) return null;
+        return <details key={section.key}>
+          <summary>{section.label} ({tabs.filter(([key]) => selected.includes(key)).length}/{tabs.length})</summary>
+          <fieldset disabled={status === "saving"}>
+            <legend>{section.label}</legend>
+            {tabs.map(([key, label]) => <div key={key}><label>
+              <input type="checkbox" checked={selected.includes(key)} onChange={event => {
+                const checked = event.target.checked;
+                setSelected(current => checked ? [...current, key] : current.filter(item => item !== key));
+                setMessage("");
+              }} /> {label}
+            </label></div>)}
+          </fieldset>
+        </details>;
+      })}
+      <button type="button" className="corp-button" disabled={status === "saving"} onClick={saveDraft}>Salvar rascunho</button>
+    </>}
+    <button type="button" disabled={status === "saving"} className="corp-login-text-button" onClick={onClose}>Fechar</button>
+    {message && <p role="status">{message}</p>}
+  </section>;
+}
+
+function TeamTab({ institutionId, role, panelTabs }: { institutionId: string; role: Role | null; panelTabs: [Tab, string][] }) {
+  const [accessMember, setAccessMember] = useState<Member | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
   const [invites, setInvites] = useState<Row[]>([]);
   const [msg,setMsg]=useState("");
@@ -1546,6 +1622,7 @@ function TeamTab({ institutionId, role }: { institutionId: string; role: Role | 
     <div className="area-panel">
       <div className="area-panel-head"><h3>Equipe com acesso ({members.length})</h3></div>
       {msg&&<p role="status">{msg}</p>}
+      {accessMember && <PanelAccessDraft key={accessMember.user_id} institutionId={institutionId} member={accessMember} panelTabs={panelTabs} onClose={() => setAccessMember(null)} />}
 
       <dl className="area-roles">
         <div><dt>Gestor<ContextHelp title="Gestor" /></dt><dd>cadastra cursos, define metas, gere a equipe (equipe e leitura) e remove registros.</dd></div>
@@ -1567,7 +1644,7 @@ function TeamTab({ institutionId, role }: { institutionId: string; role: Role | 
                   ) : ROLE_LABEL[m.role]}
                 </td>
                 <td>{fmtDate(m.created_at?.slice(0, 10))}</td>
-                <td>{manageable(m) && <button className="corp-login-text-button area-danger" onClick={() => remove(m)}>Retirar acesso</button>}</td>
+                <td>{(role === "master" || role === "gestor") && ["equipe", "leitor"].includes(m.role) && <button type="button" className="corp-login-text-button" onClick={() => setAccessMember(m)}>Configurar abas</button>}{manageable(m) && <button className="corp-login-text-button area-danger" onClick={() => remove(m)}>Retirar acesso</button>}</td>
               </tr>
             ))}
             {invites.map(i => {
