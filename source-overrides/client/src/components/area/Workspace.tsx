@@ -128,7 +128,7 @@ const TAB_DETAILS: Partial<Record<Tab,{icon:string;description:string}>> = {
  'programas-pdi':{icon:'◎',description:'Programas, metas, indicadores e contribuições acadêmicas do PDI'},
  'atividades-ensino':{icon:'▤',description:'Eventos formativos, práticas e simulados com evidências da Mesa Digital'},
  "discursiva":{icon:"✍",description:"Casos práticos, provas com QR e correção assistida por rubrica"},
- "avalia360":{icon:"▤",description:"Estúdio de avaliações e curadoria pedagógica — versão demonstrativa independente"},
+ "avalia360":{icon:"▤",description:"Estúdio de avaliações, banco de questões e curadoria pedagógica"},
  mercado:{icon:"◎",description:"Movimentações de mercado, fontes, exposição e decisões estratégicas"},
  "escola-individual":{icon:"▤",description:"Acompanhamento Individual com fontes, histórico e revisão da direção"},
  "escola-documentos":{icon:"▤",description:"Documentos e Assinaturas com fontes, histórico e revisão da direção"},

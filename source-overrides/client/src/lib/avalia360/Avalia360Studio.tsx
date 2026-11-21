@@ -9,7 +9,7 @@ import type {CurationDecision} from './curation-decision';
 import TeacherQuestionComposer from './TeacherQuestionComposer';
 import QuestionBankPanel from './QuestionBankPanel';
 import type {QuestionDraft} from './question-draft';
-import {saveAssessmentDraft,loadAssessmentDraft,type DraftReceipt,type StoredAssessmentDraft} from './draft-api';
+import {saveAssessmentDraft,loadAssessmentDraft,listAssessmentDrafts,editableQuestionsFromSnapshot,type DraftReceipt,type DraftSummary,type StoredAssessmentDraft} from './draft-api';
 import {uploadQuestionImage,type UploadedImageReceipt} from './private-image-upload';
 import {receiptScopeKey,reusableReceipt,type ScopedImageReceipt} from './receipt-cache';
 import type {Difficulty,Purpose} from './longitudinal-engine';
@@ -134,11 +134,12 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
  const [receipt,setReceipt]=useState<DraftReceipt|null>(null);
  const [loaded,setLoaded]=useState<StoredAssessmentDraft|null>(null);
  const [lookupId,setLookupId]=useState('');
+ const [drafts,setDrafts]=useState<DraftSummary[]|null>(null);
  const [errors,setErrors]=useState<string[]>([]);
  const [busy,setBusy]=useState(false);
  const [status,setStatus]=useState('');
  const uploads=useRef(new Map<string,ScopedImageReceipt>());
- useEffect(()=>{setReceipt(null);setLoaded(null);setQuestions([]);setInstructions('');setStep(1);setCurationHistory([]);setPreview(false);uploads.current.clear();setStatus('');setCurriculumSource(null);setCurriculumMessage('');setPedagogy(p=>({...p,competencies:[],topics:[],requiredCompetencyIds:[],requiredTopicIds:[],relations:[]}));},[institutionId,courseId]);
+ useEffect(()=>{setReceipt(null);setLoaded(null);setQuestions([]);setInstructions('');setStep(1);setCurationHistory([]);setPreview(false);uploads.current.clear();setStatus('');setDrafts(null);setCurriculumSource(null);setCurriculumMessage('');setPedagogy(p=>({...p,competencies:[],topics:[],requiredCompetencyIds:[],requiredTopicIds:[],relations:[]}));},[institutionId,courseId]);
  const update=useCallback((change:Partial<QuestionDraft>)=>{
   setQuestions(all=>all.map((q,i)=>i===activeIndex?{...q,...change}:q));
   setLoaded(null);
@@ -157,6 +158,8 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
  };
  const setDiscipline=(value:string)=>{
   setDisciplineId(value);
+  // Rascunhos são gravados por disciplina: trocar a disciplina inicia um novo caderno.
+  setReceipt(null);setDrafts(null);setLoaded(null);
   setCurriculumSource(null);
   setCurriculumMessage('');
   setPedagogy(p=>({...p,competencies:[],topics:[],requiredCompetencyIds:[],requiredTopicIds:[],relations:[]}));
@@ -260,6 +263,39 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
   }else{setStatus('Não foi possível reabrir.');setErrors([found.error.message]);}
   setBusy(false);
  };
+ const listDrafts=async()=>{
+  if(!courseId||!disciplineId.trim()){setErrors(['Selecione curso e disciplina para listar os rascunhos.']);return;}
+  setBusy(true);setErrors([]);setStatus('Consultando rascunhos salvos…');
+  const found=await listAssessmentDrafts({institutionId,courseId,disciplineId});
+  if(found.ok){setDrafts(found.drafts);setStatus(found.drafts.length?found.drafts.length+' rascunho(s) encontrado(s) nesta disciplina.':'Nenhum rascunho salvo nesta disciplina.');}
+  else{setStatus('Não foi possível listar.');setErrors([found.error.message]);}
+  setBusy(false);
+ };
+ const continueEditing=async(id:string)=>{
+  if(!courseId||!disciplineId){setErrors(['Selecione curso e disciplina do rascunho.']);return;}
+  setBusy(true);setErrors([]);setStatus('Carregando rascunho para edição…');
+  const found=await loadAssessmentDraft({institutionId,courseId,disciplineId,draftId:id});
+  setBusy(false);
+  if(!found.ok){setStatus('Não foi possível reabrir.');setErrors([found.error.message]);return;}
+  const editable=editableQuestionsFromSnapshot(found.draft.snapshot);
+  if(!editable||found.draft.status!=='draft'){
+   setLoaded(found.draft);
+   setStatus(found.draft.status!=='draft'?'Caderno já encaminhado: aberto em modo de consulta.':'Caderno com imagens: aberto em modo de consulta. Para editar, reenvie as imagens num novo rascunho.');
+   return;
+  }
+  const meta=found.draft.snapshot.meta||{};
+  uploads.current.clear();
+  setQuestions(editable);setActiveIndex(0);
+  setTitle(meta.title||'');setPeriod(meta.semester||'');setInstructions(meta.instructions||'');
+  if(meta.teacherName)setEditedTeacherName(meta.teacherName);
+  if(meta.purpose==='diagnostica'||meta.purpose==='formativa'||meta.purpose==='somativa')setPurpose(meta.purpose);
+  if(meta.declaredPedagogy)setPedagogy(meta.declaredPedagogy);
+  setCurationHistory(Array.isArray(meta.curationHistory)?meta.curationHistory:[]);
+  setCurriculumSource(meta.curriculumSource||null);
+  setReceipt({id:found.draft.id,revision:found.draft.revision,status:found.draft.status});
+  setLoaded(null);setPreview(false);setStep(2);
+  setStatus('Rascunho carregado na versão '+found.draft.revision+'. Ao salvar, será gravada a versão '+(found.draft.revision+1)+'.');
+ };
  const btn=(primary:boolean)=>({padding:'10px 16px',borderRadius:9,border:'1px solid '+blue,
   background:primary?blue:'#fff',color:primary?'#fff':blue,fontWeight:700,cursor:'pointer'} as const);
  return <section aria-label="Estúdio de Avaliações 360" className="avalia-wizard">
@@ -277,7 +313,7 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
    </nav>
    <p className="avalia-warning" role="note">{previewMode?
      'Demonstração pública: dados somente neste navegador. Não use nomes reais de alunos nem materiais confidenciais.':
-     persistenceAvailable?'Rascunhos e imagens exigem serviços institucionais autorizados.':
+     persistenceAvailable?'Estúdio institucional: rascunhos, imagens e Banco de Questões são gravados no Supabase da Vértice, com acesso restrito à equipe autorizada do curso (MFA obrigatório). Gabaritos não aparecem no caderno do aluno.':
      'Estúdio institucional. Você pode elaborar e revisar nesta sessão. O salvamento institucional, a consulta de turmas e a emissão oficial aguardam habilitação no servidor. Ao sair da página, os dados desta sessão são descartados.'}</p>
 
   {step===1&&<>
@@ -592,7 +628,18 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
      </label>
      <button type="button" style={btn(false)} disabled={busy||!lookupId.trim()}
        onClick={()=>reopen(lookupId)}>Consultar versão salva</button>
+     {!previewMode&&<button type="button" style={btn(false)} disabled={busy||!courseId||!disciplineId.trim()}
+       onClick={()=>void listDrafts()}>Meus rascunhos desta disciplina</button>}
    </div>}
+   {!previewMode&&drafts&&drafts.length>0&&<ul aria-label="Rascunhos salvos" style={{listStyle:'none',padding:0,margin:'0 0 12px',display:'grid',gap:8}}>
+    {drafts.map(d=><li key={d.id} style={{border:'1px solid '+line,borderRadius:9,padding:'10px 12px',display:'flex',gap:10,alignItems:'center',flexWrap:'wrap',justifyContent:'space-between'}}>
+     <span><strong>{d.title}</strong> · {d.semester} · {d.questionCount} questão(ões) · versão {d.revision} · {new Date(d.updatedAt).toLocaleString('pt-BR')}{d.status!=='draft'?' · '+d.status:''}</span>
+     <span style={{display:'flex',gap:6}}>
+      <button type="button" style={btn(false)} disabled={busy} onClick={()=>void reopen(d.id)}>Consultar</button>
+      {d.status==='draft'&&<button type="button" style={btn(true)} disabled={busy} onClick={()=>void continueEditing(d.id)}>Continuar editando</button>}
+     </span>
+    </li>)}
+   </ul>}
    {errors.length>0&&<div role="alert" style={{background:'#FFF0F0',padding:12,borderRadius:9,color:'#982F2F'}}>
     <strong>Corrija antes de salvar:</strong><ul>{errors.map((e,i)=><li key={i}>{e}</li>)}</ul>
    </div>}
