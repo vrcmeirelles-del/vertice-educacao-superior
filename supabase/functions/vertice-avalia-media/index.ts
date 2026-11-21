@@ -1,6 +1,7 @@
 // Avalia 360° — upload privado de imagens das questões.
 // prepare: autoriza pelo JWT do docente (RPC exige AAL2 e vínculo de curso) e emite URL assinada.
 // confirm: o servidor relê os bytes armazenados e só então confirma SHA-256, tipo e tamanho.
+// read: URLs de leitura de 5 minutos para as imagens de um caderno que o docente pode abrir.
 import {createClient} from 'npm:@supabase/supabase-js@2.118.0';
 
 const BUCKET = 'avalia360-private';
@@ -56,7 +57,27 @@ Deno.serve(async req => {
   try {
     const {data: {user}, error: authError} = await asUser.auth.getUser();
     if (authError || !user) return json({error: 'Entre com sua conta institucional.'}, 401);
-    const claim = parseClaim(await req.json());
+    const body = await req.json();
+    if (body && typeof body === 'object' && (body as {action?: string}).action === 'read') {
+      const r = body as {institutionId?: string; courseId?: string; disciplineId?: string; draftId?: string};
+      if (!uuid.test(r.institutionId || '') || !uuid.test(r.courseId || '') || !uuid.test(r.draftId || '')
+        || typeof r.disciplineId !== 'string' || !r.disciplineId.trim())
+        throw new Error('Requisição de leitura inválida.');
+      const {data, error} = await asUser.rpc('vertice_avalia_draft_media', {
+        p_institution: r.institutionId, p_course: r.courseId, p_discipline: r.disciplineId, p_draft: r.draftId,
+      });
+      if (error) return json({error: error.message}, error.code === '42501' ? 403 : 404);
+      const rows = (Array.isArray(data) ? data : []) as Array<{questionId: string; imageId: string; path: string; sha256: string; mime: string; sizeBytes: number}>;
+      if (rows.length > 300) throw new Error('Caderno com imagens demais para leitura.');
+      const images = [];
+      for (const row of rows) {
+        const signed = await admin.storage.from(BUCKET).createSignedUrl(row.path, 300);
+        if (signed.error || !signed.data?.signedUrl) throw new Error('Não foi possível autorizar a leitura das imagens.');
+        images.push({...row, url: signed.data.signedUrl, expiresIn: 300});
+      }
+      return json({images});
+    }
+    const claim = parseClaim(body);
 
     if (claim.action === 'prepare') {
       const {data, error} = await asUser.rpc('vertice_avalia_media_prepare', {

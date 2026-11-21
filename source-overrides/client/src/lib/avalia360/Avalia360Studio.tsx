@@ -9,8 +9,8 @@ import type {CurationDecision} from './curation-decision';
 import TeacherQuestionComposer from './TeacherQuestionComposer';
 import QuestionBankPanel from './QuestionBankPanel';
 import type {QuestionDraft} from './question-draft';
-import {saveAssessmentDraft,loadAssessmentDraft,listAssessmentDrafts,editableQuestionsFromSnapshot,type DraftReceipt,type DraftSummary,type StoredAssessmentDraft} from './draft-api';
-import {uploadQuestionImage,type UploadedImageReceipt} from './private-image-upload';
+import {saveAssessmentDraft,loadAssessmentDraft,listAssessmentDrafts,editableQuestionsFromSnapshot,snapshotHasImages,type DraftReceipt,type DraftSummary,type StoredAssessmentDraft} from './draft-api';
+import {uploadQuestionImage,downloadDraftImages,type RestoredImage,type UploadedImageReceipt} from './private-image-upload';
 import {receiptScopeKey,reusableReceipt,type ScopedImageReceipt} from './receipt-cache';
 import type {Difficulty,Purpose} from './longitudinal-engine';
 import {analyzeDeclaredDraft,type PedagogicalDraft} from './declared-analysis';
@@ -275,16 +275,34 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
   if(!courseId||!disciplineId){setErrors(['Selecione curso e disciplina do rascunho.']);return;}
   setBusy(true);setErrors([]);setStatus('Carregando rascunho para edição…');
   const found=await loadAssessmentDraft({institutionId,courseId,disciplineId,draftId:id});
+  if(!found.ok){setBusy(false);setStatus('Não foi possível reabrir.');setErrors([found.error.message]);return;}
+  if(found.draft.status!=='draft'){
+   setBusy(false);setLoaded(found.draft);setStatus('Caderno já encaminhado: aberto em modo de consulta.');return;
+  }
+  let restored:Map<string,RestoredImage>|undefined;
+  if(snapshotHasImages(found.draft.snapshot)){
+   setStatus('Recuperando e conferindo as imagens do armazenamento privado…');
+   try{restored=await downloadDraftImages({institutionId,courseId,disciplineId,draftId:id});}
+   catch{
+    setBusy(false);setLoaded(found.draft);
+    setStatus('Caderno aberto em modo de consulta.');
+    setErrors(['Não foi possível recuperar as imagens com integridade conferida. Tente novamente; o caderno salvo não foi alterado.']);
+    return;
+   }
+  }
   setBusy(false);
-  if(!found.ok){setStatus('Não foi possível reabrir.');setErrors([found.error.message]);return;}
-  const editable=editableQuestionsFromSnapshot(found.draft.snapshot);
-  if(!editable||found.draft.status!=='draft'){
-   setLoaded(found.draft);
-   setStatus(found.draft.status!=='draft'?'Caderno já encaminhado: aberto em modo de consulta.':'Caderno com imagens: aberto em modo de consulta. Para editar, reenvie as imagens num novo rascunho.');
+  const rebuilt=editableQuestionsFromSnapshot(found.draft.snapshot,restored);
+  if(!rebuilt){
+   setLoaded(found.draft);setStatus('Caderno aberto em modo de consulta.');
+   setErrors(['Alguma imagem citada no caderno não está mais disponível no armazenamento privado.']);
    return;
   }
+  const editable=rebuilt.questions;
   const meta=found.draft.snapshot.meta||{};
   uploads.current.clear();
+  // Comprovantes recuperados: ao salvar, a imagem é reaproveitada sem novo envio.
+  for(const r of rebuilt.receipts)uploads.current.set(r.localId,{file:r.file,receipt:r.receipt,
+   scopeKey:receiptScopeKey({institutionId,courseId,disciplineId,questionId:r.questionId})});
   setQuestions(editable);setActiveIndex(0);
   setTitle(meta.title||'');setPeriod(meta.semester||'');setInstructions(meta.instructions||'');
   if(meta.teacherName)setEditedTeacherName(meta.teacherName);

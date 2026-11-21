@@ -42,6 +42,17 @@ select pg_temp.expect_error(format('select public.vertice_avalia_draft(%L,%L,%L,
 reset role; update public.vertice_avalia_media set status='confirmed',confirmed_at=now();
 select (public.vertice_avalia_draft(:I::uuid,:C::uuid,'Direito Civil','create',(select p from qi))->>'revision')='1' as com_imagem \gset
 \if :com_imagem \else \echo FALHA com_imagem \quit \endif
+-- 5b. Leitura das imagens do caderno: autor e coordenação leem; terceiro não
+create temp table dimg as select (public.vertice_avalia_draft(:I::uuid,:C::uuid,'Direito Civil','create',(select p from qi))->>'id')::uuid id;
+select jsonb_array_length(public.vertice_avalia_draft_media(:I::uuid,:C::uuid,'Direito Civil',(select id from dimg)))=1 as le_imagem \gset
+\if :le_imagem \else \echo FALHA le_imagem \quit \endif
+select pg_temp.as_user('22222222-2222-2222-2222-222222222222');
+select (public.vertice_avalia_draft_media(:I::uuid,:C::uuid,'Direito Civil',(select id from dimg))->0->>'questionId')='q1' as coord_imagem \gset
+\if :coord_imagem \else \echo FALHA coord_imagem \quit \endif
+select pg_temp.as_user('33333333-3333-3333-3333-333333333333');
+select pg_temp.expect_error(format('select public.vertice_avalia_draft_media(%L,%L,%L,%L)', :I, :C, 'Direito Civil',(select id from dimg)), '42501');
+select pg_temp.as_user('11111111-1111-1111-1111-111111111111');
+select pg_temp.expect_error(format('select public.vertice_avalia_draft_media(%L,%L,%L,%L)', :I, :C, 'Penal',(select id from dimg)), 'P0002');
 -- 6. Questão de outra disciplina é recusada
 select pg_temp.expect_error(format('select public.vertice_avalia_draft(%L,%L,%L,%L,%L)', :I, :C, 'Penal','create', :Q), '22023');
 -- 7. Banco: salva, lista, recusa duplicado e imagem

@@ -131,15 +131,38 @@ export async function listAssessmentDrafts(args:{institutionId:string;courseId:s
 }
 
 const strings=(v:unknown)=>Array.isArray(v)?v.filter((x):x is string=>typeof x==='string'):[];
+export const snapshotHasImages=(snapshot:StoredAssessmentDraft['snapshot'])=>
+ snapshot.questions.some(q=>Array.isArray(q.images)&&q.images.length>0);
+type Placement=QuestionDraft['images'][number]['placement'];
+type Rights=QuestionDraft['images'][number]['rightsStatus'];
 /**
- * Reconstrói as questões editáveis de um snapshot salvo. Questões com imagem
- * exigem o arquivo original no navegador; nesses casos retorna null e o
- * caderno permanece em modo de consulta.
+ * Reconstrói as questões editáveis de um snapshot salvo. As imagens são
+ * religadas aos arquivos recuperados do armazenamento privado (`restored`,
+ * por imageId), preservando o comprovante para não reenviar o arquivo.
+ * Se faltar alguma imagem, retorna null e o caderno fica em modo de consulta.
  */
-export function editableQuestionsFromSnapshot(snapshot:StoredAssessmentDraft['snapshot']):QuestionDraft[]|null{
+export function editableQuestionsFromSnapshot(snapshot:StoredAssessmentDraft['snapshot'],
+ restored?:Map<string,{file:File;receipt:UploadedImageReceipt;questionId:string}>,
+ newLocalId:()=>string=()=>crypto.randomUUID()):
+ {questions:QuestionDraft[];receipts:Array<{localId:string;file:File;receipt:UploadedImageReceipt;questionId:string}>}|null{
  const out:QuestionDraft[]=[];
+ const receipts:Array<{localId:string;file:File;receipt:UploadedImageReceipt;questionId:string}>=[];
  for(const raw of snapshot.questions){
-  if(Array.isArray(raw.images)&&raw.images.length)return null;
+  const images:QuestionDraft['images']=[];
+  if(Array.isArray(raw.images)){
+   const sorted=[...(raw.images as Array<Record<string,unknown>>)].sort((a,b)=>Number(a.order??0)-Number(b.order??0));
+   for(const im of sorted){
+    const found=typeof im.imageId==='string'?restored?.get(im.imageId):undefined;
+    if(!found||found.questionId!==raw.id)return null;
+    const localId=newLocalId();
+    const placement=(['enunciado','alternativa','apoio'].includes(String(im.placement))?im.placement:'enunciado') as Placement;
+    images.push({localId,file:found.file,altText:typeof im.altText==='string'?im.altText:'',
+     caption:typeof im.caption==='string'?im.caption:'',placement,
+     ...(placement==='alternativa'&&typeof im.alternativeId==='string'?{alternativeId:im.alternativeId}:{}),
+     rightsStatus:(['autoral','licenciado','uso_autorizado'].includes(String(im.rightsStatus))?im.rightsStatus:'nao_informado') as Rights});
+    receipts.push({localId,file:found.file,receipt:found.receipt,questionId:raw.id as string});
+   }
+  }
   if(typeof raw.id!=='string'||typeof raw.statement!=='string'||(raw.kind!=='objetiva'&&raw.kind!=='discursiva'))return null;
   const options=Array.isArray(raw.options)?(raw.options as Array<{id?:unknown;text?:unknown}>)
    .filter(o=>typeof o.id==='string'&&typeof o.text==='string').map(o=>({id:o.id as string,text:o.text as string})):[];
@@ -153,9 +176,9 @@ export function editableQuestionsFromSnapshot(snapshot:StoredAssessmentDraft['sn
    topicIds:strings(raw.topicIds),competencyIds:strings(raw.competencyIds),
    purpose:strings(raw.purpose) as QuestionDraft['purpose'],
    estimatedDifficulty:(typeof raw.estimatedDifficulty==='number'?raw.estimatedDifficulty:3) as QuestionDraft['estimatedDifficulty'],
-   points:typeof raw.points==='number'?raw.points:1,examTags:strings(raw.examTags),images:[],
+   points:typeof raw.points==='number'?raw.points:1,examTags:strings(raw.examTags),images,
    ...(raw.spreadsheetMetadata&&typeof raw.spreadsheetMetadata==='object'?{spreadsheetMetadata:raw.spreadsheetMetadata as QuestionDraft['spreadsheetMetadata']}:{})
   });
  }
- return out;
+ return {questions:out,receipts};
 }
