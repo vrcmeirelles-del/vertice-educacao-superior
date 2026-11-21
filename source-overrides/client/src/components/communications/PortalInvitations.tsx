@@ -18,11 +18,15 @@ export default function PortalInvitations({
   role,
   courses = [],
   module = "institucional",
+  teamEntry = false,
+  onSent,
 }: {
   institutionId: string;
   role: string | null;
   courses?: Course[];
   module?: string;
+  teamEntry?: boolean;
+  onSent?: () => void;
 }) {
   const [open, setOpen] = useState(false),
     [email, setEmail] = useState(""),
@@ -118,6 +122,7 @@ export default function PortalInvitations({
       setEmail("");
       setConfirmed(false);
       request.current = null;
+      onSent?.();
       await inspect();
     } catch (e) {
       if (g === generation.current) setError((e as Error).message);
@@ -149,15 +154,15 @@ export default function PortalInvitations({
           if (!open) void inspect();
         }}
       >
-        Convites e e-mail · todos os módulos
+        {teamEntry ? "Cadastrar e convidar usuário" : "Convites e e-mail · todos os módulos"}
       </button>
       {open && (
         <>
-          <h3>Central de convites e e-mail</h3>
+          <h3>{teamEntry ? "Cadastrar acesso à instituição" : "Central de convites e e-mail"}</h3>
           <p>
-            Um serviço de envio para cursos, TCC, estágio, Extensão e demais
-            módulos. O convite segue o aceite, a autenticação e as permissões do
-            portal.
+            {teamEntry
+              ? "Informe o e-mail e escolha o perfil institucional. O destinatário recebe um link de acesso. No primeiro acesso, pode definir sua senha pelo portal."
+              : "O convite segue o aceite, a autenticação e as permissões do portal."}
           </p>
           {configured === false && (
             <p role="alert">
@@ -176,7 +181,7 @@ export default function PortalInvitations({
               disabled={busy || uncertain || !configured}
               style={{ display: "grid", gap: 12, border: 0, padding: 0 }}
             >
-              <label style={{ display: "grid", gap: 4 }}>
+              {!teamEntry && <><label style={{ display: "grid", gap: 4 }}>
                 Contexto do convite
                 <select
                   value={context}
@@ -218,7 +223,7 @@ export default function PortalInvitations({
                     </option>
                   ))}
                 </select>
-              </label>
+              </label></>}
               <label style={{ display: "grid", gap: 4 }}>
                 E-mail do destinatário
                 <input
@@ -248,14 +253,14 @@ export default function PortalInvitations({
                   )}
                 </select>
               </label>
-              <p>
+              {teamEntry ? <p>As permissões seguem o perfil selecionado. Uma conta já vinculada mantém o perfil atual.</p> : <p>
                 O curso e o módulo organizam o convite; estes perfis são
                 institucionais. Para coordenação ou NDE restritos ao curso, use
                 os perfis de governança. Convites de estudantes seguem os fluxos
                 individuais de cada módulo; este formulário convida
                 colaboradores da instituição. Uma conta já vinculada mantém o
                 perfil atual.
-              </p>
+              </p>}
               <label>
                 <input
                   type="checkbox"

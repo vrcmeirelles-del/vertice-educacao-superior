@@ -616,7 +616,7 @@ export default function Workspace({
       <PortalPageHeader id="inst-active-module-title" title={TABS.find(([key]) => key === tab)?.[1] ?? 'Painel institucional'}
         eyebrow={portalModulePresentation(tab, activeMacro).eyebrow} icon={portalModulePresentation(tab, activeMacro).icon}
         description={portalModulePresentation(tab, activeMacro).description ?? TAB_DETAILS[tab]?.description} />
-      {!['extensao','tcc','estagio'].includes(tab) && <PortalInvitations key={`${id}:${tab}`} institutionId={String(id)} role={role} module={tab} courses={data.courses.map(c=>({id:String(c.id),name:String(c.display_name??c.name)}))} />}
+      {!['extensao','tcc','estagio','equipe'].includes(tab) && <PortalInvitations key={`${id}:${tab}`} institutionId={String(id)} role={role} module={tab} courses={data.courses.map(c=>({id:String(c.id),name:String(c.display_name??c.name)}))} />}
       <div className="portal-module-content">
       {tab === 'base' && <InstitutionAddress institutionId={id} manage={role==='master'}/>}
       {error && <p role="alert" className="area-error">{error}</p>}
@@ -1636,6 +1636,7 @@ function TeamTab({ institutionId, role, panelTabs }: { institutionId: string; ro
   return (
     <div className="area-panel">
       <div className="area-panel-head"><h3>Equipe com acesso ({members.length})</h3></div>
+      <PortalInvitations institutionId={institutionId} role={role} teamEntry onSent={() => void load()} />
       {msg&&<p role="status">{msg}</p>}
       {accessMember && <PanelAccessDraft key={accessMember.user_id} institutionId={institutionId} member={accessMember} panelTabs={panelTabs} onClose={() => setAccessMember(null)} />}
 
