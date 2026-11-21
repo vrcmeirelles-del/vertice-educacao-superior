@@ -19,14 +19,14 @@ export default function BIFrame({view,children,institutionName,source,sourceStat
   <aside className="vx-bi-unified-side" aria-label="Navegação dos BIs">
    <div className="vx-bi-unified-brand"><b>V</b><div><strong>Vértice</strong><small>Educação Superior</small></div></div>
    <nav>{MODULES.map(module=><a key={module.id} href={"/master#"+module.hash} aria-current={view===module.id?"page":undefined}><span aria-hidden="true">{module.symbol}</span>{module.title}</a>)}</nav>
-   <p className="vx-bi-unified-side-note">Inteligência para <strong>Reitoria e Gestão</strong><small>Registros da instituição selecionada · confira a origem</small></p>
+   <p className="vx-bi-unified-side-note">Inteligência para <strong>Reitoria e Gestão</strong></p>
   </aside>
   <div className="vx-bi-unified-main">
-   <div className="vx-bi-unified-heading"><div><small>VÉRTICE · INTELIGÊNCIA INSTITUCIONAL</small><h2>{name}</h2>{institutionName&&<p>{institutionName}</p>}</div><span>Dados cadastrados · demonstrações e simulações devem ser identificadas</span></div>
+   <div className="vx-bi-unified-heading"><div><h2>{name}</h2>{institutionName&&<p>{institutionName}</p>}</div></div>
    <div className="vx-bi-unified-data" role="note">
     <strong>Origem: {source}</strong><span>Estado: {status}</span>
     {sourceUpdatedAt&&<span>Última consulta: {sourceUpdatedAt}</span>}
-    <span>Sem dados ≠ zero · valores sujeitos à cobertura, conciliação e validação da origem</span>
+    <span>A interpretação dos indicadores depende da cobertura e da validação da fonte.</span>
    </div>
    <div className="vx-bi-unified-content">{children}</div>
   </div>
