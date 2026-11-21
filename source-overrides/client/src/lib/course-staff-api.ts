@@ -23,6 +23,7 @@ export const revokeCourseFunction=(i:string,userId:string,courseId:string,fn:Cou
  call<CourseStaffRow[]>(i,'revoke',{user_id:userId,course_id:courseId,function:fn});
 
 /** Abas acadêmicas liberadas por função no curso, além das do papel institucional. */
-export function tabsForCourseFunctions(fns:MyCourseFunction[]):Array<'avalia360'|'construcao-curricular'|'planejamento-estrategico'|'planejamento-semestral'>{
- return fns.length?['avalia360','construcao-curricular','planejamento-estrategico','planejamento-semestral']:[];
+export type CourseFunctionTab='avalia360'|'construcao-curricular'|'planejamento-estrategico'|'planejamento-semestral'|'discursiva'|'conecta';
+export function tabsForCourseFunctions(fns:MyCourseFunction[]):CourseFunctionTab[]{
+ return fns.length?['avalia360','construcao-curricular','planejamento-estrategico','planejamento-semestral','discursiva','conecta']:[];
 }

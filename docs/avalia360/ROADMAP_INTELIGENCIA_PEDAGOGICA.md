@@ -175,4 +175,8 @@ sem recriar tabela, regra ou tela paralela.
 - Planejamento (migração `20261122190000`): `course_planning` (gravar/publicar), `can_interpret` (interpretação,
   inteligência competitiva, portfólio, recortes do Sapiens) e a porta institucional de `sapiens` reconhecem a função.
   Abas de planejamento liberadas para quem tem função; edição só no curso da função.
-- Pendente: Discursiva 360°, Conecta, Mercado e PDI ainda checam `member_role in ('coordenador','nde')`.
+- Discursiva 360°, Conecta, Mercado e PDI (migração `20261122210000`): `vertice_discursiva.authorize`,
+  `vertice_conecta.allowed` + portas institucionais de `alumni_indicators` e `api`, `vertice_market.allowed`
+  (perspectiva acadêmica; comercial segue só master) e `pdi_access` (consulta) reconhecem a função.
+  `course_function`/`has_course_function` executáveis por authenticated (só revelam o próprio usuário),
+  porque `vertice_conecta.allowed` é security invoker.
