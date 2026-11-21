@@ -270,6 +270,7 @@ type Data = { courses: Row[]; goals: Row[]; measurements: Row[]; actions: Row[];
 const EMPTY: Data = { courses: [], goals: [], measurements: [], actions: [], diagnosis: [], requests:[], files:[] };
 
 export default function Workspace({
+  institutionalPath,
   institution,
   role,
   overview,
@@ -277,6 +278,7 @@ export default function Workspace({
   onChanged,
   stats,
 }: {
+  institutionalPath?: string;
   institution: Row;
   role: Role | null;
   overview: ReactNode;
@@ -287,9 +289,16 @@ export default function Workspace({
   const id = institution.id;
   const instTier = String((institution as any).tier || 'superior');
   const visibleGroups = TAB_GROUPS.filter(g => !g.tier || g.tier === 'both' || g.tier === instTier);
+  const institutionalBase = institutionalPath?.split('/').slice(0, 2).join('/');
+  const sectionTab = (pathname: string) => {
+    const section = pathname.split('/')[2];
+    return section === 'extensao-360' ? 'extensao' : section;
+  };
+  const tabPath = (key: Tab) => institutionalBase + '/' + (key === 'extensao' ? 'extensao-360' : key);
   const [tab, setTab] = useState<Tab>(() => {
     const t = new URLSearchParams(window.location.hash.slice(1)).get("aba") as Tab | null;
-    return t && TABS.some(([k]) => k === t) ? t : role === 'master' || role === 'gestor' ? 'base' : 'geral';
+    const requested = (institutionalPath && sectionTab(institutionalPath) || t) as Tab | null;
+    return requested && TABS.some(([k]) => k === requested) ? requested : role === 'master' || role === 'gestor' ? 'base' : 'geral';
   });
 
   const [macroOverride, setMacroOverride] = useState<MacroTab | null>(null);
@@ -364,12 +373,12 @@ export default function Workspace({
   useEffect(() => {
     const sync = () => {
       const params = new URLSearchParams(window.location.hash.slice(1));
-      if (params.get("instituicao") !== String(id)) return;
-      const next = (params.get("aba") || (role === "master" || role === "gestor" ? "base" : "geral")) as Tab;
+      if (!institutionalBase && params.get("instituicao") !== String(id)) return;
+      const next = ((institutionalBase && sectionTab(window.location.pathname)) || params.get("aba") || (role === "master" || role === "gestor" ? "base" : "geral")) as Tab;
       if (next === tab || !TABS.some(([key]) => key === next)) return;
       if (edited.current && !window.confirm("Confira se salvou suas alterações antes de sair. Deseja continuar?")) {
         params.set("aba", tab);
-        window.history.replaceState(null, "", "#" + params.toString());
+        window.history.replaceState(null, "", institutionalBase ? tabPath(tab) : "#" + params.toString());
         return;
       }
       edited.current = false;
@@ -388,7 +397,7 @@ export default function Workspace({
       window.removeEventListener("popstate", sync);
       window.removeEventListener("beforeunload", beforeUnload);
     };
-  }, [id, role, tab]);
+  }, [id, role, tab, institutionalBase]);
   const confirmNavigation = () => !edited.current || window.confirm("Você editou campos nesta área. Confira se salvou suas alterações antes de sair. Deseja continuar?");
   const choose = (t: Tab) => {
     if (t === tab) { setMacroOverride(null); revealModule(); return true; }
@@ -401,7 +410,7 @@ export default function Workspace({
     const p = new URLSearchParams(window.location.hash.slice(1));
     p.set("aba", t);
     p.set("instituicao", String(id));
-    window.history.pushState(null, "", `#${p.toString()}`);
+    window.history.pushState(null, "", institutionalBase ? tabPath(t) : `#${p.toString()}`);
     return true;
   };
 
@@ -451,12 +460,20 @@ export default function Workspace({
     choose(key);
   };
 
+  const requestedSection = institutionalBase && sectionTab(window.location.pathname);
+  if (requestedSection && !visible.some(([key]) => key === requestedSection)) {
+    return <section role="alert">
+      <p>Esta seção está indisponível para sua conta.</p>
+      <a href={institutionalBase}>Voltar à área da instituição</a>
+    </section>;
+  }
+
   return (
     <section aria-labelledby="ws-title" className="area-ws vertice-portal">
       {role && tab !== "cadastro" && <RegistryContacts institutionId={id} courses={[]} manage={false} firstVisit/>}
       <p>
-        <button className="corp-login-text-button" onClick={() => { if (confirmNavigation()) { edited.current = false; onBack(); } }}>
-          ← Todas as instituições
+        <button className="corp-login-text-button" onClick={() => { if (confirmNavigation()) { edited.current = false; if (institutionalBase) window.location.assign(institutionalBase); else onBack(); } }}>
+          {institutionalBase ? "← Área inicial da instituição" : "← Todas as instituições"}
         </button>
       </p>
       <div className="area-ws-head">
