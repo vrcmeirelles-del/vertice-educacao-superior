@@ -1,6 +1,7 @@
 import type { Tab } from "@/lib/area";
 import type { MacroTabDef } from "./InstitutionTabs";
 import "./institution-subtabs.css";
+import InstitutionalModuleLink from "./InstitutionalModuleLink";
 
 interface SubTabEntry {
   key: Tab;
@@ -16,6 +17,7 @@ interface Props {
   entries: SubTabEntry[];
   activeTab: Tab | null;
   onSelect: (tab: Tab) => void;
+  moduleHref?: (tab: Tab) => string | undefined;
   query?: string;
   onQueryChange?: (query: string) => void;
   favorites?: Tab[];
@@ -33,7 +35,7 @@ export function orderAcademicModules<T>(entries: readonly T[], label: (entry: T)
 }
 
 /** Persistent module navigation; activation and authorization stay with the caller. */
-export default function InstitutionSubTabs({ macro, entries, activeTab, onSelect, query = "", onQueryChange, favorites = [], onToggleFavorite, onlyFavorites = false, onToggleOnlyFavorites, sortByLabel = false }: Props) {
+export default function InstitutionSubTabs({ macro, entries, activeTab, onSelect, moduleHref, query = "", onQueryChange, favorites = [], onToggleFavorite, onlyFavorites = false, onToggleOnlyFavorites, sortByLabel = false }: Props) {
   const search = query.trim().toLocaleLowerCase("pt-BR");
   const filtered = entries.filter(entry => (!onlyFavorites || favorites.includes(entry.key)) && (!search || `${entry.label} ${entry.description ?? ""}`.toLocaleLowerCase("pt-BR").includes(search)));
   const shown = sortByLabel ? orderAcademicModules(filtered, entry => entry.label) : filtered;
@@ -50,18 +52,18 @@ export default function InstitutionSubTabs({ macro, entries, activeTab, onSelect
       <ul className="inst-subtabs-list">
         {shown.map(entry => (
           <li key={entry.key} className={activeTab === entry.key ? "inst-subtab-entry inst-subtab-entry--active" : "inst-subtab-entry"}>
-            <button
-              type="button"
-              aria-current={activeTab === entry.key ? "page" : undefined}
+            <InstitutionalModuleLink
+              href={entry.locked ? undefined : moduleHref?.(entry.key)}
+              active={activeTab === entry.key}
               className={`inst-subtab${entry.locked ? " inst-subtab--locked" : ""}`}
-              onClick={() => onSelect(entry.key)}
+              onSelect={() => onSelect(entry.key)}
               title={entry.description}
             >
               {entry.icon && <span className="inst-subtab-icon" aria-hidden="true">{entry.locked ? "🔒" : entry.icon}</span>}
               <span>{entry.label}</span>
               {entry.locked && <span className="inst-subtab-badge">Ativar</span>}
               {entry.tasting && <span className="inst-subtab-badge tasting">Degustação</span>}
-            </button>
+            </InstitutionalModuleLink>
             {onToggleFavorite && <button type="button" className="inst-subtab-star" aria-label={`${favorites.includes(entry.key) ? "Remover" : "Adicionar"} ${entry.label} ${favorites.includes(entry.key) ? "dos" : "aos"} favoritos`} aria-pressed={favorites.includes(entry.key)} onClick={() => onToggleFavorite(entry.key)}>{favorites.includes(entry.key) ? "★" : "☆"}</button>}
           </li>
         ))}

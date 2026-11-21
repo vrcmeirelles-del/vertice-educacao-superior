@@ -76,6 +76,14 @@ describe('persistent module navigation', () => {
     expect(html).not.toContain('Trocar módulo');
     expect(html).not.toContain('role="tab"');
   });
+  it('renders shareable institutional URLs only for supplied unlocked modules', () => {
+    const html = renderToStaticMarkup(<InstitutionSubTabs macro={macro}
+      entries={[{key:'avalia360',label:'Avalia 360°'}, {key:'cadastro',label:'Cadastro',locked:true}]}
+      activeTab="avalia360" onSelect={() => {}} moduleHref={tab => '/unitop/' + tab} />);
+    expect(html).toContain('href="/unitop/avalia360"');
+    expect(html).not.toContain('href="/unitop/cadastro"');
+    expect(html).not.toContain('/unicaldas/');
+  });
   it('retains activation, tasting and favorite controls beside navigation', () => {
     const html = renderToStaticMarkup(<InstitutionSubTabs macro={macro} entries={[{key:'cadastro',label:'Cadastro',icon:'▣',locked:true,tasting:true}]} activeTab={null} onSelect={() => {}} favorites={['cadastro']} onToggleFavorite={() => {}} />);
     expect(html).toContain('Ativar');
