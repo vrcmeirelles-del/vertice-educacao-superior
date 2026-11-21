@@ -49,8 +49,8 @@ await db.exec(readFileSync(new URL('../migrations/20261115213753_conecta_360_nat
 async function auth(user=actor,aal='aal2'){await db.query("select set_config('request.user',$1,false),set_config('request.aal',$2,false)",[user,aal]);}
 async function api(action,payload={},institution=inst){return (await db.query('select public.vertice_conecta($1,$2,$3) r',[institution,action,payload])).rows[0].r;}
 
-await db.exec(readFileSync(new URL('../migrations/20261115225852_conecta_access_72h.sql',import.meta.url),'utf8'));
-await db.exec(readFileSync(new URL('../migrations/20261115225913_conecta_partner_intake.sql',import.meta.url),'utf8'));
+await db.exec(readFileSync(new URL('../migrations/20261115230337_conecta_access_72h.sql',import.meta.url),'utf8'));
+await db.exec(readFileSync(new URL('../migrations/20261115230351_conecta_partner_intake.sql',import.meta.url),'utf8'));
 const hash=c=>c.repeat(64);
 async function access(action,payload,institution=inst){return (await db.query('select public.vertice_conecta_access($1,$2,$3) r',[action,institution,payload])).rows[0].r;}
 async function pub(action,payload={},token=hash('e'),institution=inst){return (await db.query('select public.vertice_conecta_partner_public($1,$2,$3,$4) r',[action,institution,token,payload])).rows[0].r;}

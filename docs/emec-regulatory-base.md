@@ -18,6 +18,6 @@ O módulo de aquisições recebe a consulta apenas por associação instituciona
 
 ## Publicação e validação
 
-Aplicar a migration em `supabase/migrations/20261103005635_emec_regulatory_snapshots.sql`; publicar `vertice-aquisicoes-green` com todos os arquivos relativos, mantendo sua autenticação existente; publicar os overrides com o build habitual no Render.
+Aplicar a migration em `supabase/migrations/20261103005846_emec_regulatory_snapshots.sql`; publicar `vertice-aquisicoes-green` com todos os arquivos relativos, mantendo sua autenticação existente; publicar os overrides com o build habitual no Render.
 
 Verificações: TypeScript; build estático; 11 testes de contrato/diff (`npx vitest run server/emec.test.ts`); transações com rollback no banco para acesso autorizado, idempotência, versão incremental, conflito de revisão, rejeição de código divergente, leitura vazia e escrita recusada para usuário sem vínculo. O piloto UNICALDAS é carregado como dados operacionais, separado da migration e do repositório. Seus limites permanecem visíveis, inclusive divergências no número de graduações e falta de anos dos conceitos por curso.

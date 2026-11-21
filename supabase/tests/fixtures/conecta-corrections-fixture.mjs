@@ -49,8 +49,8 @@ await db.exec(readFileSync(new URL('../../migrations/20261115213753_conecta_360_
 async function auth(user=actor,aal='aal2'){await db.query("select set_config('request.user',$1,false),set_config('request.aal',$2,false)",[user,aal]);}
 async function api(action,payload={},institution=inst){return (await db.query('select public.vertice_conecta($1,$2,$3) r',[institution,action,payload])).rows[0].r;}
 
-await db.exec(readFileSync(new URL('../../migrations/20261115225852_conecta_access_72h.sql',import.meta.url),'utf8'));
-await db.exec(readFileSync(new URL('../../migrations/20261115225913_conecta_partner_intake.sql',import.meta.url),'utf8'));
+await db.exec(readFileSync(new URL('../../migrations/20261115230337_conecta_access_72h.sql',import.meta.url),'utf8'));
+await db.exec(readFileSync(new URL('../../migrations/20261115230351_conecta_partner_intake.sql',import.meta.url),'utf8'));
 
 await db.exec(`
 ALTER TABLE public.vertice_alumni_profiles ADD COLUMN cpf_hash text;
@@ -65,7 +65,7 @@ CREATE TABLE public.vertice_alumni_survey_invitations(id uuid PRIMARY KEY DEFAUL
 CREATE TABLE public.vertice_alumni_employment(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),profile_id uuid,education_id uuid,employment_status text CHECK(employment_status IN ('empregado_clt','servidor_publico','autonomo','empresario','estagiario','desempregado','nao_informado')),employment_type text,field_relation text,related_to_degree boolean,seeking_work boolean,source text,reference_date date);
 GRANT SELECT,INSERT,UPDATE ON ALL TABLES IN SCHEMA public TO service_role;
 `);
-await db.exec(readFileSync(new URL('../../migrations/20261115230853_conecta_longitudinal_surveys.sql',import.meta.url),'utf8'));
+await db.exec(readFileSync(new URL('../../migrations/20261115232606_conecta_longitudinal_surveys.sql',import.meta.url),'utf8'));
 const hash=c=>c.repeat(64);
 async function admin(action,payload={},institution=inst){return (await db.query('select public.vertice_conecta_longitudinal($1,$2,$3) r',[institution,action,payload])).rows[0].r;}
 async function own(action,payload={},session=hash('b')){await db.exec('SET ROLE service_role');try{return (await db.query('select public.vertice_conecta_surveys_student($1,$2,$3) r',[session,action,payload])).rows[0].r;}finally{await db.exec('RESET ROLE');}}
@@ -98,5 +98,5 @@ await db.query("insert into public.vertice_alumni_education(id,profile_id,instit
 await db.query("insert into public.vertice_alumni_surveys(id,institution_id,title,status)values($1,$2,'[TESTE] Pesquisa Inicial de Egressos','ativa')",[uid(902),inst]);
 await db.query("insert into public.vertice_alumni_survey_responses(survey_id,profile_id,education_id,status)values($1,$2,$3,'concluida')",[uid(902),uid(900),uid(901)]);
 await db.exec(readFileSync(new URL('../../migrations/20261115234418_conecta_academic_course_name.sql',import.meta.url),'utf8'));
-await db.exec(readFileSync(new URL('../../migrations/20261116071336_conecta_homologation_corrections.sql',import.meta.url),'utf8'));
+await db.exec(readFileSync(new URL('../../migrations/20261116072903_conecta_homologation_corrections.sql',import.meta.url),'utf8'));
 export {db,auth,api,admin,own,ids,inst,other,course,otherCourse,actor,coord,student,profile,education,hash,uid,campaign,surveyId};

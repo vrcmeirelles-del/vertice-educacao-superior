@@ -19,3 +19,6 @@
   `docs/avalia360/ROADMAP_INTELIGENCIA_PEDAGOGICA.md` (princípios, contratos de dados,
   o que está pronto e a ordem dos próximos blocos). A inteligência pedagógica é por
   algoritmo determinístico e regras versionadas, sem IA.
+
+- Migrações: siga `supabase/MIGRACOES.md`. A pasta `supabase/migrations/` espelha o histórico de produção
+  (mesma versão no nome do arquivo e no registro); migrações nunca aplicadas ficam em `supabase/migrations_nao_aplicadas/`.

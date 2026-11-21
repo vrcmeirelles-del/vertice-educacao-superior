@@ -38,7 +38,7 @@ Distinguir Conceito Enade, IDD, CPC e IGC; não tomar faixas como escala interva
 **NÃO HOMOLOGAR** até (a) reproduzir corretamente indicadores oficiais selecionados e documentar divergências; (b) explicar limitações estatísticas; (c) distinguir fatos, cálculos e interpretações; (d) emitir relatórios auditáveis com fontes, métodos, versões e aprovação humana. Para cada requisito, produzir evidência independente e teste repetível. Só então iniciar personalização por curso/IES.
 
 ## Estado técnico preexistente (consulta ao repositório em 2026-11-16)
-Existem interface `source-overrides/client/src/components/area/Enade360.tsx` e migração `supabase/migrations/20261107200000_enade360_continuous_quality.sql` com registros por curso, procedência e validação. Presença em código **não comprova publicação, integridade dos dados ou homologação científica**. Não modificar produção nesta fase documental.
+Existem interface `source-overrides/client/src/components/area/Enade360.tsx` e migração `supabase/migrations/20261107194340_enade360_continuous_quality.sql` com registros por curso, procedência e validação. Presença em código **não comprova publicação, integridade dos dados ou homologação científica**. Não modificar produção nesta fase documental.
 
 ## Evolução sem amnésia
 A cada etapa: reler esta Bíblia, o Plano e o Diário; manter decisões anteriores; anexar fontes e resultados; explicitar mudança, impacto, regressões e pendências. Alterações metodológicas recebem novo número de versão. O passado é evidência; o futuro é hipótese/teste, nunca fato consumado.

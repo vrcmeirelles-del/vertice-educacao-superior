@@ -22,23 +22,23 @@ sem recriar tabela, regra ou tela paralela.
 
 | Etapa | Migração | RPC / função | Cliente |
 |---|---|---|---|
-| Persistência | `20261121160000`, `20261121190000` | `vertice_avalia_draft`, `vertice_avalia_bank`, `vertice_avalia_media_prepare`, `vertice_avalia_draft_media`, `vertice_avalia_class_roster`; Edge `vertice-avalia-media` | `draft-api.ts`, `question-bank-api.ts`, `private-image-upload.ts` |
+| Persistência | `20261121174942`, `20261121180155` | `vertice_avalia_draft`, `vertice_avalia_bank`, `vertice_avalia_media_prepare`, `vertice_avalia_draft_media`, `vertice_avalia_class_roster`; Edge `vertice-avalia-media` | `draft-api.ts`, `question-bank-api.ts`, `private-image-upload.ts` |
 | Checklist técnico | — (e `avalia_blocking_issues` no servidor) | — | `item-checklist.ts`, `ChecklistPanel.tsx` |
-| Validação pelo colegiado | `20261121210000` | `vertice_avalia_review` | `review-api.ts`, `CollegiateReviewPanel.tsx` |
-| Aplicação e respostas | `20261121230000` | `vertice_avalia_application` | `answer-entry.ts`, `application-api.ts`, `ApplicationPanel.tsx` |
-| Análise de itens (TCT) e calibração | `20261122010000` | `vertice_avalia_item_analysis`, `vertice_avalia_bank_calibration` | `item-analysis-rules.ts`, `analysis-api.ts`, `ItemAnalysisPanel.tsx` |
-| **Bloco 1 — diagnóstico por competência** | `20261122030000` | `vertice_avalia_competency_evidence` | `competency-mastery.ts`, `competency-api.ts`, `CompetencyDiagnosisPanel.tsx` |
-| Importação da Construção Curricular | `20261122050000` | `vertice_avalia_curriculum_import` | `curriculum-import-api.ts`, `curriculum-import.ts` |
-| **Bloco 2 — montagem automática de prova** | `20261122070000` | `vertice_avalia_bank` (com descritores de competência), `vertice_avalia_bank_exposure` | `exam-assembly.ts`, `competency-key.ts`, `AssemblyPanel.tsx` |
-| **Bloco 3 — mapa de erros e recuperação** | `20261122090000` | `vertice_avalia_error_evidence`, `vertice_avalia_recovery` (tabela `vertice_avalia_recovery_plans`) | `error-map.ts`, `recovery.ts`, `recovery-api.ts`, `ErrorMapPanel.tsx`, `RecoveryPanel.tsx` |
+| Validação pelo colegiado | `20261121183216` | `vertice_avalia_review` | `review-api.ts`, `CollegiateReviewPanel.tsx` |
+| Aplicação e respostas | `20261121184127` | `vertice_avalia_application` | `answer-entry.ts`, `application-api.ts`, `ApplicationPanel.tsx` |
+| Análise de itens (TCT) e calibração | `20261121192159` | `vertice_avalia_item_analysis`, `vertice_avalia_bank_calibration` | `item-analysis-rules.ts`, `analysis-api.ts`, `ItemAnalysisPanel.tsx` |
+| **Bloco 1 — diagnóstico por competência** | `20261121193958` | `vertice_avalia_competency_evidence` | `competency-mastery.ts`, `competency-api.ts`, `CompetencyDiagnosisPanel.tsx` |
+| Importação da Construção Curricular | `20261121194400` | `vertice_avalia_curriculum_import` | `curriculum-import-api.ts`, `curriculum-import.ts` |
+| **Bloco 2 — montagem automática de prova** | `20261121194910` | `vertice_avalia_bank` (com descritores de competência), `vertice_avalia_bank_exposure` | `exam-assembly.ts`, `competency-key.ts`, `AssemblyPanel.tsx` |
+| **Bloco 3 — mapa de erros e recuperação** | `20261121195657` | `vertice_avalia_error_evidence`, `vertice_avalia_recovery` (tabela `vertice_avalia_recovery_plans`) | `error-map.ts`, `recovery.ts`, `recovery-api.ts`, `ErrorMapPanel.tsx`, `RecoveryPanel.tsx` |
 | **Bloco 5 — prontidão e risco** | `20261122130000` | evidência com escopo `course`, `vertice_avalia_exam_matrix`, `vertice_avalia_score_series`, `vertice_avalia_risk_publish`; colunas novas em `v_student_evasion_risk` | `readiness.ts`, `academic-risk.ts`, `readiness-api.ts`, `ReadinessRiskPanel.tsx`, `EvasionRiskPanel.tsx` |
-| **Bloco 4 — justiça e qualidade** | `20261122110000` | `vertice_avalia_response_matrix`, `vertice_avalia_double_scoring` (tabela `vertice_avalia_second_scores`); bloqueios de rubrica em `avalia_blocking_issues` | `bloom.ts`, `fairness.ts`, `agreement.ts`, `quality-api.ts`, `QualityPanel.tsx` |
+| **Bloco 4 — justiça e qualidade** | `20261121200711` | `vertice_avalia_response_matrix`, `vertice_avalia_double_scoring` (tabela `vertice_avalia_second_scores`); bloqueios de rubrica em `avalia_blocking_issues` | `bloom.ts`, `fairness.ts`, `agreement.ts`, `quality-api.ts`, `QualityPanel.tsx` |
 
 ### Bloco 1 — decisões
 
 - **Identidade estável da competência** (`vertice_private.avalia_competency_key`):
   `cmp:<código>|<título>` normalizados (minúsculas, espaços colapsados), para competências da
-  Construção Curricular **e** declaradas. Motivo (migração `20261122050000`): a Construção
+  Construção Curricular **e** declaradas. Motivo (migração `20261121194400`): a Construção
   Curricular apaga e recria as competências a cada salvamento, então o id não é estável.
   Renomear código ou título inicia um novo histórico. É a chave a reutilizar em qualquer
   cruzamento futuro (montagem de prova, recuperação, ENADE/OAB). O cliente tem a mesma regra

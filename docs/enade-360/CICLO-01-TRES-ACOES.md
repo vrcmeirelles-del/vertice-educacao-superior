@@ -3,8 +3,8 @@ Data: 2026-11-17 | Status: análise do código versionado, sem consulta ao banco
 
 ## Ação 1 — Confronto com estrutura existente
 Fontes efetivamente lidas do repositório:
-- `supabase/migrations/20261107200000_enade360_continuous_quality.sql`: `public.vertice_enade360_records` com `institution_id`, `course_id`, validação, vínculo composto com `vertice_courses(id,institution_id)`, e RLS via `vertice_private.can_read_institution` e `has_role`.
-- `supabase/migrations/20261107203000_enade360_mirror_read.sql`: leitura institucional de agregados `vertice_eorbit_enade`.
+- `supabase/migrations/20261107194340_enade360_continuous_quality.sql`: `public.vertice_enade360_records` com `institution_id`, `course_id`, validação, vínculo composto com `vertice_courses(id,institution_id)`, e RLS via `vertice_private.can_read_institution` e `has_role`.
+- `supabase/migrations/20261107194416_enade360_mirror_read.sql`: leitura institucional de agregados `vertice_eorbit_enade`.
 - `supabase/migrations/202610300001_area_real.sql`: `vertice_memberships`, `vertice_private.member_role/has_role`, MFA `aal2`, papéis `master/gestor/equipe/leitor` em parte da arquitetura.
 
 Achado verificável: há base por curso e FK composta, mas a política `enade360_read` consultada autoriza por instituição e lista `gestor,equipe,reitor,diretor_geral,diretor_pedagogico,procurador,cpa`; **não incorpora um predicado de autorização por curso**. A regra documentada de restringir Coordenação/NDE ao curso ainda precisa de modelagem e teste. Não equiparar automaticamente os papéis de negócio MASTER/REITORIA/COORDENACAO/NDE/CPA aos nomes persistidos no banco.

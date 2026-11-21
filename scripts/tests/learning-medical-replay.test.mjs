@@ -9,8 +9,8 @@ const {PGlite}=require('@electric-sql/pglite');
 const read=path=>readFileSync(new URL('../../'+path,import.meta.url),'utf8');
 const institution='00000000-0000-4000-8000-000000000001',school='00000000-0000-4000-8000-000000000002';
 const course='00000000-0000-4000-8000-000000000003',schoolCourse='00000000-0000-4000-8000-000000000004',actor='00000000-0000-4000-8000-000000000005';
-const files=['20261107223000_learning_connected_cpf_bridge.sql','20261107224500_learning_bridge_rpc.sql','20261107230000_learning_alignment_metrics.sql','20261107231000_learning_mapping_and_calendar.sql','20261107232000_learning_bridge_cursors.sql','20261112230000_learning_bridge_medical_modules.sql','20261112234500_learning_enem_schools_only.sql'];
-const migration='20261113033000_learning_reviewed_module_mapping.sql';
+const files=['20261107214914_learning_connected_cpf_bridge.sql','20261107215054_learning_bridge_rpc.sql','20261107215143_learning_alignment_metrics.sql','20261107215227_learning_mapping_and_calendar.sql','20261107215309_learning_bridge_cursors.sql','20261112232709_learning_bridge_medical_modules.sql','20261112233726_learning_enem_schools_only.sql'];
+const migration='20261113093310_learning_reviewed_module_mapping.sql';
 const securitySQL=`SELECT n.nspname,c.relname,c.relrowsecurity,c.relacl::text FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname IN ('public','vertice_private') ORDER BY 1,2; SELECT schemaname,tablename,policyname,roles,cmd,qual,with_check FROM pg_policies ORDER BY 1,2,3; SELECT p.proname,p.prosecdef,p.proconfig,p.proacl::text FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public' AND p.proname LIKE 'vertice_bridge_%' ORDER BY 1;`;
 test('actual migrations: medical ingest, school isolation, reviewed module scope, idempotency and microsecond replay',async()=>{
  const db=new PGlite();

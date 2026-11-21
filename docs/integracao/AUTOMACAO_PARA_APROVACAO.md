@@ -37,7 +37,7 @@ O sincronizador Sapiens não foi chamado: pode gravar auditoria e disparar anál
 
 Autorizar estes passos, nesta ordem:
 
-1. Aplicar `20261115010939_integration_observations.sql`: tabela de observações técnicas, índice por data de ingestão e funções protegidas de agregação, leitura e coleta.
+1. Aplicar `20261115012658_integration_observations.sql`: tabela de observações técnicas, índice por data de ingestão e funções protegidas de agregação, leitura e coleta.
 2. Executar `ATIVAR_COLETA_APOS_APROVACAO.sql`: registrar `vertice-integration-observe-hourly`, expressão `0 * * * *`, e fazer a primeira coleta. Uma rotina homônima com outro comando ou horário interrompe a ativação para revisão.
 3. Integrar a candidata aprovada e publicá-la no mesmo serviço Render, preservando Master/MFA.
 4. Conferir primeira observação, agendamento, execução e interface autenticada; registrar pendências sem presumir sucesso.

@@ -17,7 +17,7 @@ create table public.vertice_courses(id uuid primary key,institution_id uuid);
 grant usage on schema public,auth,vertice_private to authenticated,anon;
 grant select on public.vertice_memberships,public.vertice_admins,public.vertice_impacto_roles to authenticated;
 \i docs/enade-360/validator/live-auth-helpers.snapshot.sql
-\i supabase/migrations/20261107200000_enade360_continuous_quality.sql
+\i supabase/migrations/20261107194340_enade360_continuous_quality.sql
 insert into public.vertice_institutions values ('10000000-0000-4000-8000-000000000001'),('20000000-0000-4000-8000-000000000001');
 insert into public.vertice_courses values
  ('10000000-0000-4000-8000-000000000011','10000000-0000-4000-8000-000000000001'),

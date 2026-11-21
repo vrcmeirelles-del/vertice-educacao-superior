@@ -8,7 +8,7 @@ Registro acumulativo; nunca substituir entradas antigas. Data: 2026-11-16.
 - Status: diretrizes aprovadas pelo responsável pelo projeto. Implementação/homologação do novo método: **não comprovadas**.
 
 ## Entrada 002 — Diagnóstico documental de repositório
-- Consulta constatou `source-overrides/client/src/components/area/Enade360.tsx` e `supabase/migrations/20261107200000_enade360_continuous_quality.sql`.
+- Consulta constatou `source-overrides/client/src/components/area/Enade360.tsx` e `supabase/migrations/20261107194340_enade360_continuous_quality.sql`.
 - Código registra classes de dados e proveniência/validação; não é evidência de homologação de indicadores nacionais ou validação em produção.
 - Busca por "Bíblia-Mestra" e "diario de bordo" no repositório não localizou arquivos correspondentes nas buscas efetuadas; isso não prova inexistência em caminhos não indexados.
 - Ação: propor documentação inicial em branch separada; nenhuma alteração de aplicação/banco.
@@ -151,7 +151,7 @@ Data/hora; etapa; fonte/URL/versão; ação executada; resultado e evidências; 
 
 ## Entrada 020 — 2026-11-17 — Ciclo 01 de três ações
 - Procedimento solicitado: executar em grupos de três ações, com revisão das evidências ao final.
-- Ação 1: comparação das migrações versionadas `20261107200000_enade360_continuous_quality.sql`, `20261107203000_enade360_mirror_read.sql` e `202610300001_area_real.sql`. Identificado predicado institucional de RLS e ausência, nesses arquivos, de predicado comprovado por curso para Coordenação/NDE. Estado do banco vivo não consultado.
+- Ação 1: comparação das migrações versionadas `20261107194340_enade360_continuous_quality.sql`, `20261107194416_enade360_mirror_read.sql` e `202610300001_area_real.sql`. Identificado predicado institucional de RLS e ausência, nesses arquivos, de predicado comprovado por curso para Coordenação/NDE. Estado do banco vivo não consultado.
 - Ação 2: criado `CICLO-01-TRES-ACOES.md`, com contrato de extensão aditiva/reversão, sem geração de migração SQL executável nem aplicação de DDL.
 - Ação 3: protótipo `audit-event-prototype.cjs` passou a exigir MFA aal2; suíte `test-audit-governance.cjs` incluiu dois casos de ausência/insuficiência de MFA.
 - CI verificado: run 44046955001, commit d339a13dca41fd834a3095b8edaab828ac3f18a0, completed/success; 242/242 testes sintéticos, zero falhas.

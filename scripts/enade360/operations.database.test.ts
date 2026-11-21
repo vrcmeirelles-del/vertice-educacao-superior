@@ -8,8 +8,8 @@ const uid = "11111111-1111-4111-8111-111111111111",
   inst = "22222222-2222-4222-8222-222222222222",
   course = "33333333-3333-4333-8333-333333333333";
 const migration = process.env.VERTICE_REPO
-  ? `${process.env.VERTICE_REPO}/supabase/migrations/20261118013000_enade360_master_operations.sql`
-  : "../vertice/supabase/migrations/20261118013000_enade360_master_operations.sql";
+  ? `${process.env.VERTICE_REPO}/supabase/migrations/20261118092152_enade360_master_operations.sql`
+  : "../vertice/supabase/migrations/20261118092152_enade360_master_operations.sql";
 async function session(master = true, aal = "aal2") {
   await db.query(
     "select set_config('test.uid',$1,false),set_config('test.master',$2,false),set_config('test.aal',$3,false)",

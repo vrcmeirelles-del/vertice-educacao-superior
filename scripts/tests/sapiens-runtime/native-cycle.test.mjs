@@ -10,7 +10,7 @@ export async function fixture(t){
  const db=new PGlite();await db.waitReady;t.after(()=>db.close());
  await db.exec(await readFile(new URL('./fixture.sql',import.meta.url),'utf8'));
  await db.exec(await readFile(new URL('../../../source-overrides/migrations/20261115000000_sapiens_core_tables.sql',import.meta.url),'utf8'));
- await db.exec(await readFile(new URL('../../../supabase/migrations/20261114221711_sapiens_native_bridge.sql',import.meta.url),'utf8'));
+ await db.exec(await readFile(new URL('../../../supabase/migrations/20261115013757_sapiens_native_bridge.sql',import.meta.url),'utf8'));
  await db.exec(await readFile(new URL('../../../supabase/migrations/20261117111205_sapiens_feedback_privacy.sql',import.meta.url),'utf8'));
  await db.query('insert into vertice_institutions values($1,$2),($3,$4)',[id(11),'Synthetic A',id(12),'Synthetic B']);
  await db.query('insert into vertice_courses values($1,$2,$3),($4,$2,$5),($6,$7,$8)',[id(21),id(11),'Law',id(22),'Other',id(23),id(12),'Other IES']);

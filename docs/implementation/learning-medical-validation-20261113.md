@@ -13,7 +13,7 @@ This change is based on the existing medical and school integrations in main. It
 
 ## Migration and permissions
 
-`20261113033000_learning_reviewed_module_mapping.sql` modifies only:
+`20261113093310_learning_reviewed_module_mapping.sql` modifies only:
 
 1. `vertice_private.learning_subject_maps_mapped_competency_check`: accepts `*` in addition to strings of length 3–500.
 2. The minimum-length expression in the installed `public.vertice_bridge_map_subject(uuid,uuid,text,text,text,text,uuid)` function. Its current module validation and security settings are preserved; unexpected source text aborts the migration.

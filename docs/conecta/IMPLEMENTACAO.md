@@ -133,7 +133,7 @@ Verificações locais finais: 44 testes PostgreSQL/Edge e 24 testes de interface
 
 ## Correções decorrentes da homologação — 16/11/2026
 
-As 100 formações sem curso da UNITOP foram confrontadas com a função legada de carga sintética: todas correspondem a `Egresso Teste N`, matrícula `TSTnnnnn`, conclusão 2024/2, sem CPF e com e-mail de exemplo ou ausente. Não há evidência para atribuí-las a um curso real. A migração `20261116071336_conecta_homologation_corrections.sql` identifica apenas essa assinatura conhecida, preserva as fontes e separa formações/pesquisa sintéticas dos indicadores operacionais. Não faz conciliação real nem ativa pesquisa.
+As 100 formações sem curso da UNITOP foram confrontadas com a função legada de carga sintética: todas correspondem a `Egresso Teste N`, matrícula `TSTnnnnn`, conclusão 2024/2, sem CPF e com e-mail de exemplo ou ausente. Não há evidência para atribuí-las a um curso real. A migração `20261116072903_conecta_homologation_corrections.sql` identifica apenas essa assinatura conhecida, preserva as fontes e separa formações/pesquisa sintéticas dos indicadores operacionais. Não faz conciliação real nem ativa pesquisa.
 
 - As tabelas nativas de perfis, formações, empregos, pesquisas, perguntas, convites, respostas e itens de resposta passam a ter guardas restritivas de instituição, curso e MFA que se compõem com as políticas anteriores. Escritas de registros pessoais e ativação usam os RPCs/Edge autorizados; o navegador só pode inserir pesquisas nativas em rascunho no recorte permitido. Anônimos não têm acesso a essas tabelas.
 - CPA recebe os agregados autorizados pelo RPC `vertice_alumni_indicators`, sem acesso nominal. Coordenação recebe apenas os cursos explicitamente vinculados; MFA continua obrigatório.

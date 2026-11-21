@@ -66,7 +66,7 @@ Nenhuma das operações abaixo foi executada.
   - Criar `fo_vertice_intervention_students` e `fo_vertice_intervention_feedback`.
   - Ativar RLS nas três tabelas de intervenção/participantes/feedback; revogar acesso de `anon`/`authenticated`; conceder acesso ao servidor `service_role`.
   - Registrar o arquivo e seu SHA-256 em `schema_migrations` na mesma transação, se a aplicação for manual. O runner existente usa esse histórico; não executar o SQL manualmente sem o registro correspondente.
-- Vértice, Supabase `qvetbbmviatxxatzzuzc`: `supabase/migrations/20261114221711_sapiens_native_bridge.sql`.
+- Vértice, Supabase `qvetbbmviatxxatzzuzc`: `supabase/migrations/20261115013757_sapiens_native_bridge.sql`.
   - Converter os IDs de KC para `text[]` e acrescentar `delivery_status` (valor inicial `pending`) e `last_delivery_code`.
   - Criar `vertice_private.sapiens_delivery`, com RLS e acesso de navegador revogado.
   - Acrescentar `measurement_id` e índice único na efetividade.

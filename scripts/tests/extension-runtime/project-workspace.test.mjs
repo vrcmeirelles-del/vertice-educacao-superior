@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 const id = n => `00000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
 const read = path => readFileSync(new URL(path,import.meta.url),'utf8');
 const workspaceMigrations = [
- '20261114122806_extension_electronic_forms.sql',
+ '20261114124054_extension_electronic_forms.sql',
  '20261117193500_extension_project_workspace.sql',
  '20261117193600_extension_student_invites.sql',
  '20261117201000_extension_cancelled_project_discard.sql',

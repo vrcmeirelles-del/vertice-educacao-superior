@@ -1,5 +1,5 @@
 -- EXECUTAR SOMENTE DEPOIS DA APROVAÇÃO EXPLÍCITA DO PROPRIETÁRIO.
--- Pré-requisito: migração 20261115010939_integration_observations.sql validada e aplicada.
+-- Pré-requisito: migração 20261115012658_integration_observations.sql validada e aplicada.
 -- Nenhum segredo, Edge Function ou credencial é criado/duplicado.
 begin;
 do $$begin

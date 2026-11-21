@@ -30,7 +30,7 @@ As variáveis institucionais `VERTICE_RESEND_*` prevalecem. Para aproveitar a cr
 
 ## Rastreabilidade e limites
 
-A migração `20261118125840_portal_communications.sql` adiciona histórico privado e RPCs. Usuários não escrevem diretamente no histórico; o servidor registra somente protocolo, hashes de destinatário/conteúdo de referência, módulo, IES, curso, ator e resultado. Corpo, tokens, credenciais e destinatários em claro não ficam nessa tabela. Gestores da IES com MFA consultam metadados dos últimos 100 envios; a interface filtra curso. Registros sem IES são reservados ao Master com MFA pela RPC.
+A migração `20261118140255_portal_communications.sql` adiciona histórico privado e RPCs. Usuários não escrevem diretamente no histórico; o servidor registra somente protocolo, hashes de destinatário/conteúdo de referência, módulo, IES, curso, ator e resultado. Corpo, tokens, credenciais e destinatários em claro não ficam nessa tabela. Gestores da IES com MFA consultam metadados dos últimos 100 envios; a interface filtra curso. Registros sem IES são reservados ao Master com MFA pela RPC.
 
 Estados: processamento, aceito pelo provedor, falha e não confirmado. Resposta HTTP de sucesso sem recibo não conta como aceitação. Não há confirmação de entrega ou leitura, webhook de entrega, retentativa automática ou envio em lote novo. Repetir um protocolo aceito não gera token ou mensagem novos; resultado incerto exige conferência antes de iniciar outra tentativa.
 
