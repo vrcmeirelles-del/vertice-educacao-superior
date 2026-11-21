@@ -8,6 +8,7 @@ import {loadAuthorizedClassRoster} from './class-roster';
 import {maxDistinctVariants,type ShuffleMode} from './exam-variants';
 import type {QuestionDraft} from './question-draft';
 import ItemAnalysisPanel from './ItemAnalysisPanel';
+import CompetencyDiagnosisPanel from './CompetencyDiagnosisPanel';
 
 const blue='#164B92',line='#DCE7F4';
 const btn=(primary:boolean)=>({padding:'9px 14px',borderRadius:9,border:'1px solid '+blue,background:primary?blue:'#fff',
@@ -39,6 +40,7 @@ export default function ApplicationPanel({institutionId,courseId,discipline,draf
  const [count,setCount]=useState(1);const [mode,setMode]=useState<ShuffleMode>('ambos');
  const file=useRef<HTMLInputElement>(null);
  const [showAnalysis,setShowAnalysis]=useState(false);
+ const [showMastery,setShowMastery]=useState(false);
 
  const refreshList=useCallback(async()=>setApps(await listApplications(institutionId,courseId,draftId)),[institutionId,courseId,draftId]);
  useEffect(()=>{
@@ -67,7 +69,7 @@ export default function ApplicationPanel({institutionId,courseId,discipline,draf
 
  const open=async(id:string)=>{
   setBusy(true);setErrs([]);setMsg('');
-  try{const d=await getApplication(institutionId,courseId,id);setDetail(d);setRows(rowsFromDetail(d));setShowAnalysis(false);}
+  try{const d=await getApplication(institutionId,courseId,id);setDetail(d);setRows(rowsFromDetail(d));setShowAnalysis(false);setShowMastery(false);}
   catch(e){setMsg(e instanceof Error?e.message:'Aplicação indisponível.');}
   finally{setBusy(false);}
  };
@@ -253,7 +255,11 @@ export default function ApplicationPanel({institutionId,courseId,discipline,draf
     {editable&&<button type="button" style={btn(false)} disabled={busy} onClick={()=>void close()}>Encerrar aplicação</button>}
     <button type="button" style={btn(showAnalysis)} disabled={busy||!detail.sheets.length||rows.some(r=>r.dirty)}
      onClick={()=>setShowAnalysis(v=>!v)}>{showAnalysis?'Ocultar análise':'Análise das questões'}</button>
+    <button type="button" style={btn(showMastery)} disabled={busy||!detail.sheets.length||rows.some(r=>r.dirty)}
+     onClick={()=>setShowMastery(v=>!v)}>{showMastery?'Ocultar domínio':'Domínio por competência'}</button>
    </div>
+   {showMastery&&<CompetencyDiagnosisPanel key={'m'+detail.id+':'+detail.sheets.length} institutionId={institutionId} courseId={courseId}
+     scope={{applicationId:detail.id}} title={'Domínio por competência · '+detail.classLabel}/>}
    {showAnalysis&&<ItemAnalysisPanel key={detail.id+':'+detail.sheets.length+':'+detail.status} institutionId={institutionId} courseId={courseId} applicationId={detail.id}/>}
   </div>}
  </section>;

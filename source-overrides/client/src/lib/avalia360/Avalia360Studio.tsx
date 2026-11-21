@@ -19,6 +19,7 @@ import SavedPreview from './SavedDraftPreview';
 import ChecklistPanel from './ChecklistPanel';
 import CollegiateReviewPanel,{ReviewHistory} from './CollegiateReviewPanel';
 import ApplicationPanel from './ApplicationPanel';
+import CompetencyDiagnosisPanel from './CompetencyDiagnosisPanel';
 import {checkAssessment} from './item-checklist';
 import {loadReviewHistory,submitForReview,type ReviewEvent} from './review-api';
 import {importOfficialCurriculum} from './curriculum-import-api';
@@ -129,6 +130,7 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
  const [savedFingerprint,setSavedFingerprint]=useState<string|null>(null);
  const [reviewEvents,setReviewEvents]=useState<ReviewEvent[]|null>(null);
  const [applying,setApplying]=useState<string|null>(null);
+ const [diagnosisFor,setDiagnosisFor]=useState<string|null>(null);
  const [errors,setErrors]=useState<string[]>([]);
  const [busy,setBusy]=useState(false);
  const [status,setStatus]=useState('');
@@ -318,7 +320,7 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
   requiredCompetencyIds:pedagogy.requiredCompetencyIds,requiredTopicIds:pedagogy.requiredTopicIds,
   competencyLabels:Object.fromEntries(pedagogy.competencies.map(c=>[c.id,c.code+' '+c.title])),
   topicLabels:Object.fromEntries(pedagogy.topics.map(t=>[t.id,t.title])),
- }),[questions,pedagogy]);
+ },{purpose}),[questions,pedagogy,purpose]);
  const dirty=!receipt||savedFingerprint!==fingerprintOf({questions,title,period,purpose,instructions,teacherName,pedagogy});
  const locked=Boolean(receipt&&receipt.status!=='draft');
  const lastReturn=reviewEvents?.filter(e=>e.action==='returned').slice(-1)[0];
@@ -389,6 +391,13 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
    <p style={{fontSize:12,color:'#64748b',marginBottom:0}}>Título, instruções, semestre e finalidade são versionados com o rascunho. O vínculo a competências depende de catálogo institucional validado.</p>
   </div>
   {!previewMode&&courseId&&<CollegiateReviewPanel institutionId={institutionId} courseId={courseId}/>}
+  {!previewMode&&courseId&&disciplineId.trim()&&<div style={{margin:'0 0 16px'}}>
+   {diagnosisFor!==disciplineId.trim()
+    ?<button type="button" style={btn(false)} onClick={()=>setDiagnosisFor(disciplineId.trim())}>Diagnóstico por competência da disciplina</button>
+    :<><button type="button" style={btn(false)} onClick={()=>setDiagnosisFor(null)}>Ocultar diagnóstico</button>
+      <CompetencyDiagnosisPanel institutionId={institutionId} courseId={courseId} scope={{discipline:disciplineId.trim()}}
+       title={'Diagnóstico por competência · '+disciplineId.trim()+' (aplicações encerradas)'}/></>}
+  </div>}
 
     <div className="avalia-actions">
      <button type="button" className="avalia-action-primary" onClick={()=>{if(!questions.length)add();setStep(2)}}>Começar a elaborar questões →</button>

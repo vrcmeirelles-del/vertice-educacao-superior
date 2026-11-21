@@ -73,3 +73,15 @@ describe('checklist do caderno',()=>{
   expect(checkAssessment(checklistQuestionsFromSnapshot(snap))).toEqual(checkAssessment([base]));
  });
 });
+
+describe('avaliação somativa exige competência',()=>{
+ const q={kind:'objetiva' as const,statement:'Considere o caso concreto e assinale.',options:[{id:'A',text:'x'},{id:'B',text:'y'}],
+  correctOptionId:'A',answerJustification:'ok',rubric:'',points:1,competencyIds:[] as string[],topicIds:['t1'],images:[]};
+ it('somativa sem competência é bloqueio; formativa continua apenas alerta',()=>{
+  const s=checkAssessment([q],undefined,{purpose:'somativa'});
+  expect(s.canSubmit).toBe(false);
+  expect(s.issues.map(i=>i.code)).toContain('SOMATIVA_SEM_COMPETENCIA');
+  expect(checkAssessment([q],undefined,{purpose:'formativa'}).canSubmit).toBe(true);
+  expect(checkAssessment([{...q,competencyIds:['c1']}],undefined,{purpose:'somativa'}).canSubmit).toBe(true);
+ });
+});

@@ -118,10 +118,19 @@ export function checkQuestion(q: ChecklistQuestion, index: number): ChecklistIss
   return out;
 }
 
-export function checkAssessment(questions: ChecklistQuestion[], blueprint?: ChecklistBlueprint): ChecklistResult {
+export function checkAssessment(questions: ChecklistQuestion[], blueprint?: ChecklistBlueprint, options?: {purpose?: string}): ChecklistResult {
   const issues: ChecklistIssue[] = [];
+  const summative = options?.purpose === 'somativa';
   if (!questions.length) issues.push({ code: 'CADERNO_VAZIO', severity: 'bloqueio', message: 'Inclua ao menos uma questão.' });
-  questions.forEach((q, i) => issues.push(...checkQuestion(q, i)));
+  questions.forEach((q, i) => {
+    const own = checkQuestion(q, i);
+    // Somativa: competência obrigatória (base do diagnóstico por competência). O servidor aplica a mesma regra.
+    if (summative && !q.competencyIds.length) {
+      issues.push(...own.filter(x => x.code !== 'SEM_VINCULO_CURRICULAR'),
+        {code: 'SOMATIVA_SEM_COMPETENCIA', severity: 'bloqueio', questionIndex: i,
+         message: 'Avaliação somativa: vincule a questão a ao menos uma competência.'});
+    } else issues.push(...own);
+  });
 
   const objectives = questions.filter(q => q.kind === 'objetiva' && q.options.some(o => o.id === q.correctOptionId));
   const answerKey: Record<string, number> = {};

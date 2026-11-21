@@ -7,7 +7,7 @@ begin execute sql; raise exception 'esperava erro % em: %', code, sql;
 exception when others then if sqlstate<>code then raise exception 'erro % (esperado %): %', sqlstate, code, sqlerrm; end if; end $$;
 \set I '''aaaaaaaa-0000-0000-0000-000000000001'''
 \set C '''cccccccc-0000-0000-0000-000000000001'''
-\set OK '''{"meta":{"title":"Prova validada","semester":"2027/1","purpose":"somativa"},"questions":[{"id":"r1","disciplineId":"Processo Civil","kind":"objetiva","statement":"Assinale a alternativa correta sobre o caso","points":1,"options":[{"id":"A","text":"Primeira"},{"id":"B","text":"Segunda"}],"correctOptionId":"A","answerJustification":"Art. 1º.","images":[]}]}'''
+\set OK '''{"meta":{"title":"Prova validada","semester":"2027/1","purpose":"somativa"},"questions":[{"id":"r1","competencyIds":["c-r1"],"disciplineId":"Processo Civil","kind":"objetiva","statement":"Assinale a alternativa correta sobre o caso","points":1,"options":[{"id":"A","text":"Primeira"},{"id":"B","text":"Segunda"}],"correctOptionId":"A","answerJustification":"Art. 1º.","images":[]}]}'''
 
 select pg_temp.as_user('11111111-1111-1111-1111-111111111111');
 -- Caderno com bloqueio (sem justificativa do gabarito) não é enviado

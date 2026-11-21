@@ -15,3 +15,7 @@
   o serviço existente que atende `www.verticesuperior.com.br`.
 - O programa de estudos Fato & Ordem é outro produto; esta regra de consolidação
   se refere à Vértice e não autoriza alterar o repositório do Fato & Ordem.
+- Avalia 360°: antes de evoluir o módulo, leia
+  `docs/avalia360/ROADMAP_INTELIGENCIA_PEDAGOGICA.md` (princípios, contratos de dados,
+  o que está pronto e a ordem dos próximos blocos). A inteligência pedagógica é por
+  algoritmo determinístico e regras versionadas, sem IA.
