@@ -6,10 +6,10 @@ import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import ResetPassword from './ResetPassword';
 
-export default function Login({institutionId}:{institutionId?:string} = {}) {
+export default function Login({institutionPath}:{institutionPath?:string} = {}) {
   const destination = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("destino") : null;
   const conviteId = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("convite") : null;
-  const dashboard = institutionId ? `/master#${new URLSearchParams({instituicao:institutionId})}` : destination === "reitor" ? "/reitor/reservado" : destination === "mobile" ? "/mobile" : destination === "integracao" ? "/integracao" : destination === "rede" ? "/rede" : "/master";
+  const dashboard = institutionPath ?? ( destination === "reitor" ? "/reitor/reservado" : destination === "mobile" ? "/mobile" : destination === "integracao" ? "/integracao" : destination === "rede" ? "/rede" : "/master");
   // Se veio com convite, armazenar para aceitar após login
   useEffect(() => { if (conviteId) { try { localStorage.setItem("vertice_pending_invite", conviteId); } catch {} } }, [conviteId]);
   const [session, setSession] = useState<Session | null>(null);
@@ -61,7 +61,7 @@ export default function Login({institutionId}:{institutionId?:string} = {}) {
   return <section className="corp-section corp-login-section"><div className="corp-container corp-login-grid">
     <div className="corp-login-intro"><span className="corp-eyebrow">ÁREA RESTRITA</span><h1>Seu espaço<br/>de gestão.</h1><p>Acesse as instituições autorizadas para sua conta.</p><div className="corp-login-trust"><ShieldCheck size={24}/><p>A autenticação é feita pelo Supabase. O acesso aos dados depende das permissões da conta.</p></div><Link href="/demonstracao">Conhecer a demonstração</Link></div>
     <div className="corp-login-card"><LockKeyhole size={30}/><h2>{resetting ? 'Definir nova senha' : factor ? 'Confirme seu acesso' : recovery ? 'Recuperar acesso' : 'Entrar no Vértice'}</h2>
-    {checking ? <p role="status">Verificando sessão…</p> : session && !factor && !resetting ? <><p>Conectado como <strong>{session.user.email}</strong>.</p><Link className="corp-button" href={dashboard}>Abrir minha área</Link><button className="corp-login-text-button" onClick={()=>{setMessage('');setResetting(true);setPassword('');}}>Definir ou alterar minha senha</button><button className="corp-login-text-button" onClick={async()=>{const {error}=await supabase.auth.signOut(); setMessage(error?'Não foi possível sair. Tente novamente.':'Sessão encerrada.');}}>Sair</button></> : <form onSubmit={submit} className="access-form">
+    {checking ? <p role="status">Verificando sessão…</p> : session && !factor && !resetting ? <><p>Conectado como <strong>{session.user.email}</strong>.</p><a className="corp-button" href={dashboard}>Abrir minha área</a><button className="corp-login-text-button" onClick={()=>{setMessage('');setResetting(true);setPassword('');}}>Definir ou alterar minha senha</button><button className="corp-login-text-button" onClick={async()=>{const {error}=await supabase.auth.signOut(); setMessage(error?'Não foi possível sair. Tente novamente.':'Sessão encerrada.');}}>Sair</button></> : <form onSubmit={submit} className="access-form">
     {factor ? <HelpLabel>Código do autenticador<input autoComplete="one-time-code" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} required value={code} onChange={e=>setCode(e.target.value)}/></HelpLabel> : <>
     <HelpLabel>E-mail<input type="email" autoComplete="username" required maxLength={254} value={email} onChange={e=>setEmail(e.target.value)}/></HelpLabel>
     {!recovery && <HelpLabel>Senha<input type="password" autoComplete="current-password" required maxLength={256} value={password} onChange={e=>setPassword(e.target.value)}/></HelpLabel>}
