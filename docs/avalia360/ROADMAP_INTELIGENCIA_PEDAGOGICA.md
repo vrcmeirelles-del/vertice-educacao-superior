@@ -178,5 +178,5 @@ sem recriar tabela, regra ou tela paralela.
 - Discursiva 360°, Conecta, Mercado e PDI (migração `20261122210000`): `vertice_discursiva.authorize`,
   `vertice_conecta.allowed` + portas institucionais de `alumni_indicators` e `api`, `vertice_market.allowed`
   (perspectiva acadêmica; comercial segue só master) e `pdi_access` (consulta) reconhecem a função.
-  `course_function`/`has_course_function` executáveis por authenticated (só revelam o próprio usuário),
-  porque `vertice_conecta.allowed` é security invoker.
+  `course_function`/`has_course_function` só são chamadas por dentro de funções security definer; a execução direta
+  por authenticated concedida em `20261122210000` foi retirada em `20261122230000` (desnecessária).

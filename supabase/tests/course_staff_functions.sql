@@ -73,7 +73,7 @@ select (select count(*) from jsonb_array_elements(public.vertice_course_staff(:I
 
 -- Sem acesso direto à tabela
 select pg_temp.expect_error('select * from public.vertice_course_staff_functions','42501');
--- course_function é executável (20261122210000) e só revela a situação do próprio usuário
-do $$ begin if vertice_private.course_function(gen_random_uuid(),gen_random_uuid()) is not null then raise exception 'course_function vazou'; end if; end $$;
+select pg_temp.expect_error('select vertice_private.course_function(gen_random_uuid(),gen_random_uuid())','42501');
+select pg_temp.expect_error('select vertice_private.has_course_function(gen_random_uuid())','42501');
 reset role;
 \echo COURSE_STAFF_TESTS_OK
