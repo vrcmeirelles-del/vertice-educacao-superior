@@ -29,6 +29,7 @@ sem recriar tabela, regra ou tela paralela.
 | Análise de itens (TCT) e calibração | `20261122010000` | `vertice_avalia_item_analysis`, `vertice_avalia_bank_calibration` | `item-analysis-rules.ts`, `analysis-api.ts`, `ItemAnalysisPanel.tsx` |
 | **Bloco 1 — diagnóstico por competência** | `20261122030000` | `vertice_avalia_competency_evidence` | `competency-mastery.ts`, `competency-api.ts`, `CompetencyDiagnosisPanel.tsx` |
 | Importação da Construção Curricular | `20261122050000` | `vertice_avalia_curriculum_import` | `curriculum-import-api.ts`, `curriculum-import.ts` |
+| **Bloco 2 — montagem automática de prova** | `20261122070000` | `vertice_avalia_bank` (com descritores de competência), `vertice_avalia_bank_exposure` | `exam-assembly.ts`, `competency-key.ts`, `AssemblyPanel.tsx` |
 
 ### Bloco 1 — decisões
 
@@ -66,18 +67,23 @@ sem recriar tabela, regra ou tela paralela.
 
 ## Próximos blocos
 
-### Bloco 2 — montagem automática de prova pelo banco calibrado (próximo)
-- Entrada: tabela de especificação (competências pela **chave estável** do bloco 1, pesos,
-  número de questões, dificuldade-alvo) + disciplina + turma.
-- Fonte: `vertice_avalia_bank` + `vertice_avalia_bank_calibration` (dificuldade **observada**;
-  declarada só quando não houver aplicação encerrada, e sinalizado).
-- Algoritmo guloso determinístico: cobrir competências por peso → aproximar a distribuição de
-  dificuldade-alvo → priorizar maior discriminação → desempate por id.
-  **Controle de exposição:** excluir itens aplicados à mesma turma nos últimos N meses
-  (consultar `vertice_avalia_applications` + `draft_revisions`, `sourceBankId`).
-- Saída: questões copiadas para um rascunho comum (com `sourceBankId`), passando por
-  checklist → colegiado → aplicação, como hoje. Nada de atalho para aplicar sem validação.
-- Testes: mesma entrada ⇒ mesma prova; cobertura; exposição; desempate.
+### Bloco 2 — montagem automática de prova (PRONTO)
+- **Banco guarda descritores** (`id`, `code`, `title`, `period`) das competências citadas pela
+  questão; o servidor descarta os não citados e os sem código ou título. Itens antigos sem descritor
+  continuam utilizáveis pelo total e pela dificuldade, mas não contam para a especificação.
+- **Reaproveitar do banco** (manual ou montagem) religa as competências ao catálogo do caderno
+  pela chave estável (`mergeIntoCatalog`); antes, os vínculos se perdiam.
+- **Elegibilidade:** tipo permitido → exposição (`vertice_avalia_bank_exposure`: última aplicação
+  na disciplina, filtrável pela turma, em qualquer situação) dentro da janela de N meses →
+  qualidade (discriminação < 0,20 com n ≥ 30, ou negativa com n ≥ 10, fica fora).
+- **Dificuldade:** observada se calibração com n ≥ 10; senão declarada, contada à parte.
+- **Seleção gulosa determinística:** cobertura da competência mais escassa para a mais abundante;
+  depois complemento; cada escolha minimiza |média − alvo|; empate → maior discriminação
+  (desconhecida = 0,20) → menor `bankId`. Caderno ordenado do mais fácil ao mais difícil.
+- **Saída:** novo rascunho (sem recibo), questões com `sourceBankId`, competências exigidas
+  marcadas; segue checklist → colegiado → aplicação. Falta de itens é informada, nunca preenchida.
+- **Reutilizar no bloco 3:** `toAssemblyItems` (nível observado/declarado, exposição),
+  `competencyKeyOf`, `mergeIntoCatalog`, `observedLevel`, calibração e exposição por item.
 
 ### Bloco 3 — recuperação personalizada + mapa de erros
 - Marcação, pelo professor, do erro conceitual de cada alternativa errada (novo campo no item).

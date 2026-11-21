@@ -17,7 +17,7 @@ export async function saveInstitutionalBank(input:Parameters<typeof prepareBankQ
  const item=prepareBankQuestion(input);
  const {data,error}=await supabase.rpc('vertice_avalia_bank',{
   p_institution:input.institutionId,p_course:input.courseId,p_discipline:input.discipline,p_action:'save',
-  p_payload:{record:{bankId:item.bankId,indexLabels:item.indexLabels??[],question:item.question}}
+  p_payload:{record:{bankId:item.bankId,indexLabels:item.indexLabels??[],competencies:item.competencies??[],question:item.question}}
  });
  if(error)throw Error(error.message||'Não foi possível gravar no Banco de Questões.');
  if(!data||typeof data!=='object'||(data as BankQuestion).bankId!==item.bankId)throw Error('Servidor não confirmou o registro.');

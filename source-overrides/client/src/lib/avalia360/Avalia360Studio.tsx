@@ -20,6 +20,8 @@ import ChecklistPanel from './ChecklistPanel';
 import CollegiateReviewPanel,{ReviewHistory} from './CollegiateReviewPanel';
 import ApplicationPanel from './ApplicationPanel';
 import CompetencyDiagnosisPanel from './CompetencyDiagnosisPanel';
+import {mergeIntoCatalog} from './competency-key';
+import AssemblyPanel from './AssemblyPanel';
 import {checkAssessment} from './item-checklist';
 import {loadReviewHistory,submitForReview,type ReviewEvent} from './review-api';
 import {importOfficialCurriculum} from './curriculum-import-api';
@@ -131,6 +133,7 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
  const [reviewEvents,setReviewEvents]=useState<ReviewEvent[]|null>(null);
  const [applying,setApplying]=useState<string|null>(null);
  const [diagnosisFor,setDiagnosisFor]=useState<string|null>(null);
+ const [assembling,setAssembling]=useState(false);
  const [errors,setErrors]=useState<string[]>([]);
  const [busy,setBusy]=useState(false);
  const [status,setStatus]=useState('');
@@ -391,6 +394,19 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
    <p style={{fontSize:12,color:'#64748b',marginBottom:0}}>Título, instruções, semestre e finalidade são versionados com o rascunho. O vínculo a competências depende de catálogo institucional validado.</p>
   </div>
   {!previewMode&&courseId&&<CollegiateReviewPanel institutionId={institutionId} courseId={courseId}/>}
+  {!previewMode&&courseId&&disciplineId.trim()&&<div style={{margin:'0 0 12px'}}>
+   <button type="button" style={btn(assembling)} onClick={()=>setAssembling(v=>!v)}>{assembling?'Fechar montagem automática':'Montar prova a partir do banco'}</button>
+  </div>}
+  {!previewMode&&courseId&&disciplineId.trim()&&assembling&&<AssemblyPanel institutionId={institutionId} courseId={courseId} discipline={disciplineId.trim()}
+   catalog={pedagogy.competencies} defaultTarget={pedagogy.targetDifficulty}
+   onAssemble={(assembled,catalog,requiredIds)=>{
+    if(questions.length&&!window.confirm('Substituir as '+questions.length+' questão(ões) em edição pela prova montada? O rascunho atual salvo no servidor não é alterado.'))return;
+    uploads.current.clear();setReceipt(null);setSavedFingerprint(null);setReviewEvents(null);setLoaded(null);setApplying(null);
+    setQuestions(assembled);setActiveIndex(0);setCurationHistory([]);
+    setPedagogy(p=>({...p,competencies:catalog,requiredCompetencyIds:[...new Set([...p.requiredCompetencyIds.filter(id=>catalog.some(c=>c.id===id)),...requiredIds])]}));
+    setAssembling(false);setStep(2);
+    setStatus('Prova montada com '+assembled.length+' questão(ões) do banco. Revise, salve e envie ao colegiado: a montagem não dispensa a validação.');
+   }}/>}
   {!previewMode&&courseId&&disciplineId.trim()&&<div style={{margin:'0 0 16px'}}>
    {diagnosisFor!==disciplineId.trim()
     ?<button type="button" style={btn(false)} onClick={()=>setDiagnosisFor(disciplineId.trim())}>Diagnóstico por competência da disciplina</button>
@@ -553,7 +569,12 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
       ...pedagogy.topics.filter(t=>q?.topicIds.includes(t.id)).map(t=>t.title),
       ...pedagogy.competencies.filter(c=>q?.competencyIds.includes(c.id)).flatMap(c=>[c.code,c.title])
      ]}
-     onReuse={item=>{
+     competencyCatalog={pedagogy.competencies}
+     onReuse={(item,record)=>{
+      // Religa as competências da questão do banco ao catálogo deste caderno pela chave estável.
+      const merged=mergeIntoCatalog(pedagogy.competencies,record.competencies??[],item.competencyIds);
+      setPedagogy(p=>({...p,competencies:merged.catalog}));
+      item={...item,competencyIds:merged.ids};
       setQuestions(all=>[...all,item]);setActiveIndex(questions.length);
       setPreview(false);setLoaded(null);setErrors([]);
      }}/>

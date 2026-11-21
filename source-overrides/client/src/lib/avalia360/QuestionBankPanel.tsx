@@ -1,14 +1,16 @@
 import {useEffect,useState} from 'react';
 import type {QuestionDraft} from './question-draft';
 import {reuseBankQuestion,type BankQuestion} from './question-bank';
+import type {CompetencyDescriptor} from './competency-key';
 import {listLocalBank,saveLocalBank} from './question-bank-local';
 import {listInstitutionalBank,saveInstitutionalBank} from './question-bank-api';
 import {loadBankCalibration,type BankCalibration} from './analysis-api';
 import {discriminationLabel,facilityLabel,observedLevel} from './item-analysis-rules';
 type Props={previewMode:boolean;institutionId:string;courseId:string;discipline:string;
- currentQuestion?:QuestionDraft;indexLabels:string[];onReuse:(q:QuestionDraft)=>void;};
+ currentQuestion?:QuestionDraft;indexLabels:string[];competencyCatalog?:CompetencyDescriptor[];
+ onReuse:(q:QuestionDraft,record:BankQuestion)=>void;};
 const btn={border:'1px solid #164b92',borderRadius:9,padding:'10px 14px',cursor:'pointer',fontWeight:650} as const;
-export default function QuestionBankPanel({previewMode,institutionId,courseId,discipline,currentQuestion,indexLabels,onReuse}:Props){
+export default function QuestionBankPanel({previewMode,institutionId,courseId,discipline,currentQuestion,indexLabels,competencyCatalog,onReuse}:Props){
  const [saved,setSaved]=useState<BankQuestion[]>([]);
  const [query,setQuery]=useState('');
  const [notice,setNotice]=useState('');
@@ -40,7 +42,7 @@ export default function QuestionBankPanel({previewMode,institutionId,courseId,di
   setBusy(true);
   try{
    const input={institutionId,courseId,discipline,question:currentQuestion,
-    indexLabels,bankId:crypto.randomUUID(),createdAt:new Date().toISOString()};
+    indexLabels,competencies:competencyCatalog??[],bankId:crypto.randomUUID(),createdAt:new Date().toISOString()};
    const savedRecord=previewMode?saveLocalBank(input):await saveInstitutionalBank(input);
    setNotice('Questão salva como rascunho '+(previewMode?'no banco local':'no Banco de Questões do curso')+'. Código: '+savedRecord.bankId.slice(0,8)+'.');
   }catch(e){setNotice(e instanceof Error?e.message:'Falha ao salvar questão.');}
@@ -49,7 +51,7 @@ export default function QuestionBankPanel({previewMode,institutionId,courseId,di
  const reuse=(record:BankQuestion)=>{
   try{
    const copy=reuseBankQuestion(record,crypto.randomUUID(),discipline);
-   onReuse(copy);
+   onReuse(copy,record);
    setNotice('Cópia incluída na avaliação. O registro original permanece inalterado.');
   }catch(e){setNotice(e instanceof Error?e.message:'Não foi possível reutilizar a questão.');}
  };
