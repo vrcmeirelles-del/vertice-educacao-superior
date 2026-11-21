@@ -182,7 +182,7 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
       {competency_id:'demo-competencia-2',discipline_name:disciplineId}
      ]
     });
-   }else result=await importOfficialCurriculum({institutionId,courseId,disciplineName:disciplineId});
+   }else result=await importOfficialCurriculum({institutionId,courseId,disciplineName:disciplineId,assumedPeriod:pedagogy.currentPeriod});
    if(!result.competencies.length){
     setCurriculumMessage(result.warnings.join(' ')||'Nenhuma competência vinculada a esta disciplina.');return;
    }

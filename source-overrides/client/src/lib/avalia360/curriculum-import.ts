@@ -10,6 +10,8 @@ export interface CurriculumImport {
  ready:boolean;warnings:string[];buildId:string;buildVersion:number;
  competencies:PedagogicalDraft['competencies'];
  missingPeriods:string[];
+ /** Códigos importados com o período da avaliação, por falta de período na matriz. */
+ assumedPeriods:string[];
 }
 export function normalizeDiscipline(text:string):string{
  return text.trim().normalize('NFKC').toLocaleLowerCase('pt-BR').replace(/\s+/g,' ');
@@ -17,6 +19,8 @@ export function normalizeDiscipline(text:string):string{
 export function mapCurriculumToAssessment(args:{
  institutionId:string;courseId:string;disciplineName:string;
  build:SourceBuild;competencies:SourceCompetency[];links:SourceLink[];
+ /** Opcional e explícito: período da avaliação, usado só quando a matriz não informa o período. */
+ assumedPeriod?:number;
 }):CurriculumImport{
  const {build}=args,warnings:string[]=[];
  if(!args.institutionId||!args.courseId||build.institution_id!==args.institutionId||build.course_id!==args.courseId)
@@ -28,6 +32,8 @@ export function mapCurriculumToAssessment(args:{
  const own=args.competencies.filter(c=>c.build_id===build.id&&candidates.has(c.id));
  const missingPeriods:string[]=[];
  const proposedPeriods:string[]=[];
+ const assumedPeriods:string[]=[];
+ const assumed=Number.isInteger(args.assumedPeriod)&&(args.assumedPeriod as number)>=1&&(args.assumedPeriod as number)<=12?args.assumedPeriod as number:null;
  const codes=new Set<string>(),ids=new Set<string>();
  const competencies:PedagogicalDraft['competencies']=[];
  for(const c of own){
@@ -39,14 +45,18 @@ export function mapCurriculumToAssessment(args:{
   codes.add(code.toLocaleLowerCase('pt-BR'));
   if(!Number.isInteger(c.origin_period)||!c.origin_period||c.origin_period<1||c.origin_period>12){
    missingPeriods.push(c.code);
+   if(assumed===null)continue;
+   assumedPeriods.push(c.code);
+   competencies.push({id:c.id,code,title,period:assumed});
    continue;
   }
   if(c.period_status!=='validated')proposedPeriods.push(c.code);
   competencies.push({id:c.id,code,title,period:c.origin_period});
  }
  if(!candidates.size)warnings.push('Nenhuma competência dessa matriz está vinculada à disciplina selecionada.');
- if(missingPeriods.length)warnings.push('Competências sem período informado na Construção Curricular: '+missingPeriods.join(', ')+'.');
+ if(missingPeriods.length)warnings.push('Competências sem período informado na Construção Curricular: '+missingPeriods.join(', ')+'.'
+  +(assumedPeriods.length?' Importadas com o período desta avaliação ('+assumed+'º), sem homologação: ajuste nos parâmetros pedagógicos se necessário.':''));
  if(proposedPeriods.length)warnings.push('Períodos ainda não homologados no PPC: '+proposedPeriods.join(', ')+'. Os vínculos continuam declarados.');
  return {ready:missingPeriods.length===0&&proposedPeriods.length===0&&competencies.length>0,buildId:build.id,
-  buildVersion:build.version,competencies,warnings,missingPeriods};
+  buildVersion:build.version,competencies,warnings,missingPeriods,assumedPeriods};
 }

@@ -28,13 +28,17 @@ sem recriar tabela, regra ou tela paralela.
 | Aplicação e respostas | `20261121230000` | `vertice_avalia_application` | `answer-entry.ts`, `application-api.ts`, `ApplicationPanel.tsx` |
 | Análise de itens (TCT) e calibração | `20261122010000` | `vertice_avalia_item_analysis`, `vertice_avalia_bank_calibration` | `item-analysis-rules.ts`, `analysis-api.ts`, `ItemAnalysisPanel.tsx` |
 | **Bloco 1 — diagnóstico por competência** | `20261122030000` | `vertice_avalia_competency_evidence` | `competency-mastery.ts`, `competency-api.ts`, `CompetencyDiagnosisPanel.tsx` |
+| Importação da Construção Curricular | `20261122050000` | `vertice_avalia_curriculum_import` | `curriculum-import-api.ts`, `curriculum-import.ts` |
 
 ### Bloco 1 — decisões
 
 - **Identidade estável da competência** (`vertice_private.avalia_competency_key`):
-  `cur:<uuid>` quando o id é da Construção Curricular do mesmo curso;
-  `dec:<código>|<título>` normalizado quando declarada no caderno. É a chave a reutilizar em
-  qualquer cruzamento futuro (montagem de prova, recuperação, ENADE/OAB).
+  `cmp:<código>|<título>` normalizados (minúsculas, espaços colapsados), para competências da
+  Construção Curricular **e** declaradas. Motivo (migração `20261122050000`): a Construção
+  Curricular apaga e recria as competências a cada salvamento, então o id não é estável.
+  Renomear código ou título inicia um novo histórico. É a chave a reutilizar em qualquer
+  cruzamento futuro (montagem de prova, recuperação, ENADE/OAB). O cliente tem a mesma regra
+  em `competencyKeyOf` (bloco 2).
 - **Direção do grafo:** relação `prerequisito` de *origem → destino* significa
   "origem é pré-requisito do destino" (texto explicativo em `PedagogicalParameters.tsx`).
 - **Domínio:** média ponderada de nota/valor das questões vinculadas, com decaimento
@@ -49,9 +53,12 @@ sem recriar tabela, regra ou tela paralela.
 
 ### Pendências conhecidas (não bloqueiam os blocos seguintes)
 
-- `curriculum-import-api.ts` consulta `origin_period` e `period_status` em
-  `vertice_app.curriculum_competencies`, colunas que **não existem em produção**:
-  a importação de competências da Construção Curricular tende a falhar até a migração de períodos.
+- **Construção Curricular (outro módulo) não grava em produção:** `CurriculumBuilder.tsx` usa
+  `supabase.from('curriculum_*')` no schema público, mas as tabelas estão em `vertice_app`, sem
+  uso do schema por `authenticated`; em 21/11/2026 havia 0 matrizes. A **leitura** pelo Avalia 360°
+  foi corrigida (RPC `vertice_avalia_curriculum_import`, colunas `origin_period`/`period_status`
+  criadas, período assumido opcional e sinalizado). A **gravação** pela Construção Curricular
+  ainda precisa ser corrigida naquele módulo.
 - "Turma" = período corrente do cadastro (`current_semester`); não há campo de turma A/B.
 - Discursivas: nota única por questão (sem nota por critério da rubrica).
 - O mapa de versões da aplicação deve repetir quantidade e embaralhamento da impressão.

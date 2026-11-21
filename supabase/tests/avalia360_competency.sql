@@ -10,8 +10,8 @@ exception when others then if sqlstate<>code then raise exception 'erro % (esper
 reset role;
 -- Construção Curricular do curso com a competência C1 (id estável)
 create temp table cur as select gen_random_uuid() build, gen_random_uuid() comp;
-insert into vertice_app.curriculum_builds select build,:I::uuid,:C::uuid,'published' from cur;
-insert into vertice_app.curriculum_competencies select comp,build,'C1','Interpretar contratos' from cur;
+insert into vertice_app.curriculum_builds(id,institution_id,course_id,status) select build,:I::uuid,:C::uuid,'published' from cur;
+insert into vertice_app.curriculum_competencies(id,build_id,code,title) select comp,build,'C1','Interpretar contratos' from cur;
 create temp table disc as select 'Civil '||substr(md5(random()::text),1,6) d;
 -- Caderno 1: C1 (curricular) e C2 (declarada, id local x1); C2 é pré-requisito de C1
 create temp table d1 as select jsonb_build_object('meta',jsonb_build_object('title','AV1','semester','2027/1','purpose','somativa',
@@ -62,12 +62,12 @@ select public.vertice_avalia_application(:I::uuid,:C::uuid,'save_sheets',jsonb_b
 create temp table e1 as select public.vertice_avalia_competency_evidence(:I::uuid,:C::uuid,jsonb_build_object('applicationId',(select id from ap where k=1))) j;
 select (select count(distinct r->>'label') from e1, jsonb_array_elements(j->'rows') r)=3
    and (select (r->>'score')::numeric=3 and (r->>'max')::numeric=3 and (r->>'items')::int=2 from e1, jsonb_array_elements(j->'rows') r
-        where r->>'label'='Ana' and r->>'competency'='cur:'||(select comp from cur)::text)
+        where r->>'label'='Ana' and r->>'competency'='cmp:c1|interpretar contratos')
    and (select (r->>'score')::numeric=2 and (r->>'max')::numeric=3 from e1, jsonb_array_elements(j->'rows') r
-        where r->>'label'='Ana' and r->>'competency'='dec:c2|nexo causal') as aplicacao \gset
+        where r->>'label'='Ana' and r->>'competency'='cmp:c2|nexo causal') as aplicacao \gset
 \if :aplicacao \else \echo FALHA aplicacao \quit \endif
 select (select count(*) from e1, jsonb_array_elements(j->'relations') r
-  where r->>'source'='dec:c2|nexo causal' and r->>'target'='cur:'||(select comp from cur)::text and r->>'kind'='prerequisito')=1 as relacao \gset
+  where r->>'source'='cmp:c2|nexo causal' and r->>'target'='cmp:c1|interpretar contratos' and r->>'kind'='prerequisito')=1 as relacao \gset
 \if :relacao \else \echo FALHA relacao \quit \endif
 -- Escopo da disciplina: só aplicações encerradas
 select jsonb_array_length(public.vertice_avalia_competency_evidence(:I::uuid,:C::uuid,jsonb_build_object('discipline',(select d from disc)))->'rows')=0 as so_encerradas \gset
@@ -76,7 +76,7 @@ select count(public.vertice_avalia_application(:I::uuid,:C::uuid,'close',jsonb_b
 create temp table e2 as select public.vertice_avalia_competency_evidence(:I::uuid,:C::uuid,jsonb_build_object('discipline',lower((select d from disc)))) j;
 select jsonb_array_length(j->'competencies')=2 and jsonb_array_length(j->'applications')=2
    and not exists(select 1 from jsonb_array_elements(j->'rows') r where r->>'label'='X-01')
-   and (select count(*) from jsonb_array_elements(j->'rows') r where r->>'label'='Ana' and r->>'competency'='dec:c2|nexo causal')=2 as disciplina from e2 \gset
+   and (select count(*) from jsonb_array_elements(j->'rows') r where r->>'label'='Ana' and r->>'competency'='cmp:c2|nexo causal')=2 as disciplina from e2 \gset
 \if :disciplina \else \echo FALHA disciplina \quit \endif
 -- Escopo do aluno: só as linhas dele
 select (select bool_and(r->>'studentId'=(select ana from stu)::text) and count(*) filter (where (r->>'applicationId')::uuid in (select id from ap))=3 from jsonb_array_elements(
