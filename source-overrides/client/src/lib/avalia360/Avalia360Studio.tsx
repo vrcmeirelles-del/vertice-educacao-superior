@@ -21,6 +21,7 @@ import CollegiateReviewPanel,{ReviewHistory} from './CollegiateReviewPanel';
 import ApplicationPanel from './ApplicationPanel';
 import CompetencyDiagnosisPanel from './CompetencyDiagnosisPanel';
 import {mergeIntoCatalog} from './competency-key';
+import {BLOOM_LABELS,classifyBloom} from './bloom';
 import AssemblyPanel from './AssemblyPanel';
 import RecoveryPanel from './RecoveryPanel';
 import {checkAssessment} from './item-checklist';
@@ -60,7 +61,7 @@ function checkDraft(questions:QuestionDraft[]):string[]{
     errors.push(ref+'defina uma alternativa correta.');
    if(!q.answerJustification?.trim())errors.push(ref+'justifique o gabarito da objetiva.');
   }else{
-   if(!q.rubric.trim())errors.push(ref+'informe a rubrica da discursiva.');
+   if(!q.rubric.trim()&&!q.rubricCriteria?.length)errors.push(ref+'informe a rubrica da discursiva.');
    if(!Number.isInteger(q.answerLines??8)||(q.answerLines??8)<3||(q.answerLines??8)>60)errors.push(ref+'informe entre 3 e 60 linhas de resposta.');
    if(!q.expectedAnswer?.trim())errors.push(ref+'informe o padrão de resposta esperado.');
   }
@@ -325,7 +326,7 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
   requiredCompetencyIds:pedagogy.requiredCompetencyIds,requiredTopicIds:pedagogy.requiredTopicIds,
   competencyLabels:Object.fromEntries(pedagogy.competencies.map(c=>[c.id,c.code+' '+c.title])),
   topicLabels:Object.fromEntries(pedagogy.topics.map(t=>[t.id,t.title])),
- },{purpose}),[questions,pedagogy,purpose]);
+ },{purpose,period:pedagogy.currentPeriod}),[questions,pedagogy,purpose]);
  const dirty=!receipt||savedFingerprint!==fingerprintOf({questions,title,period,purpose,instructions,teacherName,pedagogy});
  const locked=Boolean(receipt&&receipt.status!=='draft');
  const lastReturn=reviewEvents?.filter(e=>e.action==='returned').slice(-1)[0];
@@ -538,12 +539,32 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
         onChange={e=>update({rubric:e.target.value})}
         placeholder="Ex.: identificação do instituto (0,3), fundamentação (0,4), conclusão (0,3)."/>
       </label>
+      <fieldset style={{border:'1px solid '+line,borderRadius:10,padding:10}}>
+       <legend style={{fontWeight:700,fontSize:13}}>Rubrica estruturada (critérios e pontos)</legend>
+       <span className="avalia-help">A soma dos critérios deve ser igual à pontuação da questão ({String(q.points).replace('.',',')}). Permite a dupla correção e a análise por critério.</span>
+       {(q.rubricCriteria||[]).map((c,i)=><div key={c.id} style={{display:'grid',gridTemplateColumns:'1fr 100px auto',gap:6,margin:'6px 0'}}>
+        <input style={inputStyle} value={c.label} maxLength={200} placeholder={'Critério '+(i+1)} aria-label={'Critério '+(i+1)}
+         onChange={e=>update({rubricCriteria:(q.rubricCriteria||[]).map(x=>x.id===c.id?{...x,label:e.target.value}:x)})}/>
+        <input style={inputStyle} type="number" min="0.01" step="0.05" value={c.points} aria-label={'Pontos do critério '+(i+1)}
+         onChange={e=>update({rubricCriteria:(q.rubricCriteria||[]).map(x=>x.id===c.id?{...x,points:Number(e.target.value)}:x)})}/>
+        <button type="button" onClick={()=>update({rubricCriteria:(q.rubricCriteria||[]).filter(x=>x.id!==c.id)})} aria-label={'Remover critério '+(i+1)}>×</button>
+       </div>)}
+       <button type="button" onClick={()=>update({rubricCriteria:[...(q.rubricCriteria||[]),{id:crypto.randomUUID(),label:'',points:0}]})}>Adicionar critério</button>
+       {(q.rubricCriteria||[]).length>0&&<span className="avalia-help"> Soma atual: {String(Math.round((q.rubricCriteria||[]).reduce((s,c)=>s+(Number(c.points)||0),0)*100)/100).replace('.',',')}</span>}
+      </fieldset>
      </div>}
      <div className="avalia-panel" style={{background:'#f8fbff',padding:14,boxShadow:'none'}}>
       <div style={{display:'flex',gap:18,flexWrap:'wrap',alignItems:'end'}}>
        <label style={labelStyle}>Dificuldade
         <span className="avalia-levels">{([1,2,3,4,5] as Difficulty[]).map(n=><button key={n} type="button"
          aria-pressed={q.estimatedDifficulty===n} onClick={()=>update({estimatedDifficulty:n})}>{n}</button>)}</span>
+       </label>
+       <label style={{...labelStyle,flex:'1 1 200px'}}>Nível cognitivo (Bloom)
+        {(()=>{const s=classifyBloom(q.statement);return <span className="avalia-help">Sugestão pelo verbo de comando: {s.level?BLOOM_LABELS[s.level]+' ('+s.verbs.join(', ')+')':'nenhum verbo de comando reconhecido'}</span>;})()}
+        <select style={inputStyle} value={q.bloomLevel||''} onChange={e=>update({bloomLevel:e.target.value?Number(e.target.value):undefined})}>
+         <option value="">Usar a sugestão pelo verbo</option>
+         {([1,2,3,4,5,6] as const).map(l=><option key={l} value={l}>{l} · {BLOOM_LABELS[l]}</option>)}
+        </select>
        </label>
        <label style={{...labelStyle,flex:'1 1 170px'}}>Finalidade
         <select style={inputStyle} value={q.purpose[0]||'formativa'} onChange={e=>update({purpose:[e.target.value as Purpose]})}>
@@ -671,7 +692,7 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
       {label:'Pontuação válida',ok:Number.isFinite(q.points)&&q.points>0},
       ...(q.kind==='discursiva'?
        [{label:'Padrão esperado informado',ok:!!q.expectedAnswer?.trim()},
-        {label:'Rubrica preenchida',ok:!!q.rubric.trim()},
+        {label:'Rubrica preenchida',ok:!!q.rubric.trim()||Boolean(q.rubricCriteria?.length)},
         {label:'Linhas de resposta configuradas',ok:Number.isInteger(q.answerLines??8)&&(q.answerLines??8)>=3&&(q.answerLines??8)<=60}]:
        [{label:'Alternativas preenchidas',ok:q.options.length>=2&&q.options.every(o=>o.text.trim().length>0)},
         {label:'Gabarito selecionado',ok:q.options.some(o=>o.id===q.correctOptionId)},

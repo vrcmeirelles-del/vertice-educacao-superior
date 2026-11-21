@@ -31,6 +31,7 @@ sem recriar tabela, regra ou tela paralela.
 | Importação da Construção Curricular | `20261122050000` | `vertice_avalia_curriculum_import` | `curriculum-import-api.ts`, `curriculum-import.ts` |
 | **Bloco 2 — montagem automática de prova** | `20261122070000` | `vertice_avalia_bank` (com descritores de competência), `vertice_avalia_bank_exposure` | `exam-assembly.ts`, `competency-key.ts`, `AssemblyPanel.tsx` |
 | **Bloco 3 — mapa de erros e recuperação** | `20261122090000` | `vertice_avalia_error_evidence`, `vertice_avalia_recovery` (tabela `vertice_avalia_recovery_plans`) | `error-map.ts`, `recovery.ts`, `recovery-api.ts`, `ErrorMapPanel.tsx`, `RecoveryPanel.tsx` |
+| **Bloco 4 — justiça e qualidade** | `20261122110000` | `vertice_avalia_response_matrix`, `vertice_avalia_double_scoring` (tabela `vertice_avalia_second_scores`); bloqueios de rubrica em `avalia_blocking_issues` | `bloom.ts`, `fairness.ts`, `agreement.ts`, `quality-api.ts`, `QualityPanel.tsx` |
 
 ### Bloco 1 — decisões
 
@@ -106,10 +107,26 @@ sem recriar tabela, regra ou tela paralela.
 - **Reutilizar no bloco 4:** evidência de erros por alternativa (`chosen_option`), análise de
   itens, `scheduleItems` e o padrão de RPC por escopo.
 
-### Bloco 4 — justiça e qualidade
-- Comparação entre versões A/B/C para alunos de desempenho equivalente (DIF simplificado).
-- Rubrica estruturada por critérios e concordância entre corretores (kappa de Cohen ou correlação intraclasse).
-- Classificação de Bloom por verbo de comando (dicionário fixo) e alerta de desalinhamento.
+### Bloco 4 — justiça e qualidade (PRONTO)
+- **Bloom** (`bloom.ts`): dicionário fixo só de formas verbais de comando (imperativo e
+  infinitivo), para não confundir com substantivos jurídicos ("julgamento", "aplicação da lei");
+  nível = o mais alto encontrado; `QuestionDraft.bloomLevel` (professor) prevalece. Alerta
+  `BLOOM_BAIXO`: somativa a partir do 5º período com ≥ 60% em Lembrar/Compreender.
+- **Rubrica estruturada** (`QuestionDraft.rubricCriteria`): critérios com pontos; bloqueios
+  `RUBRICA_CRITERIO` e `RUBRICA_SOMA` (soma ≠ pontuação) no cliente e no servidor; a rubrica
+  estruturada substitui o texto livre; somativa sem critérios gera alerta.
+- **Justiça entre versões** (`fairness.ts`, `vertice_avalia_response_matrix` anonimizada):
+  Mantel-Haenszel por questão objetiva, cada versão contra as demais, estratos pela nota
+  (cortes nas fronteiras entre notas diferentes); D-DIF = −2,35·ln α; χ² com correção de
+  continuidade; categorias A/B/C (|D| < 1, 1–1,5, ≥ 1,5, com significância); mínimo de 10 por
+  grupo; "indeterminado" quando o estrato não traz informação. Também d de Cohen por versão.
+  Conferido com statsmodels `StratifiedTable`.
+- **Dupla correção cega** (`vertice_avalia_double_scoring`): amostra determinística (hash),
+  sem a 1ª nota; o 2º corretor não pode ser quem lançou a 1ª; critérios devem somar a nota.
+  **Concordância** (`agreement.ts`): ICC(2,1) de Shrout & Fleiss (conferido com o exemplo
+  publicado, 0,29), diferença média, viés e % dentro de 10%; mínimo de 5 pares.
+- **Reutilizar no bloco 5:** domínio por competência (bloco 1), `effectiveBloom`, matriz
+  anonimizada e o padrão de RPC por escopo.
 
 ### Bloco 5 — prontidão ENADE/OAB e risco
 - Domínio por competência (bloco 1) × pesos da matriz do exame ⇒ índice de prontidão.

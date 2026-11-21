@@ -85,3 +85,20 @@ describe('avaliação somativa exige competência',()=>{
   expect(checkAssessment([{...q,competencyIds:['c1']}],undefined,{purpose:'somativa'}).canSubmit).toBe(true);
  });
 });
+
+describe('rubrica estruturada e Bloom no checklist',()=>{
+ const d={kind:'discursiva' as const,statement:'Explique o princípio da legalidade tributária.',options:[],correctOptionId:'',rubric:'',
+  expectedAnswer:'Padrão esperado.',points:2,competencyIds:['c1'],topicIds:[],images:[]};
+ it('soma dos critérios deve bater com a pontuação; critério precisa de descrição e pontos',()=>{
+  const codes=(q:typeof d&{rubricCriteria?:Array<{id:string;label:string;points:number}>})=>checkAssessment([q]).issues.map(i=>i.code);
+  expect(codes({...d,rubricCriteria:[{id:'1',label:'Conceito',points:1},{id:'2',label:'Exemplo',points:1}]})).not.toContain('RUBRICA_SOMA');
+  expect(codes({...d,rubricCriteria:[{id:'1',label:'Conceito',points:1.5}]})).toContain('RUBRICA_SOMA');
+  expect(codes({...d,rubricCriteria:[{id:'1',label:'',points:2}]})).toContain('RUBRICA_CRITERIO');
+  expect(codes(d)).toContain('SEM_RUBRICA');
+ });
+ it('somativa: alerta de rubrica sem critérios e de desalinhamento de Bloom',()=>{
+  const r=checkAssessment([{...d,rubric:'texto livre'},{...d,rubric:'x',statement:'Defina tributo.'},{...d,rubric:'x',statement:'Cite dois impostos.'}],undefined,{purpose:'somativa',period:7});
+  expect(r.issues.map(i=>i.code)).toEqual(expect.arrayContaining(['RUBRICA_SEM_CRITERIOS','BLOOM_BAIXO']));
+  expect(r.canSubmit).toBe(true);
+ });
+});

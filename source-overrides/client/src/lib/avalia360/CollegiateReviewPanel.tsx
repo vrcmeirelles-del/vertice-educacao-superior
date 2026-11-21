@@ -71,7 +71,7 @@ export default function CollegiateReviewPanel({institutionId,courseId}:{institut
   requiredTopicIds:open.draft.snapshot.meta?.declaredPedagogy?.requiredTopicIds||[],
   competencyLabels:Object.fromEntries((open.draft.snapshot.meta?.declaredPedagogy?.competencies||[]).map(c=>[c.id,c.code+' '+c.title])),
   topicLabels:Object.fromEntries((open.draft.snapshot.meta?.declaredPedagogy?.topics||[]).map(t=>[t.id,t.title])),
- },{purpose:open.draft.snapshot.meta?.purpose}):null;
+ },{purpose:open.draft.snapshot.meta?.purpose,period:open.draft.snapshot.meta?.declaredPedagogy?.currentPeriod}):null;
  const returnRate=ind&&ind.decisions?Math.round(100*ind.returns/ind.decisions):null;
  return <section aria-label="Validação pelo colegiado" style={{background:'#fff',border:'1px solid '+line,borderRadius:14,padding:18,marginBottom:16}}>
   <div style={{display:'flex',justifyContent:'space-between',gap:10,flexWrap:'wrap',alignItems:'center'}}>

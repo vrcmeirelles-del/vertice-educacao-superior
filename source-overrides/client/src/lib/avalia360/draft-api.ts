@@ -57,6 +57,8 @@ function sanitizeQuestion(q:QuestionDraft, uploaded:DraftSaveInput['uploadedImag
   ...(q.spreadsheetMetadata?{spreadsheetMetadata:q.spreadsheetMetadata}:{}),
   ...(q.sourceBankId?{sourceBankId:q.sourceBankId}:{}),
   ...(q.kind==='objetiva'?{distractorNotes:cleanDistractorNotes(q)}:{}),
+  ...(q.bloomLevel&&q.bloomLevel>=1&&q.bloomLevel<=6?{bloomLevel:q.bloomLevel}:{}),
+  ...(q.kind==='discursiva'&&q.rubricCriteria?.length?{rubricCriteria:q.rubricCriteria.map(c=>({id:c.id,label:c.label.trim().slice(0,200),points:c.points}))}:{}),
   pendingImageCount:q.images.length,images:imageMetadata
  };
 }
@@ -189,6 +191,10 @@ export function editableQuestionsFromSnapshot(snapshot:StoredAssessmentDraft['sn
    estimatedDifficulty:(typeof raw.estimatedDifficulty==='number'?raw.estimatedDifficulty:3) as QuestionDraft['estimatedDifficulty'],
    points:typeof raw.points==='number'?raw.points:1,examTags:strings(raw.examTags),images,
    ...(typeof raw.sourceBankId==='string'&&raw.sourceBankId?{sourceBankId:raw.sourceBankId}:{}),
+   ...(typeof raw.bloomLevel==='number'?{bloomLevel:raw.bloomLevel}:{}),
+   ...(Array.isArray(raw.rubricCriteria)?{rubricCriteria:(raw.rubricCriteria as Array<Record<string,unknown>>)
+     .filter(c=>typeof c.id==='string'&&typeof c.label==='string'&&typeof c.points==='number')
+     .map(c=>({id:c.id as string,label:c.label as string,points:c.points as number}))}:{}),
    ...(raw.distractorNotes&&typeof raw.distractorNotes==='object'?{distractorNotes:Object.fromEntries(Object.entries(raw.distractorNotes as Record<string,unknown>)
      .filter((e):e is [string,string]=>typeof e[1]==='string'))}:{}),
    ...(raw.spreadsheetMetadata&&typeof raw.spreadsheetMetadata==='object'?{spreadsheetMetadata:raw.spreadsheetMetadata as QuestionDraft['spreadsheetMetadata']}:{})

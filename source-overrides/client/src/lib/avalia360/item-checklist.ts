@@ -8,6 +8,7 @@
  *  - 'bloqueio': impede o envio para validação (o servidor repete as regras estruturais);
  *  - 'alerta': exige atenção do docente e fica visível ao revisor, mas não bloqueia.
  */
+import {bloomProfile} from './bloom';
 export type ChecklistSeverity = 'bloqueio' | 'alerta';
 export interface ChecklistIssue {
   code: string;
@@ -29,6 +30,8 @@ export interface ChecklistQuestion {
   competencyIds: string[];
   topicIds: string[];
   images: Array<{ altText: string; rightsStatus: string }>;
+  bloomLevel?: number;
+  rubricCriteria?: Array<{ id: string; label: string; points: number }>;
 }
 export interface ChecklistBlueprint {
   requiredCompetencyIds: string[];
@@ -106,7 +109,14 @@ export function checkQuestion(q: ChecklistQuestion, index: number): ChecklistIss
         add('PISTA_ABSOLUTA', 'alerta', 'Todas as alternativas erradas usam termos absolutos (sempre, nunca, somente…).');
     }
   } else {
-    if (!q.rubric.trim()) add('SEM_RUBRICA', 'bloqueio', 'Rubrica da discursiva ausente.');
+    if (!q.rubric.trim() && !(q.rubricCriteria?.length)) add('SEM_RUBRICA', 'bloqueio', 'Rubrica da discursiva ausente.');
+    if (q.rubricCriteria?.length) {
+      if (q.rubricCriteria.some(c => !c.label.trim() || !(c.points > 0)))
+        add('RUBRICA_CRITERIO', 'bloqueio', 'Critério da rubrica sem descrição ou sem pontos.');
+      const total = Math.round(q.rubricCriteria.reduce((s, c) => s + (Number(c.points) || 0), 0) * 100) / 100;
+      if (Math.abs(total - q.points) > 0.001)
+        add('RUBRICA_SOMA', 'bloqueio', 'A soma dos critérios (' + total + ') difere da pontuação da questão (' + q.points + ').');
+    }
     if (!q.expectedAnswer?.trim()) add('SEM_PADRAO_RESPOSTA', 'bloqueio', 'Padrão de resposta esperado ausente.');
   }
   q.images.forEach((im, j) => {
@@ -118,7 +128,7 @@ export function checkQuestion(q: ChecklistQuestion, index: number): ChecklistIss
   return out;
 }
 
-export function checkAssessment(questions: ChecklistQuestion[], blueprint?: ChecklistBlueprint, options?: {purpose?: string}): ChecklistResult {
+export function checkAssessment(questions: ChecklistQuestion[], blueprint?: ChecklistBlueprint, options?: {purpose?: string; period?: number}): ChecklistResult {
   const issues: ChecklistIssue[] = [];
   const summative = options?.purpose === 'somativa';
   if (!questions.length) issues.push({ code: 'CADERNO_VAZIO', severity: 'bloqueio', message: 'Inclua ao menos uma questão.' });
@@ -171,6 +181,15 @@ export function checkAssessment(questions: ChecklistQuestion[], blueprint?: Chec
       issues.push({ code: 'TEMA_DESCOBERTO', severity: 'alerta',
         message: 'Temas planejados sem questão: ' + missingT.map(id => blueprint.topicLabels?.[id] || id).join(', ') + '.' });
   }
+  if (summative) questions.forEach((q, i) => {
+    if (q.kind === 'discursiva' && !q.rubricCriteria?.length)
+      issues.push({code: 'RUBRICA_SEM_CRITERIOS', severity: 'alerta', questionIndex: i,
+        message: 'Somativa: estruture a rubrica em critérios com pontos para permitir a dupla correção.'});
+  });
+  const bloom = bloomProfile(questions, {purpose: options?.purpose, period: options?.period});
+  if (bloom.misaligned)
+    issues.push({code: 'BLOOM_BAIXO', severity: 'alerta',
+      message: Math.round((bloom.lowShare ?? 0) * 100) + '% das questões classificadas estão em Lembrar/Compreender numa avaliação somativa do ' + options?.period + 'º período.'});
   const blocking = issues.filter(i => i.severity === 'bloqueio').length;
   return { issues, blocking, warnings: issues.length - blocking, answerKey, canSubmit: blocking === 0 && questions.length > 0 };
 }
@@ -200,5 +219,7 @@ export function checklistQuestionsFromSnapshot(questions:Array<Record<string,unk
   rubric:str(q.rubric),expectedAnswer:str(q.expectedAnswer),
   points:typeof q.points==='number'?q.points:0,competencyIds:arr(q.competencyIds),topicIds:arr(q.topicIds),
   images:Array.isArray(q.images)?(q.images as Array<Record<string,unknown>>).map(im=>({altText:str(im.altText),rightsStatus:str(im.rightsStatus)})):[],
+  ...(typeof q.bloomLevel==='number'?{bloomLevel:q.bloomLevel}:{}),
+  ...(Array.isArray(q.rubricCriteria)?{rubricCriteria:(q.rubricCriteria as Array<Record<string,unknown>>).map(c=>({id:str(c.id),label:str(c.label),points:typeof c.points==='number'?c.points:0}))}:{}),
  }));
 }
