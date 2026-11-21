@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { loadCurriculum } from '@/lib/curriculum-api';
 import { supabase } from '@/lib/supabase';
 import { createClient } from '@supabase/supabase-js';
 import { isFullAccess, type Role } from '@/lib/area';
@@ -149,10 +150,13 @@ export default function TrailAnalysis({ institutionId, courses, role }: { instit
 
   async function importFromCurriculum() {
     if (!courseId) return;
-    const { data: builds } = await supabase.from('curriculum_builds').select('id').eq('institution_id', institutionId).eq('course_id', courseId).order('version', { ascending: false }).limit(1);
-    if (!builds?.length) { setNotice('Nenhuma versão da Construção Curricular encontrada para este curso.'); return; }
-    const { data: comps } = await supabase.from('curriculum_competencies').select('id, code, title, description').eq('build_id', builds[0].id).order('sort_order');
-    if (!comps?.length) { setNotice('Nenhuma competência cadastrada nesta versão.'); return; }
+    let comps: { id?: string; code: string; title: string; description: string }[];
+    try {
+      const state = await loadCurriculum(institutionId, courseId);
+      if (!state.build) { setNotice('Nenhuma versão da Construção Curricular encontrada para este curso.'); return; }
+      comps = state.competencies;
+    } catch (e) { setNotice(e instanceof Error ? e.message : 'Não foi possível ler a Construção Curricular.'); return; }
+    if (!comps.length) { setNotice('Nenhuma competência cadastrada nesta versão.'); return; }
     for (const c of comps) {
       const exists = trails.find(t => t.curriculum_competency_id === c.id);
       if (!exists) {

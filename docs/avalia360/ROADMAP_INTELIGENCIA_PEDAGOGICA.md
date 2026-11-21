@@ -155,3 +155,10 @@ sem recriar tabela, regra ou tela paralela.
 - Recuperação respondida pelo aluno no Portal do Aluno (outro módulo; decisão do usuário).
 - Corrigir a gravação da Construção Curricular (outro módulo).
 - Incluir os specs do Avalia 360° no CI.
+
+## Construção Curricular — gravação corrigida (2026-11)
+- RPC `public.vertice_curriculum_build(inst, course, 'get'|'save'|'publish', payload)` (migração `20261122150000`).
+- Rascunho atualizado no lugar (ids estáveis); editar matriz publicada abre nova versão; publicar arquiva a anterior.
+- Período de origem (1–12) e situação (proposto/homologado) por competência — alimentam a importação do Avalia 360°.
+- Cliente: `client/src/lib/curriculum-api.ts`; `CurriculumBuilder.tsx` e a importação de `TrailAnalysis.tsx` usam a RPC.
+- Pendente: tabelas de trilhas (`formation_trails`, `trail_*`, `v_trail_diagnostic`) também estão em `vertice_app` sem acesso pelo navegador.
