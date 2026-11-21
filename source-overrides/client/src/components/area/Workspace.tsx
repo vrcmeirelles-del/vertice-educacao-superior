@@ -4,6 +4,7 @@ import { portalModulePresentation } from '@/lib/portal-module-presentation';
 import { ContextHelp } from "@/components/ContextHelp";
 import { MODULE_HELP } from "@/lib/module-help";
 import { HelpLabel } from '@/components/ContextHelp';
+import InstitutionalModuleLink from "./InstitutionalModuleLink";
 import InstitutionSubTabs, { orderAcademicModules } from "./InstitutionSubTabs";
 import InstitutionTabs, { MACRO_TABS, macroTabFor, macroDestination, type MacroTab } from "./InstitutionTabs";
 import Avalia360AcademicEntry from "./Avalia360AcademicEntry";
@@ -294,7 +295,20 @@ export default function Workspace({
     const section = pathname.split('/')[2];
     return section === 'extensao-360' ? 'extensao' : section;
   };
-  const tabPath = (key: Tab) => institutionalBase + '/' + (key === 'extensao' ? 'extensao-360' : key);
+  const [institutionAddress, setInstitutionAddress] = useState<{ id: string; slug: string } | null>(null);
+  useEffect(() => {
+    if (!role || institutionalBase) return;
+    let active = true;
+    supabase.from("vertice_institution_addresses").select("slug").eq("institution_id", id).eq("active", true).maybeSingle()
+      .then(({ data }) => {
+        if (active && data?.slug && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(data.slug)) {
+          setInstitutionAddress({ id: String(id), slug: data.slug });
+        }
+      });
+    return () => { active = false; };
+  }, [id, institutionalBase, role]);
+  const canonicalBase = institutionalBase ?? (institutionAddress?.id === String(id) ? '/' + institutionAddress.slug : undefined);
+  const tabPath = (key: Tab) => canonicalBase ? canonicalBase + '/' + (key === 'extensao' ? 'extensao-360' : key) : undefined;
   const [tab, setTab] = useState<Tab>(() => {
     const t = new URLSearchParams(window.location.hash.slice(1)).get("aba") as Tab | null;
     const requested = (institutionalPath && sectionTab(institutionalPath) || t) as Tab | null;
@@ -410,7 +424,7 @@ export default function Workspace({
     const p = new URLSearchParams(window.location.hash.slice(1));
     p.set("aba", t);
     p.set("instituicao", String(id));
-    window.history.pushState(null, "", institutionalBase ? tabPath(t) : `#${p.toString()}`);
+    window.history.pushState(null, "", (institutionalBase && tabPath(t)) || `#${p.toString()}`);
     return true;
   };
 
@@ -461,10 +475,10 @@ export default function Workspace({
   };
 
   const requestedSection = institutionalBase && sectionTab(window.location.pathname);
-  if (requestedSection && !visible.some(([key]) => key === requestedSection)) {
+  if (!role || !allowedTabs.includes(tab) || (requestedSection && !allowedTabs.includes(requestedSection as Tab))) {
     return <section role="alert">
       <p>Esta seção está indisponível para sua conta.</p>
-      <a href={institutionalBase}>Voltar à área da instituição</a>
+      <a href={canonicalBase ?? "/entrar"}>Voltar à área da instituição</a>
     </section>;
   }
 
@@ -508,6 +522,7 @@ export default function Workspace({
         sortByLabel={activeMacro === "academico" && instTier === "superior"}
         activeTab={macroOverride ? null : tab}
         onSelect={selectModule}
+        moduleHref={tabPath}
         query={moduleSearch} onQueryChange={setModuleSearch}
         favorites={favoriteTabs} onToggleFavorite={toggleFavorite}
         onlyFavorites={onlyFavorites} onToggleOnlyFavorites={() => setOnlyFavorites(value => !value)}
@@ -578,13 +593,13 @@ export default function Workspace({
                     choose(k);
                   };
                   return <div className={active?"vx-module-entry selected":locked?"vx-module-entry locked":"vx-module-entry"} key={k}>
-                    <button type="button" aria-current={active ? "page" : undefined} className="vx-module-link" onClick={handleClick}>
+                    <InstitutionalModuleLink href={locked ? undefined : tabPath(k)} active={active} className="vx-module-link" onSelect={handleClick}>
                       <span className="vx-module-entry-icon" aria-hidden="true">{locked?"🔒":details?.icon??"◈"}</span>
                       <span className="vx-module-entry-copy"><strong>{l}</strong><small>{details?.description??"Abrir módulo institucional"}</small></span>
                       {locked && <span className="tab-locked-badge">Ativar</span>}
                       {tasting && <span className="tab-tasting-badge">Degustação</span>}
                       <span className="vx-module-arrow" aria-hidden="true">›</span>
-                    </button>
+                    </InstitutionalModuleLink>
                     <button type="button" className="vx-module-star" aria-label={(starred?"Remover ":"Adicionar ")+l+(starred?" dos favoritos":" aos favoritos")} aria-pressed={starred} title={starred?"Remover dos favoritos":"Adicionar aos favoritos"} onClick={()=>toggleFavorite(k)}>{starred?"★":"☆"}</button>
                   </div>;
                 })}

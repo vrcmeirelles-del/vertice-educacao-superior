@@ -291,11 +291,12 @@ export default function OwnerDashboard({institutionId, institutionPath, login}: 
  const roleIn=(id:string):Role|null=>master?'master':((members.find(m=>m.institution_id===id&&m.user_id===session?.user.id)?.role as Role)??null);
  useEffect(()=>{const f=()=>setRoute(readHash());window.addEventListener('hashchange',f);window.addEventListener('popstate',f);return()=>{window.removeEventListener('hashchange',f);window.removeEventListener('popstate',f);};},[]);
  const instStats=(id:string)=>institutionEnrollmentSummary(id,courses,enrollments);
- const currentInst=institutions.find(i=>i.id===(institutionId ?? route.inst));
+ const requestedInstitutionId=institutionId ?? route.inst;
+ const currentInst=institutions.find(i=>i.id===requestedInstitutionId && roleIn(i.id));
  const selectedCaptacaoInstitution=institutions.find(i=>i.id===captacaoInstitutionId);
  const selectedAcademicoInstitution=institutions.find(i=>i.id===academicoInstitutionId);
  const selectedGovernancaInstitution=institutions.find(i=>i.id===(governancaInstitutionId||route.inst));
- const currentCourse=courses.find(c=>c.id===route.course&&c.institution_id===(institutionId ?? route.inst));
+ const currentCourse=currentInst ? courses.find(c=>c.id===route.course&&c.institution_id===currentInst.id) : undefined;
  const visibleInstitutions=institutions
   .filter(i=>!route.tierFilter||(i as unknown as Row).tier===route.tierFilter)
   .filter(i=>[i.name,(i as unknown as Row).acronym,(i as unknown as Row).cnpj].some(value=>String(value??'').toLocaleLowerCase('pt-BR').includes(institutionSearch.trim().toLocaleLowerCase('pt-BR'))));
@@ -372,7 +373,7 @@ export default function OwnerDashboard({institutionId, institutionPath, login}: 
  }catch{setError('Código não validado. Confira o autenticador e tente novamente.');}finally{setBusy(false);}}
  if(!loading && !session && login) return <>{login}</>;
  if(!loading && session && masterRoute && !master) return <main className="corp-container corp-section"><p role="alert">Acesso reservado aos administradores da Vértice.</p><a href="/entrar">Escolher acesso</a></main>;
- if(!loading && session && institutionId && !currentInst && !master) return <main className="corp-container corp-section"><p role="alert">Sua conta não tem acesso a esta instituição.</p><button onClick={()=>supabase.auth.signOut()}>Sair</button></main>;
+ if(!loading && session && requestedInstitutionId && !currentInst && !master) return <main className="corp-container corp-section"><p role="alert">Sua conta não tem acesso a esta instituição.</p><button onClick={()=>supabase.auth.signOut()}>Sair</button></main>;
  if(acquisitionsRoute&&!loading&&session&&aal==='aal2')return <GreenHost/>;
  // Usuário equipe sem MFA: mostrar só a extensão da instituição vinculada
  const isEquipeOnly = Boolean(!institutionId || institutionPath?.split('/').length===2 || /\/extensao(?:-360)?$/.test(institutionPath ?? '')) && !master && aal !== 'aal2' && session && !loading && members.length > 0;
