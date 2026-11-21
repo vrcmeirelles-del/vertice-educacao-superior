@@ -53,13 +53,14 @@ interface CatalogItem {
   tasting_ends_at?: string;
 }
 
+// Valores comerciais só chegam ao perfil master: a contratação é intermediada pela equipe Vértice.
 interface PkgPricing {
   package: string;
   package_label: string;
-  monthly_floor: string;
-  setup_fee: string;
-  addon_activation: string;
-  addon_monthly: string;
+  monthly_floor?: string;
+  setup_fee?: string;
+  addon_activation?: string;
+  addon_monthly?: string;
 }
 
 export default function ModuleCatalogShowcase({
@@ -84,7 +85,7 @@ export default function ModuleCatalogShowcase({
 
   useEffect(() => {
     load();
-  }, [institutionId]);
+  }, [institutionId, isMaster]);
 
   async function load() {
     const tier = institutionTier === "escolas" ? "escolas" : "superior";
@@ -103,7 +104,7 @@ export default function ModuleCatalogShowcase({
     // Pricing
     const { data: pr } = await supabase
       .from("vertice_package_pricing")
-      .select("package, package_label, monthly_floor, setup_fee, addon_activation, addon_monthly")
+      .select(isMaster ? "package, package_label, monthly_floor, setup_fee, addon_activation, addon_monthly" : "package, package_label")
       .eq("tier", tier)
       .order("sort_order");
     setPricing(pr ?? []);
@@ -181,7 +182,9 @@ export default function ModuleCatalogShowcase({
         <div>
           <p className="mcs-eyebrow">VÉRTICE · CATÁLOGO DE MÓDULOS</p>
           <h2>Módulos Disponíveis — {tierLabel}</h2>
-          <p className="mcs-subtitle">Explore os módulos, ative degustações gratuitas de 15 dias ou contrate pacotes completos.</p>
+          <p className="mcs-subtitle">{isMaster
+            ? "Explore os módulos, ative degustações gratuitas de 15 dias ou contrate pacotes completos."
+            : "Explore os módulos e ative degustações gratuitas de 15 dias. A contratação de pacotes é feita com a equipe Vértice."}</p>
         </div>
         <div className="mcs-controls">
           <input
@@ -214,8 +217,14 @@ export default function ModuleCatalogShowcase({
                 <span className="mcs-pricing-icon" style={{ background: t.bg, color: t.accent }}>{t.icon}</span>
                 <strong style={{ color: t.accent }}>{p.package_label}</strong>
                 <span className="mcs-pricing-count">{count} módulo{count !== 1 ? "s" : ""}</span>
-                <span className="mcs-pricing-value">a partir de <strong>R$ {Number(p.monthly_floor).toLocaleString("pt-BR")}</strong>/mês</span>
-                <span className="mcs-pricing-setup">Implantação: R$ {Number(p.setup_fee).toLocaleString("pt-BR")}</span>
+                {isMaster ? (
+                  <>
+                    <span className="mcs-pricing-value">a partir de <strong>R$ {Number(p.monthly_floor).toLocaleString("pt-BR")}</strong>/mês</span>
+                    <span className="mcs-pricing-setup">Implantação: R$ {Number(p.setup_fee).toLocaleString("pt-BR")}</span>
+                  </>
+                ) : (
+                  <span className="mcs-pricing-setup">Valores sob proposta da equipe Vértice</span>
+                )}
               </button>
             );
           })}
