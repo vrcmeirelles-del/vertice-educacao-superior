@@ -51,17 +51,20 @@ const SapiensPanel = lazy(() => import('@/components/area/SapiensPanel'));
 
 type Membership={user_id:string;institution_id:string;role:string};
 const SNAPSHOT_COLUMNS='id,course_id,semester,class_label,enrolled,capacity,available,source_report_at,reported_total,student_status';
-async function fetchAllSnapshots(){
+async function fetchAllSnapshots(courseIds?: string[]){
+ if(courseIds?.length===0)return [];
  const page=1000;const all:Enrollment[]=[];
  for(let from=0;;from+=page){
-  const {data,error}=await supabase.from('vertice_enrollment_snapshots').select(SNAPSHOT_COLUMNS).order('source_report_at',{ascending:false}).order('id').range(from,from+page-1);
+  const query=supabase.from('vertice_enrollment_snapshots').select(SNAPSHOT_COLUMNS);
+  if(courseIds)query.in('course_id',courseIds);
+  const {data,error}=await query.order('source_report_at',{ascending:false}).order('id').range(from,from+page-1);
   if(error)throw error;all.push(...(data as Enrollment[]));if(!data||data.length<page)break;
  }
  return all;
 }
-async function fetchDashboardRows(table:string,order:string,ascending=true,columns='*'){
+async function fetchDashboardRows(table:string,order:string,ascending=true,columns='*', scope?: { column: string; id: string }){
  const rows:Row[]=[];
- for(let from=0;;from+=1000){const {data,error}=await supabase.from(table).select(columns).order(order,{ascending}).order('id').range(from,from+999);if(error)throw error;rows.push(...((data??[]) as unknown as Row[]));if(!data||data.length<1000)break;}
+ for(let from=0;;from+=1000){const query=supabase.from(table).select(columns);if(scope)query.eq(scope.column,scope.id);const {data,error}=await query.order(order,{ascending}).order('id').range(from,from+999);if(error)throw error;rows.push(...((data??[]) as unknown as Row[]));if(!data||data.length<1000)break;}
  return {data:rows,error:null};
 }
 function readHash(){const p=new URLSearchParams(typeof window==='undefined'?'':window.location.hash.slice(1));return {inst:p.get('instituicao')??'',course:p.get('curso')??'',repositories:p.get('repositorios')==='1',bi:p.get('bi')==='1',captacao:p.get('captacao')==='1',academico:p.get('academico')==='1',painelBi:p.get('painel-bi')==='1',perfis:p.get('perfis')==='1',masters:p.get('masters')==='1',demonstrativos:p.get('demonstrativos')==='1',clientes:p.get('clientes')==='1',governanca:p.get('governanca')==='1',hub:!p.toString(),biVertice:p.get('bi-vertice')==='1',tierFilter:p.get('tier')??'',financeiro:p.get('financeiro')==='1',sapiens:p.get('sapiens')==='1',enadeOperations:p.get('enade-operacao')==='1',homologacao:p.get('homologacao')==='1'};}
@@ -260,7 +263,12 @@ export function PortalBI({institutions,courses,enrollments,session}:{institution
  </section>;
 }
 
-export default function OwnerDashboard(){
+export default function OwnerDashboard({institutionId, institutionPath, login}: {
+ institutionId?: string;
+ institutionPath?: string;
+ login?: React.ReactNode;
+} = {}){
+ const masterRoute = /^\/master(?:[/.]|$)/.test(window.location.pathname);
  const acquisitionsRoute=/^\/master\/aquisicoes(?:\/|\.html)?$/.test(window.location.pathname);
  const [session,setSession]=useState<Session|null>(null);
  const [loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[error,setError]=useState('');
@@ -282,11 +290,11 @@ export default function OwnerDashboard(){
  const roleIn=(id:string):Role|null=>master?'master':((members.find(m=>m.institution_id===id&&m.user_id===session?.user.id)?.role as Role)??null);
  useEffect(()=>{const f=()=>setRoute(readHash());window.addEventListener('hashchange',f);window.addEventListener('popstate',f);return()=>{window.removeEventListener('hashchange',f);window.removeEventListener('popstate',f);};},[]);
  const instStats=(id:string)=>institutionEnrollmentSummary(id,courses,enrollments);
- const currentInst=institutions.find(i=>i.id===route.inst);
+ const currentInst=institutions.find(i=>i.id===(institutionId ?? route.inst));
  const selectedCaptacaoInstitution=institutions.find(i=>i.id===captacaoInstitutionId);
  const selectedAcademicoInstitution=institutions.find(i=>i.id===academicoInstitutionId);
  const selectedGovernancaInstitution=institutions.find(i=>i.id===(governancaInstitutionId||route.inst));
- const currentCourse=courses.find(c=>c.id===route.course&&c.institution_id===route.inst);
+ const currentCourse=courses.find(c=>c.id===route.course&&c.institution_id===(institutionId ?? route.inst));
  const visibleInstitutions=institutions
   .filter(i=>!route.tierFilter||(i as unknown as Row).tier===route.tierFilter)
   .filter(i=>[i.name,(i as unknown as Row).acronym,(i as unknown as Row).cnpj].some(value=>String(value??'').toLocaleLowerCase('pt-BR').includes(institutionSearch.trim().toLocaleLowerCase('pt-BR'))));
@@ -297,6 +305,12 @@ export default function OwnerDashboard(){
    if(!current)return;
    const {data:assurance,error:aError}=await supabase.auth.mfa.getAuthenticatorAssuranceLevel();if(aError)throw aError;
    setAal(assurance.currentLevel??'aal1');
+   if(masterRoute){
+    const {data: admin, error: adminError} = await supabase.from('vertice_admins').select('user_id').eq('user_id',current.user.id).maybeSingle();
+    if(adminError) throw adminError;
+    setMaster(Boolean(admin));
+    if(!admin) return;
+   }
    if(assurance.currentLevel!=='aal2'){
     const {data,error:fError}=await supabase.auth.mfa.listFactors();if(fError)throw fError;
     setFactor(data.totp[0]?.id??'');
@@ -309,23 +323,28 @@ export default function OwnerDashboard(){
    // Aquisições depende apenas da sessão e do MFA; seu backend aplica as permissões.
    if(acquisitionsRoute)return;
    await supabase.rpc('vertice_accept_invites').then(()=>undefined,()=>undefined);
+   const scope = institutionId ? {column:'institution_id',id:institutionId} : undefined;
+   const memberships = supabase.from('vertice_memberships').select('user_id,institution_id,role');
+   if(institutionId) memberships.eq('institution_id',institutionId).eq('user_id',current.user.id);
    const results=await Promise.all([
     supabase.from('vertice_admins').select('user_id').eq('user_id',current.user.id),
-    fetchDashboardRows('vertice_institutions','name'),
-    fetchDashboardRows('vertice_courses','name'),
-    supabase.from('vertice_memberships').select('user_id,institution_id,role'),
-    fetchDashboardRows('vertice_academic_reports','source_report_at',false)
+    fetchDashboardRows('vertice_institutions','name',true,'*',institutionId ? {column:'id',id:institutionId} : undefined),
+    fetchDashboardRows('vertice_courses','name',true,'*',scope),
+    memberships,
+    fetchDashboardRows('vertice_academic_reports','source_report_at',false,'*',scope)
    ]);
    const failedQuery=results.find(r=>r.error);
    if(failedQuery)throw new Error('data unavailable: '+(failedQuery.error as any)?.message);
-   const snapshots=await fetchAllSnapshots();
-   setMaster(Boolean(results[0].data?.length));setInstitutions(results[1].data as Institution[]);setCourses(Array.from(new Map((results[2].data as Course[]).map(c=>[c.id,c])).values()));setMembers(results[3].data as Membership[]);
+   const scopedMembers = (results[3].data as Membership[]).filter(m => !institutionId || m.institution_id === institutionId);
+   if(institutionId && !results[0].data?.length && !scopedMembers.some(m => m.user_id === current.user.id)) return;
+   const snapshots=await fetchAllSnapshots(institutionId ? results[2].data.map(row=>String(row.id)) : undefined);
+   setMaster(Boolean(results[0].data?.length));setInstitutions((results[1].data as Institution[]).filter(i=>!institutionId || i.id===institutionId));setCourses(Array.from(new Map((results[2].data as Course[]).filter(c=>!institutionId || c.institution_id===institutionId).map(c=>[c.id,c])).values()));setMembers(scopedMembers);
    setEnrollments(latestEnrollmentSnapshots(snapshots));
    setReports(results[4].data as AcademicReport[]);
    const [g,a,d]=await Promise.all([
-    fetchDashboardRows('vertice_goals','id',true,'id,institution_id,status'),
-    fetchDashboardRows('vertice_actions','id',true,'id,institution_id,status,due_date'),
-    fetchDashboardRows('vertice_diagnosis_items','id',true,'id,institution_id,status,priority')
+    fetchDashboardRows('vertice_goals','id',true,'id,institution_id,status',scope),
+    fetchDashboardRows('vertice_actions','id',true,'id,institution_id,status,due_date',scope),
+    fetchDashboardRows('vertice_diagnosis_items','id',true,'id,institution_id,status,priority',scope)
    ]);
    setMgmt({goals:(g.data??[]) as Row[],actions:(a.data??[]) as Row[],diagnosis:(d.data??[]) as Row[]});
   }catch(loadErr){setError('Não foi possível consultar os dados protegidos. ' + ((loadErr as Error)?.message || 'Tente novamente.'));}
@@ -336,11 +355,11 @@ export default function OwnerDashboard(){
  useEffect(()=>{
   if(master||!institutions.length||!session)return;
   const myMembership=members.find(m=>m.user_id===session.user.id);
-  const instId=route.inst||myMembership?.institution_id||institutions[0]?.id;
+  const instId=institutionId||route.inst||myMembership?.institution_id||institutions[0]?.id;
   if(instId)applyInstitutionTheme(instId);
   else resetToVerticeTheme();
   return()=>resetToVerticeTheme();
- },[master,institutions,members,session,route.inst]);
+ },[master,institutions,members,session,route.inst,institutionId]);
  async function enroll(){setBusy(true);setError('');try{
   const {data:existing,error:listError}=await supabase.auth.mfa.listFactors();if(listError)throw listError;
   const pending=existing.all.find(f=>f.factor_type==='totp' && f.status==='unverified');
@@ -350,9 +369,12 @@ export default function OwnerDashboard(){
  async function verify(e:FormEvent){e.preventDefault();setBusy(true);setError('');try{
   const {error}=await supabase.auth.mfa.challengeAndVerify({factorId:factor,code});if(error)throw error;setCode('');setQr('');await load();
  }catch{setError('Código não validado. Confira o autenticador e tente novamente.');}finally{setBusy(false);}}
+ if(!loading && !session && login) return <>{login}</>;
+ if(!loading && session && masterRoute && !master) return <main className="corp-container corp-section"><p role="alert">Acesso reservado aos administradores da Vértice.</p><a href="/entrar">Escolher acesso</a></main>;
+ if(!loading && session && institutionId && !currentInst && !master) return <main className="corp-container corp-section"><p role="alert">Sua conta não tem acesso a esta instituição.</p><button onClick={()=>supabase.auth.signOut()}>Sair</button></main>;
  if(acquisitionsRoute&&!loading&&session&&aal==='aal2')return <GreenHost/>;
  // Usuário equipe sem MFA: mostrar só a extensão da instituição vinculada
- const isEquipeOnly = !master && aal !== 'aal2' && session && !loading && members.length > 0;
+ const isEquipeOnly = Boolean(!institutionId || institutionPath?.split('/').length===2 || /\/extensao(?:-360)?$/.test(institutionPath ?? '')) && !master && aal !== 'aal2' && session && !loading && members.length > 0;
  const equipeInstitution = isEquipeOnly ? institutions.find(i => members.some(m => m.user_id === session?.user.id && m.institution_id === i.id)) : null;
  if (isEquipeOnly && equipeInstitution) {
    const equipeRole = members.find(m => m.user_id === session.user.id && m.institution_id === equipeInstitution.id)?.role as Role || 'equipe';
@@ -375,12 +397,12 @@ export default function OwnerDashboard(){
  </PortalPageHeader> : <div className="master-page-heading"><h1>{portalTitle}</h1>{session && <p className="master-session">Conectado como <strong>{session.user.email}</strong></p>}</div>}
  {master&&(route.tierFilter||route.financeiro)&&!route.inst&&<button onClick={()=>{window.location.hash='';window.dispatchEvent(new HashChangeEvent('hashchange'));}} style={{background:'none',border:'none',color:'#2563eb',cursor:'pointer',fontSize:13,marginBottom:12,padding:0}}>← Voltar ao hub</button>}
  {loading?<p role="status">Verificando acesso…</p>:!session?<><p>Entre para acessar sua conta.</p><Link className="corp-button" href={window.location.pathname.startsWith('/reitor')?'/entrar?destino=reitor':'/entrar'}>Entrar</Link></>:<>
- {aal!=='aal2'&&master?<section className="corp-login-card"><h2>Proteja seu acesso</h2><p>O segundo fator é obrigatório para consultar os dados das instituições como administrador.</p>
+ {aal!=='aal2'&&(master||institutionId)?<section className="corp-login-card"><h2>Proteja seu acesso</h2><p>O segundo fator é obrigatório para consultar os dados das instituições nesta área.</p>
  {!factor?<button className="corp-button" disabled={busy} onClick={enroll}>Configurar aplicativo autenticador</button>:<>
  {qr&&<><p>Leia o QR code no seu aplicativo autenticador. Não compartilhe esta imagem.</p><img alt="QR code para configurar seu autenticador" src={qr} width={200} height={200}/></>}
  <form className="access-form" onSubmit={verify}><HelpLabel>Código do autenticador<input autoComplete="one-time-code" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} required value={code} onChange={e=>setCode(e.target.value)}/></HelpLabel><button className="corp-button" disabled={busy}>Validar segundo fator</button></form></>}
  </section>:<><MasterInvitationGate onAccepted={load}/>
- {route.enadeOperations?master?<Suspense fallback={<p>Carregando acompanhamento ENADE 360°…</p>}><EnadeOperations institutions={institutions} courses={courses}/></Suspense>:<p role="alert">Área restrita ao Master com segundo fator.</p>:route.homologacao?master?<Suspense fallback={<p>Carregando Central de Homologação…</p>}><MasterHomologation institutions={institutions} courses={courses} onBack={()=>{window.location.hash='';window.dispatchEvent(new HashChangeEvent('hashchange'));}}/></Suspense>:<p role="alert">Central restrita ao Master com segundo fator.</p>:route.biVertice&&master?<VerticeBI onBack={()=>{window.location.hash='';window.dispatchEvent(new HashChangeEvent('hashchange'));}}/>:route.financeiro&&master?<><button onClick={()=>{window.location.hash='';window.dispatchEvent(new HashChangeEvent('hashchange'));}} style={{background:'none',border:'none',color:'#2563eb',cursor:'pointer',fontSize:13,padding:0,marginBottom:12}}>← Voltar ao hub</button><BillingPanel/></>:route.hub&&master?<MasterHub onNavigate={(dest,instId)=>{
+ {institutionId && currentInst && !currentCourse ? <Workspace key={currentInst.id} institutionalPath={institutionPath} institution={currentInst as unknown as Row} role={roleIn(currentInst.id)} onBack={()=>writeHash(currentInst.id,'')} onChanged={load} stats={instStats(currentInst.id)} overview={<InstitutionView institution={currentInst} courses={courses} enrollments={enrollments} embedded onOpenCourse={id=>writeHash(currentInst.id,id)} onBack={()=>writeHash(currentInst.id,'')}/>}/> : route.enadeOperations?master?<Suspense fallback={<p>Carregando acompanhamento ENADE 360°…</p>}><EnadeOperations institutions={institutions} courses={courses}/></Suspense>:<p role="alert">Área restrita ao Master com segundo fator.</p>:route.homologacao?master?<Suspense fallback={<p>Carregando Central de Homologação…</p>}><MasterHomologation institutions={institutions} courses={courses} onBack={()=>{window.location.hash='';window.dispatchEvent(new HashChangeEvent('hashchange'));}}/></Suspense>:<p role="alert">Central restrita ao Master com segundo fator.</p>:route.biVertice&&master?<VerticeBI onBack={()=>{window.location.hash='';window.dispatchEvent(new HashChangeEvent('hashchange'));}}/>:route.financeiro&&master?<><button onClick={()=>{window.location.hash='';window.dispatchEvent(new HashChangeEvent('hashchange'));}} style={{background:'none',border:'none',color:'#2563eb',cursor:'pointer',fontSize:13,padding:0,marginBottom:12}}>← Voltar ao hub</button><BillingPanel/></>:route.hub&&master?<MasterHub onNavigate={(dest,instId)=>{
   if(dest==='bi-vertice'){window.location.hash='bi-vertice=1';}
   else if(dest==='universidades'){window.location.hash='tier=superior';}
   else if(dest==='escolas'){window.location.hash='tier=escolas';}
