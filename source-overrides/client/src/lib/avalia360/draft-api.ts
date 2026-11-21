@@ -46,6 +46,7 @@ function sanitizeQuestion(q:QuestionDraft, uploaded:DraftSaveInput['uploadedImag
   purpose:q.purpose,estimatedDifficulty:q.estimatedDifficulty,
   points:q.points,examTags:q.examTags,
   ...(q.spreadsheetMetadata?{spreadsheetMetadata:q.spreadsheetMetadata}:{}),
+  ...(q.sourceBankId?{sourceBankId:q.sourceBankId}:{}),
   pendingImageCount:q.images.length,images:imageMetadata
  };
 }
@@ -177,6 +178,7 @@ export function editableQuestionsFromSnapshot(snapshot:StoredAssessmentDraft['sn
    purpose:strings(raw.purpose) as QuestionDraft['purpose'],
    estimatedDifficulty:(typeof raw.estimatedDifficulty==='number'?raw.estimatedDifficulty:3) as QuestionDraft['estimatedDifficulty'],
    points:typeof raw.points==='number'?raw.points:1,examTags:strings(raw.examTags),images,
+   ...(typeof raw.sourceBankId==='string'&&raw.sourceBankId?{sourceBankId:raw.sourceBankId}:{}),
    ...(raw.spreadsheetMetadata&&typeof raw.spreadsheetMetadata==='object'?{spreadsheetMetadata:raw.spreadsheetMetadata as QuestionDraft['spreadsheetMetadata']}:{})
   });
  }

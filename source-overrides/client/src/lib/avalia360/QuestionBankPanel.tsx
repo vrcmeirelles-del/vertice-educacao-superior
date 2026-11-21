@@ -3,6 +3,8 @@ import type {QuestionDraft} from './question-draft';
 import {reuseBankQuestion,type BankQuestion} from './question-bank';
 import {listLocalBank,saveLocalBank} from './question-bank-local';
 import {listInstitutionalBank,saveInstitutionalBank} from './question-bank-api';
+import {loadBankCalibration,type BankCalibration} from './analysis-api';
+import {discriminationLabel,facilityLabel,observedLevel} from './item-analysis-rules';
 type Props={previewMode:boolean;institutionId:string;courseId:string;discipline:string;
  currentQuestion?:QuestionDraft;indexLabels:string[];onReuse:(q:QuestionDraft)=>void;};
 const btn={border:'1px solid #164b92',borderRadius:9,padding:'10px 14px',cursor:'pointer',fontWeight:650} as const;
@@ -12,6 +14,7 @@ export default function QuestionBankPanel({previewMode,institutionId,courseId,di
  const [notice,setNotice]=useState('');
  const [searchedQuery,setSearchedQuery]=useState('');
  const [busy,setBusy]=useState(false);
+ const [calibration,setCalibration]=useState<Record<string,BankCalibration>>({});
  const canSearch=!busy&&Boolean(courseId&&discipline.trim()&&query.trim());
  const searchCompleted=canSearch&&searchedQuery===query.trim();
  const canSave=!busy&&Boolean(institutionId&&courseId&&discipline.trim()&&currentQuestion);
@@ -27,6 +30,7 @@ export default function QuestionBankPanel({previewMode,institutionId,courseId,di
   try{
    const q=query.trim();
    setSaved(previewMode?listLocalBank(institutionId,courseId,discipline,q):await listInstitutionalBank(institutionId,courseId,discipline,q));
+   if(!previewMode)setCalibration(await loadBankCalibration(institutionId,courseId,discipline).catch(()=>({})));
    setSearchedQuery(q);
   }catch(e){setNotice(e instanceof Error?e.message:'Não foi possível consultar o Banco de Questões.');}
   finally{setBusy(false);}
@@ -80,6 +84,12 @@ export default function QuestionBankPanel({previewMode,institutionId,courseId,di
         <strong style={{display:'block',fontSize:13}}>{record.question.kind==='objetiva'?'Objetiva':'Discursiva'} · {record.question.estimatedDifficulty}/5 · {record.question.points} ponto(s)</strong>
         <p style={{fontSize:13,whiteSpace:'pre-wrap',margin:'8px 0'}}>{record.question.statement}</p>
         <small>Versão {record.revision} · {record.status} · {new Date(record.createdAt).toLocaleDateString('pt-BR')} · ID {record.bankId.slice(0,8)}</small>
+        {(()=>{const c=calibration[record.bankId];
+         return c&&c.p!==null?<p style={{fontSize:12,margin:'6px 0 0',color:'#164b92'}}>
+          Dificuldade declarada {record.question.estimatedDifficulty} · observada {observedLevel(c.p)} ({facilityLabel(c.p)}, {Math.round(c.p*100)}% de acerto)
+          {' · '}discriminação {c.discrimination===null?'—':c.discrimination.toFixed(2).replace('.',',')+' ('+discriminationLabel(c.discrimination)+')'}
+          {' · '}{c.n} resposta(s) em {c.applications} aplicação(ões) encerrada(s)</p>
+          :!previewMode?<p style={{fontSize:12,margin:'6px 0 0',color:'#64748b'}}>Ainda sem dados de aplicação encerrada.</p>:null;})()}
         <div style={{marginTop:9}}><button type="button" style={{...btn,background:'#164b92',color:'#fff'}}
           onClick={()=>reuse(record)}>Inserir cópia na prova</button></div>
        </article>)}

@@ -28,6 +28,8 @@ export interface QuestionDraft {
   points: number;
   examTags: string[];
   images: PendingQuestionImage[];
+  /** Origem no Banco de Questões, para que a estatística observada volte ao item. */
+  sourceBankId?: string;
   spreadsheetMetadata?: {
     topic:string;subtopic:string;keywords:string;competencies:string;
     fileName:string;imagePosition:string;caption:string;altText:string;
