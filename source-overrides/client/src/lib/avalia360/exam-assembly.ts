@@ -89,7 +89,7 @@ export function assembleExam(items:AssemblyItem[],spec:AssemblySpec):AssemblyRes
  const chosen:AssemblyItem[]=[];let sum=0;
  const pick=(cands:AssemblyItem[])=>{
   const k=chosen.length;
-  const ranked=cands.map(c=>({c,cost:Math.abs((sum+c.level)/(k+1)-spec.targetLevel),d:c.discrimination??ASSEMBLY_RULES.unknownDiscrimination}))
+  const ranked=cands.map(c=>({c,cost:Math.round(Math.abs((sum+c.level)/(k+1)-spec.targetLevel)*1e6)/1e6,d:c.discrimination??ASSEMBLY_RULES.unknownDiscrimination}))
    .sort((x,y)=>x.cost-y.cost||y.d-x.d||x.c.bankId.localeCompare(y.c.bankId));
   const best=ranked[0].c;chosen.push(best);sum+=best.level;
  };

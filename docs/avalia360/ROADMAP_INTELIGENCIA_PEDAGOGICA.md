@@ -30,6 +30,7 @@ sem recriar tabela, regra ou tela paralela.
 | **Bloco 1 — diagnóstico por competência** | `20261122030000` | `vertice_avalia_competency_evidence` | `competency-mastery.ts`, `competency-api.ts`, `CompetencyDiagnosisPanel.tsx` |
 | Importação da Construção Curricular | `20261122050000` | `vertice_avalia_curriculum_import` | `curriculum-import-api.ts`, `curriculum-import.ts` |
 | **Bloco 2 — montagem automática de prova** | `20261122070000` | `vertice_avalia_bank` (com descritores de competência), `vertice_avalia_bank_exposure` | `exam-assembly.ts`, `competency-key.ts`, `AssemblyPanel.tsx` |
+| **Bloco 3 — mapa de erros e recuperação** | `20261122090000` | `vertice_avalia_error_evidence`, `vertice_avalia_recovery` (tabela `vertice_avalia_recovery_plans`) | `error-map.ts`, `recovery.ts`, `recovery-api.ts`, `ErrorMapPanel.tsx`, `RecoveryPanel.tsx` |
 
 ### Bloco 1 — decisões
 
@@ -85,10 +86,25 @@ sem recriar tabela, regra ou tela paralela.
 - **Reutilizar no bloco 3:** `toAssemblyItems` (nível observado/declarado, exposição),
   `competencyKeyOf`, `mergeIntoCatalog`, `observedLevel`, calibração e exposição por item.
 
-### Bloco 3 — recuperação personalizada + mapa de erros
-- Marcação, pelo professor, do erro conceitual de cada alternativa errada (novo campo no item).
-- Lista por aluno de itens do banco nas competências *não demonstradas* (bloco 1), com acerto
-  esperado entre 50% e 80% (calibração), e agenda de repetição espaçada (1, 3, 7, 15 dias).
+### Bloco 3 — mapa de erros e recuperação (PRONTO)
+- **Erro conceitual por alternativa:** `QuestionDraft.distractorNotes` (id da alternativa errada →
+  descrição até 200 caracteres), limpo por `cleanDistractorNotes`, gravado no snapshot e no banco,
+  editado em "Mapa de erros" no editor. Não aparece no caderno do aluno.
+- **Mapa de erros** (`error-map.ts`): soma por descrição normalizada (sem acentos, minúsculas,
+  espaços colapsados, sem pontuação final); "recorrente" se ≥ 30% dos alunos (mínimo de 5).
+  Erros em alternativas sem descrição são listados como "sem mapeamento".
+- **Evidência** (`vertice_avalia_error_evidence`): escopo aplicação ou disciplina (só encerradas e
+  só alunos do cadastro); devolve também os itens do banco já respondidos por aluno.
+- **Plano de recuperação** (`recovery.ts`): até 5 competências (não demonstrado antes de em
+  desenvolvimento, menor nota primeiro); até 3 itens por competência, não respondidos, acerto
+  esperado entre 50% e 80% (mais perto de 65%, depois discriminação, depois id); reserva com
+  dificuldade declarada 2–3, sinalizada. Distâncias arredondadas a 6 casas para empates exatos.
+- **Agenda:** caixas de Leitner 1–3–7–15 dias, recalculada do registro (`scheduleItems`);
+  acerto avança, erro volta à primeira caixa, acerto na última consolida.
+- **Persistência:** `vertice_avalia_recovery_plans` (itens validados contra o banco da
+  disciplina; aluno do cadastro; registro com data a partir do início; plano encerrado bloqueia).
+- **Reutilizar no bloco 4:** evidência de erros por alternativa (`chosen_option`), análise de
+  itens, `scheduleItems` e o padrão de RPC por escopo.
 
 ### Bloco 4 — justiça e qualidade
 - Comparação entre versões A/B/C para alunos de desempenho equivalente (DIF simplificado).

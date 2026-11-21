@@ -30,6 +30,8 @@ export interface QuestionDraft {
   images: PendingQuestionImage[];
   /** Origem no Banco de Questões, para que a estatística observada volte ao item. */
   sourceBankId?: string;
+  /** Erro conceitual que cada alternativa errada revela (id da alternativa → descrição curta). */
+  distractorNotes?: Record<string, string>;
   spreadsheetMetadata?: {
     topic:string;subtopic:string;keywords:string;competencies:string;
     fileName:string;imagePosition:string;caption:string;altText:string;

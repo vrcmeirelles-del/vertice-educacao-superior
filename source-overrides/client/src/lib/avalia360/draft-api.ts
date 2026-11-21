@@ -21,6 +21,15 @@ export interface DraftSaveInput {
  uploadedImages?: Record<string, Array<{localId:string;receipt:UploadedImageReceipt}>>;
  assessmentMeta?: {title:string;teacherName?:string;instructions?:string;semester:string;purpose:'diagnostica'|'formativa'|'somativa';declaredPedagogy?:PedagogicalDraft;curationHistory?:CurationDecision[];curriculumSource?:{buildId:string;version:number;ready:boolean}};
 }
+/** Só alternativas erradas existentes, texto aparado e curto. */
+export function cleanDistractorNotes(q:Pick<QuestionDraft,'options'|'correctOptionId'|'distractorNotes'>):Record<string,string>{
+ const out:Record<string,string>={};
+ for(const o of q.options){
+  const note=(q.distractorNotes?.[o.id]||'').trim().replace(/\s+/g,' ').slice(0,200);
+  if(o.id!==q.correctOptionId&&note)out[o.id]=note;
+ }
+ return out;
+}
 function sanitizeQuestion(q:QuestionDraft, uploaded:DraftSaveInput['uploadedImages']) {
  // Os metadados de mídia dependem de upload privado validado e
  // não podem ser fabricados a partir de File ou IDs locais.
@@ -47,6 +56,7 @@ function sanitizeQuestion(q:QuestionDraft, uploaded:DraftSaveInput['uploadedImag
   points:q.points,examTags:q.examTags,
   ...(q.spreadsheetMetadata?{spreadsheetMetadata:q.spreadsheetMetadata}:{}),
   ...(q.sourceBankId?{sourceBankId:q.sourceBankId}:{}),
+  ...(q.kind==='objetiva'?{distractorNotes:cleanDistractorNotes(q)}:{}),
   pendingImageCount:q.images.length,images:imageMetadata
  };
 }
@@ -179,6 +189,8 @@ export function editableQuestionsFromSnapshot(snapshot:StoredAssessmentDraft['sn
    estimatedDifficulty:(typeof raw.estimatedDifficulty==='number'?raw.estimatedDifficulty:3) as QuestionDraft['estimatedDifficulty'],
    points:typeof raw.points==='number'?raw.points:1,examTags:strings(raw.examTags),images,
    ...(typeof raw.sourceBankId==='string'&&raw.sourceBankId?{sourceBankId:raw.sourceBankId}:{}),
+   ...(raw.distractorNotes&&typeof raw.distractorNotes==='object'?{distractorNotes:Object.fromEntries(Object.entries(raw.distractorNotes as Record<string,unknown>)
+     .filter((e):e is [string,string]=>typeof e[1]==='string'))}:{}),
    ...(raw.spreadsheetMetadata&&typeof raw.spreadsheetMetadata==='object'?{spreadsheetMetadata:raw.spreadsheetMetadata as QuestionDraft['spreadsheetMetadata']}:{})
   });
  }

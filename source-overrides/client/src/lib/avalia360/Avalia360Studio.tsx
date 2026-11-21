@@ -22,6 +22,7 @@ import ApplicationPanel from './ApplicationPanel';
 import CompetencyDiagnosisPanel from './CompetencyDiagnosisPanel';
 import {mergeIntoCatalog} from './competency-key';
 import AssemblyPanel from './AssemblyPanel';
+import RecoveryPanel from './RecoveryPanel';
 import {checkAssessment} from './item-checklist';
 import {loadReviewHistory,submitForReview,type ReviewEvent} from './review-api';
 import {importOfficialCurriculum} from './curriculum-import-api';
@@ -134,6 +135,7 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
  const [applying,setApplying]=useState<string|null>(null);
  const [diagnosisFor,setDiagnosisFor]=useState<string|null>(null);
  const [assembling,setAssembling]=useState(false);
+ const [recoveryFor,setRecoveryFor]=useState<string|null>(null);
  const [errors,setErrors]=useState<string[]>([]);
  const [busy,setBusy]=useState(false);
  const [status,setStatus]=useState('');
@@ -395,8 +397,11 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
   </div>
   {!previewMode&&courseId&&<CollegiateReviewPanel institutionId={institutionId} courseId={courseId}/>}
   {!previewMode&&courseId&&disciplineId.trim()&&<div style={{margin:'0 0 12px'}}>
-   <button type="button" style={btn(assembling)} onClick={()=>setAssembling(v=>!v)}>{assembling?'Fechar montagem automática':'Montar prova a partir do banco'}</button>
+   <button type="button" style={btn(assembling)} onClick={()=>setAssembling(v=>!v)}>{assembling?'Fechar montagem automática':'Montar prova a partir do banco'}</button>{' '}
+   <button type="button" style={btn(recoveryFor===disciplineId.trim())} onClick={()=>setRecoveryFor(v=>v===disciplineId.trim()?null:disciplineId.trim())}>
+    {recoveryFor===disciplineId.trim()?'Fechar recuperação':'Recuperação personalizada'}</button>
   </div>}
+  {!previewMode&&courseId&&disciplineId.trim()&&recoveryFor===disciplineId.trim()&&<RecoveryPanel institutionId={institutionId} courseId={courseId} discipline={disciplineId.trim()}/>}
   {!previewMode&&courseId&&disciplineId.trim()&&assembling&&<AssemblyPanel institutionId={institutionId} courseId={courseId} discipline={disciplineId.trim()}
    catalog={pedagogy.competencies} defaultTarget={pedagogy.targetDifficulty}
    onAssemble={(assembled,catalog,requiredIds)=>{
@@ -500,6 +505,15 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
        <input style={inputStyle} value={o.text} onChange={e=>update({options:q.options.map(a=>a.id===o.id?{...a,text:e.target.value}:a)})} aria-label={'Alternativa '+o.id}/>
        <label style={{fontSize:12}}><input type="radio" name={'correct-'+q.id} checked={q.correctOptionId===o.id} onChange={()=>update({correctOptionId:o.id})}/> Correta</label>
       </div>)}
+      <details style={{marginTop:6}}>
+       <summary style={{fontSize:13,fontWeight:600,cursor:'pointer'}}>Mapa de erros: o que cada alternativa errada revela (opcional)</summary>
+       <p className="avalia-help" style={{margin:'6px 0'}}>Descreva em poucas palavras o equívoco de quem escolhe a alternativa (ex.: “confunde prescrição com decadência”). Use a mesma redação em questões diferentes para o sistema somar o mesmo erro. Não aparece no caderno do aluno.</p>
+       {q.options.filter(o=>o.id!==q.correctOptionId).map(o=><label key={o.id} style={{display:'grid',gridTemplateColumns:'50px 1fr',gap:8,alignItems:'center',marginBottom:6,fontSize:13}}>
+        <strong>{o.id}</strong>
+        <input style={inputStyle} maxLength={200} value={q.distractorNotes?.[o.id]||''} placeholder="Erro conceitual revelado"
+         onChange={e=>update({distractorNotes:{...(q.distractorNotes||{}),[o.id]:e.target.value}})} aria-label={'Erro conceitual da alternativa '+o.id}/>
+       </label>)}
+      </details>
      </fieldset> 
      {q.kind==='objetiva'&&<label style={labelStyle}>Justificativa da alternativa correta
       <span className="avalia-help">Explique por que o gabarito está correto. Este texto integra a curadoria algorítmica e não será mostrado aos alunos.</span>
