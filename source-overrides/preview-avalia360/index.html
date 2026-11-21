@@ -6,6 +6,17 @@
  <meta name="robots" content="noindex,nofollow"/>
  <meta name="theme-color" content="#164B92"/>
  <title>Vértice Avalia 360° · Prévia Interativa</title>
+ <script>
+  // Permite recuperar rascunhos que o navegador guardou apenas no domínio antigo.
+  if (location.hostname === 'vertice-avalia360-homolog.onrender.com' &&
+      new URLSearchParams(location.search).get('rascunhos-locais') !== '1') {
+   const destination = new URL('https://demo.avalia.verticesuperior.com.br/');
+   destination.pathname = location.pathname;
+   destination.search = location.search;
+   destination.hash = location.hash;
+   location.replace(destination.href);
+  }
+ </script>
  <style>
   *{box-sizing:border-box}
   html{font-family:Cambria,Georgia,serif;background:#f5f8fc;color:#18314d}
