@@ -1,3 +1,4 @@
+import MasterLayout from '@/components/MasterLayout';
 import PortalPageHeader from '@/components/PortalPageHeader';
 import { LayoutDashboard } from 'lucide-react';
 import { HelpLabel } from '@/components/ContextHelp';
@@ -391,7 +392,7 @@ export default function OwnerDashboard({institutionId, institutionPath, login}: 
  }
  const portalTitle = window.location.pathname.startsWith('/reitor')?'Área reservada da Direção':master&&route.enadeOperations?'ENADE 360° · Conclusão operacional':master&&route.homologacao?'Central de Homologação':master&&route.repositories?'Repositórios · visão master':master&&route.demonstrativos?'Convites demonstrativos · Master':master&&route.tierFilter==='superior'?'Educação superior':master&&route.tierFilter==='escolas'?'Escolas':master&&route.financeiro?'Financeiro':master&&currentInst?currentCourse?'Gestão do curso':'Ambiente institucional':master&&route.hub?'Visão geral':master?'Administração Master':'Painel de gestão';
  const globalHero = !currentInst && !(master && route.hub);
- return <main className={`corp-container corp-section vertice-portal${!master && currentInst ? ' vertice-portal--institution-themed' : ''}`}>
+ const dashboard = <main className={`corp-container corp-section vertice-portal${!master && currentInst ? ' vertice-portal--institution-themed' : ''}`}>
  {globalHero ? <PortalPageHeader title={portalTitle} eyebrow={master ? 'Administração da plataforma' : 'Gestão institucional'} level={1} icon={LayoutDashboard}>
    {session && <p className="master-session">Conectado como <strong>{session.user.email}</strong></p>}
  </PortalPageHeader> : <div className="master-page-heading"><h1>{portalTitle}</h1>{session && <p className="master-session">Conectado como <strong>{session.user.email}</strong></p>}</div>}
@@ -464,4 +465,7 @@ export default function OwnerDashboard({institutionId, institutionPath, login}: 
  </>}
  <button className="corp-login-text-button" onClick={async()=>{const {error}=await supabase.auth.signOut();if(error)setError('Não foi possível encerrar a sessão.');}}>Sair da conta</button></>}
  {error&&<p role="alert">{error}</p>}<p><Link href="/privacidade.html">Privacidade</Link> · <Link href="/">Voltar ao site</Link></p></main>;
+ return masterRoute && session && master && aal === 'aal2' && !loading
+   ? <MasterLayout>{dashboard}</MasterLayout>
+   : dashboard;
 }
