@@ -19,7 +19,7 @@ async function call<T>(i:string,c:string,action:string,payload:Record<string,unk
  if(error)throw Object.assign(new Error(error.message||'Operação recusada.'),{code:error.code||'PAPERS_FAILED'});
  return data as T;
 }
-export const issuePapers=(i:string,c:string,applicationId:string,papers:Array<{studentId?:string;label?:string;variant:string}>)=>
+export const issuePapers=(i:string,c:string,applicationId:string,papers:Array<{studentId?:string;label?:string;registration?:string;variant:string}>)=>
  call<IssuedPaperWithToken[]>(i,c,'issue',{applicationId,papers});
 export const listPapers=(i:string,c:string,applicationId:string)=>call<IssuedPaper[]>(i,c,'list',{applicationId});
 export const scanPaper=(i:string,c:string,code:string,applicationId?:string)=>
