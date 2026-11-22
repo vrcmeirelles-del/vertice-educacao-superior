@@ -130,9 +130,8 @@ const TAB_GROUPS: {label:string;subtitle:string;icon:string;tabs:Tab[];tier?:'su
 const TAB_DETAILS: Partial<Record<Tab,{icon:string;description:string}>> = {
  'programas-pdi':{icon:'◎',description:'Programas, metas, indicadores e contribuições acadêmicas do PDI'},
  'atividades-ensino':{icon:'▤',description:'Eventos formativos, práticas e simulados com evidências da Mesa Digital'},
- "avalia360":{icon:"📝",description:"Estúdio de avaliações: crie provas objetivas e discursivas com Bloom e gabarito"},
+ "avalia360":{icon:"📝",description:"Estúdio de avaliações, banco de questões e curadoria pedagógica"},
  "discursiva":{icon:"✍",description:"Casos práticos, provas com QR e correção assistida por rubrica"},
- "avalia360":{icon:"▤",description:"Estúdio de avaliações, banco de questões e curadoria pedagógica"},
  mercado:{icon:"◎",description:"Movimentações de mercado, fontes, exposição e decisões estratégicas"},
  "escola-individual":{icon:"▤",description:"Acompanhamento Individual com fontes, histórico e revisão da direção"},
  "escola-documentos":{icon:"▤",description:"Documentos e Assinaturas com fontes, histórico e revisão da direção"},
@@ -204,7 +203,6 @@ const TABS: [Tab, string][] = [
   ["atividades-ensino", "Atividades de Ensino"],
  ["avalia360", "Avalia 360°"],
  ["discursiva", "Discursiva 360°"],
- ["avalia360", "Avalia 360°"],
   ["escola-individual","Acompanhamento Individual"],
   ["escola-documentos","Documentos e Assinaturas"],
   ["escola-bi", "Desempenho Escolar"],
