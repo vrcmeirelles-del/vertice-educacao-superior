@@ -5,9 +5,6 @@ import "./plataforma-ies.css";
 const PACKAGES = [
   {
     name: "Essencial",
-    price: "1,50",
-    floor: "1.500",
-    impl: "3.000",
     highlight: false,
     modules: [
       "Cadastro e estrutura institucional",
@@ -18,9 +15,6 @@ const PACKAGES = [
   },
   {
     name: "Regulação",
-    price: "2,00",
-    floor: "1.800",
-    impl: "5.000",
     highlight: false,
     modules: [
       "Tudo do Essencial +",
@@ -33,9 +27,6 @@ const PACKAGES = [
   },
   {
     name: "Gestão 360°",
-    price: "2,50",
-    floor: "2.000",
-    impl: "8.000",
     highlight: true,
     modules: [
       "Tudo do Regulação +",
@@ -51,9 +42,6 @@ const PACKAGES = [
   },
   {
     name: "Completo",
-    price: "3,00",
-    floor: "2.500",
-    impl: "12.000",
     highlight: false,
     modules: [
       "Tudo do Gestão 360° +",
@@ -121,11 +109,11 @@ export default function PlataformaIES() {
     },
     {
       q: "Como funciona o trial de 90 dias?",
-      a: "A IES tem 90 dias com acesso completo ao pacote escolhido, sem pagar mensalidade. A taxa de implementação é cobrada (investimento na configuração). Ao final, converte automaticamente em contrato pago. Cancele a qualquer momento.",
+      a: "A IES tem 90 dias com acesso completo ao pacote escolhido. As condições do período de teste e da contratação são definidas em proposta pela equipe Vértice; nada é convertido em cobrança sem contrato assinado.",
     },
     {
       q: "E a degustação de módulo avulso?",
-      a: "Qualquer módulo fora do seu pacote pode ser experimentado por 15 dias grátis. Ao final, ativa automaticamente com cobrança mensal. Cancelamento livre durante a degustação.",
+      a: "Qualquer módulo fora do seu pacote pode ser experimentado por 15 dias grátis. Ao final, a degustação expira sem cobrança automática; para incluir o módulo no contrato, a equipe Vértice apresenta a proposta.",
     },
     {
       q: "Meus dados ficam seguros?",
@@ -280,12 +268,7 @@ export default function PlataformaIES() {
               <div className={`pies-pkg ${pkg.highlight ? "featured" : ""}`} key={pkg.name}>
                 {pkg.highlight && <span className="pies-pkg-badge">MAIS POPULAR</span>}
                 <h3>{pkg.name}</h3>
-                <div className="pies-pkg-price">
-                  <span className="pies-pkg-currency">R$</span>
-                  <span className="pies-pkg-amount">{pkg.price}</span>
-                  <span className="pies-pkg-unit">/aluno/mês</span>
-                </div>
-                <p className="pies-pkg-floor">Piso: R$ {pkg.floor}/mês</p>
+                <p className="pies-pkg-floor">Valores sob proposta, conforme porte e escopo da instituição.</p>
                 <ul>
                   {pkg.modules.map((m, i) => (
                     <li key={i}>
@@ -293,9 +276,8 @@ export default function PlataformaIES() {
                     </li>
                   ))}
                 </ul>
-                <p className="pies-pkg-impl">Implementação: R$ {pkg.impl}</p>
                 <a className="pies-btn primary full" href="/contato.html?frente=plataforma&pacote={pkg.name}">
-                  Começar trial grátis
+                  Agendar demonstração
                 </a>
               </div>
             ))}
