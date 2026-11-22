@@ -2,12 +2,14 @@
 import {supabase} from '@/lib/supabase';
 import type {VariantMap} from './answer-entry';
 
-export interface ApplicationSummary {id:string;draftId:string;revision:number;title:string;discipline:string;classLabel:string;appliedOn:string;variantCount:number;status:'open'|'closed';sheets:number}
+export interface ApplicationSummary {id:string;draftId:string;revision:number;title:string;discipline:string;classLabel:string;appliedOn:string;variantCount:number;status:'open'|'closed';sheets:number;
+ /** Autor, quem criou a aplicação ou coordenação. Ausente em respostas antigas = true. */
+ canManage?:boolean}
 export interface ItemScore {q:string;n:number;kind:'objetiva'|'discursiva';mark:string|null;outcome:'correct'|'wrong'|'blank'|'multiple'|'scored'|'pending';score:number|null;max:number}
 export interface SheetResult {id:string;studentId:string|null;label:string;enrollment:string|null;variant:string;total:number;max:number;updatedAt:string;items:ItemScore[]|null}
 export interface ApplicationDetail {
  id:string;draftId:string;revision:number;title:string;discipline:string;classLabel:string;appliedOn:string;
- variantCount:number;variantMap:VariantMap;status:'open'|'closed';
+ variantCount:number;variantMap:VariantMap;status:'open'|'closed';canManage?:boolean;
  questions:Array<{id:string;kind:'objetiva'|'discursiva';points:number;statement:string}>;sheets:SheetResult[];
 }
 export interface SheetInput {studentId?:string;label?:string;variant:string;objective:Record<string,string>;discursive:Record<string,number>}

@@ -138,6 +138,7 @@ export default function Avalia360Studio({institutionId,courses,institutionName,p
  const [savedFingerprint,setSavedFingerprint]=useState<string|null>(null);
  const [reviewEvents,setReviewEvents]=useState<ReviewEvent[]|null>(null);
  const [applying,setApplying]=useState<string|null>(null);
+ const [readingCards,setReadingCards]=useState(false);
  const [diagnosisFor,setDiagnosisFor]=useState<string|null>(null);
  const [assembling,setAssembling]=useState(false);
  const [recoveryFor,setRecoveryFor]=useState<string|null>(null);
@@ -146,7 +147,7 @@ export default function Avalia360Studio({institutionId,courses,institutionName,p
  const [busy,setBusy]=useState(false);
  const [status,setStatus]=useState('');
  const uploads=useRef(new Map<string,ScopedImageReceipt>());
- useEffect(()=>{setReceipt(null);setLoaded(null);setQuestions([]);setInstructions('');setStep(1);setCurationHistory([]);setPreview(false);uploads.current.clear();setStatus('');setDrafts(null);setSavedFingerprint(null);setReviewEvents(null);setApplying(null);setCurriculumSource(null);setCurriculumMessage('');setPedagogy(p=>({...p,competencies:[],topics:[],requiredCompetencyIds:[],requiredTopicIds:[],relations:[]}));},[institutionId,courseId]);
+ useEffect(()=>{setReceipt(null);setLoaded(null);setQuestions([]);setInstructions('');setStep(1);setCurationHistory([]);setPreview(false);uploads.current.clear();setStatus('');setDrafts(null);setSavedFingerprint(null);setReviewEvents(null);setApplying(null);setReadingCards(false);setCurriculumSource(null);setCurriculumMessage('');setPedagogy(p=>({...p,competencies:[],topics:[],requiredCompetencyIds:[],requiredTopicIds:[],relations:[]}));},[institutionId,courseId]);
  const update=useCallback((change:Partial<QuestionDraft>)=>{
   setQuestions(all=>all.map((q,i)=>i===activeIndex?{...q,...change}:q));
   setLoaded(null);
@@ -390,6 +391,12 @@ export default function Avalia360Studio({institutionId,courses,institutionName,p
      'Demonstração pública: dados somente neste navegador. Não use nomes reais de alunos nem materiais confidenciais.':
      persistenceAvailable?'Estúdio institucional: rascunhos, imagens e Banco de Questões são gravados no Supabase da Vértice, com acesso restrito à equipe autorizada do curso (MFA obrigatório). Gabaritos não aparecem no caderno do aluno.':
      'Estúdio institucional. Você pode elaborar e revisar nesta sessão. O salvamento institucional, a consulta de turmas e a emissão oficial aguardam habilitação no servidor. Ao sair da página, os dados desta sessão são descartados.'}</p>
+   {!previewMode&&institutionalPersistence&&<div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap',margin:'0 0 12px'}}>
+    <button type="button" style={btn(!readingCards)} disabled={!courseId} onClick={()=>setReadingCards(v=>!v)}>{readingCards?'Fechar leitura de cartões':'📷 Ler cartões de prova'}</button>
+    <small style={{color:'#41566F'}}>{courseId?'Para qualquer professor do curso: aplicações abertas, leitura do QR e das marcações, correção no servidor.':'Selecione o curso para ler cartões.'}</small>
+   </div>}
+   {!previewMode&&readingCards&&courseId&&<ApplicationPanel key={'leitura:'+courseId} institutionId={institutionId} courseId={courseId} discipline=""
+     onClose={()=>setReadingCards(false)} courseName={courses.find(c=>c.id===courseId)?.name||''} institutionName={institutionName}/>}
 
   {step===1&&<>
       <div style={cardStyle}>

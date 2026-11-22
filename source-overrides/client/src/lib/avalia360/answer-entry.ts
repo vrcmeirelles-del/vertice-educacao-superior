@@ -30,6 +30,13 @@ export function answerKeyByVariant(map:VariantMap,questions:SnapshotQuestion[]):
   .map(it=>String.fromCharCode(65+it.o.indexOf(byId.get(it.q)!.correctOptionId))).join('')]));
 }
 /** Números impressos das objetivas de uma versão, na ordem do cartão. */
+/**
+ * Questões para quem só lê cartões: vêm do detalhe da aplicação, sem alternativas nem gabarito
+ * (a correção é feita no servidor). Bastam id, tipo e pontuação para posicionar as respostas.
+ */
+export function readerQuestions(d:{questions:Array<{id:string;kind:'objetiva'|'discursiva';points:number;statement:string}>}):SnapshotQuestion[]{
+ return (d.questions||[]).map(q=>({id:q.id,kind:q.kind,points:Number(q.points)||0,statement:q.statement||'',options:[],correctOptionId:''}));
+}
 export function objectivePositions(map:VariantMap,questions:SnapshotQuestion[],variant:string):number[]{
  const kind=new Map(questions.map(q=>[q.id,q.kind]));
  return (map[variant]||[]).flatMap((it,i)=>kind.get(it.q)==='objetiva'?[i+1]:[]);

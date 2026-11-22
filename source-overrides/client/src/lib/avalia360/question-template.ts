@@ -4,7 +4,7 @@
  * e "Questões" (colunas lidas por question-spreadsheet.ts, com listas de valores permitidos).
  * Gerado no navegador, sem servidor: XML do Office Open XML compactado com fflate.
  */
-import {zipSync,strToU8} from 'fflate';
+import {buildXlsx,listValidation} from './xlsx';
 
 export const HEADER_FIELDS=[
  ['Curso','Nome do curso, como aparece no portal.'],
@@ -51,17 +51,6 @@ const EXAMPLES:string[][]=[
   'Conceito de prescrição (0,5); conceito de decadência (0,5); exemplos corretos (1,0).','10','Parte Geral','Prescrição e decadência','C1, C2','ENADE','','','','',''],
 ];
 
-const esc=(v:string)=>v.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-const col=(i:number)=>{let s='';i++;while(i>0){const m=(i-1)%26;s=String.fromCharCode(65+m)+s;i=Math.floor((i-1)/26);}return s;};
-const cell=(r:number,c:number,v:string,style=0)=>v===''&&!style?'':`<c r="${col(c)}${r}" t="inlineStr"${style?` s="${style}"`:''}><is><t xml:space="preserve">${esc(v)}</t></is></c>`;
-function sheet(rows:string[][],opts:{widths:number[];headerRow?:boolean;freeze?:boolean;validations?:string}){
- const cols=`<cols>${opts.widths.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join('')}</cols>`;
- const pane=opts.freeze?'<sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>':'';
- const body=rows.map((r,ri)=>`<row r="${ri+1}">${r.map((v,ci)=>cell(ri+1,ci,v,opts.headerRow&&ri===0?1:2)).join('')}</row>`).join('');
- return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">${pane}${cols}<sheetData>${body}</sheetData>${opts.validations??''}</worksheet>`;
-}
-const list=(range:string,values:string[])=>`<dataValidation type="list" allowBlank="1" showErrorMessage="1" sqref="${range}"><formula1>"${values.join(',')}"</formula1></dataValidation>`;
-
 export interface TemplateInput {header:HeaderValues;competencyCodes?:string[];topics?:string[]}
 
 export function buildQuestionTemplate(input:TemplateInput):Uint8Array{
@@ -82,22 +71,13 @@ export function buildQuestionTemplate(input:TemplateInput):Uint8Array{
  const purpose=input.header['Finalidade predominante']||'Formativa';
  const examples=EXAMPLES.map(r=>{const x=[...r];x[4]=x[4]||purpose;return x;});
  const questions:string[][]=[QUESTION_COLUMNS.map(([n])=>n),...examples];
- const validations=`<dataValidations count="4">${list('A2:A500',['Objetiva','Discursiva'])}${list('D2:D500',['1','2','3','4','5'])}${list('E2:E500',['Diagnóstica','Formativa','Somativa'])}${list('K2:K500',['A','B','C','D','E'])}</dataValidations>`;
- const headerValidation=`<dataValidations count="1">${list('B5',['Diagnóstica','Formativa','Somativa'])}</dataValidations>`;
- const sheets=[
-  ['Instruções',sheet(instructions,{widths:[120]})],
-  ['Cabeçalho',sheet(header,{widths:[28,60,48],headerRow:true,validations:headerValidation})],
-  ['Questões',sheet(questions,{widths:QUESTION_COLUMNS.map(([n])=>n==='Enunciado'?60:/Alternativa|Justificativa|Resposta|Rubrica/.test(n)?36:16),headerRow:true,freeze:true,validations})],
- ] as const;
- const files:Record<string,Uint8Array>={
-  '[Content_Types].xml':strToU8(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>${sheets.map((_,i)=>`<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('')}</Types>`),
-  '_rels/.rels':strToU8(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`),
-  'xl/workbook.xml':strToU8(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><bookViews><workbookView activeTab="2"/></bookViews><sheets>${sheets.map(([n],i)=>`<sheet name="${esc(n)}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join('')}</sheets></workbook>`),
-  'xl/_rels/workbook.xml.rels':strToU8(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${sheets.map((_,i)=>`<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join('')}<Relationship Id="rId${sheets.length+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`),
-  'xl/styles.xml':strToU8(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF0A3775"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="3"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"><alignment vertical="center" wrapText="1"/></xf><xf numFmtId="49" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`),
- };
- sheets.forEach(([,xml],i)=>{files[`xl/worksheets/sheet${i+1}.xml`]=strToU8(xml);});
- return zipSync(files,{level:6});
+ const validations=`<dataValidations count="4">${listValidation('A2:A500',['Objetiva','Discursiva'])}${listValidation('D2:D500',['1','2','3','4','5'])}${listValidation('E2:E500',['Diagnóstica','Formativa','Somativa'])}${listValidation('K2:K500',['A','B','C','D','E'])}</dataValidations>`;
+ const headerValidation=`<dataValidations count="1">${listValidation('B5',['Diagnóstica','Formativa','Somativa'])}</dataValidations>`;
+ return buildXlsx([
+  {name:'Instruções',rows:instructions,widths:[120]},
+  {name:'Cabeçalho',rows:header,widths:[28,60,48],headerRow:true,validations:headerValidation},
+  {name:'Questões',rows:questions,widths:QUESTION_COLUMNS.map(([n])=>n==='Enunciado'?60:/Alternativa|Justificativa|Resposta|Rubrica/.test(n)?36:16),headerRow:true,freeze:true,validations},
+ ],2);
 }
 
 /** Lê a aba Cabeçalho (Campo | Valor). Campos desconhecidos são ignorados. */

@@ -1,5 +1,5 @@
 import {describe,expect,it} from 'vitest';
-import {answerKeyByVariant,buildVariantMap,discursivePositions,objectivePositions,parseAnswerString,parseCsv,parseResponseRows,type SnapshotQuestion} from './answer-entry';
+import {answerKeyByVariant,buildVariantMap,discursivePositions,objectivePositions,parseAnswerString,parseCsv,parseResponseRows,readerQuestions,type SnapshotQuestion} from './answer-entry';
 import {createExamVariants} from './exam-variants';
 import type {QuestionDraft} from './question-draft';
 
@@ -56,5 +56,14 @@ describe('lançamento de respostas',()=>{
  });
  it('CSV com ; e aspas',()=>{
   expect(parseCsv('Aluno;Respostas\n"Silva; Ana";AB\r\nX;C\n')).toEqual([['Aluno','Respostas'],['Silva; Ana','AB'],['X','C']]);
+ });
+ it('modo leitura: questões do detalhe, sem gabarito, posicionam as respostas como o caderno', ()=>{
+  const map=buildVariantMap(qs,2,'ambos');
+  const rq=readerQuestions({questions:qs.map(q=>({id:q.id,kind:q.kind,points:q.points,statement:q.statement}))});
+  expect(rq.every(q=>q.correctOptionId===''&&q.options.length===0)).toBe(true);
+  for(const v of Object.keys(map)){
+   expect(objectivePositions(map,rq,v)).toEqual(objectivePositions(map,qs,v));
+   expect(discursivePositions(map,rq,v)).toEqual(discursivePositions(map,qs,v));
+  }
  });
 });
