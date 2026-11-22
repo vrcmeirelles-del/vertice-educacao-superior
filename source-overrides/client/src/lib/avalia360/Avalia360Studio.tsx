@@ -3,6 +3,7 @@ import {useCallback,useEffect,useMemo,useRef,useState} from 'react';
 import './avalia-wizard.css';
 import {QuestionImageField} from './QuestionImageField';
 import QuestionSpreadsheetImport from './QuestionSpreadsheetImport';
+import {isBlankQuestion,type HeaderValues} from './question-template';
 import ClassBatchPublisher from './ClassBatchPublisher';
 import RuleCurationPanel from './RuleCurationPanel';
 import type {CurationDecision} from './curation-decision';
@@ -33,6 +34,8 @@ import {mapCurriculumToAssessment,type CurriculumImport} from './curriculum-impo
 export interface Avalia360StudioProps {
  institutionId:string;
  courses:Array<{id:string;name:string}>;
+ /** Nome impresso nos cadernos registrados. */
+ institutionName?:string;
  /** No modo demonstração, o adaptador da prévia usa apenas dados locais. */
  previewMode?:boolean;
  institutionalPersistence?:boolean;
@@ -93,7 +96,7 @@ function fingerprintOf(v:{questions:QuestionDraft[];title:string;period:string;p
   questions:v.questions.map(q=>({...q,images:q.images.map(({file:_file,...meta})=>meta)}))});
 }
 const statusLabel={draft:'rascunho',submitted:'enviado para validação',validated:'validado',archived:'arquivado'} as const;
-export default function Avalia360Studio({institutionId,courses,previewMode=false,institutionalPersistence=true}:Avalia360StudioProps){
+export default function Avalia360Studio({institutionId,courses,institutionName,previewMode=false,institutionalPersistence=true}:Avalia360StudioProps){
  const persistenceAvailable=previewMode||institutionalPersistence;
  const [courseId,setCourseId]=useState('');
  const [disciplineId,setDisciplineId]=useState('');
@@ -155,6 +158,31 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
   setActiveIndex(questions.length);
   setErrors([]);
   setPreview(false);
+ };
+ /** Aplica a aba Cabeçalho da planilha. Curso e disciplina já escolhidos não são trocados (trocar reinicia o caderno). */
+ const applySheetHeader=(h:HeaderValues):string[]=>{
+  const notes:string[]=[], applied:string[]=[];
+  const norm=(v:string)=>v.trim().normalize('NFD').replace(/\p{M}/gu,'').toLowerCase();
+  const course=h['Curso'];
+  if(course){
+   const current=courses.find(c=>c.id===courseId);
+   if(!current)notes.push(`Curso da planilha: “${course}”. Selecione o curso no passo 1.`);
+   else if(norm(current.name)!==norm(course))notes.push(`O curso da planilha (“${course}”) difere do selecionado (“${current.name}”); foi mantido o selecionado.`);
+  }
+  const discipline=h['Disciplina'];
+  if(discipline){
+   if(!disciplineId.trim()){setDisciplineId(discipline);applied.push('disciplina');}
+   else if(norm(disciplineId)!==norm(discipline))notes.push(`A disciplina da planilha (“${discipline}”) difere da informada (“${disciplineId}”); foi mantida a informada.`);
+  }
+  const semester=h['Semestre'];
+  if(semester){if(/^\d{4}\/[12]$/.test(semester)){setPeriod(semester);applied.push('semestre');}else notes.push(`Semestre “${semester}” ignorado: use AAAA/1 ou AAAA/2.`);}
+  const p=h['Finalidade predominante'];
+  if(p){const v=norm(p);if(v==='diagnostica'||v==='formativa'||v==='somativa'){setPurpose(v);applied.push('finalidade');}else notes.push(`Finalidade “${p}” ignorada.`);}
+  if(h['Título da avaliação']){setTitle(h['Título da avaliação']);applied.push('título');}
+  if(h['Nome do professor']){setEditedTeacherName(h['Nome do professor']);applied.push('professor');}
+  if(h['Instruções da avaliação']){setInstructions(h['Instruções da avaliação']);applied.push('instruções');}
+  if(applied.length)notes.unshift(`Cabeçalho aplicado da planilha: ${applied.join(', ')}.`);
+  return notes;
  };
  const remove=(index:number)=>{
   setQuestions(all=>all.filter((_,i)=>i!==index));
@@ -453,9 +481,16 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
     <button type="button" onClick={add}>＋ Adicionar questão</button>
     <QuestionSpreadsheetImport key={JSON.stringify([institutionId,courseId,disciplineId])}
      disciplineId={disciplineId} catalog={pedagogy}
-     onImport={items=>{
-      setQuestions(all=>[...all,...items]);setActiveIndex(questions.length);
+     header={{'Curso':courses.find(c=>c.id===courseId)?.name??'','Disciplina':disciplineId,'Semestre':period,
+      'Finalidade predominante':purpose==='diagnostica'?'Diagnóstica':purpose==='somativa'?'Somativa':'Formativa',
+      'Título da avaliação':title,'Nome do professor':teacherName,'Instruções da avaliação':instructions}}
+     onImport={(items,sheetHeader)=>{
+      // A questão vazia criada ao iniciar a elaboração não fica antes das importadas.
+      const kept=questions.filter(q=>!isBlankQuestion(q));
+      setQuestions([...kept,...items]);setActiveIndex(kept.length);
       setPreview(false);setLoaded(null);setErrors([]);
+      const notes=applySheetHeader(sheetHeader);
+      if(notes.length)setStatus(notes.join(' '));
      }}/>
     {!disciplineId.trim()&&<span role="note" style={{alignSelf:'center',fontSize:12,color:'#6D4B14'}}>
      Você pode criar questões agora. Informe a disciplina antes de salvar a avaliação.
@@ -739,7 +774,7 @@ export default function Avalia360Studio({institutionId,courses,previewMode=false
    </div>}
    {!previewMode&&receipt?.status==='validated'&&applying!==receipt.id&&<button type="button" style={{...btn(true),marginBottom:8}} onClick={()=>setApplying(receipt.id)}>Aplicar e lançar respostas</button>}
    {!previewMode&&applying&&courseId&&<ApplicationPanel key={applying} institutionId={institutionId} courseId={courseId} discipline={disciplineId}
-     draftId={applying} onClose={()=>setApplying(null)}/>}
+     draftId={applying} onClose={()=>setApplying(null)} courseName={courses.find(c=>c.id===courseId)?.name||''} institutionName={institutionName}/>}
    <ChecklistPanel result={checklist}/>
    {persistenceAvailable&&<div style={{display:'flex',gap:8,alignItems:'end',flexWrap:'wrap',margin:'12px 0'}}>
      <label style={{...labelStyle,flex:'1 1 230px'}}>Consultar rascunho existente por ID

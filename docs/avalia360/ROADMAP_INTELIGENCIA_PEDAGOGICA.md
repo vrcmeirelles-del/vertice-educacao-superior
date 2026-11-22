@@ -33,6 +33,7 @@ sem recriar tabela, regra ou tela paralela.
 | **Bloco 3 — mapa de erros e recuperação** | `20261121195657` | `vertice_avalia_error_evidence`, `vertice_avalia_recovery` (tabela `vertice_avalia_recovery_plans`) | `error-map.ts`, `recovery.ts`, `recovery-api.ts`, `ErrorMapPanel.tsx`, `RecoveryPanel.tsx` |
 | **Bloco 5 — prontidão e risco** | `20261122130000` | evidência com escopo `course`, `vertice_avalia_exam_matrix`, `vertice_avalia_score_series`, `vertice_avalia_risk_publish`; colunas novas em `v_student_evasion_risk` | `readiness.ts`, `academic-risk.ts`, `readiness-api.ts`, `ReadinessRiskPanel.tsx`, `EvasionRiskPanel.tsx` |
 | **Bloco 4 — justiça e qualidade** | `20261121200711` | `vertice_avalia_response_matrix`, `vertice_avalia_double_scoring` (tabela `vertice_avalia_second_scores`); bloqueios de rubrica em `avalia_blocking_issues` | `bloom.ts`, `fairness.ts`, `agreement.ts`, `quality-api.ts`, `QualityPanel.tsx` |
+| **Cadernos com QR registrado (etapas 1 e 2)** | `20261122290000` | `vertice_avalia_papers` (issue, list, scan, save, void; tabela `vertice_avalia_issued_papers`, só o hash SHA-256 do token) | `papers-api.ts`, `IssuedPapersPanel.tsx`, `QrPaperScanner.tsx` (BarcodeDetector ou jsQR), `registeredIssues` em `individualized-pdf.ts` |
 
 ### Bloco 1 — decisões
 
@@ -66,7 +67,11 @@ sem recriar tabela, regra ou tela paralela.
 - "Turma" = período corrente do cadastro (`current_semester`); não há campo de turma A/B.
 - Discursivas: nota única por questão (sem nota por critério da rubrica).
 - O mapa de versões da aplicação deve repetir quantidade e embaralhamento da impressão.
-- Specs do Avalia 360° fora das configurações de Vitest do CI.
+- Leitura óptica (etapa 3) **implementada, falta validação com fotos reais**: `omr.ts` (`OMR_RULES` 2026.11-1: Otsu, 4 marcas,
+  homografia, fração escura no miolo; ≥ 0,45 marcada, ≤ 0,18 branco, entre os dois "?"), `omr-photo.ts` (alinhar → QR endireitado →
+  servidor identifica aluno e versão → bolinhas). Cartão óptico com layout fixo (`omrLayout`, até 75 objetivas de 2 a 5 alternativas);
+  acima disso, cartão comum com lançamento digitado. Calibrar os limiares com cartões reais (caneta, lápis, luz, celulares).
+- Emissão com QR só para aplicações cujo mapa de versões é reproduzido por um dos três embaralhamentos do motor (`matchingShuffleMode`).
 
 ## Próximos blocos
 
