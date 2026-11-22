@@ -119,6 +119,16 @@ function figureSize(width:number,height:number,maxWidth:number,maxHeight:number)
  * Nenhum gabarito/justificativa/padrão docente é impresso no material discente.
  */
 export async function buildIndividualizedPdf(info:PrintAssessment,issues:PrintIssue[]):Promise<Uint8Array>{
+ return buildPrintablePdf(info,issues);
+}
+
+export function buildReviewPdf(
+ info:Omit<PrintAssessment,'classLabel'|'variantCount'|'shuffleMode'>
+):Promise<Uint8Array>{
+ return buildPrintablePdf({...info,classLabel:'Prévia de revisão'},[null]);
+}
+
+async function buildPrintablePdf(info:PrintAssessment,issues:Array<PrintIssue|null>):Promise<Uint8Array>{
  const invalid=validatePrintAssessment(info);
  if(invalid.length)throw Error(invalid.join(' '));
  if(!issues.length)throw Error('Lote vazio.');
@@ -163,20 +173,20 @@ export async function buildIndividualizedPdf(info:PrintAssessment,issues:PrintIs
  const images=new Map<string,Awaited<ReturnType<typeof embedFigure>>>();
  for(let studentIndex=0;studentIndex<issues.length;studentIndex++){
   const issue=issues[studentIndex];
-  const variant=issue.variant?variants.find(v=>v.code===issue.variant):variants[studentIndex%variants.length];
-  if(!variant)throw Error('Versão '+issue.variant+' não existe nesta impressão.');
-  const registered=Boolean(issue.qrPayload);
+  const variant=issue?.variant?variants.find(v=>v.code===issue.variant):variants[studentIndex%variants.length];
+  if(!variant)throw Error('Versão '+issue?.variant+' não existe nesta impressão.');
+  const registered=Boolean(issue?.qrPayload);
   // Uma página par livre separa os alunos quando o conjunto anterior termina na frente da folha.
   if(doc.getPageCount()%2===1)doc.addPage([W,H]);
   let page=doc.addPage([W,H]),col=0,y=top;
   // Versionamento no QR sem expor nome, matrícula ou identificador acadêmico.
   // O token é demonstrativo: falta registro autenticado de emissão e conferência no backend.
-  const qrPayload=issue.qrPayload??('VA360-DEMO:1:'+variant.code+':'+issue.token);
-  const qrData=await QRCode.toDataURL(qrPayload,{errorCorrectionLevel:'M',margin:2,width:220});
-  const qr=await doc.embedPng(qrData);
+  const qr=issue?await doc.embedPng(await QRCode.toDataURL(
+   issue.qrPayload??('VA360-DEMO:1:'+variant.code+':'+issue.token),
+   {errorCorrectionLevel:'M',margin:2,width:220})):null;
   const drawHeader=(target:PdfPage,heading:string,showGrade:boolean)=>{
    const right=W-margin;
-   const qrWidth=88;
+   const qrWidth=qr?88:0;
    const middleRight=right-qrWidth;
    const border=(x:number,y:number,width:number,height:number)=>{
     target.drawRectangle({x,y,width,height,borderWidth:.7,borderColor:muted});
@@ -207,30 +217,36 @@ export async function buildIndividualizedPdf(info:PrintAssessment,issues:PrintIs
    rowTop-=cell('Avaliação',heading,margin,rowTop,detailsWidth);
    rowTop-=cell('Curso / Disciplina',info.courseName+' / '+info.discipline,margin,rowTop,detailsWidth);
    if(info.teacherName?.trim())rowTop-=cell('Professor',info.teacherName.trim(),margin,rowTop,detailsWidth);
-   rowTop-=cell('Estudante / Identificação',issue.student.name+' / '+(issue.student.registration||(registered?'sem matrícula':'demonstração')),
+   if(issue)rowTop-=cell('Estudante / Identificação',issue.student.name+' / '+(issue.student.registration||(registered?'sem matrícula':'demonstração')),
     margin,rowTop,detailsWidth);
    const gradeWidth=showGrade?92:0;
-   const lastHeight=cell('Turma / Semestre / Versão / Folha',
-    [info.classLabel,info.semester,variant.code,issue.shortCode?formatShort(issue.shortCode):issue.paperId.slice(0,12)].join(' / '),
+   const lastHeight=cell(issue?'Turma / Semestre / Versão / Folha':'Semestre / Versão',
+    (issue?[info.classLabel,info.semester,variant.code,issue.shortCode?formatShort(issue.shortCode):issue.paperId.slice(0,12)]:
+     [info.semester,variant.code]).join(' / '),
     margin,rowTop,detailsWidth-gradeWidth);
    if(showGrade){
     border(middleRight-gradeWidth,rowTop-lastHeight,gradeWidth,lastHeight);
     lineText(target,'Nota do professor',middleRight-gradeWidth+8,rowTop-11,7);
    }
    rowTop-=lastHeight;
-   border(middleRight,rowTop,qrWidth,detailsTop-rowTop);
-   const qrSize=72;
-   target.drawImage(qr,{x:middleRight+(qrWidth-qrSize)/2,y:(detailsTop+rowTop-qrSize)/2,width:qrSize,height:qrSize});
+   if(qr){
+    border(middleRight,rowTop,qrWidth,detailsTop-rowTop);
+    const qrSize=72;
+    target.drawImage(qr,{x:middleRight+(qrWidth-qrSize)/2,y:(detailsTop+rowTop-qrSize)/2,width:qrSize,height:qrSize});
+   }
    return rowTop-19;
   };
   const captionY=drawHeader(page,info.title,true);
-  lineText(page,registered?'CADERNO DE QUESTÕES · CÓDIGO '+formatShort(issue.shortCode??'')+' · VERSÃO '+variant.code:'CADERNO DE QUESTÕES - QR DEMONSTRATIVO SEM REGISTRO',margin,captionY,7);
+  const caption=issue
+   ? registered?'CADERNO DE QUESTÕES · CÓDIGO '+formatShort(issue.shortCode??'')+' · VERSÃO '+variant.code:'CADERNO DE QUESTÕES - QR DEMONSTRATIVO SEM REGISTRO'
+   : 'CADERNO DE QUESTÕES · PRÉVIA DE REVISÃO';
+  lineText(page,caption,margin,captionY,7);
   y=captionY-20;
   let fullWidth=true;
   let bandTop=y;
   const nextPage=()=>{
    page=doc.addPage([W,H]);col=0;y=top;bandTop=top;
-   lineText(page,'Continuação · '+issue.student.name+' · Versão '+variant.code,margin,top+20,8,true);
+   lineText(page,(issue?'Continuação · '+issue.student.name:'Continuação · Prévia de revisão')+' · Versão '+variant.code,margin,top+20,8,true);
   };
   const space=(needed:number)=>{
    if(y-needed>=bottom)return;
@@ -315,7 +331,7 @@ export async function buildIndividualizedPdf(info:PrintAssessment,issues:PrintIs
   // Página própria: o cartão não usa a paginação em colunas do caderno.
   const objective=variant.items.filter(i=>i.question.kind==='objetiva');
   // Cartão óptico (leitura automática pela foto) para cadernos registrados que cabem no layout fixo.
-  if(registered&&objective.length&&objective.length<=omrCapacity()&&objective.every(i=>i.options.length>=2&&i.options.length<=OMR_MAX_OPTIONS)){
+  if(registered&&issue&&qr&&objective.length&&objective.length<=omrCapacity()&&objective.every(i=>i.options.length>=2&&i.options.length<=OMR_MAX_OPTIONS)){
    const sheet=doc.addPage([W,H]);
    const layout=omrLayout(objective.map(i=>({displayNumber:i.displayNumber,options:i.options.length})));
    for(const m of layout.markers)sheet.drawRectangle({x:m.x,y:m.y,width:m.size,height:m.size,color:rgb(0,0,0)});
@@ -338,7 +354,7 @@ export async function buildIndividualizedPdf(info:PrintAssessment,issues:PrintIs
   }
   let card=doc.addPage([W,H]),cardY=0;
   const cardHead=(continuation=false)=>{
-   cardY=drawHeader(card,'CARTÃO DE RESPOSTAS'+(continuation?' - CONTINUAÇÃO':''),false);
+   cardY=drawHeader(card,'CARTÃO DE RESPOSTAS'+(issue?'':' · PRÉVIA DE REVISÃO')+(continuation?' - CONTINUAÇÃO':''),false);
   };
   cardHead();
   if(!objective.length){lineText(card,'Sem questões objetivas. Responda às discursivas no caderno.',margin,cardY,10);}
@@ -354,10 +370,10 @@ export async function buildIndividualizedPdf(info:PrintAssessment,issues:PrintIs
    });
    if(rowIndex%2===1||rowIndex===objective.length-1)cardY-=29;
   }
-  if(registered){
+  if(registered&&issue){
    lineText(card,'Preencha apenas uma opção por questão. Este cartão não tem leitura automática (mais de '+omrCapacity()+' objetivas ou de '+OMR_MAX_OPTIONS+' alternativas): lance as marcações.',margin,48,7);
    lineText(card,'CÓDIGO DO CADERNO: '+formatShort(issue.shortCode??'')+' · VERSÃO '+variant.code+' · NÃO RASURE O QR',margin,34,7);
-  }else{
+  }else if(issue){
    lineText(card,'Preencha apenas uma opção por questão. QR identifica a folha, NÃO lê respostas automaticamente.',margin,48,7);
    lineText(card,'PRÉVIA NÃO OFICIAL · QR SEM CADASTRO NO BANCO',margin,34,7);
   }
