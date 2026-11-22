@@ -27,6 +27,13 @@ describe('fluxo visual docente Avalia 360°',()=>{
   expect(source).toContain('{previewMode&&<ClassBatchPublisher previewMode={true}');
   expect(source).not.toContain('{persistenceAvailable&&<ClassBatchPublisher');
  });
+ it('valida pelo sistema e libera a aplicação sem fila de aprovação',()=>{
+  expect(source).toContain('Validar e liberar PDF com QR');
+  expect(source).toContain('await releaseAssessment(institutionId,courseId,version)');
+  expect(source).toContain('setApplying(out.id)');
+  expect(source).not.toContain('Enviar para validação do colegiado');
+  expect(source).not.toContain('<CollegiateReviewPanel');
+ });
  it('não promete salvamento automático nem validação jurídica',()=>{
   expect(source).toContain('Ainda não salvo. Salve na etapa final.');
   expect(source).toContain('Verificações estruturais, sem análise jurídica semântica.');
