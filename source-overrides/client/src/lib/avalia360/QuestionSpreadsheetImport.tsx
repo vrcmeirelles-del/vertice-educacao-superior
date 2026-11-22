@@ -1,4 +1,5 @@
 import {useMemo,useRef,useState} from 'react';
+import {readSheet} from 'read-excel-file/browser';
 import {parseQuestionRows} from './question-spreadsheet';
 import type {DeclaredTopic} from './declared-analysis';
 import type {QuestionDraft} from './question-draft';
@@ -51,14 +52,12 @@ export default function QuestionSpreadsheetImport({disciplineId,currentPeriod,ca
   }
   setBusy(true);
   try{
-   const {readSheet}=await import('read-excel-file/browser');
    const rows=await readSheet(file,'Questões');
    let sheetHeader:HeaderValues={};
    try{sheetHeader=parseHeaderRows(await readSheet(file,'Cabeçalho'));}catch{/* planilhas antigas sem a aba Cabeçalho */}
    setSheet({rows,header:sheetHeader});
-  }catch(error){
-   setMessage('Falha ao ler a aba Questões. Confira o arquivo e os cabeçalhos do modelo. '
-    +(error instanceof Error?error.message:''));
+  }catch{
+   setMessage('Não foi possível abrir a aba Questões. Confira se o arquivo .xlsx abre no Excel e contém essa aba.');
   }finally{setBusy(false);}
  };
  return <>
@@ -77,7 +76,7 @@ export default function QuestionSpreadsheetImport({disciplineId,currentPeriod,ca
    <strong>{pending.questions.length} questão(ões) pronta(s) para acrescentar</strong>
    {Object.keys(sheet.header).length>0&&<p style={{margin:'6px 0'}}>Cabeçalho da planilha: {Object.entries(sheet.header).map(([k,v])=>`${k}: ${v}`).join(' · ')}</p>}
    {pending.errors.length>0&&<div role="alert">
-    <p>Corrija estas linhas na planilha e envie o arquivo novamente.</p>
+    <p>Confira os itens abaixo antes de acrescentar questões ao rascunho.</p>
     <ul>{pending.errors.map((error,i)=><li key={i}>{error}</li>)}</ul>
    </div>}
    <label style={{display:'block',margin:'8px 0'}}>
@@ -95,9 +94,9 @@ export default function QuestionSpreadsheetImport({disciplineId,currentPeriod,ca
    <button type="button" disabled={pending.errors.length>0||!pending.questions.length} onClick={()=>{
     onImport(pending.questions,sheet.header,pending.newTopics);
     setMessage(`${pending.questions.length} questão(ões) acrescentada(s) ao rascunho.`);
-    setPending(null);
+    setSheet(null);
    }}>Acrescentar ao rascunho</button>{' '}
-   <button type="button" onClick={()=>setPending(null)}>Cancelar importação</button>
+   <button type="button" onClick={()=>setSheet(null)}>Cancelar importação</button>
   </div>}
  </>;
 }
