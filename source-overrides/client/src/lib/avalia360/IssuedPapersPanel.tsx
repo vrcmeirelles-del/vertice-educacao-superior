@@ -1,4 +1,4 @@
-import {useCallback,useEffect,useMemo,useState} from 'react';
+import {useCallback,useEffect,useMemo,useRef,useState} from 'react';
 import type {ApplicationDetail} from './application-api';
 import {buildVariantMap,discursivePositions,objectivePositions,parseAnswerString,snapshotQuestions} from './answer-entry';
 import {loadAuthorizedClassRoster} from './class-roster';
@@ -8,6 +8,8 @@ import {downloadDraftImages} from './private-image-upload';
 import {assignVariants,issuePapers,listPapers,normalizeScannedCode,savePaperSheet,scanPaper,voidPaper,type IssuedPaper} from './papers-api';
 import type {ShuffleMode} from './exam-variants';
 import QrPaperScanner from './QrPaperScanner';
+import {loadCardPhoto,omrSupported,readCardMarks,variantOmrItems,type CardPhoto} from './omr-photo';
+import {OMR_RULES} from './omr';
 
 const blue='#164B92',line='#DCE7F4';
 const btn=(primary:boolean)=>({padding:'9px 14px',borderRadius:9,border:'1px solid '+blue,background:primary?blue:'#fff',
@@ -37,6 +39,8 @@ export default function IssuedPapersPanel({institutionId,courseId,discipline,cou
  const [busy,setBusy]=useState(false);const [msg,setMsg]=useState('');const [errs,setErrs]=useState<string[]>([]);
  const [current,setCurrent]=useState<IssuedPaper|null>(null);
  const [seq,setSeq]=useState('');const [disc,setDisc]=useState<Record<string,string>>({});
+ const [omrNotes,setOmrNotes]=useState<string[]>([]);
+ const photoRef=useRef<CardPhoto|null>(null);
  const questions=useMemo(()=>snapshotQuestions(draft.snapshot.questions),[draft]);
  const mode=useMemo(()=>matchingShuffleMode(draft,detail),[draft,detail]);
  const editable=detail.status==='open';
@@ -93,7 +97,30 @@ export default function IssuedPapersPanel({institutionId,courseId,discipline,cou
    const items=p.sheet?.items||[];
    setSeq(items.filter(i=>i.kind==='objetiva').sort((a,b)=>a.n-b.n).map(i=>i.mark||(i.outcome==='multiple'?'*':'-')).join(''));
    setDisc(Object.fromEntries(items.filter(i=>i.kind==='discursiva'&&i.score!==null).map(i=>[i.q,String(i.score)])));
+   setOmrNotes([]);
+   const photo=photoRef.current;photoRef.current=null;
+   if(photo){
+    const omrItems=variantOmrItems(detail.variantMap,questions,p.variant);
+    if(!omrSupported(omrItems)){setOmrNotes(['Esta versão não usa cartão óptico: digite as marcações.']);return;}
+    const read=readCardMarks(photo,omrItems);
+    if(!read.ok){setOmrNotes([read.error||'Leitura das marcações não concluída.']);return;}
+    setSeq(read.sequence);
+    const doubtful=read.questions.filter(q=>q.mark==='?').map(q=>'Questão '+q.displayNumber+': marcação duvidosa ('+Object.entries(q.fills).map(([l,f])=>l+' '+Math.round(f*100)+'%').join(', ')+'). Troque o "?" pela letra correta, "-" ou "*".');
+    const multiple=read.questions.filter(q=>q.mark==='*').map(q=>'Questão '+q.displayNumber+': mais de uma marcação (conta como errada).');
+    setOmrNotes(['Marcações lidas da foto (regras '+OMR_RULES.version+'). Confira antes de salvar.',...doubtful,...multiple]);
+   }
   }catch(e){setCurrent(null);setErrs([e instanceof Error?e.message:'Caderno não localizado.']);}
+ };
+ const fromCardPhoto=async(file:File)=>{
+  setErrs([]);setMsg('Lendo o cartão…');setBusy(true);
+  try{
+   const photo=await loadCardPhoto(file);
+   if('error' in photo){setErrs([photo.error]);setMsg('');return;}
+   if(!photo.qr){photoRef.current=photo;setMsg('');setErrs(['QR não lido na foto. Digite o código impresso no cartão (ex.: ABCD-2345): as bolinhas desta foto serão lidas em seguida.']);return;}
+   photoRef.current=photo;setMsg('');
+   await openCode(photo.qr);
+  }catch(e){setErrs([e instanceof Error?e.message:'Foto ilegível.']);setMsg('');}
+  finally{setBusy(false);}
  };
  const save=async()=>{
   if(!current)return;
@@ -127,7 +154,7 @@ export default function IssuedPapersPanel({institutionId,courseId,discipline,cou
  const pending=papers.filter(p=>!p.sheetId).length;
  return <section aria-label="Cadernos com QR" style={{border:'1px solid '+line,borderRadius:12,padding:14,margin:'14px 0',background:'#FAFCFF'}}>
   <h4 style={{margin:'0 0 6px'}}>Cadernos com QR registrado</h4>
-  <p style={{fontSize:12,color:'#41566F',margin:'0 0 8px'}}>Cada caderno recebe um QR único ligado ao aluno e à versão desta aplicação. Na correção, leia o QR e digite as marcações: aluno e versão vêm do servidor. A leitura automática das marcações ainda não está ativada.</p>
+  <p style={{fontSize:12,color:'#41566F',margin:'0 0 8px'}}>Cada caderno recebe um QR único ligado ao aluno e à versão desta aplicação. Na correção, fotografe o cartão: o sistema lê o QR e as bolinhas por algoritmo (sem IA) e você confere antes de salvar. Aluno e versão vêm do servidor. Também é possível ler só o QR e digitar as marcações.</p>
   {msg&&<p role="status" style={{fontSize:13,background:'#F5F9FF',padding:'8px 12px',borderRadius:8}}>{msg}</p>}
   {errs.length>0&&<div role="alert" style={{background:'#FFF0F0',padding:10,borderRadius:9,color:'#982F2F',fontSize:13}}><ul style={{margin:0}}>{errs.map((e,i)=><li key={i}>{e}</li>)}</ul></div>}
   {!mode&&<p role="alert" style={{fontSize:13,color:'#982F2F'}}>O mapa de versões desta aplicação não corresponde a nenhum embaralhamento do caderno; a emissão com QR fica indisponível.</p>}
@@ -153,7 +180,17 @@ export default function IssuedPapersPanel({institutionId,courseId,discipline,cou
   <details style={{marginTop:8}} open={papers.length>0}>
    <summary style={{cursor:'pointer',fontWeight:700}}>2. Ler QR e lançar respostas · {papers.length} caderno(s), {pending} sem lançamento</summary>
    <div style={{display:'grid',gap:10,marginTop:8}}>
-    <QrPaperScanner disabled={busy} onCode={code=>void openCode(code)}/>
+    <div style={{display:'flex',gap:8,flexWrap:'wrap',alignItems:'center'}}>
+     <label style={{...btn(true),display:'inline-block'}}>📷 Fotografar cartão (leitura automática)
+      <input hidden type="file" accept="image/*" capture="environment" disabled={busy||!editable}
+       onChange={e=>{const f=e.currentTarget.files?.[0];e.currentTarget.value='';if(f)void fromCardPhoto(f);}}/></label>
+     <small style={{color:'#64748b'}}>Lê o QR e as bolinhas pela foto. Marcações duvidosas ficam com "?" para você confirmar.</small>
+    </div>
+    <QrPaperScanner disabled={busy} onCode={code=>{
+     // Código digitado após foto sem QR legível: mantém a foto para ler as bolinhas; QR lido pela câmera descarta a foto pendente.
+     if(!/^[A-Z0-9]{8}$/.test(normalizeScannedCode(code)))photoRef.current=null;
+     void openCode(code);}}/>
+    {omrNotes.length>0&&<ul style={{fontSize:13,margin:0,background:'#FFFBEB',padding:'8px 12px 8px 26px',borderRadius:8}}>{omrNotes.map((n,i)=><li key={i}>{n}</li>)}</ul>}
     {current&&<div style={{border:'2px solid '+blue,borderRadius:10,padding:12,background:'#fff'}}>
      <strong>{current.label}</strong>{current.enrollment&&<> · {current.enrollment}</>} · versão <strong>{current.variant}</strong> · caderno {short(current.shortCode)}
      {current.sheetId&&<small style={{color:'#7A4B00'}}> · já lançado; salvar substitui</small>}

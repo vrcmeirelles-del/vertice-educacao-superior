@@ -5,6 +5,7 @@
  */
 import {PDFDocument,StandardFonts,rgb} from 'pdf-lib';
 import QRCode from 'qrcode';
+import {CARD,OMR_MAX_OPTIONS,omrCapacity,omrLayout} from './omr';
 import type {QuestionDraft} from './question-draft';
 import type {PendingQuestionImage} from './QuestionImageField';
 import {createExamVariants,versioningNotice,type ShuffleMode} from './exam-variants';
@@ -313,6 +314,28 @@ export async function buildIndividualizedPdf(info:PrintAssessment,issues:PrintIs
   }
   // Página própria: o cartão não usa a paginação em colunas do caderno.
   const objective=variant.items.filter(i=>i.question.kind==='objetiva');
+  // Cartão óptico (leitura automática pela foto) para cadernos registrados que cabem no layout fixo.
+  if(registered&&objective.length&&objective.length<=omrCapacity()&&objective.every(i=>i.options.length>=2&&i.options.length<=OMR_MAX_OPTIONS)){
+   const sheet=doc.addPage([W,H]);
+   const layout=omrLayout(objective.map(i=>({displayNumber:i.displayNumber,options:i.options.length})));
+   for(const m of layout.markers)sheet.drawRectangle({x:m.x,y:m.y,width:m.size,height:m.size,color:rgb(0,0,0)});
+   sheet.drawImage(qr,{x:CARD.qr.x,y:CARD.qr.y,width:CARD.qr.size,height:CARD.qr.size});
+   lineText(sheet,'CARTÃO DE RESPOSTAS · LEITURA ÓPTICA',CARD.grid.left,780,11,true);
+   lineText(sheet,info.title.length>64?info.title.slice(0,63)+'…':info.title,CARD.grid.left,762,9);
+   lineText(sheet,issue.student.name+(issue.student.registration?' · '+issue.student.registration:''),CARD.grid.left,746,10,true);
+   lineText(sheet,[info.classLabel,info.semester,'Versão '+variant.code,'Código '+formatShort(issue.shortCode??'')].join(' · '),CARD.grid.left,731,9);
+   lineText(sheet,'Pinte toda a bolinha com caneta azul ou preta. Uma opção por questão.',CARD.grid.left,714,7);
+   lineText(sheet,'Não rasure, não dobre e não escreva perto das marcas pretas nem do QR.',CARD.grid.left,704,7);
+   lineText(sheet,'Correção: fotografe o cartão inteiro, de frente, com as quatro marcas visíveis.',CARD.grid.left,694,7);
+   const paleLetter=rgb(.72,.75,.80);
+   for(const row of layout.rows)lineText(sheet,'Q'+String(row.displayNumber).padStart(2,'0'),row.x,row.y+1,9,true);
+   for(const b of layout.bubbles){
+    sheet.drawCircle({x:b.cx,y:b.cy,size:b.r,borderWidth:1.1,borderColor:ink});
+    sheet.drawText(b.letter,{x:b.cx-2.4,y:b.cy-2.5,size:7,font:regular,color:paleLetter});
+   }
+   lineText(sheet,'CÓDIGO DO CADERNO: '+formatShort(issue.shortCode??'')+' · VERSÃO '+variant.code+' · NÃO RASURE O QR',CARD.grid.left,62,7);
+   continue;
+  }
   let card=doc.addPage([W,H]),cardY=0;
   const cardHead=(continuation=false)=>{
    cardY=drawHeader(card,'CARTÃO DE RESPOSTAS'+(continuation?' - CONTINUAÇÃO':''),false);
@@ -332,7 +355,7 @@ export async function buildIndividualizedPdf(info:PrintAssessment,issues:PrintIs
    if(rowIndex%2===1||rowIndex===objective.length-1)cardY-=29;
   }
   if(registered){
-   lineText(card,'Preencha apenas uma opção por questão. O QR identifica aluno e versão na correção; as marcações são lançadas pelo professor.',margin,48,7);
+   lineText(card,'Preencha apenas uma opção por questão. Este cartão não tem leitura automática (mais de '+omrCapacity()+' objetivas ou de '+OMR_MAX_OPTIONS+' alternativas): lance as marcações.',margin,48,7);
    lineText(card,'CÓDIGO DO CADERNO: '+formatShort(issue.shortCode??'')+' · VERSÃO '+variant.code+' · NÃO RASURE O QR',margin,34,7);
   }else{
    lineText(card,'Preencha apenas uma opção por questão. QR identifica a folha, NÃO lê respostas automaticamente.',margin,48,7);

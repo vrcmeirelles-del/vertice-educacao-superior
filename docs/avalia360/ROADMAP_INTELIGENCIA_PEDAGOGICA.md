@@ -67,7 +67,10 @@ sem recriar tabela, regra ou tela paralela.
 - "Turma" = período corrente do cadastro (`current_semester`); não há campo de turma A/B.
 - Discursivas: nota única por questão (sem nota por critério da rubrica).
 - O mapa de versões da aplicação deve repetir quantidade e embaralhamento da impressão.
-- Leitura automática das marcações do cartão (etapa 3, OMR por algoritmo): não iniciada; exige cartão com marcas de alinhamento e teste com fotos reais.
+- Leitura óptica (etapa 3) **implementada, falta validação com fotos reais**: `omr.ts` (`OMR_RULES` 2026.11-1: Otsu, 4 marcas,
+  homografia, fração escura no miolo; ≥ 0,45 marcada, ≤ 0,18 branco, entre os dois "?"), `omr-photo.ts` (alinhar → QR endireitado →
+  servidor identifica aluno e versão → bolinhas). Cartão óptico com layout fixo (`omrLayout`, até 75 objetivas de 2 a 5 alternativas);
+  acima disso, cartão comum com lançamento digitado. Calibrar os limiares com cartões reais (caneta, lápis, luz, celulares).
 - Emissão com QR só para aplicações cujo mapa de versões é reproduzido por um dos três embaralhamentos do motor (`matchingShuffleMode`).
 
 ## Próximos blocos
