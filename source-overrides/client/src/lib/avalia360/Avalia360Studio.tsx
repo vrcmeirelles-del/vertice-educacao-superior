@@ -5,6 +5,7 @@ import {QuestionImageField} from './QuestionImageField';
 import QuestionSpreadsheetImport from './QuestionSpreadsheetImport';
 import {isBlankQuestion,type HeaderValues} from './question-template';
 import ClassBatchPublisher from './ClassBatchPublisher';
+import {buildReviewPdf,downloadPdf} from './individualized-pdf';
 import RuleCurationPanel from './RuleCurationPanel';
 import type {CurationDecision} from './curation-decision';
 import TeacherQuestionComposer from './TeacherQuestionComposer';
@@ -99,6 +100,8 @@ const statusLabel={draft:'rascunho',submitted:'enviado para validação',validat
 export default function Avalia360Studio({institutionId,courses,institutionName,previewMode=false,institutionalPersistence=true}:Avalia360StudioProps){
  const persistenceAvailable=previewMode||institutionalPersistence;
  const [courseId,setCourseId]=useState('');
+ const [reviewPdfBusy,setReviewPdfBusy]=useState(false);
+ const [reviewPdfError,setReviewPdfError]=useState('');
  const [disciplineId,setDisciplineId]=useState('');
  const [title,setTitle]=useState('');
  const [instructions,setInstructions]=useState('');
@@ -184,6 +187,19 @@ export default function Avalia360Studio({institutionId,courses,institutionName,p
   if(h['Instruções da avaliação']){setInstructions(h['Instruções da avaliação']);applied.push('instruções');}
   if(applied.length)notes.unshift(`Cabeçalho aplicado da planilha: ${applied.join(', ')}.`);
   return notes;
+ };
+ const generateReviewPdf=async()=>{
+  setReviewPdfBusy(true);setReviewPdfError('');
+  try{
+   const bytes=await buildReviewPdf({
+    institutionName:institutionName||'Vértice Educação Superior',
+    courseName:courses.find(c=>c.id===courseId)?.name||'',
+    discipline:disciplineId,title,teacherName,instructions,semester:period,questions,
+   });
+   downloadPdf(bytes,'Avalia360-Previa-'+title);
+  }catch(error){
+   setReviewPdfError(error instanceof Error?error.message:'Não foi possível gerar a prévia em PDF.');
+  }finally{setReviewPdfBusy(false);}
  };
  const remove=(index:number)=>{
   setQuestions(all=>all.filter((_,i)=>i!==index));
@@ -779,6 +795,13 @@ export default function Avalia360Studio({institutionId,courses,institutionName,p
    {lastReturn&&receipt?.status==='draft'&&<div role="note" style={{background:'#FFF7E6',border:'1px solid #F2C46B',borderRadius:9,padding:'10px 12px',fontSize:13,marginBottom:10}}>
     <strong>Caderno devolvido pelo colegiado (versão {lastReturn.revision}).</strong> Corrija, salve e envie de novo.
     {reviewEvents&&<ReviewHistory events={reviewEvents}/>}
+   </div>}
+   {!previewMode&&<div style={{margin:'0 0 12px'}}>
+    <button type="button" style={btn(false)} disabled={reviewPdfBusy} onClick={()=>void generateReviewPdf()}>
+     {reviewPdfBusy?'Gerando prévia…':'Baixar prévia em PDF'}
+    </button>
+    <p className="avalia-help">Caderno e cartão para conferência, sem lista nominal ou QR.</p>
+    {reviewPdfError&&<p role="alert" style={{color:'#982F2F'}}>{reviewPdfError}</p>}
    </div>}
    {!previewMode&&persistenceAvailable&&<section aria-label="Emissão nominal com QR registrado"
     style={{background:light,border:'1px solid '+line,borderRadius:9,padding:12,marginBottom:12}}>
