@@ -19,7 +19,7 @@ import {analyzeDeclaredDraft,type PedagogicalDraft} from './declared-analysis';
 import PedagogicalParameters from './PedagogicalParameters';
 import SavedPreview from './SavedDraftPreview';
 import ChecklistPanel from './ChecklistPanel';
-import CollegiateReviewPanel,{ReviewHistory} from './CollegiateReviewPanel';
+import {ReviewHistory} from './CollegiateReviewPanel';
 import ApplicationPanel from './ApplicationPanel';
 import CompetencyDiagnosisPanel from './CompetencyDiagnosisPanel';
 import {mergeIntoCatalog} from './competency-key';
@@ -28,7 +28,7 @@ import AssemblyPanel from './AssemblyPanel';
 import RecoveryPanel from './RecoveryPanel';
 import ReadinessRiskPanel from './ReadinessRiskPanel';
 import {checkAssessment} from './item-checklist';
-import {loadReviewHistory,submitForReview,type ReviewEvent} from './review-api';
+import {loadReviewHistory,releaseAssessment,resumeAssessment,type ReviewEvent} from './review-api';
 import {importOfficialCurriculum} from './curriculum-import-api';
 import {mapCurriculumToAssessment,type CurriculumImport} from './curriculum-import';
 
@@ -96,7 +96,7 @@ function fingerprintOf(v:{questions:QuestionDraft[];title:string;period:string;p
  return JSON.stringify({...v,title:v.title.trim(),period:v.period.trim(),instructions:v.instructions.trim(),teacherName:v.teacherName.trim(),
   questions:v.questions.map(q=>({...q,images:q.images.map(({file:_file,...meta})=>meta)}))});
 }
-const statusLabel={draft:'rascunho',submitted:'enviado para validação',validated:'validado',archived:'arquivado'} as const;
+const statusLabel={draft:'rascunho',submitted:'aguardava revisão anterior',validated:'validado',archived:'arquivado'} as const;
 export default function Avalia360Studio({institutionId,courses,institutionName,previewMode=false,institutionalPersistence=true}:Avalia360StudioProps){
  const persistenceAvailable=previewMode||institutionalPersistence;
  const [courseId,setCourseId]=useState('');
@@ -298,6 +298,7 @@ export default function Avalia360Studio({institutionId,courses,institutionName,p
    if(!out.ok){setStatus('Falha no salvamento.');setErrors([out.error.message]);return;}
    setReceipt(out.receipt);setSavedFingerprint(fingerprintAtSave);setStatus((previewMode?'Demonstração local salva':'Rascunho salvo')+' na versão '+out.receipt.revision+'.');
    setLoaded(null);
+   return out.receipt;
   }catch(e){setStatus('Salvamento não concluído.');setErrors([e instanceof Error?e.message:'Falha ao conectar ao armazenamento privado.']);}
   finally{setBusy(false);}
  };
@@ -326,8 +327,8 @@ export default function Avalia360Studio({institutionId,courses,institutionName,p
   setBusy(true);setErrors([]);setStatus('Carregando rascunho para edição…');
   const found=await loadAssessmentDraft({institutionId,courseId,disciplineId,draftId:id});
   if(!found.ok){setBusy(false);setStatus('Não foi possível reabrir.');setErrors([found.error.message]);return;}
-  if(found.draft.status!=='draft'){
-   setBusy(false);setLoaded(found.draft);setStatus('Caderno já encaminhado: aberto em modo de consulta.');return;
+  if(found.draft.status!=='draft'&&found.draft.status!=='submitted'){
+   setBusy(false);setLoaded(found.draft);setStatus('Caderno aberto em modo de consulta.');return;
   }
   let restored:Map<string,RestoredImage>|undefined;
   if(snapshotHasImages(found.draft.snapshot)){
@@ -340,13 +341,21 @@ export default function Avalia360Studio({institutionId,courses,institutionName,p
     return;
    }
   }
-  setBusy(false);
   const rebuilt=editableQuestionsFromSnapshot(found.draft.snapshot,restored);
   if(!rebuilt){
-   setLoaded(found.draft);setStatus('Caderno aberto em modo de consulta.');
+   setBusy(false);setLoaded(found.draft);setStatus('Caderno aberto em modo de consulta.');
    setErrors(['Alguma imagem citada no caderno não está mais disponível no armazenamento privado.']);
    return;
   }
+  let editableReceipt:DraftReceipt={id:found.draft.id,revision:found.draft.revision,status:found.draft.status};
+  if(editableReceipt.status==='submitted'){
+   try{editableReceipt=await resumeAssessment(institutionId,courseId,editableReceipt);}
+   catch(error){
+    setBusy(false);setErrors([error instanceof Error?error.message:'Não foi possível retomar a edição.']);
+    setStatus('Caderno salvo preservado.');return;
+   }
+  }
+  setBusy(false);
   const editable=rebuilt.questions;
   const meta=found.draft.snapshot.meta||{};
   uploads.current.clear();
@@ -360,7 +369,7 @@ export default function Avalia360Studio({institutionId,courses,institutionName,p
   if(meta.declaredPedagogy)setPedagogy(meta.declaredPedagogy);
   setCurationHistory(Array.isArray(meta.curationHistory)?meta.curationHistory:[]);
   setCurriculumSource(meta.curriculumSource||null);
-  setReceipt({id:found.draft.id,revision:found.draft.revision,status:found.draft.status});
+  setReceipt(editableReceipt);
   const restoredPurpose=(meta.purpose==='diagnostica'||meta.purpose==='formativa'||meta.purpose==='somativa')?meta.purpose:purpose;
   setSavedFingerprint(fingerprintOf({questions:editable,title:meta.title||'',period:meta.semester||'',purpose:restoredPurpose,
    instructions:meta.instructions||'',teacherName:meta.teacherName||teacherName,pedagogy:meta.declaredPedagogy||pedagogy}));
@@ -377,15 +386,24 @@ export default function Avalia360Studio({institutionId,courses,institutionName,p
  const dirty=!receipt||savedFingerprint!==fingerprintOf({questions,title,period,purpose,instructions,teacherName,pedagogy});
  const locked=Boolean(receipt&&receipt.status!=='draft');
  const lastReturn=reviewEvents?.filter(e=>e.action==='returned').slice(-1)[0];
- const submit=async()=>{
-  if(!receipt||locked)return;
-  if(dirty){setErrors(['Salve a versão atual antes de enviar: o colegiado analisa exatamente a versão gravada.']);return;}
-  if(!checklist.canSubmit){setErrors(['Corrija os bloqueios do checklist antes de enviar.']);return;}
-  setBusy(true);setErrors([]);setStatus('Enviando para validação…');
+ const validateAndApply=async()=>{
+  if(busy||previewMode||!persistenceAvailable||receipt?.status==='archived')return;
+  const needsSave=!receipt||(receipt.status==='draft'&&dirty);
+  if((!receipt||receipt.status==='draft')&&!checklist.canSubmit){
+   setErrors(checklist.issues.filter(issue=>issue.severity==='bloqueio').map(issue=>
+    (issue.questionIndex===undefined?'':'Questão '+(issue.questionIndex+1)+': ')+issue.message));
+   return;
+  }
+  const version=needsSave?await save():receipt;
+  if(!version)return;
+  setBusy(true);setErrors([]);setStatus('Conferindo os dados do caderno…');
   try{
-   const out=await submitForReview(institutionId,courseId,receipt,checklist);
-   setReceipt(out);setStatus('Versão '+out.revision+' enviada ao colegiado. A edição fica bloqueada até a decisão.');
-  }catch(e){setStatus('Envio não concluído.');setErrors([e instanceof Error?e.message:'Falha no envio.']);}
+   const out=await releaseAssessment(institutionId,courseId,version);
+   setReceipt(out);
+   setDrafts(previous=>previous?.map(d=>d.id===out.id?{...d,status:out.status}:d)??null);
+   setApplying(out.id);
+   setStatus('Versão '+out.revision+' validada pelo sistema. A aplicação está disponível para gerar o PDF com QR.');
+  }catch(e){setStatus('Validação não concluída.');setErrors([e instanceof Error?e.message:'Não foi possível validar o caderno.']);}
   finally{setBusy(false);}
  };
  const btn=(primary:boolean)=>({padding:'10px 16px',borderRadius:9,border:'1px solid '+blue,
@@ -449,7 +467,6 @@ export default function Avalia360Studio({institutionId,courses,institutionName,p
    </label>
    <p style={{fontSize:12,color:'#64748b',marginBottom:0}}>Título, instruções, semestre e finalidade são versionados com o rascunho. O vínculo a competências depende de catálogo institucional validado.</p>
   </div>
-  {!previewMode&&courseId&&<CollegiateReviewPanel institutionId={institutionId} courseId={courseId}/>}
   {!previewMode&&courseId&&<div style={{margin:'0 0 12px'}}><button type="button" style={btn(readinessOpen)} onClick={()=>setReadinessOpen(v=>!v)}>
    {readinessOpen?'Fechar prontidão e risco':'Prontidão ENADE/OAB e risco acadêmico do curso'}</button></div>}
   {!previewMode&&courseId&&readinessOpen&&<ReadinessRiskPanel key={courseId} institutionId={institutionId} courseId={courseId} courseName={courses.find(c=>c.id===courseId)?.name||''}/>}
@@ -787,11 +804,9 @@ export default function Avalia360Studio({institutionId,courses,institutionName,p
     <button type="button" style={btn(false)} onClick={()=>{setPreview(!preview);setErrors([]);}}>{preview?'Ocultar prévia':'Pré-visualizar caderno'}</button>
     <button type="button" style={btn(true)} disabled={busy||!persistenceAvailable||locked} onClick={save}>{busy?'Processando…':previewMode?(receipt?'Atualizar demonstração local':'Guardar demonstração local'):(receipt?'Salvar nova versão':'Salvar rascunho no Supabase')}</button>
     {receipt&&<button type="button" style={btn(false)} disabled={busy} onClick={()=>reopen()}>Reabrir do servidor</button>}
-    {!previewMode&&<button type="button" style={btn(true)} disabled={busy||!receipt||locked||dirty||!checklist.canSubmit}
-      onClick={()=>void submit()}>Enviar para validação do colegiado</button>}
    </div>
    {!previewMode&&receipt&&<p role="status" style={{fontSize:13,margin:'0 0 8px'}}>Situação: <strong>{statusLabel[receipt.status]}</strong>
-    {locked?' · edição bloqueada enquanto o colegiado analisa ou após a validação.':dirty?' · há alterações não salvas.':' · versão salva pronta para envio.'}</p>}
+    {locked?' · versão salva em modo de consulta.':dirty?' · há alterações não salvas.':' · versão salva e disponível para validação técnica.'}</p>}
    {lastReturn&&receipt?.status==='draft'&&<div role="note" style={{background:'#FFF7E6',border:'1px solid #F2C46B',borderRadius:9,padding:'10px 12px',fontSize:13,marginBottom:10}}>
     <strong>Caderno devolvido pelo colegiado (versão {lastReturn.revision}).</strong> Corrija, salve e envie de novo.
     {reviewEvents&&<ReviewHistory events={reviewEvents}/>}
@@ -809,11 +824,10 @@ export default function Avalia360Studio({institutionId,courses,institutionName,p
     {receipt?.status==='validated'?<>
      <p style={{fontSize:13,margin:'0 0 8px'}}>Em Aplicação e respostas, registre ou abra a aplicação da turma. Depois acesse Cadernos com QR registrado para emitir o PDF.</p>
      {applying!==receipt.id&&<button type="button" style={btn(true)} onClick={()=>setApplying(receipt.id)}>Abrir Aplicação e respostas</button>}
-    </>:<p role="note" style={{fontSize:13,margin:0}}>
-     {receipt?.status==='submitted'?'Aguarde a validação do colegiado para abrir a aplicação da turma.':
-      receipt?.status==='archived'?'Abra um caderno validado para emitir o PDF da turma.':
-      'Salve o caderno e envie para validação do colegiado. Com o caderno validado, esta seção libera a abertura da aplicação.'}
-    </p>}
+    </>:receipt?.status==='archived'?<p role="note" style={{fontSize:13,margin:0}}>Abra um caderno validado para emitir o PDF da turma.</p>:<>
+     <p style={{fontSize:13,margin:'0 0 8px'}}>O sistema confere os dados do caderno e aponta o que precisa de correção. Após validar, a aplicação da turma fica disponível para gerar o PDF.</p>
+     <button type="button" style={btn(true)} disabled={busy} onClick={()=>void validateAndApply()}>Validar e liberar PDF com QR</button>
+    </>}
    </section>}
    {!previewMode&&applying&&courseId&&<ApplicationPanel key={applying} institutionId={institutionId} courseId={courseId} discipline={disciplineId}
      draftId={applying} onClose={()=>setApplying(null)} courseName={courses.find(c=>c.id===courseId)?.name||''} institutionName={institutionName}/>}
@@ -833,7 +847,7 @@ export default function Avalia360Studio({institutionId,courses,institutionName,p
      <span><strong>{d.title}</strong> · {d.semester} · {d.questionCount} questão(ões) · versão {d.revision} · {new Date(d.updatedAt).toLocaleString('pt-BR')}{d.status!=='draft'?' · '+d.status:''}</span>
      <span style={{display:'flex',gap:6}}>
       <button type="button" style={btn(false)} disabled={busy} onClick={()=>void reopen(d.id)}>Consultar</button>
-      {d.status==='draft'&&<button type="button" style={btn(true)} disabled={busy} onClick={()=>void continueEditing(d.id)}>Continuar editando</button>}
+      {(d.status==='draft'||d.status==='submitted')&&<button type="button" style={btn(true)} disabled={busy} onClick={()=>void continueEditing(d.id)}>{d.status==='submitted'?'Retomar edição':'Continuar editando'}</button>}
       {d.status==='validated'&&<button type="button" style={btn(true)} disabled={busy} onClick={()=>setApplying(d.id)}>Aplicar e lançar respostas</button>}
      </span>
     </li>)}
