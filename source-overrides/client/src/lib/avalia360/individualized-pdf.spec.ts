@@ -1,6 +1,6 @@
 import {describe,it,expect} from 'vitest';
-import {PDFDocument} from 'pdf-lib';
-import {buildIndividualizedPdf,prepareIssues,validatePrintAssessment} from './individualized-pdf';
+import {PDFDict,PDFDocument,PDFName} from 'pdf-lib';
+import {buildIndividualizedPdf,buildReviewPdf,prepareIssues,validatePrintAssessment} from './individualized-pdf';
 import type {QuestionDraft} from './question-draft';
 
 const q:QuestionDraft={id:'q1',disciplineId:'civil',kind:'objetiva',statement:'Qual alternativa é correta no caso apresentado?',
@@ -9,6 +9,16 @@ const q:QuestionDraft={id:'q1',disciplineId:'civil',kind:'objetiva',statement:'Q
  estimatedDifficulty:3,points:2,examTags:[],images:[]};
 
 describe('impressão individualizada de prova',()=>{
+ it('gera a prévia de revisão com caderno e cartão sem pedir turma ou incorporar QR',async()=>{
+  const bytes=await buildReviewPdf({institutionName:'Vértice',courseName:'Direito',
+   discipline:'Civil',title:'AV1',semester:'2027/1',questions:[q]});
+  const pdf=await PDFDocument.load(bytes);
+  expect(pdf.getPageCount()).toBe(2);
+  expect(pdf.getPages().every(page=>{
+   const images=page.node.Resources()?.lookupMaybe(PDFName.of('XObject'),PDFDict);
+   return !images?.keys().length;
+  })).toBe(true);
+ });
  it('emite uma página por aluno sem dados de matrícula no token QR',async()=>{
   const issues=prepareIssues([
    {id:'A',name:'Ana Exemplo',registration:'DEMO-01',selected:true},
