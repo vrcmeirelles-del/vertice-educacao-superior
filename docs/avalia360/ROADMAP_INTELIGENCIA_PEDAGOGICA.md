@@ -35,6 +35,7 @@ sem recriar tabela, regra ou tela paralela.
 | **Bloco 4 — justiça e qualidade** | `20261121200711` | `vertice_avalia_response_matrix`, `vertice_avalia_double_scoring` (tabela `vertice_avalia_second_scores`); bloqueios de rubrica em `avalia_blocking_issues` | `bloom.ts`, `fairness.ts`, `agreement.ts`, `quality-api.ts`, `QualityPanel.tsx` |
 | **Cadernos com QR registrado (etapas 1 e 2)** | `20261122290000` | `vertice_avalia_papers` (issue, list, scan, save, void; tabela `vertice_avalia_issued_papers`, só o hash SHA-256 do token) | `papers-api.ts`, `IssuedPapersPanel.tsx`, `QrPaperScanner.tsx` (BarcodeDetector ou jsQR), `registeredIssues` em `individualized-pdf.ts` |
 | Planilha de resultados | — | `vertice_avalia_application` 'get' (sem RPC nova) | `results-export.ts` (abas: resumo por aluno, questões por aluno na numeração do caderno, acerto por questão, informações), `xlsx.ts` (gerador .xlsx também usado pelo modelo de questões) |
+| Leitura de cartões por qualquer professor do curso | `20261122310000` | `vertice_private.avalia_application_reader`: com acesso `record` ao curso (vínculo ativo, MFA) e aplicação aberta, lista, abre, lê o QR, vê os cadernos e lança folhas; `canManage` informa quem administra (autor, quem criou a aplicação, coordenação) — só estes emitem/anulam cadernos, excluem folhas, encerram e veem as análises | botão "Ler cartões de prova" no estúdio (`ApplicationPanel` sem `draftId`); o gabarito não vai ao navegador do leitor (`readerQuestions`) |
 
 ### Bloco 1 — decisões
 

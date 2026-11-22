@@ -1,5 +1,5 @@
 -- Testes da emissão registrada de cadernos e da leitura do QR (20261122290000).
--- A (autor, record), B (coordenação, validate), C (sem vínculo). Requer as migrações do Avalia 360°.
+-- A (autor, record), B (coordenação, validate), C (sem vínculo), D (outro professor do curso, record). Requer as migrações do Avalia 360°.
 \set ON_ERROR_STOP 1
 create or replace function pg_temp.as_user(u text) returns void language sql as
 $$ select set_config('request.jwt.claims', json_build_object('sub',u,'aal','aal2')::text, false) $$;
@@ -71,12 +71,45 @@ select pg_temp.as_user('22222222-2222-2222-2222-222222222222');
 select (pg_temp.pp('scan',jsonb_build_object('code',(select j->0->>'qr' from re)))->>'label')='Ana' as coord_le \gset
 \if :coord_le \else \echo FALHA coord_le \quit \endif
 
+-- 20261122310000: outro professor do curso (D) lê e lança enquanto a aplicação está aberta; não administra.
+insert into auth.users values('44444444-4444-4444-4444-444444444444');
+insert into public.acl values('44444444-4444-4444-4444-444444444444',:I::uuid,:C::uuid,'record');
+select pg_temp.as_user('44444444-4444-4444-4444-444444444444');
+select exists(select 1 from jsonb_array_elements(public.vertice_avalia_application(:I::uuid,:C::uuid,'list','{}'::jsonb)) x
+   where x->>'id'=(select id::text from ap) and (x->>'canManage')::boolean=false)
+   and (public.vertice_avalia_application(:I::uuid,:C::uuid,'get',jsonb_build_object('id',(select id from ap)))->>'canManage')::boolean=false
+   and (pg_temp.pp('scan',jsonb_build_object('code',(select j->0->>'qr' from re)))->>'label')='Ana'
+   and jsonb_array_length(pg_temp.pp('list',jsonb_build_object('applicationId',(select id from ap))))=2 as prof_le \gset
+\if :prof_le \else \echo FALHA prof_le \quit \endif
+select (pg_temp.pp('save',jsonb_build_object('paperId',(select j->0->>'paperId' from re),'objective','{"2":"A"}'::jsonb,'discursive','{"q2":2}'::jsonb))->'sheet'->>'total')::numeric=2
+   and (public.vertice_avalia_application(:I::uuid,:C::uuid,'save_sheets',jsonb_build_object('id',(select id from ap),
+     'sheets',jsonb_build_array(jsonb_build_object('label','Código 07','variant','A','objective','{"1":"B"}'::jsonb)))))->>'saved'='1' as prof_lanca \gset
+\if :prof_lanca \else \echo FALHA prof_lanca \quit \endif
+select (select entered_by from public.vertice_avalia_sheets where student_key='label:código 07')='44444444-4444-4444-4444-444444444444' as prof_lanca \gset
+\if :prof_lanca \else \echo FALHA prof_lanca \quit \endif
+select pg_temp.expect_error(format('select pg_temp.pp(%L,%L)','issue',jsonb_build_object('applicationId',(select id from ap),'papers',jsonb_build_array(jsonb_build_object('label','Z','variant','A')))),'P0002');
+select pg_temp.expect_error(format('select pg_temp.pp(%L,%L)','void',jsonb_build_object('paperId',(select j->0->>'paperId' from re))),'P0002');
+select pg_temp.expect_error(format('select public.vertice_avalia_application(%L,%L,%L,%L)',:I,:C,'close',jsonb_build_object('id',(select id from ap))),'P0002');
+select pg_temp.expect_error(format('select public.vertice_avalia_application(%L,%L,%L,%L)',:I,:C,'delete_sheet',
+ jsonb_build_object('id',(select id from ap),'sheetId',(select id from public.vertice_avalia_sheets where student_key='label:código 07'))),'P0002');
+select (public.vertice_avalia_application(:I::uuid,:C::uuid,'get',jsonb_build_object('id',(select id from ap)))->>'canManage')::boolean as autor_admin \gset
+\if :autor_admin \echo FALHA autor_admin_para_D \quit \endif
+
 -- Aplicação encerrada: leitura sim, emissão e lançamento não
 select pg_temp.as_user('11111111-1111-1111-1111-111111111111');
 select public.vertice_avalia_application(:I::uuid,:C::uuid,'close',jsonb_build_object('id',(select id from ap))) is not null as fechou \gset
 select (pg_temp.pp('scan',jsonb_build_object('code',(select j->0->>'qr' from re)))->>'applicationStatus')='closed' as le_fechada \gset
 \if :le_fechada \else \echo FALHA le_fechada \quit \endif
 select pg_temp.expect_error(format('select pg_temp.pp(%L,%L)','save',jsonb_build_object('paperId',(select j->0->>'paperId' from re),'objective','{}'::jsonb)),'23514');
+-- Encerrada: o outro professor deixa de ver; o autor continua lendo.
+select pg_temp.as_user('44444444-4444-4444-4444-444444444444');
+select pg_temp.expect_error(format('select pg_temp.pp(%L,%L)','scan',jsonb_build_object('code',(select j->0->>'qr' from re))),'P0002');
+select pg_temp.expect_error(format('select public.vertice_avalia_application(%L,%L,%L,%L)',:I,:C,'get',jsonb_build_object('id',(select id from ap))),'P0002');
+select not exists(select 1 from jsonb_array_elements(public.vertice_avalia_application(:I::uuid,:C::uuid,'list','{}'::jsonb)) x where x->>'id'=(select id::text from ap)) as prof_nao_ve \gset
+\if :prof_nao_ve \else \echo FALHA prof_nao_ve \quit \endif
+select pg_temp.as_user('11111111-1111-1111-1111-111111111111');
+select (public.vertice_avalia_application(:I::uuid,:C::uuid,'get',jsonb_build_object('id',(select id from ap)))->>'canManage')::boolean as autor_admin2 \gset
+\if :autor_admin2 \else \echo FALHA autor_admin2 \quit \endif
 select pg_temp.expect_error(format('select pg_temp.pp(%L,%L)','issue',jsonb_build_object('applicationId',(select id from ap),'papers',jsonb_build_array(jsonb_build_object('label','Y','variant','A')))),'23514');
 
 -- Sem acesso direto à tabela

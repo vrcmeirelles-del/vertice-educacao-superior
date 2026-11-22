@@ -1,6 +1,6 @@
 import {useCallback,useEffect,useMemo,useRef,useState} from 'react';
 import type {ApplicationDetail} from './application-api';
-import {buildVariantMap,discursivePositions,objectivePositions,parseAnswerString,snapshotQuestions} from './answer-entry';
+import {buildVariantMap,discursivePositions,objectivePositions,parseAnswerString,readerQuestions,snapshotQuestions} from './answer-entry';
 import {loadAuthorizedClassRoster} from './class-roster';
 import {editableQuestionsFromSnapshot,type StoredAssessmentDraft} from './draft-api';
 import {buildIndividualizedPdf,downloadPdf,registeredIssues} from './individualized-pdf';
@@ -29,9 +29,10 @@ export function matchingShuffleMode(draft:StoredAssessmentDraft,detail:Pick<Appl
 
 type Student={id:string;name:string;selected:boolean};
 /** Etapas 1 e 2: cadernos com QR registrado e lançamento pela leitura do QR. O servidor corrige. */
-export default function IssuedPapersPanel({institutionId,courseId,discipline,courseName,institutionName,detail,draft,onSaved}:{
+/** Sem draft (professor que não é o autor): só leitura do QR e lançamento; emissão e anulação ficam com quem administra. */
+export default function IssuedPapersPanel({institutionId,courseId,discipline,courseName,institutionName,detail,draft,canManage=true,onSaved}:{
  institutionId:string;courseId:string;discipline:string;courseName:string;institutionName:string;
- detail:ApplicationDetail;draft:StoredAssessmentDraft;onSaved:()=>Promise<void>;
+ detail:ApplicationDetail;draft:StoredAssessmentDraft|null;canManage?:boolean;onSaved:()=>Promise<void>;
 }){
  const [papers,setPapers]=useState<IssuedPaper[]>([]);
  const [students,setStudents]=useState<Student[]>([]);
@@ -41,8 +42,9 @@ export default function IssuedPapersPanel({institutionId,courseId,discipline,cou
  const [seq,setSeq]=useState('');const [disc,setDisc]=useState<Record<string,string>>({});
  const [omrNotes,setOmrNotes]=useState<string[]>([]);
  const photoRef=useRef<CardPhoto|null>(null);
- const questions=useMemo(()=>snapshotQuestions(draft.snapshot.questions),[draft]);
- const mode=useMemo(()=>matchingShuffleMode(draft,detail),[draft,detail]);
+ const questions=useMemo(()=>draft?snapshotQuestions(draft.snapshot.questions):readerQuestions(detail),[draft,detail]);
+ const mode=useMemo(()=>draft?matchingShuffleMode(draft,detail):null,[draft,detail]);
+ const canIssue=Boolean(draft)&&canManage;
  const editable=detail.status==='open';
  const refresh=useCallback(async()=>setPapers(await listPapers(institutionId,courseId,detail.id)),[institutionId,courseId,detail.id]);
  useEffect(()=>{void refresh().catch(e=>setErrs([e instanceof Error?e.message:'Cadernos indisponíveis.']));},[refresh]);
@@ -58,6 +60,7 @@ export default function IssuedPapersPanel({institutionId,courseId,discipline,cou
  };
  const issue=async()=>{
   setErrs([]);setMsg('');
+  if(!draft)return;
   if(!mode){setErrs(['O mapa de versões desta aplicação não corresponde a nenhum embaralhamento do caderno. Registre uma nova aplicação para imprimir cadernos com QR.']);return;}
   const labels=extra.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
   const chosen:Array<{studentId?:string;label?:string}>=[...students.filter(s=>s.selected).map(s=>({studentId:s.id})),...labels.map(label=>({label}))];
@@ -157,9 +160,9 @@ export default function IssuedPapersPanel({institutionId,courseId,discipline,cou
   <p style={{fontSize:12,color:'#41566F',margin:'0 0 8px'}}>Cada caderno recebe um QR único ligado ao aluno e à versão desta aplicação. Na correção, fotografe o cartão: o sistema lê o QR e as bolinhas por algoritmo (sem IA) e você confere antes de salvar. Aluno e versão vêm do servidor. Também é possível ler só o QR e digitar as marcações.</p>
   {msg&&<p role="status" style={{fontSize:13,background:'#F5F9FF',padding:'8px 12px',borderRadius:8}}>{msg}</p>}
   {errs.length>0&&<div role="alert" style={{background:'#FFF0F0',padding:10,borderRadius:9,color:'#982F2F',fontSize:13}}><ul style={{margin:0}}>{errs.map((e,i)=><li key={i}>{e}</li>)}</ul></div>}
-  {!mode&&<p role="alert" style={{fontSize:13,color:'#982F2F'}}>O mapa de versões desta aplicação não corresponde a nenhum embaralhamento do caderno; a emissão com QR fica indisponível.</p>}
+  {canIssue&&!mode&&<p role="alert" style={{fontSize:13,color:'#982F2F'}}>O mapa de versões desta aplicação não corresponde a nenhum embaralhamento do caderno; a emissão com QR fica indisponível.</p>}
 
-  {editable&&<details style={{marginTop:8}}>
+  {editable&&canIssue&&<details style={{marginTop:8}}>
    <summary style={{cursor:'pointer',fontWeight:700}}>1. Emitir cadernos com QR</summary>
    <div style={{display:'grid',gap:8,marginTop:8}}>
     <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
@@ -214,7 +217,7 @@ export default function IssuedPapersPanel({institutionId,courseId,discipline,cou
      <tbody>{papers.map(p=><tr key={p.paperId} style={{borderBottom:'1px solid '+line}}>
       <td style={{padding:5}}>{p.label}</td><td style={{padding:5}}>{p.variant}</td><td style={{padding:5,fontFamily:'monospace'}}>{short(p.shortCode)}</td>
       <td style={{padding:5}}>{p.sheet?Number(p.sheet.total).toFixed(2)+' / '+Number(p.sheet.max).toFixed(2):'pendente'}</td>
-      <td style={{padding:5}}>{editable&&<button type="button" style={{...btn(false),padding:'3px 8px'}} disabled={busy} onClick={()=>void annul(p)}>Anular</button>}</td>
+      <td style={{padding:5}}>{editable&&canManage&&<button type="button" style={{...btn(false),padding:'3px 8px'}} disabled={busy} onClick={()=>void annul(p)}>Anular</button>}</td>
      </tr>)}</tbody></table></div>}
    </div>
   </details>

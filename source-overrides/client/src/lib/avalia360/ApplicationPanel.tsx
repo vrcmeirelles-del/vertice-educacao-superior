@@ -1,6 +1,6 @@
 import {useCallback,useEffect,useMemo,useRef,useState} from 'react';
 import {loadAssessmentDraft} from './draft-api';
-import {answerKeyByVariant,buildVariantMap,discursivePositions,objectivePositions,parseAnswerString,parseCsv,
+import {answerKeyByVariant,buildVariantMap,readerQuestions,discursivePositions,objectivePositions,parseAnswerString,parseCsv,
  parseResponseRows,snapshotQuestions,type SnapshotQuestion} from './answer-entry';
 import {closeApplication,createApplication,deleteSheet,getApplication,listApplications,saveSheets,
  type ApplicationDetail,type ApplicationSummary,type SheetInput} from './application-api';
@@ -31,9 +31,11 @@ function rowsFromDetail(d:ApplicationDetail):Row[]{
 }
 
 /** Aplicação de caderno validado e lançamento de respostas. O servidor corrige. */
+/** Sem draftId: modo leitura de cartões, para qualquer professor do curso (aplicações abertas; sem gabarito no navegador). */
 export default function ApplicationPanel({institutionId,courseId,discipline,draftId,onClose,courseName='',institutionName=''}:{
- institutionId:string;courseId:string;discipline:string;draftId:string;onClose:()=>void;courseName?:string;institutionName?:string;
+ institutionId:string;courseId:string;discipline:string;draftId?:string;onClose:()=>void;courseName?:string;institutionName?:string;
 }){
+ const readerMode=!draftId;
  const [draft,setDraft]=useState<StoredAssessmentDraft|null>(null);
  const [questions,setQuestions]=useState<SnapshotQuestion[]|null>(null);
  const [revision,setRevision]=useState(0);
@@ -51,12 +53,16 @@ export default function ApplicationPanel({institutionId,courseId,discipline,draf
  const [showErrors,setShowErrors]=useState(false);
  const [showQuality,setShowQuality]=useState(false);
 
- const refreshList=useCallback(async()=>setApps(await listApplications(institutionId,courseId,draftId)),[institutionId,courseId,draftId]);
+ const refreshList=useCallback(async()=>{
+  const list=await listApplications(institutionId,courseId,draftId);
+  setApps(draftId?list:list.filter(a=>a.status==='open'));
+ },[institutionId,courseId,draftId]);
  useEffect(()=>{
   let live=true;
   void (async()=>{
    setBusy(true);
    try{
+    if(!draftId){setTitle('Leitura de cartões');await refreshList();return;}
     const found=await loadAssessmentDraft({institutionId,courseId,disciplineId:discipline,draftId});
     if(!found.ok)throw new Error(found.error.message);
     if(found.draft.status!=='validated')throw new Error('Somente caderno validado pelo colegiado pode ser aplicado.');
@@ -78,12 +84,15 @@ export default function ApplicationPanel({institutionId,courseId,discipline,draf
 
  const open=async(id:string)=>{
   setBusy(true);setErrs([]);setMsg('');
-  try{const d=await getApplication(institutionId,courseId,id);setDetail(d);setRows(rowsFromDetail(d));setShowAnalysis(false);setShowMastery(false);setShowErrors(false);setShowQuality(false);}
+  try{const d=await getApplication(institutionId,courseId,id);
+   if(readerMode){setQuestions(readerQuestions(d));setTitle(d.title||'Avaliação');setRevision(d.revision);}
+   setDetail(d);setRows(rowsFromDetail(d));setShowAnalysis(false);setShowMastery(false);setShowErrors(false);setShowQuality(false);}
   catch(e){setMsg(e instanceof Error?e.message:'Aplicação indisponível.');}
   finally{setBusy(false);}
  };
  const create=async()=>{
   if(!questions||!preview){setErrs(['Ajuste a quantidade de versões.']);return;}
+  if(!draftId)return;
   if(!classLabel.trim()){setErrs(['Informe a turma.']);return;}
   setBusy(true);setErrs([]);
   try{
@@ -98,7 +107,7 @@ export default function ApplicationPanel({institutionId,courseId,discipline,draf
   if(!detail)return;
   setBusy(true);setErrs([]);
   try{
-   const roster=await loadAuthorizedClassRoster({institutionId,courseId,disciplineId:discipline,classLabel:detail.classLabel});
+   const roster=await loadAuthorizedClassRoster({institutionId,courseId,disciplineId:rosterDiscipline,classLabel:detail.classLabel});
    const have=new Set(rows.map(r=>r.studentId).filter(Boolean));
    const add=roster.students.filter(s=>!have.has(s.id)).map((s,i)=>({key:'new-'+s.id,studentId:s.id,label:s.name,
     variant:String.fromCharCode(65+((rows.length+i)%detail.variantCount)),seq:'',disc:{},dirty:true}));
@@ -184,25 +193,30 @@ export default function ApplicationPanel({institutionId,courseId,discipline,draf
  const results=detail?new Map(detail.sheets.map(s=>[s.id,s])):new Map();
  const discQs=questions?.filter(q=>q.kind==='discursiva')||[];
  const editable=detail?.status==='open';
+ // canManage vem do servidor: autor, quem criou a aplicação ou coordenação. Os demais professores só leem e lançam.
+ const canManage=detail?.canManage!==false;
+ const rosterDiscipline=readerMode?(detail?.discipline||''):discipline;
  const scored=detail?.sheets.filter(s=>s.items)||[];
  const mean=scored.length?scored.reduce((a,s)=>a+Number(s.total),0)/scored.length:null;
 
  return <section aria-label="Aplicação e lançamento de respostas" style={{background:'#fff',border:'1px solid '+line,borderRadius:14,padding:18,marginBottom:16}}>
   <div style={{display:'flex',justifyContent:'space-between',gap:10,flexWrap:'wrap',alignItems:'center'}}>
    <div><h3 style={{margin:'0 0 4px'}}>Aplicação e respostas · {title}</h3>
-    <p style={{margin:0,fontSize:13,color:'#41566F'}}>Caderno validado, versão {revision}. A correção das objetivas é feita no servidor pelo gabarito validado.</p></div>
+    <p style={{margin:0,fontSize:13,color:'#41566F'}}>{readerMode&&!detail?'Aplicações abertas do curso. Qualquer professor com vínculo ativo no curso lê e lança os cartões; o gabarito fica no servidor.'
+     :'Caderno validado, versão '+revision+'. A correção das objetivas é feita no servidor pelo gabarito validado.'}</p></div>
    <button type="button" style={btn(false)} onClick={onClose}>Fechar</button>
   </div>
   {msg&&<p role="status" style={{fontSize:13,background:'#F5F9FF',padding:'8px 12px',borderRadius:8}}>{msg}</p>}
   {errs.length>0&&<div role="alert" style={{background:'#FFF0F0',padding:12,borderRadius:9,color:'#982F2F',fontSize:13}}><ul style={{margin:0}}>{errs.map((e,i)=><li key={i}>{e}</li>)}</ul></div>}
 
-  {questions&&!detail&&<>
+  {(questions||readerMode)&&!detail&&<>
+   {readerMode&&!busy&&apps.length===0&&<p style={{fontSize:13}}>Nenhuma aplicação aberta neste curso.</p>}
    {apps.length>0&&<><h4>Aplicações registradas</h4><ul style={{listStyle:'none',padding:0,display:'grid',gap:8}}>
     {apps.map(a=><li key={a.id} style={{border:'1px solid '+line,borderRadius:9,padding:'10px 12px',display:'flex',justifyContent:'space-between',gap:10,flexWrap:'wrap',alignItems:'center'}}>
-     <span><strong>{a.classLabel}</strong> · {new Date(a.appliedOn+'T12:00:00').toLocaleDateString('pt-BR')} · {a.variantCount} versão(ões) · {a.sheets} folha(s){a.status==='closed'?' · encerrada':''}</span>
-     <button type="button" style={btn(true)} disabled={busy} onClick={()=>void open(a.id)}>Abrir lançamentos</button>
+     <span>{readerMode&&<><strong>{a.title}</strong> · {a.discipline} · </>}<strong>{a.classLabel}</strong> · {new Date(a.appliedOn+'T12:00:00').toLocaleDateString('pt-BR')} · {a.variantCount} versão(ões) · {a.sheets} folha(s){a.status==='closed'?' · encerrada':''}</span>
+     <button type="button" style={btn(true)} disabled={busy} onClick={()=>void open(a.id)}>{readerMode?'Ler cartões':'Abrir lançamentos'}</button>
     </li>)}</ul></>}
-   <fieldset style={{border:'1px solid '+line,borderRadius:10,padding:12,marginTop:12}}>
+   {!readerMode&&<fieldset style={{border:'1px solid '+line,borderRadius:10,padding:12,marginTop:12}}>
     <legend style={{fontWeight:700}}>Registrar nova aplicação</legend>
     <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))',gap:10}}>
      <label style={{fontSize:13,fontWeight:600}}>Turma (período)<input style={input} value={classLabel} onChange={e=>setClassLabel(e.target.value)} placeholder="Ex.: 3º período"/></label>
@@ -219,14 +233,15 @@ export default function ApplicationPanel({institutionId,courseId,discipline,draf
       <td style={{fontFamily:'monospace',letterSpacing:2}}>{k||'(sem objetivas)'}</td></tr>)}
     </tbody></table>}
     <button type="button" style={{...btn(true),marginTop:10}} disabled={busy||!preview} onClick={()=>void create()}>Registrar aplicação</button>
-   </fieldset>
+   </fieldset>}
   </>}
 
   {detail&&questions&&<div>
    <p style={{fontSize:13}}><strong>{detail.classLabel}</strong> · {new Date(detail.appliedOn+'T12:00:00').toLocaleDateString('pt-BR')} · {detail.variantCount} versão(ões) · {detail.sheets.length} folha(s)
     {mean!==null&&<> · média {mean.toFixed(2)} de {Number(detail.sheets[0]?.max??0).toFixed(2)}</>}{!editable&&' · encerrada'}</p>
-   {draft&&<IssuedPapersPanel key={detail.id} institutionId={institutionId} courseId={courseId} discipline={discipline}
-     courseName={courseName} institutionName={institutionName||'Instituição'} detail={detail} draft={draft}
+   {!canManage&&<p role="note" style={{fontSize:12,color:'#7A4B00',background:'#FFF7E6',padding:'6px 10px',borderRadius:8}}>Você lê e lança os cartões desta aplicação. Emitir ou anular cadernos, excluir folhas, encerrar e as análises ficam com o autor e a coordenação.</p>}
+   {(draft||readerMode)&&<IssuedPapersPanel key={detail.id} institutionId={institutionId} courseId={courseId} discipline={rosterDiscipline}
+     courseName={courseName} institutionName={institutionName||'Instituição'} detail={detail} draft={draft} canManage={canManage}
      onSaved={async()=>{const d=await getApplication(institutionId,courseId,detail.id);setDetail(d);setRows(rowsFromDetail(d));await refreshList();}}/>}
    <p style={{fontSize:12,color:'#41566F'}}>Digite as letras na ordem do cartão da versão do aluno (ex.: ABDCA). Use "-" para branco e "*" para dupla marcação. Planilha: colunas Aluno, Versão, Respostas (ou Q1, Q2…) e D&lt;n&gt; para as notas das discursivas pelo número impresso.</p>
    {editable&&<div style={{display:'flex',gap:8,flexWrap:'wrap',margin:'8px 0'}}>
@@ -256,7 +271,7 @@ export default function ApplicationPanel({institutionId,courseId,discipline,draf
         onChange={e=>update(r.key,{disc:{...r.disc,[q.id]:e.target.value}})} placeholder="—"/></td>)}
        <td style={{padding:6,whiteSpace:'nowrap'}}>{res?<><strong>{Number(res.total).toFixed(2)}</strong> / {Number(res.max).toFixed(2)}
         <div style={{fontFamily:'monospace',letterSpacing:1}}>{(res.items||[]).map((i:{outcome:keyof typeof outcomeMark})=>outcomeMark[i.outcome]).join('')}</div></>:r.dirty?'não salvo':'—'}</td>
-       <td style={{padding:6}}>{editable&&<button type="button" style={{...btn(false),padding:'4px 8px'}} disabled={busy} onClick={()=>void removeRow(r)} aria-label={'Remover '+r.label}>×</button>}</td>
+       <td style={{padding:6}}>{editable&&(canManage||!r.sheetId)&&<button type="button" style={{...btn(false),padding:'4px 8px'}} disabled={busy} onClick={()=>void removeRow(r)} aria-label={'Remover '+r.label}>×</button>}</td>
       </tr>;})}</tbody>
     </table>
    </div>
@@ -264,11 +279,12 @@ export default function ApplicationPanel({institutionId,courseId,discipline,draf
    <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
     <button type="button" style={btn(false)} onClick={()=>{setDetail(null);setRows([]);setMsg('');setErrs([]);}}>← Aplicações</button>
     {editable&&<button type="button" style={btn(true)} disabled={busy||!rows.some(r=>r.dirty)} onClick={()=>void save()}>Salvar lançamentos</button>}
-    {editable&&<button type="button" style={btn(false)} disabled={busy} onClick={()=>void close()}>Encerrar aplicação</button>}
+    {editable&&canManage&&<button type="button" style={btn(false)} disabled={busy} onClick={()=>void close()}>Encerrar aplicação</button>}
     <button type="button" style={btn(false)} disabled={busy||!detail.sheets.some(s=>s.items)||rows.some(r=>r.dirty)}
      title={rows.some(r=>r.dirty)?'Salve os lançamentos antes de baixar.':undefined}
      onClick={()=>{downloadXlsx(resultsWorkbook(detail),resultsFilename(detail));setMsg('Planilha de resultados gerada a partir da correção do servidor.'+(editable?' A aplicação ainda está aberta: novos lançamentos mudam os resultados.':''));}}>
      Baixar planilha de resultados (.xlsx)</button>
+    {canManage&&<>
     <button type="button" style={btn(showAnalysis)} disabled={busy||!detail.sheets.length||rows.some(r=>r.dirty)}
      onClick={()=>setShowAnalysis(v=>!v)}>{showAnalysis?'Ocultar análise':'Análise das questões'}</button>
     <button type="button" style={btn(showMastery)} disabled={busy||!detail.sheets.length||rows.some(r=>r.dirty)}
@@ -276,7 +292,7 @@ export default function ApplicationPanel({institutionId,courseId,discipline,draf
     <button type="button" style={btn(showErrors)} disabled={busy||!detail.sheets.length||rows.some(r=>r.dirty)}
      onClick={()=>setShowErrors(v=>!v)}>{showErrors?'Ocultar mapa de erros':'Mapa de erros'}</button>
     <button type="button" style={btn(showQuality)} disabled={busy||!detail.sheets.length||rows.some(r=>r.dirty)}
-     onClick={()=>setShowQuality(v=>!v)}>{showQuality?'Ocultar qualidade':'Justiça e dupla correção'}</button>
+     onClick={()=>setShowQuality(v=>!v)}>{showQuality?'Ocultar qualidade':'Justiça e dupla correção'}</button></>}
    </div>
    {showQuality&&<QualityPanel key={'q'+detail.id+':'+detail.sheets.length} institutionId={institutionId} courseId={courseId} applicationId={detail.id}/>}
    {showErrors&&<ErrorMapPanel key={'e'+detail.id+':'+detail.sheets.length} institutionId={institutionId} courseId={courseId}
