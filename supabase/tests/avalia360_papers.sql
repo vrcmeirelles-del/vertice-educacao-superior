@@ -1,4 +1,4 @@
--- Testes da emissão registrada de cadernos e da leitura do QR (20261122270000).
+-- Testes da emissão registrada de cadernos e da leitura do QR (20261122290000).
 -- A (autor, record), B (coordenação, validate), C (sem vínculo). Requer as migrações do Avalia 360°.
 \set ON_ERROR_STOP 1
 create or replace function pg_temp.as_user(u text) returns void language sql as

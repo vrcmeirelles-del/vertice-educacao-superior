@@ -33,7 +33,7 @@ sem recriar tabela, regra ou tela paralela.
 | **Bloco 3 — mapa de erros e recuperação** | `20261121195657` | `vertice_avalia_error_evidence`, `vertice_avalia_recovery` (tabela `vertice_avalia_recovery_plans`) | `error-map.ts`, `recovery.ts`, `recovery-api.ts`, `ErrorMapPanel.tsx`, `RecoveryPanel.tsx` |
 | **Bloco 5 — prontidão e risco** | `20261122130000` | evidência com escopo `course`, `vertice_avalia_exam_matrix`, `vertice_avalia_score_series`, `vertice_avalia_risk_publish`; colunas novas em `v_student_evasion_risk` | `readiness.ts`, `academic-risk.ts`, `readiness-api.ts`, `ReadinessRiskPanel.tsx`, `EvasionRiskPanel.tsx` |
 | **Bloco 4 — justiça e qualidade** | `20261121200711` | `vertice_avalia_response_matrix`, `vertice_avalia_double_scoring` (tabela `vertice_avalia_second_scores`); bloqueios de rubrica em `avalia_blocking_issues` | `bloom.ts`, `fairness.ts`, `agreement.ts`, `quality-api.ts`, `QualityPanel.tsx` |
-| **Cadernos com QR registrado (etapas 1 e 2)** | `20261122270000` | `vertice_avalia_papers` (issue, list, scan, save, void; tabela `vertice_avalia_issued_papers`, só o hash SHA-256 do token) | `papers-api.ts`, `IssuedPapersPanel.tsx`, `QrPaperScanner.tsx` (BarcodeDetector ou jsQR), `registeredIssues` em `individualized-pdf.ts` |
+| **Cadernos com QR registrado (etapas 1 e 2)** | `20261122290000` | `vertice_avalia_papers` (issue, list, scan, save, void; tabela `vertice_avalia_issued_papers`, só o hash SHA-256 do token) | `papers-api.ts`, `IssuedPapersPanel.tsx`, `QrPaperScanner.tsx` (BarcodeDetector ou jsQR), `registeredIssues` em `individualized-pdf.ts` |
 
 ### Bloco 1 — decisões
 
