@@ -1,6 +1,6 @@
 import {useCallback,useEffect,useMemo,useRef,useState} from 'react';
 import type {ApplicationDetail} from './application-api';
-import {buildVariantMap,discursivePositions,objectivePositions,parseAnswerString,readerQuestions,snapshotQuestions} from './answer-entry';
+import {buildVariantMap,discursivePositions,objectivePositions,parseAnswerString,readerQuestions,snapshotQuestions,type VariantMap} from './answer-entry';
 import {loadAuthorizedClassRoster} from './class-roster';
 import {editableQuestionsFromSnapshot,type StoredAssessmentDraft} from './draft-api';
 import {buildIndividualizedPdf,downloadPdf,registeredIssues} from './individualized-pdf';
@@ -16,7 +16,17 @@ const btn=(primary:boolean)=>({padding:'9px 14px',borderRadius:9,border:'1px sol
  color:primary?'#fff':blue,fontWeight:700,cursor:'pointer'} as const);
 const input={padding:'8px 10px',border:'1px solid '+line,borderRadius:7,width:'100%',minWidth:0,background:'#fff'} as const;
 const short=(c:string)=>c.slice(0,4)+'-'+c.slice(4);
-const sameMap=(a:unknown,b:unknown)=>JSON.stringify(a)===JSON.stringify(b);
+// O JSONB pode reordenar propriedades, mas a ordem das questões e alternativas deve coincidir.
+const sameMap=(a:VariantMap,b:VariantMap)=>{
+ const versions=Object.entries(a);
+ return versions.length===Object.keys(b).length&&versions.every(([code,items])=>{
+  const saved=b[code];
+  return Array.isArray(saved)&&items.length===saved.length&&items.every((item,index)=>{
+   const other=saved[index];
+   return item.q===other?.q&&Array.isArray(other.o)&&item.o.length===other.o.length&&item.o.every((option,i)=>option===other.o[i]);
+  });
+ });
+};
 
 /** Descobre o embaralhamento que reproduz exatamente o mapa gravado na aplicação. */
 export function matchingShuffleMode(draft:StoredAssessmentDraft,detail:Pick<ApplicationDetail,'variantCount'|'variantMap'>):ShuffleMode|null{

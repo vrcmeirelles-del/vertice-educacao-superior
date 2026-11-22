@@ -31,7 +31,10 @@ describe('cadernos com QR registrado',()=>{
   const snap=snapshotQuestions(draft.snapshot.questions);
   for(const m of ['questoes','alternativas','ambos'] as const){
    const map=buildVariantMap(snap,2,m);
-   const found=matchingShuffleMode(draft,{variantCount:2,variantMap:map});
+   const stored=Object.fromEntries(Object.entries(map).reverse().map(([code,items])=>[
+    code,items.map(({q,o})=>({o,q})),
+   ]));
+   const found=matchingShuffleMode(draft,{variantCount:2,variantMap:stored});
    expect(found).not.toBeNull();
    expect(buildVariantMap(snap,2,found!)).toEqual(map);
   }
