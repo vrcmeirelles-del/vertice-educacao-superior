@@ -487,11 +487,12 @@ export default function Avalia360Studio({institutionId,courses,institutionName,p
      </button>)}
     <button type="button" onClick={add}>＋ Adicionar questão</button>
     <QuestionSpreadsheetImport key={JSON.stringify([institutionId,courseId,disciplineId])}
-     disciplineId={disciplineId} catalog={pedagogy}
+     disciplineId={disciplineId} currentPeriod={pedagogy.currentPeriod} catalog={pedagogy}
      header={{'Curso':courses.find(c=>c.id===courseId)?.name??'','Disciplina':disciplineId,'Semestre':period,
       'Finalidade predominante':purpose==='diagnostica'?'Diagnóstica':purpose==='somativa'?'Somativa':'Formativa',
       'Título da avaliação':title,'Nome do professor':teacherName,'Instruções da avaliação':instructions}}
-     onImport={(items,sheetHeader)=>{
+     onImport={(items,sheetHeader,newTopics)=>{
+      if(newTopics.length)setPedagogy(previous=>({...previous,topics:[...previous.topics,...newTopics]}));
       // A questão vazia criada ao iniciar a elaboração não fica antes das importadas.
       const kept=questions.filter(q=>!isBlankQuestion(q));
       setQuestions([...kept,...items]);setActiveIndex(kept.length);

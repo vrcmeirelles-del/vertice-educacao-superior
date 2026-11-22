@@ -31,6 +31,37 @@ describe('modelo de planilha do Avalia 360°',()=>{
   expect(r.questions[1].competencyIds).toEqual(['c1','c2']);
   expect(r.questions[1].points).toBe(2);
  });
+ it('vincula temas declarados ao rascunho e reaproveita títulos equivalentes e competências conhecidas',()=>{
+  const headings=['Tipo','Enunciado','Pontuação','Dificuldade','Finalidade','Alternativa A','Alternativa B','Gabarito','Justificativa do gabarito','Tema','Subtema','Competências'];
+  const question=['Objetiva','Enunciado de teste com pelo menos dez caracteres.',1,2,'Formativa','Opção A','Opção B','A','Justificativa de teste'];
+  const rows=[headings,
+   [...question,'Parte Geral','Contratos Digitais','C1 — Interpretar normas'],
+   [...question,'contrátos digitais','','DESCONHECIDA'],
+   [...question,'','','C2'],
+   [...question.slice(0,7),'Z','Justificativa','Tema de linha inválida'],
+  ];
+  const r=parseQuestionRows(rows,'Direito Civil',catalog,{newTopicPeriod:3});
+  expect(r.questions).toHaveLength(3);
+  expect(r.errors).toHaveLength(1);
+  expect(r.newTopics).toEqual([{id:expect.any(String),title:'Contratos Digitais',period:3}]);
+  const id=r.newTopics[0].id;
+  expect(r.questions.map(q=>q.topicIds)).toEqual([['t1',id],[id],[]]);
+  expect(r.questions.map(q=>q.competencyIds)).toEqual([['c1'],[],['c2']]);
+  expect(r.warnings).toEqual([expect.stringContaining('DESCONHECIDA')]);
+  const manual=parseQuestionRows(rows,'Direito Civil',catalog);
+  expect(manual.newTopics).toEqual([]);
+  expect(manual.questions.map(q=>q.topicIds)).toEqual([['t1'],[],[]]);
+ });
+ it('mantém um vínculo ambíguo pendente mesmo com preenchimento ativo',()=>{
+  const duplicate={...catalog,topics:[...catalog.topics,{id:'t2',title:'Parte Geral'}]};
+  const r=parseQuestionRows([
+   ['Tipo','Enunciado','Pontuação','Dificuldade','Finalidade','Alternativa A','Alternativa B','Gabarito','Justificativa do gabarito','Tema'],
+   ['Objetiva','Enunciado válido para teste',1,2,'Formativa','Opção A','Opção B','A','Justificativa','Parte Geral'],
+  ],'Direito Civil',duplicate,{newTopicPeriod:3});
+  expect(r.newTopics).toEqual([]);
+  expect(r.questions[0].topicIds).toEqual([]);
+  expect(r.warnings).toEqual([expect.stringContaining('Parte Geral')]);
+ });
  it('cabeçalho vazio vai em branco e é ignorado na leitura',async()=>{
   const blank=buildQuestionTemplate({header:{}});
   expect(parseHeaderRows(await readSheet(Buffer.from(blank),'Cabeçalho') as unknown[][])).toEqual({});
