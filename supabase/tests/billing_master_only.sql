@@ -6,8 +6,8 @@ insert into auth.users(id,email) values
 insert into public.vertice_institutions(id,name) values ('20000000-0000-4000-8000-0000000000b1','Billing test A');
 insert into public.vertice_admins(user_id) values ('10000000-0000-4000-8000-0000000000b1');
 insert into public.vertice_memberships(user_id,institution_id,role) values ('10000000-0000-4000-8000-0000000000b2','20000000-0000-4000-8000-0000000000b1','gestor');
-insert into public.vertice_contracts(id,institution_id,package_code,price_per_student,min_monthly,status,contract_number,starts_at)
-values ('30000000-0000-4000-8000-0000000000b1','20000000-0000-4000-8000-0000000000b1','essencial',1.5,100,'trial','VRT-TESTE-0001',current_date);
+insert into public.vertice_contracts(id,institution_id,package_code,price_per_student,min_monthly,status,contract_number,starts_at,min_commitment_ends_at)
+values ('30000000-0000-4000-8000-0000000000b1','20000000-0000-4000-8000-0000000000b1','essencial',1.5,100,'trial','VRT-TESTE-0001',current_date,current_date + 90);
 insert into public.vertice_invoices(id,contract_id,institution_id,invoice_number,invoice_type,subtotal,total,due_date,status,line_items)
 values ('40000000-0000-4000-8000-0000000000b1','30000000-0000-4000-8000-0000000000b1','20000000-0000-4000-8000-0000000000b1','TESTE-0001','mensalidade',100,100,current_date,'pending','[]');
 set local role authenticated;
