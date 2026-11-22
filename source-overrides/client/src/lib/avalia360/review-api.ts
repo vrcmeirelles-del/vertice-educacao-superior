@@ -1,7 +1,4 @@
-/**
- * Avalia 360° — validação pelo colegiado. A RPC impõe AAL2, papéis, segregação
- * (autor não valida) e repete os bloqueios estruturais do checklist.
- */
+/** Operações de validação do Avalia 360°. */
 import {supabase} from '@/lib/supabase';
 import type {DraftReceipt} from './draft-api';
 import type {ChecklistResult,ReturnReason} from './item-checklist';
@@ -30,3 +27,16 @@ export const submitForReview=(i:string,c:string,receipt:DraftReceipt,checklist:C
  call<DraftReceipt>(i,c,'submit',{id:receipt.id,expectedRevision:receipt.revision,checklist:checklistSummary(checklist)});
 export const decideReview=(i:string,c:string,args:{id:string;revision:number;decision:'validate'|'return';justification:string;reasons:ReturnReason[]})=>
  call<DraftReceipt>(i,c,args.decision,{id:args.id,expectedRevision:args.revision,justification:args.justification,reasons:args.reasons});
+
+async function automaticValidation(
+ institutionId:string,courseId:string,receipt:Pick<DraftReceipt,'id'|'revision'>,action:'release'|'resume'
+):Promise<DraftReceipt>{
+ const {data,error}=await supabase.rpc('vertice_avalia_automatic_validation',{
+  p_institution:institutionId,p_course:courseId,p_draft:receipt.id,
+  p_expected_revision:receipt.revision,p_action:action,
+ });
+ if(error)throw new ReviewError(error.message||'Validação indisponível.',error.code||'VALIDATION_FAILED');
+ return data as DraftReceipt;
+}
+export const releaseAssessment=(i:string,c:string,d:Pick<DraftReceipt,'id'|'revision'>)=>automaticValidation(i,c,d,'release');
+export const resumeAssessment=(i:string,c:string,d:Pick<DraftReceipt,'id'|'revision'>)=>automaticValidation(i,c,d,'resume');
