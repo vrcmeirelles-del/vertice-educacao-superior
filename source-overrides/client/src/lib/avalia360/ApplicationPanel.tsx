@@ -12,6 +12,8 @@ import CompetencyDiagnosisPanel from './CompetencyDiagnosisPanel';
 import ErrorMapPanel from './ErrorMapPanel';
 import QualityPanel from './QualityPanel';
 import IssuedPapersPanel from './IssuedPapersPanel';
+import {resultsFilename,resultsWorkbook} from './results-export';
+import {downloadXlsx} from './xlsx';
 import type {StoredAssessmentDraft} from './draft-api';
 
 const blue='#164B92',line='#DCE7F4';
@@ -263,6 +265,10 @@ export default function ApplicationPanel({institutionId,courseId,discipline,draf
     <button type="button" style={btn(false)} onClick={()=>{setDetail(null);setRows([]);setMsg('');setErrs([]);}}>← Aplicações</button>
     {editable&&<button type="button" style={btn(true)} disabled={busy||!rows.some(r=>r.dirty)} onClick={()=>void save()}>Salvar lançamentos</button>}
     {editable&&<button type="button" style={btn(false)} disabled={busy} onClick={()=>void close()}>Encerrar aplicação</button>}
+    <button type="button" style={btn(false)} disabled={busy||!detail.sheets.some(s=>s.items)||rows.some(r=>r.dirty)}
+     title={rows.some(r=>r.dirty)?'Salve os lançamentos antes de baixar.':undefined}
+     onClick={()=>{downloadXlsx(resultsWorkbook(detail),resultsFilename(detail));setMsg('Planilha de resultados gerada a partir da correção do servidor.'+(editable?' A aplicação ainda está aberta: novos lançamentos mudam os resultados.':''));}}>
+     Baixar planilha de resultados (.xlsx)</button>
     <button type="button" style={btn(showAnalysis)} disabled={busy||!detail.sheets.length||rows.some(r=>r.dirty)}
      onClick={()=>setShowAnalysis(v=>!v)}>{showAnalysis?'Ocultar análise':'Análise das questões'}</button>
     <button type="button" style={btn(showMastery)} disabled={busy||!detail.sheets.length||rows.some(r=>r.dirty)}
