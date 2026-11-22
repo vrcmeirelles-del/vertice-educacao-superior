@@ -1,3 +1,4 @@
+import type {DeclaredTopic} from './declared-analysis';
 import type {QuestionDraft} from './question-draft';
 
 type Catalog = {
@@ -8,13 +9,20 @@ const letters=['A','B','C','D','E'];
 const normalize=(value:string)=>value.trim().normalize('NFD').replace(/\p{M}/gu,'').toLowerCase();
 const list=(value:string)=>[...new Set(value.split(',').map(term=>term.trim()).filter(Boolean))];
 
-export function parseQuestionRows(rows:unknown[][],disciplineId:string,catalog:Catalog){
+export function parseQuestionRows(rows:unknown[][],disciplineId:string,catalog:Catalog,options:{newTopicPeriod?:number}={}){
  const [header,...data]=rows;
  if(!header)throw Error('A aba Questões está vazia.');
  const positions=new Map(header.map((cell,index)=>[normalize(String(cell??'')),index]));
  if(!['Tipo','Enunciado','Pontuação','Dificuldade','Finalidade'].every(key=>positions.has(normalize(key))))
   throw Error('Confira os cabeçalhos da aba Questões no modelo do Avalia 360°.');
  const questions:QuestionDraft[]=[];
+ const newTopics:DeclaredTopic[]=[];
+ const knownTopics=catalog.topics.map(t=>({id:t.id,labels:[t.title,t.id]}));
+ const knownCompetencies=catalog.competencies.map(c=>({
+  id:c.id,labels:[c.code,c.title,c.id,c.code+' — '+c.title],
+ }));
+ const topicPeriod=options.newTopicPeriod;
+ const canDeclareTopic=typeof topicPeriod==='number'&&Number.isInteger(topicPeriod)&&topicPeriod>=1&&topicPeriod<=12;
  const errors:string[]=[], warnings:string[]=[];
  data.forEach((cells,index)=>{
   if(cells.every(cell=>cell==null||String(cell).trim()===''))return;
@@ -53,16 +61,22 @@ export function parseQuestionRows(rows:unknown[][],disciplineId:string,catalog:C
   if(errors.length!==invalidBefore)return;
   const topic=value('Tema'), subtopic=value('Subtema');
   const competencyTerms=list(value('Competências'));
-  const resolve=(terms:string[],items:{id:string;labels:string[]}[],field:string)=>{
+  const resolve=(terms:string[],items:{id:string;labels:string[]}[],field:string,declareTopic=false)=>{
    const ids=terms.flatMap(term=>{
     const matches=items.filter(item=>item.labels.some(label=>normalize(label)===normalize(term)));
+    if(!matches.length&&declareTopic&&canDeclareTopic){
+     const id=crypto.randomUUID();
+     newTopics.push({id,title:term,period:topicPeriod});
+     items.push({id,labels:[term,id]});
+     return [id];
+    }
     if(matches.length!==1)warning(field,`revise o vínculo de “${term}” no catálogo.`);
     return matches.length===1?[matches[0].id]:[];
    });
    return [...new Set(ids)];
   };
-  const topicIds=resolve([topic,subtopic].filter(Boolean),catalog.topics.map(t=>({id:t.id,labels:[t.title,t.id]})),'Tema / Subtema');
-  const competencyIds=resolve(competencyTerms,catalog.competencies.map(c=>({id:c.id,labels:[c.code,c.title,c.id]})),'Competências');
+  const topicIds=resolve([topic,subtopic].filter(Boolean),knownTopics,'Tema / Subtema',true);
+  const competencyIds=resolve(competencyTerms,knownCompetencies,'Competências');
   const fileName=value('Arquivo de imagem');
   if(fileName)warning('Arquivo de imagem',`anexe “${fileName}” na revisão da questão.`);
   questions.push({
@@ -75,5 +89,5 @@ export function parseQuestionRows(rows:unknown[][],disciplineId:string,catalog:C
   });
  });
  if(!questions.length&&!errors.length)errors.push('Preencha ao menos uma questão na aba Questões.');
- return {questions,errors,warnings};
+ return {questions,errors,warnings,newTopics};
 }
