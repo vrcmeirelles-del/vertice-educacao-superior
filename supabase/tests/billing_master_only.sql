@@ -1,4 +1,4 @@
--- Faturamento restrito ao master (20261122290000_billing_master_only). Fixtures desfeitas no rollback.
+-- Faturamento restrito ao master (20261122330000_billing_master_only). Fixtures desfeitas no rollback.
 begin;
 insert into auth.users(id,email) values
 ('10000000-0000-4000-8000-0000000000b1','billing-master@example.invalid'),
