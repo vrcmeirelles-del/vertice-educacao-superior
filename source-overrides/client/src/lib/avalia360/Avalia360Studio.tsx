@@ -780,7 +780,18 @@ export default function Avalia360Studio({institutionId,courses,institutionName,p
     <strong>Caderno devolvido pelo colegiado (versão {lastReturn.revision}).</strong> Corrija, salve e envie de novo.
     {reviewEvents&&<ReviewHistory events={reviewEvents}/>}
    </div>}
-   {!previewMode&&receipt?.status==='validated'&&applying!==receipt.id&&<button type="button" style={{...btn(true),marginBottom:8}} onClick={()=>setApplying(receipt.id)}>Aplicar e lançar respostas</button>}
+   {!previewMode&&persistenceAvailable&&<section aria-label="Emissão nominal com QR registrado"
+    style={{background:light,border:'1px solid '+line,borderRadius:9,padding:12,marginBottom:12}}>
+    <h4 style={{margin:'0 0 6px'}}>Emissão nominal com QR registrado</h4>
+    {receipt?.status==='validated'?<>
+     <p style={{fontSize:13,margin:'0 0 8px'}}>Em Aplicação e respostas, registre ou abra a aplicação da turma. Depois acesse Cadernos com QR registrado para emitir o PDF.</p>
+     {applying!==receipt.id&&<button type="button" style={btn(true)} onClick={()=>setApplying(receipt.id)}>Abrir Aplicação e respostas</button>}
+    </>:<p role="note" style={{fontSize:13,margin:0}}>
+     {receipt?.status==='submitted'?'Aguarde a validação do colegiado para abrir a aplicação da turma.':
+      receipt?.status==='archived'?'Abra um caderno validado para emitir o PDF da turma.':
+      'Salve o caderno e envie para validação do colegiado. Com o caderno validado, esta seção libera a abertura da aplicação.'}
+    </p>}
+   </section>}
    {!previewMode&&applying&&courseId&&<ApplicationPanel key={applying} institutionId={institutionId} courseId={courseId} discipline={disciplineId}
      draftId={applying} onClose={()=>setApplying(null)} courseName={courses.find(c=>c.id===courseId)?.name||''} institutionName={institutionName}/>}
    <ChecklistPanel result={checklist}/>
@@ -835,7 +846,7 @@ export default function Avalia360Studio({institutionId,courses,institutionName,p
    {loaded&&<SavedPreview value={loaded}/>}
   </div>
 
-      {persistenceAvailable&&<ClassBatchPublisher previewMode={previewMode} institutionId={institutionId} courseId={courseId} courseName={courses.find(c=>c.id===courseId)?.name||''}
+      {previewMode&&<ClassBatchPublisher previewMode={true} institutionId={institutionId} courseId={courseId} courseName={courses.find(c=>c.id===courseId)?.name||''}
     discipline={disciplineId} title={title} teacherName={teacherName} instructions={instructions} semester={period} questions={questions}/>}
 
     <div className="avalia-actions">
