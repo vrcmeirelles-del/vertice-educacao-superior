@@ -169,9 +169,8 @@ export default function ModuleOffer({
             <span className="module-offer-tasting-icon">🎯</span>
             <div>
               <strong>Degustação gratuita — 15 dias</strong>
-              <p>Explore o módulo completo sem compromisso. Após 15 dias, ativa automaticamente
-                por <strong>R$ {module.estimated_fee.toLocaleString("pt-BR")}/mês</strong>.
-                Cancele a qualquer momento durante a degustação.</p>
+              <p>Explore o módulo completo sem compromisso. A degustação termina em 15 dias,
+                sem cobrança automática. Para contratar, a equipe Vértice apresenta a proposta.</p>
             </div>
           </div>
         </div>

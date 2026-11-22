@@ -37,7 +37,7 @@ export default function ModulePreview({
             {daysLeft > 0
               ? `${daysLeft} dia${daysLeft > 1 ? 's' : ''} restante${daysLeft > 1 ? 's' : ''}`
               : 'Último dia'}
-            {' · '}Após a degustação: R$ {estimatedFee.toLocaleString('pt-BR')}/mês
+            {' · '}Sem cobrança automática; para contratar, fale com a equipe Vértice
           </span>
           <button className="module-preview-tasting-cancel" onClick={async () => {
             await supabase.rpc('cancel_module_tasting', { p_institution_id: institutionId, p_module_code: moduleCode });
@@ -101,7 +101,7 @@ export default function ModulePreview({
                 {activating ? 'Ativando...' : 'Experimentar 15 dias grátis'}
               </button>
               <p className="module-preview-cta-price">
-                Após degustação: R$ {estimatedFee.toLocaleString('pt-BR')}/mês · Cancele quando quiser
+                Sem cobrança automática · Para contratar, a equipe Vértice apresenta a proposta
               </p>
             </>
           )}
