@@ -20,6 +20,13 @@ describe('fluxo visual docente Avalia 360°',()=>{
    'Critérios de correção','Competências associadas','Opções pedagógicas e análise longitudinal'
   ])expect(source).toContain(value);
  });
+ it('encaminha a emissão institucional para a aplicação do caderno validado',()=>{
+  expect(source).toContain('Emissão nominal com QR registrado');
+  expect(source).toContain('Abrir Aplicação e respostas');
+  expect(source).toContain("receipt?.status==='validated'");
+  expect(source).toContain('{previewMode&&<ClassBatchPublisher previewMode={true}');
+  expect(source).not.toContain('{persistenceAvailable&&<ClassBatchPublisher');
+ });
  it('não promete salvamento automático nem validação jurídica',()=>{
   expect(source).toContain('Ainda não salvo. Salve na etapa final.');
   expect(source).toContain('Verificações estruturais, sem análise jurídica semântica.');
