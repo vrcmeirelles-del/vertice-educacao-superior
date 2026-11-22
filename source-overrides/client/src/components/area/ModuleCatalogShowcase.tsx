@@ -53,6 +53,7 @@ interface CatalogItem {
   tasting_ends_at?: string;
 }
 
+// Valores comerciais só chegam ao perfil master: a contratação é intermediada pela equipe Vértice.
 interface PkgPricing {
   package: string;
   package_label: string;
@@ -84,7 +85,7 @@ export default function ModuleCatalogShowcase({
 
   useEffect(() => {
     load();
-  }, [institutionId]);
+  }, [institutionId, isMaster]);
 
   async function load() {
     const tier = institutionTier === "escolas" ? "escolas" : "superior";
@@ -100,13 +101,17 @@ export default function ModuleCatalogShowcase({
       .map((m: any) => ({ ...m, pkg: m.package }));
     setCatalog(filtered);
 
-    // Pricing
-    const { data: pr } = await supabase
-      .from("vertice_package_pricing")
-      .select("package, package_label, monthly_floor, setup_fee, addon_activation, addon_monthly")
-      .eq("tier", tier)
-      .order("sort_order");
-    setPricing(pr ?? []);
+    // Pricing — só o master consulta valores comerciais (RLS de vertice_package_pricing restringe ao master).
+    if (isMaster) {
+      const { data: pr } = await supabase
+        .from("vertice_package_pricing")
+        .select("package, package_label, monthly_floor, setup_fee, addon_activation, addon_monthly")
+        .eq("tier", tier)
+        .order("sort_order");
+      setPricing(pr ?? []);
+    } else {
+      setPricing([]);
+    }
 
     // Activations
     const { data: acts } = await supabase
@@ -181,7 +186,9 @@ export default function ModuleCatalogShowcase({
         <div>
           <p className="mcs-eyebrow">VÉRTICE · CATÁLOGO DE MÓDULOS</p>
           <h2>Módulos Disponíveis — {tierLabel}</h2>
-          <p className="mcs-subtitle">Explore os módulos, ative degustações gratuitas de 15 dias ou contrate pacotes completos.</p>
+          <p className="mcs-subtitle">{isMaster
+            ? "Explore os módulos, ative degustações gratuitas de 15 dias ou contrate pacotes completos."
+            : "Explore os módulos e ative degustações gratuitas de 15 dias. A contratação de pacotes é feita com a equipe Vértice."}</p>
         </div>
         <div className="mcs-controls">
           <input
