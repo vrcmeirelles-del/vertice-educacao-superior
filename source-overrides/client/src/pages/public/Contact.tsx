@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Copy, Check, Mail, ShieldCheck } from "lucide-react";
 import { company, services } from "@/lib/consultancy";
 import { PublicHeading } from "@/components/PublicLayout";
+const PLATFORM_PACKAGES = ["Essencial", "Regulação", "Gestão 360°", "Completo"] as const;
+
 export default function Contact() {
   const [institution, setInstitution] = useState("");
   const [front, setFront] = useState(() =>
@@ -11,13 +13,17 @@ export default function Contact() {
       ? new URLSearchParams(window.location.search).get("frente") || ""
       : ""
   );
+  const [packageInterest] = useState(() => {
+    const requested = typeof window === "undefined" ? "" : new URLSearchParams(window.location.search).get("pacote") || "";
+    return PLATFORM_PACKAGES.find(name => name === requested) || "";
+  });
   const [challenge, setChallenge] = useState("");
   const [scope, setScope] = useState("");
   const [brief, setBrief] = useState("");
   const [copied, setCopied] = useState(false);
   const prepare = (e: React.FormEvent) => {
     e.preventDefault();
-    const text = `BRIEFING — VÉRTICE EDUCAÇÃO SUPERIOR\n\nInstituição: ${institution.trim() || "A informar"}\nFrente: ${services.find(s => s.id === front)?.title || "A definir"}\nDesafio: ${challenge.trim()}\nRecorte pretendido: ${scope.trim() || "A delimitar em conjunto"}\n\nSolicitação: conversar sobre escopo, fontes, entregas e acompanhamento.`;
+    const text = `BRIEFING — VÉRTICE EDUCAÇÃO SUPERIOR\n\nInstituição: ${institution.trim() || "A informar"}\nFrente: ${front === "plataforma" ? "Plataforma para IES" : services.find(s => s.id === front)?.title || "A definir"}${front === "plataforma" && packageInterest ? `\nPacote de interesse: ${packageInterest}` : ""}\nDesafio: ${challenge.trim()}\nRecorte pretendido: ${scope.trim() || "A delimitar em conjunto"}\n\nSolicitação: conversar sobre escopo, fontes, entregas e acompanhamento.`;
     setBrief(text);
     setCopied(false);
   };
@@ -91,6 +97,7 @@ export default function Contact() {
               Frente de interesse
               <select value={front} onChange={e => setFront(e.target.value)}>
                 <option value="">Vamos definir em conjunto</option>
+                <option value="plataforma">Plataforma para IES</option>
                 {services.map(s => (
                   <option key={s.id} value={s.id}>
                     {s.title}
@@ -98,6 +105,9 @@ export default function Contact() {
                 ))}
               </select>
             </HelpLabel>
+            {front === "plataforma" && packageInterest && (
+              <p className="contact-package-interest">Pacote de interesse: <strong>{packageInterest}</strong></p>
+            )}
             <HelpLabel>
               Qual é o desafio? <span>(obrigatório)</span>
               <textarea
