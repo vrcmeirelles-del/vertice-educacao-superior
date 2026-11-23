@@ -4,6 +4,8 @@ on:
     branches: [main]
     paths:
       - 'supabase/functions/vertice-discursiva/**'
+      - 'supabase/functions/vertice-algoritmos/**'
+      - 'scripts/tests/algorithms-runtime/**'
       - 'supabase/functions/_shared/**'
       - 'supabase/functions/vertice-communications/**'
       - 'supabase/functions/vertice-convite*/**'
@@ -87,6 +89,9 @@ jobs:
         run: |
           npm ci --prefix scripts/tests/discursiva-runtime --no-audit --no-fund
           node --test scripts/tests/discursiva-runtime/*.test.mjs
+      - name: Algoritmos — conversão em alertas com o mesmo código das telas
+        if: matrix.node == '24'
+        run: node --test scripts/tests/algorithms-runtime/*.test.mjs
       - name: TypeScript completo, sem tolerar erros da base
         working-directory: .typecheck-build
         run: npm run check

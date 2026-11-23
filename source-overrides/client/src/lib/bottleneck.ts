@@ -39,7 +39,7 @@ export const MIN_PAIRS = 30, MIN_ALERTS = 5, MIN_LIFT = 0.2;
 
 const num = (v: unknown) => (Number.isFinite(Number(v)) ? Number(v) : 0);
 const round = (v: number, d = 2) => Math.round(v * 10 ** d) / 10 ** d;
-const norm = (s: unknown) => String(s ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
+const norm = (s: unknown) => String(s ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
 const statusCount = (status: string | null | undefined, code: string) =>
   String(status ?? "").split("|").reduce((s, part) => { const [c, q] = part.split(":"); return c?.trim() === code ? s + num(q) : s; }, 0);
 

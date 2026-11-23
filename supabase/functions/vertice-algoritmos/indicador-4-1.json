@@ -1,0 +1,14 @@
+{
+ "fonte": "source-overrides/client/src/lib/avaliacao-institucional.json",
+ "instrumento": "Instrumento de Avaliação Institucional Externa",
+ "edicao": "2017",
+ "code": "4.1",
+ "title": "Titulação do corpo docente",
+ "criteria": {
+  "1": "O corpo docente é composto por menos de 25% de mestres e doutores.",
+  "2": "O corpo docente é composto por ao menos 25% de mestres e doutores.",
+  "3": "O corpo docente é composto por ao menos 40% de mestres e doutores.",
+  "4": "O corpo docente é composto por ao menos 60% de mestres e doutores.",
+  "5": "O corpo docente é composto por ao menos 80% de mestres e doutores."
+ }
+}
