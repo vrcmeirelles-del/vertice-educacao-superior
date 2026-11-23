@@ -96,6 +96,7 @@ import ModuleCatalogShowcase from "./ModuleCatalogShowcase";
 import IntegrationSettings from "./IntegrationSettings";
 import ModulePreview from "./ModulePreview";
 import { getActiveTabs, isTabActive, getModuleCatalog, findModuleByTab, type CatalogModule } from "@/lib/modules";
+import ManagementBIArea, { ModuleBIStrip } from "@/components/bi/ManagementBI";
 import ModuleOffer from "./ModuleOffer";
 import CourseStaffFunctions from "./CourseStaffFunctions";
 import { myCourseFunctions, tabsForCourseFunctions, type MyCourseFunction } from "@/lib/course-staff-api";
@@ -106,6 +107,7 @@ import "./area.css";
 import "./module-offer.css";
 
 const TAB_GROUPS: {label:string;subtitle:string;icon:string;tabs:Tab[];tier?:'superior'|'escolas'|'both';sortByLabel?:boolean}[] = [
+  {label:'BI da Gestão',subtitle:'BI geral e BI de cada módulo, com gráficos coloridos',icon:'📊',tabs:['bi-gestao'],tier:'both'},
   {label:'Gestão',subtitle:'Planejamento, metas e governança',icon:'▦',tabs:['planejamento-estrategico','planejamento-semestral','base','metas','plano','diagnostico','equipe','cpa-autoavaliacao'],tier:'both'},
   {label:'Gestão Institucional',subtitle:'Programas e metas do PDI',icon:'◎',tabs:['programas-pdi'],tier:'superior'},
   {label:'Regulação',subtitle:'Instrumentos e evidências MEC/INEP',icon:'◇',tabs:['emec','repositorio','validacao','avaliacao','novo_instrumento','biblioteca'],tier:'superior'},
@@ -128,6 +130,7 @@ const TAB_GROUPS: {label:string;subtitle:string;icon:string;tabs:Tab[];tier?:'su
 ];
 
 const TAB_DETAILS: Partial<Record<Tab,{icon:string;description:string}>> = {
+  'bi-gestao': {icon:'📊',description:'BI geral da instituição e BI de cada módulo: pizza, rosca, prisma, barras e radar com dados reais.'},
  'programas-pdi':{icon:'◎',description:'Programas, metas, indicadores e contribuições acadêmicas do PDI'},
  'atividades-ensino':{icon:'▤',description:'Eventos formativos, práticas e simulados com evidências da Mesa Digital'},
  "avalia360":{icon:"📝",description:"Estúdio de avaliações, banco de questões e curadoria pedagógica"},
@@ -199,6 +202,7 @@ const TAB_DETAILS: Partial<Record<Tab,{icon:string;description:string}>> = {
 };
 
 const TABS: [Tab, string][] = [
+  ["bi-gestao", "BI da Gestão"],
   ["programas-pdi", "Programas e metas do PDI"],
   ["atividades-ensino", "Atividades de Ensino"],
  ["avalia360", "Avalia 360°"],
@@ -470,7 +474,7 @@ export default function Workspace({
       setModuleSearch(""); setOnlyFavorites(false);
     }
   };
-  const isLocked = (tabKey: string) => tabKey !== "avalia360" && tabKey !== "discursiva" && tabKey !== "programas-pdi" && tabKey !== "atividades-ensino" && !["escola-individual","escola-documentos","escola-bi", "escola-permanencia", "escola-financeiro", "escola-dados", "escola-projetos", "escola-planejamento-prof", "escola-estagio", "escola-captacao"].includes(tabKey) && tabKey !== "mercado" && tabKey !== "conecta" && tabKey !== "gestao-escolar" && tabKey !== "planejamento-estrategico" && tabKey !== "planejamento-semestral" && activeTabs.size > 0 && !activeTabs.has(tabKey);
+  const isLocked = (tabKey: string) => tabKey !== "bi-gestao" && tabKey !== "avalia360" && tabKey !== "discursiva" && tabKey !== "programas-pdi" && tabKey !== "atividades-ensino" && !["escola-individual","escola-documentos","escola-bi", "escola-permanencia", "escola-financeiro", "escola-dados", "escola-projetos", "escola-planejamento-prof", "escola-estagio", "escola-captacao"].includes(tabKey) && tabKey !== "mercado" && tabKey !== "conecta" && tabKey !== "gestao-escolar" && tabKey !== "planejamento-estrategico" && tabKey !== "planejamento-semestral" && activeTabs.size > 0 && !activeTabs.has(tabKey);
   const isTasting = (tabKey: string) => {
     const mod = findModuleByTab(moduleCatalog, tabKey);
     return mod?.display_status === 'tasting';
@@ -629,6 +633,7 @@ export default function Workspace({
         description={portalModulePresentation(tab, activeMacro).description ?? TAB_DETAILS[tab]?.description} />
       {!['extensao','tcc','estagio','equipe'].includes(tab) && <PortalInvitations key={`${id}:${tab}`} institutionId={String(id)} role={role} module={tab} courses={data.courses.map(c=>({id:String(c.id),name:String(c.display_name??c.name)}))} />}
       <div className="portal-module-content">
+      {tab !== "bi-gestao" && <ModuleBIStrip key={`bi:${id}:${tab}`} tab={tab} institutionId={String(id)} />}
       {tab === 'base' && <InstitutionAddress institutionId={id} manage={role==='master'}/>}
       {error && <p role="alert" className="area-error">{error}</p>}
       {MODULE_HELP.some(item=>item.key===tab) && <div className="vx-module-help"><span>Como usar esta área</span><ContextHelp title={TABS.find(([key])=>key===tab)?.[1] || "Módulo"} text={MODULE_HELP.find(item=>item.key===tab)?.text} /></div>}
@@ -637,6 +642,8 @@ export default function Workspace({
         overview
       ) : loading ? (
         <p role="status">Carregando…</p>
+      ) : tab === "bi-gestao" ? (
+        <ManagementBIArea institutionId={String(id)} availableTabs={visible.map(([k]) => k).filter(k => visibleGroups.some(g => g.tabs.includes(k)) && !isLocked(k))} />
       ) : tab === "mercado" ? (
         <Suspense fallback={<p role="status">Carregando inteligência de mercado…</p>}><MarketIntelligence key={String(id)} institutionId={String(id)} courses={data.courses} goals={data.goals} role={role} onPlanning={()=>choose("planejamento-estrategico")}/></Suspense>
       ) : tab === "avalia360" ? (
