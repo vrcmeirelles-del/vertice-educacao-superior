@@ -25,7 +25,7 @@ export const MACRO_TABS: MacroTabDef[] = [
     label: 'Visão Geral',
     icon: '⌂',
     description: 'Painel executivo da instituição',
-    tabs: ['base', 'geral', 'analise'],
+    tabs: ['bi-gestao', 'base', 'geral', 'analise'],
   },
   {
     key: 'dados',
