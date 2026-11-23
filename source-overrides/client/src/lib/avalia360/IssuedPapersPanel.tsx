@@ -2,6 +2,9 @@ import {useCallback,useEffect,useMemo,useRef,useState} from 'react';
 import type {ApplicationDetail} from './application-api';
 import {buildVariantMap,discursivePositions,objectivePositions,parseAnswerString,readerQuestions,snapshotQuestions,type VariantMap} from './answer-entry';
 import {loadAuthorizedClassRoster} from './class-roster';
+import {readSheet} from 'read-excel-file/browser';
+import {parseClassRosterRows} from './class-roster-spreadsheet';
+import {buildXlsx} from './xlsx';
 import {editableQuestionsFromSnapshot,type StoredAssessmentDraft} from './draft-api';
 import {buildIndividualizedPdf,downloadPdf,registeredIssues} from './individualized-pdf';
 import {downloadDraftImages} from './private-image-upload';
@@ -37,7 +40,23 @@ export function matchingShuffleMode(draft:StoredAssessmentDraft,detail:Pick<Appl
  return null;
 }
 
-type Student={id:string;name:string;selected:boolean};
+type Student={id?:string;name:string;registration?:string;verified?:boolean;selected:boolean};
+const rosterKey=(student:Student)=>student.registration?.trim().toLowerCase()||student.id||'';
+function mergeRoster(current:Student[], incoming:Student[]){
+ const rows=new Map(current.map(s=>[rosterKey(s),s]));
+ for(const next of incoming){
+  const key=rosterKey(next);
+  const previous=rows.get(key);
+  if(!previous||next.id||!previous.id)rows.set(key,{...next,selected:previous?.selected??next.selected});
+ }
+ return [...rows.values()];
+}
+function downloadRosterTemplate(){
+ const bytes=buildXlsx([{name:'Alunos',rows:[['Nome','Matrícula']],widths:[42,24],headerRow:true}]);
+ const url=URL.createObjectURL(new Blob([bytes as BlobPart],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+ const link=document.createElement('a');link.href=url;link.download='modelo-lista-turma-avalia360.xlsx';
+ document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
+}
 /** Etapas 1 e 2: cadernos com QR registrado e lançamento pela leitura do QR. O servidor corrige. */
 /** Sem draft (professor que não é o autor): só leitura do QR e lançamento; emissão e anulação ficam com quem administra. */
 export default function IssuedPapersPanel({institutionId,courseId,discipline,courseName,institutionName,detail,draft,canManage=true,onSaved}:{
@@ -46,6 +65,7 @@ export default function IssuedPapersPanel({institutionId,courseId,discipline,cou
 }){
  const [papers,setPapers]=useState<IssuedPaper[]>([]);
  const [students,setStudents]=useState<Student[]>([]);
+ const [rosterConfirmed,setRosterConfirmed]=useState(false);
  const [extra,setExtra]=useState('');
  const [busy,setBusy]=useState(false);const [msg,setMsg]=useState('');const [errs,setErrs]=useState<string[]>([]);
  const [current,setCurrent]=useState<IssuedPaper|null>(null);
@@ -62,10 +82,26 @@ export default function IssuedPapersPanel({institutionId,courseId,discipline,cou
  const loadRoster=async()=>{
   setBusy(true);setErrs([]);
   try{
-   const r=await loadAuthorizedClassRoster({institutionId,courseId,disciplineId:discipline,classLabel:detail.classLabel});
-   setStudents(r.students.map(s=>({id:s.id,name:s.name,selected:true})));
-   setMsg(r.students.length+' aluno(s) do período. Desmarque quem não fará a prova.');
+   const r=await loadAuthorizedClassRoster({institutionId,courseId,disciplineId:discipline,classLabel:detail.classLabel,forPrinting:true});
+   setStudents(all=>mergeRoster(all,r.students));
+   setRosterConfirmed(false);
+   setMsg(r.students.length?r.students.length+' aluno(s) encontrados no período. Confira nomes e matrículas.':
+    'Nenhum aluno ativo com matrícula encontrado nesse período. Você também pode importar a lista da turma.');
   }catch(e){setErrs([e instanceof Error?e.message:'Lista da turma indisponível.']);}
+  finally{setBusy(false);}
+ };
+ const importRoster=async(file:File)=>{
+  setErrs([]);setMsg('');
+  if(!/\.xlsx$/i.test(file.name)||file.size>5*1024*1024){
+   setErrs(['Selecione uma planilha .xlsx de até 5 MB.']);return;
+  }
+  setBusy(true);
+  try{
+   const rows=parseClassRosterRows(await readSheet(file,1));
+   setStudents(all=>mergeRoster(all,rows.map(row=>({...row,selected:true}))));
+   setRosterConfirmed(false);
+   setMsg(rows.length+' linha(s) carregadas da planilha. Confira a relação antes de emitir.');
+  }catch(error){setErrs([error instanceof Error?error.message:'Não foi possível abrir a planilha.']);}
   finally{setBusy(false);}
  };
  const issue=async()=>{
@@ -73,10 +109,18 @@ export default function IssuedPapersPanel({institutionId,courseId,discipline,cou
   if(!draft)return;
   if(!mode){setErrs(['O mapa de versões desta aplicação não corresponde a nenhum embaralhamento do caderno. Registre uma nova aplicação para imprimir cadernos com QR.']);return;}
   const labels=extra.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
-  const chosen:Array<{studentId?:string;label?:string}>=[...students.filter(s=>s.selected).map(s=>({studentId:s.id})),...labels.map(label=>({label}))];
+
+  const selected=students.filter(s=>s.selected);
+  if(selected.length&&!rosterConfirmed){setErrs(['Confirme os nomes e as matrículas antes de emitir.']);return;}
+  const chosen:Array<{studentId?:string;label?:string;registration?:string}>=[
+   ...selected.map(s=>s.id?{studentId:s.id,registration:s.registration}:{label:s.name,registration:s.registration}),
+   ...labels.map(label=>({label})),
+  ];
   if(!chosen.length){setErrs(['Selecione alunos ou informe identificações.']);return;}
   if(chosen.length>120){setErrs(['Emita no máximo 120 cadernos por PDF.']);return;}
-  const already=chosen.filter(c=>papers.some(p=>c.studentId?p.studentId===c.studentId:p.label.toLowerCase()===String(c.label).toLowerCase())).length;
+  const already=chosen.filter(c=>papers.some(p=>
+   (c.studentId&&p.studentId===c.studentId)||(c.registration&&p.enrollment?.trim().toLowerCase()===c.registration.trim().toLowerCase())||
+   (!c.studentId&&!c.registration&&p.label.toLowerCase()===String(c.label).toLowerCase()))).length;
   if(already&&!window.confirm(already+' aluno(s) já têm caderno emitido. Reemitir anula o caderno anterior. Continuar?'))return;
   setBusy(true);
   try{
@@ -96,7 +140,7 @@ export default function IssuedPapersPanel({institutionId,courseId,discipline,cou
     instructions:meta.instructions,semester:meta.semester||'',classLabel:detail.classLabel,questions:full.questions,
     variantCount:detail.variantCount,shuffleMode:mode},registeredIssues(issued));
    downloadPdf(bytes,'Avalia360-'+detail.classLabel+'-cadernos-QR');
-   await refresh();setStudents([]);setExtra('');
+   await refresh();setStudents(all=>all.map(student=>({...student,selected:false})));setRosterConfirmed(false);setExtra('');
    setMsg(issued.length+' caderno(s) registrado(s) e PDF gerado. Cada QR identifica aluno e versão na correção.');
   }catch(e){setErrs([e instanceof Error?e.message:'Emissão não concluída.']);setMsg('');await refresh().catch(()=>{});}
   finally{setBusy(false);}
@@ -176,13 +220,36 @@ export default function IssuedPapersPanel({institutionId,courseId,discipline,cou
    <summary style={{cursor:'pointer',fontWeight:700}}>1. Emitir cadernos com QR</summary>
    <div style={{display:'grid',gap:8,marginTop:8}}>
     <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-     <button type="button" style={btn(false)} disabled={busy} onClick={()=>void loadRoster()}>Carregar alunos do período ({detail.classLabel})</button>
+
+     <button type="button" style={btn(false)} disabled={busy} onClick={()=>void loadRoster()}>Buscar alunos na base ({detail.classLabel})</button>
+     <button type="button" style={btn(false)} disabled={busy} onClick={downloadRosterTemplate}>Baixar modelo da lista</button>
+     <label style={btn(false)}>Importar lista da turma
+      <input type="file" accept=".xlsx" aria-label="Importar lista da turma em Excel" disabled={busy}
+       style={{display:'block',fontSize:12,maxWidth:'100%'}} onChange={event=>{
+        const file=event.currentTarget.files?.[0];event.currentTarget.value='';if(file)void importRoster(file);
+       }}/>
+     </label>
     </div>
-    {students.length>0&&<div style={{maxHeight:220,overflow:'auto',border:'1px solid '+line,borderRadius:8,padding:8}}>
-     {students.map(s=><label key={s.id} style={{display:'flex',gap:8,padding:'3px 0',fontSize:13}}>
-      <input type="checkbox" checked={s.selected} onChange={e=>setStudents(all=>all.map(x=>x.id===s.id?{...x,selected:e.target.checked}:x))}/>
-      {s.name}{papers.some(p=>p.studentId===s.id)&&<small style={{color:'#7A4B00'}}> · já tem caderno</small>}</label>)}
-    </div>}
+    <p style={{fontSize:12,margin:0}}>Use Nome e Matrícula na primeira linha. Formate a matrícula como texto para manter zeros à esquerda.</p>
+    {students.length>0&&<>
+     <p style={{fontSize:13,margin:0}}>{students.filter(s=>s.selected).length} aluno(s) selecionado(s) · até 120 por PDF</p>
+     <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+      <button type="button" disabled={busy} onClick={()=>setStudents(all=>all.map(s=>({...s,selected:true})))}>Selecionar todos</button>
+      <button type="button" disabled={busy} onClick={()=>setStudents(all=>all.map(s=>({...s,selected:false})))}>Limpar seleção</button>
+     </div>
+     <div style={{maxHeight:220,overflow:'auto',border:'1px solid '+line,borderRadius:8,padding:8}}>
+      {students.map(s=><label key={rosterKey(s)} style={{display:'flex',gap:8,padding:'3px 0',fontSize:13}}>
+       <input type="checkbox" checked={s.selected} disabled={busy} onChange={e=>setStudents(all=>all.map(x=>rosterKey(x)===rosterKey(s)?{...x,selected:e.target.checked}:x))}/>
+       <span>{s.name} · {s.registration||'Sem matrícula'} <small>· {s.id?s.verified?'Base conferida':'Base · conferir cadastro':'Planilha'}</small></span>
+       {papers.some(p=>(s.id&&p.studentId===s.id)||(s.registration&&p.enrollment?.trim().toLowerCase()===s.registration.toLowerCase()))&&
+        <small style={{color:'#7A4B00'}}> · já tem caderno</small>}
+      </label>)}
+     </div>
+     <label style={{fontSize:13}}>
+      <input type="checkbox" checked={rosterConfirmed} disabled={busy} onChange={event=>setRosterConfirmed(event.target.checked)}/>{' '}
+      Conferi os nomes e as matrículas dos alunos selecionados.
+     </label>
+    </>}
     <label style={{fontSize:13,fontWeight:600}}>Identificações livres (uma por linha, para quem não está no cadastro)
      <textarea style={{...input,minHeight:60}} value={extra} onChange={e=>setExtra(e.target.value)} placeholder={'Ouvinte 01\nOuvinte 02'}/></label>
     <p style={{fontSize:12,color:'#64748b',margin:0}}>As versões são distribuídas alternadamente ({Object.keys(detail.variantMap).sort().join(', ')}). O PDF usa o caderno validado desta aplicação (versão {detail.revision}).</p>
