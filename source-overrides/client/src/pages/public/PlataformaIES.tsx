@@ -276,7 +276,7 @@ export default function PlataformaIES() {
                     </li>
                   ))}
                 </ul>
-                <a className="pies-btn primary full" href="/contato.html?frente=plataforma&pacote={pkg.name}">
+                <a className="pies-btn primary full" href={`/contato.html?frente=plataforma&pacote=${encodeURIComponent(pkg.name)}`}>
                   Agendar demonstração
                 </a>
               </div>
