@@ -1,1 +1,2 @@
 source-overrides/node_modules/
+scripts/tests/*/node_modules/

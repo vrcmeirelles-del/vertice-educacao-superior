@@ -1,0 +1,1 @@
+{"name":"vertice-automacao360-sql-tests","private":true,"type":"module","dependencies":{"@electric-sql/pglite":"0.5.16"}}

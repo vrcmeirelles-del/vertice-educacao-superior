@@ -1,0 +1,63 @@
+name: Automação 360° (motor, matriz e homologação SQL)
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/functions/_shared/automacao360/**'
+      - 'supabase/migrations_nao_aplicadas/*automacao360*.sql'
+      - 'supabase/migrations_nao_aplicadas/*governanca_5w2h*.sql'
+      - 'scripts/automacao360/**'
+      - 'scripts/tests/automacao360/**'
+      - 'scripts/tests/automacao360-sql/**'
+      - 'docs/automacao360/MATRIZ_REGRAS.md'
+      - '.github/workflows/verify-automacao360.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'supabase/functions/_shared/automacao360/**'
+      - 'supabase/migrations_nao_aplicadas/*automacao360*.sql'
+      - 'supabase/migrations_nao_aplicadas/*governanca_5w2h*.sql'
+      - 'scripts/automacao360/**'
+      - 'scripts/tests/automacao360/**'
+      - 'scripts/tests/automacao360-sql/**'
+      - 'docs/automacao360/MATRIZ_REGRAS.md'
+      - '.github/workflows/verify-automacao360.yml'
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  engine:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Motor puro e módulos (Node)
+        run: node --test scripts/tests/automacao360/*.test.mjs
+      - name: Matriz das 40 regras e catálogo SQL gerados estão atualizados
+        run: node scripts/automacao360/gerar-matriz.mjs --check
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.1.4
+      - name: Equivalência de SHA-256 entre Node e Deno (runtime das Edge Functions)
+        run: |
+          node scripts/tests/automacao360/equivalencia-runtime.mjs > /tmp/node.json
+          deno run --allow-read scripts/tests/automacao360/equivalencia-runtime.mjs > /tmp/deno.json
+          diff /tmp/node.json /tmp/deno.json
+  sql:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: scripts/tests/automacao360-sql/package-lock.json
+      - name: Homologação da migração candidata em PostgreSQL 17 (PGlite, dados sintéticos)
+        run: |
+          npm ci --prefix scripts/tests/automacao360-sql --no-audit --no-fund
+          node --test --test-concurrency=1 scripts/tests/automacao360-sql/*.test.mjs

@@ -1,0 +1,21 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {strategicRun} from '../../../supabase/functions/_shared/automacao360/strategic.mjs';
+const scope={institutionId:'ies-a',courseId:'direito'},asOf='2026-11-24T12:00:00Z';
+const entry={...scope,id:'entity1',revision:'r1',definitionVersion:'v1',policyVersion:'p1',reviewId:'review1',verified:true,complete:true,cohortMature:true,currency:'BRL',observedAt:asOf,windowStart:'2026-11-01T00:00:00Z',windowEnd:asOf,status:'validated',module:'capture',metrics:{eligibleLeads:40,enrolledLeads:2}};
+const fixture=(rule='capture.conversion',patch={})=>({scope,asOf,config:{...scope,enabled:true,approved:true,ruleIds:[rule],maxAgeHours:24},source:{...scope,id:'source1',observedAt:asOf,complete:true,entries:[{...entry,...patch}]}});
+const run=(r,p)=>strategicRun(fixture(r,p));
+for(const [rule,module,status,metrics,value] of [
+ ['capture.conversion','capture','validated',{eligibleLeads:40,enrolledLeads:2},500],['capture.stale','capture','open',{unattendedLeads:3},3],['capture.sla','capture','open',{slaBreaches:2},2],['competition.change','competition','validated',{confirmedChanges:1},1],['market.new','market','open',{unreviewedPublications:2},2],['market.transaction','market','validated',{confirmedTransactions:1},1],['due.pending','due','open',{missingEvidence:2},2],['due.blocker','due','open',{confirmedBlockers:1},1],['finance.overdue','finance','open',{overdueInvoices:2},2],['finance.arrears','finance','validated',{dueCents:10000,overdueCents:2000},2000],['finance.cashgap','finance','validated',{availableCents:3000,committedOutflowCents:5000},2000],['alumni.pending','alumni','open',{pendingSurveys:3},3],['alumni.response','alumni','validated',{eligibleInvites:40,respondedInvites:8},2000]])test(rule,()=>{const a=run(rule,{module,status,metrics}).alerts[0];assert.equal(a.evidence.value,value);assert.equal(a.status,'pending_review');assert.equal(a.requiresHumanApproval,true)});
+for(const [field,value] of [['verified',false],['reviewId',null],['cohortMature',false],['complete',false],['definitionVersion',null],['windowEnd','2026-11-25T12:00:00Z'],['observedAt','2026-11-22T12:00:00Z'],['status','provisional']])test('reject '+field,()=>assert.equal(run('capture.conversion',{[field]:value}).alerts.length,0));
+for(const metrics of [{eligibleLeads:0,enrolledLeads:0},{eligibleLeads:40,enrolledLeads:41},{eligibleLeads:40,enrolledLeads:null},{eligibleLeads:29,enrolledLeads:0},{eligibleLeads:40,enrolledLeads:4},{eligibleLeads:40,enrolledLeads:-1}])test('conversion boundary '+JSON.stringify(metrics),()=>assert.equal(run('capture.conversion',{metrics}).alerts.length,0));
+test('no rumor treated as transaction',()=>assert.equal(run('market.transaction',{module:'market',metrics:{confirmedTransactions:1},verified:false}).alerts.length,0));
+test('no policy no SLA',()=>assert.equal(run('capture.sla',{status:'open',policyVersion:null,metrics:{slaBreaches:2}}).alerts.length,0));
+test('currency mismatch',()=>assert.equal(run('finance.arrears',{module:'finance',currency:'USD',metrics:{dueCents:100,overdueCents:80}}).alerts.length,0));
+test('no cash shortfall',()=>assert.equal(run('finance.cashgap',{module:'finance',metrics:{availableCents:5000,committedOutflowCents:5000}}).alerts.length,0));
+test('other tenant rejected',()=>assert.throws(()=>run('capture.conversion',{institutionId:'other'}),/entry/));
+test('other course rejected',()=>assert.throws(()=>run('capture.conversion',{courseId:null}),/entry/));
+test('duplicate rejected',()=>{const f=fixture();f.source.entries.push({...f.source.entries[0]});assert.throws(()=>strategicRun(f),/duplicate/)});
+test('source incomplete rejected',()=>{const f=fixture();f.source.complete=false;assert.throws(()=>strategicRun(f),/source/)});
+test('disabled',()=>{const f=fixture();f.config.approved=false;assert.equal(strategicRun(f).status,'disabled')});
+test('stale',()=>{const f=fixture();f.source.observedAt='2026-11-22T00:00:00Z';assert.equal(strategicRun(f).status,'stale_source')});
+test('stable idempotency',()=>assert.deepEqual(strategicRun(fixture()),strategicRun(fixture())));
+test('new window new key',()=>assert.notEqual(run('capture.conversion',{}).alerts[0].idempotencyKey,run('capture.conversion',{windowStart:'2026-11-02T00:00:00Z'}).alerts[0].idempotencyKey));
