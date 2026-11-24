@@ -66,8 +66,61 @@ Testar isolamento de IES/curso (incluindo acesso direto à API), RBAC/MFA, dados
 | Versão | Decisão | Evidência | Pendência |
 |---|---|---|---|
 | 0.1 | motor puro e catálogo opt-in | testes Node em docs/test-results.txt | adaptadores reais, RLS, scheduler, UI, integração |
-| 0.2 | motor e catálogo integrados ao repositório em `supabase/functions/_shared/automacao360/`, inativos; CI dedicado | 42/42 testes Node 22 em `scripts/tests/automacao360/` (24/11/2026) | equivalência SHA-256 em Deno, Onda 0, adaptadores, persistência, RLS, scheduler, UI |
-| 0.3 | Bloco 02: `documentaryRun` e `evidenceChecklist` em `documentary.mjs`, implementação própria a partir do contrato (o código do pacote não foi recebido); prazo pelo dia local do fuso da IES; revisão = revisão do pedido + faixa de prazo; regras restritas a repo.overdue/repo.due; `no_linked_evidence` nunca é não conformidade | 62/62 testes Node 22 (42 do motor + 20 do Bloco 02) em 24/11/2026 | conferir com o código original do pacote, se existir; fixtures do esquema real do Repositório; paginação e atestado de completude no servidor |
 
 ## 9. Fontes internas
 Repositório https://github.com/vrcmeirelles-del/vertice-educacao-superior : UPDATE_POLITICA_IA_20261120.md; UPDATE_ALGORITMOS_TREINADOS_20261121.md; UPDATE_ALGORITMOS_3_4_5_20261120.md; UPDATE_ALERTA_EVASAO_20261120.md; UPDATE_DISCIPLINAS_GARGALO_20261120.md; docs/avalia360/ROADMAP_INTELIGENCIA_PEDAGOGICA.md; docs/SAPIENS_NATIVE_BRIDGE_20261114.md; docs/integracao/AUTOMACAO_PARA_APROVACAO.md; docs/INTELIGENCIA_MERCADO_20261116.md. Consulta Supabase de 24/11/2026 (somente metadados cron). 
+
+## Bloco 02 — inteligência documental e regulatória (v0.2)
+
+Incremento cumulativo: preserva o motor e as 21 regras da v0.1. O adaptador puro `src/documentary.mjs` reutiliza `repo.overdue` e `repo.due`; não cria novo agendamento nem duplica o motor. Versão do adaptador: `2026.11-documentary.1`.
+
+### Entregue
+- Datas de vencimento estritas e contagem por dia civil no fuso institucional (padrão America/Araguaina). Vencido: dias negativos; próximo: 0–7 dias; ambos são limiares propostos, não normativos.
+- Pedidos abertos e devolvidos entram na triagem. Enviados, validados e cancelados não geram cobrança de entrega. Estados reais devem ser mapeados e homologados; desconhecidos e datas ausentes são relatados, nunca convertidos em zero.
+- Resumo por data de vencimento e evidências de origem; chaves estáveis na mesma faixa, com nova chave quando a faixa, status ou revisão muda. Persistência e deduplicação transacional ainda não implementadas.
+- Checklist de vínculos documentais: sem evidência vinculada, aguardando revisão, ou evidência validada por humano presente. Nenhum desses estados constitui parecer de conformidade; `compliance` permanece nulo.
+- 20 novos testes sintéticos, 62 no acumulado. Nenhuma alteração em sistemas reais.
+
+### Continuidade e limites
+O adaptador pressupõe snapshots completos e autorizados por IES/curso, com IDs opacos e revisão confiável, até 2.500 pedidos. A consulta real, paginação, persistência, autenticação e confirmação de autoria do parecer são responsabilidade do adaptador servidor a homologar. O checklist não verifica validade, suficiência, autenticidade ou conformidade jurídica do documento. Não extrai texto de imagem nem classifica PDFs. Reutilizar a pré-análise documental e o algoritmo repository-pace existentes; não substituí-los por este código. A proposta de cobrança é somente um alerta pendente; não envia mensagens, não publica ações 5W2H, não aprova documentos.
+
+### Próximos gates
+1. Mapear tabelas e RPC existentes de pedidos, documentos, evidências e responsáveis, inclusive estados reais e fuso por instituição. Conferir totais com fontes autorizadas.
+2. Implementar adaptador servidor e modo sombra, testes de RLS, concorrência, reabertura, cancelamento e idempotência real. Reconciliar alertas resolvidos sem apagar histórico.
+3. Integrar painel de pendências e encaminhamento humano ao 5W2H. Definir destinatários, cadência e escalonamento aprovados por IES. Não duplicar cron PEI/OneDrive.
+4. Homologar em base descartável; solicitar autorização separada para merge, migração e ativação.
+5. Próximo bloco: inteligência pedagógica longitudinal (Sapiens/Avalia/Construção Curricular/ENADE/ENAMED), consumindo apenas evidências validadas.
+
+## Bloco 03 — inteligência pedagógica longitudinal (v0.3)
+
+Incremento cumulativo: `src/pedagogical.mjs`, versão `2026.11-pedagogical.1`, reutiliza seis regras do catálogo existente. Não substitui o motor de domínio do Avalia ou Sapiens, não cria notas nem risco individual.
+
+| Regra | Evidência exigida | Saída |
+|---|---|---|
+| sapiens.low | grupo por competência e janela, contagens válidas, >=30 respostas corrigidas, >=5 estudantes, revisão humana | proposta se acerto <50% |
+| curriculum.gap | matriz curricular versionada, mapeamento completo | competências requeridas não cobertas |
+| enade.gap / enamed.gap | matriz específica versionada, mapeamento completo | lacuna de cobertura, não previsão de nota |
+| avalia.recovery | contagem do motor existente, versão e validação | proposta de acompanhamento |
+| retention.alert | contagem de alertas confirmados do motor existente | proposta agregada, não risco novo |
+
+Os limiares são propostas sujeitas a aprovação institucional; o mínimo de cinco estudantes não equivale a garantia de anonimato. Pré-notas, grupos sem revisão, fontes incompletas, dados antigos, matrizes vazias ou inconsistentes são excluídos ou rejeitados. Ausência de alerta não implica domínio. A chave de competência precisa ser mapeada para identidade estável do Avalia (normalização documentada no roadmap); IDs opacos do adaptador não são novos códigos curriculares. Não misturar cursos, períodos, matrizes ou revisões. A comparação longitudinal continua nos motores existentes: este bloco não estima tendência nem recalcula domínio.
+
+### Evidências e continuidade
+- 34 novos testes sintéticos; 96 cumulativos executados e aprovados. Sem teste integrado de produção.
+- Adaptadores reais, comprovação de autoria da revisão, associação competência/janela, paginação, RLS, persistência e execução recorrente seguem pendentes. Não criar ações, enviar intervenções ao F&O nem alterar diagnóstico sem validação autorizada.
+- Próximo bloco 04: gestão acadêmica (Estágio, TCC, Extensão, Ensino e AC), preservando horas e homologação humana.
+
+## Integração ao repositório (registro cumulativo)
+
+Os pacotes acima são a fonte normativa. Este registro documenta como foram incorporados ao repositório; não altera requisitos.
+
+| Data | Evento | Evidência | Pendência |
+|---|---|---|---|
+| 24/11/2026 | Bloco 01 (motor e catálogo) copiado sem alteração para `supabase/functions/_shared/automacao360/`; testes em `scripts/tests/automacao360/`; CI `verify-automacao360.yml` | 42/42 no Node 22 local e no CI | equivalência SHA-256 em Deno |
+| 24/11/2026 | Bloco 02 recebido só como contrato; implementação provisória própria, escrita a partir do texto, para não bloquear a sequência | 62/62 com testes próprios | substituir pelo original quando recebido |
+| 24/11/2026 | Pacote v0.3 recebido com o código original dos Blocos 02 e 03. A implementação provisória foi **substituída** pelo original (`documentary.mjs`, `pedagogical.mjs`) e pelos testes do pacote. Motor e catálogo conferidos byte a byte: idênticos | 96/96 no pacote e no repositório (Node 22) | ver observações abaixo; adaptadores reais, RLS, persistência, scheduler e UI |
+
+Observações da conferência (não corrigidas, para preservar a versão homologável do pacote):
+- `documentaryRun` não recusa `config.ruleIds` com regras não documentais; como só gera registros de `repo.overdue`/`repo.due`, o efeito é nulo, mas o contrato pede configuração exclusivamente documental.
+- `documentaryRun` aceita fuso inválido como erro genérico do `Intl` (falha fechada, sem mensagem própria).
+- A versão provisória divergia do original em: formato de `deadlineSummary` (objeto × lista por data), retorno de `evidenceChecklist` (objeto × lista com `compliance:null`), data inválida (erro × `issue`) e fuso padrão (exigido × `America/Araguaina`). Prevalece o original.
