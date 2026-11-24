@@ -1,6 +1,6 @@
 # Vértice Automação 360°
 
-Situação: **pacote v0.10 (Blocos 01 a 10) integrado ao repositório, inativo.** Nenhuma migração, cron, Edge Function, UI ou chamada externa foi criada.
+Situação: **pacote v0.11 (Blocos 01 a 11) integrado ao repositório, inativo.** Nenhuma migração, cron, Edge Function, UI ou chamada externa foi criada.
 
 | Peça | Local |
 |---|---|
@@ -15,9 +15,10 @@ Situação: **pacote v0.10 (Blocos 01 a 10) integrado ao repositório, inativo.*
 | Bloco 08, recibo de execução sombra (`prepareShadowReceipt`, `persistShadowReceipt`) | `supabase/functions/_shared/automacao360/persistence.mjs` |
 | Bloco 09, modelo do painel Master somente leitura (`loadMasterDashboard`, `filterRules`) | `supabase/functions/_shared/automacao360/master-dashboard.mjs` |
 | Bloco 10, modelo do painel por IES/curso (`loadInstitutionDashboard`, `proposeInstitutionConfig`, `reviewInstitutionConfig`) | `supabase/functions/_shared/automacao360/institution-dashboard.mjs` |
+| Bloco 11, integração transversal (`prepareIntervention`, `reviewIntervention`, `handoffIntent`, `compareIntervention`, `biSummary`), sem envio | `supabase/functions/_shared/automacao360/transversal.mjs` |
 | Painéis React candidatos, Master e institucional (não ligados ao portal), e sua verificação | `docs/automacao360/ui/` |
 | DDL candidato (não é migração; não aplicar) e sua verificação em PostgreSQL descartável | `docs/automacao360/sql/` |
-| Testes (286) | `scripts/tests/automacao360/` |
+| Testes (311) | `scripts/tests/automacao360/` |
 | CI | `.github/workflows/verify-automacao360.yml` |
 | Norma do módulo | `BIBLIA-MESTRA.md` |
 | Contrato para o desenvolvedor | `INTEGRACAO.md` |
@@ -26,4 +27,4 @@ Executar: `node --test scripts/tests/automacao360/*.test.mjs`
 
 Os módulos ficam em `_shared` porque só podem rodar no servidor (Edge Function/Deno ou worker Node). Não importar no cliente. Eles não leem banco, não gravam, não agendam e não enviam nada: recebem um snapshot já autorizado e devolvem propostas `pending_review` com `requiresHumanApproval: true` e motivos de abstenção. Completude da fonte, autoria do parecer e verificação dos motores existentes (Avalia, Permanência) precisam ser atestadas pelo servidor.
 
-Próximos passos: Onda 0 da Bíblia (inventário de jobs, triggers, workers e Edge Functions; mapeamento das fontes reais), equivalência SHA-256 em Deno; corrigir as três falhas do DDL candidato, RPC transacional de gravação, projeção real e adaptadores; ajustes do painel e integração ao layout Master; integração das propostas aprovadas com PEI, Sapiens, 5W2H e BI (Bloco 11). Merge, migração e ativação são autorizações separadas.
+Próximos passos: Onda 0 da Bíblia (inventário de jobs, triggers, workers e Edge Functions; mapeamento das fontes reais), equivalência SHA-256 em Deno; corrigir as três falhas do DDL candidato, RPC transacional de gravação, projeção real e adaptadores; ajustes do painel e integração ao layout Master; extrair o contrato nativo do 5W2H aplicado só em produção; homologação, reconciliação de fontes e plano de ativação controlada (Bloco 12). Merge, migração e ativação são autorizações separadas.
