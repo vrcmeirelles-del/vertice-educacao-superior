@@ -1,7 +1,7 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {evaluate} from '../../../supabase/functions/_shared/automacao360/engine.mjs';import {RULES} from '../../../supabase/functions/_shared/automacao360/catalog.mjs';
 const scope={institutionId:'ies-a',courseId:'direito'},asOf='2026-11-24T12:00:00Z';
 const fixture=()=>({scope,asOf,config:{...scope,enabled:true,approved:true,ruleIds:['repo.overdue','sapiens.low'],maxAgeHours:24},snapshot:{...scope,sourceId:'synthetic',observedAt:asOf,records:[{...scope,entityId:'doc-1',ruleId:'repo.overdue',revision:'v1',state:'open',metrics:{daysToDue:-2}}]}});
-test('32 catalog rules unique',()=>assert.equal(new Set(RULES.map(r=>r.id)).size,32));
+test('40 catalog rules unique',()=>assert.equal(new Set(RULES.map(r=>r.id)).size,40));
 test('disabled by default',()=>{let f=fixture();delete f.config.enabled;assert.equal(evaluate(f).status,'disabled')});
 test('requires approval',()=>{let f=fixture();f.config.approved=false;assert.equal(evaluate(f).alerts.length,0)});
 test('tenant isolation config',()=>{let f=fixture();f.config.institutionId='b';assert.throws(()=>evaluate(f),/scope/)});

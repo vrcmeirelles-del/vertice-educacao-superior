@@ -1,6 +1,7 @@
 // Proposed rules, not production thresholds. All are opt-in after homologation.
 export const VERSION = '2026.11-proposal.1';
 const NEW_ACADEMIC=new Set(['internship.overdue','internship.hours','internship.documents','tcc.due','tcc.documents','extension.hours','extension.certificates','teaching.hours','teaching.documents','ac.hours','ac.documents']);
+const STRATEGIC=new Set(['capture.conversion','capture.sla','competition.change','market.transaction','due.blocker','finance.arrears','finance.cashgap','alumni.response']);
 export const RULES = Object.freeze([
  ['repo.overdue','Repositório','daily','P0','open','daysToDue','lt',0],
  ['repo.due','Repositório','daily','P0','open','daysToDue','between',[0,7]],
@@ -33,5 +34,13 @@ export const RULES = Object.freeze([
  ['teaching.hours','Atividades de Ensino','weekly','P1','open','missingMinutes','gt',0],
  ['teaching.documents','Atividades de Ensino','weekly','P1','open','missingEvidence','gt',0],
  ['ac.hours','AC 360°','weekly','P1','open','missingMinutes','gt',0],
- ['ac.documents','AC 360°','weekly','P1','open','missingEvidence','gt',0]
-].map(([id,module,cadence,priority,state,metric,op,threshold,minMetric,min])=>Object.freeze({id,module,cadence,priority,state,metric,op,threshold:Array.isArray(threshold)?Object.freeze(threshold):threshold,minMetric,min,version:NEW_ACADEMIC.has(id)?'2026.11-academic.1':VERSION})));
+ ['ac.documents','AC 360°','weekly','P1','open','missingEvidence','gt',0],
+ ['capture.conversion','Captação','weekly','P1','validated','conversionBps','lt',1000,'eligibleLeads',30],
+ ['capture.sla','Captação','daily','P1','open','slaBreaches','gt',0],
+ ['competition.change','Inteligência de Mercado','daily','P1','validated','confirmedChanges','gt',0],
+ ['market.transaction','Inteligência de Mercado','daily','P2','validated','confirmedTransactions','gt',0],
+ ['due.blocker','Due Diligence','weekly','P1','open','confirmedBlockers','gt',0],
+ ['finance.arrears','Financeiro','weekly','P2','validated','arrearsBps','gt',1000,'dueCents',1],
+ ['finance.cashgap','Financeiro','weekly','P2','validated','cashGapCents','gt',0],
+ ['alumni.response','Conecta 360°','monthly','P2','validated','responseBps','lt',3000,'eligibleInvites',30]
+].map(([id,module,cadence,priority,state,metric,op,threshold,minMetric,min])=>Object.freeze({id,module,cadence,priority,state,metric,op,threshold:Array.isArray(threshold)?Object.freeze(threshold):threshold,minMetric,min,version:STRATEGIC.has(id)?'2026.11-strategic.1':NEW_ACADEMIC.has(id)?'2026.11-academic.1':VERSION})));

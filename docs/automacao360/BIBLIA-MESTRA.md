@@ -1,5 +1,5 @@
 # Vértice Automação 360° — Bíblia-Mestra
-Versão 0.4 | 24/11/2026 | Candidata de desenvolvimento, sem autorização de implantação
+Versão 0.5 | 24/11/2026 | Candidata de desenvolvimento, sem autorização de implantação
 
 ## 1. Missão e continuidade
 Transformar dados existentes em alertas explicáveis, propostas de intervenção e acompanhamento de resultados. Algoritmo determinístico primeiro; nenhuma API generativa. Reutilizar a identidade institucional, permissões, Sapiens, PEI, Construção Curricular, Avalia 360° e seus contratos. Não criar uma segunda fonte de verdade. Esta Bíblia é cumulativa: cada alteração registra versão, decisão, evidência, teste, pendência e reversão; não apaga requisitos anteriores. O roadmap oficial do Avalia permanece normativo para esse módulo.
@@ -127,6 +127,26 @@ Prazos de 0–7 dias são proposta de alerta, não regra legal; horas são repre
 ### Evidência e gates
 145 testes cumulativos aprovados (96 anteriores, 38 testes específicos e 11 novos smoke tests de catálogo). A expectativa fixa de tamanho do catálogo foi atualizada de 21 para 32; versões das regras anteriores preservadas. Testes exclusivamente locais com fixtures sintéticas. Nenhuma migração, cron, integração real ou publicação. Antes de ativação: mapear tabelas/RPC por módulo, validar autoria e escopo dos registros, reconciliar horas e certificados com fontes reais, testar RLS/MFA, concorrência, paginação, resolução/reabertura e outbox. O motor retorna propostas; a deduplicação persistente depende de restrição única no banco. Reversão: desativar somente regras do bloco e manter histórico; não apagar registros acadêmicos. Próximo bloco 05: inteligência estratégica e comercial.
 
+## Bloco 05 — inteligência estratégica e comercial (v0.5)
+
+`src/strategic.mjs` acrescenta oito regras ao catálogo (40 no total) e reutiliza cinco regras anteriores. O motor central permanece inalterado. Todas as saídas são propostas pendentes, sem efeito externo.
+
+| Regra | Gatilho proposto | Evidência |
+|---|---|---|
+| capture.conversion | conversão inferior a 10% | coorte madura, pelo menos 30 leads elegíveis, matrícula vinculada e revisão |
+| capture.sla | violações de SLA acima de zero | política versionada da IES |
+| competition.change | mudança confirmada | fonte oficial e revisão humana |
+| market.transaction | operação confirmada | documentação e revisão; rumores ficam na descoberta |
+| due.blocker | bloqueio confirmado | checklist e revisão autorizada |
+| finance.arrears | inadimplência superior a 10% | saldo vencido / saldo devido, mesma moeda e janela |
+| finance.cashgap | compromissos superiores ao caixa disponível | valores conciliados em BRL, mesmo horizonte |
+| alumni.response | resposta inferior a 30% | ao menos 30 convites elegíveis, deduplicados |
+
+Os percentuais são limiares piloto, não referências oficiais ou metas universais. Taxas em pontos-base inteiros (100 pontos-base = 1%; truncamento para baixo explicitado); dinheiro em centavos inteiros, sem conversão monetária. O indicador de caixa é diferença de compromissos e disponibilidade, não previsão probabilística. Não confundir leads com matrículas, pesquisas respondidas com empregabilidade, anúncios com operações concluídas, nem ausência de alerta com ausência de risco. A verificação de fontes oficiais, definição de coorte, deduplicação, validação de reviewId e cálculo de agregados pertencem aos adaptadores autorizados. Não realizar scraping, enviar contatos, aprovar aquisição, bloquear acesso, alterar contratos ou aprovar plano 5W2H. Reutilizar descoberta de mercado e faturamento já agendados. Nenhuma previsão de vestibular enquanto fontes não reconciliadas.
+
+### Evidências, pendências e reversão
+192 testes cumulativos aprovados: 145 anteriores, 8 novos smoke tests e 39 testes específicos. Testes sintéticos, sem integração real. O catálogo anterior preserva IDs e versões; somente a expectativa de cardinalidade foi atualizada. Antes de ativar: validar mapeamentos, janela/coorte, consentimento, autorização financeira, RLS/MFA, comparação de agregados, concorrência e idempotência persistente; aprovar limiares por IES mediante contrato versionado (o núcleo atual usa limiares fixos do catálogo). Não criar novos coletores nem duplicar cron. Reversão por desativação seletiva das regras novas, mantendo auditoria. Próximo bloco 06: gestão institucional integrada, ciclo de decisão, 5W2H, acompanhamento, BI e reconciliação de alertas.
+
 ## Integração ao repositório (registro cumulativo)
 
 Os pacotes acima são a fonte normativa. Este registro documenta como foram incorporados ao repositório; não altera requisitos.
@@ -137,6 +157,7 @@ Os pacotes acima são a fonte normativa. Este registro documenta como foram inco
 | 24/11/2026 | Bloco 02 recebido só como contrato; implementação provisória própria, escrita a partir do texto, para não bloquear a sequência | 62/62 com testes próprios | substituir pelo original quando recebido |
 | 24/11/2026 | Pacote v0.3 recebido com o código original dos Blocos 02 e 03. A implementação provisória foi **substituída** pelo original (`documentary.mjs`, `pedagogical.mjs`) e pelos testes do pacote. Motor e catálogo conferidos byte a byte: idênticos | 96/96 no pacote e no repositório (Node 22) | ver observações abaixo; adaptadores reais, RLS, persistência, scheduler e UI |
 | 24/11/2026 | Pacote v0.4 recebido (Bloco 04, gestão acadêmica). `academic.mjs` e o catálogo de 32 regras copiados sem alteração; motor e Blocos 02/03 conferidos byte a byte: idênticos. As 21 regras anteriores mantêm a versão `2026.11-proposal.1`, portanto as chaves de idempotência já calculadas não mudam | 145/145 no pacote e no repositório (Node 22) | ver observações do Bloco 04; adaptadores reais por módulo, reconciliação de horas e certificados |
+| 24/11/2026 | Pacote v0.5 recebido (Bloco 05, inteligência estratégica e comercial). `strategic.mjs` e o catálogo de 40 regras copiados sem alteração; motor e Blocos 02 a 04 conferidos byte a byte: idênticos. As 32 regras anteriores mantêm suas versões | 192/192 no pacote e no repositório (Node 22) | ver observações do Bloco 05; mapeamento de captação, mercado, Due Diligence, faturamento e Conecta; limiares por IES |
 
 Observações da conferência (não corrigidas, para preservar a versão homologável do pacote):
 - `documentaryRun` não recusa `config.ruleIds` com regras não documentais; como só gera registros de `repo.overdue`/`repo.due`, o efeito é nulo, mas o contrato pede configuração exclusivamente documental.
@@ -146,3 +167,7 @@ Observações da conferência (não corrigidas, para preservar a versão homolog
 Observações da conferência do Bloco 04 (não corrigidas):
 - Nas regras de horas, documentos, certificados e duplicidade, a revisão enviada ao motor inclui o valor apurado (minutos ou itens faltantes). Cada crédito parcial validado gera uma nova chave e, portanto, uma nova proposta para o mesmo pendente. A persistência deve encerrar a proposta anterior ao abrir a nova, ou a fila acumulará propostas obsoletas.
 - O fuso inválido em `academicRun` resulta em erro genérico do `Intl` (falha fechada, sem mensagem própria), como no Bloco 02.
+
+Observações da conferência do Bloco 05 (não corrigidas):
+- `strategicRun` aceita um único agregado por entidade e módulo, e cada regra exige um status próprio (`open` para `capture.stale`/`capture.sla`, `validated` para `capture.conversion`; o mesmo em mercado, finanças e egressos). Uma entidade com regras dos dois estados no mesmo módulo gera `state_not_eligible` para metade delas. O adaptador servidor precisa emitir agregados distintos (IDs distintos) por estado, ou o contrato precisa admitir status por regra.
+- Diferentemente do Bloco 04, a revisão estratégica não inclui o valor apurado: a variação da taxa dentro da mesma janela e revisão mantém a mesma chave. Coerente com o contrato; a mudança substantiva deve vir pela `revision` atestada pelo servidor.
