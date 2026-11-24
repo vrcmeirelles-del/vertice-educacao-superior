@@ -67,6 +67,7 @@ Testar isolamento de IES/curso (incluindo acesso direto à API), RBAC/MFA, dados
 |---|---|---|---|
 | 0.1 | motor puro e catálogo opt-in | testes Node em docs/test-results.txt | adaptadores reais, RLS, scheduler, UI, integração |
 | 0.2 | motor e catálogo integrados ao repositório em `supabase/functions/_shared/automacao360/`, inativos; CI dedicado | 42/42 testes Node 22 em `scripts/tests/automacao360/` (24/11/2026) | equivalência SHA-256 em Deno, Onda 0, adaptadores, persistência, RLS, scheduler, UI |
+| 0.3 | Bloco 02: `documentaryRun` e `evidenceChecklist` em `documentary.mjs`, implementação própria a partir do contrato (o código do pacote não foi recebido); prazo pelo dia local do fuso da IES; revisão = revisão do pedido + faixa de prazo; regras restritas a repo.overdue/repo.due; `no_linked_evidence` nunca é não conformidade | 62/62 testes Node 22 (42 do motor + 20 do Bloco 02) em 24/11/2026 | conferir com o código original do pacote, se existir; fixtures do esquema real do Repositório; paginação e atestado de completude no servidor |
 
 ## 9. Fontes internas
 Repositório https://github.com/vrcmeirelles-del/vertice-educacao-superior : UPDATE_POLITICA_IA_20261120.md; UPDATE_ALGORITMOS_TREINADOS_20261121.md; UPDATE_ALGORITMOS_3_4_5_20261120.md; UPDATE_ALERTA_EVASAO_20261120.md; UPDATE_DISCIPLINAS_GARGALO_20261120.md; docs/avalia360/ROADMAP_INTELIGENCIA_PEDAGOGICA.md; docs/SAPIENS_NATIVE_BRIDGE_20261114.md; docs/integracao/AUTOMACAO_PARA_APROVACAO.md; docs/INTELIGENCIA_MERCADO_20261116.md. Consulta Supabase de 24/11/2026 (somente metadados cron). 
