@@ -257,10 +257,17 @@ begin
   if c.id is null or c.revision <> (p_payload->>'configRevision')::integer then
     raise exception 'configuração vigente divergente' using errcode = '40001';
   end if;
-  insert into vertice_automation.run(run_id, config_id, institution_id, course_id, mode, as_of, status, digest, source_count, unmapped_count, alert_count, duration_ms)
-  values (v_run, c.id, c.institution_id, c.course_id, c.mode, (p_payload->>'asOf')::timestamptz, p_payload->>'status', p_payload->>'digest',
-          (p_payload->>'sourceCount')::integer, (p_payload->>'unmappedCount')::integer, jsonb_array_length(coalesce(p_payload->'alerts', '[]')),
-          nullif(p_payload->>'durationMs', '')::integer);
+  begin
+    insert into vertice_automation.run(run_id, config_id, institution_id, course_id, mode, as_of, status, digest, source_count, unmapped_count, alert_count, duration_ms)
+    values (v_run, c.id, c.institution_id, c.course_id, c.mode, (p_payload->>'asOf')::timestamptz, p_payload->>'status', p_payload->>'digest',
+            (p_payload->>'sourceCount')::integer, (p_payload->>'unmappedCount')::integer, jsonb_array_length(coalesce(p_payload->'alerts', '[]')),
+            nullif(p_payload->>'durationMs', '')::integer);
+  exception when unique_violation then
+    -- Gravação concorrente do mesmo run_id venceu: confirma se for o mesmo recibo.
+    select digest into v_existing from vertice_automation.run where run_id = v_run;
+    if v_existing = p_payload->>'digest' then return jsonb_build_object('runId', v_run, 'digest', v_existing, 'status', 'existing'); end if;
+    raise exception 'run_id existente com digest diferente' using errcode = '23505';
+  end;
   for r in select * from jsonb_array_elements(coalesce(p_payload->'alerts', '[]')) loop
     if not ((r->>'rule') = any(c.rule_ids)) then raise exception 'regra fora da configuração' using errcode = '22023'; end if;
     if not exists (select 1 from vertice_automation.rules x where x.id = r->>'rule' and x.version = r->>'version' and x.priority = r->>'priority') then
