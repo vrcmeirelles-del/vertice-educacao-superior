@@ -1,0 +1,29 @@
+name: Automação 360° (motor puro)
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/functions/_shared/automacao360/**'
+      - 'scripts/tests/automacao360/**'
+      - '.github/workflows/verify-automacao360.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'supabase/functions/_shared/automacao360/**'
+      - 'scripts/tests/automacao360/**'
+      - '.github/workflows/verify-automacao360.yml'
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  engine:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test scripts/tests/automacao360/*.test.mjs

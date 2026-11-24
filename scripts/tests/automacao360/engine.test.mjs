@@ -1,0 +1,26 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {evaluate} from '../../../supabase/functions/_shared/automacao360/engine.mjs';import {RULES} from '../../../supabase/functions/_shared/automacao360/catalog.mjs';
+const scope={institutionId:'ies-a',courseId:'direito'},asOf='2026-11-24T12:00:00Z';
+const fixture=()=>({scope,asOf,config:{...scope,enabled:true,approved:true,ruleIds:['repo.overdue','sapiens.low'],maxAgeHours:24},snapshot:{...scope,sourceId:'synthetic',observedAt:asOf,records:[{...scope,entityId:'doc-1',ruleId:'repo.overdue',revision:'v1',state:'open',metrics:{daysToDue:-2}}]}});
+test('21 catalog rules unique',()=>assert.equal(new Set(RULES.map(r=>r.id)).size,21));
+test('disabled by default',()=>{let f=fixture();delete f.config.enabled;assert.equal(evaluate(f).status,'disabled')});
+test('requires approval',()=>{let f=fixture();f.config.approved=false;assert.equal(evaluate(f).alerts.length,0)});
+test('tenant isolation config',()=>{let f=fixture();f.config.institutionId='b';assert.throws(()=>evaluate(f),/scope/)});
+test('course isolation snapshot',()=>{let f=fixture();f.snapshot.courseId='med';assert.throws(()=>evaluate(f),/scope/)});
+test('record isolation',()=>{let f=fixture();f.snapshot.records[0].courseId=null;assert.throws(()=>evaluate(f),/scope/)});
+test('expired document produces review-only alert',()=>{let r=evaluate(fixture()).alerts[0];assert.equal(r.status,'pending_review');assert.equal(r.requiresHumanApproval,true);assert.equal(r.evidence.value,-2)});
+test('stable deterministic result',()=>assert.deepEqual(evaluate(fixture()),evaluate(fixture())));
+test('revision changes idempotency key',()=>{let f=fixture(),a=evaluate(f).alerts[0];f.snapshot.records[0].revision='v2';assert.notEqual(a.idempotencyKey,evaluate(f).alerts[0].idempotencyKey)});
+test('no duplicate rows',()=>{let f=fixture();f.snapshot.records.push(f.snapshot.records[0]);assert.throws(()=>evaluate(f),/duplicate/)});
+test('stale snapshot',()=>{let f=fixture();f.snapshot.observedAt='2026-11-22T12:00:00Z';assert.equal(evaluate(f).status,'stale_source')});
+test('future snapshot rejected',()=>{let f=fixture();f.snapshot.observedAt='2026-11-25T12:00:00Z';assert.throws(()=>evaluate(f),/source/)});
+test('null not zero',()=>{let f=fixture();f.snapshot.records[0].metrics.daysToDue=null;assert.equal(evaluate(f).skipped[0].reason,'missing_or_invalid_metric')});
+test('resolved not evaluated',()=>{let f=fixture();f.snapshot.records[0].state='closed';assert.equal(evaluate(f).alerts.length,0)});
+test('deadline today not overdue',()=>{let f=fixture();f.snapshot.records[0].metrics.daysToDue=0;assert.equal(evaluate(f).alerts.length,0)});
+function sapiens(n,accuracy,state='validated'){let f=fixture();Object.assign(f.snapshot.records[0],{ruleId:'sapiens.low',state,metrics:{graded:n,accuracy}});return f}
+test('small sample not classified',()=>assert.equal(evaluate(sapiens(29,.2)).skipped[0].reason,'insufficient_sample'));
+test('provisional never enters',()=>assert.equal(evaluate(sapiens(100,.2,'provisional')).alerts.length,0));
+test('valid low accuracy triggers proposal',()=>assert.equal(evaluate(sapiens(30,.49)).alerts.length,1));
+test('threshold equality no alert',()=>assert.equal(evaluate(sapiens(30,.5)).alerts.length,0));
+test('invalid accuracy',()=>assert.equal(evaluate(sapiens(30,-1)).alerts.length,0));
+test('unknown rule fails closed',()=>{let f=fixture();f.config.ruleIds.push('unknown');assert.throws(()=>evaluate(f),/unknown_rule/)});
+for(const r of RULES)test('catalog smoke '+r.id,()=>{let f=fixture();f.config.ruleIds=[r.id];f.snapshot.records=[{...scope,entityId:'x',revision:'v1',ruleId:r.id,state:r.state,metrics:{[r.metric]:r.op==='lt'?r.threshold- (r.metric==='accuracy'?.1:1):r.op==='gt'?r.threshold+1:r.threshold[0],...(r.minMetric?{[r.minMetric]:r.min}:{})}}];assert.equal(evaluate(f).alerts.length,1)});
