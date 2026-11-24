@@ -38,3 +38,18 @@ Mapear os contratos existentes de captação/funil, perfis competitivos e descob
 6. Somente com autorização expressa: integrar, migrar, publicar e ativar gradualmente por IES/curso. Monitorar falhas, custos e reversão; desativar novas rotinas sem apagar evidências.
 
 Nenhum passo de implantação foi executado neste pacote. O teste local não verifica autenticação real, SQL, concorrência transacional ou UI.
+
+## Bloco 07 — contratos nativos verificados
+Referência de código: https://github.com/vrcmeirelles-del/vertice-educacao-superior/tree/23072ecc79fb23325edfe677d8fa2fad43748ee0
+
+| Contrato | Evidência no repositório | Decisão |
+|---|---|---|
+| `vertice_integration_monitor_read(p_institution uuid)` | `supabase/migrations/20261115012658_integration_observations.sql` | Adaptador implementado com RPC injetada, somente Master/MFA, escopo IES, metadados sem conversão de contagens mascaradas. |
+| `vertice_avalia_competency_evidence(p_institution,p_course,p_payload)` | `source-overrides/client/src/lib/avalia360/competency-api.ts`; `supabase/migrations/20261122130000_avalia360_readiness_risk.sql` | Mapeamento candidato, não consumir como evidência homologada sem verificar estado e revisão. Não expor dados individuais ao motor transversal. |
+| `vertice_pei_alerts_refresh(p_institution)` | `supabase/migrations/20261120200000_pei_alerts_daily_cron.sql` | Não chamar no modo sombra: recalcula/persiste. Reutilizar leitura existente após mapear contrato. |
+| `vertice_planning.competitive_profiles` | `supabase/migrations/20261116124215_competitive_planning_intelligence.sql` | Não consultar tabela privada diretamente do cliente; mapear gateway autorizado. |
+| `vertice_discursiva_training_set(p_institution_id,p_course_id)` | `supabase/migrations/20261120135827_discursiva_training_set.sql` | Não consumir respostas individuais; preservar revisão docente e travas de treinamento. |
+
+`shadowRun({scope,actor,config,adapters,asOf,timeZone})` requer UUID, MFA e permissão read no escopo exato. Adaptadores server-only `documentary`, `pedagogical`, `academic`, `strategic` recebem escopo e relógio, retornando contratos normalizados dos blocos anteriores. As 37 regras distribuídas ainda dependem desses adaptadores reais. As três restantes são reportadas em `unmapped`. Resultado `partial` não é execução completa. `readIntegrationHealth({scope,actor,rpc,asOf,maxAgeHours})` usa RPC autenticada e permissão efetiva `read_integration_master` (nome proposto a mapear no backend); o RPC original também verifica Master e AAL2. Relógio deve ser obtido de fonte confiável após a observação ou alinhado ao servidor, pois timestamps futuros são recusados. Nenhum efeito externo. O cliente RPC injetado deve ser autenticado como o usuário autorizado; não aceitar nome de RPC do usuário. Não retornar dados brutos ou erros internos.
+
+Porta de saída: 18 testes novos e 220 anteriores aprovados localmente. Bloqueios: nenhum adaptador de dados real das quatro famílias, nenhuma chamada RPC real nesta execução, nenhuma persistência transacional ou RLS nova. Validar compatibilidade de runtime Node/Deno, autorizações reais, transações e testes de contrato com PostgreSQL descartável antes de integrar. Não duplicar as nove rotinas cron anteriormente verificadas.
