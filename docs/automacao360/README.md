@@ -1,6 +1,6 @@
 # Vértice Automação 360°
 
-Situação: **pacote v0.7 (Blocos 01 a 07) integrado ao repositório, inativo.** Nenhuma migração, cron, Edge Function, UI ou chamada externa foi criada.
+Situação: **pacote v0.8 (Blocos 01 a 08) integrado ao repositório, inativo.** Nenhuma migração, cron, Edge Function, UI ou chamada externa foi criada.
 
 | Peça | Local |
 |---|---|
@@ -12,7 +12,9 @@ Situação: **pacote v0.7 (Blocos 01 a 07) integrado ao repositório, inativo.**
 | Bloco 05, estratégico e comercial (`strategicRun`: captação, concorrência, mercado, Due Diligence, financeiro, egressos) | `supabase/functions/_shared/automacao360/strategic.mjs` |
 | Bloco 06, governança (`configure`, `approveConfig`, `queue`, `transition`, `planningProposal`, `effectiveness`) | `supabase/functions/_shared/automacao360/governance.mjs` |
 | Bloco 07, integração nativa (`shadowRun` em modo sombra; `readIntegrationHealth` sobre o RPC existente `vertice_integration_monitor_read`) | `supabase/functions/_shared/automacao360/native-integration.mjs` |
-| Testes (238) | `scripts/tests/automacao360/` |
+| Bloco 08, recibo de execução sombra (`prepareShadowReceipt`, `persistShadowReceipt`) | `supabase/functions/_shared/automacao360/persistence.mjs` |
+| DDL candidato (não é migração; não aplicar) e sua verificação em PostgreSQL descartável | `docs/automacao360/sql/` |
+| Testes (254) | `scripts/tests/automacao360/` |
 | CI | `.github/workflows/verify-automacao360.yml` |
 | Norma do módulo | `BIBLIA-MESTRA.md` |
 | Contrato para o desenvolvedor | `INTEGRACAO.md` |
@@ -21,4 +23,4 @@ Executar: `node --test scripts/tests/automacao360/*.test.mjs`
 
 Os módulos ficam em `_shared` porque só podem rodar no servidor (Edge Function/Deno ou worker Node). Não importar no cliente. Eles não leem banco, não gravam, não agendam e não enviam nada: recebem um snapshot já autorizado e devolvem propostas `pending_review` com `requiresHumanApproval: true` e motivos de abstenção. Completude da fonte, autoria do parecer e verificação dos motores existentes (Avalia, Permanência) precisam ser atestadas pelo servidor.
 
-Próximos passos: Onda 0 da Bíblia (inventário de jobs, triggers, workers e Edge Functions; mapeamento das fontes reais), equivalência SHA-256 em Deno adaptadores reais das quatro famílias, persistência transacional e testes em PostgreSQL descartável (Bloco 08). Merge, migração e ativação são autorizações separadas.
+Próximos passos: Onda 0 da Bíblia (inventário de jobs, triggers, workers e Edge Functions; mapeamento das fontes reais), equivalência SHA-256 em Deno corrigir as três falhas do DDL candidato, RPC transacional de gravação, adaptadores reais e painel Master somente leitura (Bloco 09). Merge, migração e ativação são autorizações separadas.

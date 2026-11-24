@@ -160,6 +160,20 @@ Preservados os blocos 01–06 e as 40 regras. Novo orquestrador `shadowRun` dist
 ### Evidências e decisões
 Repositório consultado: `vrcmeirelles-del/vertice-educacao-superior`, revisão 23072ecc79fb23325edfe677d8fa2fad43748ee0. Contratos e pendências detalhados em INTEGRACAO.md. Suíte cumulativa local: 238/238, 18 testes novos, sem dados reais. Não equivale a homologação do portal. Próximo bloco: persistência, transações, permissões reais, adaptadores SQL/RPC, auditoria e testes PostgreSQL descartável. Não ativar IA, cron ou deploy.
 
+## Bloco 08 — Persistência e governança (v0.8)
+Preserva integralmente os blocos 01–07 e as 40 regras. O recibo de execução sombra contém escopo, revisão da configuração, UUID da execução, data de referência, estado parcial/avaliado, contagens e identificadores das propostas, com SHA-256 para conferência de integridade (não assinatura nem autenticação). Não inclui texto de aluno nem evidência bruta. O transporte é injetado exclusivamente no servidor, e o recibo só é considerado aceito quando o destino confirma UUID e digest. O esquema SQL candidato define quatro tabelas privadas, restrições de integridade e RLS sem políticas permissivas. Não concede acesso ao navegador nem ao worker. Não há cron nem integração de produção.
+
+### Portas obrigatórias antes de implantação
+- Conferir no repositório e no banco os vínculos IES/curso e os contratos nativos de autorização; impor vínculo no servidor e no banco, não apenas FK independente. Autenticação MFA e permissões derivadas de identidade real; nunca aceitar identidade do payload.
+- Criar RPC transacional com verificação de configuração vigente, aprovação independente, autorização por escopo e catálogo versionado; calcular digest no servidor e rejeitar conflito do UUID. Testar concorrência, replay, revisão otimista e falhas parciais. O cliente de persistência atual não implementa a transação no banco.
+- Implementar fila de alertas operacionais separada de observações sombra; deduplicação entre execuções e ciclo de decisão com auditoria append-only e referências de evidência autorizadas. O candidato atual deduplica somente dentro de uma execução. Não converter observações sombra em intervenções.
+- Validar SQL em PostgreSQL descartável (15+), executar testes RLS com papéis reais simulados, incluindo acesso cruzado, usuário sem MFA, revogação e concorrência. Não aplicar migração em produção. Gerar arquivo de migração definitivo via CLI após revisão.
+- Definir retenção e minimização de metadados e auditoria; reversão por suspensão seletiva, sem apagar decisões. Revisar permissões do proprietário e papéis privilegiados; RLS não restringe superusuários.
+- Próximo bloco 09: painel Master inicialmente somente leitura, mostrando estado real das fontes e bloqueios; nenhum botão de ativação enquanto RPCs e autorização não forem homologados.
+
+### Evidência da execução local
+254 testes Node.js aprovados (238 anteriores + 16 novos); zero falhas, zero ignorados. SQL não executado: ambiente sem PostgreSQL/psql. Nenhum dado real consultado neste bloco, nenhum deploy, IA ou agendamento ativado. O esquema e os contratos são candidatos, não persistência operacional homologada.
+
 ## Integração ao repositório (registro cumulativo)
 
 Os pacotes acima são a fonte normativa. Este registro documenta como foram incorporados ao repositório; não altera requisitos.
@@ -173,6 +187,7 @@ Os pacotes acima são a fonte normativa. Este registro documenta como foram inco
 | 24/11/2026 | Pacote v0.5 recebido (Bloco 05, inteligência estratégica e comercial). `strategic.mjs` e o catálogo de 40 regras copiados sem alteração; motor e Blocos 02 a 04 conferidos byte a byte: idênticos. As 32 regras anteriores mantêm suas versões | 192/192 no pacote e no repositório (Node 22) | ver observações do Bloco 05; mapeamento de captação, mercado, Due Diligence, faturamento e Conecta; limiares por IES |
 | 24/11/2026 | Pacote v0.6 recebido (Bloco 06, governança institucional). `governance.mjs` copiado sem alteração; motor, catálogo (40 regras) e Blocos 02 a 05 conferidos byte a byte: idênticos | 220/220 no pacote e no repositório (Node 22) | ver observações do Bloco 06; persistência transacional com CAS, painel Master/IES, integração ao planejamento existente |
 | 24/11/2026 | Pacote v0.7 recebido (Bloco 07, integração nativa). `native-integration.mjs` copiado sem alteração; motor, catálogo e Blocos 02 a 06 conferidos byte a byte: idênticos. Os seis arquivos citados como evidência no contrato existem no repositório; o contrato de `vertice_integration_monitor_read` (migração `20261115012658`) foi conferido contra o adaptador: campos fixos, nove flags, faixas mascaradas (`0`, `1–4`, `5`–`10000`, `10000+`, com o mesmo travessão U+2013) e exigência de Master com `aal2` coincidem | 238/238 no pacote e no repositório (Node 22) | ver observações do Bloco 07; adaptadores reais das quatro famílias; permissão `read_integration_master` a mapear |
+| 24/11/2026 | Pacote v0.8 recebido (Bloco 08, persistência candidata). `persistence.mjs` copiado sem alteração; motor, catálogo e Blocos 02 a 07 conferidos byte a byte: idênticos. O DDL `001_candidate.sql` foi guardado em `docs/automacao360/sql/`, **fora** de `supabase/migrations*`, para não ser aplicado por engano. As tabelas referenciadas (`vertice_institutions`, `vertice_courses`) existem na migração `202610260001_access_foundation` | 254/254 no pacote e no repositório (Node 22). **DDL executado** em PostgreSQL 16 descartável com stubs (o pacote registrava "SQL não executado"): ver `sql/verificacao/RESULTADO_20261124.md` | três falhas de integridade a corrigir antes de virar migração (abaixo) |
 
 Observações da conferência (não corrigidas, para preservar a versão homologável do pacote):
 - `documentaryRun` não recusa `config.ruleIds` com regras não documentais; como só gera registros de `repo.overdue`/`repo.due`, o efeito é nulo, mas o contrato pede configuração exclusivamente documental.
@@ -198,3 +213,10 @@ Observações da conferência do Bloco 07 (não corrigidas):
 - `shadowRun` exige UUID em `institutionId`, `courseId` e `actor.id`; os blocos anteriores aceitam IDs opacos. Coerente com o portal (IDs reais são UUID), mas os adaptadores não podem pseudonimizar o escopo antes do orquestrador.
 - O fuso é repassado a todas as famílias; `documentaryRun` usa `America/Araguaina` quando ausente, enquanto `academicRun` recusa. O servidor deve sempre informar o fuso da IES.
 - `pei.overdue` fica sem adaptador de propósito: a rotina `pei-alerts-daily` já cobre o tema, e `vertice_pei_alerts_refresh` grava, não podendo ser chamada em sombra.
+
+Observações da conferência do Bloco 08:
+- Execução real do DDL candidato (PostgreSQL 16, sem dados reais): aplicou sem erro; RLS fechada e revogação funcionam inclusive contra `service_role` com BYPASSRLS; `NULLS NOT DISTINCT`, autoaprovação, digest, status, prioridade e replay conflitante são recusados.
+- Falha 1 (confirmada): o banco aceita configuração da IES A com curso da IES B. `vertice_courses` não tem `UNIQUE (id, institution_id)`, então não há FK composta; resolver por gatilho de verificação, sem alterar a tabela central.
+- Falha 2 (confirmada): `audit_event` aceita `UPDATE` pelo proprietário; a trilha só é append-only por convenção. Exigir gatilho que recuse `UPDATE`/`DELETE`.
+- Falha 3 (confirmada, prevista no contrato): `shadow_run` aceita execução ligada a configuração não aprovada e desativada; o RPC (ou gatilho) deve impor a revisão vigente aprovada.
+- `persistShadowReceipt` aceita `ack.status` `existing` sem exigir que o digest gravado seja igual; a conferência é feita só contra o digest enviado. O RPC deve recusar `run_id` existente com digest diferente (o DDL já recusa por chave primária, caso 8).
