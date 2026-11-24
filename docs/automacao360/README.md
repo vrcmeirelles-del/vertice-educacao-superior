@@ -1,6 +1,6 @@
 # Vértice Automação 360°
 
-**Situação em 24/11/2026: migrações aplicadas em produção (versões 20261124210000/1/2, em transação única, após ensaio desfeito no esquema real). Módulo `GEST_AUTOMACAO360` existe no catálogo com `active=false`; nenhuma revisão de configuração aprovada; nenhuma execução sombra; nenhuma regra ativa.** Três migrações candidatas em `supabase/migrations/`; módulo `GEST_AUTOMACAO360` nasce com `active=false`. Nenhum cron, Edge Function ou chamada externa foi criada. Relatório: `RELATORIO_FINAL_20261124.md`.
+**Situação em 24/11/2026: migrações aplicadas em produção (versões 20261124210000/1/2, em transação única, após ensaio desfeito no esquema real). Módulo `GEST_AUTOMACAO360` ativado só na UNITOP, sem custo (catálogo oculto, `active=false`); nenhuma revisão de configuração aprovada; nenhuma execução sombra; nenhuma regra ativa.** Três migrações candidatas em `supabase/migrations/`; módulo `GEST_AUTOMACAO360` nasce com `active=false`. Nenhum cron, Edge Function ou chamada externa foi criada. Relatório: `RELATORIO_FINAL_20261124.md`.
 
 | Peça | Local |
 |---|---|
