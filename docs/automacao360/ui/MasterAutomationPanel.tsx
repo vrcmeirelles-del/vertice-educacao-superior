@@ -1,0 +1,9 @@
+import React,{useState} from 'react';
+type Rule={id:string;module:string;priority:string;cadence:string;version:string;state:string};
+type Model={institutionId:string;status:string;observedAt?:string;rules:Rule[];metrics:Record<string,number>|null;readOnly:true};
+const labels:Record<string,string>={inactive:'Inativa',shadow:'Modo sombra',active:'Ativa',blocked:'Bloqueada',unknown:'Não verificada'};
+export default function MasterAutomationPanel({model}:{model:Model}){
+ const [search,setSearch]=useState('');const [state,setState]=useState('');
+ const rows=model.rules.filter(r=>(!state||r.state===state)&&`${r.module} ${r.id}`.toLowerCase().includes(search.toLowerCase().trim()));
+ return <section aria-label="Central de Automação" style={{color:'#173b74',background:'#fff',padding:24}}><h2>Central de Automação 360°</h2><p>Somente leitura · {model.institutionId}</p><p role="status">Fonte: {model.status} · {model.observedAt||'Sem data confirmada'}</p><div style={{display:'flex',gap:16,flexWrap:'wrap'}}>{Object.entries(labels).map(([key,label])=><div key={key}><strong>{model.metrics?.[key]??'—'}</strong><p>{label}</p></div>)}</div><label>Buscar regra <input value={search} onChange={e=>setSearch(e.target.value)}/></label> <label>Estado <select value={state} onChange={e=>setState(e.target.value)}><option value="">Todos</option>{Object.entries(labels).map(([k,v])=><option key={k} value={k}>{v}</option>)}</select></label><div style={{overflowX:'auto'}}><table><thead><tr>{['Módulo','Regra','Prioridade','Frequência','Versão','Estado'].map(v=><th key={v} scope="col">{v}</th>)}</tr></thead><tbody>{rows.map(r=><tr key={r.id}><td>{r.module}</td><td>{r.id}</td><td>{r.priority}</td><td>{r.cadence}</td><td>{r.version}</td><td>{labels[r.state]||labels.unknown}</td></tr>)}</tbody></table></div>{!rows.length&&<p>Nenhuma regra corresponde ao filtro.</p>}<p>Ativação e alterações indisponíveis até homologação.</p></section>;
+}
