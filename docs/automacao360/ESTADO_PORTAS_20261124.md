@@ -6,7 +6,7 @@ Cruzamento das oito portas de `assessRelease` (Bloco 12) com o que foi efetivame
 
 | Porta | Situação | Evidência existente | Falta |
 |---|---|---|---|
-| `native_adapter` | não atendida | contrato de `vertice_integration_monitor_read` conferido contra a migração `20261115012658` (Bloco 07) | adaptadores reais das quatro famílias; contrato do 5W2H (migração `20261111010933` sem SQL no repositório) |
+| `native_adapter` | não atendida | contrato de `vertice_integration_monitor_read` conferido contra a migração `20261115012658` (Bloco 07) | adaptadores reais das quatro famílias. Contrato do 5W2H extraído (`contratos-nativos/5w2h/`): as funções nativas estão quebradas; o destino deve ser `vertice_actions`, que precisa de valor de origem para a automação e de garantia de idempotência |
 | `rls` | **reprovada no candidato** | DDL executado em PostgreSQL 16 descartável: RLS fechada funciona, mas 3 falhas de integridade (`sql/verificacao/RESULTADO_20261124.md`) | corrigir curso de outra IES, auditoria mutável, execução com configuração não aprovada; testar com papéis nativos |
 | `transaction` | não atendida | replay conflitante e duplicidade recusados por chave no DDL candidato | RPC transacional com CAS de revisão; teste de concorrência real |
 | `ui_build` | parcial | dois painéis compilados em modo estrito e renderizados fora do portal (`ui/VERIFICACAO_20261124.md`) | integrar ao layout Master/IES, build do portal e testes `*.ui.test.tsx` |
