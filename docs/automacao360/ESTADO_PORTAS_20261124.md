@@ -1,18 +1,18 @@
 # Estado real das portas de liberação — 24/11/2026
 
-Cruzamento das oito portas de `assessRelease` (Bloco 12) com o que foi efetivamente verificado neste repositório. Nenhuma porta pode ser marcada `passed: true` hoje; **as 40 regras estão bloqueadas**. Este documento é evidência de situação, não de aprovação.
+Cruzamento das oito portas de `assessRelease` (Bloco 12) com o que foi efetivamente verificado neste repositório. Nenhuma porta pode ser marcada `passed: true` hoje, porque nenhuma foi verificada no banco real; **as 40 regras continuam bloqueadas**. Atualizado após a missão de integração (mesma data). Este documento é evidência de situação, não de aprovação.
 
 `inventory()`: 40 regras; 37 com família de adaptador mapeada; 3 sem adaptador (`cpa.pending`, `pei.overdue`, `school.attendance`); 0 com estado operacional verificado.
 
 | Porta | Situação | Evidência existente | Falta |
 |---|---|---|---|
-| `native_adapter` | não atendida | contrato de `vertice_integration_monitor_read` conferido contra a migração `20261115012658` (Bloco 07) | adaptadores reais das quatro famílias. Contrato do 5W2H extraído (`contratos-nativos/5w2h/`): as funções nativas estão quebradas; o destino deve ser `vertice_actions`, que precisa de valor de origem para a automação e de garantia de idempotência |
-| `rls` | **reprovada no candidato** | DDL executado em PostgreSQL 16 descartável: RLS fechada funciona, mas 3 falhas de integridade (`sql/verificacao/RESULTADO_20261124.md`) | corrigir curso de outra IES, auditoria mutável, execução com configuração não aprovada; testar com papéis nativos |
-| `transaction` | não atendida | replay conflitante e duplicidade recusados por chave no DDL candidato | RPC transacional com CAS de revisão; teste de concorrência real |
-| `ui_build` | parcial | dois painéis compilados em modo estrito e renderizados fora do portal (`ui/VERIFICACAO_20261124.md`) | integrar ao layout Master/IES, build do portal e testes `*.ui.test.tsx` |
-| `shadow_comparison` | não atendida | — | adaptadores reais e execução sombra autorizada |
-| `cost_budget` | não atendida | — | orçamento aprovado e medição |
-| `rollback_drill` | não atendida | — | mecanismo de suspensão implementado e ensaiado |
-| `human_review` | não atendida | — | revisão independente por regra, IES e curso |
+| `native_adapter` | **parcial** | adaptadores SQL `vertice_automation_source_documentary` (repo.overdue/due) e `vertice_automation_source_planning` (pei.overdue, cpa.pending) testados em PGlite com o esquema de produção, ponta a ponta até `shadowRun` (`scripts/tests/automacao360-sql/nucleo.test.mjs`); destino 5W2H em `vertice_actions` com origem `automacao_360` e índice único | adaptadores das demais 36 regras; 9 regras sem fonte (`MATRIZ_REGRAS.md`); execução contra o banco real de homologação |
+| `rls` | **corrigida no candidato; não homologada** | migração `20261124210000`: as 3 falhas do Bloco 08 corrigidas (FK composta curso/IES sobre o índice existente `vertice_courses_scope_key`; gatilhos de imutabilidade; `run_guard` exige revisão vigente aprovada e ativa). Isolamento entre IES, coordenador fora do curso, sem MFA e chamada direta às tabelas recusados nos testes | executar com JWT real (aal1/aal2) em homologação autorizada |
+| `transaction` | **atendida em ambiente descartável** | CAS de revisão, advisory lock, idempotência de `record_run` e `handoff_5w2h`; 3 corridas reais em PostgreSQL 16 (`concorrencia-pg.sh`) | repetir em homologação |
+| `ui_build` | **atendida no repositório** | Central de Automação integrada ao Master e à área da IES (`source-overrides/client/src/components/automacao360/`); `npm run build:static` completo, verificação TypeScript sem erros, 14 testes de interface; suítes do portal 510 + 452 + 45 + 35 aprovadas | validação visual com usuários reais; acessibilidade com leitor de tela |
+| `shadow_comparison` | não atendida | execução sombra sintética ponta a ponta | sombra com dados reais exige autorização e controles de proteção de dados |
+| `cost_budget` | não atendida | nenhum custo novo criado (sem job, Edge Function, serviço ou API externa) | orçamento aprovado e medição em produção |
+| `rollback_drill` | **ensaiada em ambiente descartável** | revisão desativada bloqueia `record_run` e preserva histórico (teste de reversão); plano em `REVERSAO.md` | ensaio em homologação |
+| `human_review` | não atendida | segregação implementada (autor ≠ aprovador, verificação independente, justificativa no encerramento) | revisão humana real por regra, IES e curso |
 
-Pré-requisitos fora das portas: equivalência SHA-256 em Deno; mapeamento das permissões `automation.*` aos papéis nativos (`vertice_admins` com `aal2`; `vertice_memberships`: `gestor`, `equipe`, `leitor`); reconciliação com as nove rotinas cron registradas em 24/11/2026.
+Pré-requisitos fora das portas: equivalência SHA-256 em Deno **feita** (9 chaves idênticas, `scripts/tests/automacao360/equivalencia-runtime.mjs`); mapeamento das permissões `automation.*` aos papéis nativos **feito** em `vertice_private.automation_can`; reconciliação das nove rotinas cron **feita** (`RECONCILIACAO_CRON_20261124.md`).

@@ -21,6 +21,6 @@
 | 13 | **execução sombra ligada a configuração não aprovada e desativada** | **aceita — depende do RPC** |
 
 Correções sugeridas antes de virar migração (não aplicadas):
-- Caso 6: `vertice_courses` não tem `UNIQUE (id, institution_id)`; sem isso não há FK composta. Alternativa sem tocar a tabela central: gatilho `BEFORE INSERT OR UPDATE` que confira `course_id` contra `institution_id`.
+- Caso 6 (**premissa corrigida em 24/11/2026**: produção tem o índice único `vertice_courses_scope_key` em `(id, institution_id)`, migração `20261106234208`; a correção adotada é FK composta na migração `20261124210000`. Texto original mantido abaixo): `vertice_courses` não tem `UNIQUE (id, institution_id)`; sem isso não há FK composta. Alternativa sem tocar a tabela central: gatilho `BEFORE INSERT OR UPDATE` que confira `course_id` contra `institution_id`.
 - Caso 11: gatilho que recuse `UPDATE` e `DELETE` em `audit_event` (e em `shadow_run`/`shadow_alert`), já que RLS não restringe o proprietário.
 - Caso 13: o RPC transacional deve conferir `approved_by IS NOT NULL AND enabled` da revisão vigente; ou gatilho equivalente em `shadow_run`.

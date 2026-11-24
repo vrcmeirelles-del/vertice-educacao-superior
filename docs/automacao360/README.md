@@ -1,6 +1,6 @@
 # Vértice Automação 360°
 
-Situação: **pacote v1.0-rc.1 (Blocos 01 a 12) integrado ao repositório, inativo. Especificação candidata encerrada; homologação operacional não iniciada.** Nenhuma migração, cron, Edge Function, UI ou chamada externa foi criada.
+Situação: **pacote v1.0-rc.1 (Blocos 01 a 12) integrado; persistência, adaptadores e Central de Automação integrados ao repositório e testados em ambiente descartável. Nada aplicado em produção, nada ativado.** Três migrações candidatas em `supabase/migrations_nao_aplicadas/`; módulo `GEST_AUTOMACAO360` nasce com `active=false`. Nenhum cron, Edge Function ou chamada externa foi criada. Relatório: `RELATORIO_FINAL_20261124.md`.
 
 | Peça | Local |
 |---|---|
@@ -19,9 +19,14 @@ Situação: **pacote v1.0-rc.1 (Blocos 01 a 12) integrado ao repositório, inati
 | Bloco 12, inventário e avaliação de elegibilidade (`inventory`, `assessRelease`); não ativa nada | `supabase/functions/_shared/automacao360/release.mjs` |
 | Contrato nativo do 5W2H extraído de produção, com diagnóstico | `contratos-nativos/5w2h/` |
 | Roteiro de homologação e estado real das oito portas | `HOMOLOGACAO.md`, `ESTADO_PORTAS_20261124.md` |
-| Painéis React candidatos, Master e institucional (não ligados ao portal), e sua verificação | `docs/automacao360/ui/` |
-| DDL candidato (não é migração; não aplicar) e sua verificação em PostgreSQL descartável | `docs/automacao360/sql/` |
-| Testes (334) | `scripts/tests/automacao360/` |
+| Painéis React candidatos do pacote (referência histórica; substituídos pela Central) | `docs/automacao360/ui/` |
+| DDL candidato do Bloco 08 (referência histórica; substituído pela migração `20261124210000`) | `docs/automacao360/sql/` |
+| Migrações candidatas (núcleo, catálogo, correção do 5W2H) — não aplicadas | `supabase/migrations_nao_aplicadas/20261124210000*`, `…210001*`, `…210002*` |
+| Mapa de fontes reais das 40 regras e matriz gerada | `supabase/functions/_shared/automacao360/source-map.mjs`, `MATRIZ_REGRAS.md` |
+| Central de Automação no portal (Master e IES) | `source-overrides/client/src/components/automacao360/` |
+| Reversão e reconciliação do cron | `REVERSAO.md`, `RECONCILIACAO_CRON_20261124.md` |
+| Testes do motor (334) | `scripts/tests/automacao360/` |
+| Testes SQL (25, PGlite) e concorrência (3, PostgreSQL 16) | `scripts/tests/automacao360-sql/` |
 | CI | `.github/workflows/verify-automacao360.yml` |
 | Norma do módulo | `BIBLIA-MESTRA.md` |
 | Contrato para o desenvolvedor | `INTEGRACAO.md` |
@@ -30,4 +35,6 @@ Executar: `node --test scripts/tests/automacao360/*.test.mjs`
 
 Os módulos ficam em `_shared` porque só podem rodar no servidor (Edge Function/Deno ou worker Node). Não importar no cliente. Eles não leem banco, não gravam, não agendam e não enviam nada: recebem um snapshot já autorizado e devolvem propostas `pending_review` com `requiresHumanApproval: true` e motivos de abstenção. Completude da fonte, autoria do parecer e verificação dos motores existentes (Avalia, Permanência) precisam ser atestadas pelo servidor.
 
-Próximos passos: Onda 0 da Bíblia (inventário de jobs, triggers, workers e Edge Functions; mapeamento das fontes reais), equivalência SHA-256 em Deno; corrigir as três falhas do DDL candidato, RPC transacional de gravação, projeção real e adaptadores; ajustes do painel e integração ao layout Master; corrigir as funções nativas do 5W2H (quebradas em produção) e definir a origem da automação em `vertice_actions`; seguir `HOMOLOGACAO.md` a partir do estado em `ESTADO_PORTAS_20261124.md`. Merge, migração e ativação são autorizações separadas.
+Executar SQL: `cd scripts/tests/automacao360-sql && npm ci && node --test *.test.mjs`
+
+Próximos passos: autorizações separadas para (1) merge, (2) aplicar as três migrações em homologação e depois em produção, (3) publicar o portal com o módulo inativo, (4) execução sombra com dados reais sob controles de proteção de dados, (5) ativar o módulo por IES. Pendências técnicas: adaptadores das 36 regras restantes, 9 regras sem fonte, testes com JWT real. Ver `ESTADO_PORTAS_20261124.md`.
