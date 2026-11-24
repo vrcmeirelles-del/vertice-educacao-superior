@@ -9,6 +9,7 @@ import { PGlite } from '@electric-sql/pglite';
 import { RULES } from '../../../supabase/functions/_shared/automacao360/catalog.mjs';
 import { shadowRun } from '../../../supabase/functions/_shared/automacao360/native-integration.mjs';
 import { prepareShadowReceipt } from '../../../supabase/functions/_shared/automacao360/persistence.mjs';
+import { evaluate } from '../../../supabase/functions/_shared/automacao360/engine.mjs';
 
 const id = (n) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 // UNITOP e UNICALDAS sintéticas (identificadores fictícios), mais um curso de cada.
@@ -273,4 +274,35 @@ test('papéis da API não leem nem gravam as tabelas diretamente', async (t) => 
   for (const role of ['anon', 'authenticated', 'service_role'])
     await assert.rejects(as(db, GESTOR_TOP, 'select * from vertice_automation.config_revision', [], { role }), /permission denied/);
   await assert.rejects(as(db, GESTOR_TOP, "insert into public.vertice_actions(institution_id,what,origin_type) values ($1,'x','inexistente')", [UNITOP], { role: 'service_role' }), /permission denied|check/);
+});
+
+test('adaptador do planejamento e da CPA: PEI institucional e evidências da CPA, com motor real e gravação', async (t) => {
+  const db = await setup(t);
+  await db.exec(`
+    INSERT INTO public.vertice_goals(id,institution_id,course_id,title) VALUES ('${id(311)}','${UNITOP}',null,'Meta do PDI'),('${id(312)}','${UNITOP}',null,'Meta em dia');
+    INSERT INTO public.vertice_actions(institution_id,goal_id,what,due_date,status) VALUES
+      ('${UNITOP}','${id(311)}','Vencida em andamento', current_date - 4,'em_andamento'),
+      ('${UNITOP}','${id(311)}','Vencida concluída', current_date - 9,'concluida'),
+      ('${UNITOP}','${id(312)}','No prazo', current_date + 9,'nao_iniciada');
+    INSERT INTO public.vertice_cpa_findings VALUES ('${id(801)}','${UNITOP}',null,'Achado CPA'),('${id(802)}','${UNICALDAS}',null,'Achado de outra IES');
+    INSERT INTO public.vertice_cpa_actions(finding_id,institution_id,status,evidence_description,evidence_url) VALUES
+      ('${id(801)}','${UNITOP}','executada',null,null),('${id(801)}','${UNITOP}','executada','Relatório anexado',null),('${id(801)}','${UNITOP}','planejada',null,null),
+      ('${id(802)}','${UNICALDAS}','executada',null,null);`);
+  const cfg = (await propose(db, GESTOR_TOP, UNITOP, null, ['pei.overdue', 'cpa.pending'])).rows[0].id;
+  await approve(db, GESTOR2_TOP, cfg);
+  const src = (await as(db, null, 'select public.vertice_automation_source_planning($1,null) s', [UNITOP], { role: 'service_role', aal: null })).rows[0].s;
+  const metric = (rule, entity) => src.records.find((r) => r.ruleId === rule && r.entityId === entity).metrics;
+  assert.deepEqual(metric('pei.overdue', id(311)), { overdueActions: 1 }); // concluída não conta
+  assert.deepEqual(metric('pei.overdue', id(312)), { overdueActions: 0 });
+  assert.deepEqual(metric('cpa.pending', id(801)), { missingEvidence: 1 }); // planejada não exige evidência
+  assert.ok(!src.records.some((r) => r.entityId === id(802))); // outra IES fora
+  await assert.rejects(as(db, GESTOR_TOP, 'select public.vertice_automation_source_planning($1,null)', [UNITOP]), /permission denied/);
+  const scope = { institutionId: UNITOP, courseId: null }, asOf = new Date().toISOString();
+  const config = { ...scope, enabled: true, approved: true, revision: 1, ruleIds: ['pei.overdue', 'cpa.pending'], maxAgeHours: 24 };
+  const out = evaluate({ scope, config, asOf, snapshot: { ...scope, sourceId: src.sourceId, observedAt: src.observedAt, records: src.records } });
+  assert.deepEqual(out.alerts.map((a) => `${a.ruleId}:${a.entityId}`).sort(), [`cpa.pending:${id(801)}`, `pei.overdue:${id(311)}`]);
+  const receipt = prepareShadowReceipt({ scope, config, runId: randomUUID(), asOf, result: { mode: 'shadow', status: out.status, alerts: out.alerts, sources: [{}], unmapped: [] } });
+  const ack = (await as(db, null, 'select public.vertice_automation_record_run($1) r', [receipt], { role: 'service_role', aal: null })).rows[0].r;
+  assert.equal(ack.status, 'inserted');
+  assert.equal((await db.query('select count(*)::int n from vertice_automation.run_alert')).rows[0].n, 2);
 });

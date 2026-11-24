@@ -404,6 +404,43 @@ begin
   return jsonb_build_object('institutionId', p_institution, 'courseId', p_course, 'id', 'repository', 'observedAt', to_char(now() at time zone 'utc', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'), 'complete', true, 'requests', v_rows);
 end $$;
 
+-- Adaptador de leitura do planejamento institucional e da CPA (regras sem família no Bloco 07).
+-- pei.overdue = Planejamento Estratégico Institucional (não o Plano Educacional Individualizado):
+--   por meta ativa do escopo, quantidade de ações 5W2H vencidas e não concluídas/canceladas.
+-- cpa.pending (só escopo institucional; a CPA não é por curso): por achado, ações da CPA
+--   executadas sem evidência registrada. Retorna o contrato de snapshot do motor (evaluate).
+create function public.vertice_automation_source_planning(p_institution uuid, p_course uuid)
+returns jsonb language plpgsql stable security definer set search_path = '' as $$
+declare v_records jsonb;
+begin
+  if not (auth.role() = 'service_role' or vertice_private.automation_can(p_institution, p_course, 'read')) then
+    raise exception 'acesso negado ou MFA pendente' using errcode = '42501';
+  end if;
+  select coalesce(jsonb_agg(r order by r->>'ruleId', r->>'entityId'), '[]'::jsonb) into v_records from (
+    select jsonb_build_object('institutionId', g.institution_id, 'courseId', g.course_id, 'entityId', g.id::text, 'ruleId', 'pei.overdue', 'state', 'open',
+             'revision', left(md5(coalesce(string_agg(a.id::text || ':' || a.status || ':' || coalesce(a.due_date::text, ''), ',' order by a.id), '')), 32),
+             'metrics', jsonb_build_object('overdueActions', count(a.id))) r
+    from public.vertice_goals g
+    left join public.vertice_actions a on a.goal_id = g.id and a.institution_id = g.institution_id
+      and a.due_date < current_date and a.status not in ('concluida','cancelada')
+    where g.institution_id = p_institution and g.course_id is not distinct from p_course and g.status = 'ativa'
+    group by g.id, g.institution_id, g.course_id
+    union all
+    select jsonb_build_object('institutionId', p_institution, 'courseId', null, 'entityId', f.id::text, 'ruleId', 'cpa.pending', 'state', 'open',
+             'revision', left(md5(coalesce(string_agg(x.id::text || ':' || x.status || ':' || (x.evidence_description is not null or x.evidence_url is not null)::text, ',' order by x.id), '')), 32),
+             'metrics', jsonb_build_object('missingEvidence', count(x.id) filter (where x.status = 'executada' and nullif(btrim(coalesce(x.evidence_description, '')), '') is null and nullif(btrim(coalesce(x.evidence_url, '')), '') is null))) r
+    from public.vertice_cpa_findings f
+    join public.vertice_cpa_actions x on x.finding_id = f.id and x.institution_id = f.institution_id
+    where p_course is null and f.institution_id = p_institution
+    group by f.id
+  ) s;
+  if jsonb_array_length(v_records) > 10000 then raise exception 'volume acima do lote: paginar antes de habilitar' using errcode = '54000'; end if;
+  return jsonb_build_object('institutionId', p_institution, 'courseId', p_course, 'sourceId', 'planning-cpa',
+    'observedAt', to_char(now() at time zone 'utc', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'), 'complete', true, 'records', v_records);
+end $$;
+revoke all on function public.vertice_automation_source_planning(uuid, uuid) from public, anon, authenticated;
+grant execute on function public.vertice_automation_source_planning(uuid, uuid) to service_role;
+
 revoke all on function public.vertice_automation_propose_config(uuid, uuid, text[], boolean, text, integer, integer, text) from public, anon;
 revoke all on function public.vertice_automation_approve_config(bigint, text) from public, anon;
 revoke all on function public.vertice_automation_decide(uuid, text, integer, text, uuid, timestamptz, text) from public, anon;

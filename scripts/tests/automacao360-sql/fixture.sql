@@ -47,5 +47,8 @@ CREATE TABLE public.vertice_action_governance(action_id uuid PRIMARY KEY REFEREN
 CREATE TABLE public.vertice_repository_requests(id uuid PRIMARY KEY, institution_id uuid NOT NULL, course_id uuid, title text, due_date date, active boolean DEFAULT true, not_applicable boolean DEFAULT false, updated_at timestamptz DEFAULT now());
 CREATE TABLE public.vertice_repository_files(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), institution_id uuid NOT NULL, request_id uuid NOT NULL, status text NOT NULL, file_name text);
 
+CREATE TABLE public.vertice_cpa_findings(id uuid PRIMARY KEY, institution_id uuid NOT NULL, course_id uuid, title text);
+CREATE TABLE public.vertice_cpa_actions(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), finding_id uuid, institution_id uuid NOT NULL, title text, status text, due_date date, evidence_description text, evidence_url text);
+
 GRANT USAGE ON SCHEMA public, auth, vertice_private TO authenticated, service_role;
 GRANT EXECUTE ON FUNCTION auth.uid(), auth.jwt(), auth.role() TO authenticated, service_role;
