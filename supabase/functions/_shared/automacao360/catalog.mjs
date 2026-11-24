@@ -1,5 +1,6 @@
 // Proposed rules, not production thresholds. All are opt-in after homologation.
 export const VERSION = '2026.11-proposal.1';
+const NEW_ACADEMIC=new Set(['internship.overdue','internship.hours','internship.documents','tcc.due','tcc.documents','extension.hours','extension.certificates','teaching.hours','teaching.documents','ac.hours','ac.documents']);
 export const RULES = Object.freeze([
  ['repo.overdue','Repositório','daily','P0','open','daysToDue','lt',0],
  ['repo.due','Repositório','daily','P0','open','daysToDue','between',[0,7]],
@@ -21,5 +22,16 @@ export const RULES = Object.freeze([
  ['market.new','Inteligência de Mercado','daily','P1','open','unreviewedPublications','gt',0],
  ['due.pending','Due Diligence','weekly','P2','open','missingEvidence','gt',0],
  ['school.attendance','Vértice Escolas','weekly','P1','validated','confirmedAlerts','gt',0],
- ['finance.overdue','Financeiro','daily','P2','open','overdueInvoices','gt',0]
-].map(([id,module,cadence,priority,state,metric,op,threshold,minMetric,min])=>Object.freeze({id,module,cadence,priority,state,metric,op,threshold:Array.isArray(threshold)?Object.freeze(threshold):threshold,minMetric,min,version:VERSION})));
+ ['finance.overdue','Financeiro','daily','P2','open','overdueInvoices','gt',0],
+ ['internship.overdue','Estágio 360°','weekly','P1','open','daysToDue','lt',0],
+ ['internship.hours','Estágio 360°','weekly','P1','open','missingMinutes','gt',0],
+ ['internship.documents','Estágio 360°','weekly','P1','open','missingEvidence','gt',0],
+ ['tcc.due','TCC 360°','weekly','P1','open','daysToDue','between',[0,7]],
+ ['tcc.documents','TCC 360°','weekly','P1','open','missingEvidence','gt',0],
+ ['extension.hours','Extensão 360°','weekly','P1','open','missingMinutes','gt',0],
+ ['extension.certificates','Extensão 360°','weekly','P1','open','pendingCertificates','gt',0],
+ ['teaching.hours','Atividades de Ensino','weekly','P1','open','missingMinutes','gt',0],
+ ['teaching.documents','Atividades de Ensino','weekly','P1','open','missingEvidence','gt',0],
+ ['ac.hours','AC 360°','weekly','P1','open','missingMinutes','gt',0],
+ ['ac.documents','AC 360°','weekly','P1','open','missingEvidence','gt',0]
+].map(([id,module,cadence,priority,state,metric,op,threshold,minMetric,min])=>Object.freeze({id,module,cadence,priority,state,metric,op,threshold:Array.isArray(threshold)?Object.freeze(threshold):threshold,minMetric,min,version:NEW_ACADEMIC.has(id)?'2026.11-academic.1':VERSION})));

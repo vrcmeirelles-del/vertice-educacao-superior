@@ -1,5 +1,5 @@
 # Vértice Automação 360° — Bíblia-Mestra
-Versão 0.1 | 24/11/2026 | Candidata de desenvolvimento, sem autorização de implantação
+Versão 0.4 | 24/11/2026 | Candidata de desenvolvimento, sem autorização de implantação
 
 ## 1. Missão e continuidade
 Transformar dados existentes em alertas explicáveis, propostas de intervenção e acompanhamento de resultados. Algoritmo determinístico primeiro; nenhuma API generativa. Reutilizar a identidade institucional, permissões, Sapiens, PEI, Construção Curricular, Avalia 360° e seus contratos. Não criar uma segunda fonte de verdade. Esta Bíblia é cumulativa: cada alteração registra versão, decisão, evidência, teste, pendência e reversão; não apaga requisitos anteriores. O roadmap oficial do Avalia permanece normativo para esse módulo.
@@ -110,6 +110,23 @@ Os limiares são propostas sujeitas a aprovação institucional; o mínimo de ci
 - Adaptadores reais, comprovação de autoria da revisão, associação competência/janela, paginação, RLS, persistência e execução recorrente seguem pendentes. Não criar ações, enviar intervenções ao F&O nem alterar diagnóstico sem validação autorizada.
 - Próximo bloco 04: gestão acadêmica (Estágio, TCC, Extensão, Ensino e AC), preservando horas e homologação humana.
 
+## Bloco 04 — gestão acadêmica (v0.4)
+
+`src/academic.mjs` reutiliza o motor central e cinco regras anteriores, acrescentando onze regras ao catálogo (32 no total). O adaptador exige curso explícito, fuso institucional, fonte completa, revisão estável e configuração aprovada. Resultados são propostas para revisão, jamais aprovação de horas ou emissão de certificados.
+
+| Módulo | Regras | Fonte exigida |
+|---|---|---|
+| Estágio | prazo próximo/vencido, minutos faltantes, evidências faltantes | prazo vigente, PPC/regulamento aprovado, créditos validados, checklist versionado |
+| TCC | prazo próximo/vencido, evidências faltantes | etapa aberta e checklist vigente |
+| Extensão | evidências, minutos, certificados pendentes | cadastro de projeto e participantes elegíveis, critérios aprovados |
+| Ensino | certificados, minutos, documentos | participantes elegíveis e registro validado |
+| AC | candidatos a duplicidade, minutos, documentos | resultado de verificação existente e créditos validados |
+
+Prazos de 0–7 dias são proposta de alerta, não regra legal; horas são representadas em minutos inteiros. Exigir equivalência de hora-aula conforme regulamento antes de converter. Não presumir cargas mínimas, equivalências, elegibilidade ou autenticidade. O adaptador deve deduplicar créditos por identidade da atividade e beneficiário, preservar distinção entre extensão curricular, AC, ensino e estágio e não somar automaticamente entre categorias. A detecção de duplicidade consome contagem de candidatos de verificador versionado, não declara fraude. Evidência vinculada não significa evidência aprovada. Certificados pendentes são diferença entre elegíveis e emitidos, sem emissão automática. O estado submitted não gera alertas neste núcleo; fila de validação deve ser tratada separadamente. Não enviar notificações ou publicar 5W2H. Não gerar risco individual.
+
+### Evidência e gates
+145 testes cumulativos aprovados (96 anteriores, 38 testes específicos e 11 novos smoke tests de catálogo). A expectativa fixa de tamanho do catálogo foi atualizada de 21 para 32; versões das regras anteriores preservadas. Testes exclusivamente locais com fixtures sintéticas. Nenhuma migração, cron, integração real ou publicação. Antes de ativação: mapear tabelas/RPC por módulo, validar autoria e escopo dos registros, reconciliar horas e certificados com fontes reais, testar RLS/MFA, concorrência, paginação, resolução/reabertura e outbox. O motor retorna propostas; a deduplicação persistente depende de restrição única no banco. Reversão: desativar somente regras do bloco e manter histórico; não apagar registros acadêmicos. Próximo bloco 05: inteligência estratégica e comercial.
+
 ## Integração ao repositório (registro cumulativo)
 
 Os pacotes acima são a fonte normativa. Este registro documenta como foram incorporados ao repositório; não altera requisitos.
@@ -119,8 +136,13 @@ Os pacotes acima são a fonte normativa. Este registro documenta como foram inco
 | 24/11/2026 | Bloco 01 (motor e catálogo) copiado sem alteração para `supabase/functions/_shared/automacao360/`; testes em `scripts/tests/automacao360/`; CI `verify-automacao360.yml` | 42/42 no Node 22 local e no CI | equivalência SHA-256 em Deno |
 | 24/11/2026 | Bloco 02 recebido só como contrato; implementação provisória própria, escrita a partir do texto, para não bloquear a sequência | 62/62 com testes próprios | substituir pelo original quando recebido |
 | 24/11/2026 | Pacote v0.3 recebido com o código original dos Blocos 02 e 03. A implementação provisória foi **substituída** pelo original (`documentary.mjs`, `pedagogical.mjs`) e pelos testes do pacote. Motor e catálogo conferidos byte a byte: idênticos | 96/96 no pacote e no repositório (Node 22) | ver observações abaixo; adaptadores reais, RLS, persistência, scheduler e UI |
+| 24/11/2026 | Pacote v0.4 recebido (Bloco 04, gestão acadêmica). `academic.mjs` e o catálogo de 32 regras copiados sem alteração; motor e Blocos 02/03 conferidos byte a byte: idênticos. As 21 regras anteriores mantêm a versão `2026.11-proposal.1`, portanto as chaves de idempotência já calculadas não mudam | 145/145 no pacote e no repositório (Node 22) | ver observações do Bloco 04; adaptadores reais por módulo, reconciliação de horas e certificados |
 
 Observações da conferência (não corrigidas, para preservar a versão homologável do pacote):
 - `documentaryRun` não recusa `config.ruleIds` com regras não documentais; como só gera registros de `repo.overdue`/`repo.due`, o efeito é nulo, mas o contrato pede configuração exclusivamente documental.
 - `documentaryRun` aceita fuso inválido como erro genérico do `Intl` (falha fechada, sem mensagem própria).
 - A versão provisória divergia do original em: formato de `deadlineSummary` (objeto × lista por data), retorno de `evidenceChecklist` (objeto × lista com `compliance:null`), data inválida (erro × `issue`) e fuso padrão (exigido × `America/Araguaina`). Prevalece o original.
+
+Observações da conferência do Bloco 04 (não corrigidas):
+- Nas regras de horas, documentos, certificados e duplicidade, a revisão enviada ao motor inclui o valor apurado (minutos ou itens faltantes). Cada crédito parcial validado gera uma nova chave e, portanto, uma nova proposta para o mesmo pendente. A persistência deve encerrar a proposta anterior ao abrir a nova, ou a fila acumulará propostas obsoletas.
+- O fuso inválido em `academicRun` resulta em erro genérico do `Intl` (falha fechada, sem mensagem própria), como no Bloco 02.
