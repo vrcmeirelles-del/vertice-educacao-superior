@@ -441,6 +441,14 @@ end $$;
 revoke all on function public.vertice_automation_source_planning(uuid, uuid) from public, anon, authenticated;
 grant execute on function public.vertice_automation_source_planning(uuid, uuid) to service_role;
 
+-- Módulo no catálogo nativo de licenciamento (caixas de seleção do Master), INATIVO.
+-- Enquanto active=false, a aba 'automacao360' fica bloqueada para todas as IES.
+insert into public.vertice_module_catalog(code, name, tier, package, description, tabs, depends_on, display_order, active)
+values ('GEST_AUTOMACAO360', 'Automação 360°', 'gestao', 'gestao360',
+  'Regras algorítmicas versionadas que geram propostas para decisão humana; modo sombra antes de qualquer operação.',
+  array['automacao360'], array['GEST_METAS'], 34, false)
+on conflict (code) do nothing;
+
 revoke all on function public.vertice_automation_propose_config(uuid, uuid, text[], boolean, text, integer, integer, text) from public, anon;
 revoke all on function public.vertice_automation_approve_config(bigint, text) from public, anon;
 revoke all on function public.vertice_automation_decide(uuid, text, integer, text, uuid, timestamptz, text) from public, anon;

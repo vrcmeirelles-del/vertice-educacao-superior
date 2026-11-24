@@ -81,6 +81,8 @@ test('catálogo do banco é idêntico ao catálogo versionado e nenhuma regra na
   assert.equal(rows.length, 40);
   for (const r of RULES) assert.ok(rows.some((x) => x.id === r.id && x.version === r.version && x.priority === r.priority), r.id);
   assert.equal(rows.filter((r) => r.source_status === 'validada').length, 0);
+  const mod = (await db.query("select active, tabs from public.vertice_module_catalog where code = 'GEST_AUTOMACAO360'")).rows[0];
+  assert.deepEqual(mod, { active: false, tabs: ['automacao360'] }); // módulo nasce desativado
 });
 
 test('estado inicial: tudo inativo, sem execução e sem fila (nada vira zero)', async (t) => {

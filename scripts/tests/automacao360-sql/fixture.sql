@@ -50,5 +50,7 @@ CREATE TABLE public.vertice_repository_files(id uuid PRIMARY KEY DEFAULT gen_ran
 CREATE TABLE public.vertice_cpa_findings(id uuid PRIMARY KEY, institution_id uuid NOT NULL, course_id uuid, title text);
 CREATE TABLE public.vertice_cpa_actions(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), finding_id uuid, institution_id uuid NOT NULL, title text, status text, due_date date, evidence_description text, evidence_url text);
 
+CREATE TABLE public.vertice_module_catalog(code text PRIMARY KEY, name text, tier text, package text, description text, tabs text[], depends_on text[], display_order smallint, active boolean);
+
 GRANT USAGE ON SCHEMA public, auth, vertice_private TO authenticated, service_role;
 GRANT EXECUTE ON FUNCTION auth.uid(), auth.jwt(), auth.role() TO authenticated, service_role;

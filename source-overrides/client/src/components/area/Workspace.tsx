@@ -74,6 +74,7 @@ const SchoolManagement = lazy(() => import("../bi/SchoolManagement"));
 const MarketIntelligence = lazy(() => import("./MarketIntelligence"));
 const Discursiva360 = lazy(() => import("./Discursiva360"));
 const CoursePlanning = lazy(() => import("./CoursePlanning"));
+const CentralAutomacao = lazy(() => import("../automacao360/CentralAutomacao"));
 const CurriculumBuilder = lazy(() => import("./CurriculumBuilder"));
 const TrailAnalysis = lazy(() => import("./TrailAnalysis"));
 const TeachingPdiPanel = lazy(() => import("./TeachingPdiPanel"));
@@ -108,7 +109,7 @@ import "./module-offer.css";
 
 const TAB_GROUPS: {label:string;subtitle:string;icon:string;tabs:Tab[];tier?:'superior'|'escolas'|'both';sortByLabel?:boolean}[] = [
   {label:'BI da Gestão',subtitle:'BI geral e BI de cada módulo, com gráficos coloridos',icon:'📊',tabs:['bi-gestao'],tier:'both'},
-  {label:'Gestão',subtitle:'Planejamento, metas e governança',icon:'▦',tabs:['planejamento-estrategico','planejamento-semestral','base','metas','plano','diagnostico','equipe','cpa-autoavaliacao'],tier:'both'},
+  {label:'Gestão',subtitle:'Planejamento, metas e governança',icon:'▦',tabs:['planejamento-estrategico','planejamento-semestral','base','metas','plano','diagnostico','equipe','cpa-autoavaliacao','automacao360'],tier:'both'},
   {label:'Gestão Institucional',subtitle:'Programas e metas do PDI',icon:'◎',tabs:['programas-pdi'],tier:'superior'},
   {label:'Regulação',subtitle:'Instrumentos e evidências MEC/INEP',icon:'◇',tabs:['emec','repositorio','validacao','avaliacao','novo_instrumento','biblioteca'],tier:'superior'},
   {label:'Acadêmico',sortByLabel:true,subtitle:'Currículo, desempenho e avaliação',icon:'▤',tabs:['avalia360','discursiva','geral','cadastro','visao','construcao-curricular','trilhas-enade','enade','atividades-ensino','eorbit','backups','auditoria'],tier:'superior'},
@@ -222,6 +223,7 @@ const TABS: [Tab, string][] = [
   ["construcao-curricular", "Construção Curricular"],
   ["trilhas-enade", "Trilhas ENADE"],
   ["planejamento-estrategico", "Planejamento Estratégico"],
+  ["automacao360", "Automação 360°"],
   ["planejamento-semestral", "Planejamento Semestral"],
   ["base", "Base da organização"],
   ["fontes", "Importar dados de sites"],
@@ -665,6 +667,8 @@ export default function Workspace({
               onNavigate={destination=>{const permitted = allowedTabs.find(key=>key===destination); if(permitted) choose(permitted);}}/>
           </Suspense>
         ) : <p role="alert">Área restrita aos perfis autorizados no ensino superior.</p>
+      ) : tab === "automacao360" ? (
+        <Suspense fallback={<p role="status">Carregando a Central de Automação…</p>}><CentralAutomacao key={String(id)} institutionId={String(id)} role={role} courseFunctionIds={courseFunctions.map(f=>f.course_id)} courses={data.courses.map(c=>({id:String(c.id),name:String(c.name)}))}/></Suspense>
       ) : tab === "planejamento-estrategico" ? (
         <Suspense fallback={<p role="status">Carregando planejamento estratégico…</p>}>{instTier==='escolas'?<SchoolPlanning key={`${id}:strategic`} institutionId={String(id)} role={role} kind="strategic"/>:<CoursePlanning courseFunctionIds={courseFunctions.map(f=>f.course_id)} institutionId={String(id)} courses={data.courses.map(c=>({id:String(c.id),name:String(c.name),code:String(c.code??"")}))} role={role} kind="strategic" />}</Suspense>
       ) : tab === "planejamento-semestral" ? (
