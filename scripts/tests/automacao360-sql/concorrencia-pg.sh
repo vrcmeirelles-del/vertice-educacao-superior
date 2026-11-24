@@ -10,8 +10,8 @@ psql -X -q -d postgres -c "create database $DB"
 trap 'psql -X -q -d postgres -c "drop database if exists $DB" >/dev/null' EXIT
 Q -f "$D/fixture.sql"
 awk '/create function vertice_private.course_function\(/,/^\$\$;/' "$R/supabase/migrations/20261122170000_course_staff_functions.sql" | Q
-Q -f "$R/supabase/migrations_nao_aplicadas/20261124210000_automacao360_nucleo.sql"
-Q -f "$R/supabase/migrations_nao_aplicadas/20261124210001_automacao360_catalogo.sql"
+Q -f "$R/supabase/migrations/20261124210000_automacao360_nucleo.sql"
+Q -f "$R/supabase/migrations/20261124210001_automacao360_catalogo.sql"
 I=00000000-0000-4000-8000-000000000101; C=00000000-0000-4000-8000-000000000201
 G1=00000000-0000-4000-8000-000000000002; G2=00000000-0000-4000-8000-000000000003
 Q -c "insert into vertice_institutions values ('$I','UNITOP sintética','superior'); insert into vertice_courses values ('$C','$I','Direito','DIR');

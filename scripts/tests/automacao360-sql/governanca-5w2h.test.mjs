@@ -39,7 +39,7 @@ async function setup(t, { corrected = true } = {}) {
   await db.exec(await read('./fixture.sql'));
   await db.exec(GOVERNANCE);
   await db.exec(await read('../../../docs/automacao360/contratos-nativos/5w2h/20261111010933_governance_360_phase3_routing_5w2h.producao.sql'));
-  if (corrected) await db.exec(await read('../../../supabase/migrations_nao_aplicadas/20261124210002_governanca_5w2h_correcao.sql'));
+  if (corrected) await db.exec(await read('../../../supabase/migrations/20261124210002_governanca_5w2h_correcao.sql'));
   return db;
 }
 async function as(db, sub, sql, params = [], aal = 'aal2') {

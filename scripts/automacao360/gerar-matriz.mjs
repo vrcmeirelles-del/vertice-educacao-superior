@@ -4,7 +4,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { SOURCE_MAP } from '../../supabase/functions/_shared/automacao360/source-map.mjs';
 
 const root = new URL('../../', import.meta.url);
-const SEED = new URL('supabase/migrations_nao_aplicadas/20261124210001_automacao360_catalogo.sql', root);
+const SEED = new URL('supabase/migrations/20261124210001_automacao360_catalogo.sql', root);
 const DOC = new URL('docs/automacao360/MATRIZ_REGRAS.md', root);
 const q = (s) => s === null || s === undefined ? 'null' : `'${String(s).replace(/'/g, "''")}'`;
 const op = (r) => r.operator === 'between' ? `${r.threshold[0]}–${r.threshold[1]}` : `${r.operator === 'lt' ? '<' : '>'} ${r.threshold}`;

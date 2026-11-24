@@ -4,8 +4,8 @@ on:
     branches: [main]
     paths:
       - 'supabase/functions/_shared/automacao360/**'
-      - 'supabase/migrations_nao_aplicadas/*automacao360*.sql'
-      - 'supabase/migrations_nao_aplicadas/*governanca_5w2h*.sql'
+      - 'supabase/migrations/*automacao360*.sql'
+      - 'supabase/migrations/*governanca_5w2h*.sql'
       - 'scripts/automacao360/**'
       - 'scripts/tests/automacao360/**'
       - 'scripts/tests/automacao360-sql/**'
@@ -15,8 +15,8 @@ on:
     branches: [main]
     paths:
       - 'supabase/functions/_shared/automacao360/**'
-      - 'supabase/migrations_nao_aplicadas/*automacao360*.sql'
-      - 'supabase/migrations_nao_aplicadas/*governanca_5w2h*.sql'
+      - 'supabase/migrations/*automacao360*.sql'
+      - 'supabase/migrations/*governanca_5w2h*.sql'
       - 'scripts/automacao360/**'
       - 'scripts/tests/automacao360/**'
       - 'scripts/tests/automacao360-sql/**'

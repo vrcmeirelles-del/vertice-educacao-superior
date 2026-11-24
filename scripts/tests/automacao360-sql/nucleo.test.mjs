@@ -25,8 +25,8 @@ async function setup(t) {
   const staff = await read('../../../supabase/migrations/20261122170000_course_staff_functions.sql');
   const s = staff.indexOf('create function vertice_private.course_function(');
   await db.exec(staff.slice(s, staff.indexOf('$$;', s) + 3));
-  await db.exec(await read('../../../supabase/migrations_nao_aplicadas/20261124210000_automacao360_nucleo.sql'));
-  await db.exec(await read('../../../supabase/migrations_nao_aplicadas/20261124210001_automacao360_catalogo.sql'));
+  await db.exec(await read('../../../supabase/migrations/20261124210000_automacao360_nucleo.sql'));
+  await db.exec(await read('../../../supabase/migrations/20261124210001_automacao360_catalogo.sql'));
   await db.exec(`
     INSERT INTO public.vertice_institutions VALUES ('${UNITOP}','UNITOP sintética','superior'),('${UNICALDAS}','UNICALDAS sintética','superior');
     INSERT INTO public.vertice_courses VALUES ('${DIR_TOP}','${UNITOP}','Direito','DIR'),('${DIR_CAL}','${UNICALDAS}','Direito','DIR');

@@ -1,6 +1,6 @@
 # Vértice Automação 360°
 
-Situação: **pacote v1.0-rc.1 (Blocos 01 a 12) integrado; persistência, adaptadores e Central de Automação integrados ao repositório e testados em ambiente descartável. Nada aplicado em produção, nada ativado.** Três migrações candidatas em `supabase/migrations_nao_aplicadas/`; módulo `GEST_AUTOMACAO360` nasce com `active=false`. Nenhum cron, Edge Function ou chamada externa foi criada. Relatório: `RELATORIO_FINAL_20261124.md`.
+**Situação em 24/11/2026: migrações aplicadas em produção (versões 20261124210000/1/2, em transação única, após ensaio desfeito no esquema real). Módulo `GEST_AUTOMACAO360` existe no catálogo com `active=false`; nenhuma revisão de configuração aprovada; nenhuma execução sombra; nenhuma regra ativa.** Três migrações candidatas em `supabase/migrations/`; módulo `GEST_AUTOMACAO360` nasce com `active=false`. Nenhum cron, Edge Function ou chamada externa foi criada. Relatório: `RELATORIO_FINAL_20261124.md`.
 
 | Peça | Local |
 |---|---|
@@ -21,7 +21,7 @@ Situação: **pacote v1.0-rc.1 (Blocos 01 a 12) integrado; persistência, adapta
 | Roteiro de homologação e estado real das oito portas | `HOMOLOGACAO.md`, `ESTADO_PORTAS_20261124.md` |
 | Painéis React candidatos do pacote (referência histórica; substituídos pela Central) | `docs/automacao360/ui/` |
 | DDL candidato do Bloco 08 (referência histórica; substituído pela migração `20261124210000`) | `docs/automacao360/sql/` |
-| Migrações candidatas (núcleo, catálogo, correção do 5W2H) — não aplicadas | `supabase/migrations_nao_aplicadas/20261124210000*`, `…210001*`, `…210002*` |
+| Migrações (núcleo, catálogo, correção do 5W2H) — aplicadas em produção em 24/11/2026 | `supabase/migrations/20261124210000*`, `…210001*`, `…210002*` |
 | Mapa de fontes reais das 40 regras e matriz gerada | `supabase/functions/_shared/automacao360/source-map.mjs`, `MATRIZ_REGRAS.md` |
 | Central de Automação no portal (Master e IES) | `source-overrides/client/src/components/automacao360/` |
 | Reversão e reconciliação do cron | `REVERSAO.md`, `RECONCILIACAO_CRON_20261124.md` |
