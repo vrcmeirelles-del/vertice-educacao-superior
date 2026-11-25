@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import CertificadosPanel from './CertificadosPanel';
 import { BookOpen, CircleCheck, Clock3, Download, GraduationCap, Info, Link2, Paperclip, Save, Target, Upload, UsersRound } from 'lucide-react';
 import PortalPageHeader from '../PortalPageHeader';
 import { supabase } from '@/lib/supabase';
@@ -944,6 +945,7 @@ function ScopedPanel({ institutionId, courses, role, mode, onNavigate, showHeade
         {row.report_phase !== 'projeto' && row.report_presentation && <details><summary>Relatório: apresentação</summary><p style={{whiteSpace:'pre-wrap'}}>{row.report_presentation}</p></details>}
         {row.report_phase !== 'projeto' && row.report_results && <details><summary>Relatório: resultados</summary><p style={{whiteSpace:'pre-wrap'}}>{row.report_results}</p></details>}
         {canEditActivity && <TeachingActivityRosterSummary key={`${row.id}:${row.updated_at}`} institutionId={institutionId} courseId={row.course_id} activityId={row.id} />}
+        {row.status === 'validada' && canValidate && <CertificadosPanel kind="ensino" sourceId={row.id} />}
         {row.status === 'validada' && canValidate && <TeachingAcHandoff
           institutionId={institutionId} courseId={row.course_id} activityId={row.id}
           enabled={!!row.evidence_doc_id}

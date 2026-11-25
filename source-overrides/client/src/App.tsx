@@ -29,6 +29,7 @@ const ConectaPartnerPortal = lazy(() => import("./components/area/ConectaPartner
 const StudentAccess = lazy(() => import("./pages/public/StudentAccess"));
 const AcPortalAluno = lazy(() => import("./pages/public/AcPortalAluno"));
 const CpaAvaliacao = lazy(() => import("./pages/public/CpaAvaliacao"));
+const VerificarCertificado = lazy(() => import("./pages/public/VerificarCertificado"));
 const demoPaths = new Set([
   "/demonstracao",
   "/painel",
@@ -77,6 +78,7 @@ export default function App() {
   if (normalized === "/acesso-estudante") return <ErrorBoundary><IesBrandedLayout><Suspense fallback={<main style={{padding:40}} role="status">Carregando acesso do estudante…</main>}><StudentAccess /></Suspense></IesBrandedLayout></ErrorBoundary>;
   if (normalized === "/ac-aluno") return <ErrorBoundary><Suspense fallback={<main style={{padding:40}} role="status">Carregando portal do aluno…</main>}><PortalSurface><AcPortalAluno /></PortalSurface></Suspense></ErrorBoundary>;
   if (normalized === "/extensao-convite") return <ErrorBoundary><Suspense fallback={<main style={{padding:40}} role="status">Carregando convite…</main>}><PortalSurface><ExtensaoConvite /></PortalSurface></Suspense></ErrorBoundary>;
+  if (normalized === "/verificar-certificado") return <ErrorBoundary><Suspense fallback={<main style={{padding:40}} role="status">Carregando verificação…</main>}><PortalSurface><VerificarCertificado /></PortalSurface></Suspense></ErrorBoundary>;
   if (normalized === "/cpa-avaliacao") return <ErrorBoundary><Suspense fallback={<main style={{padding:40}} role="status">Carregando avaliação CPA…</main>}><PortalSurface><CpaAvaliacao /></PortalSurface></Suspense></ErrorBoundary>;
   if (normalized === "/mobile/apresentacao") return <ErrorBoundary><Suspense fallback={<main role="status">Carregando apresentação Vértice Mobile…</main>}><PortalSurface><VerticeMobilePublicPreview /></PortalSurface></Suspense></ErrorBoundary>;
   if (normalized === "/mobile") return <ErrorBoundary><Suspense fallback={<main role="status">Carregando Vértice Mobile…</main>}><PortalSurface><VerticeMobileBI /></PortalSurface></Suspense></ErrorBoundary>;
