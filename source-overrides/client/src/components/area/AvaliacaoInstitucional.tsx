@@ -1,6 +1,6 @@
 import { HelpLabel } from '@/components/ContextHelp';
 import SimuladorTitulacao from "./SimuladorTitulacao";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   NIVEIS,
   conceitoInstitucional,
@@ -14,6 +14,8 @@ import {
 import "./avaliacao-institucional.css";
 import {Recred2017Overview,Recred2017IndicatorDocs,useRecredenciamentoDocs2017,type RecredDocsState} from "./RecredenciamentoDocumental2017";
 import type {Role} from "@/lib/area";
+import { supabase } from "@/lib/supabase";
+import { carregarNotasEixos, gravarNotaEixo, type Db } from "@/lib/avaliacao-institucional-registro";
 
 const TOTAL_RESTRITOS = instrumento.indicators.filter((i) => i.applicability).length;
 
@@ -114,6 +116,27 @@ export default function AvaliacaoInstitucional({ institutionId,role }: { institu
   const [eixo, setEixo] = useState("");
   const [somenteRestritos, setSomenteRestritos] = useState(false);
   const [notas, setNotas] = useState<Partial<Record<number, number | null>>>({});
+  const [catalogId, setCatalogId] = useState<string | null>(null);
+  const [aviso, setAviso] = useState<string | null>(null);
+
+  // Notas por eixo gravadas pela IES. Sem catálogo no banco, a calculadora segue só como simulação.
+  useEffect(() => {
+    let ativo = true;
+    carregarNotasEixos(supabase as unknown as Db, institutionId).then((r) => {
+      if (!ativo) return;
+      setCatalogId(r.catalogId); setNotas(r.notas); setAviso(r.erro);
+    });
+    return () => { ativo = false; };
+  }, [institutionId]);
+
+  async function definirNota(axis: number, valor: number | null) {
+    const anterior = notas[axis] ?? null;
+    setNotas((atual) => ({ ...atual, [axis]: valor }));
+    if (!catalogId) return;
+    const erro = await gravarNotaEixo(supabase as unknown as Db, institutionId, catalogId, axis, valor);
+    setAviso(erro);
+    if (erro) setNotas((atual) => ({ ...atual, [axis]: anterior }));
+  }
 
   const resultados = useMemo(
     () => filtrarIndicadores(instrumento.indicators, { busca, eixo, somenteRestritos }),
@@ -141,7 +164,8 @@ export default function AvaliacaoInstitucional({ institutionId,role }: { institu
       <p className="aval-aviso">
         Esta é uma mesa de trabalho. O conceito institucional é calculado pelo INEP na
         avaliação in loco; a calculadora abaixo serve para simular o efeito de cada eixo
-        e não substitui a avaliação oficial. As notas que você digitar não são gravadas.
+        e não substitui a avaliação oficial.{" "}
+        {catalogId ? "As notas por eixo ficam gravadas para a instituição." : "As notas que você digitar não são gravadas: o catálogo do instrumento ainda não foi carregado para esta instituição."}
       </p>
 
       <Recred2017Overview state={documents}/>
@@ -202,12 +226,7 @@ export default function AvaliacaoInstitucional({ institutionId,role }: { institu
               </span>
               <select
                 value={notas[a.code] ?? ""}
-                onChange={(e) =>
-                  setNotas((atual) => ({
-                    ...atual,
-                    [a.code]: e.target.value === "" ? null : Number(e.target.value),
-                  }))
-                }
+                onChange={(e) => definirNota(a.code, e.target.value === "" ? null : Number(e.target.value))}
               >
                 <option value="">Sem nota</option>
                 {NIVEIS.map((n) => (
@@ -221,6 +240,7 @@ export default function AvaliacaoInstitucional({ institutionId,role }: { institu
           Conceito institucional simulado: <strong>{formatarNota(conceito)}</strong>
           {conceito === null && " — atribua nota aos cinco eixos"}
         </p>
+        {aviso && <p className="aval-aviso" role="alert">{aviso}</p>}
       </div>
 
       <div className="aval-filtros">
