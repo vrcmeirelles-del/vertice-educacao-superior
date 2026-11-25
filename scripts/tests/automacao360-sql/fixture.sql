@@ -62,5 +62,13 @@ CREATE TABLE public.vertice_alumni_survey_invitations(id uuid PRIMARY KEY DEFAUL
 CREATE SCHEMA IF NOT EXISTS vertice_planning;
 CREATE TABLE vertice_planning.competitive_findings(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), institution_id uuid NOT NULL, course_id uuid, status text NOT NULL DEFAULT 'pending', action_id uuid, created_at timestamptz DEFAULT now());
 
+-- Fontes pedagógicas (subconjunto das colunas de produção).
+CREATE SCHEMA IF NOT EXISTS vertice_app;
+CREATE TABLE vertice_app.curriculum_builds(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), institution_id uuid NOT NULL, course_id uuid, version integer NOT NULL DEFAULT 1, status text NOT NULL DEFAULT 'draft', updated_at timestamptz DEFAULT now());
+CREATE TABLE vertice_app.curriculum_competencies(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), build_id uuid NOT NULL, code text, title text);
+CREATE TABLE vertice_app.curriculum_discipline_links(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), competency_id uuid NOT NULL, discipline_name text);
+CREATE TABLE public.vertice_avalia_recovery_plans(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), institution_id uuid NOT NULL, course_id uuid, status text NOT NULL DEFAULT 'active', rules_version text, updated_at timestamptz DEFAULT now());
+CREATE TABLE vertice_app.alerts(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), institution_id uuid NOT NULL, course_id uuid, status text NOT NULL DEFAULT 'open', rule_version text);
+
 GRANT USAGE ON SCHEMA public, auth, vertice_private TO authenticated, service_role;
 GRANT EXECUTE ON FUNCTION auth.uid(), auth.jwt(), auth.role() TO authenticated, service_role;

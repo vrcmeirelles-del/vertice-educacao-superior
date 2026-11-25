@@ -30,7 +30,9 @@ async function setup(t) {
   await db.exec(await read('../../../supabase/migrations/20261124210000_automacao360_nucleo.sql'));
   await db.exec(await read('../../../supabase/migrations/20261124210001_automacao360_catalogo.sql'));
   await db.exec(await read('../../../supabase/migrations/20261125090000_automacao360_executor.sql'));
-  await db.exec(await read('../../../supabase/migrations_nao_aplicadas/20261125100000_automacao360_fontes_academica_estrategica.sql'));
+  await db.exec(await read('../../../supabase/migrations/20261125100000_automacao360_fontes_academica_estrategica.sql'));
+  await db.exec(await read('../../../supabase/migrations/20261125110000_automacao360_fontes_pedagogicas.sql'));
+  await db.exec(await read('../../../supabase/migrations/20261125120000_automacao360_indices.sql'));
   await db.exec(`
     INSERT INTO public.vertice_institutions VALUES ('${UNITOP}','UNITOP sintética','superior'),('${UNICALDAS}','UNICALDAS sintética','superior');
     INSERT INTO public.vertice_courses VALUES ('${DIR_TOP}','${UNITOP}','Direito','DIR'),('${DIR_CAL}','${UNICALDAS}','Direito','DIR');
@@ -421,4 +423,57 @@ test('adaptadores acadêmico e estratégico: prazos, checklist, egressos reais e
   assert.deepEqual(kinds, [
     { rule_id: 'alumni.pending', n: 1 }, { rule_id: 'competition.change', n: 1 }, { rule_id: 'internship.overdue', n: 1 },
     { rule_id: 'tcc.due', n: 1 }, { rule_id: 'tcc.overdue', n: 1 }, { rule_id: 'teaching.documents', n: 1 }]);
+});
+
+test('adaptador pedagógico: matriz publicada, recuperação ativa e alertas triados; sem nota provisória', async (t) => {
+  const db = await setup(t);
+  await db.exec(`
+    INSERT INTO vertice_app.curriculum_builds(id,institution_id,course_id,version,status) VALUES
+      ('${id(601)}','${UNITOP}','${DIR_TOP}',1,'published'),('${id(602)}','${UNITOP}','${DIR_TOP}',2,'published'),
+      ('${id(603)}','${UNITOP}','${DIR_TOP}',3,'draft');
+    INSERT INTO vertice_app.curriculum_competencies(id,build_id,code) VALUES
+      ('${id(611)}','${id(602)}','C1'),('${id(612)}','${id(602)}','C2'),('${id(613)}','${id(602)}','C3'),('${id(614)}','${id(601)}','C9');
+    INSERT INTO vertice_app.curriculum_discipline_links(competency_id,discipline_name) VALUES ('${id(611)}','Direito Civil I');
+    INSERT INTO public.vertice_avalia_recovery_plans(institution_id,course_id,status,rules_version) VALUES
+      ('${UNITOP}','${DIR_TOP}','active','avalia-recovery-v1'),('${UNITOP}','${DIR_TOP}','closed','avalia-recovery-v1'),
+      ('${UNICALDAS}','${DIR_CAL}','active','avalia-recovery-v1');
+    INSERT INTO vertice_app.alerts(institution_id,course_id,status,rule_version) VALUES
+      ('${UNITOP}','${DIR_TOP}','assigned','perm-v1'),('${UNITOP}','${DIR_TOP}','open','perm-v1'),('${UNITOP}','${DIR_TOP}','resolved','perm-v1');`);
+  const rpc = svcRpc(db);
+  const src = await rpc('vertice_automation_source_pedagogical', { p_institution: UNITOP, p_course: DIR_TOP });
+  const g = (rule) => src.groups.find((x) => x.ruleId === rule);
+  assert.equal(g('curriculum.gap').matrixVersion, 'v2'); // última publicada; rascunho v3 fora
+  assert.equal(g('curriculum.gap').required.length, 3);
+  assert.deepEqual(g('curriculum.gap').covered, [id(611)]);
+  assert.equal(g('avalia.recovery').pendingRecovery, 1); // encerrado e outra IES fora
+  assert.equal(g('retention.alert').confirmedAlerts, 1); // só o triado; aberto e resolvido não contam
+  await assert.rejects(as(db, GESTOR_TOP, 'select public.vertice_automation_source_pedagogical($1,$2)', [UNITOP, DIR_TOP]), /permission denied/);
+  const cfg = (await propose(db, GESTOR_TOP, UNITOP, DIR_TOP, ['curriculum.gap', 'avalia.recovery', 'retention.alert', 'sapiens.low'])).rows[0].id;
+  await approve(db, GESTOR2_TOP, cfg);
+  const out = await runAll({ rpc });
+  assert.equal(out.results[0].status, 'partial'); // sapiens.low sem adaptador
+  assert.equal(out.results[0].unmapped, 1);
+  const kinds = (await db.query('select rule_id from vertice_automation.run_alert order by 1')).rows.map((r) => r.rule_id);
+  assert.deepEqual(kinds, ['avalia.recovery', 'curriculum.gap', 'retention.alert']);
+});
+
+test('toda chave estrangeira do schema vertice_automation tem índice que a cobre', async (t) => {
+  const db = await setup(t);
+  const missing = (await db.query(`
+    select c.conname from pg_constraint c
+    where c.contype = 'f' and c.connamespace = 'vertice_automation'::regnamespace
+      and not exists (select 1 from pg_index i where i.indrelid = c.conrelid
+        and (i.indkey::int2[])[0:array_length(c.conkey,1)-1] @> c.conkey and (i.indkey::int2[])[0:array_length(c.conkey,1)-1] <@ c.conkey)`)).rows;
+  assert.deepEqual(missing, []);
+});
+
+test('executor: fonte lida depois do início da rodada não é recusada como observação futura', async (t) => {
+  const db = await setup(t);
+  await configured(db);
+  const rpc = svcRpc(db);
+  // Rodada iniciada 3 s antes da leitura das fontes (o código antigo fixava o instante antes de ler).
+  const out = await runAll({ rpc, asOf: new Date(Date.now() - 3000).toISOString() });
+  assert.ok(out.results[0].sources.includes('documentary:evaluated'), JSON.stringify(out.results[0]));
+  const run = (await db.query('select as_of from vertice_automation.run')).rows[0];
+  assert.ok(Date.now() - new Date(run.as_of).getTime() < 3000); // instante fixado após a leitura
 });
