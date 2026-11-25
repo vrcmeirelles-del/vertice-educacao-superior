@@ -58,6 +58,9 @@ const INSTRUMENT_LABELS: Record<string, string> = {
   reconhecimento_curso: "Reconhecimento",
   novo_instrumento_2026: "Proposta 2026 · experimental",
   recredenciamento_2017: "Recredenciamento",
+  recredenciamento_institucional: "Recredenciamento",
+  novo_instrumento_2026_curso: "Proposta 2026 · curso",
+  novo_instrumento_2026_institucional: "Proposta 2026 · institucional",
 };
 
 type FilterStatus = "all" | "pending_approval" | "completed" | "processing" | "failed";
