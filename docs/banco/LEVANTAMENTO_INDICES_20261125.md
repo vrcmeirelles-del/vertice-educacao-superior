@@ -84,3 +84,23 @@ Aplicada por autorização expressa, depois de ensaio desfeito no esquema real. 
 Reversão:
 - a parte A se desfaz recriando os índices com os `CREATE INDEX` das migrações de origem;
 - a parte B, com `DROP INDEX`.
+
+## Correção da busca do ENADE 360° — aplicada em 25/11/2026
+
+Por autorização expressa, migração `20261125140000_enade360_busca_texto_preanalisado.sql`.
+- O texto de cada documento já fica analisado na tabela auxiliar `vertice_doc_prevalidation_tsv`, mantida por gatilho. A leitura segue a RLS da pré-validação e não há escrita direta.
+- A busca analisa na hora só título, categoria e indicadores, e soma o texto já analisado.
+- O índice de expressão sem uso, `enade360_evidence_text_idx`, foi removido.
+
+| Medida | Antes | Depois |
+|---|---|---|
+| Busca "projeto pedagógico" (774 documentos) | 1.583 ms | 27 ms |
+| Documentos encontrados | 188 | 188 |
+
+Evidências:
+- **Equivalência:** 774 documentos × 10 buscas típicas, 0 divergências.
+- **Ensaio:** feito em transação desfeita, antes da aplicação.
+- **Gatilho:** testado em transação desfeita; o vetor acompanha a alteração do texto e é removido quando o texto é apagado.
+- **Permissões:** `authenticated` só lê a tabela auxiliar; `anon` não tem acesso.
+- **Assinatura:** colunas e ordem do resultado da função não mudaram.
+
