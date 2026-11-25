@@ -27,25 +27,7 @@ import { instrumentIndicators } from "@/lib/repository";
 import indicatorNames from "@/lib/repository-indicators.json";
 import { objetosDoIndicador2017, GRAU_COR, GRAU_LABEL } from "@/lib/instrumento-mapping";
 import { OBJETOS_BASE, dimensao4 } from "@/lib/novo-instrumento";
-
-// ================================================================ IA
-const AI_ERRORS: Record<string, string> = {
-  analysis_not_configured: "IA não habilitada para esta instituição.",
-  quota_exceeded: "Limite diário de análises atingido.",
-  provider_unavailable: "Provedor indisponível. Não repita automaticamente.",
-  timeout: "Análise excedeu o tempo limite.",
-};
-
-async function invokeAI(body: Record<string, unknown>) {
-  const { data, error } = await supabase.functions.invoke("vertice-ai-review", { body });
-  if (error) {
-    let code = "";
-    try { code = (await error.context?.json())?.error ?? ""; } catch {}
-    throw new Error(AI_ERRORS[code] ?? "Não foi possível gerar a análise. Confira sua sessão.");
-  }
-  if (data?.error) throw new Error(AI_ERRORS[data.error] ?? "A análise não foi concluída.");
-  return data;
-}
+import { camposAPreencher, rascunhoIndicador, RASCUNHO_VERSION, type Campos } from "@/lib/avaliacao-simulada-rascunho";
 
 /** Conta documentos do repositório vinculados a um indicador. */
 function contarDocumentos(requests: Row[], files: Row[], indicador: string) {
@@ -332,7 +314,7 @@ function IndicadorRow({
   );
 }
 
-// ================================================================ detalhe expandido (parecer, lacunas, plano, perguntas + IA)
+// ================================================================ detalhe expandido (parecer, lacunas, plano, perguntas + rascunho por algoritmo)
 type DocInfo = { total: number; docs: number; validados: number; enviados: number; pendentes: number };
 
 function DetalheIndicador({
@@ -347,8 +329,7 @@ function DetalheIndicador({
   const [lacunas, setLacunas] = useState(String(row?.lacunas ?? ""));
   const [plano, setPlano] = useState(String(row?.plano_nde ?? ""));
   const [perguntas, setPerguntas] = useState(String(row?.perguntas_comissao ?? ""));
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiError, setAiError] = useState("");
+  const [aviso, setAviso] = useState("");
 
   const campos: [string, string, string, (v: string) => void][] = [
     ["parecer", "Parecer do avaliador", parecer, setParecer],
@@ -357,92 +338,17 @@ function DetalheIndicador({
     ["perguntas_comissao", "Perguntas prováveis da comissão", perguntas, setPerguntas],
   ];
 
-  async function gerarComIA() {
-    setAiLoading(true);
-    setAiError("");
-    try {
-      // 1. Verificar status da IA
-      const status = await invokeAI({
-        action: "status",
-        institution_id: institutionId,
-        course_id: courseId,
-      });
-      if (!status.configured || !status.enabled) {
-        setAiError("IA não habilitada para esta instituição. Ative nas configurações.");
-        return;
-      }
-
-      // 2. Preparar prévia (sem envio à OpenAI) — usa registros de gestão
-      const preview = await invokeAI({
-        action: "preview",
-        institution_id: institutionId,
-        course_id: courseId,
-      });
-
-      // 3. Filtrar chunks relevantes ao indicador
-      const chunks = (preview.chunks ?? []).filter((c: any) =>
-        c.id === "gestao_panorama" ||
-        c.id === `gestao_dim_${code.split(".")[0]}` ||
-        c.text?.includes(code) ||
-        c.text?.includes(name)
-      ).slice(0, 6);
-
-      if (!chunks.length) {
-        // Sem dados da gestão, gerar parecer baseado apenas na cobertura documental
-        const parecerAuto = `Indicador ${code} — ${name}.\n\nCobertura documental: ${docInfo.docs} documento(s) no repositório (${docInfo.validados} validado(s), ${docInfo.enviados} em análise, ${docInfo.pendentes} pendência(s)).\n\n${docInfo.pendentes > 0 ? "Há pendências documentais a resolver antes da visita." : "Cobertura documental completa."} ${docInfo.validados === 0 ? "Nenhum documento foi validado pela gestão." : ""}`;
-        setParecer(parecerAuto);
-        onGravar("parecer", parecerAuto);
-
-        const lacunasAuto = docInfo.pendentes > 0
-          ? `${docInfo.pendentes} exigência(s) sem documento enviado. Reunir evidências e submeter para validação.`
-          : "Cobertura documental completa. Verificar se os documentos atendem aos critérios do conceito 5 do instrumento INEP.";
-        setLacunas(lacunasAuto);
-        onGravar("lacunas", lacunasAuto);
-
-        const perguntasAuto = `Mostre as evidências do indicador ${code}. Como o curso demonstra ${name.toLowerCase()}?`;
-        setPerguntas(perguntasAuto);
-        onGravar("perguntas_comissao", perguntasAuto);
-        return;
-      }
-
-      // 4. Enviar para análise com os chunks filtrados
-      const selections = chunks.map((c: any) => ({ id: c.id, text: c.text }));
-      const result = await invokeAI({
-        action: "analyze",
-        institution_id: institutionId,
-        course_id: courseId,
-        preview_digest: preview.preview_digest,
-        selections,
-        privacy_confirmed: true,
-      });
-
-      // 5. Preencher campos com o resultado da IA
-      const r = result.result;
-      if (r) {
-        const parecerIA = [
-          r.summary ?? "",
-          ...(r.facts ?? []).map((f: any) => `• ${f.text}`),
-        ].filter(Boolean).join("\n");
-        setParecer(parecerIA);
-        onGravar("parecer", parecerIA);
-
-        const lacunasIA = (r.gaps ?? []).map((g: any) => `• ${g.text}`).join("\n") || "Nenhuma lacuna identificada pela IA.";
-        setLacunas(lacunasIA);
-        onGravar("lacunas", lacunasIA);
-
-        const planoIA = (r.recommendations ?? []).map((rec: any) => `• ${rec.text}`).join("\n") || "";
-        setPlano(planoIA);
-        onGravar("plano_nde", planoIA);
-
-        const perguntasIA = (r.limitations ?? []).map((l: string) => `• ${l}`).join("\n") || `Mostre as evidências do indicador ${code}.`;
-        setPerguntas(perguntasIA);
-        onGravar("perguntas_comissao", perguntasIA);
-      }
-    } catch (e) {
-      setAiError((e as Error).message);
-    } finally {
-      setAiLoading(false);
-    }
+  // Rascunho por algoritmo (sem IA): preenche só os campos vazios; o texto do avaliador nunca é sobrescrito.
+  function gerarRascunho() {
+    const eq = objetosDoIndicador2017(code);
+    const num = (v: unknown) => (v === null || v === undefined || v === "" ? null : Number(v));
+    const rascunho = rascunhoIndicador({ code, name, conceitoAtual: num(row?.conceito_atual), conceitoViavel: num(row?.conceito_viavel), docInfo,
+      equivalencia: eq ? { objetos: eq.obj2026, grau: eq.grau } : null });
+    const novos = camposAPreencher({ parecer, lacunas, plano_nde: plano, perguntas_comissao: perguntas }, rascunho);
+    const set: Record<keyof Campos, (v: string) => void> = { parecer: setParecer, lacunas: setLacunas, plano_nde: setPlano, perguntas_comissao: setPerguntas };
+    const chaves = Object.keys(novos) as (keyof Campos)[];
+    for (const k of chaves) { set[k](novos[k]!); onGravar(k, novos[k]); }
+    setAviso(chaves.length ? `Rascunho por algoritmo (${RASCUNHO_VERSION}) nos campos vazios; revise antes de usar.` : "Todos os campos já têm texto; nada foi alterado.");
   }
 
   return (
@@ -461,15 +367,15 @@ function DetalheIndicador({
           <button
             type="button"
             className="avs-ai-btn"
-            disabled={aiLoading || busy}
-            onClick={gerarComIA}
-            title="Gerar parecer, lacunas e perguntas com IA"
+            disabled={busy}
+            onClick={gerarRascunho}
+            title="Preencher os campos vazios com um rascunho a partir dos dados do repositório (sem IA)"
           >
-            {aiLoading ? "⏳ Analisando…" : "🤖 Gerar com IA"}
+            Gerar rascunho
           </button>
         )}
       </div>
-      {aiError && <p role="alert" className="area-error" style={{ fontSize: ".8rem", margin: ".25rem 0" }}>{aiError}</p>}
+      {aviso && <p role="status" className="area-muted" style={{ fontSize: ".8rem", margin: ".25rem 0" }}>{aviso}</p>}
 
       {/* ─── Espelhamento 2017↔2026 ─── */}
       {(() => {
