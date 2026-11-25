@@ -28,6 +28,14 @@ Base: levantamento de 25/11/2026, com leitura de produção e mapa do código. T
 4. **Pré-validação e busca nos acervos** do Recredenciamento e do Novo Instrumento. Hoje a função lê só o acervo do Reconhecimento, e a trava de classificação aceita só códigos 2017 de curso. Ligar os catálogos novos à pré-validação é decisão deste passo.
 5. **Parecer da avaliação simulada por algoritmo**, no lugar do botão "Gerar com IA". Hoje ele está bloqueado pela política e cai num texto-modelo.
 
+## Andamento
+
+| Passo | Situação |
+|---|---|
+| 1 | PR #284 integrado; migração ainda não aplicada em produção |
+| 2 | Migração candidata `20261125160000_avaliacao_registros.sql`, que depende do passo 1, e tela da avaliação institucional gravando por eixo. Na avaliação simulada: chaves de instituição e de curso da mesma IES, escrita só de gestor e equipe com MFA (antes bastava ler) e autor gravado pelo banco (o campo estava vazio nos 39 registros) |
+| 3 a 5 | a fazer |
+
 ## Pendências fora dos passos
 
 - As 6 correspondências Reconhecimento → Novo Instrumento em produção foram sugeridas por IA (`ai_metadata`) antes da suspensão e não têm revisão humana.

@@ -13,6 +13,7 @@ on:
       - 'supabase/migrations/*ocr_provenance_notice.sql'
       - 'docs/enade-360/fontes/iacg2017-reconhecimento-catalog.json'
       - 'supabase/migrations*/*instrumentos_catalogos.sql'
+      - 'supabase/migrations*/*avaliacao_registros.sql'
       - 'scripts/instrumentos/**'
       - 'source-overrides/client/src/lib/avaliacao-institucional.json'
       - 'source-overrides/client/src/lib/novo-instrumento.ts'
