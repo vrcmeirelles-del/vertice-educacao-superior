@@ -2,8 +2,8 @@
 //
 // Cada módulo declara de quais tabelas reais vêm os gráficos. Toda consulta é filtrada pela
 // instituição e passa pelo RLS do usuário logado: nenhum dado é inventado e nenhuma outra IES
-// aparece. Tabela sem registro (ou sem permissão para o perfil) aparece como vazia, nunca com
-// número fictício.
+// aparece. Contagens indisponíveis são nulas; zero significa nenhum registro visível ao usuário.
+// A paginação ordena pela categoria agregada, sem depender de uma chave primária comum.
 import { supabase } from '@/lib/supabase';
 
 export type ChartKind = 'pie' | 'donut' | 'prism' | 'bars' | 'radial';
@@ -222,21 +222,35 @@ export function labelOf(value: unknown): string {
 }
 
 export interface Slice { name: string; value: number; raw: string }
-export interface FacetResult { facet: Facet; slices: Slice[]; total: number; denied: boolean; truncated: boolean }
+export interface FacetResult { facet: Facet; slices: Slice[]; total: number | null; denied: boolean; truncated: boolean }
 
-const MAX_ROWS = 5000;
+const PAGE_SIZE = 500;
+const validCount = (n: unknown): n is number => typeof n === 'number' && Number.isSafeInteger(n) && n >= 0;
 
 /** Distribuição real de uma coluna, só da instituição informada (RLS do usuário aplica). */
 export async function loadFacet(institutionId: string, facet: Facet): Promise<FacetResult> {
-  const { data, error } = await supabase.from(facet.table).select(facet.column).eq('institution_id', institutionId).limit(MAX_ROWS);
-  if (error) return { facet, slices: [], total: 0, denied: true, truncated: false };
-  const rows = (data ?? []) as unknown as Record<string, unknown>[];
+  const unavailable: FacetResult = { facet, slices: [], total: null, denied: false, truncated: false };
   const counts = new Map<string, number>();
-  for (const row of rows) {
-    const v = row[facet.column];
-    const k = v === null || v === undefined || v === '' ? '' : String(v);
-    counts.set(k, (counts.get(k) ?? 0) + 1);
-  }
+  let offset = 0;
+  let expected: number | null = null;
+  try {
+    do {
+      const { data, error, count } = await supabase.from(facet.table)
+        .select(facet.column, { count: 'exact' }).eq('institution_id', institutionId)
+        .order(facet.column, { ascending: true, nullsFirst: true })
+        .range(offset, offset + PAGE_SIZE - 1);
+      if (error || !Array.isArray(data) || !validCount(count)) return unavailable;
+      if (expected === null) expected = count;
+      if (count !== expected || offset + data.length > expected || (!data.length && offset < expected)) return unavailable;
+      for (const row of data as unknown as Record<string, unknown>[]) {
+        const v = row[facet.column];
+        const k = v === null || v === undefined || v === '' ? '' : String(v);
+        counts.set(k, (counts.get(k) ?? 0) + 1);
+      }
+      offset += data.length;
+    } while (offset < expected);
+    if (await loadVolume(institutionId, facet.table) !== expected) return unavailable;
+  } catch { return unavailable; }
   let slices = [...counts.entries()].map(([raw, value]) => ({ raw, value, name: labelOf(raw) }));
   if (facet.chart === 'prism' && facet.order) {
     const norm = (s: string) => s.toLowerCase();
@@ -250,11 +264,13 @@ export async function loadFacet(institutionId: string, facet: Facet): Promise<Fa
     const rest = slices.slice(8).reduce((s, x) => s + x.value, 0);
     slices = [...top, { name: 'Outros', value: rest, raw: '__outros' }];
   }
-  return { facet, slices, total: rows.length, denied: false, truncated: rows.length >= MAX_ROWS };
+  return { facet, slices, total: offset, denied: false, truncated: false };
 }
 
 /** Total de registros do módulo (contagem exata, sem trazer linhas). */
 export async function loadVolume(institutionId: string, table: string): Promise<number | null> {
-  const { count, error } = await supabase.from(table).select('institution_id', { count: 'exact', head: true }).eq('institution_id', institutionId);
-  return error ? null : count ?? 0;
+  try {
+    const { count, error } = await supabase.from(table).select('institution_id', { count: 'exact', head: true }).eq('institution_id', institutionId);
+    return error || !validCount(count) ? null : count;
+  } catch { return null; }
 }
