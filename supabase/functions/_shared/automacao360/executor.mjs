@@ -8,14 +8,14 @@ import {evaluate} from './engine.mjs';
 import {prepareShadowReceipt} from './persistence.mjs';
 import {RULES} from './catalog.mjs';
 
-export const EXECUTOR_VERSION = '2026.11-executor.5';
+export const EXECUTOR_VERSION = '2026.11-executor.6';
 export const SYSTEM_ACTOR_ID = '00000000-0000-4000-8000-000000000360';
 const PLANNING = ['pei.overdue', 'cpa.pending'];
 const byModuleIds = (mods) => RULES.filter((r) => mods.includes(r.module)).map((r) => r.id);
 // Regras com adaptador de fonte real. As demais ficam "sem adaptador" (execução parcial), nunca silenciosas.
 export const SUPPORTED = Object.freeze(['repo.overdue', 'repo.due', ...PLANNING, 'tcc.due', 'tcc.overdue',
   'internship.due', 'internship.overdue', 'teaching.documents', 'alumni.pending', 'competition.change',
-  'curriculum.gap', 'avalia.recovery', 'retention.alert', ...byModuleIds(['Instrumentos de Avaliação'])]);
+  'sapiens.low', 'curriculum.gap', 'avalia.recovery', 'retention.alert', ...byModuleIds(['Instrumentos de Avaliação'])]);
 const MAX_CONFIGS = 500;
 // Mesma partição de famílias de native-integration.mjs, para ler cada fonte uma vez antes da execução.
 const byModule = (mods) => RULES.filter((r) => mods.includes(r.module)).map((r) => r.id);
@@ -57,7 +57,20 @@ export async function runConfig({ config: c, rpc, asOf, runId = randomUUID() }) 
   if (planningIds.length) needed.push('planning');
   const fetched = {};
   for (const family of needed) {
-    try { fetched[family] = { ok: true, value: await rpc(SOURCE_RPC[family], args) }; } catch { fetched[family] = { ok: false }; }
+    try {
+      let value = await rpc(SOURCE_RPC[family], args);
+      if (family === 'pedagogical' && shadowIds.includes('sapiens.low')) {
+        const sapiens = await rpc('vertice_automation_source_sapiens', args);
+        for (const src of [value, sapiens]) {
+          if (src?.institutionId !== scope.institutionId || src?.courseId !== scope.courseId || src.complete !== true
+            || !Array.isArray(src.groups) || src.groups.length > 2500) throw Error('invalid_sapiens_source');
+        }
+        // Fonte composta mantém o relógio mais recente e nunca ignora lote incompleto.
+        value = { ...value, observedAt: later(value.observedAt, sapiens.observedAt), groups: [...value.groups, ...sapiens.groups] };
+        if (value.groups.length > 2500) throw Error('source_volume_exceeded');
+      }
+      fetched[family] = { ok: true, value };
+    } catch { fetched[family] = { ok: false }; }
   }
   const runAsOf = asOf ? later(asOf, new Date().toISOString()) : new Date().toISOString();
   const adapters = Object.fromEntries(Object.keys(FAMILY_RULES).filter((f) => fetched[f]).map((f) => [f, async () => {
@@ -109,3 +122,4 @@ export async function runAll({ rpc, asOf = undefined }) {
   }
   return { version: EXECUTOR_VERSION, startedAt, configs: configs.length, results };
 }
+

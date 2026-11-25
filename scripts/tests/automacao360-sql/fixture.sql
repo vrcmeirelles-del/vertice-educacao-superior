@@ -79,3 +79,7 @@ CREATE TABLE public.vertice_instrumento_ciclo(id uuid PRIMARY KEY DEFAULT gen_ra
 
 GRANT USAGE ON SCHEMA public, auth, vertice_private TO authenticated, service_role;
 GRANT EXECUTE ON FUNCTION auth.uid(), auth.jwt(), auth.role() TO authenticated, service_role;
+
+
+-- Agregados externos não são necessariamente definitivos; revisão fica em tabela própria.
+CREATE TABLE public.vertice_learning_course_metrics(institution_id uuid,course_id uuid,semester text,subject_code text,module text,competency text,graded integer,correct integer,paired_students integer,updated_at timestamptz default now());

@@ -8,7 +8,7 @@ const I = 'identificada', P = 'pendente';
 const map = {
   'repo.overdue': ['documentary', I, 'public.vertice_repository_requests (due_date, active, not_applicable) + public.vertice_repository_files (status enviado/validado)', 'public.vertice_automation_source_documentary', 'Gestão documental; 5W2H por aprovação humana', 'Massa real: 1.461 solicitações ativas, 902 com prazo, 777 arquivos.'],
   'repo.due': ['documentary', I, 'mesma fonte de repo.overdue', 'public.vertice_automation_source_documentary', 'Responsável documental; 5W2H por aprovação humana', 'Status "devolvido" não existe nos dados atuais; 559 solicitações sem prazo são relatadas, não contadas como atraso.'],
-  'sapiens.low': ['pedagogical', I, 'public.vertice_learning_course_metrics (competency, semester, graded, correct, paired_students)', null, 'Coordenação/NDE; Sapiens', 'Sem adaptador de propósito: a tabela não registra validação humana do agregado nem separa nota provisória (diretriz 9).'],
+  'sapiens.low': ['pedagogical', I, 'public.vertice_learning_course_metrics + vertice_automation.sapiens_review (contagens definitivas, evidência e revisão humana)', 'public.vertice_automation_source_sapiens', 'Coordenação/NDE; Sapiens', 'Somente contagens definitivas atestadas por pessoa com MFA; revisão inválida após mudança na fonte ou revogação. Sem aprovação de configuração por duas pessoas, nenhuma execução.'],
   'curriculum.gap': ['pedagogical', I, 'vertice_app.curriculum_builds (status published) + curriculum_competencies + curriculum_discipline_links', 'public.vertice_automation_source_pedagogical', 'NDE; Construção Curricular', 'Última matriz publicada do curso; lacuna = competência sem disciplina vinculada. Publicar é decisão do NDE.'],
   'avalia.recovery': ['pedagogical', I, 'public.vertice_avalia_recovery_plans (status active, rules_version)', 'public.vertice_automation_source_pedagogical', 'Docente; Avalia 360°', 'Planos ativos por versão de regra do Avalia; consome o motor existente, não recalcula.'],
   'enade.gap': ['pedagogical', P, 'public.vertice_enade_course_config + vertice_enade360_records; matriz oficial de competências não localizada', null, 'Coordenação', 'Sem matriz oficial versionada a regra se abstém.'],
@@ -61,3 +61,4 @@ export const SOURCE_MAP = Object.freeze(RULES.map((r) => {
   return Object.freeze({ id: r.id, module: r.module, version: r.version, priority: r.priority, cadence: r.cadence, metric: r.metric, operator: r.op, threshold: r.threshold, minimum: r.minMetric ? { [r.minMetric]: r.min } : null, family, sourceStatus, source, adapter, destination, note });
 }));
 if (Object.keys(map).length !== RULES.length) throw Error('mapa com regra fora do catálogo');
+

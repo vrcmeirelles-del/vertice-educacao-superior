@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { acoes, cadencias, estados, filtrar, fontes, mensagemErro, parsePainel, resumo, rotulo, type Painel } from './modelo';
 import './automacao360.css';
+import SapiensSourceReview from './SapiensSourceReview';
 
 type Curso = { id: string; name: string };
 type Props = { master?: boolean; institutionId?: string; courses?: Curso[]; courseFunctionIds?: string[]; role?: string | null };
@@ -133,6 +134,8 @@ export default function CentralAutomacao({ master = false, institutionId, course
           </section>
         </div>
 
+        {courseId && <SapiensSourceReview key={`${ies}:${courseId}`} institutionId={ies} courseId={courseId} />}
+
         <section className="a360-painel">
           <div className="a360-tabela-topo">
             <h3>Catálogo de regras</h3>
@@ -168,3 +171,4 @@ export default function CentralAutomacao({ master = false, institutionId, course
     </section>
   );
 }
+

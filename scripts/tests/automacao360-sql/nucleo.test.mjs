@@ -36,6 +36,7 @@ async function setup(t) {
   await db.exec(await read('../../../supabase/migrations/20261125110000_automacao360_fontes_pedagogicas.sql'));
   await db.exec(await read('../../../supabase/migrations/20261125120000_automacao360_indices.sql'));
   await db.exec(await readMigration('20261125170000_automacao360_fontes_instrumentos.sql'));
+  await db.exec(await readMigration('20261125103656_automacao360_sapiens_reviewed_source.sql'));
   await db.exec(`
     INSERT INTO public.vertice_institutions VALUES ('${UNITOP}','UNITOP sintética','superior'),('${UNICALDAS}','UNICALDAS sintética','superior');
     INSERT INTO public.vertice_courses VALUES ('${DIR_TOP}','${UNITOP}','Direito','DIR'),('${DIR_CAL}','${UNICALDAS}','Direito','DIR');
@@ -454,8 +455,8 @@ test('adaptador pedagógico: matriz publicada, recuperação ativa e alertas tri
   const cfg = (await propose(db, GESTOR_TOP, UNITOP, DIR_TOP, ['curriculum.gap', 'avalia.recovery', 'retention.alert', 'sapiens.low'])).rows[0].id;
   await approve(db, GESTOR2_TOP, cfg);
   const out = await runAll({ rpc });
-  assert.equal(out.results[0].status, 'partial'); // sapiens.low sem adaptador
-  assert.equal(out.results[0].unmapped, 1);
+  assert.equal(out.results[0].status, 'partial'); // fonte Sapiens ausente, sem zero fictício
+  assert.equal(out.results[0].unmapped, 0);
   const kinds = (await db.query('select rule_id from vertice_automation.run_alert order by 1')).rows.map((r) => r.rule_id);
   assert.deepEqual(kinds, ['avalia.recovery', 'curriculum.gap', 'retention.alert']);
 });
@@ -535,3 +536,4 @@ test('leitor de instrumentos: evidência, cobertura, arquivos parados, conceito 
   const kinds = (await db.query('select rule_id from vertice_automation.run_alert order by 1')).rows.map((r) => r.rule_id);
   assert.deepEqual(kinds, ['instrument.evidence', 'instrument.stalled', 'instrument.unassigned', 'instrument.unbacked']);
 });
+
