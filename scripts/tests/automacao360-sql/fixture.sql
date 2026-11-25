@@ -11,7 +11,7 @@ CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$SELECT nullif(c
 CREATE FUNCTION auth.jwt() RETURNS jsonb LANGUAGE sql STABLE AS $$SELECT jsonb_build_object('aal',current_setting('request.jwt.claim.aal',true))$$;
 CREATE FUNCTION auth.role() RETURNS text LANGUAGE sql STABLE AS $$SELECT nullif(current_setting('request.jwt.claim.role',true),'')$$;
 
-CREATE TABLE public.vertice_institutions(id uuid PRIMARY KEY, name text NOT NULL, tier text DEFAULT 'superior');
+CREATE TABLE public.vertice_institutions(id uuid PRIMARY KEY, name text NOT NULL, tier text DEFAULT 'superior', state text);
 CREATE TABLE public.vertice_courses(id uuid PRIMARY KEY, institution_id uuid NOT NULL REFERENCES public.vertice_institutions(id) ON DELETE CASCADE, name text NOT NULL, code text);
 CREATE UNIQUE INDEX vertice_courses_scope_key ON public.vertice_courses(id, institution_id);
 CREATE TABLE public.vertice_admins(user_id uuid PRIMARY KEY);
@@ -51,6 +51,16 @@ CREATE TABLE public.vertice_cpa_findings(id uuid PRIMARY KEY, institution_id uui
 CREATE TABLE public.vertice_cpa_actions(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), finding_id uuid, institution_id uuid NOT NULL, title text, status text, due_date date, evidence_description text, evidence_url text);
 
 CREATE TABLE public.vertice_module_catalog(code text PRIMARY KEY, name text, tier text, package text, description text, tabs text[], depends_on text[], display_order smallint, active boolean);
+
+-- Fontes das famílias acadêmica e estratégica (subconjunto das colunas de produção).
+CREATE TABLE public.vertice_tcc_works(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), institution_id uuid NOT NULL, course_id uuid, title text, stage text NOT NULL DEFAULT 'draft', version integer DEFAULT 1, stage_deadline date, updated_at timestamptz DEFAULT now());
+CREATE TABLE public.vertice_internship_placements(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), institution_id uuid NOT NULL, course_id uuid, lifecycle text NOT NULL DEFAULT 'active');
+CREATE TABLE public.vertice_internship_reports(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), institution_id uuid NOT NULL, placement_id uuid NOT NULL, status text NOT NULL DEFAULT 'draft', due_date date, submitted_at timestamptz, reviewed_at timestamptz);
+CREATE TABLE public.vertice_teaching_activities(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), institution_id uuid NOT NULL, course_id uuid, title text, activity_date date, status text NOT NULL DEFAULT 'rascunho', updated_at timestamptz DEFAULT now(), report_submitted_at timestamptz, evidence_photos jsonb, evidence_attendance jsonb);
+CREATE TABLE public.vertice_alumni_surveys(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), institution_id uuid NOT NULL, course_id uuid, status text NOT NULL, opens_at timestamptz, closes_at timestamptz, is_synthetic boolean DEFAULT false);
+CREATE TABLE public.vertice_alumni_survey_invitations(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), survey_id uuid NOT NULL, delivery_status text, responded_at timestamptz);
+CREATE SCHEMA IF NOT EXISTS vertice_planning;
+CREATE TABLE vertice_planning.competitive_findings(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), institution_id uuid NOT NULL, course_id uuid, status text NOT NULL DEFAULT 'pending', action_id uuid, created_at timestamptz DEFAULT now());
 
 GRANT USAGE ON SCHEMA public, auth, vertice_private TO authenticated, service_role;
 GRANT EXECUTE ON FUNCTION auth.uid(), auth.jwt(), auth.role() TO authenticated, service_role;

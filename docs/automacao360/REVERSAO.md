@@ -1,13 +1,13 @@
 # Automação 360° — plano de reversão
 
-Situação em 24/11/2026: nada aplicado em produção. As três migrações estão em `supabase/migrations_nao_aplicadas/` e o módulo `GEST_AUTOMACAO360` nasce com `active=false`. A reversão abaixo vale **depois** de uma aplicação autorizada.
+Situação em 24/11/2026: as três migrações **foram aplicadas em produção** por autorização expressa e estão em `supabase/migrations/`. O módulo `GEST_AUTOMACAO360` está com `active=false` e nenhuma configuração foi aprovada. A reversão do nível 3 exige nova migração de reversão.
 
 ## Níveis, do menos ao mais invasivo
 
 | Nível | Quando | Como | Preserva histórico | Evidência |
 |---|---|---|---|---|
 | 0. Suspender a regra ou o escopo | alerta indevido, fonte suspeita | nova revisão com `enabled=false` (proposta + aprovação por outra pessoa) em `vertice_automation_propose_config`/`approve_config` | sim: revisões, execuções e eventos são imutáveis | teste `reversão: nova revisão desativada bloqueia execuções e preserva todo o histórico` (`scripts/tests/automacao360-sql/nucleo.test.mjs`): `record_run` passa a ser recusado |
-| 1. Ocultar o módulo | interface indevida | `update public.vertice_module_catalog set active=false where code='GEST_AUTOMACAO360'` | sim | aba bloqueada pelo `isLocked` nativo do catálogo |
+| 1. Ocultar o módulo | interface indevida | suspender ou cancelar a ativação da IES em `public.vertice_module_activations` (`module_code='GEST_AUTOMACAO360'`) pelo fluxo nativo do Master ou, enquanto o catálogo estiver oculto, por `update public.vertice_module_activations set status='suspenso', suspended_at=now() where module_code='GEST_AUTOMACAO360' and institution_id=<IES>`; a aba depende de `get_active_tabs`, que lê as ativações (não `vertice_module_catalog.active`) | sim | aba bloqueada pelo `isLocked` nativo |
 | 2. Retirar a interface | defeito de UI | reverter o commit `fc8cf47` e republicar o portal | sim (banco intacto) | build estático e suítes do portal verdes sem a aba |
 | 3. Retirar o banco da automação | decisão institucional de desistência | script abaixo, em transação, após exportar `vertice_automation.*` | **não** (exportar antes) | — |
 | 4. Desfazer a correção do 5W2H | regressão nas funções `governance_*` | reaplicar `contratos-nativos/5w2h/20261111010933_governance_360_phase3_routing_5w2h.producao.sql` (MD5 `8747e26bef720c5f73b6c46d651cc6f0`) | sim | restaura o estado anterior, que **já era quebrado** (ver README da pasta) |
