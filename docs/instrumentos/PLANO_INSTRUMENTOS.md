@@ -33,8 +33,9 @@ Base: levantamento de 25/11/2026, com leitura de produção e mapa do código. T
 | Passo | Situação |
 |---|---|
 | 1 | PR #284 integrado; migração ainda não aplicada em produção |
-| 2 | Migração candidata `20261125160000_avaliacao_registros.sql`, que depende do passo 1, e tela da avaliação institucional gravando por eixo. Na avaliação simulada: chaves de instituição e de curso da mesma IES, escrita só de gestor e equipe com MFA (antes bastava ler) e autor gravado pelo banco (o campo estava vazio nos 39 registros) |
-| 3 a 5 | a fazer |
+| 2 | PR #285 integrado. Migração candidata `20261125160000_avaliacao_registros.sql`, que depende do passo 1, e tela da avaliação institucional gravando por eixo. Na avaliação simulada: chaves de instituição e de curso da mesma IES, escrita só de gestor e equipe com MFA (antes bastava ler) e autor gravado pelo banco (o campo estava vazio nos 39 registros) |
+| 3 | Seis regras `instrument.*` (família `instrumental`, versão 2026.11-instrument.1), leitor `vertice_automation_source_instrumental` (migração candidata `20261125170000`, depende dos passos 1 e 2) e executor 2026.11-executor.5. No curso, as regras olham o Reconhecimento 2017; na IES, o Recredenciamento 2017, o checklist e o ciclo. Sem catálogo no banco, a regra se abstém |
+| 4 e 5 | a fazer |
 
 ## Pendências fora dos passos
 

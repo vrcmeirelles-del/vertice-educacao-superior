@@ -8,13 +8,14 @@ import {evaluate} from './engine.mjs';
 import {prepareShadowReceipt} from './persistence.mjs';
 import {RULES} from './catalog.mjs';
 
-export const EXECUTOR_VERSION = '2026.11-executor.4';
+export const EXECUTOR_VERSION = '2026.11-executor.5';
 export const SYSTEM_ACTOR_ID = '00000000-0000-4000-8000-000000000360';
 const PLANNING = ['pei.overdue', 'cpa.pending'];
+const byModuleIds = (mods) => RULES.filter((r) => mods.includes(r.module)).map((r) => r.id);
 // Regras com adaptador de fonte real. As demais ficam "sem adaptador" (execução parcial), nunca silenciosas.
 export const SUPPORTED = Object.freeze(['repo.overdue', 'repo.due', ...PLANNING, 'tcc.due', 'tcc.overdue',
   'internship.due', 'internship.overdue', 'teaching.documents', 'alumni.pending', 'competition.change',
-  'curriculum.gap', 'avalia.recovery', 'retention.alert']);
+  'curriculum.gap', 'avalia.recovery', 'retention.alert', ...byModuleIds(['Instrumentos de Avaliação'])]);
 const MAX_CONFIGS = 500;
 // Mesma partição de famílias de native-integration.mjs, para ler cada fonte uma vez antes da execução.
 const byModule = (mods) => RULES.filter((r) => mods.includes(r.module)).map((r) => r.id);
@@ -23,9 +24,10 @@ const FAMILY_RULES = {
   pedagogical: ['sapiens.low', 'curriculum.gap', 'avalia.recovery', 'enade.gap', 'enamed.gap', 'retention.alert'],
   academic: byModule(['Estágio 360°', 'TCC 360°', 'Extensão 360°', 'Atividades de Ensino', 'AC 360°']),
   strategic: byModule(['Captação', 'Inteligência de Mercado', 'Due Diligence', 'Financeiro', 'Conecta 360°']),
+  instrumental: byModule(['Instrumentos de Avaliação']),
 };
 const SOURCE_RPC = { documentary: 'vertice_automation_source_documentary', academic: 'vertice_automation_source_academic',
-  strategic: 'vertice_automation_source_strategic', pedagogical: 'vertice_automation_source_pedagogical', planning: 'vertice_automation_source_planning' };
+  strategic: 'vertice_automation_source_strategic', pedagogical: 'vertice_automation_source_pedagogical', planning: 'vertice_automation_source_planning', instrumental: 'vertice_automation_source_instrumental' };
 const later = (a, b) => (Date.parse(a) >= Date.parse(b) ? a : b);
 const uuid = (v) => typeof v === 'string' && /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(v);
 

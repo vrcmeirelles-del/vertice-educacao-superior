@@ -18,6 +18,8 @@ const id = (n) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 const UNITOP = id(101), UNICALDAS = id(102), DIR_TOP = id(201), DIR_CAL = id(202);
 const MASTER = id(1), GESTOR_TOP = id(2), GESTOR2_TOP = id(3), COORD_TOP = id(4), LEITOR_TOP = id(5), EQUIPE_TOP = id(6), GESTOR_CAL = id(7);
 const read = (p) => readFile(new URL(p, import.meta.url), 'utf8');
+// Migração ainda não aplicada fica em migrations_nao_aplicadas; depois de aplicada, em migrations.
+const readMigration = (name) => read('../../../supabase/migrations/' + name).catch(() => read('../../../supabase/migrations_nao_aplicadas/' + name));
 
 async function setup(t) {
   const db = new PGlite();
@@ -33,6 +35,7 @@ async function setup(t) {
   await db.exec(await read('../../../supabase/migrations/20261125100000_automacao360_fontes_academica_estrategica.sql'));
   await db.exec(await read('../../../supabase/migrations/20261125110000_automacao360_fontes_pedagogicas.sql'));
   await db.exec(await read('../../../supabase/migrations/20261125120000_automacao360_indices.sql'));
+  await db.exec(await readMigration('20261125170000_automacao360_fontes_instrumentos.sql'));
   await db.exec(`
     INSERT INTO public.vertice_institutions VALUES ('${UNITOP}','UNITOP sintética','superior'),('${UNICALDAS}','UNICALDAS sintética','superior');
     INSERT INTO public.vertice_courses VALUES ('${DIR_TOP}','${UNITOP}','Direito','DIR'),('${DIR_CAL}','${UNICALDAS}','Direito','DIR');
@@ -84,7 +87,7 @@ async function execute(db, { revision = 1, ruleIds = ['repo.overdue', 'repo.due'
 test('catálogo do banco é idêntico ao catálogo versionado e nenhuma regra nasce validada', async (t) => {
   const db = await setup(t);
   const rows = (await db.query('select id, version, priority, source_status from vertice_automation.rules order by id')).rows;
-  assert.equal(rows.length, 40);
+  assert.equal(rows.length, RULES.length);
   for (const r of RULES) assert.ok(rows.some((x) => x.id === r.id && x.version === r.version && x.priority === r.priority), r.id);
   assert.equal(rows.filter((r) => r.source_status === 'validada').length, 0);
   // Estado da fonte no banco (seed + migrações posteriores) = source-map.mjs.
@@ -476,4 +479,59 @@ test('executor: fonte lida depois do início da rodada não é recusada como obs
   assert.ok(out.results[0].sources.includes('documentary:evaluated'), JSON.stringify(out.results[0]));
   const run = (await db.query('select as_of from vertice_automation.run')).rows[0];
   assert.ok(Date.now() - new Date(run.as_of).getTime() < 3000); // instante fixado após a leitura
+});
+
+test('leitor de instrumentos: evidência, cobertura, arquivos parados, conceito sem lastro, checklist e ciclo', async (t) => {
+  const db = await setup(t);
+  const cat = id(601), CAT_CAL = id(602);
+  await db.exec(`
+    UPDATE public.vertice_institutions SET state = 'TO' WHERE id = '${UNITOP}';
+    INSERT INTO public.vertice_instrument_catalog(id,institution_id,instrument_code,instrument_version) VALUES
+      ('${cat}','${UNITOP}','reconhecimento_curso','2017'),('${CAT_CAL}','${UNICALDAS}','reconhecimento_curso','2017');
+    INSERT INTO public.vertice_instrument_objects(catalog_id,object_code) VALUES ('${cat}','1.1'),('${cat}','1.2'),('${cat}','1.3'),('${cat}','2.8'),('${CAT_CAL}','1.1');
+    INSERT INTO public.vertice_repository_requests(id,institution_id,course_id,title,indicator,repository_section,not_applicable) VALUES
+      ('${id(611)}','${UNITOP}','${DIR_TOP}','PPC','1.1, 1.2','instrumento',false),
+      ('${id(612)}','${UNITOP}','${DIR_TOP}','Regimento','1.3','instrumento',false),
+      ('${id(613)}','${UNITOP}','${DIR_TOP}','Educação básica','2.8','instrumento',true),
+      ('${id(614)}','${UNITOP}','${DIR_TOP}','Fora do catálogo','9.9','instrumento',false),
+      ('${id(615)}','${UNICALDAS}','${DIR_CAL}','Outra IES','1.1','instrumento',false);
+    INSERT INTO public.vertice_repository_files(institution_id,request_id,status,created_at,instrument_indicators) VALUES
+      ('${UNITOP}','${id(611)}','validado', now() - interval '40 days', '{1.2}'),
+      ('${UNITOP}','${id(612)}','enviado', now() - interval '20 days', null),
+      ('${UNITOP}','${id(612)}','enviado', now() - interval '2 days', null),
+      ('${UNICALDAS}','${id(615)}','enviado', now() - interval '30 days', null);
+    INSERT INTO public.vertice_avaliacao_simulada(institution_id,course_id,indicador,conceito_atual) VALUES
+      ('${UNITOP}','${DIR_TOP}','1.1',4),('${UNITOP}','${DIR_TOP}','1.3',3),('${UNITOP}','${DIR_TOP}','1.2',2);
+    INSERT INTO public.vertice_instrumento_checklist(institution_id,course_id,object_code,status,responsible) VALUES
+      ('${UNITOP}','${DIR_TOP}','1.1','nao_conforme',null),('${UNITOP}','${DIR_TOP}','1.2','parcial','Coordenação'),
+      ('${UNITOP}','${DIR_TOP}','1.3','conforme',null),('${UNITOP}',null,'1.1','parcial','  ');
+    INSERT INTO public.vertice_instrumento_ciclo(institution_id,milestone,target_year,status) VALUES
+      ('${UNITOP}','enade', extract(year from now())::int - 1,'pendente'),('${UNITOP}','cpa', extract(year from now())::int - 1,'concluido'),
+      ('${UNITOP}','visita', extract(year from now())::int + 2,'pendente');`);
+  const rpc = svcRpc(db);
+  const metric = (src, module) => src.entries.find((e) => e.module === module);
+  const c = await rpc('vertice_automation_source_instrumental', { p_institution: UNITOP, p_course: DIR_TOP });
+  assert.equal(c.complete, true);
+  // 1.1 e 1.2 estão na solicitação validada (1.2 também classificada); 1.3 só tem envio; 2.8 é "não se aplica"; 9.9 fora do catálogo.
+  assert.equal(metric(c, 'evidence').metrics.indicatorsWithoutEvidence, 1);
+  assert.equal(metric(c, 'uncovered').metrics.uncoveredIndicators, 0);
+  assert.equal(metric(c, 'stalled').metrics.stalledFiles, 1); // só o envio de 20 dias; o de 2 dias e o da outra IES ficam fora
+  assert.equal(metric(c, 'unbacked').metrics.unbackedConcepts, 1); // 1.3 com conceito 3 e sem validação; 1.1 tem lastro; 1.2 tem conceito 2
+  assert.equal(metric(c, 'unassigned').metrics.unassignedItems, 1);
+  assert.equal(metric(c, 'milestone').applicable, false);
+  const i = await rpc('vertice_automation_source_instrumental', { p_institution: UNITOP, p_course: null });
+  assert.equal(metric(i, 'evidence').complete, false); // sem catálogo do Recredenciamento: abstém-se, não zera
+  assert.equal(metric(i, 'evidence').reason, 'catalog_missing');
+  assert.equal(metric(i, 'unassigned').metrics.unassignedItems, 1); // responsável em branco conta como ausente
+  assert.equal(metric(i, 'milestone').metrics.overdueMilestones, 1);
+  await assert.rejects(rpc('vertice_automation_source_instrumental', { p_institution: UNITOP, p_course: DIR_CAL }), /curso fora da instituição/);
+  await assert.rejects(as(db, GESTOR_TOP, 'select public.vertice_automation_source_instrumental($1,$2)', [UNITOP, DIR_TOP]), /permission denied/);
+  // Execução sombra ponta a ponta pelo executor real.
+  const rules = ['instrument.evidence', 'instrument.stalled', 'instrument.uncovered', 'instrument.unbacked', 'instrument.unassigned', 'instrument.milestone'];
+  const cfg = (await propose(db, GESTOR_TOP, UNITOP, DIR_TOP, rules)).rows[0].id;
+  await approve(db, GESTOR2_TOP, cfg);
+  const out = await runAll({ rpc });
+  assert.equal(out.results[0].status, 'evaluated');
+  const kinds = (await db.query('select rule_id from vertice_automation.run_alert order by 1')).rows.map((r) => r.rule_id);
+  assert.deepEqual(kinds, ['instrument.evidence', 'instrument.stalled', 'instrument.unassigned', 'instrument.unbacked']);
 });

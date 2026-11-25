@@ -5,7 +5,7 @@ on:
     paths:
       - 'supabase/functions/_shared/automacao360/**'
       - 'supabase/functions/vertice-automacao360-run/**'
-      - 'supabase/migrations/*automacao360*.sql'
+      - 'supabase/migrations*/*automacao360*.sql'
       - 'supabase/migrations/*governanca_5w2h*.sql'
       - 'scripts/automacao360/**'
       - 'scripts/tests/automacao360/**'
@@ -17,7 +17,7 @@ on:
     paths:
       - 'supabase/functions/_shared/automacao360/**'
       - 'supabase/functions/vertice-automacao360-run/**'
-      - 'supabase/migrations/*automacao360*.sql'
+      - 'supabase/migrations*/*automacao360*.sql'
       - 'supabase/migrations/*governanca_5w2h*.sql'
       - 'scripts/automacao360/**'
       - 'scripts/tests/automacao360/**'
@@ -40,7 +40,7 @@ jobs:
           node-version: '22'
       - name: Motor puro e módulos (Node)
         run: node --test scripts/tests/automacao360/*.test.mjs
-      - name: Matriz das 40 regras e catálogo SQL gerados estão atualizados
+      - name: Matriz de regras gerada está atualizada
         run: node scripts/automacao360/gerar-matriz.mjs --check
       - uses: denoland/setup-deno@v2
         with:

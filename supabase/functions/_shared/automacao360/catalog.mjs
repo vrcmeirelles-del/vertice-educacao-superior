@@ -1,6 +1,8 @@
 // Proposed rules, not production thresholds. All are opt-in after homologation.
 export const VERSION = '2026.11-proposal.1';
 const NEW_ACADEMIC=new Set(['internship.overdue','internship.hours','internship.documents','tcc.due','tcc.documents','extension.hours','extension.certificates','teaching.hours','teaching.documents','ac.hours','ac.documents']);
+// Instrumentos de avaliação (Reconhecimento, Recredenciamento, Novo Instrumento): passo 3 do plano de 25/11/2026.
+const INSTRUMENT=new Set(['instrument.evidence','instrument.stalled','instrument.uncovered','instrument.unbacked','instrument.unassigned','instrument.milestone']);
 const STRATEGIC=new Set(['capture.conversion','capture.sla','competition.change','market.transaction','due.blocker','finance.arrears','finance.cashgap','alumni.response']);
 export const RULES = Object.freeze([
  ['repo.overdue','Repositório','daily','P0','open','daysToDue','lt',0],
@@ -42,5 +44,11 @@ export const RULES = Object.freeze([
  ['due.blocker','Due Diligence','weekly','P1','open','confirmedBlockers','gt',0],
  ['finance.arrears','Financeiro','weekly','P2','validated','arrearsBps','gt',1000,'dueCents',1],
  ['finance.cashgap','Financeiro','weekly','P2','validated','cashGapCents','gt',0],
- ['alumni.response','Conecta 360°','monthly','P2','validated','responseBps','lt',3000,'eligibleInvites',30]
-].map(([id,module,cadence,priority,state,metric,op,threshold,minMetric,min])=>Object.freeze({id,module,cadence,priority,state,metric,op,threshold:Array.isArray(threshold)?Object.freeze(threshold):threshold,minMetric,min,version:STRATEGIC.has(id)?'2026.11-strategic.1':NEW_ACADEMIC.has(id)?'2026.11-academic.1':VERSION})));
+ ['alumni.response','Conecta 360°','monthly','P2','validated','responseBps','lt',3000,'eligibleInvites',30],
+ ['instrument.evidence','Instrumentos de Avaliação','weekly','P1','open','indicatorsWithoutEvidence','gt',0],
+ ['instrument.stalled','Instrumentos de Avaliação','weekly','P1','open','stalledFiles','gt',0],
+ ['instrument.uncovered','Instrumentos de Avaliação','weekly','P1','open','uncoveredIndicators','gt',0],
+ ['instrument.unbacked','Instrumentos de Avaliação','weekly','P1','validated','unbackedConcepts','gt',0],
+ ['instrument.unassigned','Instrumentos de Avaliação','weekly','P2','open','unassignedItems','gt',0],
+ ['instrument.milestone','Instrumentos de Avaliação','monthly','P1','open','overdueMilestones','gt',0]
+].map(([id,module,cadence,priority,state,metric,op,threshold,minMetric,min])=>Object.freeze({id,module,cadence,priority,state,metric,op,threshold:Array.isArray(threshold)?Object.freeze(threshold):threshold,minMetric,min,version:INSTRUMENT.has(id)?'2026.11-instrument.1':STRATEGIC.has(id)?'2026.11-strategic.1':NEW_ACADEMIC.has(id)?'2026.11-academic.1':VERSION})));

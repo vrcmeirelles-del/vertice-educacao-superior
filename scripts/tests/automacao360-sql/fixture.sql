@@ -44,8 +44,8 @@ CREATE TABLE public.vertice_actions(
 CREATE TABLE public.vertice_action_governance(action_id uuid PRIMARY KEY REFERENCES public.vertice_actions(id) ON DELETE CASCADE, institution_id uuid NOT NULL,
   review_status text NOT NULL DEFAULT 'rascunho' CHECK (review_status IN ('rascunho','enviado','aprovado','devolvido')));
 
-CREATE TABLE public.vertice_repository_requests(id uuid PRIMARY KEY, institution_id uuid NOT NULL, course_id uuid, title text, due_date date, active boolean DEFAULT true, not_applicable boolean DEFAULT false, updated_at timestamptz DEFAULT now());
-CREATE TABLE public.vertice_repository_files(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), institution_id uuid NOT NULL, request_id uuid NOT NULL, status text NOT NULL, file_name text);
+CREATE TABLE public.vertice_repository_requests(id uuid PRIMARY KEY, institution_id uuid NOT NULL, course_id uuid, title text, due_date date, active boolean DEFAULT true, not_applicable boolean DEFAULT false, updated_at timestamptz DEFAULT now(), indicator text, repository_section text DEFAULT 'instrumento');
+CREATE TABLE public.vertice_repository_files(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), institution_id uuid NOT NULL, request_id uuid NOT NULL, status text NOT NULL, file_name text, created_at timestamptz NOT NULL DEFAULT now(), instrument_indicators text[]);
 
 CREATE TABLE public.vertice_cpa_findings(id uuid PRIMARY KEY, institution_id uuid NOT NULL, course_id uuid, title text);
 CREATE TABLE public.vertice_cpa_actions(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), finding_id uuid, institution_id uuid NOT NULL, title text, status text, due_date date, evidence_description text, evidence_url text);
@@ -69,6 +69,13 @@ CREATE TABLE vertice_app.curriculum_competencies(id uuid PRIMARY KEY DEFAULT gen
 CREATE TABLE vertice_app.curriculum_discipline_links(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), competency_id uuid NOT NULL, discipline_name text);
 CREATE TABLE public.vertice_avalia_recovery_plans(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), institution_id uuid NOT NULL, course_id uuid, status text NOT NULL DEFAULT 'active', rules_version text, updated_at timestamptz DEFAULT now());
 CREATE TABLE vertice_app.alerts(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), institution_id uuid NOT NULL, course_id uuid, status text NOT NULL DEFAULT 'open', rule_version text);
+
+-- Instrumentos de avaliação (subconjunto das colunas de produção e das migrações 20261125150000/160000).
+CREATE TABLE public.vertice_instrument_catalog(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), institution_id uuid NOT NULL, instrument_code text NOT NULL, instrument_label text NOT NULL DEFAULT 'x', instrument_version text NOT NULL DEFAULT '2017', is_active boolean NOT NULL DEFAULT true, scope text NOT NULL DEFAULT 'curso', UNIQUE(institution_id, instrument_code, instrument_version));
+CREATE TABLE public.vertice_instrument_objects(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), catalog_id uuid NOT NULL REFERENCES public.vertice_instrument_catalog(id) ON DELETE CASCADE, object_code text NOT NULL, dimension text, object_label text NOT NULL DEFAULT 'x', UNIQUE(catalog_id, object_code));
+CREATE TABLE public.vertice_avaliacao_simulada(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), institution_id uuid NOT NULL, course_id uuid NOT NULL, indicador text NOT NULL, dimensao smallint NOT NULL DEFAULT 1, conceito_atual smallint);
+CREATE TABLE public.vertice_instrumento_checklist(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), institution_id uuid NOT NULL, course_id uuid, dimension smallint NOT NULL DEFAULT 1, object_code text NOT NULL, status text NOT NULL DEFAULT 'nao_avaliado', responsible text);
+CREATE TABLE public.vertice_instrumento_ciclo(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), institution_id uuid NOT NULL, cycle_number smallint NOT NULL DEFAULT 1, milestone text NOT NULL, target_year smallint, status text NOT NULL DEFAULT 'pendente');
 
 GRANT USAGE ON SCHEMA public, auth, vertice_private TO authenticated, service_role;
 GRANT EXECUTE ON FUNCTION auth.uid(), auth.jwt(), auth.role() TO authenticated, service_role;

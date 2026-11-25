@@ -17,7 +17,7 @@ export const fontes = { validada: 'Fonte validada', identificada: 'Fonte identif
 export const cadencias: Record<string, string> = { daily: 'Diária', weekly: 'Semanal', monthly: 'Mensal' };
 export const acoes: Record<string, string> = { propose: 'Revisão proposta', approve: 'Aprovado', reject: 'Rejeitado', start: 'Execução iniciada', complete: 'Concluído', verify: 'Verificado', close: 'Encerrado com justificativa', '5w2h_draft': 'Rascunho 5W2H criado' };
 
-// Rótulos institucionais das 40 regras (sem identificadores técnicos na tela).
+// Rótulos institucionais das 46 regras (sem identificadores técnicos na tela).
 export const rotulos: Record<string, string> = {
   'repo.overdue': 'Documentos do Repositório com prazo vencido', 'repo.due': 'Documentos do Repositório com prazo em até 7 dias',
   'sapiens.low': 'Competência com acerto abaixo de 50% (Sapiens)', 'curriculum.gap': 'Competências do currículo sem disciplina vinculada',
@@ -33,6 +33,9 @@ export const rotulos: Record<string, string> = {
   'ac.documents': 'Comprovantes de Atividades Complementares faltantes', 'capture.conversion': 'Conversão de captação abaixo de 10%', 'capture.sla': 'Atendimentos de captação fora do prazo',
   'competition.change': 'Mudança confirmada em concorrente', 'market.transaction': 'Operação de mercado confirmada', 'due.blocker': 'Bloqueio confirmado na Due Diligence',
   'finance.arrears': 'Inadimplência acima de 10%', 'finance.cashgap': 'Compromissos acima do caixa disponível', 'alumni.response': 'Resposta de egressos abaixo de 30%',
+  'instrument.evidence': 'Indicadores do instrumento sem evidência validada', 'instrument.stalled': 'Documentos enviados há 15 dias sem validação',
+  'instrument.uncovered': 'Indicadores do instrumento sem solicitação nem "não se aplica"', 'instrument.unbacked': 'Conceito simulado 3 ou mais sem evidência validada',
+  'instrument.unassigned': 'Itens não conformes do Novo Instrumento sem responsável', 'instrument.milestone': 'Marcos do ciclo avaliativo atrasados',
 };
 export const rotulo = (id: string) => rotulos[id] ?? 'Regra não catalogada';
 
