@@ -73,15 +73,13 @@ Exceção com efeito funcional:
 - Correção: alinhar a expressão da busca ao índice, ou indexar a expressão concatenada.
 - É decisão do módulo ENADE 360°; não está na migração candidata.
 
-## Migração candidata
+## Migração aplicada em 25/11/2026
 
-`supabase/migrations_nao_aplicadas/20261125130000_indices_portal_limpeza.sql`:
+Aplicada por autorização expressa, depois de ensaio desfeito no esquema real. Resultado em produção: 14 índices novos, 0 das 15 duplicatas restantes, 74 chaves estrangeiras para `vertice_courses` íntegras e registro pela versão do arquivo.
+
+`supabase/migrations/20261125130000_indices_portal_limpeza.sql`:
 - remove as 15 duplicatas;
 - cria os 14 índices de chave estrangeira.
-
-Não foi aplicada nem ensaiada em produção. Antes de aplicar:
-1. ensaio em transação desfeita no esquema real;
-2. autorização expressa.
 
 Reversão:
 - a parte A se desfaz recriando os índices com os `CREATE INDEX` das migrações de origem;
