@@ -113,56 +113,72 @@ export default function Avalia360AcademicEntry({ institutionId, courses, institu
     setEditQ(q.id);
   };
 
-  // ===== IMPORT FROM SPREADSHEET =====
+  // ===== IMPORT FROM SPREADSHEET (CSV/TSV/XLSX) =====
   const importFromFile = async (file: File) => {
     if (!selected) return;
     setImporting(true);
     try {
-      const text = await file.text();
-      const sep = text.includes('\t') ? '\t' : text.includes(';') ? ';' : ',';
-      const lines = text.split('\n').map(l => l.split(sep).map(c => c.trim().replace(/^"|"$/g, '')));
+      let rows: any[][] = [];
+
+      if (/\.xlsx?$/i.test(file.name)) {
+        // XLSX: use SheetJS via dynamic import from CDN
+        const ab = await file.arrayBuffer();
+        const XLSX = await (Function('return import("https://cdn.sheetjs.com/xlsx-0.20.3/package/xlsx.mjs")')() as Promise<any>);
+        const wb = XLSX.read(ab, { type: 'array' });
+        const sheetName = wb.SheetNames.find((n: string) => /quest/i.test(n)) || wb.SheetNames[wb.SheetNames.length > 1 ? wb.SheetNames.length - 1 : 0];
+        const ws = wb.Sheets[sheetName];
+        rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' }) as any[][];
+      } else {
+        const text = await file.text();
+        const sep = text.includes('\t') ? '\t' : text.includes(';') ? ';' : ',';
+        rows = text.split('\n').map(l => l.split(sep).map(c => c.trim().replace(/^"|"$/g, '')));
+      }
+
       // Find header row
-      const headerIdx = lines.findIndex(l => l.some(c => /enunciado|questão|pergunta|statement/i.test(c)));
-      const dataLines = headerIdx >= 0 ? lines.slice(headerIdx + 1) : lines.slice(1);
-      const header = headerIdx >= 0 ? lines[headerIdx].map(h => h.toLowerCase()) : [];
-      // Map columns
-      const colEnum = header.findIndex(h => /enunciado|questão|pergunta|statement/i.test(h));
-      const colA = header.findIndex(h => h === 'a' || /alternativa.*a/i.test(h));
-      const colB = header.findIndex(h => h === 'b' || /alternativa.*b/i.test(h));
-      const colC = header.findIndex(h => h === 'c' || /alternativa.*c/i.test(h));
-      const colD = header.findIndex(h => h === 'd' || /alternativa.*d/i.test(h));
-      const colE = header.findIndex(h => h === 'e' || /alternativa.*e/i.test(h));
-      const colGab = header.findIndex(h => /gabarito|resposta|correct|answer/i.test(h));
-      const colPts = header.findIndex(h => /pont|valor|score|weight/i.test(h));
+      const headerIdx = rows.findIndex(r => r.some(c => /enunciado|questão|pergunta|statement|^tipo$/i.test(String(c || ''))));
+      const header = headerIdx >= 0 ? rows[headerIdx].map(h => String(h || '').toLowerCase()) : [];
+      const dataRows = rows.slice((headerIdx >= 0 ? headerIdx : 0) + 1);
+
+      // Map columns flexibly
+      const find = (pats: RegExp[]) => header.findIndex(h => pats.some(p => p.test(h)));
+      const colType = find([/^tipo$/i]);
+      const colEnum = find([/enunciado|questão|pergunta|statement/i]);
+      const colPts = find([/pont|valor|score/i]);
+      const colA = find([/alternativa.*a|^a$/i]);
+      const colB = find([/alternativa.*b|^b$/i]);
+      const colC = find([/alternativa.*c|^c$/i]);
+      const colD = find([/alternativa.*d|^d$/i]);
+      const colE = find([/alternativa.*e|^e$/i]);
+      const colGab = find([/gabarito|resposta|correct/i]);
 
       let startNum = questions.length ? Math.max(...questions.map(q => q.question_number)) + 1 : 1;
       let imported = 0;
 
-      for (const row of dataLines) {
-        const statement = row[colEnum >= 0 ? colEnum : 0]?.trim();
+      for (const row of dataRows) {
+        const statement = String(row[colEnum >= 0 ? colEnum : 1] || '').trim();
         if (!statement || statement.length < 5) continue;
 
-        const isDiscursiva = colA < 0 || !row[colA]?.trim();
-        const pts = colPts >= 0 && row[colPts] ? parseFloat(row[colPts]) || 1 : 1;
-        const gab = colGab >= 0 ? row[colGab]?.trim().toUpperCase() : 'A';
+        const typeRaw = colType >= 0 ? String(row[colType] || '').toLowerCase() : '';
+        const altA = colA >= 0 ? String(row[colA] || '').trim() : '';
+        const isDiscursiva = /discursiva/i.test(typeRaw) || (!altA && colA >= 0) || (colA < 0);
+        const pts = colPts >= 0 && row[colPts] ? parseFloat(String(row[colPts])) || 1 : 1;
+        const gab = colGab >= 0 ? String(row[colGab] || 'A').trim().toUpperCase() : 'A';
 
-        // Insert question
         const { data: q } = await supabase.from('vertice_avalia_questions').insert({
-          assessment_id: selected.id, question_number: startNum, question_type: isDiscursiva ? 'discursiva' : 'objetiva',
-          statement, points: pts,
+          assessment_id: selected.id, question_number: startNum,
+          question_type: isDiscursiva ? 'discursiva' : 'objetiva', statement, points: pts,
         }).select().single();
 
         if (q && !isDiscursiva) {
           const letters = ['A', 'B', 'C', 'D', 'E'];
           const cols = [colA, colB, colC, colD, colE];
           const optRows = letters.map((letter, i) => {
-            const txt = cols[i] >= 0 ? row[cols[i]]?.trim() : '';
+            const txt = cols[i] >= 0 ? String(row[cols[i]] || '').trim() : '';
             return txt ? { question_id: q.id, option_letter: letter, option_text: txt, is_correct: letter === gab } : null;
           }).filter(Boolean);
           if (optRows.length) await supabase.from('vertice_avalia_options').insert(optRows);
         }
-        startNum++;
-        imported++;
+        startNum++; imported++;
       }
 
       // Update counts
@@ -170,7 +186,7 @@ export default function Avalia360AcademicEntry({ institutionId, courses, institu
       const { data: pts2 } = await supabase.from('vertice_avalia_questions').select('points').eq('assessment_id', selected.id);
       await supabase.from('vertice_avalia_assessments').update({ question_count: count || 0, total_points: (pts2 || []).reduce((s: number, x: any) => s + (x.points || 0), 0), updated_at: new Date().toISOString() }).eq('id', selected.id);
       await loadQ(selected.id); await load();
-      alert(`✅ ${imported} questão(ões) importada(s) com sucesso!`);
+      alert(`✅ ${imported} questão(ões) importada(s)!`);
     } catch (err) { alert('Erro na importação: ' + (err as Error).message); }
     setImporting(false);
   };
