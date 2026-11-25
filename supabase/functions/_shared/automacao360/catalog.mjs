@@ -2,6 +2,7 @@
 export const VERSION = '2026.11-proposal.1';
 const NEW_ACADEMIC=new Set(['internship.overdue','internship.hours','internship.documents','tcc.due','tcc.documents','extension.hours','extension.certificates','teaching.hours','teaching.documents','ac.hours','ac.documents']);
 // Instrumentos de avaliação (Reconhecimento, Recredenciamento, Novo Instrumento): passo 3 do plano de 25/11/2026.
+const GOALS=new Set(['goal.unmeasured']);
 const INSTRUMENT=new Set(['instrument.evidence','instrument.stalled','instrument.uncovered','instrument.unbacked','instrument.unassigned','instrument.milestone']);
 const STRATEGIC=new Set(['capture.conversion','capture.sla','competition.change','market.transaction','due.blocker','finance.arrears','finance.cashgap','alumni.response']);
 export const RULES = Object.freeze([
@@ -50,5 +51,6 @@ export const RULES = Object.freeze([
  ['instrument.uncovered','Instrumentos de Avaliação','weekly','P1','open','uncoveredIndicators','gt',0],
  ['instrument.unbacked','Instrumentos de Avaliação','weekly','P1','validated','unbackedConcepts','gt',0],
  ['instrument.unassigned','Instrumentos de Avaliação','weekly','P2','open','unassignedItems','gt',0],
- ['instrument.milestone','Instrumentos de Avaliação','monthly','P1','open','overdueMilestones','gt',0]
-].map(([id,module,cadence,priority,state,metric,op,threshold,minMetric,min])=>Object.freeze({id,module,cadence,priority,state,metric,op,threshold:Array.isArray(threshold)?Object.freeze(threshold):threshold,minMetric,min,version:INSTRUMENT.has(id)?'2026.11-instrument.1':STRATEGIC.has(id)?'2026.11-strategic.1':NEW_ACADEMIC.has(id)?'2026.11-academic.1':VERSION})));
+ ['instrument.milestone','Instrumentos de Avaliação','monthly','P1','open','overdueMilestones','gt',0],
+ ['goal.unmeasured','Metas e Indicadores','weekly','P1','open','unmeasuredGoals','gt',0]
+].map(([id,module,cadence,priority,state,metric,op,threshold,minMetric,min])=>Object.freeze({id,module,cadence,priority,state,metric,op,threshold:Array.isArray(threshold)?Object.freeze(threshold):threshold,minMetric,min,version:GOALS.has(id)?'2026.11-goals.1':INSTRUMENT.has(id)?'2026.11-instrument.1':STRATEGIC.has(id)?'2026.11-strategic.1':NEW_ACADEMIC.has(id)?'2026.11-academic.1':VERSION})));

@@ -13,7 +13,7 @@ test('actor scope required',async()=>assert.rejects(shadowRun({...input,actor:{.
 test('foreign source rejected',async()=>assert.equal((await shadowRun({...input,adapters:{documentary:async()=>({...source,courseId:C})}})).sources[0].status,'source_rejected'));
 test('incomplete source rejected',async()=>assert.equal((await shadowRun({...input,adapters:{documentary:async()=>({...source,complete:false})}})).alerts.length,0));
 test('missing adapter reported',async()=>assert.equal((await shadowRun({...input,adapters:{}})).sources[0].status,'adapter_unavailable'));
-test('unmapped rules explicit',async()=>{assert.deepEqual(UNMAPPED,['cpa.pending','pei.overdue','school.attendance']);const r=await shadowRun({...input,config:{...config,ruleIds:['cpa.pending']}});assert.equal(r.status,'partial');assert.deepEqual(r.unmapped,['cpa.pending']);});
+test('unmapped rules explicit',async()=>{assert.deepEqual(UNMAPPED,['cpa.pending','pei.overdue','school.attendance','goal.unmeasured']);const r=await shadowRun({...input,config:{...config,ruleIds:['cpa.pending']}});assert.equal(r.status,'partial');assert.deepEqual(r.unmapped,['cpa.pending']);});
 test('institution cannot impersonate course',async()=>assert.equal((await shadowRun({...input,config:{...config,ruleIds:['avalia.recovery']}})).sources[0].status,'course_required'));
 test('unknown rule rejected',async()=>assert.rejects(shadowRun({...input,config:{...config,ruleIds:['unknown']}}),/invalid_config/));
 test('stale source does not produce alerts',async()=>{const r=await shadowRun({...input,adapters:{documentary:async()=>({...source,observedAt:'2026-11-20T12:00:00Z'})}});assert.equal(r.sources[0].status,'stale_source');assert.equal(r.alerts.length,0);});

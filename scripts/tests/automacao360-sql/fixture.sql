@@ -70,6 +70,10 @@ CREATE TABLE vertice_app.curriculum_discipline_links(id uuid PRIMARY KEY DEFAULT
 CREATE TABLE public.vertice_avalia_recovery_plans(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), institution_id uuid NOT NULL, course_id uuid, status text NOT NULL DEFAULT 'active', rules_version text, updated_at timestamptz DEFAULT now());
 CREATE TABLE vertice_app.alerts(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), institution_id uuid NOT NULL, course_id uuid, status text NOT NULL DEFAULT 'open', rule_version text);
 
+-- Metas: colunas usadas pela regra goal.unmeasured e medições (subconjunto de produção).
+ALTER TABLE public.vertice_goals ADD COLUMN formula text, ADD COLUMN created_at timestamptz NOT NULL DEFAULT now();
+CREATE TABLE public.vertice_goal_measurements(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), institution_id uuid NOT NULL, goal_id uuid NOT NULL, measured_on date NOT NULL, value numeric NOT NULL);
+
 -- Instrumentos de avaliação (subconjunto das colunas de produção e das migrações 20261125150000/160000).
 CREATE TABLE public.vertice_instrument_catalog(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), institution_id uuid NOT NULL, instrument_code text NOT NULL, instrument_label text NOT NULL DEFAULT 'x', instrument_version text NOT NULL DEFAULT '2017', is_active boolean NOT NULL DEFAULT true, scope text NOT NULL DEFAULT 'curso', UNIQUE(institution_id, instrument_code, instrument_version));
 CREATE TABLE public.vertice_instrument_objects(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), catalog_id uuid NOT NULL REFERENCES public.vertice_instrument_catalog(id) ON DELETE CASCADE, object_code text NOT NULL, dimension text, object_label text NOT NULL DEFAULT 'x', UNIQUE(catalog_id, object_code));

@@ -8,9 +8,9 @@ import {evaluate} from './engine.mjs';
 import {prepareShadowReceipt} from './persistence.mjs';
 import {RULES} from './catalog.mjs';
 
-export const EXECUTOR_VERSION = '2026.11-executor.5';
+export const EXECUTOR_VERSION = '2026.11-executor.6';
 export const SYSTEM_ACTOR_ID = '00000000-0000-4000-8000-000000000360';
-const PLANNING = ['pei.overdue', 'cpa.pending'];
+const PLANNING = ['pei.overdue', 'cpa.pending', 'goal.unmeasured'];
 const byModuleIds = (mods) => RULES.filter((r) => mods.includes(r.module)).map((r) => r.id);
 // Regras com adaptador de fonte real. As demais ficam "sem adaptador" (execução parcial), nunca silenciosas.
 export const SUPPORTED = Object.freeze(['repo.overdue', 'repo.due', ...PLANNING, 'tcc.due', 'tcc.overdue',
