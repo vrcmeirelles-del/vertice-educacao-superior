@@ -1,17 +1,18 @@
 import {foQrToken,validateFoSnapshot} from './fo-exchange.ts';
 import {clinicalMetadata,clinicalProfile,CLINICAL_DIMENSIONS,validateClinicalContent,CLINICAL_GENERATION,CLINICAL_GRADING} from '../../../source-overrides/shared/discursiva-clinical.ts';
-import {fail,parse,validateQuestion,validateGrade,ruleGrade,signQR,verifyQR,GENERATE_PROMPT,GRADE_PROMPT,OCR_PROMPT,type Obj} from './core.ts';
+import {fail,parse,validateQuestion,ruleGrade,signQR,verifyQR,GENERATE_PROMPT,OCR_PROMPT,type Obj} from './core.ts';
 import {train,predict,type TrainingRow} from './trained-grade.ts';
 type Completion={content:string;provider:string;model:string};
-// Política de IA (20/11/2026): algoritmo é o padrão. A IA só entra nas três funções em que não há
-// algoritmo viável, e só se a função estiver liberada (AI_FEATURES e AI_SUSPENDED=false, ver index.ts).
-export type AiFeature='discursiva.transcribe'|'discursiva.generate'|'discursiva.second_opinion';
+// Política de IA: algoritmo é o padrão. A IA só entra nas duas funções em que não há algoritmo viável
+// (transcrição de manuscrito e geração de questão nova), e só se liberada (AI_FEATURES e AI_SUSPENDED=false).
+// A segunda opinião por IA na correção foi retirada em 25/11/2026: a pré-nota é sempre por algoritmo.
+export type AiFeature='discursiva.transcribe'|'discursiva.generate';
 const allowed=(deps:{ai?:(f:AiFeature)=>boolean;aiOn?:boolean},f:AiFeature)=>deps.ai?deps.ai(f):deps.aiOn!==false;
 const requireAi=(deps:{ai?:(f:AiFeature)=>boolean;aiOn?:boolean},f:AiFeature)=>{if(!allowed(deps,f))throw fail('ai_feature_disabled',503);};
 export type Deps={aiOn?:boolean;ai?:(feature:AiFeature)=>boolean;trainingSet?:()=>Promise<TrainingRow[]>;authorize:()=>Promise<void>;rpc:(action:string,payload?:Obj)=>Promise<Obj>;sources:(query:string)=>Promise<Obj[]>;image:(path:string)=>Promise<{base64:string;mime:string}>;call:(provider:'openai'|'anthropic',system:string,input:Obj,image?:{base64:string;mime:string})=>Promise<Completion>;secret:string;bridge?:(path:string,payload:Obj)=>Promise<Obj>;foContext?:(submissionId?:string)=>Promise<Obj>;foStore?:(action:string,payload:Obj)=>Promise<Obj>};
 export async function runAction(body:Obj,deps:Deps):Promise<Obj>{
  await deps.authorize();
- if(body.action==='status')return {ai:{transcribe:allowed(deps,'discursiva.transcribe'),generate:allowed(deps,'discursiva.generate'),secondOpinion:allowed(deps,'discursiva.second_opinion')}};
+ if(body.action==='status')return {ai:{transcribe:allowed(deps,'discursiva.transcribe'),generate:allowed(deps,'discursiva.generate')}};
  if(['fo_preview','fo_import','fo_publish'].includes(body.action)){
   if(!deps.bridge||!deps.foStore||!deps.foContext)throw fail('fo_bridge_unavailable',503);
   const scope={institutionId:body.institutionId,courseId:body.courseId};
@@ -61,6 +62,7 @@ export async function runAction(body:Obj,deps:Deps):Promise<Obj>{
  }
  if(body.action==='grade'){
   const context=await deps.rpc('get_submission',{id:body.submissionId});const {submission,question}=context;
+  if(body.secondOpinion===true)throw fail('second_opinion_removed');
   if(submission.reviewed_at)throw fail('already_finalized');
   if(submission.image_path&&!submission.transcription_confirmed)throw fail('confirm_transcription_first');
   try{validateClinicalContent(question.content);}catch(e){throw fail((e as Error).message);}
@@ -75,14 +77,6 @@ export async function runAction(body:Obj,deps:Deps):Promise<Obj>{
    const trained={provider:'modelo-treinado',model:report.model.version,total:score,criteria:[],feedback:`Nota estimada por modelo treinado com ${report.model.n} respostas homologadas deste curso (erro médio de ${report.model.cvMae} ponto em respostas não vistas, contra ${report.model.ruleMae} da regra). Não avalia critério a critério; a nota final depende da revisão docente.`};
    assessment={assessments:[trained,pre],difference:Math.abs(score-pre.total),suggestedScore:score,requiresHumanReview:true,provisional:true,training,promptVersion:'pre-nota-treinada-v1',evaluatedAt:new Date().toISOString()};
   }else assessment={assessments:[pre],difference:0,suggestedScore:pre.total,requiresHumanReview:true,provisional:true,training,promptVersion:'pre-nota-regras-v1',evaluatedAt:new Date().toISOString()};
-  // Segunda opinião por IA: só a pedido explícito do docente e com a função liberada.
-  // Não substitui a pré-nota do algoritmo; fica ao lado dela para comparação.
-  if(body.secondOpinion===true){
-   requireAi(deps,'discursiva.second_opinion');
-   const ai=await Promise.all(['openai','anthropic'].map(async provider=>{const c=await deps.call(provider as 'openai'|'anthropic',GRADE_PROMPT+(clinicalProfile(question.content.profile)?'\n'+CLINICAL_GRADING:''),{question:question.content,answer:submission.answer});return {...validateGrade(parse(c.content),question.content,submission.answer),provider:c.provider,model:c.model};}));
-   const aiScore=Math.round((ai[0].total+ai[1].total)*50)/100;
-   assessment={...assessment,assessments:[...assessment.assessments,...ai],secondOpinion:{suggestedScore:aiScore,difference:Math.abs(ai[0].total-ai[1].total),distanceFromAlgorithm:Math.round(Math.abs(aiScore-assessment.suggestedScore)*100)/100,promptVersion:'discursiva-v2-clinical'}};
-  }
   await deps.rpc('save_assessment',{id:submission.id,version:submission.version,assessment});return assessment;
  }
  throw fail('unknown_action');

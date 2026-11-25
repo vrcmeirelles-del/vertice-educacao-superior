@@ -949,7 +949,7 @@ function RelatoriosCPA({ institutionId, role }: { institutionId: string; role: s
 
   // O banco (jsonb) reordena as chaves; as seções são exibidas e exportadas pela numeração do título.
   const orderedSections = (content: any): [string, any][] => Object.entries(content || {}).sort((a: [string, any], b: [string, any]) => (parseInt(a[1]?.title, 10) || 99) - (parseInt(b[1]?.title, 10) || 99));
-  const sectionBadge = (notes: string = '') => notes.includes('Editado') ? { l: '✏️ Editado', bg: '#dcfce7', c: '#16a34a' } : notes.includes('Roteiro') ? { l: '📝 A redigir', bg: '#fef3c7', c: '#b45309' } : notes.includes('IA') ? { l: '🤖 IA', bg: '#dbeafe', c: '#2563eb' } : { l: '📊 Dados', bg: '#e0f2fe', c: '#0369a1' };
+  const sectionBadge = (notes: string = '') => notes.includes('Editado') ? { l: '✏️ Editado', bg: '#dcfce7', c: '#16a34a' } : notes.includes('Roteiro') ? { l: '📝 A redigir', bg: '#fef3c7', c: '#b45309' } : notes.includes('Rascunho analítico') ? { l: '📝 Rascunho a revisar', bg: '#fef3c7', c: '#b45309' } : notes.includes('IA') ? { l: '🤖 IA', bg: '#dbeafe', c: '#2563eb' } : { l: '📊 Dados', bg: '#e0f2fe', c: '#0369a1' };
 
   const exportReportWord = (report: any) => {
     const sections = orderedSections(report.content_json).map(([, v]) => v);

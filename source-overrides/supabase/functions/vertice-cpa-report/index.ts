@@ -1,10 +1,11 @@
 // Política de IA (20/11/2026): o algoritmo é o padrão em todo o portal. A IA só é chamada para as funções
-// listadas em AI_FEATURES (padrão: transcrição de manuscrito, geração de questões, segunda opinião na
-// correção e redação analítica da CPA) e com a chave geral AI_SUSPENDED=false (suspensa desde 19/11/2026).
-const AI_FEATURES_DEFAULT="discursiva.transcribe,discursiva.generate,discursiva.second_opinion,cpa.analysis";
+// listadas em AI_FEATURES (padrão desde 25/11/2026: só transcrição de manuscrito e geração de questão
+// nova; a segunda opinião na correção e a redação da CPA passaram ao algoritmo) e com a chave geral AI_SUSPENDED=false (suspensa desde 19/11/2026).
+const AI_FEATURES_DEFAULT="discursiva.transcribe,discursiva.generate";
 const aiPolicy=(get:(k:string)=>string|undefined)=>(feature:string)=>String(get("AI_SUSPENDED")??"true").toLowerCase()==="false"&&String(get("AI_FEATURES")??AI_FEATURES_DEFAULT).split(",").map(x=>x.trim()).includes(feature);
 const aiAllowed=aiPolicy(k=>Deno.env.get(k));
-const __AI_FN_FEATURES:string[]=["cpa.analysis"];
+// Relatório da CPA só por algoritmo desde 25/11/2026: nenhuma função de IA liberada aqui.
+const __AI_FN_FEATURES:string[]=[];
 {const __aiFetch=globalThis.fetch;const __aiHosts=/(^|\.)(api\.anthropic\.com|api\.openai\.com|generativelanguage\.googleapis\.com)$/i;
 globalThis.fetch=((input:any,init?:any)=>{let host="";try{host=new URL(typeof input==="string"?input:input instanceof URL?input.href:input.url).hostname;}catch{}
 if(__aiHosts.test(host)&&!__AI_FN_FEATURES.some(aiAllowed))
@@ -13,12 +14,9 @@ return __aiFetch(input,init);}) as typeof fetch;}
 declare const Deno: { env: { get: (key: string) => string | undefined }; serve: (fn: (req: Request) => Promise<Response>) => void };
 const origins = new Set(['https://www.verticesuperior.com.br','https://verticesuperior.com.br','https://vertice-educacao-superior-jlri.onrender.com','https://vertice-portal.onrender.com','https://vertice-educacao-superior-site.onrender.com','https://vertice-educacao-superior.onrender.com']);
 const UUID = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
-import { buildCpaSections, ANALYTIC, TITLES } from "./report.ts";
-// Desde 20/11/2026 as seções saem dos dados por modelo de texto (report.ts). A IA, se religada
-// (função "cpa.analysis" liberada e OPENAI_API_KEY), só redige as seções analíticas 9, 10 e 12; se falhar,
-// fica o roteiro com os dados. Nada é inventado: dado ausente aparece como "Não informado".
-const AI_PROMPTS: Record<string,string> = {diagnostico:'Análise integrada e diagnóstico — relacione achados, potencialidades e fragilidades ao PDI e aos eixos SINAES.',sensibilizacao:'Sensibilização e devolutivas à comunidade, só com o que os dados mostram.',consideracoes:'Considerações finais — síntese do ciclo e limitações.'};
-const aiOn = () => aiAllowed('cpa.analysis') && !!Deno.env.get('OPENAI_API_KEY');
+import { buildCpaSections, TITLES } from "./report.ts";
+// Todas as 12 seções saem dos dados por algoritmo (report.ts, regras cpa-analise-v1 nas analíticas 9, 10 e 12).
+// Nada é inventado: dado ausente aparece como "Não informado" ou como lacuna declarada para a CPA.
 
 Deno.serve(async (req: Request) => {
   const origin = req.headers.get('origin') || '';
@@ -62,18 +60,7 @@ Deno.serve(async (req: Request) => {
     const yearBase = String(body.year_base || new Date().getFullYear());
     const list = (v: unknown) => Array.isArray(v) ? v : [];
     const gen = buildCpaSections({inst, reportType, yearBase, members:list(members), campaigns:list(camps), results, findings:list(findings), actions:list(actions)}, secParam ? [secParam] : undefined);
-    let usedAi = false;
-    if (aiOn()) {
-      const ctx = JSON.stringify(Object.fromEntries(Object.entries(gen).filter(([k]) => !ANALYTIC.has(k)).map(([k, v]) => [k, v.content])));
-      for (const sec of Object.keys(gen).filter((k) => ANALYTIC.has(k))) {
-        try {
-          const r = await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${Deno.env.get('OPENAI_API_KEY')}`},body:JSON.stringify({model:'gpt-4o',messages:[{role:'system',content:`Redator acadêmico SINAES. NÃO invente dados. Se ausente: "Não informado". Português formal.\nDADOS DAS SEÇÕES:\n${ctx}\nROTEIRO:\n${gen[sec].content}`},{role:'user',content:AI_PROMPTS[sec]}],max_tokens:2000,temperature:0.3}),signal:AbortSignal.timeout(90000)});
-          const content = r.ok ? String((await r.json().catch(()=>null))?.choices?.[0]?.message?.content||'').trim() : '';
-          if (content) { gen[sec] = {...gen[sec], content, ai_notes:'Redigido por IA a partir dos dados — requer aprovação CPA'}; usedAi = true; }
-        } catch { /* mantém o roteiro */ }
-      }
-    }
-    const generatedBy = usedAi ? 'algoritmo+ia' : 'algoritmo';
+    const generatedBy = 'algoritmo';
     if (report_id && UUID.test(report_id)) {
       // Regerar uma seção não apaga as demais: mescla com o conteúdo já salvo.
       const current = await get(`vertice_cpa_reports?id=eq.${report_id}&institution_id=eq.${institution_id}&select=content_json`);
