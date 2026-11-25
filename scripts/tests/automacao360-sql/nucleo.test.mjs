@@ -31,7 +31,7 @@ async function setup(t) {
   await db.exec(await read('../../../supabase/migrations/20261124210001_automacao360_catalogo.sql'));
   await db.exec(await read('../../../supabase/migrations/20261125090000_automacao360_executor.sql'));
   await db.exec(await read('../../../supabase/migrations/20261125100000_automacao360_fontes_academica_estrategica.sql'));
-  await db.exec(await read('../../../supabase/migrations_nao_aplicadas/20261125110000_automacao360_fontes_pedagogicas.sql'));
+  await db.exec(await read('../../../supabase/migrations/20261125110000_automacao360_fontes_pedagogicas.sql'));
   await db.exec(`
     INSERT INTO public.vertice_institutions VALUES ('${UNITOP}','UNITOP sintética','superior'),('${UNICALDAS}','UNICALDAS sintética','superior');
     INSERT INTO public.vertice_courses VALUES ('${DIR_TOP}','${UNITOP}','Direito','DIR'),('${DIR_CAL}','${UNICALDAS}','Direito','DIR');
