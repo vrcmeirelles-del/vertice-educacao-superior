@@ -32,6 +32,7 @@ async function setup(t) {
   await db.exec(await read('../../../supabase/migrations/20261125090000_automacao360_executor.sql'));
   await db.exec(await read('../../../supabase/migrations/20261125100000_automacao360_fontes_academica_estrategica.sql'));
   await db.exec(await read('../../../supabase/migrations/20261125110000_automacao360_fontes_pedagogicas.sql'));
+  await db.exec(await read('../../../supabase/migrations_nao_aplicadas/20261125120000_automacao360_indices.sql'));
   await db.exec(`
     INSERT INTO public.vertice_institutions VALUES ('${UNITOP}','UNITOP sintética','superior'),('${UNICALDAS}','UNICALDAS sintética','superior');
     INSERT INTO public.vertice_courses VALUES ('${DIR_TOP}','${UNITOP}','Direito','DIR'),('${DIR_CAL}','${UNICALDAS}','Direito','DIR');
@@ -454,4 +455,14 @@ test('adaptador pedagógico: matriz publicada, recuperação ativa e alertas tri
   assert.equal(out.results[0].unmapped, 1);
   const kinds = (await db.query('select rule_id from vertice_automation.run_alert order by 1')).rows.map((r) => r.rule_id);
   assert.deepEqual(kinds, ['avalia.recovery', 'curriculum.gap', 'retention.alert']);
+});
+
+test('toda chave estrangeira do schema vertice_automation tem índice que a cobre', async (t) => {
+  const db = await setup(t);
+  const missing = (await db.query(`
+    select c.conname from pg_constraint c
+    where c.contype = 'f' and c.connamespace = 'vertice_automation'::regnamespace
+      and not exists (select 1 from pg_index i where i.indrelid = c.conrelid
+        and (i.indkey::int2[])[0:array_length(c.conkey,1)-1] @> c.conkey and (i.indkey::int2[])[0:array_length(c.conkey,1)-1] <@ c.conkey)`)).rows;
+  assert.deepEqual(missing, []);
 });
