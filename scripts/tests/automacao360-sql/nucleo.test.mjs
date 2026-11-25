@@ -38,6 +38,7 @@ async function setup(t) {
   await db.exec(await read('../../../supabase/migrations/20261125120000_automacao360_indices.sql'));
   await db.exec(await readMigration('20261125170000_automacao360_fontes_instrumentos.sql'));
   await db.exec(await readMigration('20261125200000_automacao360_meta_sem_medicao.sql'));
+  await db.exec(await readMigration('20261125220000_automacao360_ciclo_operacional.sql'));
   await db.exec(`
     INSERT INTO public.vertice_institutions VALUES ('${UNITOP}','UNITOP sintética','superior'),('${UNICALDAS}','UNICALDAS sintética','superior');
     INSERT INTO public.vertice_courses VALUES ('${DIR_TOP}','${UNITOP}','Direito','DIR'),('${DIR_CAL}','${UNICALDAS}','Direito','DIR');
@@ -67,6 +68,8 @@ async function as(db, sub, sql, params = [], { aal = 'aal2', role = 'authenticat
 const propose = (db, user, inst, course, rules, { enabled = true, mode = 'shadow', expected = 0, aal } = {}) =>
   as(db, user, 'select public.vertice_automation_propose_config($1,$2,$3,$4,$5,24,$6,$7) as id', [inst, course, rules, enabled, mode, expected, 'Configuração de teste'], { aal });
 const approve = (db, user, cfg, opts) => as(db, user, 'select public.vertice_automation_approve_config($1,$2)', [cfg, 'Aprovação de teste'], opts);
+// Homologação da fonte (Master com MFA): sem ela, o modo operacional não abre alerta.
+const validate = (db, rules = ['repo.overdue', 'repo.due']) => Promise.all(rules.map((x) => as(db, MASTER, 'select public.vertice_automation_validate_source($1,true,$2)', [x, 'Fonte conferida em modo sombra'])));
 const configured = async (db, opts = {}) => {
   const cfg = (await propose(db, opts.by ?? COORD_TOP, UNITOP, DIR_TOP, ['repo.overdue', 'repo.due'], opts)).rows[0].id;
   await approve(db, opts.approver ?? GESTOR_TOP, cfg);
@@ -200,6 +203,7 @@ test('trilha, execuções e alertas observados são imutáveis mesmo para o prop
 
 test('ciclo operacional: alerta -> revisão -> responsável -> 5W2H rascunho -> execução -> verificação independente', async (t) => {
   const db = await setup(t);
+  await validate(db);
   await configured(db, { mode: 'operational' });
   await execute(db);
   const alert = (await db.query('select id, status, revision from vertice_automation.alert')).rows;
@@ -237,6 +241,7 @@ test('ciclo operacional: alerta -> revisão -> responsável -> 5W2H rascunho -> 
 
 test('verificação independente: quem concluiu não verifica; encerramento administrativo com justificativa', async (t) => {
   const db = await setup(t);
+  await validate(db);
   await configured(db, { mode: 'operational' });
   await execute(db);
   const a = (await db.query('select id from vertice_automation.alert')).rows[0].id;
@@ -251,6 +256,7 @@ test('verificação independente: quem concluiu não verifica; encerramento admi
 
 test('encerramento administrativo de alerta superado exige justificativa e fica na trilha', async (t) => {
   const db = await setup(t);
+  await validate(db);
   await configured(db, { mode: 'operational' });
   await execute(db);
   const a = (await db.query('select id from vertice_automation.alert')).rows[0].id;
@@ -263,6 +269,7 @@ test('encerramento administrativo de alerta superado exige justificativa e fica 
 
 test('execução em lote repetida não duplica a fila (idempotência entre execuções)', async (t) => {
   const db = await setup(t);
+  await validate(db);
   await configured(db, { mode: 'operational' });
   await execute(db); await execute(db);
   assert.equal((await db.query('select count(*)::int n from vertice_automation.run')).rows[0].n, 2);
@@ -271,6 +278,7 @@ test('execução em lote repetida não duplica a fila (idempotência entre execu
 
 test('reversão: nova revisão desativada bloqueia execuções e preserva todo o histórico', async (t) => {
   const db = await setup(t);
+  await validate(db);
   await configured(db, { mode: 'operational' });
   await execute(db);
   const before = (await db.query('select (select count(*) from vertice_automation.run)::int r, (select count(*) from vertice_automation.alert)::int a, (select count(*) from vertice_automation.event)::int e')).rows[0];
@@ -381,8 +389,6 @@ test('executor: falha de uma configuração não interrompe as outras e não vaz
   assert.equal(out.results[1].ack, 'inserted');
   await assert.rejects(as(db, GESTOR_TOP, 'select public.vertice_automation_due_configs()'), /permission denied/);
   await assert.rejects(runConfig({ config: { configId: 1 }, rpc, asOf: new Date().toISOString() }), /invalid_config_row/);
-  const op = { ...(await real('vertice_automation_due_configs', {}))[0], mode: 'operational' };
-  assert.equal((await runConfig({ config: op, rpc, asOf: new Date().toISOString() })).status, 'skipped_operational');
 });
 
 test('adaptadores acadêmico e estratégico: prazos, checklist, egressos reais e concorrência aprovada', async (t) => {
@@ -564,4 +570,77 @@ test('goal.unmeasured: meta manual com medição atrasada; checklist e frequênc
   const out = await runAll({ rpc });
   assert.equal(out.results[0].status, 'evaluated');
   assert.deepEqual((await db.query('select rule_id from vertice_automation.run_alert')).rows.map((r) => r.rule_id), ['goal.unmeasured']);
+});
+
+test('homologação da fonte: só Master com MFA, com justificativa; fonte pendente não é validada; revogação volta a bloquear', async (t) => {
+  const db = await setup(t);
+  const v = (user, rule, ok, reason = 'Fonte conferida em modo sombra', opts) => as(db, user, 'select public.vertice_automation_validate_source($1,$2,$3) s', [rule, ok, reason], opts);
+  await assert.rejects(v(GESTOR_TOP, 'repo.overdue', true), /acesso negado/);
+  await assert.rejects(v(MASTER, 'repo.overdue', true, undefined, { aal: 'aal1' }), /acesso negado/);
+  await assert.rejects(v(MASTER, 'repo.overdue', true, 'ok'), /justificativa/);
+  await assert.rejects(v(MASTER, 'finance.overdue', true), /somente fonte identificada/);
+  await assert.rejects(v(MASTER, 'regra.inexistente', true), /desconhecida/);
+  assert.equal((await v(MASTER, 'repo.overdue', true)).rows[0].s, 'validada');
+  const row = (await db.query("select source_status, source_validated_by, source_validation_note from vertice_automation.rules where id='repo.overdue'")).rows[0];
+  assert.deepEqual(row, { source_status: 'validada', source_validated_by: MASTER, source_validation_note: 'Fonte conferida em modo sombra' });
+  await assert.rejects(v(MASTER, 'repo.overdue', true), /somente fonte identificada/);
+  assert.equal((await v(MASTER, 'repo.overdue', false, 'Revogada para revisão')).rows[0].s, 'identificada');
+  assert.equal((await db.query("select source_validated_by from vertice_automation.rules where id='repo.overdue'")).rows[0].source_validated_by, null);
+});
+
+test('modo operacional sem fonte homologada: execução registrada, nenhum alerta aberto', async (t) => {
+  const db = await setup(t);
+  await configured(db, { mode: 'operational' });
+  await execute(db);
+  assert.equal((await db.query('select count(*)::int n from vertice_automation.run_alert')).rows[0].n, 1);
+  assert.equal((await db.query('select count(*)::int n from vertice_automation.alert')).rows[0].n, 0);
+});
+
+test('baixa na fonte: sem decisão humana vira resolvido; aprovado só recebe aviso; fonte com pendência não dá baixa', async (t) => {
+  const db = await setup(t);
+  await validate(db);
+  await configured(db, { mode: 'operational' });
+  const rpc = svcRpc(db);
+  // Fonte com solicitação sem prazo (pendência de qualidade): avaliação não é limpa, nenhuma baixa.
+  let out = await runAll({ rpc });
+  assert.equal(out.results[0].mode, 'operational');
+  assert.equal(out.results[0].alerts, 1); assert.equal(out.results[0].resolved, 0);
+  const a1 = (await db.query('select id from vertice_automation.alert')).rows[0].id;
+  await db.exec(`UPDATE public.vertice_repository_requests SET not_applicable = true WHERE id = '${id(401)}'`); // ocorrência some
+  out = await runAll({ rpc });
+  assert.equal(out.results[0].resolved, 0, 'fonte com registro recusado não autoriza baixa');
+  assert.equal((await db.query('select status from vertice_automation.alert')).rows[0].status, 'pending_review');
+  // Fonte limpa: a ocorrência ausente é baixada, com trilha.
+  await db.exec(`UPDATE public.vertice_repository_requests SET due_date = current_date + 30 WHERE id = '${id(404)}'`);
+  out = await runAll({ rpc });
+  assert.equal(out.results[0].status, 'evaluated'); assert.equal(out.results[0].resolved, 1);
+  const a = (await db.query('select status, revision from vertice_automation.alert where id=$1', [a1])).rows[0];
+  assert.deepEqual(a, { status: 'resolved', revision: 1 });
+  const ev = (await db.query("select action, from_status, to_status, actor_id from vertice_automation.event where entity='alert'")).rows;
+  assert.deepEqual(ev, [{ action: 'resolve', from_status: 'pending_review', to_status: 'resolved', actor_id: null }]);
+  // Nova ocorrência, aprovada por humano; quando some da fonte, o estado não muda: só um aviso, uma vez.
+  await db.exec(`UPDATE public.vertice_repository_requests SET not_applicable = false WHERE id = '${id(401)}'`);
+  out = await runAll({ rpc });
+  // A mesma ocorrência voltou: o alerta baixado reabre para revisão (mesma chave), com trilha.
+  const a2 = (await db.query("select id from vertice_automation.alert where status='pending_review'")).rows[0].id;
+  assert.equal(a2, a1);
+  assert.equal((await db.query("select count(*)::int n from vertice_automation.event where action='reopen'")).rows[0].n, 1);
+  await as(db, COORD_TOP, 'select public.vertice_automation_decide($1,$2,$3,$4,$5,$6)', [a2, 'approve', 2, 'Responsável definido', EQUIPE_TOP, new Date(Date.now() + 864e5).toISOString()]);
+  await db.exec(`UPDATE public.vertice_repository_requests SET not_applicable = true WHERE id = '${id(401)}'`);
+  out = await runAll({ rpc }); out = await runAll({ rpc });
+  assert.equal((await db.query('select status from vertice_automation.alert where id=$1', [a2])).rows[0].status, 'approved');
+  assert.equal((await db.query("select count(*)::int n from vertice_automation.event where action='source_cleared'")).rows[0].n, 1);
+  const d = (await as(db, GESTOR_TOP, 'select public.vertice_automation_dashboard($1,$2) d', [UNITOP, DIR_TOP])).rows[0].d;
+  assert.equal(d.resolvedLast30, 0); // o único alerta baixado foi reaberto
+  const p = d.pending.find((x) => x.id === a2);
+  assert.equal(p.sourceCleared, true); assert.equal(p.ownerId, EQUIPE_TOP); assert.equal(p.actionId, null);
+});
+
+test('recibo: regra declarada avaliada fora da configuração é recusada; modo sombra ignora a baixa', async (t) => {
+  const db = await setup(t);
+  await validate(db);
+  await configured(db, { mode: 'operational' });
+  const { receipt } = await execute(db);
+  const forged = { ...receipt, runId: randomUUID(), evaluatedRules: ['pei.overdue'] };
+  await assert.rejects(as(db, null, 'select public.vertice_automation_record_run($1)', [forged], { role: 'service_role', aal: null }), /fora da configuração/);
 });

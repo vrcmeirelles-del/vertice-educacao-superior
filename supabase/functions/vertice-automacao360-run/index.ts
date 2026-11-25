@@ -1,4 +1,4 @@
-// Executor diário da Automação 360° (modo sombra). Só aceita a rotina agendada (x-cron-secret
+// Executor diário da Automação 360° (modos sombra e operacional). Só aceita a rotina agendada (x-cron-secret
 // conferido no banco); não há disparo por usuário. Algoritmo determinístico, sem IA.
 // Respostas e erros trazem apenas metadados (ids de escopo, contagens, códigos).
 import { runAll } from "../_shared/automacao360/executor.mjs";
