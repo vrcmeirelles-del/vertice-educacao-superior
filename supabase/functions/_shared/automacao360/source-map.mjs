@@ -1,4 +1,4 @@
-// Matriz de rastreabilidade das 40 regras: fonte real verificada em produção (somente metadados)
+// Matriz de rastreabilidade das regras: fonte real verificada em produção (somente metadados)
 // em 24/11/2026. Fonte "identificada" = tabela/visão existe com os campos necessários; não significa
 // regra validada. Nenhuma regra é "validada" antes de comparação em modo sombra com dados autorizados.
 // Gerador: scripts/automacao360/gerar-matriz.mjs (seed SQL e docs/automacao360/MATRIZ_REGRAS.md).
@@ -46,6 +46,12 @@ const map = {
   'finance.arrears': ['strategic', P, 'sem fonte de saldo devido/vencido de alunos', null, 'Financeiro', 'Mesma divergência de finance.overdue.'],
   'finance.cashgap': ['strategic', P, 'sem fonte conciliada de caixa', null, 'Financeiro', ''],
   'alumni.response': ['strategic', I, 'public.vertice_alumni_survey_invitations (responded_at, delivery_status)', null, 'Egressos', ''],
+  'instrument.evidence': ['instrumental', I, 'public.vertice_instrument_catalog/objects (reconhecimento_curso 2017 por curso; recredenciamento_institucional 2017 na IES) + vertice_repository_requests (indicator, not_applicable) + vertice_repository_files (status validado, instrument_indicators)', 'public.vertice_automation_source_instrumental', 'Coordenação/NDE (curso); Procuradoria e CPA (IES)', 'Indicadores com solicitação ativa e nenhum arquivo validado. Sem catálogo no banco para o escopo, a regra se abstém.'],
+  'instrument.stalled': ['instrumental', I, 'public.vertice_repository_files (status enviado, created_at) nas seções do instrumento', 'public.vertice_automation_source_instrumental', 'Responsável pela validação documental', 'Arquivos enviados há 15 dias ou mais sem validação (definição stalled-15d-v1).'],
+  'instrument.uncovered': ['instrumental', I, 'catálogo do instrumento + vertice_repository_requests (indicator, not_applicable)', 'public.vertice_automation_source_instrumental', 'Coordenação/NDE (curso); Procuradoria (IES)', 'Indicador do catálogo sem solicitação ativa nem "não se aplica" registrado; marcar NSA é decisão humana.'],
+  'instrument.unbacked': ['instrumental', I, 'public.vertice_avaliacao_simulada (conceito_atual) + arquivos validados do indicador', 'public.vertice_automation_source_instrumental', 'Coordenação/NDE', 'Conceito simulado 3 ou mais sem nenhuma evidência validada no indicador. Só curso.'],
+  'instrument.unassigned': ['instrumental', I, 'public.vertice_instrumento_checklist (status nao_conforme/parcial, responsible)', 'public.vertice_automation_source_instrumental', 'Gestão do Novo Instrumento', 'Itens não conformes ou parciais sem responsável registrado.'],
+  'instrument.milestone': ['instrumental', I, 'public.vertice_instrumento_ciclo (target_year, status)', 'public.vertice_automation_source_instrumental', 'Gestão do ciclo avaliativo', 'Marco não concluído com ano-alvo anterior ao ano corrente no fuso da IES. Só IES; o registro guarda só o ano.'],
 };
 
 export const SOURCE_MAP = Object.freeze(RULES.map((r) => {

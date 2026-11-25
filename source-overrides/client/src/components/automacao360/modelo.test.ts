@@ -5,8 +5,9 @@ import { painel } from './fixture';
 const I = '00000000-0000-4000-8000-000000000101', C = '00000000-0000-4000-8000-000000000201';
 
 describe('modelo da Central de Automação', () => {
-  it('rotula as 40 regras sem identificadores técnicos', () => {
-    expect(Object.keys(rotulos)).toHaveLength(40);
+  it('rotula as 46 regras sem identificadores técnicos', () => {
+    expect(Object.keys(rotulos)).toHaveLength(46);
+    expect(rotulo('instrument.evidence')).toBe('Indicadores do instrumento sem evidência validada');
     expect(rotulo('repo.overdue')).toBe('Documentos do Repositório com prazo vencido');
     expect(rotulo('desconhecida')).toBe('Regra não catalogada');
   });

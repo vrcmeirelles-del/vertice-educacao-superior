@@ -3,12 +3,13 @@ import {documentaryRun} from './documentary.mjs';
 import {pedagogicalRun} from './pedagogical.mjs';
 import {academicRun} from './academic.mjs';
 import {strategicRun} from './strategic.mjs';
+import {instrumentalRun} from './instrumental.mjs';
 export const INTEGRATION_VERSION='2026.11-native.1';
 const uuid=x=>typeof x==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(x);
 const same=(a,b)=>a?.institutionId===b?.institutionId&&a?.courseId===b?.courseId;
 const instant=x=>typeof x==='string'&&Number.isFinite(Date.parse(x));
-const families={documentary:['repo.overdue','repo.due'],pedagogical:['sapiens.low','curriculum.gap','avalia.recovery','enade.gap','enamed.gap','retention.alert'],academic:RULES.filter(r=>['Estágio 360°','TCC 360°','Extensão 360°','Atividades de Ensino','AC 360°'].includes(r.module)).map(r=>r.id),strategic:RULES.filter(r=>['Captação','Inteligência de Mercado','Due Diligence','Financeiro','Conecta 360°'].includes(r.module)).map(r=>r.id)};
-const runners={documentary:documentaryRun,pedagogical:pedagogicalRun,academic:academicRun,strategic:strategicRun};
+const families={documentary:['repo.overdue','repo.due'],pedagogical:['sapiens.low','curriculum.gap','avalia.recovery','enade.gap','enamed.gap','retention.alert'],academic:RULES.filter(r=>['Estágio 360°','TCC 360°','Extensão 360°','Atividades de Ensino','AC 360°'].includes(r.module)).map(r=>r.id),strategic:RULES.filter(r=>['Captação','Inteligência de Mercado','Due Diligence','Financeiro','Conecta 360°'].includes(r.module)).map(r=>r.id),instrumental:RULES.filter(r=>r.module==='Instrumentos de Avaliação').map(r=>r.id)};
+const runners={documentary:documentaryRun,pedagogical:pedagogicalRun,academic:academicRun,strategic:strategicRun,instrumental:instrumentalRun};
 export const UNMAPPED=Object.freeze(RULES.filter(r=>!Object.values(families).flat().includes(r.id)).map(r=>r.id));
 function authorize(scope,actor,permission){if(!uuid(scope?.institutionId)||!(scope.courseId===null||uuid(scope.courseId))||!same(scope,actor)||!uuid(actor.id)||actor.mfa!==true||!actor.permissions?.includes(permission)||!Array.isArray(actor.permissions))throw Error('access_denied');}
 // Server-only. actor/config/adapter registry must be obtained from trusted backend, never HTTP body.

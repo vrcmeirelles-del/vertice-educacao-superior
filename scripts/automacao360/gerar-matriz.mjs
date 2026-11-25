@@ -12,7 +12,7 @@ const op = (r) => r.operator === 'between' ? `${r.threshold[0]}–${r.threshold[
 export function matrixMd() {
   const counts = SOURCE_MAP.reduce((a, r) => (a[r.sourceStatus] = (a[r.sourceStatus] || 0) + 1, a), {});
   const lines = SOURCE_MAP.map((r) => `| \`${r.id}\` | ${r.module} | ${r.version} | ${r.cadence} | ${r.metric} ${op(r)}${r.minimum ? ` (mín. ${Object.entries(r.minimum).map(([k, v]) => `${k} ${v}`).join('')})` : ''} | ${r.family} | ${r.source} | ${r.adapter ? `\`${r.adapter}\`` : '—'} | ${r.sourceStatus} | ${r.destination} | ${r.note || ''} |`);
-  return `# Matriz de rastreabilidade das 40 regras
+  return `# Matriz de rastreabilidade das ${SOURCE_MAP.length} regras
 
 GERADO por \`scripts/automacao360/gerar-matriz.mjs\` a partir de \`catalog.mjs\` e \`source-map.mjs\`. Não editar à mão.
 
