@@ -28,6 +28,7 @@ export default function Avalia360AcademicEntry({ institutionId, courses, institu
   const [editQ, setEditQ] = useState<string | null>(null);
   const [qF, setQF] = useState<any>({});
   const [oF, setOF] = useState<{ letter: string; text: string; correct: boolean }[]>([]);
+  const [importing, setImporting] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -110,6 +111,68 @@ export default function Avalia360AcademicEntry({ institutionId, courses, institu
     setOF(qo.length ? qo.map(o => ({ letter: o.option_letter, text: o.option_text, correct: o.is_correct }))
       : ['A', 'B', 'C', 'D', 'E'].map(l => ({ letter: l, text: '', correct: l === 'A' })));
     setEditQ(q.id);
+  };
+
+  // ===== IMPORT FROM SPREADSHEET =====
+  const importFromFile = async (file: File) => {
+    if (!selected) return;
+    setImporting(true);
+    try {
+      const text = await file.text();
+      const sep = text.includes('\t') ? '\t' : text.includes(';') ? ';' : ',';
+      const lines = text.split('\n').map(l => l.split(sep).map(c => c.trim().replace(/^"|"$/g, '')));
+      // Find header row
+      const headerIdx = lines.findIndex(l => l.some(c => /enunciado|questão|pergunta|statement/i.test(c)));
+      const dataLines = headerIdx >= 0 ? lines.slice(headerIdx + 1) : lines.slice(1);
+      const header = headerIdx >= 0 ? lines[headerIdx].map(h => h.toLowerCase()) : [];
+      // Map columns
+      const colEnum = header.findIndex(h => /enunciado|questão|pergunta|statement/i.test(h));
+      const colA = header.findIndex(h => h === 'a' || /alternativa.*a/i.test(h));
+      const colB = header.findIndex(h => h === 'b' || /alternativa.*b/i.test(h));
+      const colC = header.findIndex(h => h === 'c' || /alternativa.*c/i.test(h));
+      const colD = header.findIndex(h => h === 'd' || /alternativa.*d/i.test(h));
+      const colE = header.findIndex(h => h === 'e' || /alternativa.*e/i.test(h));
+      const colGab = header.findIndex(h => /gabarito|resposta|correct|answer/i.test(h));
+      const colPts = header.findIndex(h => /pont|valor|score|weight/i.test(h));
+
+      let startNum = questions.length ? Math.max(...questions.map(q => q.question_number)) + 1 : 1;
+      let imported = 0;
+
+      for (const row of dataLines) {
+        const statement = row[colEnum >= 0 ? colEnum : 0]?.trim();
+        if (!statement || statement.length < 5) continue;
+
+        const isDiscursiva = colA < 0 || !row[colA]?.trim();
+        const pts = colPts >= 0 && row[colPts] ? parseFloat(row[colPts]) || 1 : 1;
+        const gab = colGab >= 0 ? row[colGab]?.trim().toUpperCase() : 'A';
+
+        // Insert question
+        const { data: q } = await supabase.from('vertice_avalia_questions').insert({
+          assessment_id: selected.id, question_number: startNum, question_type: isDiscursiva ? 'discursiva' : 'objetiva',
+          statement, points: pts,
+        }).select().single();
+
+        if (q && !isDiscursiva) {
+          const letters = ['A', 'B', 'C', 'D', 'E'];
+          const cols = [colA, colB, colC, colD, colE];
+          const optRows = letters.map((letter, i) => {
+            const txt = cols[i] >= 0 ? row[cols[i]]?.trim() : '';
+            return txt ? { question_id: q.id, option_letter: letter, option_text: txt, is_correct: letter === gab } : null;
+          }).filter(Boolean);
+          if (optRows.length) await supabase.from('vertice_avalia_options').insert(optRows);
+        }
+        startNum++;
+        imported++;
+      }
+
+      // Update counts
+      const { count } = await supabase.from('vertice_avalia_questions').select('id', { count: 'exact', head: true }).eq('assessment_id', selected.id);
+      const { data: pts2 } = await supabase.from('vertice_avalia_questions').select('points').eq('assessment_id', selected.id);
+      await supabase.from('vertice_avalia_assessments').update({ question_count: count || 0, total_points: (pts2 || []).reduce((s: number, x: any) => s + (x.points || 0), 0), updated_at: new Date().toISOString() }).eq('id', selected.id);
+      await loadQ(selected.id); await load();
+      alert(`✅ ${imported} questão(ões) importada(s) com sucesso!`);
+    } catch (err) { alert('Erro na importação: ' + (err as Error).message); }
+    setImporting(false);
   };
 
   const printPDF = () => {
@@ -227,7 +290,23 @@ th,td{border:1px solid #cbd5e1;padding:6px 10px}th{background:#f1f5f9;text-align
       ))}
 
       {editQ === 'new' && <div style={{ border: '2px solid #2563eb', borderRadius: 12, padding: 16, background: '#f0f9ff', marginBottom: 10 }}>{renderQForm()}</div>}
-      {!editQ && <button onClick={newQuestion} style={{ width: '100%', padding: 16, borderRadius: 12, border: '2px dashed #2563eb', background: '#f0f9ff', color: '#2563eb', fontWeight: 700, fontSize: '.95rem', cursor: 'pointer' }}>➕ Adicionar questão</button>}
+      {!editQ && (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 4 }}>
+          <button onClick={newQuestion} style={{ padding: 16, borderRadius: 12, border: '2px dashed #2563eb', background: '#f0f9ff', color: '#2563eb', fontWeight: 700, fontSize: '.9rem', cursor: 'pointer' }}>
+            ➕ Digitar questão
+          </button>
+          <label style={{ padding: 16, borderRadius: 12, border: '2px dashed #059669', background: '#f0fdf4', color: '#059669', fontWeight: 700, fontSize: '.9rem', cursor: 'pointer', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+            📥 Importar planilha
+            <input type="file" accept=".csv,.tsv,.txt,.xlsx" style={{ display: 'none' }} disabled={importing}
+              onChange={e => { const f = e.target.files?.[0]; if (f) importFromFile(f); e.target.value = ''; }} />
+          </label>
+        </div>
+      )}
+      {!editQ && (
+        <div style={{ marginTop: 8, padding: 10, background: '#f8fafc', borderRadius: 8, fontSize: '.75rem', color: '#94a3b8', lineHeight: 1.5 }}>
+          💡 <b>Formato da planilha:</b> colunas <code>Enunciado | A | B | C | D | E | Gabarito</code> (CSV, TSV ou TXT separado por ; ou tab). Questões discursivas: só a coluna Enunciado preenchida.
+        </div>
+      )}
     </div>
   );
 
