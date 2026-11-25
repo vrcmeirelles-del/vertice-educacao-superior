@@ -38,6 +38,10 @@ Base: levantamento de 25/11/2026, com leitura de produção e mapa do código. T
 | 4 | Migração candidata `20261125180000_instrumentos_acervos.sql` (depende do passo 1) e função `vertice-doc-prevalidate`: acervo e catálogo pela seção da solicitação. Corrige dois defeitos — o registro de envio do Recredenciamento e do Novo Instrumento era sempre recusado (o arquivo era procurado no acervo do Reconhecimento) e classificar o arquivo tirava a solicitação do acervo. Reconhecimento e documentos gerais sem mudança, inclusive a revisão de cache (teste). Pendente: botão de pré-validação nas telas do Recredenciamento e do Novo Instrumento e filtro por seção na busca de evidências |
 | 5 | PR #287 integrado. "Gerar com IA" trocado por "Gerar rascunho" (regras `avs-rascunho-v1`): parecer, lacunas, plano e perguntas montados com os conceitos registrados, a cobertura documental e a equivalência 2017→2026. Só preenche campo vazio; antes, a geração sobrescrevia o texto do avaliador |
 
+## Produção (25/11/2026)
+
+As quatro migrações (150000 a 180000) estão aplicadas e registradas. Publicados: executor 2026.11-executor.5 e `vertice-doc-prevalidate` versão 13. O portal foi publicado automaticamente pelo Render a cada merge. Evidências na Bíblia-Mestra (`docs/automacao360/BIBLIA-MESTRA.md`).
+
 ## Pendências fora dos passos
 
 - As 6 correspondências Reconhecimento → Novo Instrumento em produção foram sugeridas por IA (`ai_metadata`) antes da suspensão e não têm revisão humana.
