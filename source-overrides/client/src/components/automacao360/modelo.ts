@@ -5,17 +5,20 @@ export type Regra = { id: string; version: string; module: string; priority: 'P0
 export type Painel = {
   institutionId: string; courseId: string | null;
   config: { revision: number; enabled: boolean; mode: 'shadow' | 'operational'; ruleIds: string[]; approvedAt: string } | null;
-  pendingConfig: { id: number; revision: number } | null;
+  pendingConfig: { id: number; revision: number; mode?: 'shadow' | 'operational' } | null;
   rules: Regra[];
   lastRun: { at: string; asOf: string; status: 'evaluated' | 'partial'; mode: string; alerts: number; durationMs: number | null } | null;
-  pending: { id: string; ruleId: string; priority: string; status: string; revision: number }[] | null;
+  pending: Proposta[] | null;
+  resolvedLast30?: number;
   events: { at: string; entity: string; action: string; to: string | null }[];
 };
 
+export type Proposta = { id: string; ruleId: string; priority: string; status: string; revision: number; ownerId?: string | null; dueAt?: string | null; createdAt?: string; actionId?: string | null; sourceCleared?: boolean };
+export const situacoes: Record<string, string> = { pending_review: 'Aguardando revisão', approved: 'Aprovada, com responsável', in_progress: 'Em execução', completed: 'Concluída, aguardando verificação independente' };
 export const estados: Record<EstadoRegra, string> = { inactive: 'Inativa', shadow: 'Modo sombra', active: 'Ativa', blocked: 'Bloqueada (fonte não validada)' };
 export const fontes = { validada: 'Fonte validada', identificada: 'Fonte identificada, não validada', pendente: 'Fonte pendente' } as const;
 export const cadencias: Record<string, string> = { daily: 'Diária', weekly: 'Semanal', monthly: 'Mensal' };
-export const acoes: Record<string, string> = { propose: 'Revisão proposta', approve: 'Aprovado', reject: 'Rejeitado', start: 'Execução iniciada', complete: 'Concluído', verify: 'Verificado', close: 'Encerrado com justificativa', '5w2h_draft': 'Rascunho 5W2H criado' };
+export const acoes: Record<string, string> = { propose: 'Revisão proposta', approve: 'Aprovado', reject: 'Rejeitado', start: 'Execução iniciada', complete: 'Concluído', verify: 'Verificado', close: 'Encerrado com justificativa', resolve: 'Baixada: ocorrência não encontrada na fonte', reopen: 'Reaberta: ocorrência voltou à fonte', source_cleared: 'Aviso: ocorrência não encontrada na fonte', '5w2h_draft': 'Rascunho 5W2H criado' };
 
 // Rótulos institucionais das 47 regras (sem identificadores técnicos na tela).
 export const rotulos: Record<string, string> = {
@@ -77,6 +80,10 @@ export function mensagemErro(e: { code?: string; message?: string } | null | und
   if (e?.code === 'PGRST202' || /does not exist|não existe|schema cache/i.test(m)) return 'A estrutura da Automação 360° ainda não foi instalada neste ambiente.';
   if (/autoaprovação/.test(m)) return 'A aprovação precisa ser feita por outra pessoa autorizada.';
   if (/concorrente|superada/.test(m)) return 'Outra alteração foi registrada antes desta. Atualize o painel e revise.';
+  if (/somente fonte identificada|fonte não está validada/.test(m)) return 'A situação da fonte mudou. Atualize o painel.';
+  if (/evidência obrigatória/.test(m)) return 'Informe a referência da evidência.';
+  if (/responsável e prazo|vínculo com a IES/.test(m)) return 'Escolha um responsável da instituição e um prazo futuro.';
+  if (/independente/.test(m)) return 'A verificação precisa ser feita por outra pessoa, não por quem concluiu.';
   if (/MFA|acesso negado/.test(m)) return 'Seu perfil não tem permissão para esta operação ou o segundo fator não foi confirmado.';
   return 'Não foi possível concluir a operação. Nada foi alterado.';
 }

@@ -13,6 +13,8 @@ export function prepareShadowReceipt({scope,config,result,runId,asOf}){
  }).sort((a,b)=>a.key.localeCompare(b.key));
  // Only allowlisted metadata is retained. No raw response, student identifier or free text.
  const payload={runId,institutionId:scope.institutionId,courseId:scope.courseId,configRevision:config.revision,asOf,status:result.status,alerts,sourceCount:result.sources.length,unmappedCount:result.unmapped.length};
+ // Execução operacional declara as regras avaliadas com fonte limpa (base da baixa na fonte). Sombra não leva o campo.
+ if(result.evaluatedRules!==undefined){if(!Array.isArray(result.evaluatedRules)||result.evaluatedRules.some(id=>!config.ruleIds.includes(id)))throw Error('invalid_result');payload.evaluatedRules=[...new Set(result.evaluatedRules)].sort();}
  return {...payload,digest:hash(payload)};
 }
 // The transport must be server-only and use a dedicated, authorized worker connection.

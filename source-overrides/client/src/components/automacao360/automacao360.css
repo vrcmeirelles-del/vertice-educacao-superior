@@ -18,3 +18,6 @@
 .a360-erro{background:#fdeeee;border:1px solid #efc4c4;color:#7a1f1f;padding:10px;border-radius:8px}.a360-aviso,.a360-alerta{background:var(--a360-claro);border:1px solid var(--a360-linha);padding:10px;border-radius:8px}
 .a360-alerta button{margin-left:10px}.a360-historico{margin:0;padding-left:18px;color:var(--a360-mudo)}
 @media(max-width:760px){.a360{padding:16px}.a360-cards{grid-template-columns:repeat(2,minmax(0,1fr))}.a360-grid{grid-template-columns:1fr}.a360 select,.a360 input:not([type=checkbox]){min-width:0;width:100%}.a360-filtros label{flex:1 1 100%}}
+.a360-fila{list-style:none;padding:0;margin:0;display:grid;gap:10px}.a360-fila>li{border:1px solid var(--a360-linha);border-radius:8px;padding:10px}
+.a360-fila-linha{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between}.a360-decisao{display:grid;gap:8px;margin-top:10px}
+.a360-decisao label{display:grid;gap:4px;font-size:12px;font-weight:600;color:var(--a360-mudo)}

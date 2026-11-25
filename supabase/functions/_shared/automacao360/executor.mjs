@@ -1,14 +1,15 @@
-// Executor da Automação 360° (modo sombra). Orquestra o que já existe, sem lógica de regra própria:
+// Executor da Automação 360° (modos sombra e operacional). Orquestra o que já existe, sem lógica de regra própria:
 // configurações vigentes (RPC) -> adaptadores de fonte (RPC) -> motor (shadowRun / evaluate) -> recibo -> record_run.
 // Somente servidor, com credencial service_role injetada em `rpc`. Sem IA, sem chamada externa além do próprio banco.
-// Modo operacional não é executado aqui: exige autorização própria e nova versão do executor.
+// Modo operacional: mesmo cálculo; o banco só abre alerta para regra com fonte homologada e só dá baixa
+// (alerta ainda sem decisão humana) nas regras declaradas avaliadas com fonte completa e limpa.
 import {randomUUID} from 'node:crypto';
 import {shadowRun} from './native-integration.mjs';
 import {evaluate} from './engine.mjs';
 import {prepareShadowReceipt} from './persistence.mjs';
 import {RULES} from './catalog.mjs';
 
-export const EXECUTOR_VERSION = '2026.11-executor.6';
+export const EXECUTOR_VERSION = '2026.11-executor.7';
 export const SYSTEM_ACTOR_ID = '00000000-0000-4000-8000-000000000360';
 const PLANNING = ['pei.overdue', 'cpa.pending', 'goal.unmeasured'];
 const byModuleIds = (mods) => RULES.filter((r) => mods.includes(r.module)).map((r) => r.id);
@@ -43,7 +44,6 @@ function checkConfig(c) {
 export async function runConfig({ config: c, rpc, asOf, runId = randomUUID() }) {
   checkConfig(c);
   const scope = { institutionId: c.institutionId, courseId: c.courseId };
-  if (c.mode !== 'shadow') return { configId: c.configId, ...scope, status: 'skipped_operational' };
   const config = { ...scope, enabled: true, approved: true, revision: c.revision, ruleIds: [...c.ruleIds], maxAgeHours: c.maxAgeHours };
   const actor = { ...scope, id: SYSTEM_ACTOR_ID, mfa: true, permissions: ['read'] };
   const args = { p_institution: scope.institutionId, p_course: scope.courseId };
@@ -69,6 +69,9 @@ export async function runConfig({ config: c, rpc, asOf, runId = randomUUID() }) 
     : { alerts: [], sources: [], unmapped: [] };
   const alerts = [...base.alerts], sources = [...base.sources];
   const unmapped = [...unsupported];
+  // Regras cuja ausência de alerta é confiável: família avaliada sem registro recusado ou pulado.
+  const clean = new Set(base.sources.filter((s) => s.status === 'evaluated' && !s.issueCount && !s.skippedCount).map((s) => s.family));
+  const evaluatedRules = shadowIds.filter((id) => !(base.unmapped ?? []).includes(id) && Object.entries(FAMILY_RULES).some(([f, ids]) => clean.has(f) && ids.includes(id)));
   if (planningIds.length) {
     try {
       if (!fetched.planning.ok) throw Error('source_unavailable');
@@ -78,18 +81,20 @@ export async function runConfig({ config: c, rpc, asOf, runId = randomUUID() }) 
         snapshot: { ...scope, sourceId: src.sourceId, observedAt: src.observedAt, records: src.records } });
       sources.push({ family: 'planning', status: out.status });
       if (out.status === 'evaluated') alerts.push(...out.alerts);
+      if (out.status === 'evaluated' && !(out.skipped ?? []).length) evaluatedRules.push(...planningIds);
     } catch {
       sources.push({ family: 'planning', status: 'source_rejected' });
     }
   }
   const status = unmapped.length || sources.some((s) => s.status !== 'evaluated' || s.issueCount || s.skippedCount) ? 'partial' : 'evaluated';
-  const result = { mode: 'shadow', status, alerts, sources, unmapped };
+  const result = { mode: 'shadow', status, alerts, sources, unmapped, ...(c.mode === 'operational' ? { evaluatedRules } : {}) };
   const receipt = prepareShadowReceipt({ scope, config, result, runId, asOf: runAsOf });
   const ack = await rpc('vertice_automation_record_run', { p_payload: receipt });
   if (ack?.runId !== receipt.runId || ack?.digest !== receipt.digest || !['inserted', 'existing'].includes(ack.status)) throw Error('invalid_ack');
   return {
-    configId: c.configId, ...scope, status, runId: receipt.runId, alerts: receipt.alerts.length,
+    configId: c.configId, ...scope, mode: c.mode, status, runId: receipt.runId, alerts: receipt.alerts.length,
     sources: sources.map((s) => `${s.family}:${s.status}`), unmapped: unmapped.length, ack: ack.status,
+    ...(c.mode === 'operational' ? { resolved: ack.resolved ?? 0, sourceCleared: ack.sourceCleared ?? 0 } : {}),
   };
 }
 

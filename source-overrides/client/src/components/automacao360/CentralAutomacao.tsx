@@ -4,6 +4,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { acoes, cadencias, estados, filtrar, fontes, mensagemErro, parsePainel, resumo, rotulo, type Painel } from './modelo';
+import FilaAutomacao from './FilaAutomacao';
 import './automacao360.css';
 
 type Curso = { id: string; name: string };
@@ -20,7 +21,8 @@ export default function CentralAutomacao({ master = false, institutionId, course
   const [painel, setPainel] = useState<Painel | null>(null);
   const [erro, setErro] = useState(''), [aviso, setAviso] = useState(''), [carregando, setCarregando] = useState(false), [enviando, setEnviando] = useState(false);
   const [busca, setBusca] = useState(''), [estado, setEstado] = useState(''), [prioridade, setPrioridade] = useState('');
-  const [selecao, setSelecao] = useState<Set<string>>(new Set()), [ativar, setAtivar] = useState(false);
+  const [selecao, setSelecao] = useState<Set<string>>(new Set()), [ativar, setAtivar] = useState(false), [modo, setModo] = useState<'shadow' | 'operational'>('shadow');
+  const [motivoFonte, setMotivoFonte] = useState('');
   const pedido = useRef(0);
   const courseId = curso || null;
 
@@ -43,7 +45,7 @@ export default function CentralAutomacao({ master = false, institutionId, course
     if (r.error) { setPainel(null); setErro(mensagemErro(r.error)); return; }
     try {
       const p = parsePainel(r.data, ies, courseId);
-      setPainel(p); setSelecao(new Set(p.config?.ruleIds ?? [])); setAtivar(p.config?.enabled ?? false);
+      setPainel(p); setSelecao(new Set(p.config?.ruleIds ?? [])); setAtivar(p.config?.enabled ?? false); setModo(p.config?.mode ?? 'shadow');
     } catch { setPainel(null); setErro('A resposta da fonte não pôde ser verificada. Nada é exibido como zero.'); }
   }, [ies, courseId, institutionalAllowed]);
 
@@ -53,14 +55,14 @@ export default function CentralAutomacao({ master = false, institutionId, course
   const podeAprovar = master || (role !== null && FULL.includes(role));
   const regras = painel ? filtrar(painel.rules, { busca, estado, prioridade }) : [];
   const r = painel ? resumo(painel) : null;
-  const alterada = painel && (ativar !== (painel.config?.enabled ?? false) || [...selecao].sort().join() !== [...(painel.config?.ruleIds ?? [])].sort().join());
+  const alterada = painel && (ativar !== (painel.config?.enabled ?? false) || modo !== (painel.config?.mode ?? 'shadow') || [...selecao].sort().join() !== [...(painel.config?.ruleIds ?? [])].sort().join());
 
   async function propor() {
     if (!painel) return;
     setEnviando(true); setAviso('');
     const esperada = painel.pendingConfig?.revision ?? painel.config?.revision ?? 0;
     const res = await supabase.rpc('vertice_automation_propose_config', {
-      p_institution: ies, p_course: courseId, p_rule_ids: [...selecao].sort(), p_enabled: ativar, p_mode: 'shadow',
+      p_institution: ies, p_course: courseId, p_rule_ids: [...selecao].sort(), p_enabled: ativar, p_mode: modo,
       p_max_age_hours: 24, p_expected_revision: esperada, p_reason: 'Revisão proposta pela Central de Automação 360°' });
     setEnviando(false);
     if (res.error) { setAviso(mensagemErro(res.error)); return; }
@@ -72,7 +74,15 @@ export default function CentralAutomacao({ master = false, institutionId, course
     const res = await supabase.rpc('vertice_automation_approve_config', { p_config_id: painel.pendingConfig.id, p_reason: 'Aprovação registrada pela Central de Automação 360°' });
     setEnviando(false);
     if (res.error) { setAviso(mensagemErro(res.error)); return; }
-    setAviso('Revisão aprovada. Execução em modo sombra, sem efeitos operacionais.'); void carregar();
+    setAviso(painel.pendingConfig.mode === 'operational' ? 'Revisão aprovada. A fila operacional abre propostas só para regras com fonte homologada, sempre para decisão humana.' : 'Revisão aprovada. Execução em modo sombra, sem efeitos operacionais.'); void carregar();
+  }
+  // Homologação da fonte (só Master com MFA; o banco confere).
+  async function homologar(id: string, validar: boolean) {
+    setEnviando(true); setAviso('');
+    const res = await supabase.rpc('vertice_automation_validate_source', { p_rule: id, p_validate: validar, p_reason: motivoFonte.trim() });
+    setEnviando(false);
+    if (res.error) { setAviso(mensagemErro(res.error)); return; }
+    setAviso(validar ? 'Fonte homologada para esta regra.' : 'Homologação revogada: a regra volta a ficar bloqueada no modo operacional.'); setMotivoFonte(''); void carregar();
   }
   const alternar = (id: string) => setSelecao((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
 
@@ -116,7 +126,7 @@ export default function CentralAutomacao({ master = false, institutionId, course
             <h3>Configuração vigente</h3>
             {painel.config ? <dl><dt>Revisão</dt><dd>{painel.config.revision}</dd><dt>Situação</dt><dd>{painel.config.enabled ? (painel.config.mode === 'shadow' ? 'Modo sombra' : 'Operacional') : 'Desativada'}</dd><dt>Aprovada em</dt><dd>{quando(painel.config.approvedAt)}</dd></dl>
               : <p>Nenhuma configuração aprovada. Todas as regras estão inativas.</p>}
-            {painel.pendingConfig && <p className="a360-alerta">Revisão {painel.pendingConfig.revision} aguardando aprovação independente.
+            {painel.pendingConfig && <p className="a360-alerta">Revisão {painel.pendingConfig.revision}{painel.pendingConfig.mode === 'operational' ? ' (operacional)' : ''} aguardando aprovação independente.
               {podeAprovar && <button type="button" onClick={aprovar} disabled={enviando}>Aprovar revisão {painel.pendingConfig.revision}</button>}</p>}
           </section>
           <section className="a360-painel">
@@ -128,8 +138,8 @@ export default function CentralAutomacao({ master = false, institutionId, course
           <section className="a360-painel">
             <h3>Propostas aguardando decisão</h3>
             {painel.pending === null ? <p>Fila não verificada: a configuração não está em operação aprovada.</p>
-              : painel.pending.length === 0 ? <p>Nenhuma proposta pendente na fila operacional verificada.</p>
-              : <ul>{painel.pending.map((p) => <li key={p.id}><b>{p.priority}</b> · {rotulo(p.ruleId)}</li>)}</ul>}
+              : <FilaAutomacao institutionId={ies} pending={painel.pending} onChanged={() => void carregar()} />}
+            {typeof painel.resolvedLast30 === 'number' && painel.pending !== null && <p className="a360-nota">Baixadas na fonte nos últimos 30 dias: {painel.resolvedLast30}.</p>}
           </section>
         </div>
 
@@ -145,16 +155,22 @@ export default function CentralAutomacao({ master = false, institutionId, course
           <div className="a360-rolagem" tabIndex={0} role="region" aria-label="Catálogo de regras">
             <table>
               <caption>Regras da Automação 360° neste escopo. A marcação propõe uma nova revisão; nada é ativado sem aprovação.</caption>
-              <thead><tr><th scope="col">Incluir</th><th scope="col">Regra</th><th scope="col">Módulo</th><th scope="col">Prioridade</th><th scope="col">Frequência</th><th scope="col">Fonte</th><th scope="col">Situação</th></tr></thead>
+              <thead><tr><th scope="col">Incluir</th><th scope="col">Regra</th><th scope="col">Módulo</th><th scope="col">Prioridade</th><th scope="col">Frequência</th><th scope="col">Fonte</th><th scope="col">Situação</th>{master && <th scope="col">Homologação</th>}</tr></thead>
               <tbody>{regras.map((x) => <tr key={x.id}>
                 <td><input type="checkbox" aria-label={`Incluir ${rotulo(x.id)}`} checked={selecao.has(x.id)} disabled={!podeConfigurar || enviando} onChange={() => alternar(x.id)} /></td>
-                <td>{rotulo(x.id)}</td><td>{x.module}</td><td>{x.priority}</td><td>{cadencias[x.cadence] ?? x.cadence}</td><td>{fontes[x.sourceStatus]}</td><td>{estados[x.state]}</td></tr>)}</tbody>
+                <td>{rotulo(x.id)}</td><td>{x.module}</td><td>{x.priority}</td><td>{cadencias[x.cadence] ?? x.cadence}</td><td>{fontes[x.sourceStatus]}</td><td>{estados[x.state]}</td>
+                {master && <td>{x.sourceStatus === 'identificada' ? <button type="button" disabled={enviando || motivoFonte.trim().length < 5} onClick={() => homologar(x.id, true)}>Homologar fonte</button>
+                  : x.sourceStatus === 'validada' ? <button type="button" disabled={enviando || motivoFonte.trim().length < 5} onClick={() => homologar(x.id, false)}>Revogar</button> : '—'}</td>}</tr>)}</tbody>
             </table>
             {!regras.length && <p className="a360-vazio">Nenhuma regra corresponde ao filtro.</p>}
           </div>
+          {master && <label className="a360-filtros">Justificativa da homologação (obrigatória para homologar ou revogar a fonte)
+            <input value={motivoFonte} maxLength={2000} onChange={(e) => setMotivoFonte(e.target.value)} /></label>}
           {podeConfigurar && <div className="a360-acoes">
-            <label><input type="checkbox" checked={ativar} onChange={(e) => setAtivar(e.target.checked)} disabled={enviando} /> Executar em modo sombra (sem efeitos operacionais)</label>
-            <p className="a360-nota">O modo operacional não é oferecido nesta tela: exige homologação e autorização expressa.</p>
+            <label><input type="checkbox" checked={ativar} onChange={(e) => setAtivar(e.target.checked)} disabled={enviando} /> Executar as regras marcadas</label>
+            <label>Modo <select value={modo} onChange={(e) => setModo(e.target.value as 'shadow' | 'operational')} disabled={enviando}>
+              <option value="shadow">Sombra (só observa, sem fila)</option><option value="operational">Operacional (fila com decisão humana)</option></select></label>
+            <p className="a360-nota">O modo operacional só abre propostas para regras com fonte homologada pelo Master; cada proposta exige revisão, responsável e prazo, e nenhuma ação é executada pelo sistema. A revisão só vale após aprovação de outra pessoa.</p>
             <button type="button" onClick={propor} disabled={!alterada || enviando}>Propor nova revisão</button>
           </div>}
           {aviso && <p className="a360-aviso" role="status">{aviso}</p>}
