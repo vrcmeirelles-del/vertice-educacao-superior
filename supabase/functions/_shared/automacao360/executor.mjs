@@ -7,12 +7,13 @@ import {shadowRun} from './native-integration.mjs';
 import {evaluate} from './engine.mjs';
 import {prepareShadowReceipt} from './persistence.mjs';
 
-export const EXECUTOR_VERSION = '2026.11-executor.2';
+export const EXECUTOR_VERSION = '2026.11-executor.3';
 export const SYSTEM_ACTOR_ID = '00000000-0000-4000-8000-000000000360';
 const PLANNING = ['pei.overdue', 'cpa.pending'];
 // Regras com adaptador de fonte real. As demais ficam "sem adaptador" (execução parcial), nunca silenciosas.
 export const SUPPORTED = Object.freeze(['repo.overdue', 'repo.due', ...PLANNING, 'tcc.due', 'tcc.overdue',
-  'internship.due', 'internship.overdue', 'teaching.documents', 'alumni.pending', 'competition.change']);
+  'internship.due', 'internship.overdue', 'teaching.documents', 'alumni.pending', 'competition.change',
+  'curriculum.gap', 'avalia.recovery', 'retention.alert']);
 const MAX_CONFIGS = 500;
 const uuid = (v) => typeof v === 'string' && /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(v);
 
@@ -36,6 +37,7 @@ export async function runConfig({ config: c, rpc, asOf, runId = randomUUID() }) 
     documentary: async () => rpc('vertice_automation_source_documentary', args),
     academic: async () => rpc('vertice_automation_source_academic', args),
     strategic: async () => rpc('vertice_automation_source_strategic', args),
+    pedagogical: async () => rpc('vertice_automation_source_pedagogical', args),
   };
   const unsupported = config.ruleIds.filter((id) => !SUPPORTED.includes(id));
   const shadowIds = config.ruleIds.filter((id) => SUPPORTED.includes(id) && !PLANNING.includes(id));
