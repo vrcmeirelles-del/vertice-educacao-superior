@@ -92,7 +92,7 @@ export async function runConfig({ config: c, rpc, asOf, runId = randomUUID() }) 
 }
 
 // Executa todas as configurações vigentes, uma a uma. Falha de uma não interrompe as demais.
-export async function runAll({ rpc, asOf }) {
+export async function runAll({ rpc, asOf = undefined }) {
   const startedAt = new Date().toISOString();
   const configs = await rpc('vertice_automation_due_configs', {});
   if (!Array.isArray(configs) || configs.length > MAX_CONFIGS) throw Error('invalid_config_list');
