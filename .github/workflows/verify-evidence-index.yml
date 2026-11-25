@@ -16,6 +16,7 @@ on:
       - 'supabase/migrations*/*avaliacao_registros.sql'
       - 'supabase/migrations*/*instrumentos_acervos.sql'
       - 'supabase/migrations*/*metas_medicao_indices.sql'
+      - 'supabase/migrations*/*busca_evidencias_secao.sql'
       - 'scripts/instrumentos/**'
       - 'source-overrides/client/src/lib/avaliacao-institucional.json'
       - 'source-overrides/client/src/lib/novo-instrumento.ts'

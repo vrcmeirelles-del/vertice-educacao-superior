@@ -8,6 +8,7 @@ import "./recredenciamento-documentos-2017.css";
 
 // Pré-validação por algoritmo do arquivo enviado, contra o catálogo do Recredenciamento 2017 (escolhido pelo banco pela seção).
 const PreValidationPanel=lazy(()=>import("./PreValidationPanel"));
+const EvidenceSearch=lazy(()=>import("./EvidenceSearch"));
 export const REC2017_BUCKET="vertice-recredenciamento-2017";
 export const REC2017_SECTION="recredenciamento_2017";
 type Req={id:string;institution_id:string;indicator:string|null;document_code:string|null;title:string;instructions:string|null;semester:string|null;not_applicable:boolean|null;nsa_reason:string|null;due_date:string|null;assignee_email:string|null;assigned_to:string|null;active:boolean};
@@ -69,7 +70,7 @@ export function useRecredenciamentoDocs2017(institutionId:string,role:Role|null)
 }
 export type RecredDocsState=ReturnType<typeof useRecredenciamentoDocs2017>;
 
-export function Recred2017Overview({state}:{state:RecredDocsState}){
+export function Recred2017Overview({state,institutionId,role}:{state:RecredDocsState;institutionId?:string;role?:Role|null}){
   return <section className="rec17-overview" aria-label="Gestão documental do Recredenciamento 2017">
     <header><div><h4>Repositório documental exclusivo · Recredenciamento 2017</h4><p>As evidências deste instrumento são armazenadas em área privada separada do Reconhecimento de Curso. Documentos só contam como validados após conferência da gestão.</p></div>
       <button type="button" onClick={()=>void state.reload()} disabled={state.busy}>{state.busy?"Consultando…":"Atualizar documentos"}</button>
@@ -82,6 +83,7 @@ export function Recred2017Overview({state}:{state:RecredDocsState}){
       <div><small>NSA justificado</small><strong>{state.summary.nsa}</strong></div>
     </div>
     {state.error&&<p role="alert" className="rec17-error">{state.error}</p>}
+    {institutionId&&can.manageGoals(role??null)&&<Suspense fallback={null}><EvidenceSearch institutionId={institutionId} section={REC2017_SECTION} label="Buscar evidências no acervo do Recredenciamento 2017"/></Suspense>}
     <p className="rec17-help">Abra um indicador e selecione a evidência exigida para cadastrar o documento, anexar o arquivo, revisar ou justificar a não aplicabilidade. O painel usa o mesmo ciclo documental do Reconhecimento de Curso, sem misturar os respectivos acervos.</p>
   </section>;
 }
