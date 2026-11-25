@@ -6,7 +6,7 @@ const institution='00000000-0000-4000-8000-000000000001';
 const user='00000000-0000-4000-8000-000000000002';
 const course='00000000-0000-4000-8000-0000000000c1';
 const tokA='a'.repeat(64),tokB='b'.repeat(64),tokX='c'.repeat(64);
-const code=ts.transpile(readFileSync('supabase/functions/vertice-learning-bridge/index.ts','utf8').replace(/^import .*\n/,''),{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.None});
+const code=ts.transpile(readFileSync('supabase/functions/vertice-learning-bridge/mastery.ts','utf8').replace(/^export /gm,'')+'\n'+readFileSync('supabase/functions/vertice-learning-bridge/index.ts','utf8').replace(/^import .*\n/gm,''),{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.None});
 const student=(token:string,status:string,extra:Record<string,unknown>={})=>({studentToken:token,courseId:course,
  engagement:{status,lastActivityAt:'2026-11-10T10:00:00Z',answersLast7Days:3,answersPrevious7Days:12,activeDaysLast14:4,pausesAcceptedLast14Days:0},
  diagnostics:[],prescriptions:[],...extra});

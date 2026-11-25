@@ -11,8 +11,8 @@ export const MASTERY_RULES={
  maxGroups:300,
 } as const;
 
-const UUID=/^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
-const TOKEN=/^[a-f0-9]{64}$/;
+const MASTERY_UUID=/^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
+const MASTERY_TOKEN=/^[a-f0-9]{64}$/;
 
 export type MasteryRecord={studentToken:string;courseId:string|null;discipline:string;theme:string;pKnow:number;attemptCount:number;correctCount:number};
 export type RosterRow={student_token:string;course_id:string;course_name:string};
@@ -21,28 +21,28 @@ export type MasteryGroup={courseId:string;courseName:string;discipline:string;th
 export type MasterySnapshot={groups:MasteryGroup[];disciplines:{discipline:string;students:number;meanPKnow:number;studentsBelow:number}[];
  coverage:{records:number;matchedStudents:number;unmatchedStudents:number;insufficientEvidence:number;suppressedGroups:number;truncatedGroups:number}};
 
-class ContractError extends Error{status=502;}
-const bad=(what:string)=>new ContractError("Contrato de domínio por competência inválido: "+what+".");
+class MasteryContractError extends Error{status=502;}
+const masteryBad=(what:string)=>new MasteryContractError("Contrato de domínio por competência inválido: "+what+".");
 
 /** Valida o envelope e cada registro. Resposta incompatível falha inteira. */
 export function masteryContract(result:unknown,inst:string):MasteryRecord[]{
- if(!result||typeof result!=="object"||Array.isArray(result))throw bad("envelope");
+ if(!result||typeof result!=="object"||Array.isArray(result))throw masteryBad("envelope");
  const r=result as Record<string,unknown>;
  if(r.institutionId!==inst||!Array.isArray(r.records)||r.records.length>MASTERY_RULES.maxRecords||
-   (r.total!==undefined&&r.total!==r.records.length))throw bad("envelope");
- const text=(v:unknown,max:number,what:string)=>{if(typeof v!=="string"||!v.trim()||v.length>max)throw bad(what);return v.trim();};
+   (r.total!==undefined&&r.total!==r.records.length))throw masteryBad("envelope");
+ const text=(v:unknown,max:number,what:string)=>{if(typeof v!=="string"||!v.trim()||v.length>max)throw masteryBad(what);return v.trim();};
  // Na origem, knowledge_components.theme é NOT NULL DEFAULT '': tema vazio é válido.
- const optionalText=(v:unknown,max:number,what:string)=>{if(typeof v!=="string"||v.length>max)throw bad(what);return v.trim();};
- const count=(v:unknown,what:string)=>{if(!Number.isSafeInteger(v)||Number(v)<0)throw bad(what);return Number(v);};
+ const optionalText=(v:unknown,max:number,what:string)=>{if(typeof v!=="string"||v.length>max)throw masteryBad(what);return v.trim();};
+ const count=(v:unknown,what:string)=>{if(!Number.isSafeInteger(v)||Number(v)<0)throw masteryBad(what);return Number(v);};
  return r.records.map((value:unknown)=>{
-  if(!value||typeof value!=="object"||Array.isArray(value))throw bad("registro");
+  if(!value||typeof value!=="object"||Array.isArray(value))throw masteryBad("registro");
   const s=value as Record<string,unknown>;
-  const studentToken=String(s.studentToken??"");if(!TOKEN.test(studentToken))throw bad("token");
+  const studentToken=String(s.studentToken??"");if(!MASTERY_TOKEN.test(studentToken))throw masteryBad("token");
   let courseId:string|null=null;
-  if(s.courseId!==null&&s.courseId!==undefined){courseId=String(s.courseId).toLowerCase();if(!UUID.test(courseId))throw bad("curso");}
-  const pKnow=s.pKnow;if(typeof pKnow!=="number"||!Number.isFinite(pKnow)||pKnow<0||pKnow>1)throw bad("probabilidade de domínio");
+  if(s.courseId!==null&&s.courseId!==undefined){courseId=String(s.courseId).toLowerCase();if(!MASTERY_UUID.test(courseId))throw masteryBad("curso");}
+  const pKnow=s.pKnow;if(typeof pKnow!=="number"||!Number.isFinite(pKnow)||pKnow<0||pKnow>1)throw masteryBad("probabilidade de domínio");
   const attemptCount=count(s.attemptCount,"tentativas"),correctCount=count(s.correctCount,"acertos");
-  if(correctCount>attemptCount)throw bad("acertos acima das tentativas");
+  if(correctCount>attemptCount)throw masteryBad("acertos acima das tentativas");
   return {studentToken,courseId,discipline:text(s.discipline,160,"disciplina"),theme:optionalText(s.theme,200,"tema"),pKnow,attemptCount,correctCount};
  });
 }
