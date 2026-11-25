@@ -2,12 +2,12 @@ import {createClient} from 'npm:@supabase/supabase-js@2.45.4';
 import {runAction} from './handler.ts';
 import {fail,type Obj} from './core.ts';
 // Política de IA (20/11/2026): o algoritmo é o padrão em todo o portal. A IA só é chamada para as funções
-// listadas em AI_FEATURES (padrão: transcrição de manuscrito, geração de questões, segunda opinião na
-// correção e redação analítica da CPA) e com a chave geral AI_SUSPENDED=false (suspensa desde 19/11/2026).
-const AI_FEATURES_DEFAULT="discursiva.transcribe,discursiva.generate,discursiva.second_opinion,cpa.analysis";
+// listadas em AI_FEATURES (padrão desde 25/11/2026: só transcrição de manuscrito e geração de questão
+// nova; a segunda opinião na correção e a redação da CPA passaram ao algoritmo) e com a chave geral AI_SUSPENDED=false (suspensa desde 19/11/2026).
+const AI_FEATURES_DEFAULT="discursiva.transcribe,discursiva.generate";
 const aiPolicy=(get:(k:string)=>string|undefined)=>(feature:string)=>String(get("AI_SUSPENDED")??"true").toLowerCase()==="false"&&String(get("AI_FEATURES")??AI_FEATURES_DEFAULT).split(",").map(x=>x.trim()).includes(feature);
 const aiAllowed=aiPolicy(k=>Deno.env.get(k));
-const __AI_FN_FEATURES:string[]=["discursiva.transcribe","discursiva.generate","discursiva.second_opinion"];
+const __AI_FN_FEATURES:string[]=["discursiva.transcribe","discursiva.generate"];
 {const __aiFetch=globalThis.fetch;const __aiHosts=/(^|\.)(api\.anthropic\.com|api\.openai\.com|generativelanguage\.googleapis\.com)$/i;
 globalThis.fetch=((input:any,init?:any)=>{let host="";try{host=new URL(typeof input==="string"?input:input instanceof URL?input.href:input.url).hostname;}catch{}
 if(__aiHosts.test(host)&&!__AI_FN_FEATURES.some(aiAllowed))
