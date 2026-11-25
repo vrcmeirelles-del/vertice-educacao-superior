@@ -15,10 +15,12 @@ const fmt = (n: number) => n.toLocaleString('pt-BR');
 const pct = (v: number, t: number) => (t > 0 ? `${Math.round((v / t) * 100)}%` : '0%');
 const colorAt = (i: number, offset = 0) => PALETTE[(i + offset) % PALETTE.length];
 
-function TooltipBox({ active, payload }: { active?: boolean; payload?: { name?: string; value?: number; payload?: { total?: number } }[] }) {
+function TooltipBox({ active, payload }: { active?: boolean; payload?: { name?: string; value?: number; payload?: { total?: number; value?: number; name?: string } }[] }) {
   if (!active || !payload?.length) return null;
   const p = payload[0];
-  return <div className="mbi-tip"><strong>{p.name}</strong><span>{fmt(Number(p.value ?? 0))}{p.payload?.total ? ` · ${pct(Number(p.value ?? 0), p.payload.total)}` : ''}</span></div>;
+  const value = p.payload?.value;
+  if (typeof value !== 'number' || !Number.isFinite(value)) return null;
+  return <div className="mbi-tip"><strong>{p.payload?.name ?? p.name}</strong><span>{fmt(value)}{p.payload?.total ? ` · ${pct(value, p.payload.total)}` : ''}</span></div>;
 }
 
 /* ── Gráficos ──────────────────────────────────────────────── */
@@ -26,7 +28,6 @@ function TooltipBox({ active, payload }: { active?: boolean; payload?: { name?: 
 type PrismRow = { name: string; value: number; total: number; fill: string; shape: number };
 
 function PrismShape({ data }: { data: PrismRow[] }) {
-  const total = data.reduce((acc, d) => acc + d.value, 0);
   return (
     <div className="mbi-prism">
       <ResponsiveContainer width="100%" height={Math.max(220, data.length * 40)}>
@@ -43,10 +44,11 @@ function PrismShape({ data }: { data: PrismRow[] }) {
             <span className="mbi-prism-dot" aria-hidden="true" />
             <span className="mbi-prism-name">{d.name}</span>
             <strong>{fmt(d.value)}</strong>
-            <em>{pct(d.value, total)}</em>
+            <em>{pct(d.value, d.total)}</em>
           </li>
         ))}
       </ol>
+      <small>Geometria ilustrativa; valores e percentuais na legenda.</small>
     </div>
   );
 }
@@ -113,12 +115,12 @@ function FacetCard({ result, offset }: { result: FacetResult; offset: number }) 
   return (
     <article className="mbi-card" style={{ ['--mbi-accent' as string]: colorAt(0, offset) }}>
       <header><h4>{facet.title}</h4><span className="mbi-chip">{kindLabel}</span></header>
-      {denied ? <p className="mbi-empty">Sem acesso a esta fonte para o seu perfil.</p>
-        : total === 0 ? <p className="mbi-empty">Sem registros desta instituição ainda.</p>
+      {denied || total === null || truncated ? <p className="mbi-empty">Dados indisponíveis para esta consulta.</p>
+        : total === 0 ? <p className="mbi-empty">Nenhum registro visível nesta instituição.</p>
         : facet.chart === 'prism' ? <PrismView slices={slices} offset={offset} />
         : facet.chart === 'bars' ? <BarsView slices={slices} offset={offset} />
         : <PieView slices={slices} donut={facet.chart === 'donut'} offset={offset} />}
-      <footer>{denied ? '' : `${fmt(total)} registro(s)${truncated ? ' · amostra dos 5.000 mais recentes' : ''}`}</footer>
+      <footer>{denied || total === null || truncated ? '' : `${fmt(total)} registro(s)`}</footer>
     </article>
   );
 }
@@ -132,6 +134,8 @@ export function ModuleBIPanel({ module, institutionId }: { module: ModuleBI; ins
   useEffect(() => {
     let alive = true;
     setResults(null);
+    setVolume(null);
+    setUpdated(null);
     Promise.all([Promise.all(module.facets.map((f) => loadFacet(institutionId, f))), loadVolume(institutionId, module.volume.table)])
       .then(([r, v]) => { if (alive) { setResults(r); setVolume(v); setUpdated(new Date()); } })
       .catch(() => { if (alive) setResults([]); });
@@ -142,7 +146,7 @@ export function ModuleBIPanel({ module, institutionId }: { module: ModuleBI; ins
     <section className="mbi-module" aria-label={`BI de ${module.label}`}>
       <div className="mbi-module-head" style={{ background: `linear-gradient(120deg, ${module.color}, ${colorAt(4, offset)})` }}>
         <span className="mbi-module-icon" aria-hidden="true">{module.icon}</span>
-        <div><h3>BI · {module.label}</h3><p>{volume === null ? 'Volume indisponível para o seu perfil' : `${fmt(volume)} ${module.volume.label}`}</p></div>
+        <div><h3>BI · {module.label}</h3><p>{!results ? 'Consultando…' : volume === null ? 'Volume indisponível' : `${fmt(volume)} ${module.volume.label}`}</p></div>
         {updated && <small>Atualizado às {updated.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</small>}
       </div>
       {!results ? <p role="status" className="mbi-loading">Montando os gráficos…</p> : (
@@ -165,7 +169,7 @@ export function ModuleBIStrip({ tab, institutionId }: { tab: string; institution
       <button type="button" className="mbi-strip-toggle" aria-expanded={open} onClick={toggle} style={{ ['--mbi-accent' as string]: module.color }}>
         <span aria-hidden="true">📊</span> {open ? 'Ocultar' : 'Mostrar'} BI deste módulo
       </button>
-      {open && <ModuleBIPanel module={module} institutionId={institutionId} />}
+      {open && <ModuleBIPanel key={`${institutionId}:${module.key}`} module={module} institutionId={institutionId} />}
     </div>
   );
 }
@@ -180,6 +184,7 @@ export function GeneralBI({ institutionId, modules }: { institutionId: string; m
   useEffect(() => {
     let alive = true;
     setVolumes(null);
+    setHighlights([]);
     Promise.all(modules.map(async (m) => ({ module: m, value: await loadVolume(institutionId, m.volume.table) })))
       .then((v) => { if (alive) setVolumes(v); });
     const picks = ['metas', 'cadastro', 'geral', 'repositorio'].map((k) => modules.find((m) => m.key === k)?.facets[0]).filter(Boolean);
@@ -190,10 +195,13 @@ export function GeneralBI({ institutionId, modules }: { institutionId: string; m
   const used = useMemo(() => (volumes ?? []).filter((v) => (v.value ?? 0) > 0).sort((a, b) => (b.value ?? 0) - (a.value ?? 0)), [volumes]);
   const total = used.reduce((s, v) => s + (v.value ?? 0), 0);
   const active = used.length;
+  const known = (volumes ?? []).filter(v => v.value !== null);
+  const unavailable = (volumes ?? []).length - known.length;
+  const zero = known.filter(v => v.value === 0).length;
   const pieData = used.map((v) => ({ name: v.module.label, value: v.value ?? 0, total, color: v.module.color }));
   const prism = used.slice(0, 8).map((v, i) => ({ name: v.module.label, value: v.value ?? 0, total, fill: colorAt(i), shape: (used[0]?.value ?? 1) * (1 - i * 0.09) }));
   const maxLog = Math.log10((used[0]?.value ?? 1) + 1) || 1;
-  const radar = (volumes ?? []).slice(0, 14).map((v) => ({ module: v.module.label.length > 16 ? v.module.label.slice(0, 15) + '…' : v.module.label, uso: Math.round((Math.log10((v.value ?? 0) + 1) / maxLog) * 100) }));
+  const radar = known.slice(0, 14).map((v) => ({ module: v.module.label.length > 16 ? v.module.label.slice(0, 15) + '…' : v.module.label, uso: Math.round((Math.log10((v.value ?? 0) + 1) / maxLog) * 100) }));
 
   return (
     <section className="mbi-general" aria-label="BI Geral da instituição">
@@ -204,12 +212,13 @@ export function GeneralBI({ institutionId, modules }: { institutionId: string; m
       {!volumes ? <p role="status" className="mbi-loading">Consolidando os módulos…</p> : (
         <>
           <div className="mbi-kpis">
-            <div className="mbi-kpi" style={{ background: 'linear-gradient(135deg,#6366f1,#ec4899)' }}><span>Registros nos módulos</span><strong>{fmt(total)}</strong></div>
-            <div className="mbi-kpi" style={{ background: 'linear-gradient(135deg,#10b981,#06b6d4)' }}><span>Módulos com dados</span><strong>{active} de {modules.length}</strong></div>
-            <div className="mbi-kpi" style={{ background: 'linear-gradient(135deg,#f59e0b,#ef4444)' }}><span>Módulo com mais registros</span><strong>{used[0]?.module.label ?? '—'}</strong></div>
-            <div className="mbi-kpi" style={{ background: 'linear-gradient(135deg,#8b5cf6,#3b82f6)' }}><span>Módulos ainda sem uso</span><strong>{modules.length - active}</strong></div>
+            <div className="mbi-kpi" style={{ background: 'linear-gradient(135deg,#6366f1,#ec4899)' }}><span>{unavailable ? 'Subtotal de registros disponíveis' : 'Registros nos módulos'}</span><strong>{known.length ? fmt(total) : '—'}</strong></div>
+            <div className="mbi-kpi" style={{ background: 'linear-gradient(135deg,#10b981,#06b6d4)' }}><span>Módulos com dados</span><strong>{active} de {known.length} consultados</strong></div>
+            <div className="mbi-kpi" style={{ background: 'linear-gradient(135deg,#f59e0b,#ef4444)' }}><span>Módulo com mais registros disponíveis</span><strong>{used[0]?.module.label ?? '—'}</strong></div>
+            <div className="mbi-kpi" style={{ background: 'linear-gradient(135deg,#8b5cf6,#3b82f6)' }}><span>Módulos sem registros visíveis</span><strong>{known.length ? zero : '—'}</strong></div>
           </div>
-          {total === 0 ? <p className="mbi-empty">Ainda não há registros nos módulos desta instituição.</p> : (
+          {unavailable > 0 && <p role="status">{unavailable} módulo(s) com dados indisponíveis. Os gráficos representam apenas dados disponíveis.</p>}
+          {total === 0 ? <p className="mbi-empty">{unavailable ? 'Sem registros positivos nas fontes disponíveis; cobertura incompleta.' : 'Nenhum registro visível nos módulos consultados.'}</p> : (
             <div className="mbi-grid">
               <article className="mbi-card mbi-wide"><header><h4>Volume por módulo</h4><span className="mbi-chip">Pizza</span></header>
                 <ResponsiveContainer width="100%" height={300}>
@@ -240,7 +249,7 @@ export function GeneralBI({ institutionId, modules }: { institutionId: string; m
               <article className="mbi-card mbi-wide"><header><h4>Registros por módulo</h4><span className="mbi-chip">Barras</span></header>
                 <BarsView slices={used.map((v) => ({ name: v.module.label, value: v.value ?? 0, raw: v.module.key }))} offset={0} />
               </article>
-              {highlights.filter((h) => h.total > 0).map((h, i) => <FacetCard key={h.facet.table + h.facet.column} result={h} offset={5 + i * 3} />)}
+              {highlights.map((h, i) => <FacetCard key={h.facet.table + h.facet.column} result={h} offset={5 + i * 3} />)}
             </div>
           )}
         </>
@@ -258,6 +267,7 @@ export default function ManagementBIArea({ institutionId, availableTabs }: { ins
   const panelRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     let alive = true;
+    setCounts({});
     Promise.all(modules.map(async (m) => [m.key, await loadVolume(institutionId, m.volume.table)] as const))
       .then((r) => { if (alive) setCounts(Object.fromEntries(r)); });
     return () => { alive = false; };
@@ -269,7 +279,7 @@ export default function ManagementBIArea({ institutionId, availableTabs }: { ins
   const current = modules.find((m) => m.key === selected) ?? null;
   return (
     <div className="mbi-area">
-      <GeneralBI institutionId={institutionId} modules={modules} />
+      <GeneralBI key={`${institutionId}:${modules.map(m => m.key).join(',')}`} institutionId={institutionId} modules={modules} />
       <section aria-label="BIs por módulo">
         <h3 className="mbi-section-title">📊 BIs por módulo</h3>
         <div className="mbi-tiles">
@@ -280,13 +290,13 @@ export default function ManagementBIArea({ institutionId, availableTabs }: { ins
                 style={{ background: `linear-gradient(135deg, ${m.color}, ${colorAt(i + 5)})` }}>
                 <span className="mbi-tile-icon" aria-hidden="true">{m.icon}</span>
                 <strong>{m.label}</strong>
-                <small>{n === undefined ? '…' : n === null ? 'sem acesso' : `${fmt(n)} ${m.volume.label}`}</small>
+                <small>{n === undefined ? '…' : n === null ? 'indisponível' : `${fmt(n)} ${m.volume.label}`}</small>
               </button>
             );
           })}
         </div>
       </section>
-      <div ref={panelRef}>{current && <ModuleBIPanel key={current.key} module={current} institutionId={institutionId} />}</div>
+      <div ref={panelRef}>{current && <ModuleBIPanel key={`${institutionId}:${current.key}`} module={current} institutionId={institutionId} />}</div>
     </div>
   );
 }
