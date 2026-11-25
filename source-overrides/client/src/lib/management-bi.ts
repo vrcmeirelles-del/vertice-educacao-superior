@@ -222,21 +222,47 @@ export function labelOf(value: unknown): string {
 }
 
 export interface Slice { name: string; value: number; raw: string }
-export interface FacetResult { facet: Facet; slices: Slice[]; total: number; denied: boolean; truncated: boolean }
+export interface FacetResult { facet: Facet; slices: Slice[]; total: number | null; denied: boolean; truncated: boolean; status: 'ok' | 'unavailable' }
 
-const MAX_ROWS = 5000;
-
-/** Distribuição real de uma coluna, só da instituição informada (RLS do usuário aplica). */
+const PAGE_SIZE = 500;
+// Chaves primárias verificadas no catálogo PostgreSQL em 25/11/2026.
+const PRIMARY_KEYS: Record<string, string[]> = {
+  vertice_avalia_risk_signals: ['student_id', 'course_id'],
+  vertice_memberships: ['user_id', 'institution_id'],
+  vertice_onedrive_documentos: ['file_id'],
+};
+function unavailable(facet: Facet, denied = false): FacetResult {
+  return { facet, slices: [], total: null, denied, truncated: false, status: 'unavailable' };
+}
+/** Agregação de registros visíveis ao usuário, com paginação estável. */
 export async function loadFacet(institutionId: string, facet: Facet): Promise<FacetResult> {
-  const { data, error } = await supabase.from(facet.table).select(facet.column).eq('institution_id', institutionId).limit(MAX_ROWS);
-  if (error) return { facet, slices: [], total: 0, denied: true, truncated: false };
-  const rows = (data ?? []) as unknown as Record<string, unknown>[];
-  const counts = new Map<string, number>();
-  for (const row of rows) {
-    const v = row[facet.column];
-    const k = v === null || v === undefined || v === '' ? '' : String(v);
-    counts.set(k, (counts.get(k) ?? 0) + 1);
-  }
+  try {
+    const expected = await loadVolume(institutionId, facet.table);
+    if (expected === null) return unavailable(facet);
+    const counts = new Map<string, number>();
+    const seen = new Set<string>();
+    const keys = PRIMARY_KEYS[facet.table] ?? ['id'];
+    let offset = 0;
+    while (offset < expected) {
+      let query = supabase.from(facet.table)
+        .select([...new Set([...keys, facet.column])].join(',')).eq('institution_id', institutionId);
+      for (const key of keys) query = query.order(key, { ascending: true });
+      const { data, error } = await query.range(offset, offset + PAGE_SIZE - 1);
+      if (error || !data?.length) return unavailable(facet, error?.code === '42501');
+      const rows = data as unknown as Record<string, unknown>[];
+      for (const row of rows) {
+        if (keys.some(key => row[key] == null)) return unavailable(facet);
+        const identity = JSON.stringify(keys.map(key => row[key]));
+        if (seen.has(identity)) return unavailable(facet);
+        seen.add(identity);
+        const v = row[facet.column];
+        const k = v == null || v === '' ? '' : String(v);
+        counts.set(k, (counts.get(k) ?? 0) + 1);
+      }
+      offset += rows.length;
+      if (offset > expected) return unavailable(facet);
+    }
+    if (await loadVolume(institutionId, facet.table) !== expected) return unavailable(facet);
   let slices = [...counts.entries()].map(([raw, value]) => ({ raw, value, name: labelOf(raw) }));
   if (facet.chart === 'prism' && facet.order) {
     const norm = (s: string) => s.toLowerCase();
@@ -250,11 +276,14 @@ export async function loadFacet(institutionId: string, facet: Facet): Promise<Fa
     const rest = slices.slice(8).reduce((s, x) => s + x.value, 0);
     slices = [...top, { name: 'Outros', value: rest, raw: '__outros' }];
   }
-  return { facet, slices, total: rows.length, denied: false, truncated: rows.length >= MAX_ROWS };
+  return { facet, slices, total: expected, denied: false, truncated: false, status: 'ok' };
+  } catch { return unavailable(facet); }
 }
 
 /** Total de registros do módulo (contagem exata, sem trazer linhas). */
 export async function loadVolume(institutionId: string, table: string): Promise<number | null> {
-  const { count, error } = await supabase.from(table).select('institution_id', { count: 'exact', head: true }).eq('institution_id', institutionId);
-  return error ? null : count ?? 0;
+  try {
+    const { count, error } = await supabase.from(table).select('institution_id', { count: 'exact', head: true }).eq('institution_id', institutionId);
+    return error || count == null || !Number.isSafeInteger(count) || count < 0 ? null : count;
+  } catch { return null; }
 }
