@@ -1,7 +1,8 @@
 // Relatório da CPA montado a partir dos dados (auditoria de 20/11/2026).
 // Seções de dados (2 a 8 e 11) e a introdução regulatória saem por modelo de texto.
-// Seções analíticas (9, 10 e 12) recebem um roteiro com os dados para a CPA redigir;
-// a redação por IA nessas três é opcional e só ocorre com a IA religada.
+// Seções analíticas (9, 10 e 12) recebem um rascunho redigido por algoritmo (regras cpa-analise-v1):
+// classificação das dimensões por limites fixos, cruzamento com os achados da CPA e encaminhamentos
+// derivados dos dados. Sem IA. O que os dados não sustentam fica declarado como lacuna para a CPA.
 
 export const SECTIONS = ["introducao", "dados_ies", "composicao_cpa", "planejamento", "metodologia", "resultados", "avaliacoes_externas", "participacao", "diagnostico", "sensibilizacao", "planos_melhoria", "consideracoes"] as const;
 export const TITLES: Record<string, string> = {
@@ -12,7 +13,10 @@ export const TITLES: Record<string, string> = {
 };
 export const ANALYTIC = new Set(["diagnostico", "sensibilizacao", "consideracoes"]);
 export const NOTE_DATA = "Montado a partir dos dados do sistema — conferir e aprovar pela CPA";
-export const NOTE_GUIDE = "Roteiro com os dados — análise a redigir pela CPA";
+export const NOTE_GUIDE = "Rascunho analítico por algoritmo (cpa-analise-v1) — revisar, completar e aprovar pela CPA";
+export const CPA_ANALISE_VERSION = "cpa-analise-v1";
+// Limites da escala 1–5 usados na leitura das dimensões (versionados com CPA_ANALISE_VERSION).
+export const LIMITE_POTENCIALIDADE = 4.0, LIMITE_FRAGILIDADE = 3.0;
 
 type Any = Record<string, any>;
 export type CpaData = {
@@ -29,6 +33,14 @@ const FT: Record<string, string> = { fragilidade: "Fragilidades", potencialidade
 const AS: Record<string, string> = { planejada: "planejada", em_execucao: "em execução", executada: "executada", cancelada: "cancelada", avaliada: "avaliada" };
 const totalResponses = (d: CpaData) => d.results.reduce((s, r) => s + Number(r.total_responses || 0), 0);
 const items = (r: Any) => (Array.isArray(r.questions) ? r.questions : []).filter((q: Any) => q.avg_score !== null && q.avg_score !== undefined);
+const fold = (v: unknown) => String(v || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+type Dim = { dimension: string; aud: string; avg: number };
+const dimensions = (d: CpaData): Dim[] => d.results.flatMap((r) => (Array.isArray(r.by_dimension) ? r.by_dimension : [])
+  .filter((x: Any) => x?.dimension && Number.isFinite(Number(x.avg_score)) && x.avg_score !== null && x.avg_score !== "")
+  .map((x: Any): Dim => ({ dimension: String(x.dimension), aud: String(r.target_audience || ""), avg: Number(x.avg_score) })));
+const band = (v: number) => v >= LIMITE_POTENCIALIDADE ? "potencialidade" : v <= LIMITE_FRAGILIDADE ? "fragilidade" : "intermediaria";
+const dimLine = (x: Dim) => `${x.dimension} (${aud(x.aud)}): média ${num(x.avg)}`;
+const hasFinding = (d: CpaData, type: string, dim: string) => d.findings.some((f) => f.finding_type === type && fold(f.dimension) === fold(dim));
 
 function sectionText(key: string, d: CpaData): string {
   const i = d.inst || {};
@@ -103,39 +115,63 @@ function sectionText(key: string, d: CpaData): string {
         ...d.actions.map((a) => `• ${a.title} — ${AS[String(a.status)] || a.status || "situação não informada"}${a.responsible ? `; responsável: ${a.responsible}` : ""}${a.due_date ? `; prazo: ${date(a.due_date)}` : ""}.`)].join("\n");
     }
     case "diagnostico": {
-      const out = ["Roteiro para a análise da CPA, com os dados do sistema:"];
+      const dims = dimensions(d);
+      const pot = dims.filter((x) => band(x.avg) === "potencialidade").sort((a, b) => b.avg - a.avg);
+      const frag = dims.filter((x) => band(x.avg) === "fragilidade").sort((a, b) => a.avg - b.avg);
+      const mid = dims.filter((x) => band(x.avg) === "intermediaria");
+      const out: string[] = [];
+      if (dims.length) {
+        out.push(`Foram analisadas ${dims.length} médias por dimensão do SINAES, na escala de 1 a 5. Pelos limites desta análise (${num(LIMITE_POTENCIALIDADE, 1)} ou mais indica potencialidade; ${num(LIMITE_FRAGILIDADE, 1)} ou menos indica fragilidade), os dados apontam ${pot.length} dimensão(ões) como potencialidade, ${frag.length} como fragilidade e ${mid.length} em desempenho intermediário.`);
+        if (pot.length) out.push("", "Potencialidades indicadas pelos dados:", ...pot.map((x) => `• ${dimLine(x)}.`));
+        if (frag.length) out.push("", "Fragilidades indicadas pelos dados:", ...frag.map((x) => `• ${dimLine(x)}.`));
+      } else out.push("Não há médias por dimensão registradas; a leitura por dimensão do SINAES não pode ser feita com os dados do sistema.");
       const byType = new Map<string, Any[]>();
       for (const f of d.findings) { const k = String(f.finding_type || "neutro"); byType.set(k, [...(byType.get(k) || []), f]); }
-      for (const k of ["potencialidade", "fragilidade", "risco", "oportunidade", "neutro"]) {
-        const fs = byType.get(k); if (!fs?.length) continue;
-        out.push("", `${FT[k]}:`); for (const f of fs) out.push(`• ${f.title}${f.dimension ? ` (dimensão: ${f.dimension})` : ""}${f.indicator_name ? ` — ${f.indicator_name}: ${f.indicator_value ?? "—"}` : ""}`);
+      if (d.findings.length) {
+        out.push("", `A CPA registrou ${d.findings.length} achado(s):`);
+        for (const k of ["potencialidade", "fragilidade", "risco", "oportunidade", "neutro"]) {
+          const fs = byType.get(k); if (!fs?.length) continue;
+          out.push(`${FT[k]}:`, ...fs.map((f) => `• ${f.title}${f.dimension ? ` (dimensão: ${f.dimension})` : ""}${f.indicator_name ? ` — ${f.indicator_name}: ${f.indicator_value ?? "—"}` : ""}`));
+        }
+      } else out.push("", "Não há achados registrados pela CPA para confrontar com os resultados.");
+      const semAchado = frag.filter((x) => !hasFinding(d, "fragilidade", x.dimension));
+      const divergente = pot.filter((x) => hasFinding(d, "fragilidade", x.dimension));
+      if (semAchado.length || divergente.length) {
+        out.push("", "Pontos para a CPA conferir:");
+        for (const x of semAchado) out.push(`• ${x.dimension}: média ${num(x.avg)} no limite de fragilidade, sem fragilidade registrada nessa dimensão.`);
+        for (const x of divergente) out.push(`• ${x.dimension}: média ${num(x.avg)} no limite de potencialidade, mas há fragilidade registrada nessa dimensão; conferir se o achado se refere a outro público ou indicador.`);
       }
-      const dims: Any[] = d.results.flatMap((r) => (Array.isArray(r.by_dimension) ? r.by_dimension : []).map((x: Any): Any => ({ ...x, aud: r.target_audience })));
-      if (dims.length >= 2) {
-        const s = [...dims].sort((a, b) => Number(a.avg_score) - Number(b.avg_score));
-        out.push("", "Dimensões com menor média:", ...s.slice(0, 3).map((x) => `• ${x.dimension || "—"} (${aud(x.aud)}): ${num(x.avg_score)}`));
-        out.push("", "Dimensões com maior média:", ...s.slice(-3).reverse().map((x) => `• ${x.dimension || "—"} (${aud(x.aud)}): ${num(x.avg_score)}`));
-      }
-      if (out.length === 1) out.push("", "Não há achados nem resultados por dimensão registrados.");
-      out.push("", "A redigir: relacionar os achados ao PDI e aos eixos do SINAES, distinguindo potencialidades e fragilidades.");
+      out.push("", "Lacunas que os dados do sistema não cobrem: comparação com o ciclo anterior (resultados de ciclos anteriores não fazem parte desta coleta) e vínculo dos achados com as metas do PDI; a CPA deve completá-las.");
       return out.join("\n");
     }
     case "sensibilizacao": {
       const channels = [...new Set(d.campaigns.flatMap((c) => Array.isArray(c.channels) ? c.channels : []))];
-      return ["Roteiro para a CPA:", "",
-        `• Canais usados nas campanhas: ${channels.length ? channels.join(", ") : "não registrados"}.`,
-        "• A redigir: ações de sensibilização antes e durante a coleta (reuniões, comunicados, visitas às turmas).",
-        "• A redigir: como os resultados foram devolvidos à comunidade acadêmica (relatórios por segmento, reuniões, publicação no site)."].join("\n");
+      const auds = [...new Set(d.campaigns.map((c) => String(c.target_audience || "")).filter(Boolean))];
+      const semResposta = d.campaigns.filter((c) => !d.results.some((r) => r.campaign_title === c.title && Number(r.total_responses || 0) > 0));
+      const out = [d.campaigns.length
+        ? `A coleta envolveu ${d.campaigns.length} campanha(s), dirigida(s) a ${auds.length ? auds.map(aud).join(", ") : "públicos não informados"}, com divulgação por ${channels.length ? channels.join(", ") : "canais não registrados no sistema"}.`
+        : "Não há campanhas registradas no período; não há base para descrever a sensibilização a partir dos dados."];
+      if (d.results.length) out.push("", "Participação obtida por público:", ...d.results.map((r) => `• ${aud(r.target_audience)}: ${r.total_responses || 0} resposta(s).`));
+      if (semResposta.length) out.push("", "Campanhas sem respostas concluídas, a examinar na estratégia de divulgação:", ...semResposta.map((c) => `• ${c.title}.`));
+      out.push("", "Lacunas que os dados do sistema não cobrem: ações presenciais de sensibilização (reuniões, visitas às turmas) e a forma de devolutiva dos resultados à comunidade; a CPA deve registrá-las.");
+      return out.join("\n");
     }
     case "consideracoes": {
-      const frag = d.findings.filter((f) => f.finding_type === "fragilidade").length;
-      const pot = d.findings.filter((f) => f.finding_type === "potencialidade").length;
+      const dims = dimensions(d);
+      const nFrag = dims.filter((x) => band(x.avg) === "fragilidade").length, nPot = dims.filter((x) => band(x.avg) === "potencialidade").length;
+      const fragAchados = d.findings.filter((f) => f.finding_type === "fragilidade").length;
+      const potAchados = d.findings.filter((f) => f.finding_type === "potencialidade").length;
       const done = d.actions.filter((a) => ["executada", "avaliada"].includes(String(a.status))).length;
-      return ["Roteiro para a síntese da CPA, com os números do ciclo:", "",
-        `• ${d.campaigns.length} campanha(s), ${totalResponses(d)} resposta(s) concluída(s).`,
-        `• ${pot} potencialidade(s) e ${frag} fragilidade(s) registradas.`,
-        `• ${d.actions.length} ação(ões) de melhoria, ${done} executada(s) ou avaliada(s).`,
-        "", "A redigir: síntese do ciclo, limitações do processo e encaminhamentos para o próximo ano."].join("\n");
+      const ausentes = Object.keys(AUD).filter((k) => !d.campaigns.some((c) => c.target_audience === k)).map(aud);
+      const out = [`No ciclo ${d.yearBase}, a CPA conduziu ${d.campaigns.length} campanha(s), com ${totalResponses(d)} resposta(s) concluída(s). Os resultados por dimensão indicam ${nPot} potencialidade(s) e ${nFrag} fragilidade(s) pelos limites desta análise; a CPA registrou ${potAchados} potencialidade(s) e ${fragAchados} fragilidade(s) como achados. Das ${d.actions.length} ação(ões) de melhoria registradas, ${done} estão executadas ou avaliadas.`];
+      const enc: string[] = [];
+      if (nFrag) enc.push(`aprofundar a análise das ${nFrag} dimensão(ões) no limite de fragilidade e definir responsáveis e prazos`);
+      if (d.actions.length > done) enc.push(`acompanhar as ${d.actions.length - done} ação(ões) de melhoria ainda não concluídas`);
+      if (ausentes.length) enc.push(`incluir na próxima coleta os públicos não consultados neste ciclo: ${ausentes.join(", ")}`);
+      enc.push("registrar no sistema os resultados de avaliações externas (ENADE, CPC, IGC, avaliações in loco) para a próxima análise");
+      out.push("", "Encaminhamentos derivados dos dados:", ...enc.map((e) => `• ${e[0].toUpperCase()}${e.slice(1)}.`));
+      out.push("", "Lacuna: limitações do processo percebidas pela CPA (adesão, calendário, instrumentos) não estão no sistema e devem ser descritas pela comissão.");
+      return out.join("\n");
     }
   }
   return "";

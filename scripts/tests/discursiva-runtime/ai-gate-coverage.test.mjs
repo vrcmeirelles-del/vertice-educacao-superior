@@ -56,5 +56,5 @@ test('bibliotecas que citam provedor só são importadas dentro da função com 
 
 test('a varredura enxerga os arquivos que já sabemos citar provedor (sanidade)', () => {
   const seen = files.filter((f) => HOST.test(read(f)));
-  for (const f of ['supabase/functions/vertice-discursiva/index.ts', 'source-overrides/supabase/functions/vertice-cpa-report/index.ts']) assert.ok(seen.includes(f), f);
+  for (const f of ['supabase/functions/vertice-discursiva/index.ts', 'supabase/functions/vertice-demo/index.ts']) assert.ok(seen.includes(f), f);
 });
