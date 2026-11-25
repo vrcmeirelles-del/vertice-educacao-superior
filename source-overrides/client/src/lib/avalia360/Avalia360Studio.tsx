@@ -378,6 +378,18 @@ export default function Avalia360Studio({institutionId,courses,institutionName,p
   setLoaded(null);setPreview(false);setStep(2);
   setStatus('Rascunho carregado na versão '+found.draft.revision+'. Ao salvar, será gravada a versão '+(found.draft.revision+1)+'.');
  };
+ const deleteDraft=async(draftId:string)=>{
+  if(!window.confirm('Excluir permanentemente este rascunho? Esta ação não pode ser desfeita.'))return;
+  setBusy(true);setErrors([]);setStatus('Excluindo rascunho…');
+  try{
+   const {error}=await supabase.rpc('vertice_avalia_draft',{p_action:'delete',p_institution_id:institutionId,p_course_id:courseId,p_discipline:disciplineId,p_draft_id:draftId});
+   if(error)throw error;
+   setDrafts(prev=>prev?.filter(d=>d.id!==draftId)??null);
+   if(receipt?.id===draftId){setReceipt(null);setSavedFingerprint(null);setReviewEvents(null);setApplying(null);}
+   setStatus('Rascunho excluído.');
+  }catch(e){setStatus('Falha ao excluir.');setErrors([e instanceof Error?e.message:'Erro ao excluir o rascunho.']);}
+  finally{setBusy(false);}
+ };
  const checklist=useMemo(()=>checkAssessment(questions,{
   requiredCompetencyIds:pedagogy.requiredCompetencyIds,requiredTopicIds:pedagogy.requiredTopicIds,
   competencyLabels:Object.fromEntries(pedagogy.competencies.map(c=>[c.id,c.code+' '+c.title])),
@@ -467,32 +479,37 @@ export default function Avalia360Studio({institutionId,courses,institutionName,p
    </label>
    <p style={{fontSize:12,color:'#64748b',marginBottom:0}}>Título, instruções, semestre e finalidade são versionados com o rascunho. O vínculo a competências depende de catálogo institucional validado.</p>
   </div>
-  {!previewMode&&courseId&&<div style={{margin:'0 0 12px'}}><button type="button" style={btn(readinessOpen)} onClick={()=>setReadinessOpen(v=>!v)}>
-   {readinessOpen?'Fechar prontidão e risco':'Prontidão ENADE/OAB e risco acadêmico do curso'}</button></div>}
-  {!previewMode&&courseId&&readinessOpen&&<ReadinessRiskPanel key={courseId} institutionId={institutionId} courseId={courseId} courseName={courses.find(c=>c.id===courseId)?.name||''}/>}
-  {!previewMode&&courseId&&disciplineId.trim()&&<div style={{margin:'0 0 12px'}}>
-   <button type="button" style={btn(assembling)} onClick={()=>setAssembling(v=>!v)}>{assembling?'Fechar montagem automática':'Montar prova a partir do banco'}</button>{' '}
-   <button type="button" style={btn(recoveryFor===disciplineId.trim())} onClick={()=>setRecoveryFor(v=>v===disciplineId.trim()?null:disciplineId.trim())}>
-    {recoveryFor===disciplineId.trim()?'Fechar recuperação':'Recuperação personalizada'}</button>
-  </div>}
-  {!previewMode&&courseId&&disciplineId.trim()&&recoveryFor===disciplineId.trim()&&<RecoveryPanel institutionId={institutionId} courseId={courseId} discipline={disciplineId.trim()}/>}
-  {!previewMode&&courseId&&disciplineId.trim()&&assembling&&<AssemblyPanel institutionId={institutionId} courseId={courseId} discipline={disciplineId.trim()}
-   catalog={pedagogy.competencies} defaultTarget={pedagogy.targetDifficulty}
-   onAssemble={(assembled,catalog,requiredIds)=>{
-    if(questions.length&&!window.confirm('Substituir as '+questions.length+' questão(ões) em edição pela prova montada? O rascunho atual salvo no servidor não é alterado.'))return;
-    uploads.current.clear();setReceipt(null);setSavedFingerprint(null);setReviewEvents(null);setLoaded(null);setApplying(null);
-    setQuestions(assembled);setActiveIndex(0);setCurationHistory([]);
-    setPedagogy(p=>({...p,competencies:catalog,requiredCompetencyIds:[...new Set([...p.requiredCompetencyIds.filter(id=>catalog.some(c=>c.id===id)),...requiredIds])]}));
-    setAssembling(false);setStep(2);
-    setStatus('Prova montada com '+assembled.length+' questão(ões) do banco. Revise, salve e envie ao colegiado: a montagem não dispensa a validação.');
-   }}/>}
-  {!previewMode&&courseId&&disciplineId.trim()&&<div style={{margin:'0 0 16px'}}>
-   {diagnosisFor!==disciplineId.trim()
-    ?<button type="button" style={btn(false)} onClick={()=>setDiagnosisFor(disciplineId.trim())}>Diagnóstico por competência da disciplina</button>
-    :<><button type="button" style={btn(false)} onClick={()=>setDiagnosisFor(null)}>Ocultar diagnóstico</button>
-      <CompetencyDiagnosisPanel institutionId={institutionId} courseId={courseId} scope={{discipline:disciplineId.trim()}}
-       title={'Diagnóstico por competência · '+disciplineId.trim()+' (aplicações encerradas)'}/></>}
-  </div>}
+  {!previewMode&&courseId&&<details className="avalia-deep-options" style={{marginBottom:16}}>
+   <summary>🔧 Ferramentas avançadas do curso</summary>
+   <div style={{marginTop:12,display:'grid',gap:12}}>
+    <div><button type="button" style={btn(readinessOpen)} onClick={()=>setReadinessOpen(v=>!v)}>
+     {readinessOpen?'Fechar prontidão e risco':'Prontidão ENADE/OAB e risco acadêmico do curso'}</button></div>
+    {readinessOpen&&<ReadinessRiskPanel key={courseId} institutionId={institutionId} courseId={courseId} courseName={courses.find(c=>c.id===courseId)?.name||''}/>}
+    {disciplineId.trim()&&<div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+     <button type="button" style={btn(assembling)} onClick={()=>setAssembling(v=>!v)}>{assembling?'Fechar montagem automática':'Montar prova a partir do banco'}</button>
+     <button type="button" style={btn(recoveryFor===disciplineId.trim())} onClick={()=>setRecoveryFor(v=>v===disciplineId.trim()?null:disciplineId.trim())}>
+      {recoveryFor===disciplineId.trim()?'Fechar recuperação':'Recuperação personalizada'}</button>
+    </div>}
+    {disciplineId.trim()&&recoveryFor===disciplineId.trim()&&<RecoveryPanel institutionId={institutionId} courseId={courseId} discipline={disciplineId.trim()}/>}
+    {disciplineId.trim()&&assembling&&<AssemblyPanel institutionId={institutionId} courseId={courseId} discipline={disciplineId.trim()}
+     catalog={pedagogy.competencies} defaultTarget={pedagogy.targetDifficulty}
+     onAssemble={(assembled,catalog,requiredIds)=>{
+      if(questions.length&&!window.confirm('Substituir as '+questions.length+' questão(ões) em edição pela prova montada? O rascunho atual salvo no servidor não é alterado.'))return;
+      uploads.current.clear();setReceipt(null);setSavedFingerprint(null);setReviewEvents(null);setLoaded(null);setApplying(null);
+      setQuestions(assembled);setActiveIndex(0);setCurationHistory([]);
+      setPedagogy(p=>({...p,competencies:catalog,requiredCompetencyIds:[...new Set([...p.requiredCompetencyIds.filter(id=>catalog.some(c=>c.id===id)),...requiredIds])]}));
+      setAssembling(false);setStep(2);
+      setStatus('Prova montada com '+assembled.length+' questão(ões) do banco. Revise, salve e envie ao colegiado: a montagem não dispensa a validação.');
+     }}/>}
+    {disciplineId.trim()&&<div>
+     {diagnosisFor!==disciplineId.trim()
+      ?<button type="button" style={btn(false)} onClick={()=>setDiagnosisFor(disciplineId.trim())}>Diagnóstico por competência da disciplina</button>
+      :<><button type="button" style={btn(false)} onClick={()=>setDiagnosisFor(null)}>Ocultar diagnóstico</button>
+        <CompetencyDiagnosisPanel institutionId={institutionId} courseId={courseId} scope={{discipline:disciplineId.trim()}}
+         title={'Diagnóstico por competência · '+disciplineId.trim()+' (aplicações encerradas)'}/></>}
+    </div>}
+   </div>
+  </details>}
 
     <div className="avalia-actions">
      <button type="button" className="avalia-action-primary" onClick={()=>{if(!questions.length)add();setStep(2)}}>Começar a elaborar questões →</button>
@@ -798,12 +815,16 @@ export default function Avalia360Studio({institutionId,courses,institutionName,p
     </div>
    </>}
    {step===3&&<>
+      {/* === BLOCO 1: Ações principais === */}
       <div style={cardStyle}>
    <h3 style={{marginTop:0}}>Revisar e finalizar</h3>
    <div style={{display:'flex',gap:9,flexWrap:'wrap',marginBottom:12}}>
-    <button type="button" style={btn(false)} onClick={()=>{setPreview(!preview);setErrors([]);}}>{preview?'Ocultar prévia':'Pré-visualizar caderno'}</button>
-    <button type="button" style={btn(true)} disabled={busy||!persistenceAvailable||locked} onClick={save}>{busy?'Processando…':previewMode?(receipt?'Atualizar demonstração local':'Guardar demonstração local'):(receipt?'Salvar nova versão':'Salvar rascunho no Supabase')}</button>
-    {receipt&&<button type="button" style={btn(false)} disabled={busy} onClick={()=>reopen()}>Reabrir do servidor</button>}
+    <button type="button" style={btn(true)} disabled={busy||!persistenceAvailable||locked} onClick={save}>{busy?'Processando…':previewMode?(receipt?'Atualizar demonstração local':'Guardar demonstração local'):(receipt?'Salvar nova versão':'💾 Salvar rascunho')}</button>
+    {!previewMode&&persistenceAvailable&&<button type="button" style={{...btn(true),background:'#0B7847',borderColor:'#0B7847'}} disabled={busy} onClick={()=>void validateAndApply()}>✅ Validar e liberar PDF com QR</button>}
+    <button type="button" style={btn(false)} disabled={reviewPdfBusy} onClick={()=>void generateReviewPdf()}>
+     {reviewPdfBusy?'Gerando…':'📄 Baixar prévia em PDF'}
+    </button>
+    <button type="button" style={btn(false)} onClick={()=>{setPreview(!preview);setErrors([]);}}>{preview?'Ocultar prévia':'👁 Pré-visualizar'}</button>
    </div>
    {!previewMode&&receipt&&<p role="status" style={{fontSize:13,margin:'0 0 8px'}}>Situação: <strong>{statusLabel[receipt.status]}</strong>
     {locked?' · versão salva em modo de consulta.':dirty?' · há alterações não salvas.':' · versão salva e disponível para validação técnica.'}</p>}
@@ -811,52 +832,55 @@ export default function Avalia360Studio({institutionId,courses,institutionName,p
     <strong>Caderno devolvido pelo colegiado (versão {lastReturn.revision}).</strong> Corrija, salve e envie de novo.
     {reviewEvents&&<ReviewHistory events={reviewEvents}/>}
    </div>}
-   {!previewMode&&<div style={{margin:'0 0 12px'}}>
-    <button type="button" style={btn(false)} disabled={reviewPdfBusy} onClick={()=>void generateReviewPdf()}>
-     {reviewPdfBusy?'Gerando prévia…':'Baixar prévia em PDF'}
-    </button>
-    <p className="avalia-help">Caderno e cartão para conferência, sem lista nominal ou QR.</p>
-    {reviewPdfError&&<p role="alert" style={{color:'#982F2F'}}>{reviewPdfError}</p>}
-   </div>}
-   {!previewMode&&persistenceAvailable&&<section aria-label="Emissão nominal com QR registrado"
-    style={{background:light,border:'1px solid '+line,borderRadius:9,padding:12,marginBottom:12}}>
-    <h4 style={{margin:'0 0 6px'}}>Emissão nominal com QR registrado</h4>
-    {receipt?.status==='validated'?<>
-     <p style={{fontSize:13,margin:'0 0 8px'}}>Em Aplicação e respostas, registre ou abra a aplicação da turma. Depois acesse Cadernos com QR registrado para emitir o PDF.</p>
-     {applying!==receipt.id&&<button type="button" style={btn(true)} onClick={()=>setApplying(receipt.id)}>Abrir Aplicação e respostas</button>}
-    </>:receipt?.status==='archived'?<p role="note" style={{fontSize:13,margin:0}}>Abra um caderno validado para emitir o PDF da turma.</p>:<>
-     <p style={{fontSize:13,margin:'0 0 8px'}}>O sistema confere os dados do caderno e aponta o que precisa de correção. Após validar, a aplicação da turma fica disponível para gerar o PDF.</p>
-     <button type="button" style={btn(true)} disabled={busy} onClick={()=>void validateAndApply()}>Validar e liberar PDF com QR</button>
-    </>}
-   </section>}
-   {!previewMode&&applying&&courseId&&<ApplicationPanel key={applying} institutionId={institutionId} courseId={courseId} discipline={disciplineId}
-     draftId={applying} onClose={()=>setApplying(null)} courseName={courses.find(c=>c.id===courseId)?.name||''} institutionName={institutionName}/>}
-   <ChecklistPanel result={checklist}/>
-   {persistenceAvailable&&<div style={{display:'flex',gap:8,alignItems:'end',flexWrap:'wrap',margin:'12px 0'}}>
-     <label style={{...labelStyle,flex:'1 1 230px'}}>Consultar rascunho existente por ID
-       <input value={lookupId} onChange={e=>setLookupId(e.target.value)} style={inputStyle}
-         placeholder="Cole o identificador do rascunho salvo"/>
-     </label>
-     <button type="button" style={btn(false)} disabled={busy||!lookupId.trim()}
-       onClick={()=>reopen(lookupId)}>Consultar versão salva</button>
-     {!previewMode&&<button type="button" style={btn(false)} disabled={busy||!courseId||!disciplineId.trim()}
-       onClick={()=>void listDrafts()}>Meus rascunhos desta disciplina</button>}
-   </div>}
-   {!previewMode&&drafts&&drafts.length>0&&<ul aria-label="Rascunhos salvos" style={{listStyle:'none',padding:0,margin:'0 0 12px',display:'grid',gap:8}}>
-    {drafts.map(d=><li key={d.id} style={{border:'1px solid '+line,borderRadius:9,padding:'10px 12px',display:'flex',gap:10,alignItems:'center',flexWrap:'wrap',justifyContent:'space-between'}}>
-     <span><strong>{d.title}</strong> · {d.semester} · {d.questionCount} questão(ões) · versão {d.revision} · {new Date(d.updatedAt).toLocaleString('pt-BR')}{d.status!=='draft'?' · '+d.status:''}</span>
-     <span style={{display:'flex',gap:6}}>
-      <button type="button" style={btn(false)} disabled={busy} onClick={()=>void reopen(d.id)}>Consultar</button>
-      {(d.status==='draft'||d.status==='submitted')&&<button type="button" style={btn(true)} disabled={busy} onClick={()=>void continueEditing(d.id)}>{d.status==='submitted'?'Retomar edição':'Continuar editando'}</button>}
-      {d.status==='validated'&&<button type="button" style={btn(true)} disabled={busy} onClick={()=>setApplying(d.id)}>Aplicar e lançar respostas</button>}
-     </span>
-    </li>)}
-   </ul>}
+   {reviewPdfError&&<p role="alert" style={{color:'#982F2F'}}>{reviewPdfError}</p>}
    {errors.length>0&&<div role="alert" style={{background:'#FFF0F0',padding:12,borderRadius:9,color:'#982F2F'}}>
     <strong>Corrija antes de salvar:</strong><ul>{errors.map((e,i)=><li key={i}>{e}</li>)}</ul>
    </div>}
    {status&&<p role="status" aria-live="polite">{status}</p>}
-   {receipt&&<p style={{color:blue,fontWeight:600}}>Identificador {previewMode?'local':''} do rascunho: {receipt.id} · revisão {receipt.revision}</p>}
+   {receipt&&<p style={{color:blue,fontWeight:600,fontSize:13}}>ID do rascunho: {receipt.id} · revisão {receipt.revision}</p>}
+  </div>
+
+      {/* === BLOCO 2: Checklist técnico === */}
+   <ChecklistPanel result={checklist}/>
+
+      {/* === BLOCO 3: Emissão e aplicação (só aparece quando relevante) === */}
+   {!previewMode&&persistenceAvailable&&receipt?.status==='validated'&&<div style={cardStyle}>
+    <h4 style={{margin:'0 0 6px'}}>📋 Aplicação e emissão de cadernos</h4>
+    <p style={{fontSize:13,margin:'0 0 8px'}}>Caderno validado. Registre a aplicação da turma e emita o PDF com QR.</p>
+    {applying!==receipt.id&&<button type="button" style={btn(true)} onClick={()=>setApplying(receipt.id)}>Abrir Aplicação e respostas</button>}
+   </div>}
+   {!previewMode&&applying&&courseId&&<ApplicationPanel key={applying} institutionId={institutionId} courseId={courseId} discipline={disciplineId}
+     draftId={applying} onClose={()=>setApplying(null)} courseName={courses.find(c=>c.id===courseId)?.name||''} institutionName={institutionName}/>}
+
+      {/* === BLOCO 4: Gestão de rascunhos (acordeão) === */}
+   {persistenceAvailable&&<details className="avalia-deep-options">
+    <summary>📁 Meus rascunhos e versões salvas</summary>
+    <div style={{marginTop:12}}>
+     <div style={{display:'flex',gap:8,alignItems:'end',flexWrap:'wrap',marginBottom:12}}>
+       <label style={{...labelStyle,flex:'1 1 230px'}}>Consultar rascunho por ID
+         <input value={lookupId} onChange={e=>setLookupId(e.target.value)} style={inputStyle}
+           placeholder="Cole o identificador do rascunho salvo"/>
+       </label>
+       <button type="button" style={btn(false)} disabled={busy||!lookupId.trim()}
+         onClick={()=>reopen(lookupId)}>Consultar</button>
+       {!previewMode&&<button type="button" style={btn(true)} disabled={busy||!courseId||!disciplineId.trim()}
+         onClick={()=>void listDrafts()}>Listar meus rascunhos</button>}
+     </div>
+     {!previewMode&&drafts&&drafts.length>0&&<ul aria-label="Rascunhos salvos" style={{listStyle:'none',padding:0,margin:0,display:'grid',gap:8}}>
+      {drafts.map(d=><li key={d.id} style={{border:'1px solid '+line,borderRadius:9,padding:'10px 12px',display:'flex',gap:10,alignItems:'center',flexWrap:'wrap',justifyContent:'space-between'}}>
+       <span><strong>{d.title}</strong> · {d.semester} · {d.questionCount} questão(ões) · v{d.revision} · {new Date(d.updatedAt).toLocaleString('pt-BR')}{d.status!=='draft'?' · '+d.status:''}</span>
+       <span style={{display:'flex',gap:6}}>
+        <button type="button" style={btn(false)} disabled={busy} onClick={()=>void reopen(d.id)}>Consultar</button>
+      {(d.status==='draft'||d.status==='submitted')&&<button type="button" style={btn(true)} disabled={busy} onClick={()=>void continueEditing(d.id)}>{d.status==='submitted'?'Retomar edição':'Continuar editando'}</button>}
+      {d.status==='validated'&&<button type="button" style={btn(true)} disabled={busy} onClick={()=>setApplying(d.id)}>Aplicar e lançar respostas</button>}
+      {d.status==='draft'&&<button type="button" style={{...btn(false),borderColor:'#B84A4A',color:'#9B3434'}} disabled={busy} onClick={()=>void deleteDraft(d.id)}>Excluir</button>}
+     </span>
+    </li>)}
+   </ul>}
+    </div>
+   </details>}
+
+      {/* === BLOCO 5: Prévia visual === */}
    {preview&&<section style={{background:light,padding:16,borderRadius:11}}>
     <h3 style={{textAlign:'center',margin:'0 0 4px'}}>{title||'Avaliação sem título'}</h3>
     <p style={{textAlign:'center',fontSize:13}}>{courses.find(c=>c.id===courseId)?.name||'Curso não selecionado'} · {disciplineId||'Disciplina'} · {period} · {purpose}</p>
@@ -881,7 +905,6 @@ export default function Avalia360Studio({institutionId,courses,institutionName,p
     <p style={{fontSize:12,color:'#64748b'}}>Prévia editorial — não equivale a PDF diagramado, folha QR ou prova publicada.</p>
    </section>}
    {loaded&&<SavedPreview value={loaded}/>}
-  </div>
 
       {previewMode&&<ClassBatchPublisher previewMode={true} institutionId={institutionId} courseId={courseId} courseName={courses.find(c=>c.id===courseId)?.name||''}
     discipline={disciplineId} title={title} teacherName={teacherName} instructions={instructions} semester={period} questions={questions}/>}
