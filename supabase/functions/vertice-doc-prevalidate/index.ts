@@ -109,6 +109,9 @@ Deno.serve(async (request) => {
 
     // 2. Get file info
     let fileName = "", storagePath = "", bucket = "", category = "", expectedHash = "", indicators: string[] = [];
+    // Acervo e catálogo pela seção da solicitação (vertice_doc_source_scope). Reconhecimento e documentos
+    // gerais seguem como antes: vertice-repositorios ou vertice-documents e os catálogos ativos.
+    let scope: { bucket: string; catalog_code: string | null; catalog_version: string | null } = { bucket: "vertice-documents", catalog_code: null, catalog_version: null };
 
     if (sourceTable === "vertice_repository_files") {
       const { data: file } = await admin
@@ -123,7 +126,14 @@ Deno.serve(async (request) => {
       }
       fileName = file.file_name;
       storagePath = file.storage_path;
-      bucket = "vertice-repositorios";
+      const { data: sc, error: scError } = await admin.rpc("vertice_doc_source_scope", { p_institution_id: institutionId, p_source_table: sourceTable, p_file_id: fileId });
+      // Função ainda não criada no banco (PGRST202): mantém o comportamento anterior.
+      if (scError && scError.code !== "PGRST202") {
+        await admin.from("vertice_doc_prevalidation").update({ ai_status: "failed", ai_error: "Acervo do arquivo indisponível" }).eq("id", pv.id);
+        return respond({ error: "source_scope_unavailable" }, 503);
+      }
+      scope = !scError && typeof sc?.bucket === "string" ? sc : { bucket: "vertice-repositorios", catalog_code: null, catalog_version: null };
+      bucket = scope.bucket;
       category = file.document_category ?? "";
       indicators = Array.isArray(file.instrument_indicators) ? file.instrument_indicators.map(String) : [];
     } else {
@@ -201,7 +211,8 @@ Deno.serve(async (request) => {
     }
 
     // Only configured catalog objects may be proposed; no invented instrument codes.
-    const {data:catalogs,error:catalogError}=await userClient.from("vertice_instrument_catalog").select("id,instrument_code,instrument_version,instrument_label,source_provenance").eq("institution_id",institutionId).eq("is_active",true);
+    const catalogQuery=userClient.from("vertice_instrument_catalog").select("id,instrument_code,instrument_version,instrument_label,source_provenance").eq("institution_id",institutionId);
+    const {data:catalogs,error:catalogError}=await (scope.catalog_code?catalogQuery.eq("instrument_code",scope.catalog_code).eq("instrument_version",scope.catalog_version):catalogQuery.eq("is_active",true));
     const {data:objects,error:objectsError}=catalogs?.length?await userClient.from("vertice_instrument_objects").select("catalog_id,object_code,object_label,description").in("catalog_id",catalogs.map((c:any)=>c.id)):{data:[],error:null};
     if(catalogError||objectsError||!objects?.length){
      await admin.from("vertice_doc_prevalidation").update({ai_status:"failed",ai_error:"Texto indexado. Catálogo de indicadores não configurado para esta instituição; classificação manual preservada."}).eq("id",pv.id);
