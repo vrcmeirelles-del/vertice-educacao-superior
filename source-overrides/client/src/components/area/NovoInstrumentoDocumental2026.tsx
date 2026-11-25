@@ -1,10 +1,12 @@
 import { HelpLabel } from '@/components/ContextHelp';
-import {useCallback,useEffect,useMemo,useState} from "react";
+import {Suspense,lazy,useCallback,useEffect,useMemo,useState} from "react";
 import {supabase} from "@/lib/supabase";
 import {can,type Role} from "@/lib/area";
 import {documentFile} from "@/lib/repository";
 import "./recredenciamento-documentos-2017.css";
 
+// Pré-validação por algoritmo do arquivo enviado, contra o catálogo do Novo Instrumento 2026 da seção (proposta).
+const PreValidationPanel=lazy(()=>import("./PreValidationPanel"));
 type Scope="institucional"|"curso";
 type Request={id:string;course_id:string|null;document_code:string|null;title:string;semester:string|null;not_applicable:boolean|null;nsa_reason:string|null;assignee_email:string|null;assigned_to:string|null;due_date:string|null;active:boolean};
 type Evidence={id:string;request_id:string;file_name:string;storage_path:string;status:string;reference:string|null;upload_note:string|null;review_note:string|null;created_at:string};
@@ -73,6 +75,7 @@ export function NovoObjetoDocumentos2026({state,role,object,initialPeriod="2026-
  state:NewDocsState;role:Role|null;object:ItemDoc;initialPeriod?:string
 }){
  const manager=can.manageGoals(role);
+ const [prevalidating,setPrevalidating]=useState<Evidence|null>(null);
  const [period,setPeriod]=useState(initialPeriod);
  const [open,setOpen]=useState(false),[file,setFile]=useState<File|null>(null);
  const [reference,setReference]=useState(""),[note,setNote]=useState("");
@@ -161,6 +164,7 @@ export function NovoObjetoDocumentos2026({state,role,object,initialPeriod="2026-
    <div className="rec17-actions">
     {latest&&<button type="button" onClick={()=>void download(latest)}>Baixar</button>}
     {history.length>0&&<button type="button" onClick={()=>setShowHistory(x=>!x)} aria-expanded={showHistory}>Histórico ({history.length})</button>}
+    {manager&&latest&&<button type="button" onClick={()=>setPrevalidating(latest)}>Pré-validar</button>}
     {manager&&latest?.status==="enviado"&&<button type="button" onClick={()=>{setReviewing(latest);setReviewNote("");setDecision("validado");}}>Analisar</button>}
     {manager&&<button type="button" onClick={openForm}>{latest?"Nova versão":"Enviar documento"}</button>}
    </div>
@@ -188,5 +192,6 @@ export function NovoObjetoDocumentos2026({state,role,object,initialPeriod="2026-
     <HelpLabel>Parecer<textarea value={reviewNote} onChange={e=>setReviewNote(e.target.value)} maxLength={4000}/></HelpLabel>
     <div className="rec17-editor-actions"><button type="button" onClick={()=>setReviewing(null)}>Cancelar</button><button type="button" disabled={saving||(decision==="devolvido"&&!reviewNote.trim())} onClick={()=>void review()}>{saving?"Salvando…":"Registrar decisão"}</button></div>
    </div>}
+  {prevalidating&&manager&&<Suspense fallback={<p>Carregando painel de pré-validação…</p>}><PreValidationPanel file={prevalidating} institutionId={state.institutionId} sourceTable="vertice_repository_files" onClose={()=>setPrevalidating(null)} onLinksUpdated={()=>void state.reload()}/></Suspense>}
  </div>;
 }

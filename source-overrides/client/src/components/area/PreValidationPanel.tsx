@@ -51,6 +51,9 @@ const INSTRUMENT_LABELS: Record<string, string> = {
   reconhecimento_curso: "Reconhecimento de Curso (2017)",
   novo_instrumento_2026: "Proposta de Instrumento (2026) · experimental",
   recredenciamento_2017: "Recredenciamento (2017)",
+  recredenciamento_institucional: "Recredenciamento Institucional (2017)",
+  novo_instrumento_2026_curso: "Novo Instrumento 2026 · curso · proposta",
+  novo_instrumento_2026_institucional: "Novo Instrumento 2026 · institucional · proposta",
 };
 
 export default function PreValidationPanel({

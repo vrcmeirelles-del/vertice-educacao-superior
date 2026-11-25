@@ -1,11 +1,13 @@
 import { HelpLabel } from '@/components/ContextHelp';
-import {useCallback,useEffect,useMemo,useRef,useState} from "react";
+import {Suspense,lazy,useCallback,useEffect,useMemo,useRef,useState} from "react";
 import {supabase} from "@/lib/supabase";
 import {can,type Role} from "@/lib/area";
 import {documentFile} from "@/lib/repository";
 import type {IndicadorAvaliacao} from "@/lib/avaliacao-institucional";
 import "./recredenciamento-documentos-2017.css";
 
+// Pré-validação por algoritmo do arquivo enviado, contra o catálogo do Recredenciamento 2017 (escolhido pelo banco pela seção).
+const PreValidationPanel=lazy(()=>import("./PreValidationPanel"));
 export const REC2017_BUCKET="vertice-recredenciamento-2017";
 export const REC2017_SECTION="recredenciamento_2017";
 type Req={id:string;institution_id:string;indicator:string|null;document_code:string|null;title:string;instructions:string|null;semester:string|null;not_applicable:boolean|null;nsa_reason:string|null;due_date:string|null;assignee_email:string|null;assigned_to:string|null;active:boolean};
@@ -103,6 +105,7 @@ export function Recred2017IndicatorDocs({institutionId,role,indicador,state}:{
   const [review,setReview]=useState<Doc|null>(null);
   const [decision,setDecision]=useState<"validado"|"devolvido">("validado");
   const [reviewNote,setReviewNote]=useState("");
+  const [prevalidating,setPrevalidating]=useState<Doc|null>(null);
   const [actionBusy,setActionBusy]=useState(false);
   const [message,setMessage]=useState("");
   const [error,setError]=useState("");
@@ -227,6 +230,7 @@ export function Recred2017IndicatorDocs({institutionId,role,indicador,state}:{
             <div className="rec17-actions">
               {f&&<button type="button" onClick={()=>void download(f)}>Baixar última versão</button>}
               {history.length>0&&<button type="button" aria-expanded={historyCode===item.id} onClick={()=>setHistoryCode(current=>current===item.id?null:item.id)}>Histórico ({history.length})</button>}
+              {manager&&f&&<button type="button" onClick={()=>setPrevalidating(f)}>Pré-validar</button>}
               {manager&&f?.status==="enviado"&&<button type="button" onClick={()=>{setReview(f);setReviewNote("");setDecision("validado");}}>Analisar</button>}
               {manager&&<button type="button" onClick={()=>openForm(item)}>{f?"Nova versão":"Enviar documento"}</button>}
             </div>
@@ -264,5 +268,6 @@ export function Recred2017IndicatorDocs({institutionId,role,indicador,state}:{
       <HelpLabel>Parecer / justificativa<textarea value={reviewNote} onChange={e=>setReviewNote(e.target.value)} maxLength={4000} placeholder="Descreva a conferência e eventuais pendências"/></HelpLabel>
       <div className="rec17-editor-actions"><button type="button" onClick={()=>setReview(null)}>Cancelar</button><button type="button" disabled={actionBusy||(decision==="devolvido"&&!reviewNote.trim())} onClick={()=>void reviewFile()}>{actionBusy?"Salvando…":"Registrar decisão"}</button></div>
     </div>}
+    {prevalidating&&manager&&<Suspense fallback={<p>Carregando painel de pré-validação…</p>}><PreValidationPanel file={prevalidating} institutionId={institutionId} sourceTable="vertice_repository_files" onClose={()=>setPrevalidating(null)} onLinksUpdated={()=>void state.reload()}/></Suspense>}
   </section>;
 }
