@@ -52,5 +52,15 @@ CREATE TABLE public.vertice_cpa_actions(id uuid PRIMARY KEY DEFAULT gen_random_u
 
 CREATE TABLE public.vertice_module_catalog(code text PRIMARY KEY, name text, tier text, package text, description text, tabs text[], depends_on text[], display_order smallint, active boolean);
 
+-- Fontes das famílias acadêmica e estratégica (subconjunto das colunas de produção).
+CREATE TABLE public.vertice_tcc_works(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), institution_id uuid NOT NULL, course_id uuid, title text, stage text NOT NULL DEFAULT 'draft', version integer DEFAULT 1, stage_deadline date, updated_at timestamptz DEFAULT now());
+CREATE TABLE public.vertice_internship_placements(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), institution_id uuid NOT NULL, course_id uuid, lifecycle text NOT NULL DEFAULT 'active');
+CREATE TABLE public.vertice_internship_reports(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), institution_id uuid NOT NULL, placement_id uuid NOT NULL, status text NOT NULL DEFAULT 'draft', due_date date, submitted_at timestamptz, reviewed_at timestamptz);
+CREATE TABLE public.vertice_teaching_activities(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), institution_id uuid NOT NULL, course_id uuid, title text, activity_date date, status text NOT NULL DEFAULT 'rascunho', updated_at timestamptz DEFAULT now(), report_submitted_at timestamptz, evidence_photos jsonb, evidence_attendance jsonb);
+CREATE TABLE public.vertice_alumni_surveys(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), institution_id uuid NOT NULL, course_id uuid, status text NOT NULL, opens_at timestamptz, closes_at timestamptz, is_synthetic boolean DEFAULT false);
+CREATE TABLE public.vertice_alumni_survey_invitations(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), survey_id uuid NOT NULL, delivery_status text, responded_at timestamptz);
+CREATE SCHEMA IF NOT EXISTS vertice_planning;
+CREATE TABLE vertice_planning.competitive_findings(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), institution_id uuid NOT NULL, course_id uuid, status text NOT NULL DEFAULT 'pending', action_id uuid, created_at timestamptz DEFAULT now());
+
 GRANT USAGE ON SCHEMA public, auth, vertice_private TO authenticated, service_role;
 GRANT EXECUTE ON FUNCTION auth.uid(), auth.jwt(), auth.role() TO authenticated, service_role;

@@ -1,22 +1,13 @@
-// Gera a carga do catálogo (SQL) e a matriz de rastreabilidade a partir de catalog.mjs + source-map.mjs.
+// Gera a matriz de rastreabilidade a partir de catalog.mjs + source-map.mjs.
+// A carga do catálogo (20261124210001) já foi aplicada em produção e é imutável; mudanças de
+// source_status vão em migração nova, e o teste SQL confere o banco contra source-map.mjs.
 // Uso: node scripts/automacao360/gerar-matriz.mjs [--check]
 import { readFileSync, writeFileSync } from 'node:fs';
 import { SOURCE_MAP } from '../../supabase/functions/_shared/automacao360/source-map.mjs';
 
 const root = new URL('../../', import.meta.url);
-const SEED = new URL('supabase/migrations/20261124210001_automacao360_catalogo.sql', root);
 const DOC = new URL('docs/automacao360/MATRIZ_REGRAS.md', root);
-const q = (s) => s === null || s === undefined ? 'null' : `'${String(s).replace(/'/g, "''")}'`;
 const op = (r) => r.operator === 'between' ? `${r.threshold[0]}–${r.threshold[1]}` : `${r.operator === 'lt' ? '<' : '>'} ${r.threshold}`;
-
-export function seedSql() {
-  const rows = SOURCE_MAP.map((r) => `  (${q(r.id)}, ${q(r.version)}, ${q(r.module)}, ${q(r.priority)}, ${q(r.cadence)}, ${q(r.family)}, ${q(r.sourceStatus)})`);
-  return `-- GERADO por scripts/automacao360/gerar-matriz.mjs a partir de catalog.mjs e source-map.mjs. Não editar à mão.
--- CANDIDATA. Depende de 20261124210000_automacao360_nucleo.sql. Nenhuma regra nasce validada.
-insert into vertice_automation.rules(id, version, module, priority, cadence, family, source_status) values
-${rows.join(',\n')};
-`;
-}
 
 export function matrixMd() {
   const counts = SOURCE_MAP.reduce((a, r) => (a[r.sourceStatus] = (a[r.sourceStatus] || 0) + 1, a), {});
@@ -37,12 +28,12 @@ ${lines.join('\n')}
 
 if (process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).href) {
   const check = process.argv.includes('--check');
-  const out = [[SEED, seedSql()], [DOC, matrixMd()]];
+  const out = [[DOC, matrixMd()]];
   let stale = false;
   for (const [file, content] of out) {
     let cur = null; try { cur = readFileSync(file, 'utf8'); } catch {}
     if (cur !== content) { stale = true; if (!check) writeFileSync(file, content); }
   }
-  if (check && stale) { console.error('Matriz ou catálogo SQL desatualizados: rode node scripts/automacao360/gerar-matriz.mjs'); process.exit(1); }
-  console.log(check ? 'Matriz e catálogo SQL atualizados.' : 'Gerados.');
+  if (check && stale) { console.error('Matriz desatualizada: rode node scripts/automacao360/gerar-matriz.mjs'); process.exit(1); }
+  console.log(check ? 'Matriz atualizada.' : 'Gerada.');
 }

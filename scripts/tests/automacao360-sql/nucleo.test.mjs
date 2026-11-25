@@ -7,6 +7,7 @@ import { readFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
 import { PGlite } from '@electric-sql/pglite';
 import { RULES } from '../../../supabase/functions/_shared/automacao360/catalog.mjs';
+import { SOURCE_MAP } from '../../../supabase/functions/_shared/automacao360/source-map.mjs';
 import { shadowRun } from '../../../supabase/functions/_shared/automacao360/native-integration.mjs';
 import { prepareShadowReceipt } from '../../../supabase/functions/_shared/automacao360/persistence.mjs';
 import { evaluate } from '../../../supabase/functions/_shared/automacao360/engine.mjs';
@@ -29,6 +30,7 @@ async function setup(t) {
   await db.exec(await read('../../../supabase/migrations/20261124210000_automacao360_nucleo.sql'));
   await db.exec(await read('../../../supabase/migrations/20261124210001_automacao360_catalogo.sql'));
   await db.exec(await read('../../../supabase/migrations/20261125090000_automacao360_executor.sql'));
+  await db.exec(await read('../../../supabase/migrations_nao_aplicadas/20261125100000_automacao360_fontes_academica_estrategica.sql'));
   await db.exec(`
     INSERT INTO public.vertice_institutions VALUES ('${UNITOP}','UNITOP sintética','superior'),('${UNICALDAS}','UNICALDAS sintética','superior');
     INSERT INTO public.vertice_courses VALUES ('${DIR_TOP}','${UNITOP}','Direito','DIR'),('${DIR_CAL}','${UNICALDAS}','Direito','DIR');
@@ -83,6 +85,8 @@ test('catálogo do banco é idêntico ao catálogo versionado e nenhuma regra na
   assert.equal(rows.length, 40);
   for (const r of RULES) assert.ok(rows.some((x) => x.id === r.id && x.version === r.version && x.priority === r.priority), r.id);
   assert.equal(rows.filter((r) => r.source_status === 'validada').length, 0);
+  // Estado da fonte no banco (seed + migrações posteriores) = source-map.mjs.
+  for (const m of SOURCE_MAP) assert.equal(rows.find((x) => x.id === m.id).source_status, m.sourceStatus, m.id);
   const mod = (await db.query("select active, tabs from public.vertice_module_catalog where code = 'GEST_AUTOMACAO360'")).rows[0];
   assert.deepEqual(mod, { active: false, tabs: ['automacao360'] }); // módulo nasce desativado
 });
@@ -372,4 +376,49 @@ test('executor: falha de uma configuração não interrompe as outras e não vaz
   await assert.rejects(runConfig({ config: { configId: 1 }, rpc, asOf: new Date().toISOString() }), /invalid_config_row/);
   const op = { ...(await real('vertice_automation_due_configs', {}))[0], mode: 'operational' };
   assert.equal((await runConfig({ config: op, rpc, asOf: new Date().toISOString() })).status, 'skipped_operational');
+});
+
+test('adaptadores acadêmico e estratégico: prazos, checklist, egressos reais e concorrência aprovada', async (t) => {
+  const db = await setup(t);
+  await db.exec(`
+    INSERT INTO public.vertice_tcc_works(id,institution_id,course_id,stage,stage_deadline) VALUES
+      ('${id(501)}','${UNITOP}','${DIR_TOP}','in_execution', current_date - 2),
+      ('${id(502)}','${UNITOP}','${DIR_TOP}','final_submitted', current_date + 3),
+      ('${id(503)}','${UNITOP}','${DIR_TOP}','deposited', current_date - 30),
+      ('${id(504)}','${UNITOP}','${DIR_TOP}','draft', null),
+      ('${id(505)}','${UNICALDAS}','${DIR_CAL}','in_execution', current_date - 2);
+    INSERT INTO public.vertice_internship_placements(id,institution_id,course_id,lifecycle) VALUES ('${id(511)}','${UNITOP}','${DIR_TOP}','active');
+    INSERT INTO public.vertice_internship_reports(institution_id,placement_id,status,due_date) VALUES
+      ('${UNITOP}','${id(511)}','draft', current_date - 3),('${UNITOP}','${id(511)}','approved', current_date - 9);
+    INSERT INTO public.vertice_teaching_activities(id,institution_id,course_id,activity_date,status,evidence_photos,evidence_attendance,report_submitted_at) VALUES
+      ('${id(521)}','${UNITOP}','${DIR_TOP}', current_date - 5,'rascunho','["a.jpg"]'::jsonb,'[]'::jsonb,null),
+      ('${id(522)}','${UNITOP}','${DIR_TOP}', current_date + 5,'rascunho',null,null,null);
+    INSERT INTO public.vertice_alumni_surveys(id,institution_id,course_id,status,opens_at,closes_at,is_synthetic) VALUES
+      ('${id(531)}','${UNITOP}','${DIR_TOP}','ativa', now() - interval '10 days', now() + interval '20 days', false),
+      ('${id(532)}','${UNITOP}','${DIR_TOP}','ativa', now() - interval '10 days', now() + interval '20 days', true);
+    INSERT INTO public.vertice_alumni_survey_invitations(survey_id,delivery_status,responded_at) VALUES
+      ('${id(531)}','entregue',null),('${id(531)}','entregue',now()),('${id(531)}','falhou',null),('${id(532)}','entregue',null);
+    INSERT INTO vertice_planning.competitive_findings(institution_id,course_id,status,action_id) VALUES
+      ('${UNITOP}','${DIR_TOP}','approved',null),('${UNITOP}','${DIR_TOP}','approved','${id(999)}'),('${UNITOP}','${DIR_TOP}','pending',null);`);
+  const rpc = svcRpc(db);
+  const ac = await rpc('vertice_automation_source_academic', { p_institution: UNITOP, p_course: DIR_TOP });
+  assert.ok(!ac.entries.some((e) => e.id === 'tcc:' + id(505))); // outra IES fora
+  assert.deepEqual(ac.entries.find((e) => e.id === 'teaching:' + id(521)).linkedEvidence, ['fotos']);
+  assert.ok(!ac.entries.some((e) => e.id === 'teaching:' + id(522))); // atividade futura não cobra evidência
+  const st = await rpc('vertice_automation_source_strategic', { p_institution: UNITOP, p_course: DIR_TOP });
+  assert.deepEqual(st.entries.map((e) => e.id).sort(), ['competition:' + DIR_TOP, 'survey:' + id(531)]); // sintética fora
+  assert.equal(st.entries.find((e) => e.module === 'alumni').metrics.pendingSurveys, 1); // entregue sem resposta; falha não conta
+  assert.equal(st.entries.find((e) => e.module === 'competition').metrics.confirmedChanges, 1); // aprovado e sem ação
+  await assert.rejects(as(db, GESTOR_TOP, 'select public.vertice_automation_source_academic($1,$2)', [UNITOP, DIR_TOP]), /permission denied/);
+  const rules = ['tcc.overdue', 'tcc.due', 'internship.overdue', 'teaching.documents', 'alumni.pending', 'competition.change', 'extension.hours'];
+  const cfg = (await propose(db, GESTOR_TOP, UNITOP, DIR_TOP, rules)).rows[0].id;
+  await approve(db, GESTOR2_TOP, cfg);
+  const out = await runAll({ rpc });
+  const r = out.results[0];
+  assert.equal(r.status, 'partial'); // TCC sem prazo e extension.hours sem adaptador
+  assert.equal(r.unmapped, 1);
+  const kinds = (await db.query('select rule_id, count(*)::int n from vertice_automation.run_alert group by 1 order by 1')).rows;
+  assert.deepEqual(kinds, [
+    { rule_id: 'alumni.pending', n: 1 }, { rule_id: 'competition.change', n: 1 }, { rule_id: 'internship.overdue', n: 1 },
+    { rule_id: 'tcc.due', n: 1 }, { rule_id: 'tcc.overdue', n: 1 }, { rule_id: 'teaching.documents', n: 1 }]);
 });
