@@ -32,6 +32,8 @@ interface Prevalidation {
   extraction_status?:string; extracted_at?:string; source_sha256?:string; keyword_suggestions?:string[]; extraction_metadata?:{characters?:number;partial?:boolean};
 }
 
+export const PREVALIDATION_PANEL_COLUMNS = "id,ai_status,ai_summary,ai_nature,ai_institution_detected,ai_course_detected,ai_period_detected,ai_scope_detected,ai_model_version,ai_analyzed_at,ai_error,lease_until,processing_stage,attempt_number,extraction_status,extracted_at,source_sha256,keyword_suggestions,extraction_metadata";
+
 const COMPAT_COLORS: Record<string, { bg: string; border: string; label: string }> = {
   alta: { bg: "#dcfce7", border: "#16a34a", label: "ALTA" },
   media: { bg: "#fef3c7", border: "#d97706", label: "MÉDIA" },
@@ -83,7 +85,8 @@ export default function PreValidationPanel({
       const col = sourceTable === "vertice_documents" ? "document_id" : "repository_file_id";
       const { data: pvs,error: pvError } = await supabase
         .from("vertice_doc_prevalidation")
-        .select("*")
+        // Só as colunas exibidas: o texto extraído não vai para o navegador.
+        .select(PREVALIDATION_PANEL_COLUMNS)
         .eq(col, fileId)
         .eq("institution_id", institutionId)
         .order("created_at", { ascending: false })

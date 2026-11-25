@@ -24,6 +24,8 @@ interface PrevalidationRow {
   created_at: string;
 }
 
+export const PREVALIDATION_QUEUE_COLUMNS = "id,institution_id,document_id,repository_file_id,source_table,ai_status,ai_summary,ai_nature,ai_scope_detected,ai_model_version,ai_analyzed_at,ai_error,created_at";
+
 interface IndicatorLink {
   id: string;
   prevalidation_id: string;
@@ -77,7 +79,8 @@ export default function PreValidationQueue({ institutionId, role }: { institutio
       // Load all prevalidations for this institution
       const { data: attempts, error: pvErr } = await supabase
         .from("vertice_doc_prevalidation")
-        .select("*")
+        // Só as colunas exibidas: o texto extraído (vários MB por IES) não vai para o navegador.
+        .select(PREVALIDATION_QUEUE_COLUMNS)
         .eq("institution_id", institutionId)
         .order("created_at", { ascending: false });
       if (pvErr) throw pvErr;
