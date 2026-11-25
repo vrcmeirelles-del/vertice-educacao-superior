@@ -121,13 +121,13 @@ export default function Avalia360AcademicEntry({ institutionId, courses, institu
       let rows: any[][] = [];
 
       if (/\.xlsx?$/i.test(file.name)) {
-        // XLSX: use SheetJS via dynamic import from CDN
-        const ab = await file.arrayBuffer();
-        const XLSX = await (Function('return import("https://cdn.sheetjs.com/xlsx-0.20.3/package/xlsx.mjs")')() as Promise<any>);
-        const wb = XLSX.read(ab, { type: 'array' });
-        const sheetName = wb.SheetNames.find((n: string) => /quest/i.test(n)) || wb.SheetNames[wb.SheetNames.length > 1 ? wb.SheetNames.length - 1 : 0];
-        const ws = wb.Sheets[sheetName];
-        rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' }) as any[][];
+        // XLSX: use read-excel-file (already in project dependencies)
+        const { readSheetNames, default: readXlsxFile } = await import('read-excel-file');
+        const names = await readSheetNames(file);
+        const sheetName = names.find(n => /quest/i.test(n)) || names[names.length > 1 ? names.length - 1 : 0];
+        const sheetIdx = names.indexOf(sheetName) + 1;
+        const data = await readXlsxFile(file, { sheet: sheetIdx });
+        rows = data.map(r => r.map(c => c == null ? '' : String(c)));
       } else {
         const text = await file.text();
         const sep = text.includes('\t') ? '\t' : text.includes(';') ? ';' : ',';
