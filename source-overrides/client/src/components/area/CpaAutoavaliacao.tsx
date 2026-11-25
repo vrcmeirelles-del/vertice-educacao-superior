@@ -1,5 +1,6 @@
 import { ContextHelp } from '@/components/ContextHelp';
 import { supabase } from '@/lib/supabase';
+import { escapeHtml } from '@/lib/pei-print';
 // CpaAutoavaliacao.tsx — Módulo CPA e Autoavaliação Institucional
 // Módulo independente. CPA não é subordinada a Egressos.
 import { useState, useEffect, useMemo } from 'react';
@@ -962,9 +963,9 @@ p{text-align:justify}
 .meta{text-align:center;color:#666;font-size:10pt;margin-bottom:24px}
 .footer{text-align:center;font-size:9pt;color:#999;margin-top:40px;border-top:1px solid #ccc;padding-top:10px}
 </style></head><body>
-<h1>${report.title || 'Relatório de Autoavaliação Institucional'}</h1>
+<h1>${escapeHtml(report.title || 'Relatório de Autoavaliação Institucional')}</h1>
 <p class="meta">${report.report_type === 'integral' ? 'Relatório Integral' : 'Relatório Parcial'} — Ano-base ${report.year_base}<br/>Gerado pela Plataforma Vértice Educação Superior</p>
-${sections.map(s => `<h2>${s.title}</h2><p>${(s.content || '').replace(/\n/g, '</p><p>')}</p>`).join('')}
+${sections.map(s => `<h2>${escapeHtml(s.title)}</h2><p>${escapeHtml(s.content || '').replace(/\n/g, '</p><p>')}</p>`).join('')}
 <p class="footer">Documento gerado automaticamente — Vértice Educação Superior © ${new Date().getFullYear()}</p>
 </body></html>`;
     const blob = new Blob(['﻿' + html], { type: 'application/msword' });
@@ -979,7 +980,7 @@ ${sections.map(s => `<h2>${s.title}</h2><p>${(s.content || '').replace(/\n/g, '<
     const sections = orderedSections(report.content_json).map(([, v]) => v);
     const win = window.open('', '_blank');
     if (!win) { alert('Permita pop-ups para exportar PDF'); return; }
-    win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${report.title}</title>
+    win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${escapeHtml(report.title || '')}</title>
 <style>@media print{@page{margin:20mm}body{-webkit-print-color-adjust:exact}}
 body{font-family:Calibri,Arial,sans-serif;font-size:12pt;line-height:1.6;margin:40px;color:#1e293b}
 h1{font-size:18pt;color:#1e3a5f;text-align:center;margin-bottom:4px}
@@ -988,9 +989,9 @@ p{text-align:justify}
 .meta{text-align:center;color:#64748b;font-size:10pt;margin-bottom:20px}
 .footer{text-align:center;font-size:9pt;color:#94a3b8;margin-top:30px;border-top:1px solid #e2e8f0;padding-top:8px}
 </style></head><body>
-<h1>${report.title || 'Relatório de Autoavaliação Institucional'}</h1>
+<h1>${escapeHtml(report.title || 'Relatório de Autoavaliação Institucional')}</h1>
 <p class="meta">${report.report_type === 'integral' ? 'Relatório Integral' : 'Relatório Parcial'} — Ano-base ${report.year_base}<br/>Vértice Educação Superior</p>
-${sections.map(s => `<h2>${s.title}</h2><p>${(s.content || '').replace(/\n/g, '</p><p>')}</p>`).join('')}
+${sections.map(s => `<h2>${escapeHtml(s.title)}</h2><p>${escapeHtml(s.content || '').replace(/\n/g, '</p><p>')}</p>`).join('')}
 <p class="footer">Vértice Educação Superior © ${new Date().getFullYear()}</p>
 </body></html>`);
     win.document.close();

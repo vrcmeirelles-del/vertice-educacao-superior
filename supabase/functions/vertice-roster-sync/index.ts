@@ -16,6 +16,22 @@ const secretKey=()=>{
  return env("SUPABASE_SERVICE_ROLE_KEY");
 };
 
+const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// SSRF guard: recusa endpoints que apontam para loopback/rede interna/metadados de nuvem.
+// Mitiga configuração de conector maliciosa; não cobre DNS rebinding (TOCTOU) de nomes externos.
+function isBlockedHost(hostname:string){
+ const h=hostname.toLowerCase().replace(/^\[|\]$/g,"");
+ if(h==="localhost"||h.endsWith(".localhost")||h.endsWith(".local")||h.endsWith(".internal"))return true;
+ if(h==="::1"||h.startsWith("fd")||h.startsWith("fe80")||h.startsWith("::ffff:"))return true;
+ const m=h.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+ if(m){
+  const a=Number(m[1]),b=Number(m[2]);
+  if(a===127||a===10||a===0||(a===169&&b===254)||(a===172&&b>=16&&b<=31)||(a===192&&b===168)||a>=224)return true;
+ }
+ return false;
+}
+
 type Connector={
  id:string;institution_id:string;connector_type:string;
  api_base_url:string;api_auth_type:string;api_auth_value:string;
@@ -46,6 +62,8 @@ function getNestedValue(obj:unknown,path:string):unknown{
 
 async function fetchRoster(connector:Connector):Promise<{cpf:string;name:string;curso:string;turma:string;status:string}[]>{
  const url=new URL(connector.api_roster_endpoint,connector.api_base_url);
+ if(url.protocol!=="https:"&&url.protocol!=="http:")throw new Error("Endpoint da IES com esquema inválido");
+ if(isBlockedHost(url.hostname))throw new Error("Endpoint da IES aponta para host interno não permitido");
  const headers:Record<string,string>={"Accept":"application/json"};
 
  if(connector.api_auth_type==="bearer")headers["Authorization"]="Bearer "+connector.api_auth_value;
@@ -55,7 +73,8 @@ async function fetchRoster(connector:Connector):Promise<{cpf:string;name:string;
   headers[key]=val.join(":");
  }
 
- const response=await fetch(url,{method:connector.api_roster_method,headers,signal:AbortSignal.timeout(30000)});
+ // redirect:"error" impede exfiltração da credencial do conector via 3xx para host arbitrário.
+ const response=await fetch(url,{method:connector.api_roster_method,headers,redirect:"error",signal:AbortSignal.timeout(30000)});
  if(!response.ok)throw new Error("API da IES retornou HTTP "+response.status);
  const body=await response.json();
 
@@ -152,52 +171,60 @@ async function syncConnector(admin:ReturnType<typeof createClient>,connector:Con
 }
 
 Deno.serve(async req=>{
+ const reply=(b:unknown,s=200)=>new Response(JSON.stringify(b),{status:s,headers:{"Content-Type":"application/json","Cache-Control":"no-store"}});
  if(req.method==="OPTIONS")return new Response(null,{status:204});
+ if(req.method!=="POST")return reply({error:"method_not_allowed"},405);
 
- const url=env("SUPABASE_URL"),serviceKey=secretKey();
- if(!url||!serviceKey)return new Response(JSON.stringify({error:"Não configurado"}),{status:503});
+ const url=env("SUPABASE_URL"),serviceKey=secretKey(),anonKey=env("SUPABASE_ANON_KEY");
+ if(!url||!serviceKey||!anonKey)return reply({error:"Não configurado"},503);
  const admin=createClient(url,serviceKey,{auth:{persistSession:false}});
 
  try{
-  let connectors:Connector[]=[];
-
-  // Check if specific connector requested
   let body:Record<string,unknown>={};
-  if(req.method==="POST"){
-   try{body=await req.json();}catch{}
-  }
+  try{body=await req.json();}catch{}
 
-  if(body.connectorId){
-   // Manual trigger for specific connector
+  // Autorização obrigatória. Sem isto, qualquer portador da anon key pública (que satisfaz o
+  // verify_jwt do gateway) poderia disparar a sincronização privilegiada (service role + saída
+  // com credenciais do conector + escrita no bridge). Dois caminhos legítimos:
+  //  (1) execução agendada: header x-cron-secret validado por vertice_espelho_cron_ok;
+  //  (2) execução manual: usuário autenticado (MFA/aal2) que gerencia a instituição do conector.
+  let connectors:Connector[]=[];
+  const cronSecret=req.headers.get("x-cron-secret");
+
+  if(cronSecret){
+   const cr=await fetch(url+"/rest/v1/rpc/vertice_espelho_cron_ok",{method:"POST",
+    headers:{apikey:serviceKey,Authorization:"Bearer "+serviceKey,"Content-Type":"application/json"},
+    body:JSON.stringify({p_secret:cronSecret}),signal:AbortSignal.timeout(10000)});
+   if(!cr.ok||(await cr.json())!==true)return reply({error:"access_denied"},403);
    const {data}=await admin.from("vertice_api_connectors")
-    .select("*").eq("id",String(body.connectorId)).eq("sync_enabled",true).single();
-   if(data)connectors=[data as Connector];
-  }else{
-   // Find all connectors due for sync
-   const {data}=await admin.from("vertice_api_connectors")
-    .select("*")
-    .eq("sync_enabled",true)
-    .neq("connector_type","manual_only")
+    .select("*").eq("sync_enabled",true).neq("connector_type","manual_only")
     .or(`last_sync_at.is.null,last_sync_at.lt.${new Date(Date.now()-3600000).toISOString()}`);
-   // Filter by interval
-   connectors=((data||[]) as Connector[]).filter(c=>{
-    if(!c.api_base_url)return false;
-    // For more detailed interval check, we'll process all due ones
-    return true;
-   });
+   connectors=((data||[]) as Connector[]).filter(c=>c.api_base_url);
+  }else{
+   const bearer=req.headers.get("authorization")||"";
+   if(!/^Bearer [\w.-]{16,}$/.test(bearer))return reply({error:"authentication_required"},401);
+   const ur=await fetch(url+"/auth/v1/user",{headers:{Authorization:bearer,apikey:anonKey},signal:AbortSignal.timeout(10000)});
+   const user=await ur.json().catch(()=>null);
+   if(!ur.ok||!user?.id||user.is_anonymous)return reply({error:"authentication_required"},401);
+   const connectorId=typeof body.connectorId==="string"?body.connectorId:"";
+   if(!UUID.test(connectorId))return reply({error:"invalid_request"},400);
+   const {data:conn}=await admin.from("vertice_api_connectors")
+    .select("*").eq("id",connectorId).eq("sync_enabled",true).maybeSingle();
+   if(!conn)return reply({error:"connector_not_found"},404);
+   // Autorização por instituição (master/gestor/reitor/diretor/procurador + aal2), com o JWT do usuário.
+   const ar=await fetch(url+"/rest/v1/rpc/vertice_evidence_can_manage",{method:"POST",
+    headers:{apikey:anonKey,Authorization:bearer,"Content-Type":"application/json"},
+    body:JSON.stringify({p_institution_id:(conn as Connector).institution_id}),signal:AbortSignal.timeout(10000)});
+   if(!ar.ok||(await ar.json())!==true)return reply({error:"access_denied"},403);
+   connectors=[conn as Connector];
   }
 
   const results=[];
   for(const connector of connectors){
    results.push(await syncConnector(admin,connector));
   }
-
-  return new Response(JSON.stringify({ok:true,synced:results.length,results}),{
-   status:200,headers:{"Content-Type":"application/json"}
-  });
+  return reply({ok:true,synced:results.length,results});
  }catch(error){
-  return new Response(JSON.stringify({error:(error as Error).message}),{
-   status:500,headers:{"Content-Type":"application/json"}
-  });
+  return reply({error:(error as Error).message},500);
  }
 });
