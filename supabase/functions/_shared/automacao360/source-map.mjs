@@ -52,6 +52,7 @@ const map = {
   'instrument.unbacked': ['instrumental', I, 'public.vertice_avaliacao_simulada (conceito_atual) + arquivos validados do indicador', 'public.vertice_automation_source_instrumental', 'Coordenação/NDE', 'Conceito simulado 3 ou mais sem nenhuma evidência validada no indicador. Só curso.'],
   'instrument.unassigned': ['instrumental', I, 'public.vertice_instrumento_checklist (status nao_conforme/parcial, responsible)', 'public.vertice_automation_source_instrumental', 'Gestão do Novo Instrumento', 'Itens não conformes ou parciais sem responsável registrado.'],
   'instrument.milestone': ['instrumental', I, 'public.vertice_instrumento_ciclo (target_year, status)', 'public.vertice_automation_source_instrumental', 'Gestão do ciclo avaliativo', 'Marco não concluído com ano-alvo anterior ao ano corrente no fuso da IES. Só IES; o registro guarda só o ano.'],
+  'goal.unmeasured': ['planning', I, 'public.vertice_goals (frequency, status, formula) + vertice_goal_measurements (measured_on)', 'public.vertice_automation_source_planning', 'Responsável pela meta', 'Metas abertas do escopo com medição atrasada para a própria frequência (mensal 31 dias a anual 366). Metas de checklist ficam fora: a rotina meta-checklist-v1 as mede todo dia. Frequência não reconhecida não conta como atraso.'],
 };
 
 export const SOURCE_MAP = Object.freeze(RULES.map((r) => {

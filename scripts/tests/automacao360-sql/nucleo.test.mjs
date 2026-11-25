@@ -26,6 +26,7 @@ async function setup(t) {
   await db.waitReady;
   t.after(() => db.close());
   await db.exec(await read('./fixture.sql'));
+  await db.exec('ALTER TABLE public.vertice_goals ADD COLUMN IF NOT EXISTS frequency text'); // a governança acrescenta a sua
   const staff = await read('../../../supabase/migrations/20261122170000_course_staff_functions.sql');
   const s = staff.indexOf('create function vertice_private.course_function(');
   await db.exec(staff.slice(s, staff.indexOf('$$;', s) + 3));
@@ -36,6 +37,7 @@ async function setup(t) {
   await db.exec(await read('../../../supabase/migrations/20261125110000_automacao360_fontes_pedagogicas.sql'));
   await db.exec(await read('../../../supabase/migrations/20261125120000_automacao360_indices.sql'));
   await db.exec(await readMigration('20261125170000_automacao360_fontes_instrumentos.sql'));
+  await db.exec(await readMigration('20261125200000_automacao360_meta_sem_medicao.sql'));
   await db.exec(`
     INSERT INTO public.vertice_institutions VALUES ('${UNITOP}','UNITOP sintética','superior'),('${UNICALDAS}','UNICALDAS sintética','superior');
     INSERT INTO public.vertice_courses VALUES ('${DIR_TOP}','${UNITOP}','Direito','DIR'),('${DIR_CAL}','${UNICALDAS}','Direito','DIR');
@@ -534,4 +536,32 @@ test('leitor de instrumentos: evidência, cobertura, arquivos parados, conceito 
   assert.equal(out.results[0].status, 'evaluated');
   const kinds = (await db.query('select rule_id from vertice_automation.run_alert order by 1')).rows.map((r) => r.rule_id);
   assert.deepEqual(kinds, ['instrument.evidence', 'instrument.stalled', 'instrument.unassigned', 'instrument.unbacked']);
+});
+
+test('goal.unmeasured: meta manual com medição atrasada; checklist e frequência desconhecida fora', async (t) => {
+  const db = await setup(t);
+  const CHK = '100 × itens aplicáveis concluídos e conferidos ÷ total de itens aplicáveis';
+  await db.exec(`
+    INSERT INTO public.vertice_goals(id,institution_id,course_id,title,status,frequency,formula,created_at) VALUES
+      ('${id(701)}','${UNITOP}','${DIR_TOP}','Mensal sem medição há 40 dias','ativa','mensal','Taxa', now() - interval '90 days'),
+      ('${id(702)}','${UNITOP}','${DIR_TOP}','Mensal medida há 10 dias','ativa','mensal','Taxa', now() - interval '90 days'),
+      ('${id(703)}','${UNITOP}','${DIR_TOP}','Checklist parada','ativa','mensal','${CHK}', now() - interval '90 days'),
+      ('${id(704)}','${UNITOP}','${DIR_TOP}','Sem frequência','ativa',null,'Taxa', now() - interval '90 days'),
+      ('${id(705)}','${UNITOP}','${DIR_TOP}','Concluída','concluida','mensal','Taxa', now() - interval '90 days'),
+      ('${id(706)}','${UNITOP}','${DIR_TOP}','Anual nova, sem medição','ativa','anual','Taxa', now() - interval '20 days');
+    INSERT INTO public.vertice_goal_measurements(institution_id,goal_id,measured_on,value) VALUES
+      ('${UNITOP}','${id(701)}',current_date - 40, 1),('${UNITOP}','${id(702)}',current_date - 10, 1);`);
+  const rpc = svcRpc(db);
+  const src = await rpc('vertice_automation_source_planning', { p_institution: UNITOP, p_course: DIR_TOP });
+  const rec = src.records.filter((r) => r.ruleId === 'goal.unmeasured');
+  assert.equal(rec.length, 1);
+  assert.deepEqual(rec[0].metrics, { unmeasuredGoals: 1, goalsWithoutFrequency: 2, eligibleGoals: 5 }); // inclui a 'Meta PPC' da estrutura, sem frequência
+  // Escopo sem metas: nenhum registro (ausência não vira zero); outra IES não aparece.
+  const ies = await rpc('vertice_automation_source_planning', { p_institution: UNICALDAS, p_course: DIR_CAL });
+  assert.equal(ies.records.filter((r) => r.ruleId === 'goal.unmeasured').length, 0);
+  const cfg = (await propose(db, GESTOR_TOP, UNITOP, DIR_TOP, ['goal.unmeasured'])).rows[0].id;
+  await approve(db, GESTOR2_TOP, cfg);
+  const out = await runAll({ rpc });
+  assert.equal(out.results[0].status, 'evaluated');
+  assert.deepEqual((await db.query('select rule_id from vertice_automation.run_alert')).rows.map((r) => r.rule_id), ['goal.unmeasured']);
 });

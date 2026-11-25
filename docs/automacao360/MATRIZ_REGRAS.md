@@ -1,10 +1,10 @@
-# Matriz de rastreabilidade das 46 regras
+# Matriz de rastreabilidade das 47 regras
 
 GERADO por `scripts/automacao360/gerar-matriz.mjs` a partir de `catalog.mjs` e `source-map.mjs`. Não editar à mão.
 
 Fontes verificadas em produção por consulta somente de metadados (esquema, colunas, domínios de status e contagens agregadas) em 24/11/2026. **"identificada" não significa validada**: nenhuma regra está validada, homologada ou ativada. Todas as regras exigem, para leitura, `vertice_private.automation_can(..., 'read')` (vínculo nativo com MFA; coordenação/NDE só no próprio curso) e, para configurar, aprovar, revisar, executar, verificar e encaminhar, os papéis definidos em `vertice_private.automation_can` (migração `20261124210000_automacao360_nucleo.sql`), derivados de `member_role`, `course_function` e da política nativa `vertice_actions_insert`. Qualidade mínima comum: fonte completa e no escopo exato, observação não futura e dentro de `max_age_hours`; ausência nunca vira zero.
 
-Resumo: 36 com fonte identificada, 10 com fonte pendente, 0 validadas.
+Resumo: 37 com fonte identificada, 10 com fonte pendente, 0 validadas.
 
 | Regra | Módulo | Versão | Periodicidade | Gatilho proposto | Família | Fonte real | Adaptador | Fonte | Destino | Observação |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -54,3 +54,4 @@ Resumo: 36 com fonte identificada, 10 com fonte pendente, 0 validadas.
 | `instrument.unbacked` | Instrumentos de Avaliação | 2026.11-instrument.1 | weekly | unbackedConcepts > 0 | instrumental | public.vertice_avaliacao_simulada (conceito_atual) + arquivos validados do indicador | `public.vertice_automation_source_instrumental` | identificada | Coordenação/NDE | Conceito simulado 3 ou mais sem nenhuma evidência validada no indicador. Só curso. |
 | `instrument.unassigned` | Instrumentos de Avaliação | 2026.11-instrument.1 | weekly | unassignedItems > 0 | instrumental | public.vertice_instrumento_checklist (status nao_conforme/parcial, responsible) | `public.vertice_automation_source_instrumental` | identificada | Gestão do Novo Instrumento | Itens não conformes ou parciais sem responsável registrado. |
 | `instrument.milestone` | Instrumentos de Avaliação | 2026.11-instrument.1 | monthly | overdueMilestones > 0 | instrumental | public.vertice_instrumento_ciclo (target_year, status) | `public.vertice_automation_source_instrumental` | identificada | Gestão do ciclo avaliativo | Marco não concluído com ano-alvo anterior ao ano corrente no fuso da IES. Só IES; o registro guarda só o ano. |
+| `goal.unmeasured` | Metas e Indicadores | 2026.11-goals.1 | weekly | unmeasuredGoals > 0 | planning | public.vertice_goals (frequency, status, formula) + vertice_goal_measurements (measured_on) | `public.vertice_automation_source_planning` | identificada | Responsável pela meta | Metas abertas do escopo com medição atrasada para a própria frequência (mensal 31 dias a anual 366). Metas de checklist ficam fora: a rotina meta-checklist-v1 as mede todo dia. Frequência não reconhecida não conta como atraso. |

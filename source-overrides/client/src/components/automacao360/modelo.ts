@@ -17,7 +17,7 @@ export const fontes = { validada: 'Fonte validada', identificada: 'Fonte identif
 export const cadencias: Record<string, string> = { daily: 'Diária', weekly: 'Semanal', monthly: 'Mensal' };
 export const acoes: Record<string, string> = { propose: 'Revisão proposta', approve: 'Aprovado', reject: 'Rejeitado', start: 'Execução iniciada', complete: 'Concluído', verify: 'Verificado', close: 'Encerrado com justificativa', '5w2h_draft': 'Rascunho 5W2H criado' };
 
-// Rótulos institucionais das 46 regras (sem identificadores técnicos na tela).
+// Rótulos institucionais das 47 regras (sem identificadores técnicos na tela).
 export const rotulos: Record<string, string> = {
   'repo.overdue': 'Documentos do Repositório com prazo vencido', 'repo.due': 'Documentos do Repositório com prazo em até 7 dias',
   'sapiens.low': 'Competência com acerto abaixo de 50% (Sapiens)', 'curriculum.gap': 'Competências do currículo sem disciplina vinculada',
@@ -36,6 +36,7 @@ export const rotulos: Record<string, string> = {
   'instrument.evidence': 'Indicadores do instrumento sem evidência validada', 'instrument.stalled': 'Documentos enviados há 15 dias sem validação',
   'instrument.uncovered': 'Indicadores do instrumento sem solicitação nem "não se aplica"', 'instrument.unbacked': 'Conceito simulado 3 ou mais sem evidência validada',
   'instrument.unassigned': 'Itens não conformes do Novo Instrumento sem responsável', 'instrument.milestone': 'Marcos do ciclo avaliativo atrasados',
+  'goal.unmeasured': 'Metas sem medição no período da sua frequência',
 };
 export const rotulo = (id: string) => rotulos[id] ?? 'Regra não catalogada';
 
