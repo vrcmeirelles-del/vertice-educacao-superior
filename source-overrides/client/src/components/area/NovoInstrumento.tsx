@@ -143,7 +143,7 @@ function InstitucionalPanel({ institutionId, role, onUploadDocument }: { institu
         Os eixos e objetos abaixo são baseados no parecer CONIF/FDE (jul/2026) e na ata da 211ª reunião da CONAES.
         Serão atualizados quando a versão definitiva for publicada pelo INEP.
       </p>
-      <NovoDocumentosResumo2026 state={documents}/>
+      <NovoDocumentosResumo2026 state={documents} role={role}/>
       <CorrespondenciasInstitucionais institutionId={institutionId} role={role} onLinksUpdated={setLinkedDocs} />
       <div className="ni-inst-eixos">
         {EIXOS_INSTITUCIONAL.map(([n, title]) => {
@@ -607,7 +607,7 @@ function EvidenciasPanel({ institutionId, role, data, reload, fail, courses, cou
       <div className="area-panel">
         <div className="area-panel-head"><h3>Documentos de trabalho · proposta 2026</h3><SeletorEscopo courses={courses} value={courseId??""} onChange={onCourse}/></div>
         {!course?<p className="area-note">Selecione um curso para consultar documentos, versões, prazos, responsáveis e decisões da gestão.</p>:<>
-          <NovoDocumentosResumo2026 state={documents}/>
+          <NovoDocumentosResumo2026 state={documents} role={role}/>
           <HelpLabel className="area-search">Objeto para consultar evidências
             <select value={docObject} onChange={e=>setDocObject(e.target.value)}>
               <option value="">Selecione um objeto…</option>

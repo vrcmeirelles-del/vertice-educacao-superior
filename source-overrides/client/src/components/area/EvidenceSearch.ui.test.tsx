@@ -12,3 +12,12 @@ it('walks the authorized repository queue by cursor and indexes without AI',asyn
  expect(fixture.invoke).toHaveBeenCalledWith('vertice-doc-prevalidate',{body:{institution_id:'ies-a',source_table:'vertice_repository_files',file_id:'file-z',action:'index'}});
  expect(fixture.rpc).toHaveBeenLastCalledWith('vertice_evidence_index_queue',expect.objectContaining({p_institution_id:'ies-a',p_course_id:'course-a',p_after_id:'file-z',p_retry_failed:false}));expect(el.textContent).toContain('Varredura concluída: 1');
 });
+it('sem seção, a chamada não leva p_section (compatível com a função vigente)',async()=>{fixture.rpc.mockResolvedValueOnce({data:true,error:null}).mockResolvedValueOnce({data:[],error:null});await start();await submit();expect(Object.keys(fixture.rpc.mock.calls.at(-1)![1])).not.toContain('p_section');});
+it('com seção, busca só o acervo do instrumento e não oferece varredura do repositório inteiro',async()=>{
+ (globalThis as any).IS_REACT_ACT_ENVIRONMENT=true;el=document.createElement('div');document.body.append(el);root=createRoot(el);
+ fixture.rpc.mockResolvedValueOnce({data:true,error:null}).mockResolvedValueOnce({data:[],error:null});
+ await act(async()=>root!.render(<EvidenceSearch institutionId="ies-a" section="recredenciamento_2017" label="Buscar no acervo do Recredenciamento"/>));
+ expect(el.querySelector('button')!.textContent).toBe('Buscar no acervo do Recredenciamento');await act(async()=>el.querySelector('button')!.click());
+ expect(el.textContent).toContain('Busca restrita ao acervo deste instrumento');expect(el.textContent).not.toContain('Extrair acervo pendente');
+ await submit();expect(fixture.rpc).toHaveBeenLastCalledWith('vertice_evidence_search',expect.objectContaining({p_institution_id:'ies-a',p_course_id:null,p_section:'recredenciamento_2017'}));
+});

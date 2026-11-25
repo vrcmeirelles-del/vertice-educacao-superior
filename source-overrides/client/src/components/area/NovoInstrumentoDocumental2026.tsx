@@ -7,6 +7,7 @@ import "./recredenciamento-documentos-2017.css";
 
 // Pré-validação por algoritmo do arquivo enviado, contra o catálogo do Novo Instrumento 2026 da seção (proposta).
 const PreValidationPanel=lazy(()=>import("./PreValidationPanel"));
+const EvidenceSearch=lazy(()=>import("./EvidenceSearch"));
 type Scope="institucional"|"curso";
 type Request={id:string;course_id:string|null;document_code:string|null;title:string;semester:string|null;not_applicable:boolean|null;nsa_reason:string|null;assignee_email:string|null;assigned_to:string|null;due_date:string|null;active:boolean};
 type Evidence={id:string;request_id:string;file_name:string;storage_path:string;status:string;reference:string|null;upload_note:string|null;review_note:string|null;created_at:string};
@@ -52,7 +53,7 @@ export function useNovoInstrumentoDocs2026(institutionId:string,role:Role|null,s
 }
 export type NewDocsState=ReturnType<typeof useNovoInstrumentoDocs2026>;
 
-export function NovoDocumentosResumo2026({state}:{state:NewDocsState}){
+export function NovoDocumentosResumo2026({state,role}:{state:NewDocsState;role?:Role|null}){
  const summary=useMemo(()=>{
   const latest=new Map<string,Evidence>();
   for(const f of state.files)if(!latest.has(f.request_id))latest.set(f.request_id,f);
@@ -67,6 +68,7 @@ export function NovoDocumentosResumo2026({state}:{state:NewDocsState}){
    {([["Exigências cadastradas",summary.count],["Validadas pela gestão",summary.approved],["Aguardando análise",summary.waiting],["Devolvidas",summary.returned],["NSA justificado",summary.nsa]] as [string,number][]).map(([k,v])=><div key={k}><small>{k}</small><strong>{v}</strong></div>)}
   </div>
   {state.error&&<p role="alert" className="rec17-error">{state.error}</p>}
+  {role!==undefined&&can.manageGoals(role)&&(state.scope==='institucional'||state.courseId)&&<Suspense fallback={null}><EvidenceSearch institutionId={state.institutionId} courseId={state.scope==='curso'?state.courseId:null} section={settings[state.scope].section} label="Buscar evidências no acervo do Novo Instrumento 2026"/></Suspense>}
   <p className="rec17-help">Selecione um objeto para anexar evidência, indicar responsável, justificar NSA e consultar o histórico de versões. Cada instrumento mantém seu acervo próprio.</p>
  </section>;
 }

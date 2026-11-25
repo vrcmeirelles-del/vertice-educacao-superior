@@ -168,7 +168,7 @@ export default function AvaliacaoInstitucional({ institutionId,role }: { institu
         {catalogId ? "As notas por eixo ficam gravadas para a instituição." : "As notas que você digitar não são gravadas: o catálogo do instrumento ainda não foi carregado para esta instituição."}
       </p>
 
-      <Recred2017Overview state={documents}/>
+      <Recred2017Overview state={documents} institutionId={institutionId} role={role}/>
       <div className="aval-resumo">
         <div className="aval-resumo-main">
           <DonutAval parts={[

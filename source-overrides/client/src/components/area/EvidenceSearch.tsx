@@ -2,12 +2,13 @@ import {useEffect,useState,useRef,type FormEvent} from 'react';
 import {supabase} from '@/lib/supabase';
 type Evidence={source_table:string;source_id:string;course_id:string|null;title:string;category:string|null;indicators:string[];request_id:string|null;goal_id:string|null;text_status:string;source_sha256:string|null;excerpt:string;keyword_suggestions:string[];approved_links:unknown[]};
 type QueueEntry=Pick<Evidence,'source_table'|'source_id'>;
-export default function EvidenceSearch({institutionId,courseId=null}:{institutionId:string;courseId?:string|null}){
+// section: restringe a busca ao acervo de uma seção (ex.: recredenciamento_2017); sem ela, a busca é a de sempre.
+export default function EvidenceSearch({institutionId,courseId=null,section=null,label}:{institutionId:string;courseId?:string|null;section?:string|null;label?:string}){
  const scopeVersion=useRef(0);
  const stopBatch=useRef(false);
  const [retryFailed,setRetryFailed]=useState(false),[batchActive,setBatchActive]=useState(false);
  const [open,setOpen]=useState(false),[query,setQuery]=useState(''),[include,setInclude]=useState(!courseId),[rows,setRows]=useState<Evidence[]>([]),[busy,setBusy]=useState(false),[error,setError]=useState(''),[searched,setSearched]=useState(false),[progress,setProgress]=useState('');
- useEffect(()=>{scopeVersion.current++;stopBatch.current=true;setBatchActive(false);setBusy(false);setProgress('');setRows([]);setError('');setSearched(false);setInclude(!courseId);return()=>{scopeVersion.current++;stopBatch.current=true;};},[institutionId,courseId]);
+ useEffect(()=>{scopeVersion.current++;stopBatch.current=true;setBatchActive(false);setBusy(false);setProgress('');setRows([]);setError('');setSearched(false);setInclude(!courseId);return()=>{scopeVersion.current++;stopBatch.current=true;};},[institutionId,courseId,section]);
  async function indexBacklog(){
   const version=scopeVersion.current;stopBatch.current=false;setBusy(true);setBatchActive(true);setError('');let completed=0,failed=0,cursor:string|null=null;
   try{
@@ -28,7 +29,7 @@ export default function EvidenceSearch({institutionId,courseId=null}:{institutio
  }
  async function search(e:FormEvent){e.preventDefault();setBusy(true);setError('');setRows([]);setSearched(false);const version=scopeVersion.current;
   try{const gate=await supabase.rpc('vertice_evidence_can_manage',{p_institution_id:institutionId});if(gate.error)throw gate.error;if(gate.data!==true)throw Error('A busca exige perfil de gestão autorizado e sessão MFA válida.');
-   const {data,error}=await supabase.rpc('vertice_evidence_search',{p_institution_id:institutionId,p_course_id:courseId,p_query:query,p_include_institution:include,p_limit:30});if(error)throw error;if(version!==scopeVersion.current)return;setRows(data??[]);setSearched(true);
+   const {data,error}=await supabase.rpc('vertice_evidence_search',{p_institution_id:institutionId,p_course_id:courseId,p_query:query,p_include_institution:include,p_limit:30,...(section?{p_section:section}:{})});if(error)throw error;if(version!==scopeVersion.current)return;setRows(data??[]);setSearched(true);
   }catch(e){if(version===scopeVersion.current)setError(e instanceof Error?e.message:'Não foi possível consultar as evidências.');}finally{if(version===scopeVersion.current)setBusy(false);}
  }
  async function indexReturned(){
@@ -38,14 +39,15 @@ export default function EvidenceSearch({institutionId,courseId=null}:{institutio
   if(version!==scopeVersion.current)return;
   setProgress(`Extração concluída: ${completed} arquivo(s); ${failed} pendente(s) ou com falha. Pesquise novamente para atualizar os resultados.`);setBusy(false);
  }
- return <section aria-label="Evidências compartilhadas" className="enade360-panel"><button type="button" className="corp-button secondary small" aria-expanded={open} onClick={()=>setOpen(!open)}>Buscar evidências do repositório e da Biblioteca INEP</button>{open&&<>
+ return <section aria-label="Evidências compartilhadas" className="enade360-panel"><button type="button" className="corp-button secondary small" aria-expanded={open} onClick={()=>setOpen(!open)}>{label??'Buscar evidências do repositório e da Biblioteca INEP'}</button>{open&&<>
  <p>Pesquisa por título, indicador e texto extraído. Classificações existentes são preservadas; palavras-chave extraídas são sugestões. Uma correspondência não comprova suficiência documental nem resultado oficial.</p>
+ {section?<p>Busca restrita ao acervo deste instrumento: só arquivos enviados aqui. Documentos gerais e Biblioteca INEP ficam de fora.</p>:<>
  <p>Extração do acervo pendente: {courseId?'somente o curso selecionado':'repositório da instituição e seus cursos'}. A varredura percorre os arquivos por identificador e preserva os textos já indexados.</p>
  <label><input type="checkbox" checked={retryFailed} disabled={busy} onChange={e=>setRetryFailed(e.target.checked)}/> Incluir tentativas anteriores com falha</label>
  <button type="button" className="corp-button small" disabled={busy} onClick={()=>void indexBacklog()}>Extrair acervo pendente, sem enviar à IA</button>
- {batchActive&&<button type="button" className="corp-button secondary small" onClick={()=>{stopBatch.current=true;}}>Interromper após os arquivos em curso</button>}
+ {batchActive&&<button type="button" className="corp-button secondary small" onClick={()=>{stopBatch.current=true;}}>Interromper após os arquivos em curso</button>}</>}
  <form onSubmit={e=>void search(e)}><label>Palavra-chave, tema ou indicador<input value={query} maxLength={300} onChange={e=>setQuery(e.target.value)} placeholder="Ex.: NDE, competências, 1.2" /></label>
- {courseId?<label><input type="checkbox" checked={include} onChange={e=>setInclude(e.target.checked)}/> Incluir documentos institucionais, identificados separadamente</label>:<p>Escopo: instituição e seus cursos, conforme as permissões atuais.</p>}
+ {section?null:courseId?<label><input type="checkbox" checked={include} onChange={e=>setInclude(e.target.checked)}/> Incluir documentos institucionais, identificados separadamente</label>:<p>Escopo: instituição e seus cursos, conforme as permissões atuais.</p>}
  <button className="corp-button small" disabled={busy}>{busy?'Consultando…':'Pesquisar evidências'}</button></form>
  {error&&<p role="alert">{error}</p>}{searched&&!rows.length&&<p role="status">Nenhuma correspondência retornada neste escopo. Isso não comprova ausência de documentação.</p>}
  {progress&&<p role="status">{progress}</p>}{rows.some(r=>r.source_table!=="vertice_inep_library"&&r.text_status!=="ready"&&r.text_status!=="partial")&&<button className="corp-button small" disabled={busy} type="button" onClick={()=>void indexReturned()}>Extrair textos dos resultados pendentes, sem enviar à IA</button>}{rows.length>0&&<><p>Até 30 resultados. Abra o arquivo no repositório para conferir o original.</p>{rows.map(r=><article key={r.source_table+':'+r.source_id} style={{borderTop:'1px solid #cbd5e1',padding:'12px 0'}}>
