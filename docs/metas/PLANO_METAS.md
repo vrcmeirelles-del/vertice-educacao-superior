@@ -17,7 +17,7 @@
 
 | Item | Situação |
 |---|---|
-| 1. Medição automática das metas de checklist (`meta-checklist-v1`), rotina diária `vertice-metas-medicao-diaria` às 06h37 UTC | Migração candidata `20261125190000`. Ensaio em produção desfeito: 901 medições, todas 0%; a segunda execução não grava nada |
-| 2. Três índices e chaves estrangeiras nos campos de meta soltos (gatilho para a lista de metas dos planos de extensão) | Mesma migração |
+| 1. Medição automática das metas de checklist (`meta-checklist-v1`), rotina diária `vertice-metas-medicao-diaria` às 06h37 UTC | **Em produção** (25/11/2026). Migração `20261125190000` aplicada; primeira medição: 901 metas, todas 0% |
+| 2. Três índices e chaves estrangeiras nos campos de meta soltos (gatilho para a lista de metas dos planos de extensão) | **Em produção**, na mesma migração |
 | 3. Metas institucionais ligadas ao PDI e ações 5W2H ligadas às metas | Decisão da gestão: cadastro de metas institucionais e do programa do PDI |
-| 4. Regra na Automação 360°: meta sem medição no período da sua frequência | A fazer, depois do item 1 em produção |
+| 4. Regra na Automação 360°: meta sem medição no período da sua frequência | A fazer; o item 1 já está em produção |
