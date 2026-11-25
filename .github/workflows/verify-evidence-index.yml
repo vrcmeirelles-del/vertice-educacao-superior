@@ -12,6 +12,11 @@ on:
       - 'supabase/migrations/*extraction_failure_trace.sql'
       - 'supabase/migrations/*ocr_provenance_notice.sql'
       - 'docs/enade-360/fontes/iacg2017-reconhecimento-catalog.json'
+      - 'supabase/migrations*/*instrumentos_catalogos.sql'
+      - 'scripts/instrumentos/**'
+      - 'source-overrides/client/src/lib/avaliacao-institucional.json'
+      - 'source-overrides/client/src/lib/novo-instrumento.ts'
+      - 'source-overrides/client/src/lib/instrumento-mapping.ts'
       - 'scripts/tests/evidence-runtime/**'
       - '.github/workflows/verify-evidence-index.yml'
 permissions:
