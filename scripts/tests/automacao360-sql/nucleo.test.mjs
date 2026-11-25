@@ -466,3 +466,14 @@ test('toda chave estrangeira do schema vertice_automation tem índice que a cobr
         and (i.indkey::int2[])[0:array_length(c.conkey,1)-1] @> c.conkey and (i.indkey::int2[])[0:array_length(c.conkey,1)-1] <@ c.conkey)`)).rows;
   assert.deepEqual(missing, []);
 });
+
+test('executor: fonte lida depois do início da rodada não é recusada como observação futura', async (t) => {
+  const db = await setup(t);
+  await configured(db);
+  const rpc = svcRpc(db);
+  // Rodada iniciada 3 s antes da leitura das fontes (o código antigo fixava o instante antes de ler).
+  const out = await runAll({ rpc, asOf: new Date(Date.now() - 3000).toISOString() });
+  assert.ok(out.results[0].sources.includes('documentary:evaluated'), JSON.stringify(out.results[0]));
+  const run = (await db.query('select as_of from vertice_automation.run')).rows[0];
+  assert.ok(Date.now() - new Date(run.as_of).getTime() < 3000); // instante fixado após a leitura
+});

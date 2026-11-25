@@ -6,8 +6,9 @@ import {randomUUID} from 'node:crypto';
 import {shadowRun} from './native-integration.mjs';
 import {evaluate} from './engine.mjs';
 import {prepareShadowReceipt} from './persistence.mjs';
+import {RULES} from './catalog.mjs';
 
-export const EXECUTOR_VERSION = '2026.11-executor.3';
+export const EXECUTOR_VERSION = '2026.11-executor.4';
 export const SYSTEM_ACTOR_ID = '00000000-0000-4000-8000-000000000360';
 const PLANNING = ['pei.overdue', 'cpa.pending'];
 // Regras com adaptador de fonte real. As demais ficam "sem adaptador" (execução parcial), nunca silenciosas.
@@ -15,6 +16,17 @@ export const SUPPORTED = Object.freeze(['repo.overdue', 'repo.due', ...PLANNING,
   'internship.due', 'internship.overdue', 'teaching.documents', 'alumni.pending', 'competition.change',
   'curriculum.gap', 'avalia.recovery', 'retention.alert']);
 const MAX_CONFIGS = 500;
+// Mesma partição de famílias de native-integration.mjs, para ler cada fonte uma vez antes da execução.
+const byModule = (mods) => RULES.filter((r) => mods.includes(r.module)).map((r) => r.id);
+const FAMILY_RULES = {
+  documentary: ['repo.overdue', 'repo.due'],
+  pedagogical: ['sapiens.low', 'curriculum.gap', 'avalia.recovery', 'enade.gap', 'enamed.gap', 'retention.alert'],
+  academic: byModule(['Estágio 360°', 'TCC 360°', 'Extensão 360°', 'Atividades de Ensino', 'AC 360°']),
+  strategic: byModule(['Captação', 'Inteligência de Mercado', 'Due Diligence', 'Financeiro', 'Conecta 360°']),
+};
+const SOURCE_RPC = { documentary: 'vertice_automation_source_documentary', academic: 'vertice_automation_source_academic',
+  strategic: 'vertice_automation_source_strategic', pedagogical: 'vertice_automation_source_pedagogical', planning: 'vertice_automation_source_planning' };
+const later = (a, b) => (Date.parse(a) >= Date.parse(b) ? a : b);
 const uuid = (v) => typeof v === 'string' && /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(v);
 
 function checkConfig(c) {
@@ -33,25 +45,34 @@ export async function runConfig({ config: c, rpc, asOf, runId = randomUUID() }) 
   const config = { ...scope, enabled: true, approved: true, revision: c.revision, ruleIds: [...c.ruleIds], maxAgeHours: c.maxAgeHours };
   const actor = { ...scope, id: SYSTEM_ACTOR_ID, mfa: true, permissions: ['read'] };
   const args = { p_institution: scope.institutionId, p_course: scope.courseId };
-  const adapters = {
-    documentary: async () => rpc('vertice_automation_source_documentary', args),
-    academic: async () => rpc('vertice_automation_source_academic', args),
-    strategic: async () => rpc('vertice_automation_source_strategic', args),
-    pedagogical: async () => rpc('vertice_automation_source_pedagogical', args),
-  };
   const unsupported = config.ruleIds.filter((id) => !SUPPORTED.includes(id));
   const shadowIds = config.ruleIds.filter((id) => SUPPORTED.includes(id) && !PLANNING.includes(id));
+  const planningIds = config.ruleIds.filter((id) => PLANNING.includes(id));
+  // Lê as fontes primeiro e só então fixa o instante da execução: a fonte registra a própria leitura
+  // (truncada ao segundo) e o motor recusa observação posterior ao instante avaliado.
+  const needed = Object.keys(FAMILY_RULES).filter((f) => shadowIds.some((id) => FAMILY_RULES[f].includes(id))
+    && !((f === 'academic' || f === 'pedagogical') && scope.courseId === null));
+  if (planningIds.length) needed.push('planning');
+  const fetched = {};
+  for (const family of needed) {
+    try { fetched[family] = { ok: true, value: await rpc(SOURCE_RPC[family], args) }; } catch { fetched[family] = { ok: false }; }
+  }
+  const runAsOf = asOf ? later(asOf, new Date().toISOString()) : new Date().toISOString();
+  const adapters = Object.fromEntries(Object.keys(FAMILY_RULES).filter((f) => fetched[f]).map((f) => [f, async () => {
+    if (!fetched[f].ok) throw Error('source_unavailable');
+    return fetched[f].value;
+  }]));
   const base = shadowIds.length
-    ? await shadowRun({ scope, actor, config: { ...config, ruleIds: shadowIds }, adapters, asOf, timeZone: c.timeZone })
+    ? await shadowRun({ scope, actor, config: { ...config, ruleIds: shadowIds }, adapters, asOf: runAsOf, timeZone: c.timeZone })
     : { alerts: [], sources: [], unmapped: [] };
   const alerts = [...base.alerts], sources = [...base.sources];
   const unmapped = [...unsupported];
-  const planningIds = config.ruleIds.filter((id) => PLANNING.includes(id));
   if (planningIds.length) {
     try {
-      const src = await rpc('vertice_automation_source_planning', { p_institution: scope.institutionId, p_course: scope.courseId });
+      if (!fetched.planning.ok) throw Error('source_unavailable');
+      const src = fetched.planning.value;
       if (src?.institutionId !== scope.institutionId || (src.courseId ?? null) !== scope.courseId || src.complete !== true) throw Error('invalid_source');
-      const out = evaluate({ scope, config: { ...config, ruleIds: planningIds }, asOf,
+      const out = evaluate({ scope, config: { ...config, ruleIds: planningIds }, asOf: runAsOf,
         snapshot: { ...scope, sourceId: src.sourceId, observedAt: src.observedAt, records: src.records } });
       sources.push({ family: 'planning', status: out.status });
       if (out.status === 'evaluated') alerts.push(...out.alerts);
@@ -61,7 +82,7 @@ export async function runConfig({ config: c, rpc, asOf, runId = randomUUID() }) 
   }
   const status = unmapped.length || sources.some((s) => s.status !== 'evaluated' || s.issueCount || s.skippedCount) ? 'partial' : 'evaluated';
   const result = { mode: 'shadow', status, alerts, sources, unmapped };
-  const receipt = prepareShadowReceipt({ scope, config, result, runId, asOf });
+  const receipt = prepareShadowReceipt({ scope, config, result, runId, asOf: runAsOf });
   const ack = await rpc('vertice_automation_record_run', { p_payload: receipt });
   if (ack?.runId !== receipt.runId || ack?.digest !== receipt.digest || !['inserted', 'existing'].includes(ack.status)) throw Error('invalid_ack');
   return {
@@ -71,7 +92,8 @@ export async function runConfig({ config: c, rpc, asOf, runId = randomUUID() }) 
 }
 
 // Executa todas as configurações vigentes, uma a uma. Falha de uma não interrompe as demais.
-export async function runAll({ rpc, asOf = new Date().toISOString() }) {
+export async function runAll({ rpc, asOf }) {
+  const startedAt = new Date().toISOString();
   const configs = await rpc('vertice_automation_due_configs', {});
   if (!Array.isArray(configs) || configs.length > MAX_CONFIGS) throw Error('invalid_config_list');
   const results = [];
@@ -83,5 +105,5 @@ export async function runAll({ rpc, asOf = new Date().toISOString() }) {
       results.push({ configId: c?.configId ?? null, institutionId: c?.institutionId ?? null, courseId: c?.courseId ?? null, status: 'failed', error: code });
     }
   }
-  return { version: EXECUTOR_VERSION, asOf, configs: configs.length, results };
+  return { version: EXECUTOR_VERSION, startedAt, configs: configs.length, results };
 }
