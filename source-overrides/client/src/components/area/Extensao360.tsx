@@ -1,4 +1,5 @@
 import PortalInvitations from '../communications/PortalInvitations';
+import CertificadosPanel from './CertificadosPanel';
 import { ContextHelp } from '@/components/ContextHelp';
 import { HelpLabel } from '@/components/ContextHelp';
 // Extensao360.tsx — Repositório de Projetos de Extensão (v3 — Impacto integrado)
@@ -911,6 +912,7 @@ Este documento constitui evidência para fins de avaliação institucional (INEP
           {/* ===== ALUNOS ===== */}
           {view === 'alunos' && (
             <div className="ext-section">
+              {canEdit && selectedProject && <CertificadosPanel kind="extensao" sourceId={selectedProject} />}
               <div className="ext-project-list-tools">
                 <h3>Alunos por projeto</h3>
                 {canEdit&&projects.length>0&&<button className="ext-btn-primary" onClick={()=>{
