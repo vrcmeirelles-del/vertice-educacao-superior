@@ -11,7 +11,7 @@ CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$SELECT nullif(c
 CREATE FUNCTION auth.jwt() RETURNS jsonb LANGUAGE sql STABLE AS $$SELECT jsonb_build_object('aal',current_setting('request.jwt.claim.aal',true))$$;
 CREATE FUNCTION auth.role() RETURNS text LANGUAGE sql STABLE AS $$SELECT nullif(current_setting('request.jwt.claim.role',true),'')$$;
 
-CREATE TABLE public.vertice_institutions(id uuid PRIMARY KEY, name text NOT NULL, tier text DEFAULT 'superior');
+CREATE TABLE public.vertice_institutions(id uuid PRIMARY KEY, name text NOT NULL, tier text DEFAULT 'superior', state text);
 CREATE TABLE public.vertice_courses(id uuid PRIMARY KEY, institution_id uuid NOT NULL REFERENCES public.vertice_institutions(id) ON DELETE CASCADE, name text NOT NULL, code text);
 CREATE UNIQUE INDEX vertice_courses_scope_key ON public.vertice_courses(id, institution_id);
 CREATE TABLE public.vertice_admins(user_id uuid PRIMARY KEY);

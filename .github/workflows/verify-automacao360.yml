@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - 'supabase/functions/_shared/automacao360/**'
+      - 'supabase/functions/vertice-automacao360-run/**'
       - 'supabase/migrations/*automacao360*.sql'
       - 'supabase/migrations/*governanca_5w2h*.sql'
       - 'scripts/automacao360/**'
@@ -15,6 +16,7 @@ on:
     branches: [main]
     paths:
       - 'supabase/functions/_shared/automacao360/**'
+      - 'supabase/functions/vertice-automacao360-run/**'
       - 'supabase/migrations/*automacao360*.sql'
       - 'supabase/migrations/*governanca_5w2h*.sql'
       - 'scripts/automacao360/**'
@@ -48,6 +50,8 @@ jobs:
           node scripts/tests/automacao360/equivalencia-runtime.mjs > /tmp/node.json
           deno run --allow-read scripts/tests/automacao360/equivalencia-runtime.mjs > /tmp/deno.json
           diff /tmp/node.json /tmp/deno.json
+      - name: Verificação de tipos do executor (Edge Function vertice-automacao360-run)
+        run: deno check --no-lock supabase/functions/vertice-automacao360-run/index.ts
   sql:
     runs-on: ubuntu-latest
     steps:

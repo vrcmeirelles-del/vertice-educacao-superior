@@ -10,6 +10,7 @@ import { RULES } from '../../../supabase/functions/_shared/automacao360/catalog.
 import { shadowRun } from '../../../supabase/functions/_shared/automacao360/native-integration.mjs';
 import { prepareShadowReceipt } from '../../../supabase/functions/_shared/automacao360/persistence.mjs';
 import { evaluate } from '../../../supabase/functions/_shared/automacao360/engine.mjs';
+import { runAll, runConfig } from '../../../supabase/functions/_shared/automacao360/executor.mjs';
 
 const id = (n) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 // UNITOP e UNICALDAS sintéticas (identificadores fictícios), mais um curso de cada.
@@ -27,6 +28,7 @@ async function setup(t) {
   await db.exec(staff.slice(s, staff.indexOf('$$;', s) + 3));
   await db.exec(await read('../../../supabase/migrations/20261124210000_automacao360_nucleo.sql'));
   await db.exec(await read('../../../supabase/migrations/20261124210001_automacao360_catalogo.sql'));
+  await db.exec(await read('../../../supabase/migrations/20261125090000_automacao360_executor.sql'));
   await db.exec(`
     INSERT INTO public.vertice_institutions VALUES ('${UNITOP}','UNITOP sintética','superior'),('${UNICALDAS}','UNICALDAS sintética','superior');
     INSERT INTO public.vertice_courses VALUES ('${DIR_TOP}','${UNITOP}','Direito','DIR'),('${DIR_CAL}','${UNICALDAS}','Direito','DIR');
@@ -307,4 +309,67 @@ test('adaptador do planejamento e da CPA: PEI institucional e evidências da CPA
   const ack = (await as(db, null, 'select public.vertice_automation_record_run($1) r', [receipt], { role: 'service_role', aal: null })).rows[0].r;
   assert.equal(ack.status, 'inserted');
   assert.equal((await db.query('select count(*)::int n from vertice_automation.run_alert')).rows[0].n, 2);
+});
+
+// Executor (Edge Function vertice-automacao360-run): mesma orquestração, com RPC simulada como service_role.
+const svcRpc = (db) => async (name, args) => {
+  const keys = Object.keys(args);
+  const sql = 'select public.' + name + '(' + keys.map((k, i) => k + ' => $' + (i + 1)).join(', ') + ') r';
+  const vals = keys.map((k) => (args[k] !== null && typeof args[k] === 'object' ? JSON.stringify(args[k]) : args[k]));
+  return (await as(db, null, sql, vals, { role: 'service_role', aal: null })).rows[0].r;
+};
+
+test('executor: só configurações vigentes, aprovadas e ativadas; grava recibo sombra por escopo', async (t) => {
+  const db = await setup(t);
+  await db.exec(`UPDATE public.vertice_institutions SET state = 'TO' WHERE id = '${UNITOP}';
+    INSERT INTO public.vertice_goals(id,institution_id,course_id,title) VALUES ('${id(321)}','${UNITOP}',null,'Meta institucional');
+    INSERT INTO public.vertice_actions(institution_id,goal_id,what,due_date,status) VALUES ('${UNITOP}','${id(321)}','Atrasada', current_date - 3,'em_andamento');`);
+  const rpc = svcRpc(db);
+  assert.deepEqual(await rpc('vertice_automation_due_configs', {}), []); // nada aprovado: nada roda
+  // Curso: documental. IES: planejamento + regra sem adaptador (fica parcial, sem inventar resultado).
+  await configured(db);
+  const cfgIes = (await propose(db, GESTOR_TOP, UNITOP, null, ['pei.overdue', 'sapiens.low'])).rows[0].id;
+  await approve(db, GESTOR2_TOP, cfgIes);
+  // Pendente (não aprovada) não entra.
+  await propose(db, GESTOR_CAL, UNICALDAS, null, ['pei.overdue']);
+  const due = await rpc('vertice_automation_due_configs', {});
+  assert.equal(due.length, 2);
+  assert.ok(due.every((c) => c.institutionId === UNITOP && c.timeZone === 'America/Araguaina'));
+  const out = await runAll({ rpc });
+  assert.equal(out.configs, 2);
+  const byCourse = Object.fromEntries(out.results.map((r) => [r.courseId ?? 'ies', r]));
+  // Solicitação sem prazo vira pendência de qualidade: execução parcial, nunca "completa" por omissão.
+  assert.equal(byCourse[DIR_TOP].status, 'partial');
+  assert.ok(byCourse[DIR_TOP].sources.includes('documentary:evaluated'));
+  assert.equal(byCourse[DIR_TOP].alerts, 1); // 401 vencida; 402 já enviada; 403 validada; 405 não se aplica
+  assert.equal(byCourse.ies.status, 'partial'); // sapiens.low sem adaptador
+  assert.equal(byCourse.ies.alerts, 1);
+  assert.ok(byCourse.ies.sources.includes('planning:evaluated'));
+  assert.equal((await db.query('select count(*)::int n from vertice_automation.run')).rows[0].n, 2);
+  assert.equal((await db.query('select count(*)::int n from vertice_automation.alert')).rows[0].n, 0); // sombra não abre fila
+  // Desativar (nova revisão aprovada com enabled=false) tira o escopo da execução seguinte.
+  const off = (await propose(db, GESTOR_TOP, UNITOP, null, ['pei.overdue'], { enabled: false, expected: 1 })).rows[0].id;
+  await approve(db, GESTOR2_TOP, off);
+  assert.equal((await rpc('vertice_automation_due_configs', {})).length, 1);
+});
+
+test('executor: falha de uma configuração não interrompe as outras e não vaza detalhe', async (t) => {
+  const db = await setup(t);
+  await configured(db);
+  const real = svcRpc(db);
+  const rpc = async (name, args) => {
+    if (name === 'vertice_automation_due_configs') {
+      const list = await real(name, args);
+      return [{ ...list[0], configId: 9999, revision: 7 }, ...list]; // revisão divergente: record_run recusa
+    }
+    return real(name, args);
+  };
+  const out = await runAll({ rpc });
+  assert.equal(out.results[0].status, 'failed');
+  assert.equal(out.results[0].error, 'run_failed');
+  assert.equal(out.results[1].ack, 'inserted');
+  await assert.rejects(as(db, GESTOR_TOP, 'select public.vertice_automation_due_configs()'), /permission denied/);
+  await assert.rejects(runConfig({ config: { configId: 1 }, rpc, asOf: new Date().toISOString() }), /invalid_config_row/);
+  const op = { ...(await real('vertice_automation_due_configs', {}))[0], mode: 'operational' };
+  assert.equal((await runConfig({ config: op, rpc, asOf: new Date().toISOString() })).status, 'skipped_operational');
 });

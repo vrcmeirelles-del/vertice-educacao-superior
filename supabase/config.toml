@@ -35,3 +35,7 @@ verify_jwt = false
 # Avalia 360°: upload privado; o handler e a RPC exigem JWT, AAL2 e vínculo de curso.
 [functions.vertice-avalia-media]
 verify_jwt = true
+
+# Executor da Automação 360°: só a rotina agendada; o handler confere x-cron-secret no banco.
+[functions.vertice-automacao360-run]
+verify_jwt = false
