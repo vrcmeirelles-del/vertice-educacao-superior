@@ -4,7 +4,8 @@
 // do indicador mais um vocabulário curado. Cada vínculo cita literalmente o trecho de maior
 // pontuação, o que satisfaz groundedLinks. É sugestão: a validação continua humana.
 
-export const RULES_VERSION = 'regras-bm25@2026-11-20.2';
+import { assessDocumentQuality } from './document-quality.mjs';
+export const RULES_VERSION = 'regras-bm25@2026-11-27.1';
 export const fold = s => String(s || '').normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
 const STOP = new Set('a o e de da do das dos em no na nos nas para por pela pelo pelas pelos com sem sob sobre entre ao aos as os um uma uns umas que se ou como mais menos ser sao seu sua seus suas este esta isto esse essa isso aquele aquela ja nao sim tambem quando onde qual quais cada todo toda todos todas outro outra deve devem pode podem sera serao foi foram tem ter ha caso forma meio ambito curso cursos processo processos relacao'.split(' '));
 const stem = w => { w = w.replace(/(oes|aes|ais|eis|is|es|s)$/, m => m === 'oes' || m === 'aes' ? 'ao' : m === 'ais' ? 'al' : m === 'eis' ? 'el' : ''); return w.length > 7 ? w.slice(0, 7) : w; };
@@ -225,7 +226,7 @@ export function extractiveSummary(text, meta) {
   return [head, ...sentences.slice(0, 2)].filter(Boolean).join('. ').slice(0, 1500);
 }
 
-export function analyzeByRules({ extraction, fileName, category, objects, catalogs, institution, courses }) {
+export function analyzeByRules({ extraction, fileName, category, objects, catalogs, institution, courses, source }) {
   const text = extraction.text;
   const nature = detectNature(fileName, text, category);
   const institutionDetected = detectInstitution(text, institution);
@@ -233,7 +234,8 @@ export function analyzeByRules({ extraction, fileName, category, objects, catalo
   const period = detectPeriod(text, fileName);
   const scope = /PPC|Plano de ensino|Ementa|NDE/.test(nature) || course ? (/PDI|CPA|Regimento/.test(nature) ? 'ambos' : 'curso') : /PDI|CPA|Regimento/.test(nature) ? 'institucional' : 'ambos';
   const catalogById = new Map((catalogs || []).map(c => [c.id, c]));
-  const links = rankIndicators(extraction.pages, objects).map(r => {
+  const quality = assessDocumentQuality(extraction, source);
+  const links = (quality.suggestions_withheld ? [] : rankIndicators(extraction.pages, objects)).map(r => {
     const c = catalogById.get(r.object.catalog_id) || {};
     return {
       instrument_code: c.instrument_code, instrument_version: c.instrument_version,
@@ -247,6 +249,7 @@ export function analyzeByRules({ extraction, fileName, category, objects, catalo
   return {
     summary: extractiveSummary(text, { nature, institution: institutionDetected, course, period }),
     nature, institution_detected: institutionDetected || undefined, course_detected: course || undefined,
-    period_detected: period || undefined, scope_detected: scope, indicator_links: links,
+    period_detected: quality.suggestions_withheld ? undefined : period || undefined,
+    scope_detected: scope, indicator_links: links, quality,
   };
 }
