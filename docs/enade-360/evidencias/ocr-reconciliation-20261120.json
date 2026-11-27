@@ -1,0 +1,50 @@
+{
+  "checked_at": "2026-11-20T15:36:57.93676+00:00",
+  "mode": "read_only",
+  "declared_files": 65,
+  "receipt_files": 65,
+  "verified_files": 58,
+  "affected_files": 7,
+  "findings": [
+    {
+      "file_id": "bf6cf1b0-9dd3-533b-b76d-01011a0d25ea",
+      "prevalidation_id": "25d61fed-5f9c-4dac-8b03-948ca344eade",
+      "issue": "audit_target_missing"
+    },
+    {
+      "file_id": "ae44a229-a141-5024-91a2-838e754f4a6c",
+      "prevalidation_id": "7682d1f5-a633-4b22-897c-a70e56051c46",
+      "issue": "audit_target_missing"
+    },
+    {
+      "file_id": "41b00f61-1789-5ce2-b7eb-e80e922b32f0",
+      "prevalidation_id": "40712493-f58b-4f48-b53c-50c4ae5426e3",
+      "issue": "audit_target_missing"
+    },
+    {
+      "file_id": "3447c6ac-a9bc-5d6b-b14a-e11edf11a439",
+      "prevalidation_id": "a584c93e-2ffb-484e-95bd-b308084cbc96",
+      "issue": "audit_target_missing"
+    },
+    {
+      "file_id": "5d443aa8-bb7e-5563-9ee8-552ecf2f4520",
+      "prevalidation_id": "79796ecb-7e5f-47aa-9e84-216cbdd90335",
+      "issue": "audit_target_missing"
+    },
+    {
+      "file_id": "fa34d17e-9bfa-55d3-b0a4-b4b06a4be69f",
+      "prevalidation_id": "b3be43a2-7282-4903-acca-4dfe0a5e5473",
+      "issue": "audit_target_missing"
+    },
+    {
+      "file_id": "de8a8c60-ebce-5f62-b887-e490559e1ff6",
+      "prevalidation_id": "2faabea6-56cf-4127-b5ae-0f17a93d4663",
+      "issue": "audit_target_missing"
+    }
+  ],
+  "complete": false,
+  "limits": [
+    "Metadata reconciliation only; no OCR fidelity approval, academic approval or authenticated UI test.",
+    "A missing audit target does not establish why it is absent."
+  ]
+}
