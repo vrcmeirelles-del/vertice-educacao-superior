@@ -5,6 +5,7 @@
 import { useState, useEffect, useCallback, lazy, Suspense } from "react";
 import { supabase } from "@/lib/supabase";
 import { type Row, explain } from "@/lib/area";
+import { listPrevalidationAttempts, readPrevalidationBatches } from "@/lib/prevalidation-queue-data";
 
 const PreValidationPanel = lazy(() => import("./PreValidationPanel"));
 
@@ -70,6 +71,7 @@ export default function PreValidationQueue({ institutionId, role }: { institutio
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [filter, setFilter] = useState<FilterStatus>("all");
+  const [search, setSearch] = useState("");
   const [selectedItem, setSelectedItem] = useState<QueueItem | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
 
@@ -79,14 +81,7 @@ export default function PreValidationQueue({ institutionId, role }: { institutio
     setLoading(true);
     setError("");
     try {
-      // Load all prevalidations for this institution
-      const { data: attempts, error: pvErr } = await supabase
-        .from("vertice_doc_prevalidation")
-        // Só as colunas exibidas: o texto extraído (vários MB por IES) não vai para o navegador.
-        .select(PREVALIDATION_QUEUE_COLUMNS)
-        .eq("institution_id", institutionId)
-        .order("created_at", { ascending: false });
-      if (pvErr) throw pvErr;
+      const attempts = await listPrevalidationAttempts(supabase, institutionId, PREVALIDATION_QUEUE_COLUMNS) as PrevalidationRow[];
       // Attempts remain in the audit history; each source counts once in the operational queue.
       const seen=new Set<string>();
       const pvs=(attempts??[]).filter((p:PrevalidationRow)=>{const key=p.source_table+":"+(p.repository_file_id??p.document_id??p.id);if(seen.has(key))return false;seen.add(key);return true;});
@@ -94,30 +89,18 @@ export default function PreValidationQueue({ institutionId, role }: { institutio
 
       // Load all indicator links
       const pvIds = pvs.map((p: PrevalidationRow) => p.id);
-      const { data: links } = await supabase
-        .from("vertice_doc_indicator_links")
-        .select("id,prevalidation_id,instrument_code,object_code,compatibility,status,justification")
-        .in("prevalidation_id", pvIds);
+      const links = await readPrevalidationBatches(supabase, institutionId, "vertice_doc_indicator_links", "prevalidation_id", pvIds,
+        "id,prevalidation_id,instrument_code,object_code,compatibility,status,justification") as IndicatorLink[];
 
       // Load file names from repository_files
       const repoFileIds = pvs.filter((p: PrevalidationRow) => p.repository_file_id).map((p: PrevalidationRow) => p.repository_file_id);
       const docIds = pvs.filter((p: PrevalidationRow) => p.document_id).map((p: PrevalidationRow) => p.document_id);
 
-      let fileMap: Record<string, string> = {};
-      if (repoFileIds.length) {
-        const { data: files } = await supabase
-          .from("vertice_repository_files")
-          .select("id,file_name")
-          .in("id", repoFileIds);
-        (files ?? []).forEach((f: Row) => { fileMap[String(f.id)] = String(f.file_name); });
-      }
-      if (docIds.length) {
-        const { data: docs } = await supabase
-          .from("vertice_documents")
-          .select("id,file_name")
-          .in("id", docIds);
-        (docs ?? []).forEach((d: Row) => { fileMap[String(d.id)] = String(d.file_name); });
-      }
+      const fileMap: Record<string, string> = {};
+      const repositoryFiles = await readPrevalidationBatches(supabase, institutionId, "vertice_repository_files", "id", repoFileIds as string[], "id,file_name");
+      repositoryFiles.forEach((f: Row) => { fileMap[String(f.id)] = String(f.file_name); });
+      const documents = await readPrevalidationBatches(supabase, institutionId, "vertice_documents", "id", docIds as string[], "id,title");
+      documents.forEach((d: Row) => { fileMap[String(d.id)] = String(d.title); });
 
       const linkMap = new Map<string, IndicatorLink[]>();
       (links ?? []).forEach((l: IndicatorLink) => {
@@ -131,7 +114,7 @@ export default function PreValidationQueue({ institutionId, role }: { institutio
         const fileId = pv.repository_file_id ?? pv.document_id ?? "";
         return {
           prevalidation: pv,
-          file_name: fileMap[fileId] ?? "Documento desconhecido",
+          file_name: fileMap[fileId] ?? `Nome indisponível · arquivo ${fileId}`,
           file_id: fileId,
           links: pvLinks,
           pending_count: pvLinks.filter((l) => l.status === "sugerido").length,
@@ -143,6 +126,7 @@ export default function PreValidationQueue({ institutionId, role }: { institutio
 
       setItems(queue);
     } catch (e) {
+      setItems([]);
       setError(explain(e));
     } finally {
       setLoading(false);
@@ -152,6 +136,7 @@ export default function PreValidationQueue({ institutionId, role }: { institutio
   useEffect(() => { void loadQueue(); }, [loadQueue]);
 
   const filtered = items.filter((item) => {
+    if (search && !`${item.file_name} ${item.file_id}`.toLocaleLowerCase().includes(search.toLocaleLowerCase())) return false;
     if (filter === "all") return true;
     if (filter === "pending_approval") return item.pending_count > 0 && item.prevalidation.ai_status === "completed";
     if (filter === "completed") return item.pending_count === 0 && item.approved_count > 0;
@@ -217,7 +202,7 @@ export default function PreValidationQueue({ institutionId, role }: { institutio
           📋 Fila de Pré-validação e Espelhamento
         </h3>
         <p style={{ margin: "4px 0 0", fontSize: 13, color: "#64748b" }}>
-          Documentos analisados pela IA com vínculos regulatórios pendentes de aprovação
+          Documentos em pré-análise por regras e conferência humana; texto extraído não equivale a evidência aprovada.
         </p>
       </header>
 
@@ -227,7 +212,7 @@ export default function PreValidationQueue({ institutionId, role }: { institutio
       <div style={{ display: "flex", gap: 12, padding: "16px 24px", flexWrap: "wrap" }}>
         <div style={kpiStyle("#dbeafe", "#2563eb")}>
           <div style={{ fontSize: 28, fontWeight: 700 }}>{totalDocs}</div>
-          <div style={{ fontSize: 11, color: "#475569" }}>Documentos analisados</div>
+          <div style={{ fontSize: 11, color: "#475569" }}>Documentos na fila</div>
         </div>
         <div style={kpiStyle("#fef3c7", "#d97706")}>
           <div style={{ fontSize: 28, fontWeight: 700, color: "#d97706" }}>{pendingApproval}</div>
@@ -292,6 +277,11 @@ export default function PreValidationQueue({ institutionId, role }: { institutio
         </div>
       )}
 
+      <label style={{ display: "block", padding: "0 24px 16px" }}>
+        Buscar documento por nome ou ID
+        <input aria-label="Buscar documento por nome ou ID" value={search} onChange={e => setSearch(e.target.value)} />
+      </label>
+
       {/* Lista */}
       {loading ? (
         <p style={{ padding: 24, textAlign: "center", color: "#64748b" }}>Carregando fila…</p>
@@ -347,6 +337,7 @@ export default function PreValidationQueue({ institutionId, role }: { institutio
                       )}
                     </div>
                     <strong style={{ fontSize: 14 }}>{item.file_name}</strong>
+                    <p className="area-muted small">Arquivo: {item.file_id}</p>
                     {item.prevalidation.ai_nature && (
                       <span style={{ fontSize: 12, color: "#64748b", marginLeft: 8 }}>
                         · {item.prevalidation.ai_nature}
