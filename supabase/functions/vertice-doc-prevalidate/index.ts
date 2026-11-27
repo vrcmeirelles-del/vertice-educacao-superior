@@ -6,6 +6,7 @@ import { unzipSync } from "npm:fflate@0.8.2";
 import {extractDocument,groundedLinks,ExtractionFailure} from "./document-text.mjs";
 import {openTextPdf} from "./pdf-runtime.mjs";
 import {analyzeByRules,RULES_VERSION} from "./rule-analysis.mjs";
+import {assessDocumentQuality,rulesJobVersion,sourceBaseline} from "./document-quality.mjs";
 // Documentary processing is algorithm-only. No provider or environment opt-in.
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -96,12 +97,15 @@ Deno.serve(async (request) => {
     // Existing institutional rights and MFA, checked before service writes.
     const {data:allowed,error:scopeError}=await userClient.rpc("vertice_evidence_can_manage",{p_institution_id:institutionId});
     if(scopeError||allowed!==true)return respond({error:"access_denied"},403);
-    const {data:visible,error:visibilityError}=await userClient.from(sourceTable).select("id,institution_id").eq("id",fileId).eq("institution_id",institutionId).maybeSingle();
+    const {data:visible,error:visibilityError}=await userClient.from(sourceTable).select(sourceTable==="vertice_documents"?"id,institution_id,superseded_by":"id,institution_id").eq("id",fileId).eq("institution_id",institutionId).maybeSingle();
     if(visibilityError||!visible)return respond({error:"file_not_visible"},404);
+    // A newly superseded source must not reuse a completed pre-substitution job.
+    const supersededBy=sourceTable==="vertice_documents"?(visible as any).superseded_by:null;
+    const jobRulesVersion=rulesJobVersion(RULES_VERSION,supersededBy);
 
     const {data:claim,error:claimError}=await admin.rpc("vertice_doc_claim_rules",{
       p_institution_id:institutionId,p_source_table:sourceTable,p_file_id:fileId,
-      p_actor:user.id,p_action:action,p_rules_version:RULES_VERSION,
+      p_actor:user.id,p_action:action,p_rules_version:jobRulesVersion,
     });
     if(claimError)throw Error("claim_failed");
     if(claim.status!=="claimed")return respond(claim,claim.status==="retry_limit"?429:202);
@@ -109,6 +113,14 @@ Deno.serve(async (request) => {
 
     // 2. Get file info
     let fileName = "", storagePath = "", bucket = "", category = "", expectedHash = "", indicators: string[] = [];
+    let sourceQuality: { superseded_by?: string; previous_sha256?: string } = {};
+    const sourceIdColumn = sourceTable === "vertice_documents" ? "document_id" : "repository_file_id";
+    const {data:previous,error:previousError}=await admin.from("vertice_doc_prevalidation")
+      .select("source_sha256,extraction_metadata").eq("institution_id",institutionId).eq(sourceIdColumn,fileId)
+      .neq("id",pv.id).not("source_sha256","is",null).order("created_at",{ascending:false}).limit(1).maybeSingle();
+    if(previousError)throw Error("source_history_unavailable");
+    // Index-then-analyze cannot silently clear a revision warning for the same bytes.
+    sourceQuality.previous_sha256=sourceBaseline(previous);
     // Acervo e catálogo pela seção da solicitação (vertice_doc_source_scope). Reconhecimento e documentos
     // gerais seguem como antes: vertice-repositorios ou vertice-documents e os catálogos ativos.
     let scope: { bucket: string; catalog_code: string | null; catalog_version: string | null } = { bucket: "vertice-documents", catalog_code: null, catalog_version: null };
@@ -139,7 +151,7 @@ Deno.serve(async (request) => {
     } else {
       const { data: doc } = await admin
         .from("vertice_documents")
-        .select("file_name,storage_path,category_code,tags,sha256")
+        .select("file_name,storage_path,category_code,tags,sha256,superseded_by")
         .eq("id", fileId)
         .eq("institution_id",institutionId)
         .single();
@@ -148,6 +160,8 @@ Deno.serve(async (request) => {
         return respond({ error: "document_not_found" }, 404);
       }
       expectedHash=doc.sha256??"";
+      sourceQuality.superseded_by=doc.superseded_by??undefined;
+      if((doc.superseded_by??null)!==(supersededBy??null))throw Error("source_changed_during_claim");
       fileName = doc.file_name;
       storagePath = doc.storage_path;
       bucket = "vertice-documents";
@@ -166,12 +180,13 @@ Deno.serve(async (request) => {
       });
       if(expectedHash&&expectedHash!==extraction.sha256)throw Error("source_hash_mismatch");
       extractedText=extraction.text;
+      extraction.quality=assessDocumentQuality(extraction,sourceQuality);
       const {error:persistError}=await admin.from("vertice_doc_prevalidation").update({
        processing_stage:extraction.partial?"partial_extraction":"extracted",
        extracted_text:extraction.text,extracted_pages:extraction.pages,source_sha256:extraction.sha256,
        extraction_method:extraction.method,extraction_status:extraction.partial?"partial":"ready",
        extracted_at:new Date().toISOString(),keyword_suggestions:extraction.keywords,
-       extraction_metadata:{page_count:extraction.pageCount,characters:extraction.characters,partial:extraction.partial,pages_without_text:extraction.pagesWithoutText,ocr_applied:false,parser_version:extraction.method==='pdfjs_text_layer'?'pdfjs-dist@6.5.438':extraction.method==='utf8_text'?'TextDecoder UTF-8':'fflate@0.8.2'}
+       extraction_metadata:{page_count:extraction.pageCount,characters:extraction.characters,partial:extraction.partial,pages_without_text:extraction.pagesWithoutText,quality:extraction.quality,previous_sha256:sourceQuality.previous_sha256??null,review_signals:extraction.reviewSignals,ocr_applied:false,parser_version:extraction.method==='pdfjs_text_layer'?'pdfjs-dist@6.5.438':extraction.method==='utf8_text'?'TextDecoder UTF-8':'fflate@0.8.2'}
       }).eq("id",pv.id).eq("institution_id",institutionId);
       if(persistError)throw Error("index_persistence_failed");
       if(sourceTable==="vertice_documents"){
@@ -222,8 +237,8 @@ Deno.serve(async (request) => {
      admin.from("vertice_institutions").select("name,acronym").eq("id",institutionId).maybeSingle(),
      admin.from("vertice_courses").select("name").eq("institution_id",institutionId).limit(500),
     ]);
-    const result: PrevalidationResult = analyzeByRules({extraction,fileName,category,objects,catalogs,institution:instRow,courses:courseRows??[]}) as PrevalidationResult;
-    const modelVersion=RULES_VERSION;
+    const result: PrevalidationResult = analyzeByRules({extraction,fileName,category,objects,catalogs,institution:instRow,courses:courseRows??[],source:sourceQuality}) as PrevalidationResult;
+    const modelVersion=jobRulesVersion;
 
     // Result, literal source links and audit commit together; failed inserts never report success.
     const {data:completed,error:completeError}=await admin.rpc("vertice_doc_finish_rules",{

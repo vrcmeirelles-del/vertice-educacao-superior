@@ -18,7 +18,7 @@ export async function extractDocument(bytes,name,a){
  if(!(bytes instanceof Uint8Array)||bytes.length>LIMITS.bytes)throw Error('file_too_large');
  const hash=await crypto.subtle.digest('SHA-256',bytes),sha256=Array.from(new Uint8Array(hash),b=>b.toString(16).padStart(2,'0')).join('');
  const ext=name.toLowerCase().split('.').pop(),sig=new TextDecoder().decode(bytes.subarray(0,8));
- let pages=[],method='',partial=false,pageCount=null,chars=0,pagesWithoutText=[];
+ let pages=[],method='',partial=false,pageCount=null,chars=0,pagesWithoutText=[],reviewSignals=[];
  const add=(text,page=null,section=null)=>{text=clean(text);if(text.length>LIMITS.chars-chars){partial=true;text=text.slice(0,LIMITS.chars-chars);}if(text){pages.push({page,section,text});chars+=text.length;}};
  try{
  // Await durable receipt before any parser can hit a hard runtime limit.
@@ -30,13 +30,19 @@ export async function extractDocument(bytes,name,a){
   method=ext+'_xml';let expanded=0,entries=0;
   const z=a.unzip(bytes,{filter:f=>{
    if(++entries>LIMITS.entries)throw Error('zip_entry_limit');
-   const wanted=ext==='docx'?/^word\/(document|header\d+|footer\d+)\.xml$/.test(f.name):ext==='xlsx'?/^xl\/(sharedStrings|worksheets\/sheet\d+)\.xml$/.test(f.name):/^ppt\/slides\/slide\d+\.xml$/.test(f.name);
+   const wanted=ext==='docx'?/^word\/(document|comments|header\d+|footer\d+)\.xml$/.test(f.name):ext==='xlsx'?/^xl\/(sharedStrings|worksheets\/sheet\d+)\.xml$/.test(f.name):/^ppt\/slides\/slide\d+\.xml$/.test(f.name);
    if(!wanted)return false;expanded+=f.originalSize;if(expanded>LIMITS.expanded)throw Error('zip_expansion_limit');return true;
   }});
   if(ext==='docx'&&!z['word/document.xml'])throw Error('docx_main_part_missing');
   let shared=[],cells=0;if(z['xl/sharedStrings.xml'])shared=[...utf(z['xl/sharedStrings.xml']).matchAll(/<si(?:\s[^>]*)?>([\s\S]*?)<\/si>/g)].map(m=>xmlText(m[1]));
   for(const path of Object.keys(z).sort((x,y)=>x.localeCompare(y,'en',{numeric:true}))){
    if(path==='xl/sharedStrings.xml')continue;const xml=utf(z[path]);if(/<!DOCTYPE|<!ENTITY/i.test(xml))throw Error('xml_entities_not_supported');
+   if(ext==='docx'){
+    if(/<w:(?:ins|del|moveFrom|moveTo)(?:\s|>)/.test(xml))reviewSignals.push('tracked_changes');
+    if(path==='word/comments.xml'||/<w:commentRangeStart(?:\s|>)/.test(xml))reviewSignals.push('comments');
+    // Reviewer comments are not the institutional document's body.
+    if(path==='word/comments.xml')continue;
+   }
    if(ext==='xlsx')for(const m of xml.matchAll(/<c\b([^>]*)>([\s\S]*?)<\/c>/g)){
     if(++cells>LIMITS.cells){partial=true;break;}const ref=m[1].match(/\br="([A-Z]+\d+)"/)?.[1],v=m[2].match(/<v(?:\s[^>]*)?>([\s\S]*?)<\/v>/)?.[1];
     add(String(/\bt="s"/.test(m[1])?shared[Number(v)]||'':v??xmlText(m[2])),null,path+(ref?'!'+ref:''));if(chars>=LIMITS.chars){partial=true;break;}
@@ -49,7 +55,7 @@ export async function extractDocument(bytes,name,a){
  if(chars<50)throw Error(method==='pdfjs_text_layer'?'no_embedded_text_ocr_required':'insufficient_text');
  if(pagesWithoutText.length)partial=true;
  const text=pages.map(p=>(p.page?'PÁGINA '+p.page+'\n':'')+p.text).join('\n\n');
- return {text,pages,sha256,method,partial,pageCount,pagesWithoutText,characters:chars,keywords:keywords(text),ocrApplied:false};
+ return {text,pages,sha256,method,partial,pageCount,pagesWithoutText,reviewSignals:[...new Set(reviewSignals)],characters:chars,keywords:keywords(text),ocrApplied:false};
  }catch(error){throw new ExtractionFailure(error instanceof Error?error.message:String(error),sha256,bytes.length,method||null);}
 }
 export function groundedLinks(links,extracted){

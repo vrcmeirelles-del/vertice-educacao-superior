@@ -29,7 +29,10 @@ interface Prevalidation {
   ai_analyzed_at: string;
   ai_error: string;
   lease_until?: string; processing_stage?:string; attempt_number?:number;
-  extraction_status?:string; extracted_at?:string; source_sha256?:string; keyword_suggestions?:string[]; extraction_metadata?:{characters?:number;partial?:boolean};
+  extraction_status?:string; extracted_at?:string; source_sha256?:string; keyword_suggestions?:string[]; extraction_metadata?:{
+    characters?:number;partial?:boolean;
+    quality?:{highest_severity:string;suggestions_withheld:boolean;issues:{code:string;severity:string;message:string}[]};
+  };
 }
 
 export const PREVALIDATION_PANEL_COLUMNS = "id,ai_status,ai_summary,ai_nature,ai_institution_detected,ai_course_detected,ai_period_detected,ai_scope_detected,ai_model_version,ai_analyzed_at,ai_error,lease_until,processing_stage,attempt_number,extraction_status,extracted_at,source_sha256,keyword_suggestions,extraction_metadata";
@@ -183,6 +186,7 @@ export default function PreValidationPanel({
   const highCount = links.filter((l) => l.compatibility === "alta" && l.status === "sugerido").length;
   const pendingCount = links.filter((l) => l.status === "sugerido").length;
   const approvedCount = links.filter((l) => l.status === "aprovado").length;
+  const quality = prevalidation?.extraction_metadata?.quality;
 
   return (
     <div className="er-prevalidation-panel" style={{ border: "2px solid var(--color-primary, #2563eb)", borderRadius: 12, padding: 24, background: "var(--color-surface, #fff)", marginTop: 16 }}>
@@ -208,6 +212,12 @@ export default function PreValidationPanel({
         </button>
       )}
       {prevalidation?.processing_stage === "human_review" && <p role="status">Pré-análise por algoritmo concluída. Conferência do original e decisão do gestor pendentes.</p>}
+      {quality && quality.issues.length > 0 && <div role="alert" style={{padding:16,background:"#fff7ed",borderRadius:8,marginTop:12}}>
+        <strong>Conferência do original necessária</strong>
+        <ul>{quality.issues.map(issue=><li key={issue.code}>{issue.message}</li>)}</ul>
+        {quality.suggestions_withheld && <p>Sugestões de indicadores suspensas nesta extração. A classificação manual pelo gestor permanece disponível.</p>}
+        <small>Rasuras visuais e manuscritos não são detectados por esta extração; confira as páginas originais.</small>
+      </div>}
       {/* Status atual */}
       {loading && <p style={{ color: "#64748b" }}>Carregando análises anteriores…</p>}
 
@@ -421,7 +431,7 @@ export default function PreValidationPanel({
 
           {links.length === 0 && (
             <p style={{ color: "#64748b", textAlign: "center", padding: 24 }}>
-              Nenhum indicador foi localizado no texto deste documento.
+              {quality?.suggestions_withheld ? "Nenhum vínculo foi sugerido por haver pendências de qualidade. Confira o original e classifique manualmente." : "Nenhum indicador foi localizado no texto deste documento."}
             </p>
           )}
         </>
