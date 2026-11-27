@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - 'supabase/functions/vertice-discursiva/**'
+      - 'supabase/functions/vertice-learning-bridge/mastery*.ts'
       - 'supabase/functions/_shared/**'
       - 'supabase/functions/vertice-communications/**'
       - 'supabase/functions/vertice-convite*/**'

@@ -6,8 +6,9 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import ReadingIndicators from '@/components/bi/ReadingIndicators';
 import SapiensSignals from '@/components/bi/SapiensSignals';
+import MasteryIndicators from '@/components/bi/MasteryIndicators';
 
-type Tab = "planning" | "diagnoses" | "interventions" | "briefings" | "goals" | "readings" | "trails" | "signals";
+type Tab = "planning" | "diagnoses" | "interventions" | "briefings" | "goals" | "readings" | "trails" | "signals" | "mastery";
 type TrailDiag = { trail_id: string; code: string; name: string; question_count: number; avg_national_pct: number|null; avg_ies_pct: number|null; total_discrepancy: number|null; avg_discrepancy: number|null; status: string };
 type Effectiveness = { id: string; intervention_id: string; measured_at: string; current_sample_size: number; attempts_since_baseline: number; p_know_change: number | null; sample_overlap: number; effectiveness: string };
 
@@ -166,6 +167,7 @@ export default function SapiensPanel({ institutionId, role }: Props) {
     { key: "trails", label: "Trilhas ENADE", count: trails.filter(t => t.status === "critico" || t.status === "atencao").length },
     { key: "readings", label: "Leituras e contexto" },
     { key: "signals", label: "Sinais dos alunos" },
+    { key: "mastery", label: "Domínio por competência" },
   ];
 
   return (
@@ -232,6 +234,7 @@ export default function SapiensPanel({ institutionId, role }: Props) {
         </div>
       )}
       {tab === "signals" && <SapiensSignals institutionId={institutionId} role={role}/>}
+      {tab === "mastery" && <MasteryIndicators institutionId={institutionId} role={role}/>}
       {tab === "readings" && <><p>Contexto institucional de aprofundamento para apoiar a análise humana. Os totais não entram no cálculo de severidade, nas medições de eficácia ou nas propostas automáticas de intervenção.</p><ReadingIndicators institutionId={institutionId} role={role} revision={readingRevision}/></>}
 
       {/* Diagnoses Tab */}

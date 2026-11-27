@@ -51,7 +51,7 @@ try{
  const admin={auth:{getUser:async()=>({data:{user:{id:actor}},error:null})},from:table=>{
   let id;const q={select:()=>q,eq:(name,value)=>{if(name==='id')id=value;return q;},maybeSingle:async()=>({data:table==='vertice_admins'?{user_id:actor}:table==='vertice_institutions'?{tier:id===school?'escolas':'superior'}:null,error:null})};return q;
  },rpc:()=>assert.fail('Reading consumption must not mutate metrics or other tables')};
- const code=ts.transpile(readFileSync(path.join(repository,'supabase/functions/vertice-learning-bridge/index.ts'),'utf8').replace(/^import .*\n/,''),{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.None});
+ const code=ts.transpile(readFileSync(path.join(repository,'supabase/functions/vertice-learning-bridge/mastery.ts'),'utf8').replace(/^export /gm,'')+'\n'+readFileSync(path.join(repository,'supabase/functions/vertice-learning-bridge/index.ts'),'utf8').replace(/^import .*\n/gm,''),{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.None});
  vm.runInNewContext(code,{Deno:{env:{get:name=>({SUPABASE_URL:'https://fixture.supabase.co',SUPABASE_SERVICE_ROLE_KEY:'synthetic',VERTICE_BRIDGE_API_KEY:key})[name]},serve:fn=>handler=fn},createClient:()=>admin,fetch:provider,TextEncoder,Response,Request,URL,URLSearchParams,AbortSignal,atob,Date,console,crypto:webcrypto});
  const jwt='header.'+Buffer.from(JSON.stringify({sub:actor,aal:'aal2'})).toString('base64url')+'.signature';
  const consume=async inst=>{

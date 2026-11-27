@@ -1,4 +1,5 @@
 import {createClient,type SupabaseClient} from "npm:@supabase/supabase-js@2.45.4";
+import {MASTERY_RULES,aggregateMastery,masteryContract,type RosterRow} from "./mastery.ts";
 
 // Server-only bridge. No CPF is persisted, logged or returned.
 const ORIGINS=new Set([
@@ -252,6 +253,27 @@ Deno.serve(async req=>{
    return send({ok:true,institutionId:inst,educationTier:segment.tier,scope:"institution",
     retrievedAt:new Date().toISOString(),generatedAt:result.generatedAt,summary,patterns,students,unmatched,
     notice:"Sinais descritivos do Sapiens. Situação de estudo segue regra fixa; não é previsão nem nota. Padrões de erro só aparecem depois de liberados ao próprio aluno."},200,origin);
+  }
+  if(operation==="mastery_indicators"){
+   // Domínio por competência (mastery-feed do F&O). Somente agregados; nenhum aluno é identificado.
+   if(segment.tier!=="superior"&&segment.tier!=="escolas")throw fail("Segmento institucional inválido.",403);
+   if(Object.keys(body).some(key=>!["institutionId","operation"].includes(key)))
+    throw fail("Domínio por competência disponível somente no recorte institucional.");
+   let result;
+   try{result=await remote("/api/internal/vertice/mastery-feed?institutionId="+encodeURIComponent(inst),"GET",undefined,true);}
+   catch(error){
+    const status=(error as {status?:number}).status;
+    throw fail(status===503?"Credencial de integração não configurada.":"Não foi possível consultar o domínio por competência no Fato & Ordem.",status===503?503:502);
+   }
+   let records;
+   try{records=masteryContract(result,inst);}catch(error){throw fail((error as Error).message,502);}
+   const tokens=[...new Set(records.map(r=>r.studentToken))];
+   if(tokens.length>20000)throw fail("Volume de alunos acima do limite da consulta institucional.",502);
+   const roster=tokens.length?await rpc(admin,"vertice_sapiens_signal_roster",{p_institution:inst,p_tokens:tokens}):[];
+   const snapshot=aggregateMastery(records,(Array.isArray(roster)?roster:[]) as RosterRow[]);
+   return send({ok:true,institutionId:inst,educationTier:segment.tier,scope:"institution",
+    retrievedAt:new Date().toISOString(),rules:MASTERY_RULES,...snapshot,
+    notice:"Probabilidade de domínio estimada pelo motor adaptativo do Fato & Ordem. Indicador descritivo: não é nota, não identifica alunos e grupos pequenos são suprimidos."},200,origin);
   }
   if(operation==="sync_enem"&&!school)throw fail("ENEM integra exclusivamente a Vértice Escolas.",403);
   if(operation==="sync"&&school)throw fail("Use a sincronização ENEM da Vértice Escolas.",403);

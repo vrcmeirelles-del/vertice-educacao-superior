@@ -5,7 +5,7 @@ import ts from 'typescript';
 const institution='00000000-0000-4000-8000-000000000001';
 const user='00000000-0000-4000-8000-000000000002';
 const jwt='header.'+Buffer.from(JSON.stringify({sub:user,aal:'aal2'})).toString('base64url')+'.signature';
-const code=ts.transpile(readFileSync('supabase/functions/vertice-learning-bridge/index.ts','utf8').replace(/^import .*\n/,''),{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.None});
+const code=ts.transpile(readFileSync('supabase/functions/vertice-learning-bridge/mastery.ts','utf8').replace(/^export /gm,'')+'\n'+readFileSync('supabase/functions/vertice-learning-bridge/index.ts','utf8').replace(/^import .*\n/gm,''),{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.None});
 function harness({school=false,module='enamed',ingestError=false,remoteError=false,malformed=false,emptyMore=false}={}){
  let handler:any;
  const calls:{name:string;args:any}[]=[];
