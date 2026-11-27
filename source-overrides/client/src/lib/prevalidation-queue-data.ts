@@ -1,6 +1,6 @@
 /** Read-only queue queries. Keep URLs bounded and fail visibly on lookup errors. */
 type Client = { from(table: string): any };
-type RecordRow = Record<string, any>;
+type RecordRow = { id: string } & Record<string, any>;
 export async function listPrevalidationAttempts(client: Client, institutionId: string, columns: string) {
   const rows: RecordRow[] = [];
   for (let from = 0; ; from += 1000) {
